@@ -85,6 +85,7 @@ let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: 
   | IntLiteral v -> interpret_int_literal v ctx
 
 let interpret_command (cmd: command) (ctx: ctx) : ctx =
+  Printf.printf "Stepping to cmd %s\n" (Format_ir.format_command cmd);
   match cmd with
   | BoolDef (var, e) ->
     let v = interpret_logical_expression e ctx in
