@@ -65,7 +65,7 @@ let interpret_logical_expression (e: logical_expression Pos.marked) (ctx: ctx) :
 
 let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: ctx) : Int64.t =
   match Pos.unmark e with
-  | ArithmeticBinop (op, v1, (v2 as v2orig)) ->
+  | ArithmeticBinop (op, v1, v2) ->
     let v1 = interpret_int_literal v1 ctx in
     let v2 = interpret_int_literal v2 ctx in
     begin match Pos.unmark op with
@@ -75,7 +75,7 @@ let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: 
       | Ast.Div ->
         if v2 = Int64.zero then
           raise (Errors.VerifiscRuntimeError (
-              Printf.sprintf "division by zero %s" (Pos.format_position (Pos.get_position v2orig))
+              Printf.sprintf "division by zero %s" (Pos.format_position (Pos.get_position e))
             ));
         Int64.div v1 v2
     end
