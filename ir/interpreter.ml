@@ -65,14 +65,19 @@ let interpret_logical_expression (e: logical_expression Pos.marked) (ctx: ctx) :
 
 let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: ctx) : Int64.t =
   match Pos.unmark e with
-  | ArithmeticBinop (op, v1, v2) ->
+  | ArithmeticBinop (op, v1, (v2 as v2orig)) ->
     let v1 = interpret_int_literal v1 ctx in
     let v2 = interpret_int_literal v2 ctx in
     begin match Pos.unmark op with
       | Ast.Add -> Int64.add v1 v2
       | Ast.Sub -> Int64.sub v1 v2
       | Ast.Mul -> Int64.mul v1 v2
-      | Ast.Div -> Int64.div v1 v2
+      | Ast.Div ->
+        if v2 = Int64.zero then
+          raise (Errors.VerifiscRuntimeError (
+              Printf.sprintf "division by zero %s" (Pos.format_position (Pos.get_position v2orig))
+            ));
+        Int64.div v1 v2
     end
   | ArithmeticMinus v1 ->
     let v1 = interpret_int_literal v1 ctx in
@@ -85,7 +90,6 @@ let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: 
   | IntLiteral v -> interpret_int_literal v ctx
 
 let interpret_command (cmd: command) (ctx: ctx) : ctx =
-  Printf.printf "Stepping to cmd %s\n" (Format_ir.format_command cmd);
   match cmd with
   | BoolDef (var, e) ->
     let v = interpret_logical_expression e ctx in
