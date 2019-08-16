@@ -18,3 +18,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 exception UnsupportedByVerifisc of string
 
 exception VerifiscTypeError of string
+
+exception VerifiscRuntimeError of string

@@ -74,6 +74,12 @@ let typecheck (program : program) : unit =
       let ctx = List.fold_left (fun ctx cmd ->
           match cmd with
           | BoolDef (var, e) ->
+            if List.mem var (snd ctx.ctx_defined_variables) then
+              raise (Errors.VerifiscTypeError (
+                  Printf.sprintf "Forbidden variable redefiniton: %s %s"
+                    (Pos.unmark var.Ast.BoolVariable.name)
+                    (Pos.format_position (Pos.get_position e))
+                ));
             typecheck_logical_expression e ctx;
             {
               ctx_defined_variables =
@@ -81,6 +87,12 @@ let typecheck (program : program) : unit =
                  var::(snd ctx.ctx_defined_variables)
                 )}
           | IntDef (var, e) ->
+            if List.mem var (fst ctx.ctx_defined_variables) then
+              raise (Errors.VerifiscTypeError (
+                  Printf.sprintf "Forbidden variable redefiniton: %s %s"
+                    (Pos.unmark var.Ast.IntVariable.name)
+                    (Pos.format_position (Pos.get_position e))
+                ));
             typecheck_arithmetic_expression e ctx;
             {
               ctx_defined_variables =
