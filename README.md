@@ -8,7 +8,11 @@ it directly to Z3 in order to gain insight on the legislation that the code desc
 ## Usage
 
 The project is distributed as a Dune artifact. Use standard dune commands to build
-and install the library.
+and install the library. In particular, if you want to install the library as an opam
+package, use the following command at the root of the repository:
+
+    opam install ./
+
 
 ## License
 
