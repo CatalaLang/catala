@@ -50,11 +50,41 @@ module Variable (_ : sig end) = struct
 end
 
 module BoolVariable = Variable ()
-module BoolVariableMap = Map.Make(BoolVariable)
+module BoolVariableMap =
+  (struct
+    include Map.Make(BoolVariable)
+
+    let map_printer key_printer value_printer fmt map =
+      Format.fprintf fmt "{ %a }"
+        (fun fmt -> iter (fun k v ->
+             Format.fprintf fmt "%a ~> %a, " key_printer k value_printer v
+           )) map
+  end)
 module IntVariable = Variable ()
-module IntVariableMap = Map.Make(IntVariable)
+module IntVariableMap =
+  (struct
+    include Map.Make(IntVariable)
+
+    let map_printer key_printer value_printer fmt map =
+      Format.fprintf fmt "{ %a }"
+        (fun fmt -> iter (fun k v ->
+             Format.fprintf fmt "%a ~> %a, " key_printer k value_printer v
+           )) map
+  end)
+
 module FunctionVariable = Variable ()
-module FunctionVariableMap = Map.Make(FunctionVariable)
+module FunctionVariableMap =
+  (struct
+    include Map.Make(FunctionVariable)
+
+    let map_printer key_printer value_printer fmt map =
+      Format.fprintf fmt "{ %a }"
+        (fun fmt -> iter (fun k v ->
+             Format.fprintf fmt "%a ~> %a, " key_printer k value_printer v
+           )) map
+  end)
+
+
 
 type typ =
   | Int

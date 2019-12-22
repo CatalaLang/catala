@@ -16,72 +16,66 @@ limitations under the License.
 
 open Ir
 
-let format_int_literal (v: int_literal) : string =
+let format_int_literal fmt (v: int_literal) =
   match v with
-  | Int i -> Int64.to_string i
-  | IntVar var -> Format_ast.format_int_var var
+  | Int i -> Format.fprintf fmt "%s" (Int64.to_string i)
+  | IntVar var -> Format_ast.format_int_var fmt var
 
-let format_bool_literal (v: bool_literal) : string =
+let format_bool_literal fmt (v: bool_literal) =
   match v with
-  | Bool b -> string_of_bool b
-  | BoolVar var -> Format_ast.format_bool_var var
+  | Bool b -> Format.fprintf fmt "%b" b
+  | BoolVar var -> Format_ast.format_bool_var fmt var
 
-let format_logical_expression (e: logical_expression) : string = match e with
+let format_logical_expression fmt (e: logical_expression) = match e with
   | Comparison (op, v1, v2) ->
-    Printf.sprintf "%s %s %s"
-      (format_int_literal (Pos.unmark v1))
-      (Format_ast.format_comparison_op (Pos.unmark op))
-      (format_int_literal (Pos.unmark v2))
+    Format.fprintf fmt "%a %a %a"
+      format_int_literal (Pos.unmark v1)
+      Format_ast.format_comparison_op (Pos.unmark op)
+      format_int_literal (Pos.unmark v2)
   | LogicalBinop (op, v1, v2) ->
-    Printf.sprintf "%s %s %s"
-      (format_bool_literal (Pos.unmark v1))
-      (Format_ast.format_logical_binop (Pos.unmark op))
-      (format_bool_literal (Pos.unmark v2))
+    Format.fprintf fmt "%a %a %a"
+      format_bool_literal (Pos.unmark v1)
+      Format_ast.format_logical_binop (Pos.unmark op)
+      format_bool_literal (Pos.unmark v2)
   | LogicalNot v1 ->
-    Printf.sprintf "!%s" (format_bool_literal (Pos.unmark v1))
-  | BoolLiteral b -> format_bool_literal (Pos.unmark b)
+    Format.fprintf fmt "!%a" format_bool_literal (Pos.unmark v1)
+  | BoolLiteral b -> format_bool_literal fmt (Pos.unmark b)
 
-let format_arithmetic_expression (e: arithmetic_expression) : string = match e with
+let format_arithmetic_expression fmt (e: arithmetic_expression) = match e with
   | ArithmeticBinop (op, v1, v2) ->
-    Printf.sprintf "%s %s %s"
-      (format_int_literal (Pos.unmark v1))
-      (Format_ast.format_arithmetic_binop (Pos.unmark op))
-      (format_int_literal (Pos.unmark v2))
+    Format.fprintf fmt "%a %a %a"
+      format_int_literal (Pos.unmark v1)
+      Format_ast.format_arithmetic_binop (Pos.unmark op)
+      format_int_literal (Pos.unmark v2)
   | Conditional (v1, v2, v3) ->
-    Printf.sprintf "if %s then %s else %s"
-      (format_bool_literal (Pos.unmark v1))
-      (format_int_literal (Pos.unmark v2))
-      (format_int_literal (Pos.unmark v3))
+    Format.fprintf fmt "if %a then %a else %a"
+      format_bool_literal (Pos.unmark v1)
+      format_int_literal (Pos.unmark v2)
+      format_int_literal (Pos.unmark v3)
   | ArithmeticMinus v1 ->
-    Printf.sprintf "- %s" (format_int_literal (Pos.unmark v1))
-  | IntLiteral v -> format_int_literal (Pos.unmark v)
+    Format.fprintf fmt "- %a" format_int_literal (Pos.unmark v1)
+  | IntLiteral v -> format_int_literal fmt (Pos.unmark v)
 
-let format_command (c: command) : string = match c with
+let format_command fmt (c: command) = match c with
   | BoolDef (bv, e) ->
-    Printf.sprintf "%s : bool := %s"
-      (Format_ast.format_bool_var bv)
-      (format_logical_expression (Pos.unmark e))
+    Format.fprintf fmt "%a : bool := %a"
+      Format_ast.format_bool_var bv
+      format_logical_expression (Pos.unmark e)
   | IntDef (iv, e) ->
-    Printf.sprintf "%s : int := %s"
-      (Format_ast.format_int_var iv)
-      (format_arithmetic_expression (Pos.unmark e))
+    Format.fprintf fmt "%a : int := %a"
+      Format_ast.format_int_var iv
+      format_arithmetic_expression (Pos.unmark e)
   | Constraint e ->
-    Printf.sprintf "assert(%s)"
-      (format_logical_expression (Pos.unmark e))
+    Format.fprintf fmt "assert(%a)"
+      format_logical_expression (Pos.unmark e)
 
-let format_func (f: func) : string =
-  Printf.sprintf "function(%s, %s) -> %s, %s\n%s"
-    (String.concat "," (List.map (fun v -> Format_ast.format_bool_var v) (snd f.inputs)))
-    (String.concat "," (List.map (fun v -> Format_ast.format_int_var v) (fst f.inputs)))
-    (String.concat "," (List.map (fun v -> Format_ast.format_int_var v) (fst f.outputs)))
-    (String.concat "," (List.map (fun v -> Format_ast.format_bool_var v) (snd f.outputs)))
-    (String.concat "\n" (List.map (fun c -> format_command c) f.body))
+let format_func fmt (f: func) =
+  Format.fprintf fmt "function(%a, %a) -> %a, %a\n%a"
+    (Format_ast.pp_print_list_comma Format_ast.format_int_var) (fst f.inputs)
+    (Format_ast.pp_print_list_comma Format_ast.format_bool_var) (snd f.inputs)
+    (Format_ast.pp_print_list_comma Format_ast.format_int_var) (fst f.outputs)
+    (Format_ast.pp_print_list_comma Format_ast.format_bool_var) (snd f.outputs)
+    (Format_ast.pp_print_list_endline format_command) f.body
 
-let format_program (p: program) : string =
-  Ast.FunctionVariableMap.fold (fun fvar f acc ->
-      acc ^ begin
-        Printf.sprintf "%s ::= %s\n\n"
-          (Format_ast.format_function_var fvar)
-          (format_func f)
-      end
-    ) p.program_functions ""
+let format_program fmt (p: program) =
+  Ast.FunctionVariableMap.map_printer Format_ast.format_function_var format_func fmt p.program_functions

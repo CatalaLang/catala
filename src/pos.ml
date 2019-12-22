@@ -22,9 +22,9 @@ type position = {
   pos_loc: (Lexing.position * Lexing.position)
 }
 
-let format_position (pos: position) : string =
+let format_position fmt (pos: position) =
   let (s, e) = pos.pos_loc in
-  Printf.sprintf "in file %s, from %d:%d to %d:%d"
+  Format.fprintf fmt "in file %s, from %d:%d to %d:%d"
     pos.pos_filename
     s.Lexing.pos_lnum (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)

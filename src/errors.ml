@@ -19,3 +19,11 @@ exception UnsupportedByVerifisc of string
 exception VerifiscTypeError of string
 
 exception VerifiscRuntimeError of string
+
+let verifisc_type_error kont =
+  Format.kasprintf (fun str ->
+      raise (VerifiscTypeError str)) kont
+
+let verifisc_runtime_error kont =
+  Format.kasprintf (fun str ->
+      raise (VerifiscRuntimeError str)) kont

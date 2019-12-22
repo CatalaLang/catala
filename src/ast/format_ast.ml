@@ -16,101 +16,115 @@ limitations under the License.
 
 open Ast
 
-let format_typ (t: typ) : string = match t with
-  | Int -> "integer"
-  | Bool -> "boolean"
 
-let format_comparison_op (op : comparison_op) : string = match op with
-  | Lt -> "<"
-  | Lte -> "<="
-  | Gt -> ">"
-  | Gte -> ">="
-  | Neq -> "!="
-  | Eq -> "=="
+let pp_print_list_comma eldisplay fmt l =
+  Format.pp_print_list ~pp_sep:(fun fmt () -> Format.pp_print_string fmt ", ") eldisplay fmt l
 
-let format_logical_binop (op: logical_binop) : string = match op with
-  | And -> "&&"
-  | Or -> "||"
+let pp_print_list_endline eldisplay fmt l =
+  Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n") eldisplay fmt l
 
-let format_arithmetic_binop (op: arithmetic_binop) : string = match op with
-  | Add -> "+"
-  | Sub -> "-"
-  | Mul -> "*"
-  | Div -> "/"
 
-let format_bool_var (b: BoolVariable.t) : string =
-  Printf.sprintf "%s_%d"
+let format_typ fmt (t: typ) =
+  Format.pp_print_string fmt
+    (match t with
+     | Int -> "integer"
+     | Bool -> "boolean")
+
+let format_comparison_op fmt (op : comparison_op) =
+  Format.pp_print_string fmt
+    (match op with
+     | Lt -> "<"
+     | Lte -> "<="
+     | Gt -> ">"
+     | Gte -> ">="
+     | Neq -> "!="
+     | Eq -> "==")
+
+let format_logical_binop fmt (op: logical_binop) =
+  Format.pp_print_string fmt
+    (match op with
+     | And -> "&&"
+     | Or -> "||")
+
+let format_arithmetic_binop fmt (op: arithmetic_binop) =
+  Format.pp_print_string fmt
+    (match op with
+     | Add -> "+"
+     | Sub -> "-"
+     | Mul -> "*"
+     | Div -> "/")
+
+let format_bool_var fmt (b: BoolVariable.t) =
+  Format.fprintf fmt "%s_%d"
     (Pos.unmark b.BoolVariable.name)
     b.BoolVariable.id
 
-let format_int_var (b: IntVariable.t) : string =
-  Printf.sprintf "%s_%d"
+let format_int_var fmt (b: IntVariable.t) =
+  Format.fprintf fmt "%s_%d"
     (Pos.unmark b.IntVariable.name)
     b.IntVariable.id
 
-let format_function_var (b: FunctionVariable.t) : string =
-  Printf.sprintf "%s_%d"
+let format_function_var fmt (b: FunctionVariable.t) =
+  Format.fprintf fmt "%s_%d"
     (Pos.unmark b.FunctionVariable.name)
     b.FunctionVariable.id
 
-let rec format_logical_expression (e: logical_expression) : string = match e with
+let rec format_logical_expression fmt (e: logical_expression) = match e with
   | Comparison (op, e1, e2) ->
-    Printf.sprintf "(%s %s %s)"
-      (format_arithmetic_expression (Pos.unmark e1))
-      (format_comparison_op (Pos.unmark op))
-      (format_arithmetic_expression (Pos.unmark e2))
+    Format.fprintf fmt "(%a %a %a)"
+      format_arithmetic_expression (Pos.unmark e1)
+      format_comparison_op (Pos.unmark op)
+      format_arithmetic_expression (Pos.unmark e2)
   | LogicalBinop (op, e1, e2) ->
-    Printf.sprintf "(%s %s %s)"
-      (format_logical_expression (Pos.unmark e1))
-      (format_logical_binop (Pos.unmark op))
-      (format_logical_expression (Pos.unmark e2))
+    Format.fprintf fmt "(%a %a %a)"
+      format_logical_expression (Pos.unmark e1)
+      format_logical_binop (Pos.unmark op)
+      format_logical_expression (Pos.unmark e2)
   | LogicalNot e1 ->
-    Printf.sprintf "!%s" (format_logical_expression (Pos.unmark e1))
-  | BoolLiteral b -> string_of_bool b
-  | BoolVar v -> format_bool_var v
+    Format.fprintf fmt "!%a" format_logical_expression (Pos.unmark e1)
+  | BoolLiteral b ->
+    Format.fprintf fmt "%b" b
+  | BoolVar v ->
+    format_bool_var fmt v
 
-and format_arithmetic_expression (e: arithmetic_expression) : string = match e with
+and format_arithmetic_expression fmt (e: arithmetic_expression) = match e with
   | ArithmeticBinop (op, e1, e2) ->
-    Printf.sprintf "(%s %s %s)"
-      (format_arithmetic_expression (Pos.unmark e1))
-      (format_arithmetic_binop (Pos.unmark op))
-      (format_arithmetic_expression (Pos.unmark e2))
+    Format.fprintf fmt "(%a %a %a)"
+      format_arithmetic_expression (Pos.unmark e1)
+      format_arithmetic_binop (Pos.unmark op)
+      format_arithmetic_expression (Pos.unmark e2)
   | Conditional (e1, e2, e3) ->
-    Printf.sprintf "(if %s then %s else %s)"
-      (format_logical_expression (Pos.unmark e1))
-      (format_arithmetic_expression (Pos.unmark e2))
-      (format_arithmetic_expression (Pos.unmark e3))
+    Format.fprintf fmt "(if %a then %a else %a)"
+      format_logical_expression (Pos.unmark e1)
+      format_arithmetic_expression (Pos.unmark e2)
+      format_arithmetic_expression (Pos.unmark e3)
   | ArithmeticMinus e1 ->
-    Printf.sprintf "- %s" (format_arithmetic_expression (Pos.unmark e1))
-  | IntLiteral i -> Int64.to_string i
-  | IntVar v -> format_int_var v
+    Format.fprintf fmt "- %a" format_arithmetic_expression (Pos.unmark e1)
+  | IntLiteral i ->
+    Format.pp_print_string fmt (Int64.to_string i)
+  | IntVar v ->
+    format_int_var fmt v
 
-let format_command (c: command) : string = match c with
+let format_command fmt (c: command) = match c with
   | BoolDef (bv, e) ->
-    Printf.sprintf "%s : bool := %s"
-      (format_bool_var bv)
-      (format_logical_expression (Pos.unmark e))
+    Format.fprintf fmt "%a : bool := %a"
+      format_bool_var bv
+      format_logical_expression (Pos.unmark e)
   | IntDef (iv, e) ->
-    Printf.sprintf "%s : int := %s"
-      (format_int_var iv)
-      (format_arithmetic_expression (Pos.unmark e))
+    Format.fprintf fmt "%a : int := %a"
+      format_int_var iv
+      format_arithmetic_expression (Pos.unmark e)
   | Constraint e ->
-    Printf.sprintf "assert(%s)"
-      (format_logical_expression (Pos.unmark e))
+    Format.fprintf fmt "assert(%a)"
+      format_logical_expression (Pos.unmark e)
 
-let format_func (f: func) : string =
-  Printf.sprintf "function(%s, %s) -> %s, %s\n%s"
-    (String.concat "," (List.map (fun v -> format_int_var v) (fst f.inputs)))
-    (String.concat "," (List.map (fun v -> format_bool_var v) (snd f.inputs)))
-    (String.concat "," (List.map (fun v -> format_int_var v) (fst f.outputs)))
-    (String.concat "," (List.map (fun v -> format_bool_var v) (snd f.outputs)))
-    (String.concat "\n" (List.map (fun c -> format_command c) f.body))
+let format_func fmt (f: func) =
+  Format.fprintf fmt "function(%a, %a) -> %a, %a\n%a"
+    (pp_print_list_comma format_int_var) (fst f.inputs)
+    (pp_print_list_comma format_bool_var) (snd f.inputs)
+    (pp_print_list_comma format_int_var) (fst f.outputs)
+    (pp_print_list_comma format_bool_var) (snd f.outputs)
+    (pp_print_list_endline format_command) f.body
 
-let format_program (p: program) : string =
-  FunctionVariableMap.fold (fun fvar f acc ->
-      acc ^ begin
-        Printf.sprintf "%s ::= %s\n\n"
-          (format_function_var fvar)
-          (format_func f)
-      end
-    ) p.program_functions ""
+let format_program fmt (p: program) =
+  FunctionVariableMap.map_printer format_function_var format_func fmt p.program_functions

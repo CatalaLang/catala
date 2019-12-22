@@ -35,12 +35,10 @@ let rec typecheck_logical_expression
   | BoolLiteral _ -> ()
   | BoolVar var ->
     if not (List.mem var (snd ctx.ctx_defined_variables)) then
-      raise
-        (Errors.VerifiscTypeError
-           (Printf.sprintf "boolean variable %s used %s is undefined"
-              (Pos.unmark var.BoolVariable.name)
-              (Pos.format_position (Pos.get_position e))
-           ))
+      Errors.verifisc_type_error
+        "boolean variable %s used %a is undefined"
+        (Pos.unmark var.BoolVariable.name)
+        Pos.format_position (Pos.get_position e)
 
 and typecheck_arithmetic_expression
     (e: arithmetic_expression Pos.marked)
@@ -58,12 +56,10 @@ and typecheck_arithmetic_expression
   | IntLiteral _ -> ()
   | IntVar var ->
     if not (List.mem var (fst ctx.ctx_defined_variables)) then
-      raise
-        (Errors.VerifiscTypeError
-           (Printf.sprintf "integer variable %s used %s is undefined"
-              (Pos.unmark var.IntVariable.name)
-              (Pos.format_position (Pos.get_position e))
-           ))
+      Errors.verifisc_type_error
+        "integer variable %s used %a is undefined"
+        (Pos.unmark var.IntVariable.name)
+        Pos.format_position (Pos.get_position e)
 
 let typecheck (program : program) : unit =
   FunctionVariableMap.iter (fun _ func ->
@@ -74,11 +70,10 @@ let typecheck (program : program) : unit =
           match cmd with
           | BoolDef (var, e) ->
             if List.mem var (snd ctx.ctx_defined_variables) then
-              raise (Errors.VerifiscTypeError (
-                  Printf.sprintf "Forbidden variable redefiniton: %s %s"
-                    (Pos.unmark var.Ast.BoolVariable.name)
-                    (Pos.format_position (Pos.get_position e))
-                ));
+              Errors.verifisc_type_error
+                "Forbidden variable redefiniton: %s %a"
+                (Pos.unmark var.Ast.BoolVariable.name)
+                Pos.format_position (Pos.get_position e);
             typecheck_logical_expression e ctx;
             {
               ctx_defined_variables =
@@ -87,11 +82,10 @@ let typecheck (program : program) : unit =
                 )}
           | IntDef (var, e) ->
             if List.mem var (fst ctx.ctx_defined_variables) then
-              raise (Errors.VerifiscTypeError (
-                  Printf.sprintf "Forbidden variable redefiniton: %s %s"
+              Errors.verifisc_type_error
+                "Forbidden variable redefiniton: %s %a"
                     (Pos.unmark var.Ast.IntVariable.name)
-                    (Pos.format_position (Pos.get_position e))
-                ));
+                    Pos.format_position (Pos.get_position e);
             typecheck_arithmetic_expression e ctx;
             {
               ctx_defined_variables =
@@ -104,18 +98,12 @@ let typecheck (program : program) : unit =
         ) ctx func.body in
       List.iter (fun output_var ->
           if not (List.mem output_var (fst ctx.ctx_defined_variables)) then
-            raise
-              (Errors.VerifiscTypeError
-                 (Printf.sprintf "integer output variable %s is undefined"
-                    (Pos.unmark output_var.IntVariable.name)
-                 ))
+            Errors.verifisc_type_error "integer output variable %s is undefined"
+              (Pos.unmark output_var.IntVariable.name)
         ) (fst func.outputs);
       List.iter (fun output_var ->
           if not (List.mem output_var (snd ctx.ctx_defined_variables)) then
-            raise
-              (Errors.VerifiscTypeError
-                 (Printf.sprintf "boolean output variable %s is undefined"
+            Errors.verifisc_type_error "boolean output variable %s is undefined"
                     (Pos.unmark output_var.BoolVariable.name)
-                 ))
         ) (snd func.outputs)
     ) program.program_functions

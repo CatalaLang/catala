@@ -73,9 +73,8 @@ let interpret_arithmetic_expression (e: arithmetic_expression Pos.marked) (ctx: 
       | Ast.Mul -> Int64.mul v1 v2
       | Ast.Div ->
         if v2 = Int64.zero then
-          raise (Errors.VerifiscRuntimeError (
-              Printf.sprintf "division by zero %s" (Pos.format_position (Pos.get_position e))
-            ));
+          Errors.verifisc_runtime_error
+            "division by zero %a" Pos.format_position (Pos.get_position e);
         Int64.div v1 v2
     end
   | ArithmeticMinus v1 ->
@@ -98,30 +97,22 @@ let interpret_command (cmd: command) (ctx: ctx) : ctx =
     { ctx with int_values = Ast.IntVariableMap.add var v ctx.int_values }
   | Constraint e ->
     if not (interpret_logical_expression e ctx) then
-      raise
-        (Errors.VerifiscRuntimeError
-           (Printf.sprintf "assertion violated %s"
-              (Pos.format_position (Pos.get_position e))))
+      Errors.verifisc_runtime_error "assertion violated %a"
+        Pos.format_position (Pos.get_position e)
     else ctx
 
 let interpret_function (f_var : Ast.FunctionVariable.t) (f: func) (ctx: ctx) : ctx =
   List.iter (fun var ->
       if not (Ast.IntVariableMap.mem var ctx.int_values) then
-        raise
-          (Errors.VerifiscRuntimeError
-             (Printf.sprintf "missing input value for function %s: %s"
-                (Pos.unmark f_var.Ast.FunctionVariable.name)
-                (Pos.unmark var.Ast.IntVariable.name)
-             ))
+        Errors.verifisc_runtime_error "missing input value for function %s: %s"
+          (Pos.unmark f_var.Ast.FunctionVariable.name)
+          (Pos.unmark var.Ast.IntVariable.name)
     ) (fst f.inputs);
   List.iter (fun var ->
       if not (Ast.BoolVariableMap.mem var ctx.bool_values) then
-        raise
-          (Errors.VerifiscRuntimeError
-             (Printf.sprintf "missing input value for function %s: %s"
+        Errors.verifisc_runtime_error "missing input value for function %s: %s"
                 (Pos.unmark f_var.Ast.FunctionVariable.name)
                 (Pos.unmark var.Ast.BoolVariable.name)
-             ))
     ) (snd f.inputs);
   let ctx = List.fold_left (fun ctx cmd ->
       interpret_command cmd ctx
@@ -129,33 +120,27 @@ let interpret_function (f_var : Ast.FunctionVariable.t) (f: func) (ctx: ctx) : c
   in
   List.iter (fun var ->
       if not (Ast.IntVariableMap.mem var ctx.int_values) then
-        raise
-          (Errors.VerifiscRuntimeError
-             (Printf.sprintf "missing output value for function %s: %s"
+        Errors.verifisc_runtime_error "missing output value for function %s: %s"
                 (Pos.unmark f_var.Ast.FunctionVariable.name)
                 (Pos.unmark var.Ast.IntVariable.name)
-             ))
     ) (fst f.outputs);
   List.iter (fun var ->
       if not (Ast.BoolVariableMap.mem var ctx.bool_values) then
-        raise
-          (Errors.VerifiscRuntimeError
-             (Printf.sprintf "missing output value for function %s: %s"
+        Errors.verifisc_runtime_error "missing output value for function %s: %s"
                 (Pos.unmark f_var.Ast.FunctionVariable.name)
                 (Pos.unmark var.Ast.BoolVariable.name)
-             ))
     ) (snd f.outputs);
   ctx
 
 let read_inputs_from_stdin (f: func) (mult_factor: int): ctx =
-  Printf.printf "Enter the input values of the program and press [Enter]\n";
+  Format.printf "Enter the input values of the program and press [Enter]@\n";
   let ctx = empty_ctx in
   let ctx = List.fold_left (fun ctx var ->
-      Printf.printf "%s : float := " (Pos.unmark var.Ast.IntVariable.name);
+      Format.printf "%s : float := " (Pos.unmark var.Ast.IntVariable.name);
       let input = ref None in
       while !input = None do
         match read_float_opt () with
-        | None -> Printf.printf "Please enter an integer!\n"
+        | None -> Format.printf "Please enter an integer!@\n"
         | Some f -> input := Some (Int64.of_float (f *. (float_of_int mult_factor)))
       done;
       match !input with
@@ -165,7 +150,7 @@ let read_inputs_from_stdin (f: func) (mult_factor: int): ctx =
         { ctx with int_values = Ast.IntVariableMap.add var i ctx.int_values }
     ) ctx (fst f.inputs) in
   let ctx = List.fold_left (fun ctx var ->
-      Printf.printf "%s : bool := " (Pos.unmark var.Ast.BoolVariable.name);
+      Format.printf "%s : bool := " (Pos.unmark var.Ast.BoolVariable.name);
       let input = ref None in
       while !input = None do
         let str = read_line () in
@@ -174,7 +159,7 @@ let read_inputs_from_stdin (f: func) (mult_factor: int): ctx =
         else if str = "false" then
           input := Some false
         else
-          Printf.printf "Please enter an integer!\n"
+          Format.printf "Please enter an integer!@\n"
       done;
       match !input with
       | None -> assert false (* should not happen *)
@@ -183,18 +168,20 @@ let read_inputs_from_stdin (f: func) (mult_factor: int): ctx =
   ctx
 
 let repl_interpreter (p: program) : unit =
-  Printf.printf "Here is the list of functions in the program:\n%s\n"
-    (String.concat "\n" (List.map (fun (f, _) ->
-         Printf.sprintf "[%d] %s (%s)"
-           (f.Ast.FunctionVariable.id)
-           (Pos.unmark f.Ast.FunctionVariable.name)
-           (Pos.unmark f.Ast.FunctionVariable.descr)
-       ) (Ast.FunctionVariableMap.bindings p.program_functions)));
-  Printf.printf "Please enter the number of the function you wish to execute and press [Enter]:\n";
+  Format.printf "Here is the list of functions in the program:@\n%a@\n"
+    (Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+    (fun fmt (f, _) ->
+       Format.fprintf fmt "[%d] %s (%s)"
+         (f.Ast.FunctionVariable.id)
+         (Pos.unmark f.Ast.FunctionVariable.name)
+         (Pos.unmark f.Ast.FunctionVariable.descr)))
+    (Ast.FunctionVariableMap.bindings p.program_functions);
+  Format.printf "Please enter the number of the function you wish to execute and press [Enter]:\n";
   let input = ref None in
   while !input = None do
     match read_int_opt () with
-    | None -> Printf.printf "Please enter an integer!\n"
+    | None -> Format.printf "Please enter an integer!\n"
     | Some i -> input := Some i
   done;
   match !input with
@@ -208,15 +195,21 @@ let repl_interpreter (p: program) : unit =
     in
     let ctx = read_inputs_from_stdin func p.program_mult_factor in
     let ctx = interpret_function f func ctx in
-    Printf.printf "Here are the functions outputs:\n";
-    List.iter (fun var ->
-        Printf.printf "%s : float = %f\n"
-          (Pos.unmark var.Ast.IntVariable.name)
-          ((Int64.to_float (Ast.IntVariableMap.find var ctx.int_values)) /.
-           (float_of_int p.program_mult_factor))
-      ) (fst func.outputs);
-    List.iter (fun var ->
-        Printf.printf "%s : bool = %b\n"
-          (Pos.unmark var.Ast.BoolVariable.name)
-          (Ast.BoolVariableMap.find var ctx.bool_values)
-      ) (snd func.outputs)
+    Format.printf "Here are the functions outputs:\n%a@\n%a@\n"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun fmt var ->
+            Format.fprintf fmt "%s : float = %f"
+              (Pos.unmark var.Ast.IntVariable.name)
+              ((Int64.to_float (Ast.IntVariableMap.find var ctx.int_values)) /.
+               (float_of_int p.program_mult_factor))
+         ))
+      (fst func.outputs)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun fmt var ->
+            Format.fprintf fmt "%s : bool = %b\n"
+              (Pos.unmark var.Ast.BoolVariable.name)
+              (Ast.BoolVariableMap.find var ctx.bool_values)
+         ))
+      (snd func.outputs)
