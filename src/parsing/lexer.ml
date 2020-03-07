@@ -39,16 +39,16 @@ and lex_law lexbuf =
   | '\n' -> update lexbuf ; new_line lexbuf; lex_law lexbuf
   | "/*" -> update lexbuf; is_code := true; lex_code lexbuf
   | eof -> update lexbuf ; EOF
-  | any -> update lexbuf; lex_law lexbuf
-  | "##", Star white_space, Star any, Star white_space, "##" ->
+  | "@", Star white_space, Star (Compl '@'), Star white_space, "@" ->
    let extract_article_title =
-    R.regexp "##\\s*(.*)\\s*##"
+    R.regexp "@\\s*([^#]*)\\s*@"
    in
    let title = R.get_substring
     (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf))
     1
    in
    update lexbuf; ARTICLE title
+  | any -> update lexbuf; lex_law lexbuf
   | _ -> raise_ParseError lexbuf
 
 let lexer lexbuf =
