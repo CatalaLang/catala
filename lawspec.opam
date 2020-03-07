@@ -8,17 +8,20 @@ build: [
 ]
 maintainer: ["denis.merigoux@inria.fr"]
 authors: ["Denis Merigoux"]
-bug-reports: "https://gitlab.inria.fr/verifisc/verifisc/issues"
-homepage: "https://gitlab.inria.fr/verifisc/verifisc"
+bug-reports: "https://gitlab.inria.fr/verifisc/lawspec/issues"
+homepage: "https://gitlab.inria.fr/verifisc/lawspec"
 license: "Apache2"
 version: "1.0.2"
-dev-repo: "git+https://gitlab.inria.fr/verifisc/verifisc.git"
+dev-repo: "git+https://gitlab.inria.fr/verifisc/lawspec.git"
 synopsis: "Low-level language for tax code specification"
 description: """
-The Verifisc language is designed to be a low-level target for
+The Lawspec language is designed to be a low-level target for
 higher-level specification languages for fiscal legislation.
 """
 depends: [
   "ocaml" {>= "4.07.0"}
+  "ANSITerminal" {>= "0.8.2"}
+  "sedlex" {>= "2.1"}
+  "menhirLib" {>= "20200211"}
   "dune" {build}
 ]
