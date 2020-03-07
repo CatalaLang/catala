@@ -29,6 +29,7 @@
   otherkeywords = {<, >, =, +, *, --,  /, ;, :, .},
   morekeywords = [1]{--, ;, :, .},
   morekeywords = [2]{=, <, >, +, *, /, -},
+  moredelim=[is][\color{RedViolet}]{|}{|},
   % morestring=[b]",
   % sensitive=true,%
   numbers=left,
@@ -101,16 +102,16 @@
 9°) l'allocation journalière de présence parentale.
 \begin{lstlisting}
 choix prestation:
-  -- PrestationAccueilJeuneEnfant
-  -- AllocationsFamiliales
-  -- ComplementFamilial
-  -- AllocationLogement
-  -- AllocationEducationEnfantHandicape
-  -- AllocationSoutienFamilial
-  -- AllocationRentreeScolaire
-  -- AllocationJournalierePresenceParentale.
+  -- |PrestationAccueilJeuneEnfant|
+  -- |AllocationsFamiliales|
+  -- |ComplementFamilial|
+  -- |AllocationLogement|
+  -- |AllocationEducationEnfantHandicape|
+  -- |AllocationSoutienFamilial|
+  -- |AllocationRentreeScolaire|
+  -- |AllocationJournalierePresenceParentale|.
 
-situation ContextePrestationsFamiliales :
+situation ContextePrestationsFamiliales source loi :
   donnee prestation_courante de choix prestation.
 \end{lstlisting}
 
@@ -162,8 +163,8 @@ Toutefois, pour l'attribution du complément familial et de l'allocation de loge
 situation ContextePrestationsFamiliales source loi :
   donnee age_limite_L512_3_2_alternatif de type entier ;
   regle optionnelle condition
-    prestation_courante = ComplementFamilial ou
-    prestation_courante = AllocationLogement
+    prestation_courante = |ComplementFamilial| ou
+    prestation_courante = |AllocationLogement|
   consequence
     age_limite_L512_3_2 defini comme age_limite_L512_3_2_alternatif.
 \end{lstlisting}
@@ -190,8 +191,8 @@ situation AllocationFamiliales source loi :
   assertion nombre_minimum_enfants_L521_1 fixe par decret.
 
 choix entite_en_charge :
-  -- FamilleMonoparentale de situation Personne
-  -- Couple de situation Menage.
+  -- |FamilleMonoparentale| de situation Personne
+  -- |Couple| de situation Menage.
 
 situation AllocationFamiliales source loi :
   donnee entite_en_charge_des_enfants de choix entite_en_charge ;
@@ -220,8 +221,8 @@ situation AllocationFamiliales source loi :
   donnee ressources_entite_en_charge de type montant.
   regle ressources_entite_en_charge defini comme
     selon entite_en_charge_enfants sous forme
-    -- Monoparentale de parent : parent.ressources
-    -- Couple de menage : menage.ressources ;
+    -- |FamilleMonoparentale| de parent : parent.ressources
+    -- |Couple| de menage : menage.ressources ;
   donnee montant_allocations_familiales de type montant ;
   assertion
     montant_allocations_familiales fixe par decret et
@@ -281,13 +282,13 @@ situation AllocationFamiliales source loi :
       entite_en_charge_des_enfants
 
 choix recipiendaire:
-  -- Complet de choix entite_en_charge
-  -- Divise de situation RecipendaireDivise.
+  -- |Complet| de choix entite_en_charge
+  -- |Divise| de situation RecipendaireDivise.
 
 situation EnfantAllocationsFamiliales source loi :
   donnee recipiendaire_allocations de type recipiendaire ;
   regle recipiendaire_allocations defini comme
-    Complet entite_en_charge_de_l_enfant.
+    |Complet| de entite_en_charge_de_l_enfant.
 \end{lstlisting}
 En cas de résidence alternée de l'enfant au domicile de chacun des parents telle que prévue à l'article 373-2-9 du code civil, mise en oeuvre de manière effective, les parents désignent l'allocataire. Cependant, la charge de l'enfant pour le calcul des allocations familiales est partagée par moitié entre les deux parents soit sur demande conjointe des parents, soit si les parents sont en désaccord sur la désignation de l'allocataire. Un décret en Conseil d'Etat fixe les conditions d'application du présent alinéa.
 \begin{lstlisting}
@@ -301,8 +302,8 @@ situation EnfantAllocationsFamiliales source loi :
     -- parent de situation Personne
   renvoie booleen:
     selon entite_en_charge_de_l_enfant sous forme
-    -- Monoparentale de parent' : parent = parent'
-    -- Couple de menage :
+    -- |FamilleMonoparentale| de parent' : parent = parent'
+    -- |Couple| de menage :
       menage.parent1 = parent ou menage.parent2 = parent ;
   assertion condition garde_alternee consequence
     est_en_charge de parent1_garde_alternee ou
@@ -310,7 +311,7 @@ situation EnfantAllocationsFamiliales source loi :
   donnee parent_recipiendaire_garde_alternee de situation Personne ;
   regle condition garde_alternee consequence
     recipiendaire_allocations defini comme
-      Complet de parent_recipiendaire_garde_alternee ;
+      |Complet| de parent_recipiendaire_garde_alternee ;
   donnee desaccord_designation_allocataire_garde_alternee ;
   donnee demande_conjointe_partage_charge_garde_alternee ;
   donnee recipiendaire_divise_garde_alternee
@@ -324,13 +325,13 @@ situation EnfantAllocationsFamiliales source loi :
   -- recipiendaire_divise_garde_alternee.parent2 defini comme
     parent2_garde_alternee
   -- recipiendaire_allocations defini comme
-    Divise recipiendaire_divise_garde_alternee ;
+    |Divise| de  recipiendaire_divise_garde_alternee ;
   assertion selon recipiendaire_allocations sous forme
-  -- Complet de (FamilleMonoparentale de personne) :
+  -- |Complet| de (|FamilleMonoparentale| de personne) :
     est_en_charge de personne;
-  -- Complet de (Couple de couple) :
+  -- |Complet| de (|Couple| de couple) :
     Couple de couple = entite_en_charge_enfants
-  -- Divise : vrai.
+  -- |Divise| : vrai.
 \end{lstlisting}
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
 \begin{lstlisting}
@@ -347,7 +348,7 @@ situation EnfantAllocationsFamiliales source loi :
   donnee service_social : Personne.
   regle optionnelle condition enfant_confie_au_service_sociaux
   consequence recipiendaire_allocations defini comme
-    Complet de (FamilleMonoparentale de service_social)
+    |Complet| de (|FamilleMonoparentale| de service_social)
 \end{lstlisting}
 
 Un décret en Conseil d'Etat fixe les conditions d'application du présent article, notamment dans les cas énumérés ci-dessous :
@@ -357,9 +358,9 @@ c) divorce, séparation de corps ou de fait des parents ;
 d) enfants confiés à un service public, à une institution privée, à un particulier.
 \begin{lstlisting}
 choix couple_ou_partie :
-  -- DeuxParents
-  -- Parent1
-  -- Parent2.
+  -- |DeuxParents|
+  -- |Parent1|
+  -- |Parent2|.
 
 situation EnfantAllocationsFamiliales source loi :
   donnee retrait_autorite_parentale de choix couple_ou_partie ;
@@ -368,8 +369,8 @@ situation EnfantAllocationsFamiliales source loi :
     -- partie de choix couple_ou_partie
   renvoie booleen :
     selon entite_en_charge_de_l_enfant sous forme
-    -- FamilleMonoparentale de parent : partie = Parent1
-    -- Couple de couple : vrai ;
+    -- |FamilleMonoparentale| de parent : partie = |Parent1|
+    -- |Couple| de couple : vrai ;
   asserttion couple_ou_partie_valide retrait_autorite_parentale et
     couple_ou_partie_valide indignite_parents ;
   donnee propriete divorce_parents ;
