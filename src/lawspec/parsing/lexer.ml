@@ -57,6 +57,7 @@ let rec lex_code lexbuf =
   | "comme" -> update_and_acc lexbuf; AS
   | "condition" -> update_and_acc lexbuf; CONDITION
   | "consequence" -> update_and_acc lexbuf; CONSEQUENCE
+  | "optionnel" -> update_and_acc lexbuf; OPTIONAL
   | "regle" -> update_and_acc lexbuf; RULE
   | "existe" -> update_and_acc lexbuf; EXISTS
   | "dans" -> update_and_acc lexbuf; IN
@@ -65,11 +66,16 @@ let rec lex_code lexbuf =
   | "maintenant" -> update_and_acc lexbuf; NOW
   | "et" -> update_and_acc lexbuf; AND
   | "ou" -> update_and_acc lexbuf; OR
+  | "cardinal" -> update_and_acc lexbuf; CARDINAL
   | '!' -> update_and_acc lexbuf; BANG
+  | "<=" -> update_and_acc lexbuf; LESSER_EQUAL
   | '<' -> update_and_acc lexbuf; LESSER
+  | ">=" -> update_and_acc lexbuf; GREATER_EQUAL
   | '>' -> update_and_acc lexbuf; GREATER
+  | '=' -> update_and_acc lexbuf; EQUAL
   | '(' -> update_and_acc lexbuf; LPAREN
   | ')' -> update_and_acc lexbuf; RPAREN
+  | ',' -> update_and_acc lexbuf; COMMA
   | ';' -> update_and_acc lexbuf; SEMICOLON
   | ':' -> update_and_acc lexbuf; COLON
   | '.' -> update_and_acc lexbuf; DOT
@@ -78,6 +84,8 @@ let rec lex_code lexbuf =
     update_and_acc lexbuf; CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
   | lowercase , Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
     update_and_acc lexbuf; IDENT (Sedlexing.Utf8.lexeme buf)
+  | Plus ('0' .. '9') ->
+    update_and_acc lexbuf; INT_LITERAL (int_of_string (Sedlexing.Utf8.lexeme buf))
   | _ -> raise_ParseError lexbuf
 
 let rec lex_law lexbuf =

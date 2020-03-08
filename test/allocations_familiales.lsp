@@ -71,10 +71,29 @@ situation ContextePrestationsFamiliales source loi :
   consequence droits_ouverts defini.
 */
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
-
+/*
+situation ContextePrestationsFamiliales source loi :
+  donnee age_limite_L512_3_2_alternatif de type entier ;
+  regle optionnel condition
+    prestation_courante = ComplementFamilial ou
+    prestation_courante = AllocationLogement
+  consequence
+    age_limite_L512_3_2 defini comme age_limite_L512_3_2_alternatif.
+*/
 
 @Article L521-1@ Les allocations familiales sont dues à partir du deuxième enfant à charge.
-
+/*
+situation AllocationsFamiliales source loi:
+  donnee contexte de situation ContextePrestationsFamiliales ;
+  regle contexte!prestation_courante
+     defini comme AllocationsFamiliales ;
+  donnee allocations_familiales_dues ;
+  donnee nombre_enfants_a_charge de type entier ;
+  regle nombre_enfants_a_charge defini comme cardinal(contexte!enfants) ;
+  regle condition
+    nombre_enfants_a_charge >= 2
+  consequence allocations_familiales_dues defini.
+*/
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.

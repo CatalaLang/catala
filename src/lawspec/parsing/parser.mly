@@ -26,12 +26,14 @@
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
+%token<int> INT_LITERAL
 %token BEGIN_CODE CHOICE
 %token COLON ALT DOT SITUATION SOURCE DATA
 %token OF SEMICOLON INTEGER TYPE COLLECTION
 %token RULE CONDITION CONSEQUENCE DEFINED AS
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
-%token BANG AND OR LPAREN RPAREN
+%token BANG AND OR LPAREN RPAREN OPTIONAL EQUAL
+%token COMMA CARDINAL LESSER_EQUAL GREATER_EQUAL
 
 %type <Ast.source_file> source_file
 
@@ -61,17 +63,29 @@ situation_type:
 
 qident:
 | IDENT {}
+| CONSTRUCTOR {}
 | IDENT BANG IDENT {}
 
 primitive_expression:
 | NOW {}
 
+literal:
+| INT_LITERAL {}
+
 compare_op:
 | LESSER {}
+| LESSER_EQUAL {}
 | GREATER {}
+| GREATER_EQUAL {}
+| EQUAL {}
+
+func:
+| CARDINAL {}
 
 base_expression:
 | primitive_expression {}
+| literal {}
+| func LPAREN separated_nonempty_list(COMMA, expression) RPAREN {}
 | qident {}
 | LPAREN expression RPAREN {}
 
@@ -102,11 +116,11 @@ rule_definition:
 | {}
 
 rule:
-| option(condition) IDENT DEFINED rule_definition {}
+| option(condition) qident DEFINED rule_definition {}
 
 situation:
 | DATA IDENT option(COLLECTION) situation_type {}
-| RULE rule {}
+| RULE option(OPTIONAL) rule {}
 
 code_item:
 | CHOICE IDENT COLON choices { }
