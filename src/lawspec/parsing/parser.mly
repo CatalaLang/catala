@@ -37,6 +37,7 @@
 %token ASSERTION FIXED BY CONSTANT YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FORALL WE_HAVE INCREASING DECREASING
+%token FUNCTION PARAMETERS RETURNS
 
 %type <Ast.source_file> source_file
 
@@ -66,7 +67,6 @@ situation_type:
 
 qident:
 | IDENT {}
-| CONSTRUCTOR {}
 | IDENT BANG IDENT {}
 
 primitive_expression:
@@ -75,9 +75,13 @@ primitive_expression:
 date_qualifier:
 | YEAR {}
 
+constructor_payload:
+| OF base_expression {}
+
 literal:
 | INT_LITERAL {}
 | INT_LITERAL date_qualifier {}
+| CONSTRUCTOR option(constructor_payload) {}
 
 compare_op:
 | LESSER {}
@@ -88,6 +92,7 @@ compare_op:
 
 func:
 | CARDINAL {}
+| IDENT {}
 
 base_expression:
 | primitive_expression {}
@@ -135,21 +140,35 @@ match_arms:
 | ALT match_arm match_arms {}
 | {}
 
+forall_prefix:
+| FORALL separated_nonempty_list(COMMA,IDENT) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
+
+exists_prefix:
+| EXISTS IDENT IN qident SUCH THAT {}
+
 expression:
-| EXISTS IDENT IN qident SUCH THAT expression {}
-| FORALL IDENT IN qident WE_HAVE expression {}
+| exists_prefix expression {}
+| forall_prefix expression {}
 | MATCH expression WITH  match_arms {}
 | logical_expression {}
 
 condition:
 | CONDITION expression CONSEQUENCE {}
 
-rule_definition:
+
+rule_definition_single:
 | AS expression {}
 | {}
 
+rule_action_single:
+| qident DEFINED rule_definition_single {}
+
+rule_actions:
+| rule_action_single {}
+
+
 rule:
-| option(condition) qident DEFINED rule_definition {}
+| option(condition) option(forall_prefix) rule_actions {}
 
 variation_type:
 | INCREASING {}
@@ -159,17 +178,28 @@ assertion:
 | logical_expression {}
 | qident FIXED BY IDENT {}
 | qident VARIES_WITH qident option(variation_type) {}
-| EXISTS IDENT IN qident SUCH THAT assertion {}
-| FORALL IDENT IN qident WE_HAVE assertion {}
+| exists_prefix assertion {}
+| forall_prefix assertion {}
 
 constant:
 | IDENT situation_type DEFINED AS literal {}
 
+func_parameter:
+| IDENT situation_type {}
+
+func_parameters:
+| ALT func_parameter func_parameters {}
+| {}
+
+func_def:
+| IDENT PARAMETERS func_parameters RETURNS type_ident COLON expression {}
+
 situation:
 | DATA IDENT option(COLLECTION) situation_type {}
 | RULE option(OPTIONAL) rule {}
-| ASSERTION assertion {}
+| ASSERTION option(condition) assertion {}
 | CONSTANT constant {}
+| FUNCTION func_def {}
 
 code_item:
 | CHOICE IDENT COLON choices { }

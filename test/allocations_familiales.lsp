@@ -174,9 +174,76 @@ situation AllocationFamiliales source loi :
 */
 
 @Article L521-2@ Les allocations sont versées à la personne qui assume, dans quelques conditions que ce soit, la charge effective et permanente de l'enfant.
+/*
+situation RecipendaireDivise source implicite :
+  donnee recipiendaire1 de situation Personne ;
+  donnee recipiendaire2 de situation Personne.
 
+situation EnfantAllocationsFamiliales source loi :
+  donnee contexte de situation EnfantPrestationsFamiliales ;
+  donnee entite_en_charge_de_l_enfant de choix entite_en_charge.
+
+situation AllocationFamiliales source loi :
+  donnee enfants collection de situation EnfantAllocationsFamiliales ;
+  regle pour tout enfant_contexte, enfants
+    dans enfants!contexte, enfants on a
+    enfant!contexte defini comme enfant_contexte ;
+  regle pour tout enfant dans enfants on a
+    enfant!entite_en_charge_de_l_enfant defini comme
+      entite_en_charge_des_enfants.
+
+choix recipiendaire:
+  -- Complet de choix entite_en_charge
+  -- Divise de situation RecipendaireDivise.
+
+situation EnfantAllocationsFamiliales source loi :
+  donnee recipiendaire_allocations de type recipiendaire ;
+  regle recipiendaire_allocations defini comme
+    Complet de entite_en_charge_de_l_enfant.
+*/
 En cas de résidence alternée de l'enfant au domicile de chacun des parents telle que prévue à l'article 373-2-9 du code civil, mise en oeuvre de manière effective, les parents désignent l'allocataire. Cependant, la charge de l'enfant pour le calcul des allocations familiales est partagée par moitié entre les deux parents soit sur demande conjointe des parents, soit si les parents sont en désaccord sur la désignation de l'allocataire. Un décret en Conseil d'Etat fixe les conditions d'application du présent alinéa.
+/*
+situation EnfantAllocationsFamiliales source loi :
+  donnee garde_alternee ;
+# on ne formalise pas l'article 373-2-9 pour l'instant
+  donnee parent1_garde_alternee de situation Personne ;
+  donnee parent2_garde_alternee de situation Personne ;
 
+  fonction est_en_charge parametres
+    -- parent de situation Personne
+  renvoie booleen:
+    selon entite_en_charge_de_l_enfant sous forme
+    -- FamilleMonoparentale de parent' : parent = parent'
+    -- Couple de menage :
+      menage!parent1 = parent ou menage!parent2 = parent ;
+  assertion condition garde_alternee consequence
+    est_en_charge(parent1_garde_alternee) ou
+    est_en_charge(parent2_garde_alternee) ;
+  donnee parent_recipiendaire_garde_alternee de situation Personne ;
+  regle condition garde_alternee consequence
+    recipiendaire_allocations defini comme
+      Complet de parent_recipiendaire_garde_alternee ;
+  donnee desaccord_designation_allocataire_garde_alternee ;
+  donnee demande_conjointe_partage_charge_garde_alternee ;
+  donnee recipiendaire_divise_garde_alternee
+     de situation RecipiendaireDivise ;
+  regle condition garde_alternee et
+    (desaccord_designation_allocataire_garde_alternee ou
+    demande_conjointe_partage_charge_garde_alternee)
+  consequence
+  -- recipiendaire_divise_garde_alternee.parent1 defini comme
+    parent1_garde_alternee
+  -- recipiendaire_divise_garde_alternee.parent2 defini comme
+    parent2_garde_alternee
+  -- recipiendaire_allocations defini comme
+    Divise de  recipiendaire_divise_garde_alternee ;
+  assertion selon recipiendaire_allocations sous forme
+  -- Complet de (FamilleMonoparentale de personne) :
+    est_en_charge de personne;
+  -- Complet de (Couple de couple) :
+    Couple de couple = entite_en_charge_enfants
+  -- Divise : vrai.
+*/
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
 
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocations familiales continuent d'être évaluées en tenant compte à la fois des enfants présents au foyer et du ou des enfants confiés au service de l'aide sociale à l'enfance. La part des allocations familiales dues à la famille pour cet enfant est versée à ce service. Toutefois, le juge peut décider, d'office ou sur saisine du président du conseil général, à la suite d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou des articles 15,16,16 bis et 28 de l'ordonnance n° 45-174 du 2 février 1945 relative à l'enfance délinquante, de maintenir le versement des allocations à la famille, lorsque celle-ci participe à la prise en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de l'enfant dans son foyer.

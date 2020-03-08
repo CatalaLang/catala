@@ -40,7 +40,9 @@ let rec lex_code lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' -> update_and_acc lexbuf ; new_line lexbuf; lex_code lexbuf
-  | white_space | '#', Star (Compl '\n'), '\n' -> update_and_acc lexbuf; lex_code lexbuf
+  | white_space -> update_and_acc lexbuf; lex_code lexbuf
+  | '#', Star (Compl '\n'), '\n' ->
+    update_and_acc lexbuf; new_line lexbuf; lex_code lexbuf
   | "*/" ->
     update lexbuf;
     is_code:= false;
@@ -54,6 +56,9 @@ let rec lex_code lexbuf =
   | "de" -> update_and_acc lexbuf; OF
   | "type" -> update_and_acc lexbuf; TYPE
   | "collection" -> update_and_acc lexbuf; COLLECTION
+  | "fonction" -> update_and_acc lexbuf; FUNCTION
+  | "parametres" -> update_and_acc lexbuf; PARAMETERS
+  | "renvoie" -> update_and_acc lexbuf; RETURNS
   | "entier" -> update_and_acc lexbuf; INTEGER
   | "defini" -> update_and_acc lexbuf; DEFINED
   | "comme" -> update_and_acc lexbuf; AS
