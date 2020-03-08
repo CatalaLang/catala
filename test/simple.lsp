@@ -1,6 +1,6 @@
-@@ Code de la sécurité sociale @@
+@@Code de la sécurité sociale@@
 
-@ Article L521-3 @
+@Article L521-3@
 
 Blablabla, etc
 
@@ -14,4 +14,4 @@ code
 
 */
 
-@ Article L522-3 @
+@Article L522-3@

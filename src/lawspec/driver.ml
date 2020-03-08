@@ -22,10 +22,10 @@ open Cli
 let driver
   (source_files : string list)
   (debug: bool)
-  (_backend: string)
-  (_output_file : string)
+  (backend: string)
+  (output_file : string)
   : int =
-Cli.debug_flag := debug;
+  Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
   let program = ref [] in
   List.iter (fun source_file ->
@@ -47,7 +47,19 @@ Cli.debug_flag := debug;
           exit (-1)
         end
     ) source_files;
-  exit 0
+  if backend = "LaTeX" then
+    let weaved_output =
+      String.concat "\n\n" (List.map (fun file -> Weave.ast_to_latex file) !program)
+    in
+    Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
+    let oc = open_out output_file in
+    Printf.fprintf oc "%s" weaved_output;
+    close_out oc;
+    0
+  else begin
+    Cli.error_print (Printf.sprintf "Unkown backend: %s" backend);
+    1
+  end
 
 let main () =
   Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.lawspec_t driver, Cli.info)
