@@ -63,15 +63,20 @@ let rec lex_code lexbuf =
   | "tel" -> update_and_acc lexbuf; SUCH
   | "que" -> update_and_acc lexbuf; THAT
   | "maintenant" -> update_and_acc lexbuf; NOW
+  | "et" -> update_and_acc lexbuf; AND
+  | "ou" -> update_and_acc lexbuf; OR
   | '!' -> update_and_acc lexbuf; BANG
   | '<' -> update_and_acc lexbuf; LESSER
+  | '>' -> update_and_acc lexbuf; GREATER
+  | '(' -> update_and_acc lexbuf; LPAREN
+  | ')' -> update_and_acc lexbuf; RPAREN
   | ';' -> update_and_acc lexbuf; SEMICOLON
   | ':' -> update_and_acc lexbuf; COLON
   | '.' -> update_and_acc lexbuf; DOT
   | "--" -> update_and_acc lexbuf; ALT
   | uppercase , Star (uppercase | lowercase) ->
     update_and_acc lexbuf; CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
-  | lowercase , Star (lowercase | '_' | '\'') ->
+  | lowercase , Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
     update_and_acc lexbuf; IDENT (Sedlexing.Utf8.lexeme buf)
   | _ -> raise_ParseError lexbuf
 

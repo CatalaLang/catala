@@ -30,8 +30,8 @@
 %token COLON ALT DOT SITUATION SOURCE DATA
 %token OF SEMICOLON INTEGER TYPE COLLECTION
 %token RULE CONDITION CONSEQUENCE DEFINED AS
-%token EXISTS IN SUCH THAT NOW LESSER
-%token BANG
+%token EXISTS IN SUCH THAT NOW LESSER GREATER
+%token BANG AND OR LPAREN RPAREN
 
 %type <Ast.source_file> source_file
 
@@ -68,18 +68,31 @@ primitive_expression:
 
 compare_op:
 | LESSER {}
+| GREATER {}
 
-sum_expression:
+base_expression:
 | primitive_expression {}
 | qident {}
+| LPAREN expression RPAREN {}
+
+sum_expression:
+| base_expression {}
+
+logical_op:
+| AND {}
+| OR {}
 
 compare_expression:
+| sum_expression {}
 | sum_expression compare_op sum_expression {}
 
+logical_expression:
+| compare_expression {}
+| compare_expression logical_op compare_expression {}
 
 expression:
 | EXISTS IDENT IN qident SUCH THAT expression {}
-| compare_expression {}
+| logical_expression {}
 
 condition:
 | CONDITION expression CONSEQUENCE {}

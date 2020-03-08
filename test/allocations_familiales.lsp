@@ -45,7 +45,31 @@ situation ContextePrestationsFamiliales source loi :
   consequence droits_ouverts defini.
 */
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
+/*
+situation ContextePrestationsFamiliales source loi :
+  donnee age_limite_L512_3_2 de type entier ;
+  donnee plafond_remuneration_L512_3_2 de type montant.
 
+situation EnfantPrestationsFamiliales source loi :
+  donnee age de type entier ;
+  donnee remuneration de type montant ;
+  donnee qualifie_pour_prestation_sauf_age ;
+  regle condition
+    maintenant > fin_obligation_scolaire et
+    remuneration < plafond_remuneration_L512_3_2
+  consequence qualifie_pour_prestation_sauf_age defini ;
+  donnee enfant_qualifie_pour_prestation ;
+  regle condition
+    qualifie_pour_prestation_sauf_age et
+    age < age_limite_L512_3_2
+  consequence qualifie_pour_prestation defini.
+
+situation ContextePrestationsFamiliales source loi :
+  regle condition
+    existe enfant dans enfants tel que
+      enfant!qualifie_pour_prestation
+  consequence droits_ouverts defini.
+*/
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
 
 
