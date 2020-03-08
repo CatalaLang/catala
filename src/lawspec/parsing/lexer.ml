@@ -82,6 +82,7 @@ let rec lex_code lexbuf =
   | "maintenant" -> update_and_acc lexbuf; NOW
   | "et" -> update_and_acc lexbuf; AND
   | "ou" -> update_and_acc lexbuf; OR
+  | "non" -> update_and_acc lexbuf; NOT
   | "cardinal" -> update_and_acc lexbuf; CARDINAL
   | "an" -> update_and_acc lexbuf; YEAR
   | '!' -> update_and_acc lexbuf; BANG
@@ -101,7 +102,7 @@ let rec lex_code lexbuf =
   | ':' -> update_and_acc lexbuf; COLON
   | '.' -> update_and_acc lexbuf; DOT
   | "--" -> update_and_acc lexbuf; ALT
-  | uppercase , Star (uppercase | lowercase) ->
+  | uppercase , Star (uppercase | lowercase | '0' .. '9') ->
     update_and_acc lexbuf; CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
   | lowercase , Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
     update_and_acc lexbuf; IDENT (Sedlexing.Utf8.lexeme buf)

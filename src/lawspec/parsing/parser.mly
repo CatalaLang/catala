@@ -37,7 +37,7 @@
 %token ASSERTION FIXED BY CONSTANT YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FORALL WE_HAVE INCREASING DECREASING
-%token FUNCTION PARAMETERS RETURNS
+%token FUNCTION PARAMETERS RETURNS NOT
 
 %type <Ast.source_file> source_file
 
@@ -121,20 +121,28 @@ logical_op:
 | AND {}
 | OR {}
 
+logical_unop:
+| NOT {}
+
 compare_expression:
 | sum_expression {}
 | sum_expression compare_op sum_expression {}
 
 logical_expression:
 | compare_expression {}
+| logical_unop compare_expression {}
 | compare_expression logical_op compare_expression {}
 
 optional_binding:
-| OF IDENT {}
 | {}
+| OF IDENT {}
+| OF LPAREN constructor_binding RPAREN {}
+
+constructor_binding:
+| CONSTRUCTOR optional_binding {}
 
 match_arm:
-| CONSTRUCTOR optional_binding COLON logical_expression {}
+| constructor_binding COLON logical_expression {}
 
 match_arms:
 | ALT match_arm match_arms {}
@@ -160,12 +168,23 @@ rule_definition_single:
 | AS expression {}
 | {}
 
+rule_definition_various:
+| AS logical_expression {}
+| {}
+
 rule_action_single:
 | qident DEFINED rule_definition_single {}
 
+rule_action_various:
+| qident DEFINED rule_definition_various {}
+
+rule_actions_various:
+| ALT rule_action_various rule_actions_various {}
+| {}
+
 rule_actions:
 | rule_action_single {}
-
+| rule_actions_various {}
 
 rule:
 | option(condition) option(forall_prefix) rule_actions {}

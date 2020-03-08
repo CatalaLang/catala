@@ -231,30 +231,90 @@ situation EnfantAllocationsFamiliales source loi :
     (desaccord_designation_allocataire_garde_alternee ou
     demande_conjointe_partage_charge_garde_alternee)
   consequence
-  -- recipiendaire_divise_garde_alternee.parent1 defini comme
+  -- recipiendaire_divise_garde_alternee!parent1 defini comme
     parent1_garde_alternee
-  -- recipiendaire_divise_garde_alternee.parent2 defini comme
+  -- recipiendaire_divise_garde_alternee!parent2 defini comme
     parent2_garde_alternee
   -- recipiendaire_allocations defini comme
     Divise de  recipiendaire_divise_garde_alternee ;
-  assertion selon recipiendaire_allocations sous forme
+  assertion (selon recipiendaire_allocations sous forme
   -- Complet de (FamilleMonoparentale de personne) :
-    est_en_charge de personne;
+    est_en_charge(personne)
   -- Complet de (Couple de couple) :
     Couple de couple = entite_en_charge_enfants
-  -- Divise : vrai.
+  -- Divise : vrai).
 */
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
-
+/*
+situation EnfantAllocationsFamiliales source loi :
+  donnee entite_en_charge_des_enfants_remplit_les_conditions_du_titre_I ;
+  assertion
+    entite_en_charge_des_enfants_remplit_les_conditions_du_titre_I.
+# on ne formalise pas pour l'instant, c'est un placeholder.
+*/
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocations familiales continuent d'être évaluées en tenant compte à la fois des enfants présents au foyer et du ou des enfants confiés au service de l'aide sociale à l'enfance. La part des allocations familiales dues à la famille pour cet enfant est versée à ce service. Toutefois, le juge peut décider, d'office ou sur saisine du président du conseil général, à la suite d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou des articles 15,16,16 bis et 28 de l'ordonnance n° 45-174 du 2 février 1945 relative à l'enfance délinquante, de maintenir le versement des allocations à la famille, lorsque celle-ci participe à la prise en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de l'enfant dans son foyer.
-
+/*
+situation EnfantAllocationsFamiliales source loi :
+  donnee enfant_confie_au_service_sociaux ;
+  donnee service_social de situation Personne ;
+  regle optionnel condition enfant_confie_au_service_sociaux
+  consequence recipiendaire_allocations defini comme
+    Complet de (FamilleMonoparentale de service_social).
+*/
 Un décret en Conseil d'Etat fixe les conditions d'application du présent article, notamment dans les cas énumérés ci-dessous :
 a) retrait total de l'autorité parentale des parents ou de l'un d'eux ;
 b) indignité des parents ou de l'un d'eux ;
 c) divorce, séparation de corps ou de fait des parents ;
 d) enfants confiés à un service public, à une institution privée, à un particulier.
+/*
+choix couple_ou_partie :
+  -- DeuxParents
+  -- Parent1
+  -- Parent2.
 
+situation EnfantAllocationsFamiliales source loi :
+  donnee retrait_autorite_parentale de choix couple_ou_partie ;
+  donnee indignite_parents de choix couple_ou_partie ;
+  fonction couple_ou_partie_valide parametres
+    -- partie de choix couple_ou_partie
+  renvoie booleen :
+    selon entite_en_charge_de_l_enfant sous forme
+    -- FamilleMonoparentale de parent : partie = Parent1
+    -- Couple de couple : vrai ;
+  assertion couple_ou_partie_valide(retrait_autorite_parentale) et
+    couple_ou_partie_valide(indignite_parents) ;
+  donnee divorce_parents ;
+  donnee enfant_confie_service_public_institution ;
+  assertion recipiendaire_allocations fixe par decret ;
+  assertion recipiendaire_allocations varie avec
+    retrait_autorite_parentale ;
+  assertion recipiendaire_allocations varie avec indignite_parents ;
+  assertion recipiendaire_allocations varie avec divorce_parents ;
+  assertion recipiendaire_allocations varie avec
+    enfant_confie_service_public_institution.
+*/
 @Article L521-3@ Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une majoration des allocations familiales.
-
-
+/*
+situation AllocationFamiliales source loi :
+  donnee age_minimum_majorations_512_3 de type entier ;
+  donnee droits_ouverts_majorations_allocations_familiales ;
+  donnee enfant_plus_age de situation EnfantAllocationsFamiliales ;
+  regle enfant_plus_age defini comme
+    maximum_collection(contexte!enfants, age) ;
+  regle condition existe enfant dans enfants tel que
+    enfant!age > age_minimum_majorations_512_3 et
+    (non enfant = enfant_plus_age)
+  consequence
+    droits_ouverts_majorations_allocations_familiales defini.
+*/
 Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéficient de ladite majoration pour chaque enfant à charge à partir de l'âge mentionné au premier alinéa.
+/*
+situation AllocationFamiliales source loi :
+  donnee nombre_enfants_a_charge_L521_3 de type entier ;
+  regle condition
+    nombre_enfants_a_charge = nombre_enfants_a_charge_L521_3 et
+    (existe enfant dans enfants tel que
+      enfant!age > age_minimum_majorations_512_3)
+  consequence
+    droits_ouverts_majorations_allocations_familiales defini.
+*/
