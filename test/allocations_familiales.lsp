@@ -95,15 +95,83 @@ situation AllocationsFamiliales source loi:
   consequence allocations_familiales_dues defini.
 */
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
+/*
+situation AllocationFamiliales source loi :
+  donnee allocation_forfaitaire_L521_1 de type montant ;
+  assertion allocation_forfaitaire_L521_1 fixe par decret ;
+  donnee nombre_minimum_enfants_L521_1 de type entier ;
+  assertion nombre_minimum_enfants_L521_1 fixe par decret.
 
+choix entite_en_charge :
+  -- FamilleMonoparentale de situation Personne
+  -- Couple de situation Menage.
+
+situation AllocationFamiliales source loi :
+  donnee entite_en_charge_des_enfants de choix entite_en_charge ;
+  constante duree_allocation_familiale de type duree defini comme 1 an ;
+  donnee allocation_forfaitaire_L521_1_versee ;
+  regle condition
+    nombre_enfants_a_charge > nombre_minimum_enfants_L521_1 et
+    (existe enfant dans contexte!enfants tel que
+      enfant!age = age_limite_L512_3_2 et
+      enfant!qualifie_pour_prestation_sauf_age)
+  consequence allocation_forfaitaire_L521_1_versee defini.
+*/
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.
+/*
+situation Personne source implicite :
+  donnee ressources de type montant.
 
+situation Menage source implicite :
+  donnee ressources de type montant ;
+  donnee parent1 de situation Personne ;
+  donnee parent2 de situation Personne ;
+  regle ressources defini comme
+    parent1!ressources + parent2!ressources.
+
+situation AllocationFamiliales source loi :
+  donnee ressources_entite_en_charge de type montant ;
+  regle ressources_entite_en_charge defini comme
+    selon entite_en_charge_enfants sous forme
+    -- FamilleMonoparentale de parent : parent!ressources
+    -- Couple de menage : menage!ressources ;
+  donnee montant_allocations_familiales de type montant ;
+  assertion montant_allocations_familiales fixe par decret ;
+  assertion montant_allocations_familiales varie avec
+    ressources_entite_en_charge ;
+  assertion allocation_forfaitaire_L521_1 fixe par decret ;
+  assertion allocation_forfaitaire_L521_1 varie avec
+    ressources_entite_en_charge ;
+  donnee majorations_512_3 de type montant ;
+  assertion majorations_512_3 fixe par decret ;
+  assertion majorations_512_3 varie avec
+    ressources_entite_en_charge.
+*/
 Le montant des allocations familiales varie en fonction du nombre d'enfants a charge.
-
+/*
+situation AllocationFamiliales source loi :
+  assertion
+    montant_allocations_familiales varie avec nombre_enfants_a_charge.
+*/
 Les niveaux des plafonds de ressources, qui varient en fonction du nombre d'enfants à charge, sont révisés conformément à l'évolution annuelle de l'indice des prix à la consommation, hors tabac.
-
+/*
+situation AllocationFamiliales source loi :
+ donnee plafonds_ressources_allocations_familiales
+    collection de type montant ;
+ assertion
+  pour tout plafond dans plafonds_ressources_allocations_familiales on a
+    plafond varie avec nombre_enfants_a_charge.
+# TODO: comment parler de l'évolution?
+*/
 Un complément dégressif est versé lorsque les ressources du bénéficiaire dépassent l'un des plafonds, dans la limite de montants définis par décret. Les modalités de calcul de ces montants et celles du complément dégressif sont définies par décret.
-
+/*
+situation AllocationFamiliales source loi :
+  donnee complement_degressif_allocations_familiales de type montant ;
+  assertion complement_degressif_allocations_familiales varie avec
+      nombre_enfants_a_charge decroissant ;
+  assertion
+     complement_degressif_allocations_familiales fixe par decret.
+*/
 
 @Article L521-2@ Les allocations sont versées à la personne qui assume, dans quelques conditions que ce soit, la charge effective et permanente de l'enfant.
 

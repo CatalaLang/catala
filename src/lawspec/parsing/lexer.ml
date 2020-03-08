@@ -40,7 +40,7 @@ let rec lex_code lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' -> update_and_acc lexbuf ; new_line lexbuf; lex_code lexbuf
-  | white_space -> update_and_acc lexbuf; lex_code lexbuf
+  | white_space | '#', Star (Compl '\n'), '\n' -> update_and_acc lexbuf; lex_code lexbuf
   | "*/" ->
     update lexbuf;
     is_code:= false;
@@ -49,15 +49,26 @@ let rec lex_code lexbuf =
   | "situation" -> update_and_acc lexbuf; SITUATION
   | "source" -> update_and_acc lexbuf; SOURCE
   | "donnee" -> update_and_acc lexbuf; DATA (* TODO: Find the unicode point of é to enable donnée *)
+  | "decroissant" -> update_and_acc lexbuf; DECREASING
+  | "croissant" -> update_and_acc lexbuf; INCREASING
   | "de" -> update_and_acc lexbuf; OF
   | "type" -> update_and_acc lexbuf; TYPE
   | "collection" -> update_and_acc lexbuf; COLLECTION
   | "entier" -> update_and_acc lexbuf; INTEGER
   | "defini" -> update_and_acc lexbuf; DEFINED
   | "comme" -> update_and_acc lexbuf; AS
+  | "selon" -> update_and_acc lexbuf; MATCH
+  | "sous forme" -> update_and_acc lexbuf; WITH
   | "condition" -> update_and_acc lexbuf; CONDITION
   | "consequence" -> update_and_acc lexbuf; CONSEQUENCE
+  | "constante" -> update_and_acc lexbuf; CONSTANT
   | "optionnel" -> update_and_acc lexbuf; OPTIONAL
+  | "assertion" -> update_and_acc lexbuf; ASSERTION
+  | "varie avec" -> update_and_acc lexbuf; VARIES_WITH
+  | "pour tout" -> update_and_acc lexbuf; FORALL
+  | "on a" -> update_and_acc lexbuf; WE_HAVE
+  | "fixe" -> update_and_acc lexbuf; FIXED
+  | "par" -> update_and_acc lexbuf; BY
   | "regle" -> update_and_acc lexbuf; RULE
   | "existe" -> update_and_acc lexbuf; EXISTS
   | "dans" -> update_and_acc lexbuf; IN
@@ -67,6 +78,7 @@ let rec lex_code lexbuf =
   | "et" -> update_and_acc lexbuf; AND
   | "ou" -> update_and_acc lexbuf; OR
   | "cardinal" -> update_and_acc lexbuf; CARDINAL
+  | "an" -> update_and_acc lexbuf; YEAR
   | '!' -> update_and_acc lexbuf; BANG
   | "<=" -> update_and_acc lexbuf; LESSER_EQUAL
   | '<' -> update_and_acc lexbuf; LESSER
@@ -75,6 +87,10 @@ let rec lex_code lexbuf =
   | '=' -> update_and_acc lexbuf; EQUAL
   | '(' -> update_and_acc lexbuf; LPAREN
   | ')' -> update_and_acc lexbuf; RPAREN
+  | '+' -> update_and_acc lexbuf; PLUS
+  | '-' -> update_and_acc lexbuf; MINUS
+  | '*' -> update_and_acc lexbuf; MULT
+  | '/' -> update_and_acc lexbuf; DIV
   | ',' -> update_and_acc lexbuf; COMMA
   | ';' -> update_and_acc lexbuf; SEMICOLON
   | ':' -> update_and_acc lexbuf; COLON

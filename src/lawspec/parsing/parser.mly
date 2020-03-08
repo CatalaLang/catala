@@ -34,6 +34,9 @@
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
 %token BANG AND OR LPAREN RPAREN OPTIONAL EQUAL
 %token COMMA CARDINAL LESSER_EQUAL GREATER_EQUAL
+%token ASSERTION FIXED BY CONSTANT YEAR
+%token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
+%token FORALL WE_HAVE INCREASING DECREASING
 
 %type <Ast.source_file> source_file
 
@@ -42,7 +45,7 @@
 %%
 
 choice:
-| CONSTRUCTOR {}
+| CONSTRUCTOR situation_type {}
 
 choices:
 | ALT choice choices {}
@@ -69,8 +72,12 @@ qident:
 primitive_expression:
 | NOW {}
 
+date_qualifier:
+| YEAR {}
+
 literal:
 | INT_LITERAL {}
+| INT_LITERAL date_qualifier {}
 
 compare_op:
 | LESSER {}
@@ -89,8 +96,21 @@ base_expression:
 | qident {}
 | LPAREN expression RPAREN {}
 
-sum_expression:
+mult_op:
+| MULT {}
+| DIV {}
+
+mult_expression:
 | base_expression {}
+| base_expression mult_op base_expression {}
+
+sum_op:
+| PLUS {}
+| MINUS {}
+
+sum_expression:
+| mult_expression {}
+| mult_expression sum_op mult_expression {}
 
 logical_op:
 | AND {}
@@ -104,8 +124,21 @@ logical_expression:
 | compare_expression {}
 | compare_expression logical_op compare_expression {}
 
+optional_binding:
+| OF IDENT {}
+| {}
+
+match_arm:
+| CONSTRUCTOR optional_binding COLON logical_expression {}
+
+match_arms:
+| ALT match_arm match_arms {}
+| {}
+
 expression:
 | EXISTS IDENT IN qident SUCH THAT expression {}
+| FORALL IDENT IN qident WE_HAVE expression {}
+| MATCH expression WITH  match_arms {}
 | logical_expression {}
 
 condition:
@@ -118,9 +151,25 @@ rule_definition:
 rule:
 | option(condition) qident DEFINED rule_definition {}
 
+variation_type:
+| INCREASING {}
+| DECREASING {}
+
+assertion:
+| logical_expression {}
+| qident FIXED BY IDENT {}
+| qident VARIES_WITH qident option(variation_type) {}
+| EXISTS IDENT IN qident SUCH THAT assertion {}
+| FORALL IDENT IN qident WE_HAVE assertion {}
+
+constant:
+| IDENT situation_type DEFINED AS literal {}
+
 situation:
 | DATA IDENT option(COLLECTION) situation_type {}
 | RULE option(OPTIONAL) rule {}
+| ASSERTION assertion {}
+| CONSTANT constant {}
 
 code_item:
 | CHOICE IDENT COLON choices { }
