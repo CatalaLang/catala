@@ -29,7 +29,7 @@ let source_file_item_to_latex (i: A.source_file_item) : string =
   | A.LawCode c -> P.sprintf "\\subsection{%s}" c
   | A.LawText t -> t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" a
-  | A.CodeBlock -> P.sprintf "\\begin{lstlisting}\n%s\n\\end{lstlisting}" "code"
+  | A.CodeBlock c -> P.sprintf "\\begin{lstlisting}%s\\end{lstlisting}" c
 
 let ast_to_latex (file : A.source_file) : string =
   String.concat "\n\n" (List.map (fun i ->

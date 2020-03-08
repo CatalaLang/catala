@@ -23,22 +23,52 @@ open Sedlex_menhir
 module R = Re.Pcre
 
 let is_code : bool ref = ref false
+let code_string_acc : string ref = ref ""
+
+let rec lex_code_as_string lexbuf acc =
+  let buf = lexbuf.stream in
+  match%sedlex buf with
+  | "*/" -> update lexbuf; END_CODE (acc ^ (Sedlexing.Utf8.lexeme buf))
+  | any -> update lexbuf; lex_code_as_string lexbuf (acc ^ (Sedlexing.Utf8.lexeme buf))
+  | _ -> raise_ParseError lexbuf
+
+let update_and_acc lexbuf =
+  update lexbuf;
+  code_string_acc := !code_string_acc ^ (Sedlexing.Utf8.lexeme lexbuf.stream)
 
 let rec lex_code lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
-  | '\n' -> update lexbuf ; new_line lexbuf; lex_code lexbuf
-  | ' ' | '\t' -> update lexbuf; lex_code lexbuf
-  | "*/" -> update lexbuf; is_code:= false; lex_law lexbuf
-  | "code" -> update lexbuf; CODE
-  | any -> update lexbuf; lex_code lexbuf
+  | '\n' -> update_and_acc lexbuf ; new_line lexbuf; lex_code lexbuf
+  | white_space -> update_and_acc lexbuf; lex_code lexbuf
+  | "*/" ->
+    update lexbuf;
+    is_code:= false;
+    END_CODE !code_string_acc
+  | "choix" -> update_and_acc lexbuf; CHOICE
+  | "situation" -> update_and_acc lexbuf; SITUATION
+  | "source" -> update_and_acc lexbuf; SOURCE
+  | "donnee" -> update_and_acc lexbuf; DATA (* TODO: Find the unicode point of é to enable donnée *)
+  | "de" -> update_and_acc lexbuf; OF
+  | ';' -> update_and_acc lexbuf; SEMICOLON
+  | ':' -> update_and_acc lexbuf; COLON
+  | '.' -> update_and_acc lexbuf; POINT
+  | "--" -> update_and_acc lexbuf; ALT
+  | uppercase , Star (uppercase | lowercase) ->
+    update_and_acc lexbuf; CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
+  | lowercase , Star (lowercase | '_' | '\'') ->
+    update_and_acc lexbuf; IDENT (Sedlexing.Utf8.lexeme buf)
   | _ -> raise_ParseError lexbuf
 
-and lex_law lexbuf =
+let rec lex_law lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' -> update lexbuf ; new_line lexbuf; lex_law lexbuf
-  | "/*" -> update lexbuf; is_code := true; lex_code lexbuf
+  | "/*" ->
+    update lexbuf;
+    is_code := true;
+    code_string_acc := "";
+    BEGIN_CODE
   | eof -> update lexbuf ; EOF
   | "@@", Star white_space, Star (Compl '@'), Star white_space, "@@" ->
    let extract_code_title =

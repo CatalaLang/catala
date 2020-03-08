@@ -20,6 +20,6 @@ type source_file_item =
   | LawCode of string
   | LawArticle of string
   | LawText of string
-  | CodeBlock
+  | CodeBlock of string
 
 type source_file = source_file_item list

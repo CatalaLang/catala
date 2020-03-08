@@ -1,6 +1,5 @@
 @@Code de la sécurité sociale@@
 
-
 @Article L511-1@ Les prestations familiales comprennent :
 1°) la prestation d'accueil du jeune enfant ;
 2°) les allocations familiales ;
@@ -11,7 +10,20 @@
 7°) l'allocation de rentrée scolaire ;
 8°) (Abrogé) ;
 9°) l'allocation journalière de présence parentale.
+/*
+choix prestation:
+  -- PrestationAccueilJeuneEnfant
+  -- AllocationsFamiliales
+  -- ComplementFamilial
+  -- AllocationLogement
+  -- AllocationEducationEnfantHandicape
+  -- AllocationSoutienFamilial
+  -- AllocationRentreeScolaire
+  -- AllocationJournalierePresenceParentale.
 
+situation ContextePrestationsFamiliales source loi :
+  donnee prestation_courante de choix prestation.
+*/
 
 @Article L512-3@ Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
 

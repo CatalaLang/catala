@@ -24,7 +24,11 @@
 %token<string> LAW_ARTICLE
 %token<string> LAW_CODE
 %token<string> LAW_TEXT
-%token CODE
+%token<string> CONSTRUCTOR IDENT
+%token<string> END_CODE
+%token BEGIN_CODE CHOICE
+%token COLON ALT POINT SITUATION SOURCE DATA
+%token OF SEMICOLON
 
 %type <Ast.source_file> source_file
 
@@ -32,11 +36,32 @@
 
 %%
 
+choice:
+| CONSTRUCTOR {}
+
+choices:
+| ALT choice choices {}
+| {}
+
+situation_type:
+| CHOICE IDENT {}
+
+situation:
+| DATA IDENT OF situation_type {}
+
+code_item:
+| CHOICE IDENT COLON choices POINT { }
+| SITUATION CONSTRUCTOR SOURCE IDENT COLON situation POINT { }
+
+code:
+| code_item code {}
+| {}
+
 source_file_item:
 | title = LAW_ARTICLE { LawArticle title }
 | code = LAW_CODE { LawCode code }
 | text = LAW_TEXT { LawText text }
-| CODE { CodeBlock }
+| BEGIN_CODE code text = END_CODE { CodeBlock text }
 
 source_file:
 | i = source_file_item f = source_file { i::f }
