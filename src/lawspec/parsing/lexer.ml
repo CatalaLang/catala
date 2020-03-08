@@ -30,6 +30,7 @@ let rec lex_code lexbuf =
   | '\n' -> update lexbuf ; new_line lexbuf; lex_code lexbuf
   | ' ' | '\t' -> update lexbuf; lex_code lexbuf
   | "*/" -> update lexbuf; is_code:= false; lex_law lexbuf
+  | "code" -> update lexbuf; CODE
   | any -> update lexbuf; lex_code lexbuf
   | _ -> raise_ParseError lexbuf
 
@@ -39,6 +40,15 @@ and lex_law lexbuf =
   | '\n' -> update lexbuf ; new_line lexbuf; lex_law lexbuf
   | "/*" -> update lexbuf; is_code := true; lex_code lexbuf
   | eof -> update lexbuf ; EOF
+  | "@@", Star white_space, Star (Compl '@'), Star white_space, "@@" ->
+   let extract_code_title =
+    R.regexp "@@\\s*([^#]*)\\s*@@"
+   in
+   let title = R.get_substring
+    (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
+    1
+   in
+   update lexbuf; LAW_CODE title
   | "@", Star white_space, Star (Compl '@'), Star white_space, "@" ->
    let extract_article_title =
     R.regexp "@\\s*([^#]*)\\s*@"
@@ -47,8 +57,9 @@ and lex_law lexbuf =
     (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf))
     1
    in
-   update lexbuf; ARTICLE title
-  | any -> update lexbuf; lex_law lexbuf
+   update lexbuf; LAW_ARTICLE title
+  | Plus (Compl ('@' | '/' | '\n'))  ->
+    update lexbuf; LAW_TEXT (Sedlexing.Utf8.lexeme buf)
   | _ -> raise_ParseError lexbuf
 
 let lexer lexbuf =

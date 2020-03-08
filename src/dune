@@ -1,9 +1,6 @@
-(include_subdirs unqualified)
-
 (executable
-  (name main)
-  (public_name lawspec)
-  (package lawspec)
-  (libraries ANSITerminal sedlex menhirLib re)
-  (preprocess (pps sedlex.ppx))
-)
+ (name main)
+ (package lawspec)
+ (public_name lawspec)
+ (libraries lawspec)
+ (preprocess (pps sedlex.ppx)))

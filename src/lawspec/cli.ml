@@ -22,19 +22,67 @@ let source_files : string list ref = ref []
 (** Prints debug information *)
 let debug_flag = ref false
 
-let parse_cli_args () =
-  (* Code block to retrieve and parse command-line arguments. *)
-  let speclist = Arg.align [
-      ("--debug", Arg.Set debug_flag,
-       " Prints debugging information");
-    ]
-  in let usage_msg =
-       "Parser and compiler for Lawspec."
-  in
-  let anon_func (file: string) : unit =
-    source_files := file::!source_files
-  in Arg.parse speclist anon_func usage_msg
+open Cmdliner
 
+let files = Arg.(non_empty & pos_all file [] & info [] ~docv:"FILES" ~doc:"Lawspec files to be compiled")
+
+let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
+
+let backend =
+  Arg.(
+    required
+    & opt (some string) None
+    & info [ "backend"; "b" ] ~docv:"BACKEND"
+        ~doc:"Backend selection: TeX")
+
+let output =
+  Arg.(
+    required
+    & opt (some string) None
+    & info [ "output"; "o" ] ~docv:"OUTPUT"
+        ~doc:
+          "$(i, OUTPUT) is the file that will contain the extracted function (for compiler \
+           backends)")
+
+let lawspec_t f =
+  Term.(const f $ files $ debug $ backend $ output)
+
+let info =
+  let doc =
+    "Compiler for Lawspec, a specification language for tax and social benefits computation rules."
+  in
+  let man =
+    [
+      `S Manpage.s_description;
+      `P
+        "The M language is used by the DGFiP to encode the rules describing the computation of the \
+         French income tax. An M program consists in several *.m files in no particular order. \
+         $(tname) will parse all the rules contained in those files that correspond to a \
+         particular application tag. Then, it will extract from this set of rules an \
+         user-specified function, than can be interpreted with a command-line prompt or compiled \
+         to a function in the language of your choice.";
+      `S Manpage.s_authors;
+      `P "Denis Merigoux <denis.merigoux@inria.fr>";
+      `S Manpage.s_examples;
+      `P "Typical usage:";
+      `Pre "lawspec -b LaTeX file.lsp";
+      `S Manpage.s_bugs;
+      `P "Please file bug reports at https://gitlab.inria.fr/verifisc/lawspec/issues";
+    ]
+  in
+  let exits =
+    Term.default_exits
+    @ [
+        Term.exit_info ~doc:"on parsing error." 1;
+        Term.exit_info ~doc:"on typechecking error." 2;
+      ]
+  in
+  Term.info "lawspec"
+    ~version:
+      ( match Build_info.V1.version () with
+      | None -> "n/a"
+      | Some v -> Build_info.V1.Version.to_string v )
+    ~doc ~exits ~man
 
 
 (**{1 Terminal formatting }*)

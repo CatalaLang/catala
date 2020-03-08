@@ -1,0 +1,7 @@
+(include_subdirs unqualified)
+
+(library
+  (public_name lawspec)
+  (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info)
+  (preprocess (pps sedlex.ppx))
+)

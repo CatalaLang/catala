@@ -1,7 +1,7 @@
 (*
   This file is part of the Lawspec compiler, a specification language for tax and social benefits
   computation rules.
-  Copyright (C) 2019 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
+  Copyright (C) 2020 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,4 +16,22 @@
   limitations under the License.
 *)
 
-type source_file = unit
+(**
+  This modules weaves the source code and the legislative text together into a document
+  that law professionals can understand.
+*)
+
+module A = Ast
+module P = Printf
+
+let source_file_item_to_latex (i: A.source_file_item) : string =
+  match i with
+  | A.LawCode c -> P.sprintf "\\subsection{%s}" c
+  | A.LawText t -> t
+  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" a
+  | A.CodeBlock -> "code"
+
+let ast_to_latex (file : A.source_file) : string =
+  String.concat "\n\n" (List.map (fun i ->
+      source_file_item_to_latex i
+     ) file )

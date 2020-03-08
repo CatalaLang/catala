@@ -16,23 +16,10 @@
   limitations under the License.
 *)
 
-%{
+type source_file_item =
+  | LawCode of string
+  | LawArticle of string
+  | LawText of string
+  | CodeBlock
 
- (** Module generated automaticcaly by Menhir, the parser generator *)
-%}
-
-%token EOF
-%token<string> ARTICLE
-
-%type <Ast.source_file> source_file
-
-%start source_file
-
-%%
-
-source_file_item:
-| title = ARTICLE { Cli.debug_print title }
-
-source_file:
-| source_file_item source_file { }
-| EOF { }
+type source_file = source_file_item list

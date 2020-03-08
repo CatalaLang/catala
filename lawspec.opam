@@ -11,7 +11,7 @@ authors: ["Denis Merigoux"]
 bug-reports: "https://gitlab.inria.fr/verifisc/lawspec/issues"
 homepage: "https://gitlab.inria.fr/verifisc/lawspec"
 license: "Apache2"
-version: "1.0.2"
+version: "0.1"
 dev-repo: "git+https://gitlab.inria.fr/verifisc/lawspec.git"
 synopsis: "Low-level language for tax code specification"
 description: """
@@ -23,5 +23,6 @@ depends: [
   "ANSITerminal" {>= "0.8.2"}
   "sedlex" {>= "2.1"}
   "menhirLib" {>= "20200211"}
+  "dune-build-info" {>= "2.0.1"}
   "dune" {build}
 ]

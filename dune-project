@@ -1,6 +1,6 @@
 (lang dune 1.10)
 (name lawspec)
-(version 1.0.2)
+(version 0.1)
 (generate_opam_files true)
 
 (source (uri git+https://gitlab.inria.fr/verifisc/lawspec.git))
@@ -22,6 +22,7 @@
    (ANSITerminal (>= 0.8.2))
    (sedlex (>= 2.1))
    (menhirLib (>= 20200211))
+   (dune-build-info (>= 2.0.1))
    (dune (and :build ))
  )
 )
