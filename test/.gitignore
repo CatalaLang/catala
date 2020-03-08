@@ -1,4 +1,3 @@
-*.tex
 *.aux
 *.dvi
 *.fdb_latexmk
@@ -7,3 +6,4 @@
 *.out
 *.fls
 *.pdf
+allocations_familiales.tex

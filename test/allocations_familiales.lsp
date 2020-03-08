@@ -1,6 +1,7 @@
 @@Code de la sécurité sociale@@
 
-@Article L511-1@ Les prestations familiales comprennent :
+@Article L511-1@
+Les prestations familiales comprennent :
 1°) la prestation d'accueil du jeune enfant ;
 2°) les allocations familiales ;
 3°) le complément familial ;
@@ -25,10 +26,24 @@ situation ContextePrestationsFamiliales source loi :
   donnee prestation_courante de choix prestation.
 */
 
-@Article L512-3@ Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
-
+@Article L512-3@
+Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
+/*
+situation ContextePrestationsFamiliales source loi :
+  donnee droits_ouverts.
+*/
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
+/*
+situation EnfantPrestationsFamiliales source loi :
+  donnee fin_obligation_scolaire de type entier.
 
+situation ContextePrestationsFamiliales source loi :
+  donnee enfants collection de situation EnfantPrestationsFamiliales ;
+  regle condition
+    existe enfant dans enfants tel que
+      maintenant < enfant!fin_obligation_scolaire
+  consequence droits_ouverts defini.
+*/
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.

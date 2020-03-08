@@ -27,8 +27,11 @@
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
 %token BEGIN_CODE CHOICE
-%token COLON ALT POINT SITUATION SOURCE DATA
-%token OF SEMICOLON
+%token COLON ALT DOT SITUATION SOURCE DATA
+%token OF SEMICOLON INTEGER TYPE COLLECTION
+%token RULE CONDITION CONSEQUENCE DEFINED AS
+%token EXISTS IN SUCH THAT NOW LESSER
+%token BANG
 
 %type <Ast.source_file> source_file
 
@@ -43,18 +46,61 @@ choices:
 | ALT choice choices {}
 | {}
 
-situation_type:
+type_ident:
+| IDENT {}
+| INTEGER {}
+
+situation_type_alt:
 | CHOICE IDENT {}
+| TYPE type_ident {}
+| SITUATION CONSTRUCTOR {}
+
+situation_type:
+| OF situation_type_alt {}
+| {}
+
+qident:
+| IDENT {}
+| IDENT BANG IDENT {}
+
+primitive_expression:
+| NOW {}
+
+compare_op:
+| LESSER {}
+
+sum_expression:
+| primitive_expression {}
+| qident {}
+
+compare_expression:
+| sum_expression compare_op sum_expression {}
+
+
+expression:
+| EXISTS IDENT IN qident SUCH THAT expression {}
+| compare_expression {}
+
+condition:
+| CONDITION expression CONSEQUENCE {}
+
+rule_definition:
+| AS expression {}
+| {}
+
+rule:
+| option(condition) IDENT DEFINED rule_definition {}
 
 situation:
-| DATA IDENT OF situation_type {}
+| DATA IDENT option(COLLECTION) situation_type {}
+| RULE rule {}
 
 code_item:
-| CHOICE IDENT COLON choices POINT { }
-| SITUATION CONSTRUCTOR SOURCE IDENT COLON situation POINT { }
+| CHOICE IDENT COLON choices { }
+| SITUATION CONSTRUCTOR SOURCE IDENT COLON separated_nonempty_list(SEMICOLON, situation) { }
 
 code:
-| code_item code {}
+| code_item DOT code {}
 | {}
 
 source_file_item:

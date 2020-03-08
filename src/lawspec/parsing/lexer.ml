@@ -50,9 +50,24 @@ let rec lex_code lexbuf =
   | "source" -> update_and_acc lexbuf; SOURCE
   | "donnee" -> update_and_acc lexbuf; DATA (* TODO: Find the unicode point of é to enable donnée *)
   | "de" -> update_and_acc lexbuf; OF
+  | "type" -> update_and_acc lexbuf; TYPE
+  | "collection" -> update_and_acc lexbuf; COLLECTION
+  | "entier" -> update_and_acc lexbuf; INTEGER
+  | "defini" -> update_and_acc lexbuf; DEFINED
+  | "comme" -> update_and_acc lexbuf; AS
+  | "condition" -> update_and_acc lexbuf; CONDITION
+  | "consequence" -> update_and_acc lexbuf; CONSEQUENCE
+  | "regle" -> update_and_acc lexbuf; RULE
+  | "existe" -> update_and_acc lexbuf; EXISTS
+  | "dans" -> update_and_acc lexbuf; IN
+  | "tel" -> update_and_acc lexbuf; SUCH
+  | "que" -> update_and_acc lexbuf; THAT
+  | "maintenant" -> update_and_acc lexbuf; NOW
+  | '!' -> update_and_acc lexbuf; BANG
+  | '<' -> update_and_acc lexbuf; LESSER
   | ';' -> update_and_acc lexbuf; SEMICOLON
   | ':' -> update_and_acc lexbuf; COLON
-  | '.' -> update_and_acc lexbuf; POINT
+  | '.' -> update_and_acc lexbuf; DOT
   | "--" -> update_and_acc lexbuf; ALT
   | uppercase , Star (uppercase | lowercase) ->
     update_and_acc lexbuf; CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
