@@ -23,6 +23,8 @@
    (sedlex (>= 2.1))
    (menhirLib (>= 20200211))
    (dune-build-info (>= 2.0.1))
+   (cmdliner (>= 1.0.4))
+   (re (>= 1.9.0))
    (dune (and :build ))
  )
 )
