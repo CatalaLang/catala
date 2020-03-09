@@ -1,1 +1,2 @@
-(menhir (modules parser))
+(menhir
+ (modules parser))

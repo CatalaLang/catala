@@ -1,4 +1,4 @@
-(lang dune 1.10)
+(lang dune 2.1)
 (name lawspec)
 (version 0.1)
 (generate_opam_files true)

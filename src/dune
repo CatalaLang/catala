@@ -3,4 +3,5 @@
  (package lawspec)
  (public_name lawspec)
  (libraries lawspec)
- (preprocess (pps sedlex.ppx)))
+ (preprocess
+  (pps sedlex.ppx)))

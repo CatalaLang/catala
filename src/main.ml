@@ -1,2 +1,1 @@
-let _ =
-Lawspec.Driver.main ()
+let _ = Lawspec.Driver.main ()
