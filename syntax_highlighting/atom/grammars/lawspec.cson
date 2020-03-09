@@ -1,0 +1,135 @@
+'scopeName': 'source.lawspec'
+'name': 'Lawspec'
+'fileTypes' : [
+  'lawspec'
+]
+'name' : 'lawspec'
+'patterns' : [
+  {
+    'include' : '#main'
+  }
+]
+'scopeName' : 'source.lawspec'
+'uuid' : ''
+'repository' : {
+  'main' : {
+    'patterns' : [
+      {
+        'begin' : '(@@)'
+        'beginCaptures' : {
+          '1' : {
+            'name' : 'markup.lawspec'
+          }
+        }
+        'patterns' : [
+          {
+            'include' : '#main__1'
+          }
+        ]
+        'end' : '(@@)'
+        'endCaptures' : {
+          '1' : {
+            'name' : 'markup.lawspec'
+          }
+        }
+      }
+      {
+        'begin' : '(@)'
+        'beginCaptures' : {
+          '1' : {
+            'name' : 'markup.heading.lawspec'
+          }
+        }
+        'patterns' : [
+          {
+            'include' : '#main__2'
+          }
+        ]
+        'end' : '(@)'
+        'endCaptures' : {
+          '1' : {
+            'name' : 'markup.heading.lawspec'
+          }
+        }
+      }
+      {
+        'match' : '([^\\/])'
+        'name' : 'text.lawspec'
+      }
+      {
+        'begin' : '(\\/\\*)'
+        'beginCaptures' : {
+          '1' : {
+            'name' : 'markup.prompt.lawspec'
+          }
+        }
+        'patterns' : [
+          {
+            'include' : '#main__3'
+          }
+        ]
+        'end' : '(\\*\\/)'
+        'endCaptures' : {
+          '1' : {
+            'name' : 'markup.prompt.lawspec'
+          }
+        }
+      }
+    ]
+  }
+  'code' : {
+    'patterns' : [
+      {
+        'match' : '(\\s*\\#.*$)'
+        'name' : 'comment.lawspec'
+      }
+      {
+        'match' : '\\b(choix|situation|optionnel|donnée|source|de|type|règle|pour|tout|on|a|tel|que|existe|défini|comme|fonction|paramètres|renvoie|selon|sous\\s*|forme|assertion|varie|avec|décroissante|croissante|fixé|par|conséquence|condition)\\b'
+        'name' : 'keyword.lawspec'
+      }
+      {
+        'match' : '(\\-\\-|;|\\.|:|\\(|\\))'
+        'name' : 'punctuation.lawspec'
+      }
+      {
+        'match' : '(\\+|\\-|\\*|/|\\!|ou|et|=|>|<)'
+        'name' : 'keyword.operator.lawspec'
+      }
+      {
+        'match' : '\\b(entier|booléen|date|montant)\\b'
+        'name' : 'entity.name.type.lawspec'
+      }
+      {
+        'match' : '\\b([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_]*)\\b'
+        'name' : 'variable.lawspec'
+      }
+      {
+        'match' : '\\b([A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_]*)\\b'
+        'name' : 'entity.name.class.lawspec'
+      }
+    ]
+  }
+  'main__1' : {
+    'patterns' : [
+      {
+        'match' : '(.)'
+        'name' : 'markup.lawspec'
+      }
+    ]
+  }
+  'main__2' : {
+    'patterns' : [
+      {
+        'match' : '(.)'
+        'name' : 'markup.heading.lawspec'
+      }
+    ]
+  }
+  'main__3' : {
+    'patterns' : [
+      {
+        'include' : '#code'
+      }
+    ]
+  }
+}

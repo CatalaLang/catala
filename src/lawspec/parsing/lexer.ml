@@ -62,10 +62,11 @@ let rec lex_code lexbuf =
   | "source" ->
       update_and_acc lexbuf;
       SOURCE
-  | "donnee" ->
+  | "donn", 0xE9, "e" ->
+      (* 0xE9 is é *)
       update_and_acc lexbuf;
       DATA (* TODO: Find the unicode point of é to enable donnée *)
-  | "decroissant" ->
+  | "d", 0xE9, "croissant" ->
       update_and_acc lexbuf;
       DECREASING
   | "croissant" ->
@@ -83,7 +84,8 @@ let rec lex_code lexbuf =
   | "fonction" ->
       update_and_acc lexbuf;
       FUNCTION
-  | "parametres" ->
+  | "param", 0xE8, "tres" ->
+      (* 0xE8 is è *)
       update_and_acc lexbuf;
       PARAMETERS
   | "renvoie" ->
@@ -92,7 +94,11 @@ let rec lex_code lexbuf =
   | "entier" ->
       update_and_acc lexbuf;
       INTEGER
-  | "defini" ->
+  | "bool", 0xE9, "en" ->
+      update_and_acc lexbuf;
+      BOOLEAN
+  | "d", 0xE9, "fini" ->
+      (* 0xE9 is é *)
       update_and_acc lexbuf;
       DEFINED
   | "comme" ->
@@ -107,7 +113,8 @@ let rec lex_code lexbuf =
   | "condition" ->
       update_and_acc lexbuf;
       CONDITION
-  | "consequence" ->
+  | "cons", 0xE9, "quence" ->
+      (* 0xE9 is é *)
       update_and_acc lexbuf;
       CONSEQUENCE
   | "constante" ->
@@ -128,13 +135,15 @@ let rec lex_code lexbuf =
   | "on a" ->
       update_and_acc lexbuf;
       WE_HAVE
-  | "fixe" ->
+  | "fix", 0xE9 ->
+      (* 0xE9 is é *)
       update_and_acc lexbuf;
       FIXED
   | "par" ->
       update_and_acc lexbuf;
       BY
-  | "regle" ->
+  | "r", 0xE8, "gle" ->
+      (* 0xE8 is è *)
       update_and_acc lexbuf;
       RULE
   | "existe" ->

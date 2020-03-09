@@ -1,0 +1,17 @@
+{
+  "name": "language-lawspec",
+  "version": "1.0.0",
+  "description": "Syntax highlighting for the Lawspec",
+  "engines": {
+    "atom": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.inria.fr/verifisc/lawspec.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.inria.fr/verifisc/lawspec/issues"
+  },
+  "dependencies": {},
+  "license": "Apache"
+}

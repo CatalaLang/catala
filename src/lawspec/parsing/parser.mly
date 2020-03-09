@@ -37,7 +37,7 @@
 %token ASSERTION FIXED BY CONSTANT YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FORALL WE_HAVE INCREASING DECREASING
-%token FUNCTION PARAMETERS RETURNS NOT
+%token FUNCTION PARAMETERS RETURNS NOT BOOLEAN
 
 %type <Ast.source_file> source_file
 
@@ -55,6 +55,7 @@ choices:
 type_ident:
 | IDENT {}
 | INTEGER {}
+| BOOLEAN {}
 
 situation_type_alt:
 | CHOICE IDENT {}

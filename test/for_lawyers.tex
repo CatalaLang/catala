@@ -4,7 +4,10 @@
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{hyperref, csquotes, textcomp}
-\usepackage{listings}
+% \usepackage{listings}
+\usepackage{minted}
+\setminted[lawspec]{linenos, firstnumber=last}
+\renewcommand\theFancyVerbLine{\tiny\color{gray}\arabic{FancyVerbLine}}
 \usepackage{fullpage}
 \usepackage[french]{babel}
 \usepackage[dvipsnames]{xcolor}
@@ -14,45 +17,45 @@
 \SetWatermarkScale{1}
 \SetWatermarkColor[gray]{0.92}
 
-\makeatletter
-\lstdefinelanguage{lawspec}{%
-  basicstyle=\ttfamily,
-  keywordstyle = [1]{\color{BlueViolet}},
-  keywordstyle = [2]{\color{RedViolet}},
-  morekeywords = [1]{situation donnee, type, de, donnee, situation,
-    collection, regle, condition, consequence, existe, pour,
-    tout, dans, tel, que, optionnel, defini, comme, source, fixe, par,
-    assertion, constante, avec, varie, maniere, decroissant, croissant,
-    choix, parametre, fonction, renvoie, parametres, on, a},
-  morekeywords = [2]{ou, et, si, non, alors, entier, booléen, montant, cardinal,
-   maintenant,  an, mois, selon, sous, forme},
-  otherkeywords = {!, <, >,  =, +, *, --,  /, ;, :, .},
-  morekeywords = [1]{--, ;, :, .},
-  morekeywords = [2]{=, !, <, >, +, *, /, -},
-  % morestring=[b]",
-  % sensitive=true,%
-  numbers=left,
-  firstnumber=last,
-  numberstyle=\footnotesize\color{gray},
-  % numbersep=4pt,
-%  numbers=left,
-%   columns=[l]fullflexible,
-  texcl=true,
-%   mathescape=true,
-%  xleftmargin=10pt,
-  % identifierstyle={\ttfamily},
-% Here is the range marker stuff
-  % rangeprefix=(*---\ ,
-  % includerangemarker=false,
-  % stringstyle=\rmfamily,
-  % lineskip=-4pt,
-  showspaces=false,
-  showstringspaces=false,
-  morecomment=[f][\color{gray}][0]{\#},
-  commentstyle=\color{gray}\itshape,
-  breaklines=false}
-\lstset{language=lawspec}
-\makeatother
+% \makeatletter
+% \lstdefinelanguage{lawspec}{%
+%   basicstyle=\ttfamily,
+%   keywordstyle = [1]{\color{BlueViolet}},
+%   keywordstyle = [2]{\color{RedViolet}},
+%   morekeywords = [1]{situation donnee, type, de, donnee, situation,
+%     collection, regle, condition, consequence, existe, pour,
+%     tout, dans, tel, que, optionnel, defini, comme, source, fixe, par,
+%     assertion, constante, avec, varie, maniere, decroissant, croissant,
+%     choix, parametre, fonction, renvoie, parametres, on, a},
+%   morekeywords = [2]{ou, et, si, non, alors, entier, booléen, montant, cardinal,
+%    maintenant,  an, mois, selon, sous, forme},
+%   otherkeywords = {!, <, >,  =, +, *, --,  /, ;, :, .},
+%   morekeywords = [1]{--, ;, :, .},
+%   morekeywords = [2]{=, !, <, >, +, *, /, -},
+%   % morestring=[b]",
+%   % sensitive=true,%
+%   numbers=left,
+%   firstnumber=last,
+%   numberstyle=\footnotesize\color{gray},
+%   % numbersep=4pt,
+% %  numbers=left,
+% %   columns=[l]fullflexible,
+%   texcl=true,
+% %   mathescape=true,
+% %  xleftmargin=10pt,
+%   % identifierstyle={\ttfamily},
+% % Here is the range marker stuff
+%   % rangeprefix=(*---\ ,
+%   % includerangemarker=false,
+%   % stringstyle=\rmfamily,
+%   % lineskip=-4pt,
+%   showspaces=false,
+%   showstringspaces=false,
+%   morecomment=[f][\color{gray}][0]{\#},
+%   commentstyle=\color{gray}\itshape,
+%   breaklines=false}
+% \lstset{language=lawspec}
+% \makeatother
 
 \title{
   Proposition d'un langage de formalisation de textes législatifs :\\
@@ -73,17 +76,17 @@
 
 \paragraph{Programmation littérale} Le texte de la loi est annoté avec des morceaux de code qui traduisent le contenu des articles et alinéa en termes formels. Ces blocs de code sont intercalés dans le texte de loi, remarquables à leur police en chasse fixe et la coloration de certains mots. Un morceau de code annotant une ligne d'un texte de loi doit contenir tout le contenu sémantique de la ligne de texte, et rien d'autre que ce contenu. L'idée est de pouvoir vérifier localement, ligne à ligne, la cohérence entre le code et le texte législatif.
 
-\paragraph{Situations} Une situation correspond à un contexte logique dans un morceau de code. De même que dans un texte législatif, on se met dans une situation particulière dans laquelle les entités et concepts que l'on nomme ont un sens, chaque morceau de code se place dans un contexte bien particulier auquel on donne un nom. Deux morceaux de code partagent le même contexte logique si ils sont introduits par des lignes \lstinline|situation| ayant le même nom. Une ligne \lstinline|situation| précise aussi la source juridique du contenu qui y sera précisé : loi, décret, règlement ou implicite pour un contenu logique non explicité dans la loi mais qui découle du bon sens.
+\paragraph{Situations} Une situation correspond à un contexte logique dans un morceau de code. De même que dans un texte législatif, on se met dans une situation particulière dans laquelle les entités et concepts que l'on nomme ont un sens, chaque morceau de code se place dans un contexte bien particulier auquel on donne un nom. Deux morceaux de code partagent le même contexte logique si ils sont introduits par des lignes \mintinline{lawspec}|situation| ayant le même nom. Une ligne \mintinline{lawspec}|situation| précise aussi la source juridique du contenu qui y sera précisé : loi, décret, règlement ou implicite pour un contenu logique non explicité dans la loi mais qui découle du bon sens.
 
-\paragraph{Données} Au sein d'une situation, il est possible de déclarer différentes données (\lstinline|donnee|). Ces données sont les quantités et prédicats que le programme va manipuler. Afin de préciser ces données, chacune d'entre elle est assortie d'un type ou d'une situation qui en décrit le contenu. Un type correspond à des quantités primitives comme les entiers, les booléens (vrai ou faux), les dates, les montants d'argent, etc. Une donnée peut aussi contenir une situation qui elle même contient d'autre données, permettant de donner de la structure. Lorsque rien n'est précisé quant au contenu d'une donnée, c'est qu'il n'y a pas de contenu (ou plutôt le contenu est trivial).
+\paragraph{Données} Au sein d'une situation, il est possible de déclarer différentes données (\mintinline{lawspec}|donnee|). Ces données sont les quantités et prédicats que le programme va manipuler. Afin de préciser ces données, chacune d'entre elle est assortie d'un type ou d'une situation qui en décrit le contenu. Un type correspond à des quantités primitives comme les entiers, les booléens (vrai ou faux), les dates, les montants d'argent, etc. Une donnée peut aussi contenir une situation qui elle même contient d'autre données, permettant de donner de la structure. Lorsque rien n'est précisé quant au contenu d'une donnée, c'est qu'il n'y a pas de contenu (ou plutôt le contenu est trivial).
 
-\paragraph{Règles} Le but de l'algorithme est d'exprimer comment calculer une donnée-but en fonction d'un ensemble de données-entrées. Cependant, les textes ne définissent pas de données-but ni de données-entrées ; ils se contente d'exprimer des relations entre les données. Une des relations exprimées par les textes à propos des données est la définition. Les règles (\lstinline|regle|) permettent de définir une donnée en fonction d'autres données de la situation. À l'instar des textes, cette définition peut être conditionnelle, pour cela on utilisera les mots-clés \lstinline|condition| et \lstinline|consequence|.
+\paragraph{Règles} Le but de l'algorithme est d'exprimer comment calculer une donnée-but en fonction d'un ensemble de données-entrées. Cependant, les textes ne définissent pas de données-but ni de données-entrées ; ils se contente d'exprimer des relations entre les données. Une des relations exprimées par les textes à propos des données est la définition. Les règles (\mintinline{lawspec}|regle|) permettent de définir une donnée en fonction d'autres données de la situation. À l'instar des textes, cette définition peut être conditionnelle, pour cela on utilisera les mots-clés \mintinline{lawspec}|condition| et \mintinline{lawspec}|consequence|.
 
-\paragraph{Assertions} Le deuxième type de relation que les textes expriment sur les données consiste à exiger une condition de cohérence. Les \lstinline|assertion| permettent d'exprimer cette exigence de cohérence ; ces conditions doivent être toujours vraies lorsque l'algorithme s'exécute. Une assertion peut tout aussi bien imposer une condition sur les données en entrée, qu'imposer une propriété que l'algorithme doit vérifier. Par exemple, il est possible d'exiger dans une assertion que telle donnée varie de manière décroissante en fonction d'une autre donnée.
+\paragraph{Assertions} Le deuxième type de relation que les textes expriment sur les données consiste à exiger une condition de cohérence. Les \mintinline{lawspec}|assertion| permettent d'exprimer cette exigence de cohérence ; ces conditions doivent être toujours vraies lorsque l'algorithme s'exécute. Une assertion peut tout aussi bien imposer une condition sur les données en entrée, qu'imposer une propriété que l'algorithme doit vérifier. Par exemple, il est possible d'exiger dans une assertion que telle donnée varie de manière décroissante en fonction d'une autre donnée.
 
-\paragraph{Collections} Parfois, le contenu d'une donnée correspond à une collection de contenus, au nombre indéterminé. Il est possible de déclarer ces \lstinline|collections|, et l'on peut alors accéder aux éléments individuels des collections en utilisant les formule existentielles (\lstinline|existe ...  tel que|) ou universelles (\lstinline|pour tout ...   on a|).
+\paragraph{Collections} Parfois, le contenu d'une donnée correspond à une collection de contenus, au nombre indéterminé. Il est possible de déclarer ces \mintinline{lawspec}|collections|, et l'on peut alors accéder aux éléments individuels des collections en utilisant les formule existentielles (\mintinline{lawspec}|existe ... tel que|) ou universelles (\mintinline{lawspec}|pour tout ... on a|).
 
-\paragraph{Choix} Si les \lstinline|situation| permettent de regrouper plusieurs données dans un même contexte, les \lstinline|choix| permettent au contraire d'exprimer une disjonction de cas dans un algorithme. Chaque possibilité du choix peut, à l'instar des données d'une situation, porter un contenu qui peut être un type, une situation ou bien un autre choix. Afin d'examiner dans le code la valeur contenu dans un contenu choix, on utilisera la syntaxe \lstinline|selon ...   sous forme|.
+\paragraph{Choix} Si les \mintinline{lawspec}|situation| permettent de regrouper plusieurs données dans un même contexte, les \mintinline{lawspec}|choix| permettent au contraire d'exprimer une disjonction de cas dans un algorithme. Chaque possibilité du choix peut, à l'instar des données d'une situation, porter un contenu qui peut être un type, une situation ou bien un autre choix. Afin d'examiner dans le code la valeur contenu dans un contenu choix, on utilisera la syntaxe \mintinline{lawspec}|selon ... sous forme|.
 
 
 

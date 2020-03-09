@@ -1,0 +1,189 @@
+name                   = lawspec
+file_extensions []     = lawspec;
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.comment : style {
+   color                 = light_green
+   italic                = true
+   ace_scope             = comment
+   textmate_scope        = comment
+   pygments_scope        = Comment
+}
+
+.sc_id : style {
+   textmate_scope        = variable
+   pygments_scope        = Name.Variable
+}
+
+.cc_id : style {
+   color                 = light_blue
+   textmate_scope        = entity.name.class
+   pygments_scope        = Name.Class
+}
+
+
+.law_title : style {
+   color                 = yellow
+   italic                = false
+   textmate_scope        = markup
+   pygments_scope        = Generic
+}
+
+.law_subtitle : style {
+   color                 = gold
+   italic                = true
+   textmate_scope        = markup.heading
+   pygments_scope        = Generic.Heading
+}
+
+.law : style {
+   color                 = light_yellow
+   italic                = false
+   textmate_scope        = text
+   pygments_scope        = String.Doc
+}
+
+.code_delimiter : style {
+   color                 = grey
+   italic                = false
+   textmate_scope        = markup.prompt
+   pygments_scope        = Generic.Prompt
+}
+
+.primitive : style {
+   color                = purple
+   textmate_scope       = entity.name.type
+   pygments_scope       = Keyword.Type
+}
+
+.keyword : style {
+   color     = cyan
+   ace_scope             = keyword
+   textmate_scope        = keyword
+   pygments_scope        = Keyword
+}
+
+.punctuation : style {
+   color     = red_2
+   ace_scope             = punctuation
+   textmate_scope        = punctuation
+   pygments_scope        = Punctuation
+}
+
+.operator : style {
+   color                 = brown
+   textmate_scope        = keyword.operator
+   pygments_scope        = Operator
+}
+
+}
+
+#################################################
+## Parse contexts
+#################################################
+
+__LOWER_CHARS \= a-zéèàâùîêœç
+
+__UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
+
+__SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_]*
+
+__CC_ID \= [$${__UPPER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_]*
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+
+   : inline_push {
+      regex          \= (@@)
+      styles []       = .law_title;
+      : pop {
+         regex       \= (@@)
+         styles []    = .law_title;
+      }
+      : pattern {
+        regex \= (.)
+        styles [] = .law_title;
+      }
+   }
+
+   : inline_push {
+      regex          \= (@)
+      styles []       = .law_subtitle;
+      : pop {
+         regex       \= (@)
+         styles []    = .law_subtitle;
+      }
+      : pattern {
+        regex \= (.)
+        styles [] = .law_subtitle;
+      }
+   }
+
+   : pattern {
+     regex \= ([^\/])
+     styles [] = .law;
+   }
+
+   : inline_push {
+      regex          \= (\/\*)
+      styles []       = .code_delimiter;
+      : pop {
+         regex       \= (\*\/)
+         styles []    = .code_delimiter;
+      }
+
+      : include "code";
+   }
+
+}
+
+code : context {
+
+  : pattern {
+    regex \= (\s*\#.*$)
+    styles [] = .comment ;
+  }
+
+  : pattern {
+    regex \=  \b(choix|situation|donnée|optionnel|source|de|type|règle|pour|tout|on|a|tel|que|existe|défini|comme|fonction|paramètres|renvoie|selon|sous\s*|forme|assertion|varie|avec|décroissante|croissante|fixé|par|conséquence|condition)\b
+    styles [] = .keyword ;
+  }
+
+  : pattern {
+     regex \= (\-\-|;|\.|:|\(|\))
+     styles [] = .punctuation;
+  }
+
+   : pattern {
+     regex \= (\+|\-|\*|/|\!|ou|et|=|>|<)
+     styles [] = .operator;
+  }
+
+  : pattern {
+    regex \= \b(entier|booléen|date|montant)\b
+    styles [] = .primitive;
+  }
+
+  : pattern {
+    regex \= \b($${__SC_ID})\b
+    styles [] = .sc_id ;
+  }
+
+    : pattern {
+    regex \= \b($${__CC_ID})\b
+    styles [] = .cc_id ;
+  }
+
+}
+
+}
