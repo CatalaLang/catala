@@ -18,7 +18,7 @@
         'begin' : '(@@)'
         'beginCaptures' : {
           '1' : {
-            'name' : 'markup.lawspec'
+            'name' : 'markup.heading.title.lawspec'
           }
         }
         'patterns' : [
@@ -29,7 +29,7 @@
         'end' : '(@@)'
         'endCaptures' : {
           '1' : {
-            'name' : 'markup.lawspec'
+            'name' : 'markup.heading.title.lawspec'
           }
         }
       }
@@ -37,7 +37,7 @@
         'begin' : '(@)'
         'beginCaptures' : {
           '1' : {
-            'name' : 'markup.heading.lawspec'
+            'name' : 'markup.heading.subtitle.lawspec'
           }
         }
         'patterns' : [
@@ -48,19 +48,19 @@
         'end' : '(@)'
         'endCaptures' : {
           '1' : {
-            'name' : 'markup.heading.lawspec'
+            'name' : 'markup.heading.subtitle.lawspec'
           }
         }
       }
       {
         'match' : '([^\\/])'
-        'name' : 'text.lawspec'
+        'name' : 'entity.law.lawspec'
       }
       {
         'begin' : '(\\/\\*)'
         'beginCaptures' : {
           '1' : {
-            'name' : 'markup.prompt.lawspec'
+            'name' : 'comment.block.documentation.lawspec'
           }
         }
         'patterns' : [
@@ -71,7 +71,7 @@
         'end' : '(\\*\\/)'
         'endCaptures' : {
           '1' : {
-            'name' : 'markup.prompt.lawspec'
+            'name' : 'comment.block.documentation.lawspec'
           }
         }
       }
@@ -81,14 +81,32 @@
     'patterns' : [
       {
         'match' : '(\\s*\\#.*$)'
-        'name' : 'comment.lawspec'
+        'name' : 'comment.line.lawspec'
       }
       {
-        'match' : '\\b(choix|situation|optionnel|donnée|source|de|type|règle|pour|tout|on|a|tel|que|existe|défini|comme|fonction|paramètres|renvoie|selon|sous\\s*|forme|assertion|varie|avec|décroissante|croissante|fixé|par|conséquence|condition)\\b'
+        'match' : '(donnée|constante)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'captures' : {
+          '1' : {
+            'name' : 'keyword.lawspec'
+          }
+          '2' : {
+            'name' : 'text.lawspec'
+          }
+          '3' : {
+            'name' : 'variable.lawspec'
+          }
+        }
+      }
+      {
+        'match' : '\\b(existe|selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|tel\\s+que|pour\\s+tout)\\b'
+        'name' : 'keyword.control.lawspec'
+      }
+      {
+        'match' : '\\b(choix|situation|donnée|optionnel|source|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\\b'
         'name' : 'keyword.lawspec'
       }
       {
-        'match' : '(\\-\\-|;|\\.|:|\\(|\\))'
+        'match' : '(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))'
         'name' : 'punctuation.lawspec'
       }
       {
@@ -96,15 +114,15 @@
         'name' : 'keyword.operator.lawspec'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant)\\b'
-        'name' : 'entity.name.type.lawspec'
+        'match' : '\\b(entier|booléen|date|montant|décret|loi|an|mois|jour)\\b'
+        'name' : 'support.type.lawspec'
       }
       {
-        'match' : '\\b([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_]*)\\b'
-        'name' : 'variable.lawspec'
+        'match' : '\\b([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)\\b'
+        'name' : 'meta.variable_id.lawspec'
       }
       {
-        'match' : '\\b([A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_]*)\\b'
+        'match' : '\\b([A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)\\b'
         'name' : 'entity.name.class.lawspec'
       }
     ]
@@ -113,7 +131,7 @@
     'patterns' : [
       {
         'match' : '(.)'
-        'name' : 'markup.lawspec'
+        'name' : 'markup.heading.title.lawspec'
       }
     ]
   }
@@ -121,7 +139,7 @@
     'patterns' : [
       {
         'match' : '(.)'
-        'name' : 'markup.heading.lawspec'
+        'name' : 'markup.heading.subtitle.lawspec'
       }
     ]
   }

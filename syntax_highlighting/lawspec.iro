@@ -10,12 +10,17 @@ styles [] {
 .comment : style {
    color                 = light_green
    italic                = true
-   ace_scope             = comment
-   textmate_scope        = comment
-   pygments_scope        = Comment
+   textmate_scope        = comment.line
+   pygments_scope        = Comment.Single
 }
 
 .sc_id : style {
+   textmate_scope        = meta.variable_id
+   pygments_scope        = String
+}
+
+.var_decl : style {
+   color                 = orange
    textmate_scope        = variable
    pygments_scope        = Name.Variable
 }
@@ -30,49 +35,61 @@ styles [] {
 .law_title : style {
    color                 = yellow
    italic                = false
-   textmate_scope        = markup
-   pygments_scope        = Generic
+   textmate_scope        = markup.heading.title
+   pygments_scope        = Generic.Heading
 }
 
 .law_subtitle : style {
    color                 = gold
    italic                = true
-   textmate_scope        = markup.heading
+   textmate_scope        = markup.heading.subtitle
    pygments_scope        = Generic.Heading
 }
 
 .law : style {
    color                 = light_yellow
    italic                = false
-   textmate_scope        = text
+   textmate_scope        = entity.law
    pygments_scope        = String.Doc
 }
 
 .code_delimiter : style {
    color                 = grey
    italic                = false
-   textmate_scope        = markup.prompt
-   pygments_scope        = Generic.Prompt
+   textmate_scope        = comment.block.documentation
+   pygments_scope        = Comment.Special
 }
 
 .primitive : style {
    color                = purple
-   textmate_scope       = entity.name.type
+   textmate_scope       = support.type
    pygments_scope       = Keyword.Type
 }
 
-.keyword : style {
+.whitespace : style {
+   textmate_scope = text
+   pygments_scope = String
+}
+
+.keyword_expression : style {
+   color     = pink
+   ace_scope             = keyword
+   textmate_scope        = keyword.control
+   pygments_scope        = Keyword
+}
+
+.keyword_rule : style {
    color     = cyan
    ace_scope             = keyword
    textmate_scope        = keyword
-   pygments_scope        = Keyword
+   pygments_scope        = Keyword.Declaration
 }
 
 .punctuation : style {
    color     = red_2
    ace_scope             = punctuation
    textmate_scope        = punctuation
-   pygments_scope        = Punctuation
+   pygments_scope        = Operator
 }
 
 .operator : style {
@@ -91,9 +108,9 @@ __LOWER_CHARS \= a-zéèàâùîêœç
 
 __UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
 
-__SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_]*
+__SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
-__CC_ID \= [$${__UPPER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_]*
+__CC_ID \= [$${__UPPER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
 contexts [] {
 
@@ -155,12 +172,22 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(choix|situation|donnée|optionnel|source|de|type|règle|pour|tout|on|a|tel|que|existe|défini|comme|fonction|paramètres|renvoie|selon|sous\s*|forme|assertion|varie|avec|décroissante|croissante|fixé|par|conséquence|condition)\b
-    styles [] = .keyword ;
+    regex \=  (donnée|constante)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .var_decl;
   }
 
   : pattern {
-     regex \= (\-\-|;|\.|:|\(|\))
+    regex \= \b(existe|selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|tel\s+que|pour\s+tout)\b
+    styles [] = .keyword_expression ;
+  }
+
+  : pattern {
+    regex \=  \b(choix|situation|donnée|optionnel|source|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\b
+    styles [] = .keyword_rule ;
+  }
+
+  : pattern {
+     regex \= (\-\-|\;|\.|\,|\:|\(|\))
      styles [] = .punctuation;
   }
 
@@ -170,7 +197,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant)\b
+    regex \= \b(entier|booléen|date|montant|décret|loi|an|mois|jour)\b
     styles [] = .primitive;
   }
 
