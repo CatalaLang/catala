@@ -92,6 +92,19 @@ styles [] {
    pygments_scope        = Operator
 }
 
+.literal : style {
+   color = green
+   textmate_scope        = constant
+   pygments_scope        = Keyword.Constant
+}
+
+.literal_numeric : style {
+   color = green
+   textmate_scope        = constant.numeric
+   pygments_scope        = Number
+}
+
+
 .operator : style {
    color                 = brown
    textmate_scope        = keyword.operator
@@ -182,8 +195,18 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(choix|situation|donnée|optionnel|source|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\b
+    regex \=  \b(choix|\s*étend|situation|donnée|optionnel|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\b
     styles [] = .keyword_rule ;
+  }
+
+  : pattern {
+    regex \= \b(vrai|faux|[0-9]+(\.[0.9]*|))\b
+    styles [] = .literal ;
+  }
+
+  : pattern {
+    regex \= \b([0-9]+(\.[0.9]*|))\b
+    styles [] = .literal_numeric ;
   }
 
   : pattern {
@@ -206,7 +229,7 @@ code : context {
     styles [] = .sc_id ;
   }
 
-    : pattern {
+  : pattern {
     regex \= \b($${__CC_ID})\b
     styles [] = .cc_id ;
   }

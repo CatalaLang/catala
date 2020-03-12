@@ -28,7 +28,7 @@
 %token<string> END_CODE
 %token<int> INT_LITERAL
 %token BEGIN_CODE CHOICE
-%token COLON ALT DOT SITUATION SOURCE DATA
+%token COLON ALT DOT SITUATION DATA
 %token OF SEMICOLON INTEGER TYPE COLLECTION
 %token RULE CONDITION CONSEQUENCE DEFINED AS
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
@@ -38,6 +38,7 @@
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FORALL WE_HAVE INCREASING DECREASING
 %token FUNCTION PARAMETERS RETURNS NOT BOOLEAN
+%token EXTENDS
 
 %type <Ast.source_file> source_file
 
@@ -214,16 +215,17 @@ func_parameters:
 func_def:
 | IDENT PARAMETERS func_parameters RETURNS type_ident COLON expression {}
 
-situation:
+situation_item:
 | DATA IDENT option(COLLECTION) situation_type {}
 | RULE option(OPTIONAL) rule {}
 | ASSERTION option(condition) assertion {}
 | CONSTANT constant {}
 | FUNCTION func_def {}
+| SITUATION option(qident) EXTENDS CONSTRUCTOR {}
 
 code_item:
 | CHOICE IDENT COLON choices { }
-| SITUATION CONSTRUCTOR SOURCE IDENT COLON separated_nonempty_list(SEMICOLON, situation) { }
+| SITUATION CONSTRUCTOR COLON separated_nonempty_list(SEMICOLON, situation_item) { }
 
 code:
 | code_item DOT code {}

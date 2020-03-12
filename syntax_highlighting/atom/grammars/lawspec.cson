@@ -102,8 +102,16 @@
         'name' : 'keyword.control.lawspec'
       }
       {
-        'match' : '\\b(choix|situation|donnée|optionnel|source|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\\b'
+        'match' : '\\b(choix|\\s*étend|situation|donnée|optionnel|de|type|règle|défini|comme|fonction|paramètres|renvoie|assertion|conséquence|condition|collection|constante)\\b'
         'name' : 'keyword.lawspec'
+      }
+      {
+        'match' : '\\b(vrai|faux|[0-9]+(\\.[0.9]*|))\\b'
+        'name' : 'constant.lawspec'
+      }
+      {
+        'match' : '\\b([0-9]+(\\.[0.9]*|))\\b'
+        'name' : 'constant.numeric.lawspec'
       }
       {
         'match' : '(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))'

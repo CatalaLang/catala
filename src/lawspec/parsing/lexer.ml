@@ -59,9 +59,9 @@ let rec lex_code lexbuf =
   | "situation" ->
       update_and_acc lexbuf;
       SITUATION
-  | "source" ->
+  | 0xE9, "tend" ->
       update_and_acc lexbuf;
-      SOURCE
+      EXTENDS
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
