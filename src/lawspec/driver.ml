@@ -13,6 +13,7 @@
    the License. *)
 
 open Cli
+module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_files : string list) (debug : bool) (backend : string) (output_file : string) :
