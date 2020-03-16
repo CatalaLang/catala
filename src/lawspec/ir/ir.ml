@@ -32,13 +32,6 @@ module Constructor = Id.WithId (struct
   let to_string x = Pos.unmark x
 end)
 
-module Field = Id.WithId (struct
-  type t = string Pos.marked
-  (** The position corresponds to the declaration *)
-
-  let to_string x = Pos.unmark x
-end)
-
 module Enum = Id.WithId (struct
   type t = string Pos.marked
   (** The position corresponds to the declaration *)
