@@ -1,0 +1,222 @@
+\documentclass[12pt, french]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{csquotes, textcomp}
+\usepackage{fullpage}
+\usepackage[french]{babel}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyvrb}
+\usepackage{tcolorbox}
+
+\usepackage{draftwatermark}
+\SetWatermarkText{Brouillon}
+\SetWatermarkScale{1}
+\SetWatermarkColor[gray]{0.92}
+
+\title{
+  Proposition d'un langage de formalisation\\
+  de textes législatifs :\\
+  Questionnaire à l'intention de juristes
+}
+\author{
+  Denis \bsc{Merigoux}\\Inria\and
+  Liane \bsc{Huttner}\\Université Panthéon-Sorbonne\and
+  Nicolas \bsc{Chataing}\\Inria -- École Normale Supérieure\and
+}
+
+\newcommand{\kw}[1]{\textbf{\textcolor{OliveGreen}{#1}}}
+\newcommand{\inlinekw}[1]{\kw{\texttt{#1}}}
+\newenvironment{metadata}{
+  \begin{tcolorbox}[colframe=OliveGreen, title=\textcolor{black}{\texttt{Métadonnées}}, before skip=1em, after skip=1em]
+}{
+\end{tcolorbox}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\renewcommand{\contentsname}{Sommaire}
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{Quelle garantie pour les calculs de transferts sociaux ?}
+
+Impôts, allocations et pensions de retraite partagent un point commun : les règles de calcul des montants de ces transferts sociaux sont définies dans des textes législatifs. Ce sont ces textes en langage naturel, votés par le parlement ou décrétés par le gouvernement, qui servent de référence aux administrations et entreprises qui ont besoin de calculer ces montants de transferts. Cependant, ces calculs sont largement effectués automatiquement : il existe donc des programmes informatiques qui suivent les règles définies par la loi pour calculer le montant des transferts sociaux. Dès lors se pose la question suivante : comment être sûr que ces programmes informatiques, écrits dans des langages de programmation, implémentent fidèlement les règles décrites en langage naturel dans les textes législatifs ?
+
+Il existe plusieurs manières d'obtenir des garanties de fidélité des programmes par rapport aux textes. La manière la plus simple, actuellement utilisée par la plupart des administrations et entreprises, consiste à faire rédiger par des juristes des études de cas où le calcul est détaillé pour une situation individuelle. Les programmeurs informatiques peuvent ainsi vérifier que le détail et le résultat du calcul informatique sur cette situation correspondent bien à ce qu'ont écrit les juristes. La garantie apportée par ces études de cas est proportionnelle à leur nombre et à leur diversité : si une règle de calcul n'est pas couverte par une de ces études de cas, elle ne sera pas couverte pas la garantie.
+
+De manière plus subtile, il ne suffit pas de couvrir toutes les règles de calcul par des études de cas pour obtenir une garantie complète de fidélité. En effet, le comportement de la règle de calcul dépend des valeurs des montants en présence. Pour obtenir une garantie complète de complexité, il faudrait ainsi couvrir par des études de cas tous les comportements possibles de toutes les règles de calcul en présence. Le nombre d'études nécessaire pour atteindre cet objectif, difficile à quantifier, est très élevé et en pratique jamais atteint. Dès lors,comment faire pour obtenir la garantie complète de fidélité du programme informatique par rapport à la loi ?
+
+Plutôt que d'évaluer le programme informatique par l'extérieur avec des études de cas, nous proposons une approche alternative basée sur un vieux concept d'informatique, la programmation littéraire. Le principe de la programmation littéraire est de mêler dans une même source le code informatique ainsi que la description en langage naturel de ce que le code est censé faire. Dans notre cas, cette description en langage naturel est également la source de vérité sur le comportement du programme informatique : les textes législatifs.
+
+Concrètement, cela consiste à partir du texte législatif et annoter ligne à ligne le texte juridique par une traduction informatique fidèle qui retranscrirait tout le contenu sémantique de la ligne de texte, et rien que ce contenu. En procédant ainsi, le problème de la garantie globale de fidélité du programme informatique par rapport à la loi est réduit à la vérification locale de la fidélité d'un morceau de code par rapport à une ligne du texte législatif. Cette vérification demande une grande expertise juridique, car il s'agit de connaître précisément l'interprétation du texte législatif dans toutes les situations possibles.
+
+Notre objectif est de rendre possible cette vérification par des juristes spécialisés. Il faut donc que les annotations sous forme de code soient compréhensibles par ces juristes moyennant une formation minimale. Pour cela, il est nécessaire de créer un nouveau langage de programmation qui répond à cette contrainte de lisibilité. L'annotation des textes législatifs par des programmes rédigés dans ce nouveau langage de programmation correspond au concept de formalisation : il s'agit de donner une définition précise au sens mathématique à toutes les règles de calcul décrites dans la législation.
+
+\subsection{Pour une législation socio-fiscale formalisée}
+
+Nous affirmons que la méthode basée sur la programmation littéraire des textes législatifs que nous proposons apporterait un progrès significatif par rapport aux méthodes actuelles de production des implémentations informatiques de ces textes. Ce progrès se décline en trois principaux axes.
+
+\paragraph{Sécurité juridique} Contrairement au langage naturel, un langage de programmation ne laisse pas de place à l'imprécision et à l'incohérence. Lors de l'implémentation d'un programme censé suivre des textes de loi, le programmeur est obligé de faire des décisions arbitraires. Par exemple, si la loi spécifie une règle différente selon si le montant des revenus est en dessous ou au-dessus d'un certain seuil, le programmeur doit décider arbitrairement se qui se passe quand le montant des revenus est égal au seuil. La revue du code par un juriste spécialisé permettrait de vérifier que ces choix arbitraires sont des interprétations valides du texte législatif.
+
+Plus globalement, la garantie d'une implémentation fidèle au texte législatif apporte un très niveau de sécurité juridique à l'organisation qui utiliserait cette technique. Le champ des méthodes formelles, sur lequel repose la théorie derrière cette proposition, est utilisé dans tous les secteurs d'activité critiques tels que le transport (aérien et ferroviaire), la cryptographie, le spatial et même le contrôle des centrales nucléaires. Un contentieux soulevé par une mauvaise implémentation d'un texte législatif peut avoir de lourdes conséquences si cette implémentation est utilisée à grande échelle. Dans ce cas, les processus utilisés en méthodes formelles sont tout à fait adaptés pour prévenir toute possibilité de contentieux.
+
+\paragraph{Cohérence} Ces problèmes de cohérence se posent aussi en droit fiscal et en droit social. Dans ce cas particulier, la cohérence législative repose sur la cohérence mathématique des règles de calcul définies dans les textes. Il s'agit par exemple de vérifier que le montant d'une allocation est bien dégressif par rapport aux revenus du ménage, ou bien que le taux marginal d'imposition ne peut dépasser un certain seuil. La formalisation des règles de calcul permet de les étudier en tant qu'objet mathématique, et ainsi de prouver comme théorème la cohérence législative.
+
+Un deuxième aspect de la cohérence législative concerne l'existence même de plusieurs implémentations informatiques des textes législatifs. Si plusieurs organisations possèdent chacune leur programme informatique censé respecter le même texte législatif, comment s'assurer que ces implémentations sont bien cohérentes ? D'un point de vue économique, l'existence même de plusieurs implémentations concurrentes d'un même texte législatif est contre-productive en termes de maintenance. Pour cette raison, l'implémentation à base de programmation littéraire que nous proposons servirait d'implémentation unique de référence du texte législatif, partagée par toutes les organisations qui en auraient besoin. De cette manière, la cohérence de l'interprétation de la loi par l'implémentation informatique serait garantie.
+
+\paragraph{Transparence} La nécessité d'une implémentation unique de référence pour les textes législatifs nous amène naturellement à l'enjeu de la transparence. En effet, pour qu'elle puisse bénéficier à l'ensemble des organisations qui en auraient besoin, l'implémentation de référence doit être publiée en open-source. L'ouverture du code source de ces implémentations considérées comme documents administratifs est une obligation légale depuis la loi pour une République numérique du 7 octobre 2016, confirmée par la décision du tribunal administratif de Paris du 18 février 2016 en ce qui concerne l'implémentation du calcul de l'impôt sur le revenu.
+
+L'ouverture du code source possède également l'avantage de permettre un processus collaboratif d'écriture et de validation de l'implémentation entre les diverses organisations concernées. Concrètement, si l'implémentation est publiée par une administration publique, elle pourrait recueillir avant mise en production d'éventuels commentaires ou questions d'organisations privées ou associatives afin de préciser et d'affiner certains choix d'interprétation ex ante, évitant ainsi de recourir au contentieux ex post.
+
+Pour ces raisons, l'utilisation de notre méthode à base de programmation littéraire nous apparaît comme plus avantageuse à tout point de vue que les méthodes actuelles de validation par cas de test. Les programmes écrits dans nouveau langage de programmation créée pour ces annotations seront ensuite traduits (« compilés ») vers d'autres langages de programmation plus traditionnels pour être exécutés au sein d'applications informatiques.
+
+\section{Étude de cas : les allocations familiales}
+Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple annotation d'un article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation ad hoc. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
+
+\subsection{Guide de lecture}
+
+\paragraph{Objectif} Le but est d’annoter le texte de loi avec un langage informatique correspondant (qu’on appellera « code »). Le langage informatique doit traduire exactement le contenu des articles, sans rien ajouter. Pour une plus grande clarté, le code sera placé dans le texte de loi, aux endroits pertinents. Cela permettra de vérifier localement, ligne à ligne, si le code correspond bien au texte de loi. Ce code sera mis en valeur par une \verb|police différente| et une \textcolor{OliveGreen}{coloration particulière}.
+
+\paragraph{Avertissement} Ce guide a pour objet de définir les termes utilisés dans le code. Chaque terme défini a été choisi pour permettre une compréhension égale des juristes et informaticiens. Par conséquent, chaque terme a une signification précise en droit et en informatique. La signification retenue ici n’est pas exactement celle du juriste ou de l’informaticien, mais renvoie à des notions que l’un et l’autre comprennent. C’est pourquoi cette étape de définition - ou de syntaxe - doit être lue attentivement. Il faut aussi préciser que chaque terme défini est ensuite, dans le code, assorti d’un autre terme correspondant au texte de loi.
+
+\paragraph{Contexte} Le contexte est la description de tous les faits présents dans la réalité que va mentionner le morceau de texte de loi. En informatique, il est nécessaire de définir le contexte applicable à chaque partie du code avec un nom, qui suit le terme \inlinekw{contexte}. Deux morceaux de code peuvent avoir le même contexte s’ils sont désignés par le même terme suivant \inlinekw{contexte}. Ainsi, à chaque fois qu’apparait le terme \inlinekw{contexte}, le code définit son contexte d’application.
+
+\paragraph{Données} Les données sont les faits présents dans la réalité, dans un contexte donné. Ce sont tous les éléments que le programme va manipuler. Par exemple, dans la proposition suivante « tout enfant jusqu’à la fin de l’obligation scolaire », les données sont (1) l'enfant  et (2) la fin de l’obligation scolaire. Ces deux données sont nécessaires et suffisantes pour faire fonctionner le code. Ainsi, chaque fois qu’apparaît le mot donnée, un élément utilisé par la suite dans le code sera déterminé.
+
+Une donnée, introduite par \inlinekw{donnée}, peut également être annotée par un \inlinekw{contenu}, qui décrit ce que représente cette donnée : un entier pour un nombre d’années, un montant pour un revenu, etc. Cette annotation de contenu est nécessaire en informatique, car c’est ce qui permet d’effectuer les calculs numériques.
+
+\paragraph{Choix} Parfois, une donnée peut avoir un contenu qui prend plusieurs formes. Par exemple, l’entité en charge d’un enfant est soit un couple soit une personne seule. On exprime cette disjonction de cas en utilisant \inlinekw{choix}, puis en introduisant chacun des cas avec \inlinekw{-}\inlinekw{-}. Lors que l’on veut ensuite utiliser une donnée dont le contenu est un choix, il faut alors examiner chacun des cas avec \inlinekw{selon} $\ldots$ \inlinekw{sous forme}.
+
+\paragraph{Collections} Autre cas particulier du contenu d’une donnée : si celle-ci fait référence à plusieurs choses. Par exemple, la donnée \texttt{enfants} fait référence à tous les enfants d’un ménage. On exprimera cette multiplicité à l’aide de \inlinekw{collection} et si l’on veut utiliser cette collection de données, on le fera avec \inlinekw{existe} $\ldots$ \inlinekw{dans} $\ldots$ \inlinekw{tel que} et \inlinekw{pour tout} $\ldots$ \inlinekw{dans} $\ldots$ \inlinekw{on a}.
+
+\begin{metadata}
+  Le contexte et les données correspondent aux métadonnées. Ce sont des éléments qui ne définissent pas de règle juridique précise, mais qui sont nécessaires pour la traduction en langage informatique. C’est pourquoi ces métadonnées sont placées avant les règles et mises en valeur par une boîte colorée, comme ici.
+\end{metadata}
+
+
+\paragraph{Champ d’application} Le champ d’application d’un article de loi s’inscrit dans un contexte particulier. Dans le code, il est nécessaire de préciser le champ d’application de chaque article de loi. Ce champ d’application sera introduit par \inlinekw{champ d’application}, suivi d’un nom correspondant à un contexte précédemment défini.
+
+\paragraph{Règles} Le but du programme est de traduire en langage informatique les règles exprimées dans le texte de loi. Les règles sont donc les éléments du texte législatif qui permettent d’aboutir à des conséquences. Ces conséquences peuvent être : une définition, une règle logique ou  ou une assertion. Nous allons définir chacune de ces règles. Cependant, toute règle ne s’applique que si une condition précise est valable. Cette condition est introduite par \inlinekw{sous condition}, et sa conséquence par \inlinekw{conséquence}. Les règles peuvent également manipuler des conditions juridiques introduites par \inlinekw{condition}.
+
+\paragraph{Règle logique} Une règle permet d’exprimer des relations logiques entre éléments du texte de loi. Elle permet notamment de préciser quand des conditions sont remplies. Les règles logiques sont introduites par le mot \inlinekw{règle}.
+
+\paragraph{Définition} La définition permet de définir une donnée en fonction d’une autre donnée. Elle permet d’exprimer une donnée en fonction d’une ou plusieurs autres. Elles sont introduites par \inlinekw{définition}.
+
+\paragraph{Assertions} Les assertions sont, en langage informatique, une condition de cohérence. Le code doit vérifier que les assertions sont toujours vraies lorsqu’il s’exécute. Cela permet d’assurer une cohérence d’ensemble à tout le programme. Les assertions peuvent être très variées et imposer plusieurs types de vérifications. Elles sont exprimées en langage informatique sous le terme \inlinekw{assertion}.
+
+\subsection{Exemple d'article de loi annoté}
+
+\paragraph{Article L512-3} Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{champ d’application} PrestationsFamiliales :
+  \kw{condition} droits_ouverts
+  \kw{condition} alinéa_1_L512_3
+  \kw{condition} alinéa_1_L512_3
+
+  \kw{règle sous condition}
+    alinéa_1_L512_3 \kw{ou}
+    alinéa_2_L512_3
+  \kw{conséquence} droit_ouverts \kw{rempli}
+\end{Verbatim}
+
+1°) tout enfant jusqu’à la fin de l’obligation scolaire ;
+
+\begin{metadata}
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{contexte} EnfantPrestationsFamiliales :
+  \kw{donnée} fin_obligation_scolaire
+\kw{contexte} PrestationFamiliale :
+  \kw{donnée} enfants \kw{collection de donnée} EnfantPrestationFamiliales
+\end{Verbatim}
+\end{metadata}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{champ d’application} PrestationFamiliale :
+  \kw{règle sous condition}
+    \kw{existe} enfant \kw{dans} enfants \kw{tel que}
+      \kw{date_aujourd_hui} < enfant.fin_obligation_scolaire
+  \kw{conséquence} alinéa_1_L512_3 \kw{rempli}
+\end{Verbatim}
+
+2°) après la fin de l’obligation scolaire, et jusqu’à un âge limite, tout enfant dont la rémunération éventuelle n’excède pas un plafond
+
+\begin{metadata}
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{contexte} EnfantPrestationsFamiliales :
+  \kw{donnée} fin_obligation_scolaire \kw{contenu date}
+  \kw{donnée} âge \kw{contenu entier}
+  \kw{donnée} rémuneration \kw{contenu montant}
+\kw{contexte} PrestationFamiliales :
+  \kw{donnée} âge_limite_L512_3_2 \kw{contenu entier}
+  \kw{donnée} plafond_rémunération_L5212_3_2 \kw{contenu montant}
+\end{Verbatim}
+\end{metadata}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{champ d’application} PrestationFamiliales :
+  \kw{règle sous condition}
+    \kw{existe} enfant \kw{dans} enfants \kw{tel que}
+      date_aujourd_hui > enfant.fin_obligation_scolaire \kw{et}
+      enfant.rémunération < plafond_rémunération_L5212_3_2 \kw{et}
+      enfant.âge < âge_limite_L512_3_2
+  \kw{conséquence} alinéa_2_L512_3  \kw{rempli}
+\end{Verbatim}
+
+\subsection{Questionnaire de satisfaction}
+
+Le langage de programmation présenté ci-dessus est toujours à l'étude, et nous souhaitons que le projet bénéficie le plus tôt possible de retours de professionnels susceptibles d'utiliser ou d'être en contact avec ce nouvel outil. Aussi nous vous proposons de nous faire part de vos retours en remplissant le formulaire page suivante. Les questions sont posées dans un ordre croissant de difficulté de compréhension du document. Une fois le formulaire rempli, enregistrez le PDF sous un autre nom et envoyez-le par email aux auteurs aux adresses suivantes:
+
+\begin{center}
+  \href{mailto:denis.merigoux@inria.fr}{\texttt{denis.merigoux@inria.fr}}\\[0.5em]
+  \href{mailto:huttner.liane@gmail.com}{\texttt{huttner.liane@gmail.com}}\\[0.5em]
+  \href{mailto:nicolas.chataing@ens.fr}{\texttt{nicolas.chataing@ens.fr}}
+\end{center}
+
+\clearpage
+
+\label{form}
+\begin{Form}
+  \begin{center}
+  \textbf{(1) Quel est votre nom et profession ? Vous pouvez également indiquer des détails pertinents sur votre expérience ou parcours.}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+  \begin{center}
+  \textbf{(2) Est-ce que vous comprenez la démarche ?}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+  \begin{center}
+  \textbf{(3) Est-ce que vous arrivez à poser votre regard sur les morceaux de code sans avoir mal à la tête ?}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+  \begin{center}
+  \textbf{(4) Est-ce que vous arrivez à comprendre le sens du code étant donné le guide de lecture au début ?}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+  \begin{center}
+  \textbf{(5) Est-ce que vous arrivez à relier le sens de chacun des morceaux de code au sens du texte législatif qu'il est censé annoté ?}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+  \begin{center}
+  \textbf{(6) Est-ce que vous pouvez certifier que le code fait bien ce que dit la loi et rien de plus ? Si non, est-ce que vous avez trouvé une erreur dans le code ?}\\[1em]
+
+    \TextField[multiline=true, width=\textwidth]{}
+  \end{center}
+\end{Form}
+
+
+
+
+\end{document}
