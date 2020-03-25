@@ -11,10 +11,10 @@
 \usepackage{fancyvrb}
 \usepackage{tcolorbox}
 
-\usepackage{draftwatermark}
-\SetWatermarkText{Brouillon}
-\SetWatermarkScale{1}
-\SetWatermarkColor[gray]{0.92}
+% \usepackage{draftwatermark}
+% \SetWatermarkText{Brouillon}
+% \SetWatermarkScale{1}
+% \SetWatermarkColor[gray]{0.92}
 
 \title{
   Proposition d'un langage de formalisation\\
@@ -61,30 +61,30 @@ Notre objectif est de rendre possible cette vérification par des juristes spéc
 
 \subsection{Pour une législation socio-fiscale formalisée}
 
-Nous affirmons que la méthode basée sur la programmation littéraire des textes législatifs que nous proposons apporterait un progrès significatif par rapport aux méthodes actuelles de production des implémentations informatiques de ces textes. Ce progrès se décline en trois principaux axes.
+Nous affirmons que la méthode basée sur la programmation littéraire des textes législatifs que nous proposons apporterait un progrès significatif par rapport aux méthodes actuelles de production des implémentations informatiques de ces textes, c'est à dire du code qui calcule ce que décrit la loi. Ce progrès se décline en trois principaux axes.
 
-\paragraph{Sécurité juridique} Contrairement au langage naturel, un langage de programmation ne laisse pas de place à l'imprécision et à l'incohérence. Lors de l'implémentation d'un programme censé suivre des textes de loi, le programmeur est obligé de faire des décisions arbitraires. Par exemple, si la loi spécifie une règle différente selon si le montant des revenus est en dessous ou au-dessus d'un certain seuil, le programmeur doit décider arbitrairement se qui se passe quand le montant des revenus est égal au seuil. La revue du code par un juriste spécialisé permettrait de vérifier que ces choix arbitraires sont des interprétations valides du texte législatif.
+\paragraph{Sécurité juridique} Contrairement au langage naturel, un langage de programmation ne laisse pas de place à l'imprécision et à l'incohérence. Lors de l'implémentation d'un programme censé suivre des textes de loi, le programmeur est obligé de faire des décisions arbitraires. Par exemple, si la loi spécifie une règle différente selon que le montant des revenus soit en dessous ou au-dessus d'un certain seuil, le programmeur doit décider arbitrairement ce qui se passe quand le montant des revenus est égal au seuil. La revue du code par un juriste spécialisé permettrait de vérifier que ces choix arbitraires sont des interprétations valides du texte législatif.
 
-Plus globalement, la garantie d'une implémentation fidèle au texte législatif apporte un très niveau de sécurité juridique à l'organisation qui utiliserait cette technique. Le champ des méthodes formelles, sur lequel repose la théorie derrière cette proposition, est utilisé dans tous les secteurs d'activité critiques tels que le transport (aérien et ferroviaire), la cryptographie, le spatial et même le contrôle des centrales nucléaires. Un contentieux soulevé par une mauvaise implémentation d'un texte législatif peut avoir de lourdes conséquences si cette implémentation est utilisée à grande échelle. Dans ce cas, les processus utilisés en méthodes formelles sont tout à fait adaptés pour prévenir toute possibilité de contentieux.
+Plus globalement, la garantie d'une implémentation en code informatique fidèle au texte législatif apporte un très haut niveau de sécurité juridique à l'organisation qui utiliserait cette technique. Le champ des méthodes formelles, sur lequel repose la théorie derrière cette proposition, est utilisé dans tous les secteurs d'activité critiques tels que le transport (aérien et ferroviaire), la cryptographie, le domaine spatial et même le contrôle des centrales nucléaires. Un contentieux soulevé par une mauvaise implémentation d'un texte législatif peut avoir de lourdes conséquences si cette implémentation est utilisée à grande échelle. Dans ce cas, les processus utilisés en méthodes formelles sont tout à fait adaptés pour prévenir toute possibilité de contentieux vis-à-vis du logiciel informatique.
 
-\paragraph{Cohérence} Ces problèmes de cohérence se posent aussi en droit fiscal et en droit social. Dans ce cas particulier, la cohérence législative repose sur la cohérence mathématique des règles de calcul définies dans les textes. Il s'agit par exemple de vérifier que le montant d'une allocation est bien dégressif par rapport aux revenus du ménage, ou bien que le taux marginal d'imposition ne peut dépasser un certain seuil. La formalisation des règles de calcul permet de les étudier en tant qu'objet mathématique, et ainsi de prouver comme théorème la cohérence législative.
+\paragraph{Cohérence} Ces problèmes de cohérence se posent aussi en droit fiscal et en droit social. Dans ce cas particulier, la cohérence législative repose sur la cohérence mathématique des règles de calcul définies dans les textes. Il s'agit par exemple de vérifier que le montant d'une allocation est bien dégressif par rapport aux revenus du ménage, ou bien que le taux marginal d'imposition ne peut dépasser un certain seuil. La formalisation des règles de calcul permet d'étudier ces règles en tant qu'objets mathématiques, et ainsi de prouver comme théorème la cohérence législative.
 
-Un deuxième aspect de la cohérence législative concerne l'existence même de plusieurs implémentations informatiques des textes législatifs. Si plusieurs organisations possèdent chacune leur programme informatique censé respecter le même texte législatif, comment s'assurer que ces implémentations sont bien cohérentes ? D'un point de vue économique, l'existence même de plusieurs implémentations concurrentes d'un même texte législatif est contre-productive en termes de maintenance. Pour cette raison, l'implémentation à base de programmation littéraire que nous proposons servirait d'implémentation unique de référence du texte législatif, partagée par toutes les organisations qui en auraient besoin. De cette manière, la cohérence de l'interprétation de la loi par l'implémentation informatique serait garantie.
+Un deuxième aspect de la cohérence législative concerne l'existence même de plusieurs versions du code informatique traduisant un même texte législatif. Si plusieurs organisations possèdent chacune leur programme informatique censé respecter le même texte législatif, comment s'assurer que ces implémentations sont bien cohérentes ? D'un point de vue économique, l'existence même de plusieurs implémentations concurrentes d'un même texte législatif est contre-productive en termes de maintenance. Pour cette raison, l'implémentation à base de programmation littéraire que nous proposons servirait d'implémentation unique de référence du texte législatif, partagée par toutes les organisations qui en auraient besoin. De cette manière, la cohérence de l'interprétation de la loi par l'implémentation informatique serait garantie.
 
-\paragraph{Transparence} La nécessité d'une implémentation unique de référence pour les textes législatifs nous amène naturellement à l'enjeu de la transparence. En effet, pour qu'elle puisse bénéficier à l'ensemble des organisations qui en auraient besoin, l'implémentation de référence doit être publiée en open-source. L'ouverture du code source de ces implémentations considérées comme documents administratifs est une obligation légale depuis la loi pour une République numérique du 7 octobre 2016, confirmée par la décision du tribunal administratif de Paris du 18 février 2016 en ce qui concerne l'implémentation du calcul de l'impôt sur le revenu.
+\paragraph{Transparence} La nécessité d'une implémentation unique de référence pour les textes législatifs nous amène naturellement à l'enjeu de la transparence. En effet, pour qu'elle puisse bénéficier à l'ensemble des organisations qui en auraient besoin, l'implémentation de référence doit être publiée en open-source. L'ouverture du code source de ces implémentations considérées comme documents administratifs est une obligation légale depuis la loi 2016-1321 du 7 octobre 2016 pour une République numérique, confirmée par la décision du tribunal administratif de Paris du 18 février 2016 en ce qui concerne l'implémentation du calcul de l'impôt sur le revenu.
 
-L'ouverture du code source possède également l'avantage de permettre un processus collaboratif d'écriture et de validation de l'implémentation entre les diverses organisations concernées. Concrètement, si l'implémentation est publiée par une administration publique, elle pourrait recueillir avant mise en production d'éventuels commentaires ou questions d'organisations privées ou associatives afin de préciser et d'affiner certains choix d'interprétation ex ante, évitant ainsi de recourir au contentieux ex post.
+L'ouverture du code source possède également l'avantage de permettre un processus collaboratif d'écriture et de validation de l'implémentation entre les diverses organisations concernées. Concrètement, si l'implémentation est publiée par une administration publique, elle pourrait recueillir avant mise en production d'éventuels commentaires ou questions d'organisations privées ou associatives afin de préciser et d'affiner certains choix d'interprétation \emph{ex ante}, évitant ainsi de recourir au contentieux \emph{ex post}.
 
-Pour ces raisons, l'utilisation de notre méthode à base de programmation littéraire nous apparaît comme plus avantageuse à tout point de vue que les méthodes actuelles de validation par cas de test. Les programmes écrits dans nouveau langage de programmation créée pour ces annotations seront ensuite traduits (« compilés ») vers d'autres langages de programmation plus traditionnels pour être exécutés au sein d'applications informatiques.
+Pour ces raisons, l'utilisation de notre méthode à base de programmation littéraire nous apparaît comme plus avantageuse à tout point de vue que les méthodes actuelles de validation par études de cas. Les programmes écrits dans le nouveau langage de programmation seront ensuite traduits (« compilés ») vers d'autres langages de programmation plus traditionnels pour être exécutés au sein d'applications informatiques.
 
 \section{Étude de cas : les allocations familiales}
-Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple annotation d'un article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation ad hoc. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
+Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple d'annotation d'un article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation \emph{ad hoc}. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
 
 \subsection{Guide de lecture}
 
 \paragraph{Objectif} Le but est d’annoter le texte de loi avec un langage informatique correspondant (qu’on appellera « code »). Le langage informatique doit traduire exactement le contenu des articles, sans rien ajouter. Pour une plus grande clarté, le code sera placé dans le texte de loi, aux endroits pertinents. Cela permettra de vérifier localement, ligne à ligne, si le code correspond bien au texte de loi. Ce code sera mis en valeur par une \verb|police différente| et une \textcolor{OliveGreen}{coloration particulière}.
 
-\paragraph{Avertissement} Ce guide a pour objet de définir les termes utilisés dans le code. Chaque terme défini a été choisi pour permettre une compréhension égale des juristes et informaticiens. Par conséquent, chaque terme a une signification précise en droit et en informatique. La signification retenue ici n’est pas exactement celle du juriste ou de l’informaticien, mais renvoie à des notions que l’un et l’autre comprennent. C’est pourquoi cette étape de définition - ou de syntaxe - doit être lue attentivement. Il faut aussi préciser que chaque terme défini est ensuite, dans le code, assorti d’un autre terme correspondant au texte de loi.
+\paragraph{Avertissement} Ce guide a pour objet de définir les termes utilisés dans le code. Chaque terme défini a été choisi pour permettre une compréhension égale des juristes et informaticiens. Par conséquent, chaque terme a une signification précise en droit et en informatique. La signification retenue ici n’est pas exactement celle du juriste ou de l’informaticien, mais renvoie à des notions que l’un et l’autre comprennent. C’est pourquoi cette étape de définition - ou de syntaxe - doit être lue attentivement.
 
 \paragraph{Contexte} Le contexte est la description de tous les faits présents dans la réalité que va mentionner le morceau de texte de loi. En informatique, il est nécessaire de définir le contexte applicable à chaque partie du code avec un nom, qui suit le terme \inlinekw{contexte}. Deux morceaux de code peuvent avoir le même contexte s’ils sont désignés par le même terme suivant \inlinekw{contexte}. Ainsi, à chaque fois qu’apparait le terme \inlinekw{contexte}, le code définit son contexte d’application.
 
@@ -185,32 +185,33 @@ Le langage de programmation présenté ci-dessus est toujours à l'étude, et no
 \label{form}
 \begin{Form}
   \begin{center}
+    \small
   \textbf{(1) Quel est votre nom et profession ? Vous pouvez également indiquer des détails pertinents sur votre expérience ou parcours.}\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
   \begin{center}
-  \textbf{(2) Est-ce que vous comprenez la démarche ?}\\[1em]
+  \textbf{(2) Est-ce que vous comprenez la démarche ? Si oui, vous paraît-elle justifiée ?}\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
   \begin{center}
-  \textbf{(3) Est-ce que vous arrivez à poser votre regard sur les morceaux de code sans avoir mal à la tête ?}\\[1em]
+  \textbf{(3) Est-ce que vous arrivez à poser votre regard sur les morceaux de code sans avoir mal à la tête ? Si non, comment améliorer cela ?}\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
   \begin{center}
-  \textbf{(4) Est-ce que vous arrivez à comprendre le sens du code étant donné le guide de lecture au début ?}\\[1em]
+  \textbf{(4) Est-ce que vous arrivez à comprendre le sens du code étant donné le guide de lecture au début ? Si non, comment améliorer cela ?}\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
   \begin{center}
-  \textbf{(5) Est-ce que vous arrivez à relier le sens de chacun des morceaux de code au sens du texte législatif qu'il est censé annoté ?}\\[1em]
+  \textbf{(5) Est-ce que vous arrivez à relier le sens de chacun des morceaux de code au sens du texte législatif qu'il est censé annoté ? Si non, comment améliorer cela ?}\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
   \begin{center}
-  \textbf{(6) Est-ce que vous pouvez certifier que le code fait bien ce que dit la loi et rien de plus ? Si non, est-ce que vous avez trouvé une erreur dans le code ?}\\[1em]
+  \textbf{(6) Est-ce que vous pouvez certifier que le code fait bien ce que dit la loi et rien de plus ? Si non, est-ce que vous avez trouvé une erreur dans le code ? }\\[1em]
 
     \TextField[multiline=true, width=\textwidth]{}
   \end{center}
