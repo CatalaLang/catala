@@ -11,6 +11,7 @@ Les prestations familiales comprennent :
 7°) l'allocation de rentrée scolaire ;
 8°) (Abrogé) ;
 9°) l'allocation journalière de présence parentale.
+
 /*
 choix prestation:
   -- PrestationAccueilJeuneEnfant
@@ -21,258 +22,277 @@ choix prestation:
   -- AllocationSoutienFamilial
   -- AllocationRentréeScolaire
   -- AllocationJournalièrePresenceParentale.
-
-contexte ContextePrestationsFamiliales :
-  donnée prestation_courante de choix prestation.
 */
 
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
 /*
-contexte ContextePrestationsFamiliales :
-  donnée droits_ouverts.
+contexte PrestationsFamiliales source loi :
+    donnée prestation_courante contenant un choix prestation ;
+    donnée droits_ouverts ;
+    donnée alinéa_1_L512_3 ;
+    donnée alinéa_2_L512_3.
+
+champ d'application PrestationsFamiliales :
+    règle condition
+        alinéa_1_L512_3 ou
+        alinéa_2_L512_3
+    conséquence droits_ouverts rempli.
 */
+
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 /*
 contexte EnfantPrestationsFamiliales :
-  donnée fin_obligation_scolaire de type entier.
+    donnée fin_obligation_scolaire contenant une date.
 
-contexte ContextePrestationsFamiliales :
-  donnée enfants collection de situation EnfantPrestationsFamiliales.
+contexte PrestationsFamiliales :
+    donnée enfants contenant une collection de contexte EnfantPrestationsFamiliales.
 
-champ application ContextePrestationsFamiliales :
-  règle condition
-    existe enfant dans enfants tel que
-      maintenant < enfant!fin_obligation_scolaire
-  conséquence droits_ouverts défini.
+champ d'application PrestationFamiliale :
+    règle condition
+        existe enfant dans enfants tel que
+            date_aujourd_hui < enfant.fin_obligation_scolaire
+    conséquence alinéa_1_L512_3 rempli
 */
+
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 /*
-contexte ContextePrestationsFamiliales :
-  donnée âge_limite_L512_3_2 de type entier ;
-  donnée plafond_rémunération_L512_3_2 de type montant.
-
 contexte EnfantPrestationsFamiliales :
-  donnée âge de type entier ;
-  donnée rémunération de type montant ;
-  donnée qualifié_pour_prestation_sauf_âge ;
-  donnée enfant_qualifié_pour_prestation.
+    donnée âge contenant un entier ;
+    donnée rémunération contenant un montant.
+    
+contexte PrestationsFamiliales :
+    donnée âge_limite_L512_3_2 contenant un entier.
+    donnée plafond_rémunération_L512_3_2 contenant un montant.
 
-champ application EnfantPrestationsFamiliales :
-  règle condition
-    maintenant > fin_obligation_scolaire et
-    rémunération < plafond_rémunération_L512_3_2
-  conséquence qualifié_pour_prestation_sauf_âge défini ;
-  règle condition
-    qualifié_pour_prestation_sauf_âge et
-    âge < âge_limite_L512_3_2
-  conséquence qualifié_pour_prestation défini.
-
-champ application ContextePrestationsFamiliales :
-  règle condition
-    existe enfant dans enfants tel que
-      enfant!qualifié_pour_prestation
-  conséquence droits_ouverts défini.
+# Maintenant qu'on a étendu l'abstraction des faits (par des données qualifiant
+# ces faits) on peut étendre le champ d'application des prestations familiales.
+champ d'application PrestationsFamiliales :
+    règle condition
+        existe enfant dans enfants tel que
+            date_aujourd_hui > enfant.fin_obligation_scolaire et
+            enfant.rémunération < plafond_rémunération_L512_3_2 et
+            enfant.âge < âge_limite_L512_3_2
+        conséquence alinéa_2_L512_3 rempli.
 */
+
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
 /*
-contexte ContextePrestationsFamiliales :
-  donnée âge_limite_L512_3_2_alternatif de type entier.
+contexte PrestationsFamiliales :
+    donnée âge_limite_L512_3_2_alternatif contenant un entier.
 
-champ application ContextePrestationsFamiliales :
-  règle optionnel condition
-    prestation_courante = ComplémentFamilial ou
-    prestation_courante = AllocationLogement
-  conséquence
-    âge_limite_L512_3_2 défini comme âge_limite_L512_3_2_alternatif.
+champ d'application PrestationsFamiliales :
+    règle optionnel condition
+        prestation_courante = ComplémentFamilial ou
+        prestation_courante = AllocationLogement
+    conséquence
+        âge_limite_L512_3_2 défini comme âge_limite_L512_3_2_alternatif.
 */
 
 @Article L521-1@
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
 contexte AllocationsFamiliales :
-  contexte étend ContextePrestationsFamiliales ;
-  donnée allocations_familiales_dues ;
-  donnée nombre_enfants_à_charge de type entier.
+    contexte étend PrestationsFamiliales ;
+    donnée allocations_familiales_dues ;
+    donnée nombre_enfants_à_charge contenant un entier
+        défini comme cardinal(enfants).
 
-champ application AllocationsFamiliales :
-  règle nombre_enfants_à_charge défini comme cardinal(enfants) ;
-  règle condition
-    nombre_enfants_à_charge >= 2
-  conséquence allocations_familiales_dues défini.
+champ d'application AllocationsFamiliales :
+    règle condition
+        nombre_enfants_à_charge >= 2
+    conséquence allocation_familales_dues défini. 
+
 */
-Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménâge qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
+Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 /*
-contexte AllocationFamiliales :
-  donnée allocation_forfaitaire_L521_1 de type montant ;
-  assertion allocation_forfaitaire_L521_1 fixé par décret ;
-  donnée nombre_minimum_enfants_L521_1 de type entier ;
-  assertion nombre_minimum_enfants_L521_1 fixé par décret.
+contexte AllocationsFamiliales:
+    donnée allocation_forfaitaire_L521_1 contenant un montant ;
+    donnée nombre_minimum_enfants_L521_1 contenant un entier.
 
-choix entité_en_charge :
-  -- FamilleMonoparentale de contexte Personne
-  -- Couple de contexte Ménage.
+champ d'application AllocationsFamiliales:
+    assertion allocation_forfaitaire_L521_1 fixé par décret ;
+    assertion nombre_minimum_enfants_L521_1 fixé par décret.
 
-contexte AllocationFamiliales :
-  donnée entité_en_charge_des_enfants de choix entité_en_charge ;
-  constante durée_allocation_familiale de type durée défini comme 1 an ;
-  donnée allocation_forfaitaire_L521_1_versée ;
 
-champ application AllocationFamiliales:
-  règle condition
-    nombre_enfants_à_charge > nombre_minimum_enfants_L521_1 et
-    (existe enfant dans enfants tel que
-      enfant!âge = âge_limite_L512_3_2 et
-      enfant!qualifié_pour_prestation_sauf_âge)
-  conséquence allocation_forfaitaire_L521_1_versée défini.
+contexte AllocationsFamiliales :
+    constante durée_alloc_familiale contenant une durée défini comme 1 an ;
+    donnée allocation_forfaitaire_L521_1_versée.
+
+champ d'application AllocationsFamiliales :
+    règle condition
+        nombre_enfants_à_charge > nombre_minimum_enfants_L521_1 et
+        (existe enfant dans enfants tel que
+            enfant.âge = âge_limite_L512_3_2 et
+            enfant.rémunération < plafond_rémunération_L512_3_2 et
+            date.aujourdhui > enfant.fin_obligation_scolaire) #TODO : à vérifier
+    conséquence allocation_forfaitaire_L521_1_versée définie.
 */
+
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménâge ou de la personne qui a la charge des enfants, selon un barème défini par décret.
+
 /*
 contexte Personne :
-  donnée ressources de type montant.
+    donnée ressources de type montant.
 
 contexte Ménage :
-  donnée parent1 de contexte Personne ;
-  donnée parent2 de contexte Personne ;
-  donnée ressources de type montant défini comme
-    parent1!ressources + parent2!ressources.
+    donnée parent1 contenant un contexte Personne ;
+    donnée parent2 contenant un contexte Personne ;
+    donnée ressources contenant un montant défini comme
+        parent1.ressources + parent2.ressources.
 
-contexte AllocationFamiliales :
-  donnée ressources_entité_en_charge de type montant défini comme
-    selon entité_en_charge_enfants sous forme
-    -- FamilleMonoparentale de parent : parent!ressources
-    -- Couple de ménage : ménage!ressources ;
-  donnée montant_allocations_familiales de type montant ;
-  donnée majorations_512_3 de type montant ;
+choix entité_en_charge :
+    -- FamilleMonoparentale de contexte Personne
+    -- Couple de contexte Ménage.
+        
+contexte AllocationsFamiliales :
+    donnée entité_en_charge_des_enfants contenant un choix entité_en_charge ;
+    donnée ressources_entité_en_charge contenant un montant défini comme
+        selon entité_en_charge_enfants sous forme
+        -- FamilleMonoparentale de parent : parent.ressources
+        -- Couple de ménage : ménage.ressources ;
+    donnée montant_allocations_familiales contenant un montant ;
+    donnée majorations_512_3 contenant un montant.
 
-champ application AllocationsFamiliales :
-  assertion montant_allocations_familiales 
-    fixé par décret
-    varie avec ressources_entité_en_charge ;
-  assertion allocation_forfaitaire_L521_1 
-    fixé par décret
-    varie avec ressources_entité_en_charge ;
-  assertion majorations_512_3 
-    fixé par décret 
-    varie avec ressources_entité_en_charge.
-
+champ d'application AllocationsFamiliales :
+    assertion montant_alloctions_familiales
+        fixé par décret
+        varie avec ressources_entité_en_charge ;
+    assertion allocation_forfaitaire_L521_1
+        fixé par décret
+        varie avec ressources_entité_en_charge ;
+    assertion majorations_512_3
+        fixé par décret
+        varie avec ressources_entité_en_charge.
 */
-Le montant des allocations familiales varie en fonction du nombre d'enfants a charge.
+
+Le montant des allocations familiales varie en fonction du nombre d'enfants à charge.
+
 /*
-champ application AllocationsFamiliales :
-  assertion montant_allocations_familiales varie avec nombre_enfants_à_charge.
+champ d'application AllocationsFamiliales :
+    assertion montant_allocations_familiales varie avec nombre_enfants_à_charge.
 */
+
 Les niveaux des plafonds de ressources, qui varient en fonction du nombre d'enfants à charge, sont révisés conformément à l'évolution annuelle de l'indice des prix à la consommation, hors tabac.
+
 /*
 contexte AllocationsFamiliales :
-  donnée plafonds_ressources_allocations_familiales
-    collection de type montant.
+    donnée plafonds_ressources_allocations_familiales
+        contenant une collection de montant.
 
 champ application AllocationsFamiliales :
-  assertion
-    pour tout plafond dans plafonds_ressources_allocations_familiales on a
-      plafond varie avec nombre_enfants_à_charge.
+    assertion pour tout plafond dans plafonds_ressources_allocations_familiales on a
+        plafond varie avec nombre_enfants_à_charge.
 # TODO: comment parler de l'évolution?
 */
+
 Un complément dégressif est versé lorsque les ressources du bénéficiaire dépassent l'un des plafonds, dans la limite de montants définis par décret. Les modalités de calcul de ces montants et celles du complément dégressif sont définies par décret.
+
 /*
 contexte AllocationFamiliales :
-  donnée complement_dégressif_allocations_familiales de type montant ;
+    donnée complement_dégressif de type montant ;
 
 champ application AllocationsFamiliales :
-  assertion complement_dégressif_allocations_familiales 
-    varie avec nombre_enfants_à_charge décroissant ;
-  assertion complement_dégressif_allocations_familiales fixé par décret.
+    assertion complement_dégressif fixé par décret
+        varie avec nombre_enfants_à_charge de manière décroissante ;
 */
 
 @Article L521-2@
 Les allocations sont versées à la personne qui assume, dans quelques conditions que ce soit, la charge effective et permanente de l'enfant.
 /*
 contexte RecipendaireDivise :
-  donnée récipiendaire1 de contexte Personne ;
-  donnée récipiendaire2 de contexte Personne.
+    donnée récipiendaire1 de contexte Personne ;
+    donnée récipiendaire2 de contexte Personne.
 
 contexte EnfantAllocationsFamiliales :
-  contexte étend EnfantPrestationsFamiliales ;
-  donnée entité_en_charge_de_l_enfant de choix entité_en_charge.
+    contexte étend EnfantPrestationsFamiliales ;
+    donnée entité_en_charge de choix entité_en_charge.
 
-contexte AllocationFamiliales :
-  contexte enfants étend EnfantAllocationsFamiliales.
-  # TODO : changer le nom de cette règle vu qu'elle ne définit rien de juridique 
-  # mais est là uniquement pour assigner des valeurs aux variables (donnée?)
-  règle pour tout enfant dans enfants on a
-    enfant!entité_en_charge_de_l_enfant défini comme
-      entité_en_charge_des_enfants.
+contexte AllocationsFamiliales :
+    règle pour tout enfant dans enfants on a 
+        enfant étend EnfantAllocationsFamiliales.
+    règle pour tout enfant dans enfants on a
+        enfant.entité_en_charge défini comme entité_en_charge_des_enfants.
 
 choix récipiendaire:
   -- Complet de choix entité_en_charge
   -- Divise de situation RecipendaireDivise.
 
 contexte EnfantAllocationsFamiliales :
-  donnée récipiendaire_allocations de type récipiendaire défini comme
-    Complet de entité_en_charge_de_l_enfant.
+    donnée récipiendaire_allocations de type récipiendaire défini comme
+        Complet de entité_en_charge.
 */
-En cas de résidence alternée de l'enfant au domicile de chacun des parents telle que prévue à l'article 373-2-9 du code civil, mise en oeuvre de manière effective, les parents désignent l'allocataire. Cependant, la charge de l'enfant pour le calcul des allocations familiales est partagée par moitié entre les deux parents soit sur demande conjointe des parents, soit si les parents sont en désaccord sur la désignation de l'allocataire. Un décret en Conseil d'Etat fixe les conditions d'application du présent alinéa.
-/*
 
-# TODO : NE PAS LIRE À PARTIR DE LÀ
+En cas de résidence alternée de l'enfant au domicile de chacun des parents telle que prévue à l'article 373-2-9 du code civil, mise en oeuvre de manière effective, les parents désignent l'allocataire. Cependant, la charge de l'enfant pour le calcul des allocations familiales est partagée par moitié entre les deux parents soit sur demande conjointe des parents, soit si les parents sont en désaccord sur la désignation de l'allocataire. Un décret en Conseil d'État fixe les conditions d'application du présent alinéa.
+
+/*
 
 contexte EnfantAllocationsFamiliales :
-  donnée garde_alternée ;
-# on ne formalise pas l'article 373-2-9 pour l'instant
-  donnée parent1_garde_alternée de situation Personne ;
-  donnée parent2_garde_alternée de situation Personne ;
+    donnée garde_alternée ;
+# on ne formalise par l'article 372-2-9 pour l'instant
+    donnée parent1_garde_alternée de situation Personne ;
+    donnée parent2_garde_alternée de situation Personne ;
 
-  fonction est_en_charge paramètres
-    -- parent de situation Personne
-  renvoie booléen:
-    selon entité_en_charge_de_l_enfant sous forme
+    fonction est_en_charge paramètres
+        -- parent de situation Personne
+    renvoie booléen:
+    selon entité_en_charge sous forme
     -- FamilleMonoparentale de parent' : parent = parent'
     -- Couple de ménage :
-      ménage!parent1 = parent ou ménage!parent2 = parent.
+        ménage.parent1 = parent ou ménage.parent2 = parent.
 
-champ application EnfantAllocationsFamiliales :
-  assertion condition garde_alternée conséquence
-    est_en_charge(parent1_garde_alternée) ou
-    est_en_charge(parent2_garde_alternée) ;
-  donnée parent_récipiendaire_garde_alternée de situation Personne ;
-  règle condition garde_alternée conséquence
-    récipiendaire_allocations défini comme
-      Complet de parent_récipiendaire_garde_alternée ;
-  donnée desaccord_designation_allocataire_garde_alternée ;
-  donnée demande_conjointe_partage_charge_garde_alternée ;
-  donnée récipiendaire_divise_garde_alternée
-     de situation RecipiendaireDivise ;
-  règle condition garde_alternée et
-    (desaccord_designation_allocataire_garde_alternée ou
-    demande_conjointe_partage_charge_garde_alternée)
-  conséquence
-  -- récipiendaire_divise_garde_alternée!parent1 défini comme
-    parent1_garde_alternée
-  -- récipiendaire_divise_garde_alternée!parent2 défini comme
-    parent2_garde_alternée
-  -- récipiendaire_allocations défini comme
-    Divise de  récipiendaire_divise_garde_alternée ;
-  assertion (selon récipiendaire_allocations sous forme
-  -- Complet de (FamilleMonoparentale de personne) :
-    est_en_charge(personne)
-  -- Complet de (Couple de couple) :
-    Couple de couple = entité_en_charge_enfants
-  -- Divise : vrai).
+    assertion condition garde_alternée conséquence
+        est_en_charge(parent1_garde_alternée) ou
+        est_en_charge(parent2_garde_alternée) ;
+
+    donnée parent_récipiendaire_garde_alternée contenant un contexte Personne ;
+    règle condition garde_alternée conséquence
+        récipiendaire_allocations défini comme 
+            Complet de parent_récipiendaire_garde_alternée ;
+    donnée désaccord_désignation_allocataire_garde_alternée ;
+    donnée demande_conjointe_partage_charge_garde_alternée ;
+    donnée récipiendaire_divise_garde_alternée contenant un contexte RecipiendaireDivise ;
+
+champ d'application EnfantAllocationsFamiliales :
+    règle condition 
+        garde_alternée et
+        (désaccord_désignation_allocataire_garde_alternée ou
+        demande_conjointe_partage_charge_garde_alternée)
+    conséquence
+    -- récipiendaire_divise_garde_alternée.parent1 défini comme
+        parent1_garde_alternée
+    -- récipiendaire_divise_garde_alternée.parent2 défini comme
+        parent2_gared_alternée
+    -- récipiendaire_allocations défini comme
+        Divise de récipiendaire_garde_alternée ;
+    assertion (selon récipiendaire_allocations sous forme
+    -- Complet de (FamilleMonoparentale de personne) :
+        est_en_charge(personne)
+    -- Complet de (Couple de couple) :
+        Couple de couple = entité_en_charge_enfants
+    -- Divise : vrai).
 */
+
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
+
 /*
-situation EnfantAllocationsFamiliales :
-  donnée entité_en_charge_des_enfants_remplit_les_conditions_du_titre_I ;
+contexte EnfantAllocationsFamiliales :
+  donnée entité_en_charge_remplit_les_conditions_du_titre_I ;
   assertion
-    entité_en_charge_des_enfants_remplit_les_conditions_du_titre_I.
+    entité_en_charge_remplit_les_conditions_du_titre_I.
 # on ne formalise pas pour l'instant, c'est un placeholder.
 */
+
+NE PLUS LIRE À PARTIR DE LÀ...
+
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocations familiales continuent d'être évaluées en tenant compte à la fois des enfants présents au foyer et du ou des enfants confiés au service de l'aide sociale à l'enfance. La part des allocations familiales dues à la famille pour cet enfant est versée à ce service. Toutefois, le juge peut décider, d'office ou sur saisine du président du conseil général, à la suite d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou des articles 15,16,16 bis et 28 de l'ordonnance n° 45-174 du 2 février 1945 relative à l'enfance délinquante, de maintenir le versement des allocations à la famille, lorsque celle-ci participe à la prise en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de l'enfant dans son foyer.
+
 /*
-situation EnfantAllocationsFamiliales :
+contexte EnfantAllocationsFamiliales :
   donnée enfant_confié_au_service_sociaux ;
   donnée service_social de situation Personne ;
+  
+champ d'application EnfantAllocationsFamiliales :
   règle optionnel condition enfant_confié_au_service_sociaux
   conséquence récipiendaire_allocations défini comme
     Complet de (FamilleMonoparentale de service_social).
@@ -288,7 +308,7 @@ choix couple_ou_partie :
   -- Parent1
   -- Parent2.
 
-situation EnfantAllocationsFamiliales :
+contexte EnfantAllocationsFamiliales :
   donnée retrait_autorité_parentale de choix couple_ou_partie ;
   donnée indignité_parents de choix couple_ou_partie ;
   fonction couple_ou_partie_valide paramètres
