@@ -36,24 +36,55 @@ struct FamillePrestationFamiliales extends Famille {
     Prestation prestation,
 }
 
-struct L512_3 {
+struct L512_3_Data {
     int age_limite,
     montant plafond_remuneration,
     int age_limite_alternatif,
+    bool rule_foo_applied,
 }
 
-application<FamillePrestationFamiliales> PrestationFamiliales {
+rule_context FamilleBienFormée (famille: Famille) {
+  ....
+}
+
+rule_context EnfantBienFormé (enfant: Enfant) {
+  ...
+}
+
+rule_context PrestationsFamiliales (L512_3: L512_3_Data) (L550: L550_Data) (famille:FamillePrestationFamiliales)  {
     # TODO : déconcaténer
+    include_rule_context FamilleBienFormée(famille)
+
+    for all enfants in enfants {
+      include_rule_context EnfantBienFormé(enfant)
+    }
+
     rule droits_ouverts =
-        exists enfant in enfants st (
+        exists enfant in famille.enfants st (
             Date.today < enfant.fin_obligation_scolaire
-            || (enfant.age < L512_3.age_limite && 
+            || (enfant.age < L512_3.age_limite &&
                 enfant.remuneration < L512_3.plafond_remuneration)
         );
     # comment faire pour lui dire d'appliquer cette règle avant la règle du dessus ?
-    optionnal rule if (prestation = ComplémentFamilial || prestation = AllocationLogement)
+    rule if (L512_3.rule_foo_applied && (famille.prestation = ComplémentFamilial || famille.prestation = AllocationLogement))
         then age_limite = age_limite_alternatif;
 }
+
+// Décret qui fixe le plafond
+rule_context PrestationsFamiliales (L512_3: L512_3_Data) (L550: L550_Data) (famille:FamillePrestationFamiliales)  {
+  rule L512_3.age_limite = 16;
+}
+
+
+instantiation PrestationsFamiliales {
+    famille : ....
+    L512_3:
+}
+
+
+
+
+NE PLUS LIRE
 
 struct L521_1 {
     amount allocation_forfaitaire,
