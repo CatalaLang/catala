@@ -1,0 +1,70 @@
+struct Personne {
+    int ressource,
+}
+
+struct Enfant extends Personne {
+    int age,
+    date fin_obligation_scolaire,
+}
+
+enum Prestation {
+    PrestationAccueilJeuneEnfant,
+    AllocationsFamiliales,
+    ComplémentFamilial,
+    AllocationLogement,
+    AllocationÉducationEnfantHandicapé,
+    AllocationSoutienFamilial,
+    AllocationRentréeScolaire,
+    AllocationJournalièrePrésenceParent,
+}
+
+enum Situation {
+    EnCouple,
+    Monoparental,
+}
+
+struct Famille {
+    vec<Enfant> enfants,
+    Personne parent1,
+    Personne parent2,
+    bool droits_ouverts,
+    Situation situation_conjugal,
+    int ressources_entité_en_charge
+}
+
+struct FamillePrestationFamiliales extends Famille {
+    Prestation prestation,
+}
+
+struct L512_3 {
+    int age_limite,
+    montant plafond_remuneration,
+    int age_limite_alternatif,
+}
+
+application<FamillePrestationFamiliales> PrestationFamiliales {
+    # TODO : déconcaténer
+    rule droits_ouverts =
+        exists enfant in enfants st (
+            Date.today < enfant.fin_obligation_scolaire
+            || (enfant.age < L512_3.age_limite && 
+                enfant.remuneration < L512_3.plafond_remuneration)
+        );
+    # comment faire pour lui dire d'appliquer cette règle avant la règle du dessus ?
+    optionnal rule if (prestation = ComplémentFamilial || prestation = AllocationLogement)
+        then age_limite = age_limite_alternatif;
+}
+
+struct L521_1 {
+    amount allocation_forfaitaire,
+    constant time durée_allocations_familiales = 1 an,
+    int nombre_minimum_enfants,
+}
+
+application<FamillePrestationFamiliales> AllocationsFamiliales {
+    # Si ces assertion rate, on invalide le champ d'application.
+    assert (prestation = AllocationsFamiliales);
+    assert (len(enfants) <= 1) catch_message "Vous n'avez pas le droit aux allocations familiales";
+    meta_assert (L_521_1.allocation_forfaitaire fixé par décret);
+    meta_assert (L_521_1.nombre_minimum_enfants fixé par décret);
+}
