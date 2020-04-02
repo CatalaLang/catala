@@ -5,6 +5,6 @@
 *.log
 *.out
 *.fls
-*.pdf
+for_lawyers.pdf
 _minted*
 *.toc
