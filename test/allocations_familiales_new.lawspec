@@ -1,3 +1,44 @@
+/*
+structure Enfant :
+  donnée fin_obligation_scolaire contenu date
+  donnée âge contenu entier
+  donnée rémuneration contenu montant
+
+structure Ménage :
+  donnée enfants collection contenu Enfant
+  donnée enfant_plus_âgé contenu Enfant optionnel
+  donnée ressources contenu montant
+
+structure L512_3 :
+  donnée âge_limite_alinéa_2 contenu entier
+  donnée plafond_rémunération_alinéa_2 contenu montant
+  condition droits_ouverts_prestations_familiales
+
+structure L521_1 :
+  donnée allocations_familiales contenu montant
+  condition droits_ouverts_allocations_familiales
+  donnée allocation_forfaitaire contenu montant
+  condition allocation_forfaitaire_versée
+  donnée nombre_minimum_enfants contenu montant
+
+structure L521_3 :
+  donnée âge_limite_alinéa_1 contenu entier dépend de Enfant
+  donnée minimum_alinéa_2 contenu montant
+  condition droits_ouverts_majorations_allocations_familiales
+  donnée majorations_allocations_familiales contenu montant
+
+déclaration champ d'application PrestationFamiliale :
+  contexte ménage structure Ménage
+  contexte l512_3 structure L512_3
+
+déclaration champ d'application AllocationsFamiliales :
+  contexte ménage structure Ménage
+  contexte l521_1 structure L521_1
+  contexte l521_3 structure L521_3
+inclus champ d'application PrestationsFamiliales contexte
+  PrestationFamiliale.ménage = ménage
+*/
+
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
 

@@ -63,19 +63,22 @@ let rec lex_code lexbuf =
   | "si et seulement si" ->
       update_and_acc lexbuf;
       IFF
-  | "choix" ->
-      update_and_acc lexbuf;
-      CHOICE
-  | "situation" ->
-      update_and_acc lexbuf;
-      SITUATION
-  | 0xE9, "tend" ->
-      update_and_acc lexbuf;
-      EXTENDS
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
-      DATA (* TODO: Find the unicode point of é to enable donnée *)
+      DATA
+  | "d", 0xE9, "pend" ->
+      update_and_acc lexbuf;
+      DEPENDS
+  | "d", 0xE9, "claration" ->
+      update_and_acc lexbuf;
+      DECLARATION
+  | "contexte" ->
+      update_and_acc lexbuf;
+      CONTEXT
+  | "inclus" ->
+      update_and_acc lexbuf;
+      INCLUDES
   | "d", 0xE9, "croissant" ->
       update_and_acc lexbuf;
       DECREASING
@@ -85,22 +88,9 @@ let rec lex_code lexbuf =
   | "de" ->
       update_and_acc lexbuf;
       OF
-  | "type" ->
-      update_and_acc lexbuf;
-      TYPE
   | "collection" ->
       update_and_acc lexbuf;
       COLLECTION
-  | "fonction" ->
-      update_and_acc lexbuf;
-      FUNCTION
-  | "param", 0xE8, "tres" ->
-      (* 0xE8 is è *)
-      update_and_acc lexbuf;
-      PARAMETERS
-  | "renvoie" ->
-      update_and_acc lexbuf;
-      RETURNS
   | "entier" ->
       update_and_acc lexbuf;
       INTEGER
@@ -126,14 +116,20 @@ let rec lex_code lexbuf =
       WITH
   | "sous condition" ->
       update_and_acc lexbuf;
-      CONDITION
+      IF
   | "cons", 0xE9, "quence" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
-      CONSEQUENCE
-  | "constante" ->
+      THEN
+  | "condition" ->
       update_and_acc lexbuf;
-      CONSTANT
+      CONDITION
+  | "contenu" ->
+      update_and_acc lexbuf;
+      CONTENT
+  | "structure" ->
+      update_and_acc lexbuf;
+      STRUCT
   | "optionnel" ->
       update_and_acc lexbuf;
       OPTIONAL
@@ -232,9 +228,6 @@ let rec lex_code lexbuf =
   | ',' ->
       update_and_acc lexbuf;
       COMMA
-  | ';' ->
-      update_and_acc lexbuf;
-      SEMICOLON
   | ':' ->
       update_and_acc lexbuf;
       COLON
@@ -244,7 +237,7 @@ let rec lex_code lexbuf =
   | "--" ->
       update_and_acc lexbuf;
       ALT
-  | uppercase, Star (uppercase | lowercase | '0' .. '9') ->
+  | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       update_and_acc lexbuf;
       CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
   | lowercase, Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
