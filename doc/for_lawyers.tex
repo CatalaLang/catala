@@ -27,6 +27,7 @@
   Nicolas \bsc{Chataing}\\Inria -- École Normale Supérieure\and
 }
 
+\newcommand{\cm}[1]{\textbf{\textcolor{Gray}{#1}}}
 \newcommand{\kw}[1]{\textbf{\textcolor{OliveGreen}{#1}}}
 \newcommand{\inlinekw}[1]{\kw{\texttt{#1}}}
 \newenvironment{metadata}{
@@ -111,55 +112,129 @@ Une donnée, introduite par \inlinekw{donnée}, peut également être annotée p
 
 \paragraph{Assertions} Les assertions sont, en langage informatique, une condition de cohérence. Le code doit vérifier que les assertions sont toujours vraies lorsqu’il s’exécute. Cela permet d’assurer une cohérence d’ensemble à tout le programme. Les assertions peuvent être très variées et imposer plusieurs types de vérifications. Elles sont exprimées en langage informatique sous le terme \inlinekw{assertion}.
 
-\subsection{Exemple d'article de loi annoté}
+\subsection{Exemple d'articles de loi annotés}
 
+\begin{figure}[htpb]
 \begin{metadata}
 \begin{Verbatim}[commandchars=\\\{\}]
-\kw{contexte} EnfantPrestationsFamiliales :
+\kw{contexte} Enfant:
   \kw{donnée} fin_obligation_scolaire \kw{contenu date}
   \kw{donnée} âge \kw{contenu entier}
   \kw{donnée} rémuneration \kw{contenu montant}
-\kw{contexte} PrestationFamiliale :
-  \kw{donnée} enfants \kw{collection de contenu} EnfantPrestationFamiliales
-  \kw{donnée} âge_limite_L512_3_2 \kw{contenu entier}
-  \kw{donnée} plafond_rémunération_L512_3_2 \kw{contenu montant}
+
+\kw{contexte} Ménage:
+  \kw{donnée} enfants \kw{collection contenu} Enfant
+  \kw{donnée} enfant_plus_âgé \kw{contenu} Enfant \kw{optionnel}
+
+\kw{contexte} L512_3
+  \kw{donnée} âge_limite_alinéa_2 \kw{contenu entier}
+  \kw{donnée} plafond_rémunération_alinéa_2 \kw{contenu montant}
+  \kw{condition} droits_ouverts_prestations_familiales
+  \kw{condition} alinéa_1
+  \kw{condition} alinéa_2
+
+\kw{contexte} L521_3
+  \kw{donnée} âge_limite_alinéa_1 \kw{contenu entier dépend de} Enfant
+  \kw{donnée} minimum_alinéa_2 \kw{contenu montant}
+  \kw{condition} droits_ouverts_majorations_allocations_familiales
+
+\kw{déclaration champ d'application} PrestationFamiliale \kw{avec contexte}
+   Ménage \kw{implicite}
+   L512_3 \kw{implicite}
+
+\kw{déclaration champ d'application} AllocationFamiliales \kw{avec contexte}
+  Ménage \kw{implicite}
+  L521_3 \kw{implicite}
+\kw{inclus champ d'application} PrestationFamiliale \kw{avec contexte}
+  Ménage = Ménage
 \end{Verbatim}
 \end{metadata}
+\caption{Métadonnées de l'ensemble du programme. Ce bloc est nécessaire à la complétude du programme informatique
+mais est peu pertinent vis-à-vis de la correction par rapport à la loi; vous pouvez donc y prêter moins d'attention que les annotations.}
+\end{figure}
 
 \paragraph{Article L512-3} Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
 
-\begin{Verbatim}[commandchars=\\\{\}]
-\kw{champ d’application} PrestationsFamiliales :
-  \kw{condition} droits_ouverts
-  \kw{condition} alinéa_1_L512_3
-  \kw{condition} alinéa_2_L512_3
-
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=1]
+\kw{champ d’application} PrestationsFamiliales \kw{avec contexte} L512_3 :
   \kw{règle sous condition}
-    alinéa_1_L512_3 \kw{ou}
-    alinéa_2_L512_3
-  \kw{conséquence} droit_ouverts \kw{rempli}
+    alinéa_1 \kw{ou}
+    alinéa_2
+  \kw{conséquence} droits_ouverts_prestations_familiales \kw{rempli}
 \end{Verbatim}
 
 1°) tout enfant jusqu’à la fin de l’obligation scolaire ;
 
-\begin{Verbatim}[commandchars=\\\{\}]
-\kw{champ d’application} PrestationFamiliale :
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d’application} PrestationFamiliale :
   \kw{règle sous condition}
-    \kw{existe} enfant \kw{dans} enfants \kw{tel que}
+    \kw{existe} enfant \kw{dans} Ménage.enfants \kw{tel que}
       \kw{date_aujourd_hui} < enfant.fin_obligation_scolaire
-  \kw{conséquence} alinéa_1_L512_3 \kw{rempli}
+  \kw{conséquence} L512_3.alinéa_1 \kw{rempli}
 \end{Verbatim}
 
 2°) après la fin de l’obligation scolaire, et jusqu’à un âge limite, tout enfant dont la rémunération éventuelle n’excède pas un plafond
 
-\begin{Verbatim}[commandchars=\\\{\}]
-\kw{champ d’application} PrestationFamiliales :
+% ERROR here !
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d’application} PrestationFamiliales :
   \kw{règle sous condition}
-    \kw{existe} enfant \kw{dans} enfants \kw{tel que}
-      date_aujourd_hui > enfant.fin_obligation_scolaire \kw{et}
-      enfant.rémunération < plafond_rémunération_L512_3_2 \kw{et}
-      enfant.âge < âge_limite_L512_3_2
-  \kw{conséquence} alinéa_2_L512_3  \kw{rempli}
+    \kw{existe} enfant \kw{dans} Ménage.enfants \kw{tel que}
+      date_aujourd_hui < enfant.fin_obligation_scolaire \kw{et}
+      enfant.rémunération <  L512_3.plafond_rémunération_alinéa_2 \kw{ou}
+      enfant.âge <  L512_3.âge_limite_alinéa_2
+  \kw{conséquence}  L512_3.alinéa_2  \kw{rempli}
+\end{Verbatim}
+
+\paragraph{Article L521-3}
+
+Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une majoration des allocations familiales.
+
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d'application} AllocationFamiliales :
+  \kw{règle sous condition}
+    \kw{existe} enfant \kw{dans} Ménage.enfants \kw{tel que}
+      enfant != Ménage.enfant_plus_âgé \kw{et}
+      enfant.âge > (L521_3.âge_limite_alinéa_1 \kw{de} enfant)
+  \kw{conséquence} droits_ouverts_majorations_allocations_familiales \kw{rempli}
+\end{Verbatim}
+
+
+Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéficient de ladite majoration pour chaque enfant à charge à partir de l'âge mentionné au premier alinéa.
+
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d'application} AllocationFamiliales :
+  \kw{règle sous condition}
+    \kw{nombre} Ménage.enfants > L512_3.minimum_alinéa_2 \kw{et}
+    \kw{existe} enfant \kw{dans} Ménage.enfants \kw{tel que}
+      enfant.âge > (L521_3.âge_limite_alinéa_1 \kw{de} enfant)
+  \kw{conséquence} droits_ouverts_majorations_allocations_familiales \kw{rempli}
+\end{Verbatim}
+
+\paragraph{Article R521-1}
+
+L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d'application} AllocationFamiliales :
+  \kw{définition} L521_3.âge_limite_alinéa_1 \kw{de} enfant = 14 an
+\end{Verbatim}
+
+Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d'application} AllocationFamiliales :
+  \kw{définition} L521_3.minimum_alinéa_2 = 3
+\end{Verbatim}
+
+
+NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les modifications induites par le décret n° 2008-409 s'appliquent aux enfants dont le onzième anniversaire est postérieur au 30 avril 2008.
+
+\begin{Verbatim}[commandchars=\\\{\}, numbers=left,xleftmargin=5mm, firstnumber=last]
+\kw{champ d'application} AllocationFamiliales :
+  \kw{définition} L521_3.minimum_alinéa_2 \kw{de} enfant =
+    \kw{sous condition}
+       \kw{non} (enfant.date_naissance + 11 an > 30/04/2008)
+    \cm{# Âge limite avant décret n° 2008-409 du 28 avril 2008}
+    \kw{conséquence} 16 an
 \end{Verbatim}
 
 \subsection{Questionnaire de satisfaction}
