@@ -53,6 +53,16 @@ let rec lex_code lexbuf =
       update lexbuf;
       is_code := false;
       END_CODE !code_string_acc
+  | 0x20AC ->
+      (* this is the euro sign € *)
+      update_and_acc lexbuf;
+      EURO
+  | "champ d\'application" ->
+      update_and_acc lexbuf;
+      FIELD
+  | "si et seulement si" ->
+      update_and_acc lexbuf;
+      IFF
   | "choix" ->
       update_and_acc lexbuf;
       CHOICE
@@ -97,20 +107,24 @@ let rec lex_code lexbuf =
   | "bool", 0xE9, "en" ->
       update_and_acc lexbuf;
       BOOLEAN
-  | "d", 0xE9, "fini" ->
+  | "rempli" ->
+      update_and_acc lexbuf;
+      FILLED
+  | "d", 0xE9, "finition" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
-      DEFINED
-  | "comme" ->
+      DEFINITION
+  | 0xE9, "gal ", 0x00E0 ->
+      (* 0xE9 is é *)
       update_and_acc lexbuf;
-      AS
+      DEFINED_AS
   | "selon" ->
       update_and_acc lexbuf;
       MATCH
   | "sous forme" ->
       update_and_acc lexbuf;
       WITH
-  | "condition" ->
+  | "sous condition" ->
       update_and_acc lexbuf;
       CONDITION
   | "cons", 0xE9, "quence" ->
@@ -170,15 +184,15 @@ let rec lex_code lexbuf =
   | "non" ->
       update_and_acc lexbuf;
       NOT
-  | "cardinal" ->
+  | "nombre" ->
       update_and_acc lexbuf;
       CARDINAL
   | "an" ->
       update_and_acc lexbuf;
       YEAR
-  | '!' ->
+  | '.' ->
       update_and_acc lexbuf;
-      BANG
+      DOT
   | "<=" ->
       update_and_acc lexbuf;
       LESSER_EQUAL
@@ -191,6 +205,9 @@ let rec lex_code lexbuf =
   | '>' ->
       update_and_acc lexbuf;
       GREATER
+  | "!=" ->
+      update_and_acc lexbuf;
+      NOT_EQUAL
   | '=' ->
       update_and_acc lexbuf;
       EQUAL

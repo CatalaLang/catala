@@ -28,17 +28,19 @@
 %token<string> END_CODE
 %token<int> INT_LITERAL
 %token BEGIN_CODE CHOICE
-%token COLON ALT DOT SITUATION DATA
+%token COLON ALT SITUATION DATA
 %token OF SEMICOLON INTEGER TYPE COLLECTION
-%token RULE CONDITION CONSEQUENCE DEFINED AS
+%token RULE CONDITION CONSEQUENCE DEFINED_AS
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
-%token BANG AND OR LPAREN RPAREN OPTIONAL EQUAL
+%token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
 %token COMMA CARDINAL LESSER_EQUAL GREATER_EQUAL
 %token ASSERTION FIXED BY CONSTANT YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FORALL WE_HAVE INCREASING DECREASING
 %token FUNCTION PARAMETERS RETURNS NOT BOOLEAN
 %token EXTENDS
+
+%token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 
 %type <Ast.source_file> source_file
 
@@ -69,10 +71,11 @@ situation_type:
 
 qident:
 | IDENT {}
-| IDENT BANG IDENT {}
+| IDENT DOT IDENT {}
 
 primitive_expression:
 | NOW {}
+| qident {}
 
 date_qualifier:
 | YEAR {}
@@ -82,6 +85,7 @@ constructor_payload:
 
 literal:
 | INT_LITERAL {}
+| INT_LITERAL EURO {}
 | INT_LITERAL date_qualifier {}
 | CONSTRUCTOR option(constructor_payload) {}
 
@@ -91,16 +95,16 @@ compare_op:
 | GREATER {}
 | GREATER_EQUAL {}
 | EQUAL {}
+| NOT_EQUAL {}
 
 func:
 | CARDINAL {}
-| IDENT {}
+| qident {}
 
 base_expression:
 | primitive_expression {}
 | literal {}
-| func LPAREN separated_nonempty_list(COMMA, expression) RPAREN {}
-| qident {}
+| func OF separated_nonempty_list(COMMA, primitive_expression) {}
 | LPAREN expression RPAREN {}
 
 mult_op:
@@ -109,7 +113,7 @@ mult_op:
 
 mult_expression:
 | base_expression {}
-| base_expression mult_op base_expression {}
+| base_expression mult_op mult_expression {}
 
 sum_op:
 | PLUS {}
@@ -117,23 +121,24 @@ sum_op:
 
 sum_expression:
 | mult_expression {}
-| mult_expression sum_op mult_expression {}
+| mult_expression sum_op sum_expression {}
 
 logical_op:
 | AND {}
 | OR {}
+| IFF {}
 
 logical_unop:
 | NOT {}
 
 compare_expression:
 | sum_expression {}
-| sum_expression compare_op sum_expression {}
+| sum_expression compare_op compare_expression {}
 
 logical_expression:
 | compare_expression {}
 | logical_unop compare_expression {}
-| compare_expression logical_op compare_expression {}
+| compare_expression logical_op logical_expression {}
 
 optional_binding:
 | {}
@@ -156,6 +161,10 @@ forall_prefix:
 exists_prefix:
 | EXISTS IDENT IN qident SUCH THAT {}
 
+quantifier_prefix:
+| forall_prefix {}
+| exists_prefix {}
+
 expression:
 | exists_prefix expression {}
 | forall_prefix expression {}
@@ -166,30 +175,14 @@ condition:
 | CONDITION expression CONSEQUENCE {}
 
 
-rule_definition_single:
-| AS expression {}
-| {}
-
-rule_definition_various:
-| AS logical_expression {}
-| {}
-
-rule_action_single:
-| qident DEFINED rule_definition_single {}
-
-rule_action_various:
-| qident DEFINED rule_definition_various {}
-
-rule_actions_various:
-| ALT rule_action_various rule_actions_various {}
-| {}
-
-rule_actions:
-| rule_action_single {}
-| rule_actions_various {}
-
 rule:
-| option(condition) option(forall_prefix) rule_actions {}
+| option(condition) option(forall_prefix) qident FILLED {}
+
+definition_parameters:
+| OF separated_nonempty_list(COMMA, IDENT) {}
+
+definition:
+| option(forall_prefix) qident option(definition_parameters) option(condition) DEFINED_AS expression {}
 
 variation_type:
 | INCREASING {}
@@ -198,12 +191,12 @@ variation_type:
 assertion:
 | logical_expression {}
 | qident FIXED BY IDENT {}
-| qident VARIES_WITH qident option(variation_type) {}
+| qident VARIES_WITH base_expression option(variation_type) {}
 | exists_prefix assertion {}
 | forall_prefix assertion {}
 
 constant:
-| IDENT situation_type DEFINED AS literal {}
+| IDENT situation_type DEFINED_AS literal {}
 
 func_parameter:
 | IDENT situation_type {}
@@ -215,20 +208,16 @@ func_parameters:
 func_def:
 | IDENT PARAMETERS func_parameters RETURNS type_ident COLON expression {}
 
-situation_item:
-| DATA IDENT option(COLLECTION) situation_type {}
+application_field_item:
 | RULE option(OPTIONAL) rule {}
+| DEFINITION option(OPTIONAL) definition {}
 | ASSERTION option(condition) assertion {}
-| CONSTANT constant {}
-| FUNCTION func_def {}
-| SITUATION option(qident) EXTENDS CONSTRUCTOR {}
 
 code_item:
-| CHOICE IDENT COLON choices { }
-| SITUATION CONSTRUCTOR COLON separated_nonempty_list(SEMICOLON, situation_item) { }
+| FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
 
 code:
-| code_item DOT code {}
+| code_item code {}
 | {}
 
 source_file_item:

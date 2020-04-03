@@ -6,5 +6,5 @@
 *.out
 *.fls
 *.pdf
-allocations_familiales.tex
+allocations_familiales*.tex
 _minted*

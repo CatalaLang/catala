@@ -192,7 +192,7 @@ mais est peu pertinent vis-à-vis de la correction par rapport à la loi; vous p
     \kw{existe} enfant \kw{dans} ménage.enfants \kw{tel que}
       date_aujourd_hui $\leqslant$ enfant.fin_obligation_scolaire \kw{et}
       enfant.rémunération $\leqslant$ l512_3.plafond_rémunération_alinéa_2 \kw{ou}
-      enfant.âge < l512_3.âge_limite_alinéa_2
+      enfant.âge $<$ l512_3.âge_limite_alinéa_2
   \kw{conséquence} l512_3.droits_ouverts_prestations_familiales \kw{rempli}
 \end{Verbatim}
 
@@ -216,9 +216,9 @@ Une allocation forfaitaire par enfant d'un montant fixé par décret est versée
     l521_1.allocation_forfaitaire_versée \kw{si et seulement si}
     l521_1.allocation_forfaitaire $>$ 0 €
   \kw{assertion} l512_1.nombre_minimum_enfants \kw{fixé par décret}
-  \kw{regle sous condition}
+  \kw{règle sous condition}
     \kw{existe} enfant \kw{dans} ménage.enfants \kw{tel que}
-    enfant.age = l512_3.âge_limite_alinéa_2
+    enfant.age $=$ l512_3.âge_limite_alinéa_2
     \cm{# et enfant répond aux autres conditions pour l'ouverture}
     \cm{# du droit aux allocations familiales (pas formalisé ici)}
   \kw{conséquence} l521_1.allocation_forfaitaire_versée \kw{rempli}
