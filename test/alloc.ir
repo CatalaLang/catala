@@ -1,3 +1,6 @@
+/*
+# Some headers to define useful structures
+
 struct Personne {
     int ressource,
 }
@@ -7,6 +10,43 @@ struct Enfant extends Personne {
     date fin_obligation_scolaire,
 }
 
+
+enum Situation {
+    EnCouple,
+    Monoparental,
+}
+
+struct Famille {
+    vec<Enfant> enfants,
+    Personne parent1,
+    Personne parent2,
+    Situation situation_conjugal,
+    int ressources_entité_en_charge
+}
+
+rule_context FamilleBienFormée (famille: Famille) {
+  ....
+}
+
+rule_context EnfantBienFormé (enfant: Enfant) {
+  ...
+}
+
+*/
+
+@Article L511-1
+Les prestations familiales comprennent :
+1°) la prestation d'accueil du jeune enfant ;
+2°) les allocations familiales ;
+3°) le complément familial ;
+4°) L'allocation de logement régie par les dispositions du livre VIII du code de la construction et de l'habitation ;
+5°) l'allocation d'éducation de l'enfant handicapé ;
+6°) l'allocation de soutien familial ;
+7°) l'allocation de rentrée scolaire ;
+8°) (Abrogé) ;
+9°) l'allocation journalière de présence parentale.
+
+/*
 enum Prestation {
     PrestationAccueilJeuneEnfant,
     AllocationsFamiliales,
@@ -18,84 +58,85 @@ enum Prestation {
     AllocationJournalièrePrésenceParent,
 }
 
-enum Situation {
-    EnCouple,
-    Monoparental,
-}
-
-struct Famille {
-    vec<Enfant> enfants,
-    Personne parent1,
-    Personne parent2,
-    bool droits_ouverts,
-    Situation situation_conjugal,
-    int ressources_entité_en_charge
-}
-
-struct FamillePrestationFamiliales extends Famille {
+struct FamillePrestationsFamiliales extends Famille {
     Prestation prestation,
+    bool droits_ouverts,
 }
+*/
 
+@Article L512-3
+Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
+1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
+
+/*
+rule_context PrestationsFamiliales (famille: FamillePrestationFamiliales) {
+    include_rule_context FamilleBienFormée(famille);
+    for all enfants in enfants include_rule_context EnfantBienFormé(enfant);
+    rule droits_ouverts = exists enfant in famille.enfants st Date.today < enfant.fin_obligation_scolaire);
+}
+*/
+
+2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
+
+/*
 struct L512_3_Data {
     int age_limite,
     montant plafond_remuneration,
+}
+
+rule_context PrestationsFamiliales (L512_3: L512_3_Data) (famille: FamillePrestationFamiliales) {
+    rule droits_ouverts = exists enfant in famille.enfants st (
+        Date.today > enfant.fin_obligation_scolaire &&
+        enfant.age < L512_3.age_limite &&
+        enfant.remuneration < L512_3.plafond_remuneration
+    );
+}
+*/
+
+Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
+
+/*
+struct L512_3_Data {
     int age_limite_alternatif,
-    bool rule_foo_applied,
+    bool regle_alt_appliquee,
 }
 
-rule_context FamilleBienFormée (famille: Famille) {
-  ....
-}
-
-rule_context EnfantBienFormé (enfant: Enfant) {
-  ...
-}
-
-rule_context PrestationsFamiliales (L512_3: L512_3_Data) (L550: L550_Data) (famille:FamillePrestationFamiliales)  {
-    # TODO : déconcaténer
-    include_rule_context FamilleBienFormée(famille)
-
-    for all enfants in enfants {
-      include_rule_context EnfantBienFormé(enfant)
-    }
-
-    rule droits_ouverts =
-        exists enfant in famille.enfants st (
-            Date.today < enfant.fin_obligation_scolaire
-            || (enfant.age < L512_3.age_limite &&
-                enfant.remuneration < L512_3.plafond_remuneration)
-        );
-    # comment faire pour lui dire d'appliquer cette règle avant la règle du dessus ?
-    rule if (L512_3.rule_foo_applied && (famille.prestation = ComplémentFamilial || famille.prestation = AllocationLogement))
+rule_context PrestationsFamiliales (L512_3: L_512_3_Data) (famille: FamillePrestationsFamiliales) {
+    rule if (L512_3.regle_alt_appliquee && (famille.prestation = ComplémentFamilial || famille.prestation = AllocationLogement))
         then age_limite = age_limite_alternatif;
 }
 
-// Décret qui fixe le plafond
-rule_context PrestationsFamiliales (L512_3: L512_3_Data) (L550: L550_Data) (famille:FamillePrestationFamiliales)  {
-  rule L512_3.age_limite = 16;
+*/
+
+@Article L521_1
+
+Les allocations familiales sont dues à partir du deuxième enfant à charge.
+
+/*
+struct FamilleAllocationsFamiliales extends FamillePrestationsFamiliales {}
+
+rule_context AllocationsFamiliales (famille: FamilleAllocationsFamiliales) {
+    include_rule_context PrestationsFamiliales(famille); 
+    assert (famille.prestation = AllocationsFamiliales);
+    assert (len(famille.enfants) >= 2)
 }
+*/
 
+Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales. 
 
-instantiation PrestationsFamiliales {
-    famille : ....
-    L512_3:
-}
-
-
-
-
-NE PLUS LIRE
-
+/*
 struct L521_1 {
     amount allocation_forfaitaire,
     constant time durée_allocations_familiales = 1 an,
     int nombre_minimum_enfants,
 }
 
-application<FamillePrestationFamiliales> AllocationsFamiliales {
-    # Si ces assertion rate, on invalide le champ d'application.
-    assert (prestation = AllocationsFamiliales);
-    assert (len(enfants) <= 1) catch_message "Vous n'avez pas le droit aux allocations familiales";
+struct FamilleAllocationsFamiliales {
+    bool allocations_familiales_dues;
+}
+
+rule_context AllocationsFamiliales (famille: FamilleAllocationsFamiliales) {
     meta_assert (L_521_1.allocation_forfaitaire fixé par décret);
     meta_assert (L_521_1.nombre_minimum_enfants fixé par décret);
 }
+*/
