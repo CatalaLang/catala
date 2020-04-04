@@ -1,0 +1,36 @@
+\documentclass[11pt, french, a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{minted}
+\usepackage{textcomp}
+\usepackage{fullpage}
+
+\fvset{
+  commandchars=\\\{\},
+  numbers=left,
+  framesep=3mm,
+  frame=leftline,
+  firstnumber=last,
+  codes={\catcode`\$=3\catcode`\^=7}
+}
+
+\title{Implémentation du calcul des allocations familiales}
+\author{
+  Denis \bsc{Merigoux}\\Inria\and
+  Liane \bsc{Huttner}\\Université Panthéon-Sorbonne\and
+  Nicolas \bsc{Chataing}\\Inria -- École Normale Supérieure\and
+}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\section{Implémentation}
+
+\input{allocations_familiales_new}
+
+\end{document}

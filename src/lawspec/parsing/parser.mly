@@ -205,7 +205,7 @@ field_decl_includes:
 
 code_item:
 | FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
-| STRUCT CONSTRUCTOR COLON nonempty_list(struct_field) {}
+| DECLARATION STRUCT CONSTRUCTOR COLON nonempty_list(struct_field) {}
 | DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) option(field_decl_includes) {}
 
 code:

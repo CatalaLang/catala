@@ -39,6 +39,7 @@ let rec lex_code lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
+      (* Whitespaces *)
       update_and_acc lexbuf;
       new_line lexbuf;
       lex_code lexbuf
@@ -46,17 +47,15 @@ let rec lex_code lexbuf =
       update_and_acc lexbuf;
       lex_code lexbuf
   | '#', Star (Compl '\n'), '\n' ->
+      (* Comments *)
       update_and_acc lexbuf;
       new_line lexbuf;
       lex_code lexbuf
   | "*/" ->
+      (* End of code section *)
       update lexbuf;
       is_code := false;
       END_CODE !code_string_acc
-  | 0x20AC ->
-      (* this is the euro sign € *)
-      update_and_acc lexbuf;
-      EURO
   | "champ d\'application" ->
       update_and_acc lexbuf;
       FIELD
@@ -238,14 +237,21 @@ let rec lex_code lexbuf =
       update_and_acc lexbuf;
       ALT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
+      (* Name of constructor *)
       update_and_acc lexbuf;
       CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
   | lowercase, Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
+      (* Name of variable *)
       update_and_acc lexbuf;
       IDENT (Sedlexing.Utf8.lexeme buf)
   | Plus '0' .. '9' ->
+      (* Integer literal*)
       update_and_acc lexbuf;
       INT_LITERAL (int_of_string (Sedlexing.Utf8.lexeme buf))
+  | 0x20AC ->
+      (* this is the euro sign € *)
+      update_and_acc lexbuf;
+      EURO
   | _ -> raise_ParseError lexbuf
 
 let rec lex_law lexbuf =

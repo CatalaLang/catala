@@ -1,27 +1,29 @@
+@@Métadonnées@@
+
 /*
-structure Enfant :
+déclaration structure Enfant :
   donnée fin_obligation_scolaire contenu date
   donnée âge contenu entier
   donnée rémuneration contenu montant
 
-structure Ménage :
+déclaration structure Ménage :
   donnée enfants collection contenu Enfant
   donnée enfant_plus_âgé contenu Enfant optionnel
   donnée ressources contenu montant
 
-structure L512_3 :
+déclaration structure L512_3 :
   donnée âge_limite_alinéa_2 contenu entier
   donnée plafond_rémunération_alinéa_2 contenu montant
   condition droits_ouverts_prestations_familiales
 
-structure L521_1 :
+déclaration structure L521_1 :
   donnée allocations_familiales contenu montant
   condition droits_ouverts_allocations_familiales
   donnée allocation_forfaitaire contenu montant
   condition allocation_forfaitaire_versée
   donnée nombre_minimum_enfants contenu montant
 
-structure L521_3 :
+déclaration structure L521_3 :
   donnée âge_limite_alinéa_1 contenu entier dépend de Enfant
   donnée minimum_alinéa_2 contenu montant
   condition droits_ouverts_majorations_allocations_familiales
@@ -38,6 +40,8 @@ déclaration champ d'application AllocationsFamiliales :
 inclus champ d'application PrestationsFamiliales contexte
   PrestationFamiliale.ménage = ménage
 */
+
+@@Code de la sécurité sociale@@
 
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
@@ -158,6 +162,6 @@ champ d'application AllocationsFamiliales :
   définition l521_3.minimum_alinéa_2 de enfant
     sous condition
        non (enfant.date_naissance + 11 an > 30/04/2008)
-    # Âge limite avant décret n\textsuperscript{o 2008-409 du 28 avril 2008}
+    # Âge limite avant décret n° 2008-409 du 28 avril 2008
     conséquence égal à 16 an
 */
