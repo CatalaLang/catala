@@ -36,7 +36,7 @@ class LawspecLexer(RegexLexer):
         #     (u'(\\*\\/)', bygroups(Generic.Prompt), '#pop'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
             (u'(donn\xe9e|condition|contexte)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, Text, Name.Variable)),
-            (u'\\b(existe|selon|sous\\s+forme|fix\xe9\\s+par|d\xe9croissante|croissante|varie\\s+avec|on\\s+a|tel\\s+que|pour\\s+tout|nombre)\\b', bygroups(Keyword)),
+            (u'\\b(existe|selon|sous\\s+forme|fix\xe9\\s+par|d\xe9croissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour\\s+tout|nombre)\\b', bygroups(Keyword)),
             (u'\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|d\xe9pend|de|d\xe9claration|inclus|collection|contenu|optionnel|structure|contexte|r\xe8gle|sous condition|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition)\\b', bygroups(Keyword.Declaration)),
             (u'\\b(vrai|faux|[0-9]+(\\.[0.9]*|))\\b', bygroups(Keyword.Constant)),
             (u'\\b([0-9]+(\\.[0.9]*|))\\b', bygroups(Number)),

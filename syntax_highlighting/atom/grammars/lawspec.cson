@@ -98,7 +98,7 @@
         }
       }
       {
-        'match' : '\\b(existe|selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|tel\\s+que|pour\\s+tout|nombre)\\b'
+        'match' : '\\b(existe|selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour\\s+tout|nombre)\\b'
         'name' : 'keyword.control.lawspec'
       }
       {

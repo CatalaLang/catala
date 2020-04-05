@@ -1,0 +1,27 @@
+\providecommand{\kw}[1]{\textbf{\textcolor{OliveGreen}{#1}}}
+\providecommand{\inlinekw}[1]{\kw{\texttt{#1}}}
+\providecommand{\cm}[1]{\textit{\texttt{\textcolor{PineGreen}{#1}}}}
+
+\paragraph{Objectif} Le but est d’annoter le texte de loi avec un langage informatique correspondant (qu’on appellera « code »). Le langage informatique doit traduire exactement le contenu des articles, sans rien ajouter. Pour une plus grande clarté, le code sera placé dans le texte de loi, aux endroits pertinents. Cela permettra de vérifier localement, ligne à ligne, si le code correspond bien au texte de loi. Ce code sera mis en valeur par une \inlinekw{police différente et une coloration particulière}.
+
+\paragraph{Avertissement} Ce guide a pour objet de définir les termes utilisés dans le code. Chaque terme défini a été choisi pour permettre une compréhension égale des juristes et informaticiens. Par conséquent, chaque terme a une signification précise en droit et en informatique. La signification retenue ici n’est pas exactement celle du juriste ou de l’informaticien, mais renvoie à des notions que l’un et l’autre comprennent. C’est pourquoi cette étape de définition -- ou de syntaxe -- doit être lue attentivement.
+
+\paragraph{Métadonnées} Les métadonnées sont la description de tous les faits présents dans la réalité que va mentionner le morceau de texte de loi. Cette partie du code est nécessaire d'un point de vue informatique afin de donner de la \inlinekw{structure} aux informations manipulées, mais elle est accessoire lorsque l'on veut juste vérifier la cohérence avec le texte de loi.
+
+Les \inlinekw{données} sont les faits présents dans la réalité, dans un contexte donné. Ce sont tous les éléments que le programme va manipuler. Par exemple, dans la proposition suivante « tout enfant jusqu’à la fin de l’obligation scolaire », les données sont (1) l'enfant  et (2) la fin de l’obligation scolaire. Une donnée peut également dépendre d'un paramètre, par exemple un âge limite que dépend \inlinekw{de} l'enfant.
+
+Une donnée est annotée par un \inlinekw{contenu}, qui décrit ce que représente cette donnée : un entier pour un nombre d’années, un montant pour un revenu, etc. Cette annotation de contenu est nécessaire en informatique, car c’est ce qui permet d’effectuer les calculs numériques. Les \inlinekw{conditions} sont un type particulier de données sans contenu, qui correspondent à des concepts juridiques.
+
+% Parfois, une donnée peut avoir un contenu qui prend plusieurs formes. Par exemple, l’entité en charge d’un enfant est soit un couple soit une personne seule. On exprime cette disjonction de cas en utilisant \inlinekw{choix}, puis en introduisant chacun des cas avec \inlinekw{-}\inlinekw{-}. Lors que l’on veut ensuite utiliser une donnée dont le contenu est un choix, il faut alors examiner chacun des cas avec \inlinekw{selon} $\ldots$ \inlinekw{sous forme}.
+
+Autre cas particulier du contenu d’une donnée : si celle-ci fait référence à plusieurs choses. Par exemple, la donnée \texttt{enfants} fait référence à tous les enfants d’un ménage. On exprimera cette multiplicité à l’aide de \inlinekw{collection} et si l’on veut utiliser cette collection de données, on le fera avec \inlinekw{existe} $\ldots$ \inlinekw{dans} $\ldots$ \inlinekw{tel que} et \inlinekw{pour tout} $\ldots$ \inlinekw{dans} $\ldots$ \inlinekw{on a}.
+
+\paragraph{Champ d’application} Le champ d’application d’un article de loi s’inscrit dans un contexte particulier. Dans le code, il est nécessaire de préciser le champ d’application de chaque article de loi. Ce champ d’application sera introduit par \inlinekw{champ d’application}. Il est également nécéssaire de préciser quelles données seront utilisées dans un champ d'application ; cela est fait à la fin de la section métadonnées.
+
+Le texte de loi sera donc saucissonné par des blocs de code, tous introduits par leur champ d'application. À l'intérieur du code, des messages n'ayant pas valeur informatique mais laissés à titre de commentaires seront introduits par \cm{\#} et \cm{écrits dans cette police}.
+
+\paragraph{Règles} Le but du programme est de traduire en langage informatique les règles exprimées dans le texte de loi. Les règles sont donc les éléments du texte législatif qui permettent d’aboutir à des conséquences. Toute règle ne s’applique que si une condition précise est valable. Cette condition est introduite par \inlinekw{sous condition}, et sa conséquence par \inlinekw{conséquence}.
+
+Basiquement, une \inlinekw{règle} permet d’exprimer des relations logiques entre concepts du texte de loi. Elle permet notamment de préciser quand des \inlinekw{conditions} sont remplies. La \inlinekw{définition} permet de définir une donnée présente dans le champ d'application en fonction d’une autre donnée, par exemple pour exprimer une règle de calcul.
+
+Les \inlinekw{assertions} sont, en langage informatique, une condition de cohérence. Le code doit vérifier que les assertions sont toujours vraies lorsqu’il s’exécute. Cela permet d’assurer une cohérence d’ensemble à tout le programme. Les assertions peuvent être très variées et imposer plusieurs types de vérifications.

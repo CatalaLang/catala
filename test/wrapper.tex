@@ -6,6 +6,8 @@
 \usepackage{lmodern}
 \usepackage{minted}
 \usepackage{textcomp}
+\usepackage[hidelinks]{hyperref}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{fullpage}
 
 \fvset{
@@ -17,7 +19,11 @@
   codes={\catcode`\$=3\catcode`\^=7}
 }
 
-\title{Implémentation du calcul des allocations familiales}
+\title{
+  Proposition d'un langage de formalisation\\
+  de textes législatifs :\\
+  Questionnaire à l'intention de juristes
+}
 \author{
   Denis \bsc{Merigoux}\\Inria\and
   Liane \bsc{Huttner}\\Université Panthéon-Sorbonne\and
@@ -29,8 +35,19 @@
 
 \section{Introduction}
 
-\section{Implémentation}
+\input{../doc/motivation}
+
+\section{Implémentation des allocations familiales}
+Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple d'annotation d'un article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation \emph{ad hoc}. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
+
+\subsection{Guide de lecture}
+
+\input{../doc/reading_guide}
 
 \input{allocations_familiales_new}
+
+\section{Questionnaire de satisfaction}
+
+\input{../doc/questionnaire}
 
 \end{document}
