@@ -8,3 +8,4 @@
 *.pdf
 allocations_familiales*.tex
 _minted*
+*.toc

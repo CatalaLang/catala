@@ -32,13 +32,18 @@
 
 \begin{document}
 \maketitle
+\renewcommand{\contentsname}{Sommaire}
+\tableofcontents
 
 \section{Introduction}
 
 \input{../doc/motivation}
 
 \section{Implémentation des allocations familiales}
-Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple d'annotation d'un article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation \emph{ad hoc}. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
+
+Afin de mettre en pratique ces nouveaux concepts, nous vous proposons un exemple d'annotation de plusieurs article de loi  définissant les allocations familiales par des morceaux de programmes écrits dans notre nouveau langage de programmation \emph{ad hoc}. Le guide de lecture ci-dessous contient normalement toutes les informations nécessaires à la compréhension des annotations informatiques.
+
+\paragraph{Avertissement} L'étude de cas présentée ci-dessous n'a pas pour but d'être exhaustive. En effet, il manquerait beaucoup d'autres articles de loi pour définir complètement les allocations familiales. De même, certaines partie des articles présentées ne sont pas formalisés pour des raisons précisées dans le texte. La suite a donc une valeur essentiellement illustrative par rapport aux diverses fonctionnalités du langage de programmation et de la manière dont on pourrait vérifier localement la conformité du code par rapport au texte de loi.
 
 \subsection{Guide de lecture}
 

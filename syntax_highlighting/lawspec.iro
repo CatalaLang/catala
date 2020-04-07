@@ -16,7 +16,7 @@ styles [] {
 
 .sc_id : style {
    textmate_scope        = meta.variable_id
-   pygments_scope        = Name.Attribute
+   pygments_scope        = Text
    color = violet_red
 }
 
