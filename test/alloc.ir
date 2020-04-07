@@ -1,67 +1,57 @@
 /*
 # Some headers to define useful structures
 
-struct Personne {
-    int ressource,
-}
-
 struct Enfant extends Personne {
     int age,
     date fin_obligation_scolaire,
+    montant rémunération
 }
 
-
-enum Situation {
-    EnCouple,
-    Monoparental,
-}
-
-struct Famille {
+struct Ménage {
     vec<Enfant> enfants,
-    Personne parent1,
-    Personne parent2,
-    Situation situation_conjugal,
-    int ressources_entité_en_charge
+    opt<Enfant> enfant_plus_âgé,
+    montant ressources
 }
 
-rule_context FamilleBienFormée (famille: Famille) {
-  ....
+struct L512_3_Data {
+    int age_limite_alinéa_2,
+    montant plafond_remuneration_alinéa_2,
+    bool droits_ouverts_prestations_familiales,
+    int age_limite_alternatif,
+    bool age_limite_alt_appliqué
 }
 
-rule_context EnfantBienFormé (enfant: Enfant) {
-  ...
+struct L521_1_Data {
+    montant allocations_familiales,
+    montant allocation_forfaitaire,
+    bool allocation_forfaitaire_versée,
+    int nombre_minimum_enfant
 }
 
-*/
-
-@Article L511-1
-Les prestations familiales comprennent :
-1°) la prestation d'accueil du jeune enfant ;
-2°) les allocations familiales ;
-3°) le complément familial ;
-4°) L'allocation de logement régie par les dispositions du livre VIII du code de la construction et de l'habitation ;
-5°) l'allocation d'éducation de l'enfant handicapé ;
-6°) l'allocation de soutien familial ;
-7°) l'allocation de rentrée scolaire ;
-8°) (Abrogé) ;
-9°) l'allocation journalière de présence parentale.
-
-/*
-enum Prestation {
-    PrestationAccueilJeuneEnfant,
-    AllocationsFamiliales,
-    ComplémentFamilial,
-    AllocationLogement,
-    AllocationÉducationEnfantHandicapé,
-    AllocationSoutienFamilial,
-    AllocationRentréeScolaire,
-    AllocationJournalièrePrésenceParent,
+struct L521_3_Data {
+    int âge_limite_alinéa_2 wrt Enfant,
+    montant minimum_alinéa_2,
+    bool droits_ouverts_majorations_allocations_familiales,
+    montant majorations_allocations_familiales
 }
 
-struct FamillePrestationsFamiliales extends Famille {
-    Prestation prestation,
-    bool droits_ouverts,
+rule_context PrestationFamiliale (ménage : Ménage, l512_3 : L512_3_Data) {
 }
+
+struct MénageAllocationsFamiliales extends Ménage {
+    int nb_enfants_majoration,
+    montant majorations_versées
+}
+
+rule_context AllocationsFamiliales (
+    ménage : MénageAllocationsFamiliales, 
+    l521_1 : L521_1_Data, 
+    l521_3 : L521_3_Data
+) 
+{
+   include_rule_context PrestationsFamiliales(ménage); 
+}
+
 */
 
 @Article L512-3
@@ -69,40 +59,34 @@ Sous réserve des règles particulières à chaque prestation, ouvre droit aux p
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 
 /*
-rule_context PrestationsFamiliales (famille: FamillePrestationFamiliales) {
-    include_rule_context FamilleBienFormée(famille);
-    for all enfants in enfants include_rule_context EnfantBienFormé(enfant);
-    rule droits_ouverts = exists enfant in famille.enfants st Date.today < enfant.fin_obligation_scolaire);
+rule_context PrestationsFamiliales {
+    rule l512_3.droits_ouverts_prestations_familiales = 
+        exists enfant in ménage.enfants st 
+            Date.today < enfant.fin_obligation_scolaire;
 }
 */
 
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 
 /*
-struct L512_3_Data {
-    int age_limite,
-    montant plafond_remuneration,
-}
 
-rule_context PrestationsFamiliales (L512_3: L512_3_Data) (famille: FamillePrestationFamiliales) {
-    rule droits_ouverts = exists enfant in famille.enfants st (
-        Date.today > enfant.fin_obligation_scolaire &&
-        enfant.age < L512_3.age_limite &&
-        enfant.remuneration < L512_3.plafond_remuneration
-    );
+rule_context PrestationsFamiliales {
+    rule l512_3.droits_ouverts_prestations_familiales = 
+        exists enfant in ménage.enfants st
+            Date.today > enfant.fin_obligation_scolaire &&
+            enfant.age < L512_3.age_limite &&
+            enfant.remuneration < L512_3.plafond_remuneration;
 }
 */
 
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
 
 /*
-struct L512_3_Data {
-    int age_limite_alternatif,
-    bool regle_alt_appliquee,
-}
+
+# On a pas défini ce l'énum prestation ici
 
 rule_context PrestationsFamiliales (L512_3: L_512_3_Data) (famille: FamillePrestationsFamiliales) {
-    rule if (L512_3.regle_alt_appliquee && (famille.prestation = ComplémentFamilial || famille.prestation = AllocationLogement))
+    rule if (L512_3.age_limite_alt_appliqué && (famille.prestation = ComplémentFamilial || famille.prestation = AllocationLogement))
         then age_limite = age_limite_alternatif;
 }
 
@@ -115,12 +99,7 @@ Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
 struct FamilleAllocationsFamiliales extends FamillePrestationsFamiliales {}
 
-rule_context AllocationsFamiliales (famille: FamilleAllocationsFamiliales) {
-    include_rule_context PrestationsFamiliales(famille);
-    forall enfant in famille.enfant {
-      include_rule_context EnfantPrestationsFamiliales(enfant)
-    }
-    assert (famille.prestation = AllocationsFamiliales);
+rule_context AllocationsFamiliales {
     assert (len(famille.enfants) >= 2)
 }
 */
@@ -128,18 +107,101 @@ rule_context AllocationsFamiliales (famille: FamilleAllocationsFamiliales) {
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 
 /*
-struct L521_1 {
-    amount allocation_forfaitaire,
-    constant time durée_allocations_familiales = 1 an,
-    int nombre_minimum_enfants,
-}
-
-struct FamilleAllocationsFamiliales {
-    bool allocations_familiales_dues;
-}
-
-rule_context AllocationsFamiliales (famille: FamilleAllocationsFamiliales) {
-    meta_assert (L_521_1.allocation_forfaitaire fixé par décret);
-    meta_assert (L_521_1.nombre_minimum_enfants fixé par décret);
+rule_context AllocationsFamiliales {
+    assert l512_1.allocation_forfaitaire fixé par décret;
+    assert l521_1.nombre_minimum_enfants fixé par décret;
+    rule l521.allocation_forfaitaire_versée =
+        exists enfant in ménage.enfant st
+            enfant.age = l512_3.âge_limite_alinéa_2 &&
+            enfant.ok;
 }
 */
+
+Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui à la charge des enfants, selon un barème défini par décret.
+
+/*
+rule_context AllocationsFamiliales {
+    assert l512_1.allocations_familiales fixé par décret;
+    assert l512_1.allocations_familiales varie avec ménage.ressources;
+    assert l521_3.majorations_allocations_familiales fixé par décret;
+    assert l521_3.majorations_allocations_familiales varie avec ménage.ressources;
+}
+*/
+
+Le montant des allocations familiales varie en fonction du nombre d'enfants à charge.
+
+/*
+rule_context AllocationsFamiliales {
+    assert l512_1.allocations_familiales varie avec len(ménage.enfants);
+}
+*/
+
+Les niveaux des plafonds de ressources, qui varient en fonction du nombre d'enfants à charge, sont révisés conformément à l'évolution annuelle de l'indice des prix à la consommation, hors tabac.
+
+/*
+rule_context AllocationsFamiliales {
+    # Pas formalisé ici
+}
+*/
+
+Un complément dégressif est versé lorsque les ressources du bénéficiaire dépassent l'un des plafonds, dans la limite de montants définis par décret. Les modélités de calcul de ces montants et celles du complément dégressif sont définies par décret.
+
+/*
+rule_context AllocationsFamiliales {
+    # TODO
+}
+*/
+
+@Article L521_3 
+Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une majoration des allocations familiales.
+
+/*
+rule_context AllocationsFamiliales {
+    ménage.nb_enfants_majoration =
+        count enfant in ménage.enfants st
+            enfant != ménage.enfant_plus_âgé &&
+            enfant.âge >= l521_3.âge_limite_alinéa_1(enfant);
+}
+*/
+
+Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéficient de ladite majoration pour chaque enfant à charge à partir de l'âge mentionné au premier alinéa.
+
+/*
+rule_context AllocationsFamiliales {
+    rule if len(ménage.enfants) >= l512.minimum_alinéa_2) then
+        ménage.nb_enfants_majoration =
+            count enfant in ménage.enfants st
+                enfant.âge >= l521_3.minimum_alinéa_2;
+    
+    # Est-ce que cette règle est spécifiée quelque part ou doit on la sortir de notre chapeau ?
+    rule ménage.majorations_versées = ménage.nb_enfants_majoration * l521_3.majorations_allocations_familiales;
+}
+*/
+
+@Article R521-1
+
+L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
+
+/*
+rule_context AllocationsFamiliales {
+    rule l521_3.âge_limite_alinéa_1(enfant) = 14 ans;
+}
+*/
+
+Le nombre d'enfants à charge, mentionné au deuxième alinéa de l'article L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
+
+/*
+rule_context AllocationsFamiliales {
+    rule l521_3.minimum_alinéa_2 = 3;
+}
+*/
+
+NOTA : Décret n°2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les modification induites par le décret n°2008-409 s'appliquent aux enfants dont le onzième anniversaire est postérieur au 30 avril 2008.
+
+/*
+rule_context AllocationsFamiliales {
+    rule l521_3.âge_limite_alinéa_1(enfant) = 
+        if (enfant.date_naissance + 11 an > 30/04/2008) then 16 ans.
+}
+*/
+
