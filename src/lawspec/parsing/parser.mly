@@ -59,7 +59,8 @@ typ:
 
 qident:
 | IDENT {}
-| IDENT DOT IDENT {}
+| IDENT DOT qident {}
+| CONSTRUCTOR DOT qident {}
 
 primitive_expression:
 | NOW {}
@@ -156,17 +157,19 @@ expression:
 | logical_expression {}
 
 condition:
-| IF expression THEN {}
+| IF expression {}
 
+condition_consequence:
+| condition THEN {}
 
 rule:
-| option(condition) option(forall_prefix) qident FILLED {}
+| option(condition_consequence) option(forall_prefix) qident FILLED {}
 
 definition_parameters:
 | OF separated_nonempty_list(COMMA, IDENT) {}
 
 definition:
-| option(forall_prefix) qident option(definition_parameters) option(condition) DEFINED_AS expression {}
+| option(forall_prefix) qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression {}
 
 variation_type:
 | INCREASING {}
@@ -182,7 +185,8 @@ assertion:
 application_field_item:
 | RULE option(OPTIONAL) rule {}
 | DEFINITION option(OPTIONAL) definition {}
-| ASSERTION option(condition) assertion {}
+| ASSERTION option(condition_consequence) assertion {}
+| field_decl_includes {}
 
 struct_field_base:
 | DATA IDENT option(COLLECTION) CONTENT typ {}
@@ -198,15 +202,18 @@ field_decl_item:
 | CONTEXT IDENT STRUCT CONSTRUCTOR {}
 
 field_decl_include:
-| CONSTRUCTOR DOT IDENT EQUAL IDENT {}
+| CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT IDENT option(condition)  {}
+
+field_decl_includes_context:
+| CONTEXT nonempty_list(field_decl_include) {}
 
 field_decl_includes:
-| INCLUDES FIELD CONSTRUCTOR CONTEXT nonempty_list(field_decl_include) {}
+| INCLUDES FIELD CONSTRUCTOR option(field_decl_includes_context) {}
 
 code_item:
 | FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
 | DECLARATION STRUCT CONSTRUCTOR COLON nonempty_list(struct_field) {}
-| DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) option(field_decl_includes) {}
+| DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {}
 
 code:
 | code_item code {}

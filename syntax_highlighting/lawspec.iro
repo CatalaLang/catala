@@ -16,14 +16,16 @@ styles [] {
 
 .sc_id : style {
    textmate_scope        = meta.variable_id
-   pygments_scope        = String
+   pygments_scope        = Name.Attribute
+   color = violet_red
 }
 
-.var_decl : style {
-   color                 = orange
-   textmate_scope        = variable
+.sc_id_def : style {
+   textmate_scope        = entity.name.function
    pygments_scope        = Name.Variable
+   color = orange
 }
+
 
 .cc_id : style {
    color                 = light_blue
@@ -99,9 +101,9 @@ styles [] {
 }
 
 .literal_numeric : style {
-   color = green
+   color = violet
    textmate_scope        = constant.numeric
-   pygments_scope        = Number
+   pygments_scope        = Number.Integer
 }
 
 
@@ -122,6 +124,8 @@ __LOWER_CHARS \= a-zéèàâùîêœç
 __UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
 
 __SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
+
+__SC_ID_COMPOSED \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\'\.]*
 
 __CC_ID \= [$${__UPPER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
@@ -164,20 +168,21 @@ main : context {
      styles [] = .law;
    }
 
-   : inline_push {
+   : push {
       regex          \= (\/\*)
       styles []       = .code_delimiter;
-      : pop {
-         regex       \= (\*\/)
-         styles []    = .code_delimiter;
-      }
-
-      : include "code";
+      context []       = code;
    }
 
 }
 
+
 code : context {
+
+  : pop {
+    regex       \= (\*\/)
+    styles []    = .code_delimiter;
+  }
 
   : pattern {
     regex \= (\s*\#.*$)
@@ -185,22 +190,27 @@ code : context {
   }
 
   : pattern {
-    regex \=  (donnée|condition|contexte)(\s+)($${__SC_ID})
-    styles [] = .keyword_rule, .whitespace, .var_decl;
+    regex \=  (contexte)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {
-    regex \= \b(existe|selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|dans|tel\s+que|pour\s+tout|nombre)\b
+    regex \=  (donnée|condition)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .sc_id;
+  }
+
+  : pattern {
+    regex \= \b(selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|dans|tel\s+que|pour\s+tout|existe|pour\s+tout|de)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend|de|déclaration|inclus|collection|contenu|optionnel|structure|contexte|règle|sous condition|conséquence|rempli|égal\s+à|assertion|définition)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|contexte|règle|sous condition|conséquence|rempli|égal\s+à|assertion|définition)\b
     styles [] = .keyword_rule ;
   }
 
   : pattern {
-    regex \= \b(vrai|faux|[0-9]+(\.[0.9]*|))\b
+    regex \= \b(vrai|faux)\b
     styles [] = .literal ;
   }
 
@@ -220,13 +230,23 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|décret|loi|an|mois|jour|\u20ac)\b
+    regex \= \b(entier|booléen|date|montant|décret|loi|an|mois|jour|\u20ac|nombre|date_aujourd_hui)\b
     styles [] = .primitive;
   }
 
   : pattern {
+    regex \= \b($${__CC_ID})(\.)($${__SC_ID})\b
+    styles [] = .cc_id, .punctuation, .sc_id_def ;
+  }
+
+  : pattern {
+    regex \= \b($${__SC_ID})(\.)($${__SC_ID_COMPOSED})\b
+    styles [] = .sc_id_def, .punctuation, .sc_id ;
+  }
+
+  : pattern {
     regex \= \b($${__SC_ID})\b
-    styles [] = .sc_id ;
+    styles [] = .sc_id_def ;
   }
 
   : pattern {

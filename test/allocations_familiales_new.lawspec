@@ -38,7 +38,11 @@ déclaration champ d'application AllocationsFamiliales :
   contexte l521_1 structure L521_1
   contexte l521_3 structure L521_3
 inclus champ d'application PrestationsFamiliales contexte
-  PrestationFamiliale.ménage = ménage
+   AllocationsFamiliales.ménage = PrestationFamiliale.ménage
+inclus champ d'application AllocationFamilialesAvril2008
+
+déclaration champ d'application AllocationsFamilialesAvril2008 :
+  contexte l521_3 structure L521_3
 */
 
 @@Code de la sécurité sociale@@
@@ -66,8 +70,7 @@ champ d'application PrestationsFamiliales :
   conséquence l512_3.droits_ouverts_prestations_familiales rempli
 */
 
-\paragraph{Article L521-1}
-
+@Article L521-1@
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
 champ d'application AllocationsFamiliales :
@@ -80,10 +83,12 @@ Une allocation forfaitaire par enfant d'un montant fixé par décret est versée
 /*
 champ d'application AllocationsFamiliales :
   assertion l512_1.allocation_forfaitaire fixé par décret
+
   # Pas marqué tel quel dans la loi mais important pour la cohérence
   assertion
     l521_1.allocation_forfaitaire_versée si et seulement si
     l521_1.allocation_forfaitaire > 0 €
+
   assertion l512_1.nombre_minimum_enfants fixé par décret
   règle sous condition
     existe enfant dans ménage.enfants tel que
@@ -145,8 +150,7 @@ champ d'application AllocationsFamiliales :
 @Article R521-1@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
 /*
 champ d'application AllocationsFamiliales :
-  définition l521_3.âge_limite_alinéa_1 de enfant
-    égal à 14 an
+  définition l521_3.âge_limite_alinéa_1 de enfant égal à 14 an
 */
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
@@ -158,10 +162,13 @@ champ d'application AllocationsFamiliales :
 
 NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les modifications induites par le décret n° 2008-409 s'appliquent aux enfants dont le onzième anniversaire est postérieur au 30 avril 2008.
 /*
+champ d'application AllocationFamilialesAvril2008:
+  # Âge limite avant décret n° 2008-409 du 28 avril 2008
+  définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
+
 champ d'application AllocationsFamiliales :
   définition l521_3.minimum_alinéa_2 de enfant
-    sous condition
-       non (enfant.date_naissance + 11 an > 30/04/2008)
-    # Âge limite avant décret n° 2008-409 du 28 avril 2008
-    conséquence égal à 16 an
+  sous condition (enfant.date_naissance + 11 an <= 30/04/2008)
+  conséquence égal à
+    AllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
 */

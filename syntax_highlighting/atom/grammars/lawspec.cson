@@ -65,7 +65,7 @@
         }
         'patterns' : [
           {
-            'include' : '#main__3'
+            'include' : '#code'
           }
         ]
         'end' : '(\\*\\/)'
@@ -84,7 +84,7 @@
         'name' : 'comment.line.lawspec'
       }
       {
-        'match' : '(donnée|condition|contexte)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'match' : '(contexte)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.lawspec'
@@ -93,20 +93,34 @@
             'name' : 'text.lawspec'
           }
           '3' : {
-            'name' : 'variable.lawspec'
+            'name' : 'entity.name.function.lawspec'
           }
         }
       }
       {
-        'match' : '\\b(existe|selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour\\s+tout|nombre)\\b'
+        'match' : '(donnée|condition)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'captures' : {
+          '1' : {
+            'name' : 'keyword.lawspec'
+          }
+          '2' : {
+            'name' : 'text.lawspec'
+          }
+          '3' : {
+            'name' : 'meta.variable_id.lawspec'
+          }
+        }
+      }
+      {
+        'match' : '\\b(selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour\\s+tout|existe|pour\\s+tout|de)\\b'
         'name' : 'keyword.control.lawspec'
       }
       {
-        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend|de|déclaration|inclus|collection|contenu|optionnel|structure|contexte|règle|sous condition|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
+        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|contexte|règle|sous condition|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
         'name' : 'keyword.lawspec'
       }
       {
-        'match' : '\\b(vrai|faux|[0-9]+(\\.[0.9]*|))\\b'
+        'match' : '\\b(vrai|faux)\\b'
         'name' : 'constant.lawspec'
       }
       {
@@ -122,12 +136,40 @@
         'name' : 'keyword.operator.lawspec'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|décret|loi|an|mois|jour|\\x{20ac})\\b'
+        'match' : '\\b(entier|booléen|date|montant|décret|loi|an|mois|jour|\\x{20ac}|nombre|date_aujourd_hui)\\b'
         'name' : 'support.type.lawspec'
       }
       {
+        'match' : '\\b([A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)(\\.)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)\\b'
+        'captures' : {
+          '1' : {
+            'name' : 'entity.name.class.lawspec'
+          }
+          '2' : {
+            'name' : 'punctuation.lawspec'
+          }
+          '3' : {
+            'name' : 'entity.name.function.lawspec'
+          }
+        }
+      }
+      {
+        'match' : '\\b([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)(\\.)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\'\\.]*)\\b'
+        'captures' : {
+          '1' : {
+            'name' : 'entity.name.function.lawspec'
+          }
+          '2' : {
+            'name' : 'punctuation.lawspec'
+          }
+          '3' : {
+            'name' : 'meta.variable_id.lawspec'
+          }
+        }
+      }
+      {
         'match' : '\\b([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)\\b'
-        'name' : 'meta.variable_id.lawspec'
+        'name' : 'entity.name.function.lawspec'
       }
       {
         'match' : '\\b([A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)\\b'
@@ -148,13 +190,6 @@
       {
         'match' : '(.)'
         'name' : 'markup.heading.subtitle.lawspec'
-      }
-    ]
-  }
-  'main__3' : {
-    'patterns' : [
-      {
-        'include' : '#code'
       }
     ]
   }
