@@ -123,6 +123,9 @@ let rec lex_code lexbuf =
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       THEN
+  | "sinon" ->
+      update_and_acc lexbuf;
+      ELSE
   | "condition" ->
       update_and_acc lexbuf;
       CONDITION

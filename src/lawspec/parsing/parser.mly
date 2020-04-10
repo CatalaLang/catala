@@ -41,7 +41,7 @@
 %token NOT BOOLEAN
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
-%token CONTEXT INCLUDES ENUM
+%token CONTEXT INCLUDES ENUM ELSE
 %token BEGIN_METADATA END_METADATA
 
 %type <Ast.source_file> source_file
@@ -59,14 +59,21 @@ typ_base:
 typ:
 | typ_base option(OPTIONAL) {}
 
+qident_late:
+| IDENT {}
+| CONSTRUCTOR {}
+| IDENT DOT qident_late {}
+| CONSTRUCTOR DOT qident_late {}
+
 qident:
 | IDENT {}
-| IDENT DOT qident {}
-| CONSTRUCTOR DOT qident {}
+| IDENT DOT qident_late {}
+| CONSTRUCTOR DOT qident_late {}
 
 primitive_expression:
 | NOW {}
 | qident {}
+| LPAREN expression RPAREN {}
 
 date_qualifier:
 | YEAR {}
@@ -94,9 +101,10 @@ func:
 
 base_expression:
 | primitive_expression {}
+| qident IN qident {}
 | literal {}
 | func OF separated_nonempty_list(COMMA, primitive_expression) {}
-| LPAREN expression RPAREN {}
+| qident WITH CONSTRUCTOR {}
 
 mult_op:
 | MULT {}
@@ -155,7 +163,8 @@ exists_prefix:
 expression:
 | exists_prefix expression {}
 | forall_prefix expression {}
-| MATCH expression WITH  match_arms {}
+| MATCH primitive_expression WITH match_arms {}
+| IF expression THEN expression ELSE base_expression {}
 | logical_expression {}
 
 condition:
@@ -168,7 +177,7 @@ rule_parameters:
 | DEPENDS definition_parameters {}
 
 rule:
-| option(rule_parameters) option(condition_consequence) option(forall_prefix) qident FILLED {}
+| option(rule_parameters) option(condition_consequence) option(forall_prefix) base_expression FILLED {}
 
 definition_parameters:
 | OF separated_nonempty_list(COMMA, IDENT) {}
@@ -180,17 +189,20 @@ variation_type:
 | INCREASING {}
 | DECREASING {}
 
-assertion:
+assertion_base:
 | logical_expression {}
 | qident FIXED BY IDENT {}
 | qident VARIES_WITH base_expression option(variation_type) {}
+
+assertion:
+| option(condition_consequence) assertion_base {}
 | exists_prefix assertion {}
 | forall_prefix assertion {}
 
 application_field_item:
 | RULE option(OPTIONAL) rule {}
 | DEFINITION option(OPTIONAL) definition {}
-| ASSERTION option(condition_consequence) assertion {}
+| ASSERTION assertion {}
 | field_decl_includes {}
 
 struct_field_base:
@@ -216,14 +228,14 @@ field_decl_includes:
 | INCLUDES FIELD CONSTRUCTOR option(field_decl_includes_context) {}
 
 enum_decl_line_payload:
-| OF typ {}
+| CONTENT typ {}
 
 enum_decl_line:
 | ALT CONSTRUCTOR option(enum_decl_line_payload) {}
 
 code_item:
 | FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
-| DECLARATION STRUCT CONSTRUCTOR COLON nonempty_list(struct_field) {}
+| DECLARATION STRUCT CONSTRUCTOR COLON list(struct_field) {}
 | DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {}
 | DECLARATION ENUM CONSTRUCTOR COLON nonempty_list(enum_decl_line) {}
 
