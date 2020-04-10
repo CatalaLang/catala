@@ -17,5 +17,6 @@ type source_file_item =
   | LawArticle of string
   | LawText of string
   | CodeBlock of string
+  | MetadataBlock of string
 
 type source_file = source_file_item list

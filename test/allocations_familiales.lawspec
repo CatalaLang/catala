@@ -60,7 +60,7 @@ champ d'application PrestationFamiliale :
 contexte EnfantPrestationsFamiliales :
     donnée âge contenant un entier ;
     donnée rémunération contenant un montant.
-    
+
 contexte PrestationsFamiliales :
     donnée âge_limite_L512_3_2 contenant un entier.
     donnée plafond_rémunération_L512_3_2 contenant un montant.
@@ -101,7 +101,7 @@ contexte AllocationsFamiliales :
 champ d'application AllocationsFamiliales :
     règle condition
         nombre_enfants_à_charge >= 2
-    conséquence allocation_familales_dues défini. 
+    conséquence allocation_familales_dues défini.
 
 */
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
@@ -144,7 +144,7 @@ contexte Ménage :
 choix entité_en_charge :
     -- FamilleMonoparentale de contexte Personne
     -- Couple de contexte Ménage.
-        
+
 contexte AllocationsFamiliales :
     donnée entité_en_charge_des_enfants contenant un choix entité_en_charge ;
     donnée ressources_entité_en_charge contenant un montant défini comme
@@ -209,7 +209,7 @@ contexte EnfantAllocationsFamiliales :
     donnée entité_en_charge de choix entité_en_charge.
 
 contexte AllocationsFamiliales :
-    règle pour tout enfant dans enfants on a 
+    règle pour tout enfant dans enfants on a
         enfant étend EnfantAllocationsFamiliales.
     règle pour tout enfant dans enfants on a
         enfant.entité_en_charge défini comme entité_en_charge_des_enfants.
@@ -247,14 +247,14 @@ contexte EnfantAllocationsFamiliales :
 
     donnée parent_récipiendaire_garde_alternée contenant un contexte Personne ;
     règle condition garde_alternée conséquence
-        récipiendaire_allocations défini comme 
+        récipiendaire_allocations défini comme
             Complet de parent_récipiendaire_garde_alternée ;
     donnée désaccord_désignation_allocataire_garde_alternée ;
     donnée demande_conjointe_partage_charge_garde_alternée ;
     donnée récipiendaire_divise_garde_alternée contenant un contexte RecipiendaireDivise ;
 
 champ d'application EnfantAllocationsFamiliales :
-    règle condition 
+    règle condition
         garde_alternée et
         (désaccord_désignation_allocataire_garde_alternée ou
         demande_conjointe_partage_charge_garde_alternée)
@@ -291,7 +291,7 @@ Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocat
 contexte EnfantAllocationsFamiliales :
   donnée enfant_confié_au_service_sociaux ;
   donnée service_social de situation Personne ;
-  
+
 champ d'application EnfantAllocationsFamiliales :
   règle optionnel condition enfant_confié_au_service_sociaux
   conséquence récipiendaire_allocations défini comme

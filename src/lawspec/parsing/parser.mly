@@ -41,6 +41,7 @@
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES
+%token BEGIN_METADATA END_METADATA
 
 %type <Ast.source_file> source_file
 
@@ -219,10 +220,14 @@ code:
 | code_item code {}
 | {}
 
+metadata_block:
+| BEGIN_CODE code text = END_CODE END_METADATA { text }
+
 source_file_item:
 | title = LAW_ARTICLE { LawArticle title }
 | code = LAW_CODE { LawCode code }
 | text = LAW_TEXT { LawText text }
+| BEGIN_METADATA text = metadata_block { MetadataBlock text }
 | BEGIN_CODE code text = END_CODE { CodeBlock text }
 
 source_file:

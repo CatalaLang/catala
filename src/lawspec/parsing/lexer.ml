@@ -269,6 +269,13 @@ let rec lex_law lexbuf =
   | eof ->
       update lexbuf;
       EOF
+  | "@@", Star white_space, "D", 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@"
+    ->
+      update lexbuf;
+      BEGIN_METADATA
+  | "@@", Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@" ->
+      update lexbuf;
+      END_METADATA
   | "@@", Star white_space, Star (Compl '@'), Star white_space, "@@" ->
       let extract_code_title = R.regexp "@@\\s*([^#]*)\\s*@@" in
       let title = R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf)) 1 in

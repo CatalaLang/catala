@@ -1,4 +1,4 @@
-@@Métadonnées@@
+@@Début métadonnées@@
 
 /*
 # Une structure regroupe des données ensemble
@@ -48,12 +48,15 @@ inclus champ d'application PrestationsFamiliales contexte
    AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
 # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
 # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
-# que les deux contextes parlent du même ménage pour caractériser l'inclusion.
+# que les deux contextes parlent du même ménage pour caractériser
+# l'inclusion.
 inclus champ d'application AllocationFamilialesAvril2008
 
 déclaration champ d'application AllocationsFamilialesAvril2008 :
   contexte l521_3 structure L521_3
 */
+
+@@Fin métadonnées@@
 
 @@Code de la sécurité sociale@@
 
@@ -87,6 +90,9 @@ champ d'application AllocationsFamiliales :
   règle sous condition
     nombre de ménage.enfants >= 2
   conséquence l521_1.droits_ouverts_allocations_familiales rempli
+
+# Les droits doivent être ouverts pour appliquer le champ AllicationsFamiliales
+  assertion l521_1.droits_ouverts_allocations_familiales
 */
 
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
