@@ -90,6 +90,9 @@ let rec lex_code lexbuf =
   | "collection" ->
       update_and_acc lexbuf;
       COLLECTION
+  | 0xE9, "num", 0xE9, "ration" ->
+      update_and_acc lexbuf;
+      ENUM
   | "entier" ->
       update_and_acc lexbuf;
       INTEGER

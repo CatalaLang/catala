@@ -41,7 +41,7 @@
 %token NOT BOOLEAN
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
-%token CONTEXT INCLUDES
+%token CONTEXT INCLUDES ENUM
 %token BEGIN_METADATA END_METADATA
 
 %type <Ast.source_file> source_file
@@ -164,8 +164,11 @@ condition:
 condition_consequence:
 | condition THEN {}
 
+rule_parameters:
+| DEPENDS definition_parameters {}
+
 rule:
-| option(condition_consequence) option(forall_prefix) qident FILLED {}
+| option(rule_parameters) option(condition_consequence) option(forall_prefix) qident FILLED {}
 
 definition_parameters:
 | OF separated_nonempty_list(COMMA, IDENT) {}
@@ -212,10 +215,17 @@ field_decl_includes_context:
 field_decl_includes:
 | INCLUDES FIELD CONSTRUCTOR option(field_decl_includes_context) {}
 
+enum_decl_line_payload:
+| OF typ {}
+
+enum_decl_line:
+| ALT CONSTRUCTOR option(enum_decl_line_payload) {}
+
 code_item:
 | FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
 | DECLARATION STRUCT CONSTRUCTOR COLON nonempty_list(struct_field) {}
 | DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {}
+| DECLARATION ENUM CONSTRUCTOR COLON nonempty_list(enum_decl_line) {}
 
 code:
 | list(code_item) { mk_position $sloc }

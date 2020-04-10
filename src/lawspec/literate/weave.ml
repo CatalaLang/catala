@@ -20,7 +20,7 @@ module P = Printf
 
 let source_file_item_to_latex (i : A.source_file_item) : string =
   match i with
-  | A.LawCode c -> P.sprintf "\\subsection*{%s}" c
+  | A.LawCode c -> P.sprintf "\\section*{%s}" c
   | A.LawText t -> t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" a
   | A.CodeBlock c ->

@@ -1,5 +1,4 @@
 @@Début métadonnées@@
-
 /*
 # Une structure regroupe des données ensemble
 déclaration structure Enfant :
@@ -14,10 +13,25 @@ déclaration structure Ménage :
 # ménage n'a pas d'enfants
   donnée ressources contenu montant
 
+déclaration énumération Prestation:
+  -- PrestationAccueilJeuneEnfant
+  -- AllocationFamiliale
+  -- ComplémentFamilial
+  -- AllocationLogement
+  -- AllocationÉducationEnfantHandicapé
+  -- AllocationSoutienFamilial
+  -- AllocationRentréeScolaire
+  -- AllocationJournalièrePresenceParentale
+
+déclaration structure L511_1:
+  donnée prestation_courante contenu Prestation
+
 déclaration structure L512_3 :
   donnée âge_limite_alinéa_2 contenu entier
+  donnée âge_limite_alinéa_2_alternatif contenu entier
   donnée plafond_rémunération_alinéa_2 contenu montant
   condition droits_ouverts_prestations_familiales
+  condition conditions_hors_âge dépend de Enfant
 
 déclaration structure L521_1 :
   donnée allocations_familiales contenu montant
@@ -39,6 +53,7 @@ déclaration champ d'application PrestationsFamiliales :
 # ménage et l512_3 et leur données associées
   contexte ménage structure Ménage
   contexte l512_3 structure L512_3
+  contexte l511_1 structure L511_1
 
 déclaration champ d'application AllocationsFamiliales :
   contexte ménage structure Ménage
@@ -55,32 +70,64 @@ inclus champ d'application AllocationFamilialesAvril2008
 déclaration champ d'application AllocationsFamilialesAvril2008 :
   contexte l521_3 structure L521_3
 */
-
 @@Fin métadonnées@@
 
 @@Code de la sécurité sociale@@
 
+@Article L511-1@
+Les prestations familiales comprennent :
+1°) la prestation d'accueil du jeune enfant ;
+2°) les allocations familiales ;
+3°) le complément familial ;
+4°) L'allocation de logement régie par les dispositions du livre VIII du code de la construction et de l'habitation ;
+5°) l'allocation d'éducation de l'enfant handicapé ;
+6°) l'allocation de soutien familial ;
+7°) l'allocation de rentrée scolaire ;
+8°) (Abrogé) ;
+9°) l'allocation journalière de présence parentale.
+/*
+# Voir métadonnnée L511_1.prestation_courante
+*/
+
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
 
-1°) tout enfant jusqu’à la fin de l’obligation scolaire ;
+1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 /*
 champ d'application PrestationsFamiliales :
   règle sous condition
-    existe enfant dans ménage.enfants tel que
+    existe enfant dans enfants tel que
       date_aujourd_hui <= enfant.fin_obligation_scolaire
   conséquence l512_3.droits_ouverts_prestations_familiales rempli
 */
 
-2°) après la fin de l’obligation scolaire, et jusqu’à un âge limite, tout enfant dont la rémunération éventuelle n’excède pas un plafond
+2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 /*
 champ d'application PrestationsFamiliales :
+
+  # On définit les conditions hors âge d'abord car elles
+  # sont référencées dans l'article L521-1
+  règle dépend de enfant sous condition
+    date_aujourd_hui <= enfant.fin_obligation_scolaire ou
+    enfant.rémunération < l512_3.plafond_rémunération_alinéa_2
+  conséquence l512_3.conditions_hors_âge rempli
+
   règle sous condition
-    existe enfant dans ménage.enfants tel que
+    existe enfant dans enfants tel que
       date_aujourd_hui > enfant.fin_obligation_scolaire et
-      enfant.rémunération <= l512_3.plafond_rémunération_alinéa_2 et
+      l512_3.conditions_hors_âge de enfant et
       enfant.âge < l512_3.âge_limite_alinéa_2
-  conséquence l512_3.droits_ouverts_prestations_familiales rempli
+  conséquence droits_ouverts_prestations_familiales rempli
+*/
+
+Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
+/*
+champ d'application PrestationsFamiliales :
+  définition l512_3.âge_limite_alinéa_2 sous condition
+    l511_1.prestation_courante = ComplémentFamilial ou
+    l511_1.prestation_courante = AllocationLogement
+  conséquence égal à
+    l512_3.âge_limite_alinéa_2_alternatif
 */
 
 @Article L521-1@
@@ -93,6 +140,9 @@ champ d'application AllocationsFamiliales :
 
 # Les droits doivent être ouverts pour appliquer le champ AllicationsFamiliales
   assertion l521_1.droits_ouverts_allocations_familiales
+# Le champ d'application AllocationsFamiliales inclus PrestationsFamiliales,
+# mais à condition que la prestation courante soit cohérente
+  définition l511_1.prestation_courante égal à AllocationFamiliale
 */
 
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
@@ -109,10 +159,8 @@ champ d'application AllocationsFamiliales :
   assertion l512_1.nombre_minimum_enfants fixé par décret
   règle sous condition
     existe enfant dans ménage.enfants tel que
-    enfant.age = l512_3.âge_limite_alinéa_2
-# "enfant répond aux autres conditions pour l'ouverture
-# du droit aux allocations familiales". À faire: trouver
-# ces "autres conditions".
+    enfant.age = l512_3.âge_limite_alinéa_2 et
+    l512_3.conditions_hors_âge de enfant
   conséquence l521_1.allocation_forfaitaire_versée rempli
 */
 
