@@ -18,6 +18,7 @@
 
 %{
   open Ast
+  open Parse_utils
 %}
 
 %token EOF
@@ -217,18 +218,17 @@ code_item:
 | DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {}
 
 code:
-| code_item code {}
-| {}
+| list(code_item) { mk_position $sloc }
 
 metadata_block:
-| BEGIN_CODE code text = END_CODE END_METADATA { text }
+| BEGIN_CODE pos = code text = END_CODE END_METADATA { (text, pos) }
 
 source_file_item:
 | title = LAW_ARTICLE { LawArticle title }
 | code = LAW_CODE { LawCode code }
 | text = LAW_TEXT { LawText text }
 | BEGIN_METADATA text = metadata_block { MetadataBlock text }
-| BEGIN_CODE code text = END_CODE { CodeBlock text }
+| BEGIN_CODE pos = code text = END_CODE { CodeBlock (text, pos) }
 
 source_file:
 | i = source_file_item f = source_file { i::f }

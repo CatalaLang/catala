@@ -23,15 +23,20 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
   | A.LawCode c -> P.sprintf "\\subsection*{%s}" c
   | A.LawText t -> t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" a
-  | A.CodeBlock c -> P.sprintf "\\begin{minted}{lawspec}%s\\end{minted}" c
+  | A.CodeBlock c ->
+      P.sprintf "\\begin{minted}[firstnumber=%d]{lawspec}%s\\end{minted}"
+        (Pos.get_start_line (Pos.get_position c) + 1)
+        (Pos.unmark c)
   | A.MetadataBlock c ->
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
          break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
-         \\begin{minted}[frame=none,numbersep=9mm, framesep=0mm]{lawspec}%s\\end{minted}\n\
+         \\begin{minted}[frame=none,numbersep=9mm, framesep=0mm, \
+         firstnumber=%d]{lawspec}%s\\end{minted}\n\
          \\end{tcolorbox}"
-        c
+        (Pos.get_start_line (Pos.get_position c) + 1)
+        (Pos.unmark c)
 
 let ast_to_latex (file : A.source_file) : string =
   String.concat "\n\n" (List.map (fun i -> source_file_item_to_latex i) file)

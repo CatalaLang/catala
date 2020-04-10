@@ -15,3 +15,5 @@
 (** Helpers for parsing *)
 
 let current_file : string ref = ref ""
+
+let mk_position sloc = { Pos.pos_filename = !current_file; Pos.pos_loc = sloc }

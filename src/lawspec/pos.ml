@@ -31,6 +31,10 @@ let to_string_short (pos : t) : string =
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
+let get_start_line (pos : t) : int =
+  let s, _ = pos.pos_loc in
+  s.Lexing.pos_lnum
+
 type 'a marked = 'a * t
 (** Everything related to the source code should keep its position stored, to improve error messages *)
 
