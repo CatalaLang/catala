@@ -28,6 +28,7 @@
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
 %token<int> INT_LITERAL
+%token<int * int> DECIMAL_LITERAL
 %token BEGIN_CODE
 %token COLON ALT DATA
 %token OF INTEGER COLLECTION
@@ -37,12 +38,12 @@
 %token COMMA CARDINAL LESSER_EQUAL GREATER_EQUAL
 %token ASSERTION FIXED BY YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
-%token FORALL WE_HAVE INCREASING DECREASING
+%token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
-%token CONTEXT INCLUDES ENUM ELSE
-%token BEGIN_METADATA END_METADATA
+%token CONTEXT INCLUDES ENUM ELSE DATE SUM
+%token BEGIN_METADATA END_METADATA MONEY DECIMAL
 
 %type <Ast.source_file> source_file
 
@@ -51,9 +52,11 @@
 %%
 
 typ_base:
-| IDENT {}
 | INTEGER {}
 | BOOLEAN {}
+| MONEY {}
+| DECIMAL {}
+| DATE {}
 | CONSTRUCTOR {}
 
 typ:
@@ -81,9 +84,13 @@ date_qualifier:
 constructor_payload:
 | OF base_expression {}
 
-literal:
+num_literal:
 | INT_LITERAL {}
-| INT_LITERAL EURO {}
+| DECIMAL_LITERAL {}
+
+literal:
+| num_literal {}
+| num_literal EURO {}
 | INT_LITERAL date_qualifier {}
 | CONSTRUCTOR option(constructor_payload) {}
 
@@ -103,6 +110,7 @@ base_expression:
 | primitive_expression {}
 | qident IN qident {}
 | literal {}
+| SUM FOR IDENT IN primitive_expression OF base_expression {}
 | func OF separated_nonempty_list(COMMA, primitive_expression) {}
 | qident WITH CONSTRUCTOR {}
 
@@ -155,7 +163,7 @@ match_arms:
 | {}
 
 forall_prefix:
-| FORALL separated_nonempty_list(COMMA,IDENT) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
+| FOR ALL separated_nonempty_list(COMMA,IDENT) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
 
 exists_prefix:
 | EXISTS IDENT IN qident SUCH THAT {}

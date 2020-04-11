@@ -114,7 +114,8 @@ déclaration énumération ChoixParentAllocataire :
 déclaration structure L521_2 :
   donnée récipiendaire_allocations contenu Personne dépend de Enfant
   donnée charge_allocations contenu ChargeAllocation dépend de Enfant
-  donnée choix_allocataire_garde_alternée contenu ChoixParentAllocataire
+  donnée choix_allocataire_garde_alternée
+     contenu ChoixParentAllocataire optionnel
      dépend de Enfant
   condition garde_alternée_unique_allocataire dépend de Enfant
   condition garde_alternée_allocataire_double dépend de Enfant
@@ -131,7 +132,13 @@ déclaration structure L521_3 :
     dépend de Enfant
   donnée majorations_allocations_familiales contenu montant
 
-déclaration champ d'application PrestationsFamiliales :
+déclaration structure R521_3 :
+  donnée allocations_familiales_total_enfants_à_charge contenu montant
+  donnée rapport_enfants_total_moyen contenu décimal
+  donnée nombre_total_enfants contenu entier
+  donnée nombre_moyen_enfants contenu décimal
+
+déclaration champ d'application CalculPrestationsFamiliales :
 # Les règles déclarées dans PrestationsFamiliales pourront utiliser
 # ménage et l512_3 et leur données associées
   contexte ménage structure Ménage
@@ -140,13 +147,13 @@ déclaration champ d'application PrestationsFamiliales :
 inclus champ d'application MénageBienFormé contexte
   PrestationsFamiliales.ménage = MénageBienFormé.ménage
 
-déclaration champ d'application AllocationsFamiliales :
+déclaration champ d'application CalculAllocationsFamiliales :
   contexte ménage structure Ménage
   contexte titre_I structure TitreI
   contexte l521_1 structure L521_1
   contexte l521_2 structure L521_2
   contexte l521_3 structure L521_3
-inclus champ d'application PrestationsFamiliales contexte
+inclus champ d'application CalculPrestationsFamiliales contexte
    AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
 # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
 # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
@@ -154,7 +161,7 @@ inclus champ d'application PrestationsFamiliales contexte
 # l'inclusion.
 inclus champ d'application AllocationFamilialesAvril2008
 
-déclaration champ d'application AllocationsFamilialesAvril2008 :
+déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
   contexte l521_3 structure L521_3
 */
 @@Fin métadonnées@@
@@ -181,7 +188,7 @@ Sous réserve des règles particulières à chaque prestation, ouvre droit aux p
 
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 /*
-champ d'application PrestationsFamiliales :
+champ d'application CalculPrestationsFamiliales :
   règle sous condition
     existe enfant dans ménage.enfants tel que
       date_aujourd_hui <= enfant.fin_obligation_scolaire
@@ -190,7 +197,7 @@ champ d'application PrestationsFamiliales :
 
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 /*
-champ d'application PrestationsFamiliales :
+champ d'application CalculPrestationsFamiliales :
   # On définit les conditions hors âge d'abord car elles
   # sont référencées dans l'article L521-1
   règle dépend de enfant sous condition
@@ -209,7 +216,7 @@ champ d'application PrestationsFamiliales :
 
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
 /*
-champ d'application PrestationsFamiliales :
+champ d'application CalculPrestationsFamiliales :
   définition l512_3.âge_limite_alinéa_2 sous condition
     l511_1.prestation_courante = ComplémentFamilial ou
     l511_1.prestation_courante = AllocationLogement
@@ -220,21 +227,21 @@ champ d'application PrestationsFamiliales :
 @Article L521-1@
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   règle sous condition
     nombre de ménage.enfants >= 2
   conséquence l521_1.droits_ouverts_allocations_familiales rempli
 
 # Les droits doivent être ouverts pour appliquer le champ AllicationsFamiliales
   assertion l521_1.droits_ouverts_allocations_familiales
-# Le champ d'application AllocationsFamiliales inclus PrestationsFamiliales,
+# Le champ d'application CalculAllocationsFamiliales inclus PrestationsFamiliales,
 # mais à condition que la prestation courante soit cohérente
   définition l511_1.prestation_courante égal à AllocationFamiliale
 */
 
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   assertion l521_1.allocation_forfaitaire fixé par décret
 
   assertion
@@ -254,7 +261,7 @@ champ d'application AllocationsFamiliales :
 
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   assertion l512_1.allocations_familiales fixé par décret
   assertion l512_1.allocations_familiales varie avec l521_1.ressources_ménage
   assertion l521_3.majorations_allocations_familiales fixé par décret
@@ -264,7 +271,7 @@ champ d'application AllocationsFamiliales :
 
 Le montant des allocations familiales varie en fonction du nombre d'enfants à charge.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   assertion l512_1.allocations_familiales varie avec
      nombre de ménage.enfants
 */
@@ -287,7 +294,7 @@ Un complément dégressif est versé lorsque les ressources du bénéficiaire d�
 @Article L521-2@
 Les allocations sont versées à la personne qui assume, dans quelques conditions que ce soit, la charge effective et permanente de l'enfant.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_2.charge_allocations de enfant
     sous condition
       (enfant dans ménage.enfants) et
@@ -302,12 +309,13 @@ champ d'application AllocationsFamiliales :
 En cas de résidence alternée de l'enfant au domicile de chacun des parents telle que prévue à l'article 373-2-9 du code civil, mise en oeuvre de manière effective, les parents désignent l'allocataire. Cependant, la charge de l'enfant pour le calcul des allocations familiales est partagée par moitié entre les deux parents soit sur demande conjointe des parents, soit si les parents sont en désaccord sur la désignation de l'allocataire. Un décret en Conseil d'État fixe les conditions d'application du présent alinéa.
 
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
 # Premier cas : garde alternée, parents désignent un unique allocataire
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
-    (enfant.choix_allocataire_garde_alternée sous forme UnParent) et
+    (enfant.choix_allocataire_garde_alternée sous forme Présent) et
+    (enfant.choix_allocataire_garde_alternée.Présent sous forme UnParent) et
     (enfant.choix_allocataire_garde_alternée.UnParent dans ménage.parents)
   conséquence (l521_2.garde_alternée_unique_allocataire de enfant) rempli
 
@@ -320,7 +328,8 @@ champ d'application AllocationsFamiliales :
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
-    (enfant.choix_allocataire_garde_alternée sous forme DeuxParents)
+    (enfant.choix_allocataire_garde_alternée sous forme Présent) et
+    (enfant.choix_allocataire_garde_alternée.Présent sous forme DeuxParents)
   conséquence (l521_2.garde_alternée_allocataire_double de enfant) rempli
 
   définition l521_2.charge_allocations de enfant
@@ -329,34 +338,20 @@ champ d'application AllocationsFamiliales :
       (l521_2.garde_alternée_allocataire_double de enfant)
     conséquence égal à Partagée
 
-# Dans ce deuxième cas, la charge est partagée si et seulement si on a
-# une des deux conditions précisées. Pour modéliser ça informatiquement,
-# il nous faut donc une directe et une réciproque.
-
-# Voici la directe...
   définition l521_2.charge_allocations de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
-    (l521_2.demande_conjointe_partage_charge_garde_alternée ou
-     l512_2.desaccord_charge_garde_alternée)
+    (l521_2.demande_conjointe_partage_charge_garde_alternée de enfant ou
+     l512_2.desaccord_charge_garde_alternée de enfant)
   conséquence égal à Partagée
 
-# Et la réciproque !
-  assertion pour tout enfant dans ménage.enfants on a
-    sous condition
-      (enfant dans ménage.enfants) et
-      (enfant.prise_en_charge sous forme GardeAlternée) et
-      (l521_2.charge_allocations = Partagée)
-    conséquence
-      l521_2.demande_conjointe_partage_charge_garde_alternée ou
-      l512_2.desaccord_charge_garde_alternée
 
 # Quelles variables fixées par R521_2 ?
 */
 
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_2.récipiendaire_allocations de enfant sous condition
     (enfant dans ménage.enfants) et
     (titre_I.droits_ouverts_allocations_familiales de
@@ -367,7 +362,7 @@ champ d'application AllocationsFamiliales :
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocations familiales continuent d'être évaluées en tenant compte à la fois des enfants présents au foyer et du ou des enfants confiés au service de l'aide sociale à l'enfance. La part des allocations familiales dues à la famille pour cet enfant est versée à ce service. Toutefois, le juge peut décider, d'office ou sur saisine du président du conseil général, à la suite d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou des articles 15,16,16 bis et 28 de l'ordonnance n° 45-174 du 2 février 1945 relative à l'enfance délinquante, de maintenir le versement des allocations à la famille, lorsque celle-ci participe à la prise en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de l'enfant dans son foyer.
 
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_2.charge_allocations de enfant
     sous condition
       (enfant dans ménage.enfants) et
@@ -398,7 +393,7 @@ d) enfants confiés à un service public, à une institution privée, à un part
 
 @Article L521-3@ Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une majoration des allocations familiales.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant != ménage.enfant_plus_âgé) et
@@ -410,7 +405,7 @@ champ d'application AllocationsFamiliales :
 
 Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéficient de ladite majoration pour chaque enfant à charge à partir de l'âge mentionné au premier alinéa.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
     (nombre de ménage.enfants >= l512_3.minimum_alinéa_2) et
@@ -422,13 +417,13 @@ champ d'application AllocationsFamiliales :
 
 @Article R521-1@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_3.âge_limite_alinéa_1 de enfant égal à 14 an
 */
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
 /*
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_3.minimum_alinéa_2
     égal à 3
 */
@@ -439,13 +434,73 @@ NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les 
 # version du corpus législatif dont un morceau s'applique encore. Nous avons
 # choisi de montrer ce vieux champ d'application ici plutôt qu'à côté du texte
 # du décret de 2008 pour des raisons de place seulement.
-champ d'application AllocationFamilialesAvril2008:
+champ d'application CalculAllocationFamilialesAvril2008:
 # Âge limite avant décret n° 2008-409 du 28 avril 2008
   définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
 
-champ d'application AllocationsFamiliales :
+champ d'application CalculAllocationsFamiliales :
   définition l521_3.minimum_alinéa_2 de enfant
   sous condition (enfant.date_naissance + 11 an <= 30/04/2008)
   conséquence égal à
-    AllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
+    CalculAllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
+*/
+
+@Article R521-2@
+Dans les situations visées au deuxième alinéa de l'article L. 521-2, l'allocataire est celui des deux parents qu'ils désignent d'un commun accord. A défaut d'accord sur la désignation d'un allocataire unique, chacun des deux parents peut se voir reconnaître la qualité d'allocataire :
+1° Lorsque les deux parents en ont fait la demande conjointe ;
+2° Lorsque les deux parents n'ont ni désigné un allocataire unique, ni fait une demande conjointe de partage.
+/*
+# Le fait que l'allocataire dans le cas d'un commun accord soit celui des
+# deux parents désigné par l'accord est déjà modélisé dans L512-2.
+
+champ d'application CalculAllocationsFamiliales :
+  définition l521_2.charge_allocations de enfant sous condition
+    (enfant dans ménage.enfants) et
+    (enfant.prise_en_charge sous forme GardeAlternée) et
+    (
+      (l521_2.demande_conjointe_partage_charge_garde_alternée) ou
+      (
+        (non l521_2.demande_conjointe_partage_charge_garde_alternée) et
+        (enfant.choix_allocataire_garde_alternée sous forme Absent)
+      )
+    )
+  conséquence égal à Partagée
+*/
+
+Lorsque les parents ont désigné un allocataire unique ou fait une demande conjointe de partage, ils ne peuvent remettre en cause les modalités ainsi choisies qu'au bout d'un an, sauf modification des modalités de résidence du ou des enfants.
+/*
+# On ne modélise pas le délai minimal entre changement de situation dans
+# ce programme.
+*/
+
+@Article R521-3@
+Sous réserve de l'article R. 521-4, dans les situations visées aux 1° et 2° de l'article R. 521-2, la prestation due à chacun des parents est égale au montant des allocations familiales dues pour le total des enfants à charge, multiplié par un coefficient résultant du rapport entre le nombre moyen d'enfants et le nombre total d'enfants.
+
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition l521_1.allocation_familiales égal à
+    r521_3.allocations_familiales_total_enfants_à_charge *
+    r521_3.rapport_enfants_total_moyen
+
+  définition r521_3.rapport_enfants_total_moyen égal à
+    r521_3.nombre_moyen_enfants / r521_3.nombre_total_enfants
+*/
+
+Le nombre moyen d'enfants, pour chaque foyer, est obtenu en faisant la somme du nombre d'enfants à charge dans les conditions suivantes :
+1° Chaque enfant en résidence alternée compte pour 0,5 ;
+2° Les autres enfants à charge comptent pour 1.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition r521_3.nombre_moyen_enfants égal à
+    somme pour enfant dans ménage.enfants de (
+      selon enfant.prise_en_charge sous forme
+      -- Complète : 1
+      -- GardeAlternée de parents : 0.5
+    )
+*/
+Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du ou des enfants en résidence alternée et, le cas échéant, du ou des autres enfants à charge.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition r521_3.nombre_total_enfants égal à
+    nombre de ménage.enfants
 */

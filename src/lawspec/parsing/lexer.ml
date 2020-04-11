@@ -96,9 +96,21 @@ let rec lex_code lexbuf =
   | "entier" ->
       update_and_acc lexbuf;
       INTEGER
+  | "montant" ->
+      update_and_acc lexbuf;
+      MONEY
+  | "d", 0xE9, "cimal" ->
+      update_and_acc lexbuf;
+      DECIMAL
+  | "date" ->
+      update_and_acc lexbuf;
+      DATE
   | "bool", 0xE9, "en" ->
       update_and_acc lexbuf;
       BOOLEAN
+  | "somme" ->
+      update_and_acc lexbuf;
+      SUM
   | "rempli" ->
       update_and_acc lexbuf;
       FILLED
@@ -144,9 +156,12 @@ let rec lex_code lexbuf =
   | "varie avec" ->
       update_and_acc lexbuf;
       VARIES_WITH
-  | "pour tout" ->
+  | "pour" ->
       update_and_acc lexbuf;
-      FORALL
+      FOR
+  | "tout" ->
+      update_and_acc lexbuf;
+      ALL
   | "on a" ->
       update_and_acc lexbuf;
       WE_HAVE
@@ -191,6 +206,15 @@ let rec lex_code lexbuf =
   | "an" ->
       update_and_acc lexbuf;
       YEAR
+  | Plus '0' .. '9', '.', Star '0' .. '9' ->
+      let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
+      let dec_parts =
+        R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
+      in
+      update lexbuf;
+      (* Integer literal*)
+      update_and_acc lexbuf;
+      DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
   | '.' ->
       update_and_acc lexbuf;
       DOT
@@ -236,9 +260,6 @@ let rec lex_code lexbuf =
   | ':' ->
       update_and_acc lexbuf;
       COLON
-  | '.' ->
-      update_and_acc lexbuf;
-      DOT
   | "--" ->
       update_and_acc lexbuf;
       ALT

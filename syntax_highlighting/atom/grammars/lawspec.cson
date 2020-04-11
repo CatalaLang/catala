@@ -112,7 +112,7 @@
         }
       }
       {
-        'match' : '\\b(selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour\\s+tout|existe|pour\\s+tout|de)\\b'
+        'match' : '\\b(selon|sous\\s+forme|fixé\\s+par|décroissante|croissante|varie\\s+avec|on\\s+a|dans|tel\\s+que|pour|tout|existe|de)\\b'
         'name' : 'keyword.control.lawspec'
       }
       {
@@ -136,7 +136,7 @@
         'name' : 'keyword.operator.lawspec'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|décret|loi|an|mois|jour|\\x{20ac}|nombre|date_aujourd_hui)\\b'
+        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|\\x{20ac}|nombre|date_aujourd_hui|somme)\\b'
         'name' : 'support.type.lawspec'
       }
       {

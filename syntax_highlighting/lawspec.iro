@@ -200,7 +200,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|dans|tel\s+que|pour\s+tout|existe|pour\s+tout|de)\b
+    regex \= \b(selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|dans|tel\s+que|existe|pour|tout|de)\b
     styles [] = .keyword_expression ;
   }
 
@@ -230,7 +230,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|décret|loi|an|mois|jour|\u20ac|nombre|date_aujourd_hui)\b
+    regex \= \b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|\u20ac|nombre|somme|date_aujourd_hui)\b
     styles [] = .primitive;
   }
 
