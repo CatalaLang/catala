@@ -132,7 +132,7 @@
         'name' : 'punctuation.lawspec'
       }
       {
-        'match' : '(\\+|\\-|\\*|/|\\!|ou|et|=|>|<|\\x{20ac}|%)'
+        'match' : '(\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\\x{20ac}|%)'
         'name' : 'keyword.operator.lawspec'
       }
       {

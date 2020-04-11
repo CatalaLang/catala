@@ -225,7 +225,7 @@ code : context {
   }
 
    : pattern {
-     regex \= (\+|\-|\*|/|\!|ou|et|=|>|<|\u20ac|%)
+     regex \= (\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%)
      styles [] = .operator;
   }
 

@@ -107,11 +107,18 @@ func:
 | CARDINAL {}
 | qident {}
 
+aggregate_func:
+| SUM {}
+| CARDINAL {}
+
+aggregate:
+| aggregate_func FOR IDENT IN primitive_expression OF base_expression {}
+
 base_expression:
 | primitive_expression {}
 | qident IN qident {}
 | literal {}
-| SUM FOR IDENT IN primitive_expression OF base_expression {}
+| aggregate {}
 | func OF separated_nonempty_list(COMMA, primitive_expression) {}
 | qident WITH CONSTRUCTOR {}
 
