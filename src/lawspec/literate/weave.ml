@@ -17,12 +17,17 @@
 
 module A = Ast
 module P = Printf
+module R = Re.Pcre
+
+let pre_latexify (s : string) =
+  let percent = R.regexp "%" in
+  R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s
 
 let source_file_item_to_latex (i : A.source_file_item) : string =
   match i with
   | A.LawCode c -> P.sprintf "\\section*{%s}" c
-  | A.LawText t -> t
-  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" a
+  | A.LawText t -> pre_latexify t
+  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
   | A.CodeBlock c ->
       P.sprintf "\\begin{minted}[firstnumber=%d]{lawspec}%s\\end{minted}"
         (Pos.get_start_line (Pos.get_position c) + 1)
