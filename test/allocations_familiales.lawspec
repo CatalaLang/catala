@@ -138,6 +138,11 @@ déclaration structure R521_3 :
   donnée nombre_total_enfants contenu entier
   donnée nombre_moyen_enfants contenu décimal
 
+déclaration structure R521_4 :
+  donnée majorations_allocation_familiales_avec_garde_alternée
+    contenu montant
+    dépend de Enfant 
+
 déclaration champ d'application CalculPrestationsFamiliales :
 # Les règles déclarées dans PrestationsFamiliales pourront utiliser
 # ménage et l512_3 et leur données associées
@@ -503,4 +508,26 @@ Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du 
 champ d'application CalculAllocationsFamiliales :
   définition r521_3.nombre_total_enfants égal à
     nombre de ménage.enfants
+*/
+
+@Article R521-4@
+Pour l'ouverture du droit à la majoration prévue à l'article L. 521-3, le nombre d'enfants à charge est évalué dans les conditions prévues au premier alinéa de l'article R. 521-3.
+
+/*
+# ménage.enfants ne contient que des enfants à charge donc rien à formaliser
+# ici
+*/
+
+Lorsque le ou les enfants ouvrant droit à ladite majoration sont en résidence alternée, le montant servi au titre de cette majoration est réduit de moitié.
+
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition
+    r521_4.majorations_allocation_familiales_avec_garde_alternée de enfant
+  sous condition enfant dans ménage.enfants
+  conséquence égal à (
+    selon enfant.prise_en_charge sous forme
+    -- Complète : l521_3.majorations_allocation_familiales
+    -- GardeAlternée de parents: l521_3.majorations_allocation_familiales / 2
+  )
 */
