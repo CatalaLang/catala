@@ -39,7 +39,7 @@
 %token ASSERTION FIXED BY YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FOR ALL WE_HAVE INCREASING DECREASING
-%token NOT BOOLEAN
+%token NOT BOOLEAN PERCENT
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES ENUM ELSE DATE SUM
@@ -90,6 +90,7 @@ num_literal:
 
 literal:
 | num_literal {}
+| num_literal PERCENT {}
 | num_literal EURO {}
 | INT_LITERAL date_qualifier {}
 | CONSTRUCTOR option(constructor_payload) {}

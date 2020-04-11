@@ -251,6 +251,9 @@ let rec lex_code lexbuf =
   | '*' ->
       update_and_acc lexbuf;
       MULT
+  | '%' ->
+      update_and_acc lexbuf;
+      PERCENT
   | '/' ->
       update_and_acc lexbuf;
       DIV

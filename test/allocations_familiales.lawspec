@@ -2,7 +2,7 @@
 /*
 
 déclaration structure Personne :
-# Pas de champs
+# Pas de données
 
 déclaration structure ParentsGardeAlternée :
   donnée parent1 contenu Personne
@@ -132,8 +132,11 @@ déclaration structure L521_3 :
     dépend de Enfant
   donnée majorations_allocations_familiales contenu montant
 
+déclaration structure L551_1 :
+  donnée base_mensuelle_prestations_familiales contenu montant
+
 déclaration structure R521_3 :
-  donnée allocations_familiales_total_enfants_à_charge contenu montant
+  donnée allocations_familiales_avec_garde_alternée contenu montant
   donnée rapport_enfants_total_moyen contenu décimal
   donnée nombre_total_enfants contenu entier
   donnée nombre_moyen_enfants contenu décimal
@@ -142,6 +145,14 @@ déclaration structure R521_4 :
   donnée majorations_allocation_familiales_avec_garde_alternée
     contenu montant
     dépend de Enfant
+
+déclaration structure D521_1 :
+  donnée montant_deuxieme_enfant contenu montant
+  donnée montant_troisième_enfant_et_plus contenu montant
+
+déclaration structure D521_3 :
+  donnée plafond_I contenu montant
+  donnée plafond_II contenu montant
 
 déclaration champ d'application CalculPrestationsFamiliales :
 # Les règles déclarées dans PrestationsFamiliales pourront utiliser
@@ -158,6 +169,11 @@ déclaration champ d'application CalculAllocationsFamiliales :
   contexte l521_1 structure L521_1
   contexte l521_2 structure L521_2
   contexte l521_3 structure L521_3
+  contexte l551_1 structure L551_1
+  contexte r521_3 structure R521_4
+  contexte r521_4 structure R521_4
+  contexte d521_1 structure D521_1
+  contexte d521_3 structure D521_3
 inclus champ d'application CalculPrestationsFamiliales contexte
    AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
 # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
@@ -420,6 +436,13 @@ champ d'application CalculAllocationsFamiliales :
   rempli
 */
 
+@Article L.551-1@
+Le montant des prestations familiales est déterminé d'après des bases mensuelles de calcul revalorisées au 1er avril de chaque année par application du coefficient mentionné à l'article L. 161-25.
+/*
+# Voir déclaration structure L551_1 dans les métadonnées. Idem que L521-1,
+# on ne formalise pas ici l'évolution de la BAMF
+*/
+
 @Article R521-1@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
 /*
 champ d'application CalculAllocationsFamiliales :
@@ -483,8 +506,8 @@ Sous réserve de l'article R. 521-4, dans les situations visées aux 1° et 2° 
 
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l521_1.allocation_familiales égal à
-    r521_3.allocations_familiales_total_enfants_à_charge *
+  définition r521_3.allocations_familiales_avec_garde_alternée égal à
+    l521_1.allocation_familiales *
     r521_3.rapport_enfants_total_moyen
 
   définition r521_3.rapport_enfants_total_moyen égal à
@@ -537,19 +560,92 @@ I.- Pour l'application de l'article L. 521-1, le montant des allocations familia
 
 1° Lorsque le ménage ou la personne a disposé d'un montant de ressources inférieur ou égal au plafond défini au I de l'article D. 521-3, les taux servant au calcul des allocations familiales sont fixés, en pourcentage de la base mensuelle prévue à l'article L. 551-1, à :
 a) 32 % pour le deuxième enfant à charge ;
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_deuxieme_enfant égal à
+    sous condition nombre de ménage.enfants >= 2
+    conséquence l551_1.base_mensuelle_prestations_familiales * 32 %
+    sinon 0 €
+*/
 b) 41 % pour le troisième enfant à charge et chacun des suivants.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_troisième_enfant_et_plus égal à
+    sous condition nombre de ménage.enfants >= 3
+    conséquence l551_1.base_mensuelle_prestations_familiales * 41 % * (
+      (nombre de ménage.enfants) - 2
+    ) sinon 0 €
+*/
 La majoration pour âge est fixée à 16 % de la base mensuelle de calcul des prestations familiales ;
-
+/*
+champ d'application CalculAllocationsFamiliales :
+   définition d521_1.majoration_pour_âge égal à
+     l551_1.base_mensuelle_prestations_familiales * 16 %
+*/
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au I de l'article D. 521-3 et inférieur ou égal à celui défini au II du même article, les taux servant au calcul des allocations familiales sont fixés, en pourcentage de la base mensuelle prévue à l'article L. 551-1, à :
 a) 16 % pour le deuxième enfant à charge ;
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_deuxieme_enfant sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_I) et
+    (l521_1.ressources_ménage <= d521_3.plafond_II)
+  conséquence égal à
+    sous condition nombre de ménage.enfants >= 2
+    conséquence l551_1.base_mensuelle_prestations_familiales * 32 %
+    sinon 0 €
+*/
 b) 20,5 % pour le troisième enfant à charge et chacun des suivants.
-
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_troisième_enfant_et_plus sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_I) et
+    (l521_1.ressources_ménage <= d521_3.plafond_II)
+  conséquence égal à
+    sous condition nombre de ménage.enfants >= 3
+    conséquence l551_1.base_mensuelle_prestations_familiales * 20.5 % * (
+      (nombre de ménage.enfants) - 2
+    ) sinon 0 €
+*/
 La majoration pour âge est fixée à 8 % de la base mensuelle de calcul des prestations familiales ;
+/*
+champ d'application CalculAllocationsFamiliales :
+   définition d521_1.majoration_pour_âge sous condition
+     (l521_1.ressources_ménage > d521_3.plafond_I) et
+     (l521_1.ressources_ménage <= d521_3.plafond_II)
+   conséquence égal à
+     l551_1.base_mensuelle_prestations_familiales * 8 %
+*/
+
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au II de l'article D. 521-3, les taux servant au calcul des allocations familiales sont fixés, en pourcentage de la base mensuelle prévue à l'article L. 551-1, à :
 a) 8 % pour le deuxième enfant à charge ;
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_deuxieme_enfant sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_II)
+  conséquence égal à
+    sous condition nombre de ménage.enfants >= 2
+    conséquence l551_1.base_mensuelle_prestations_familiales * 8 %
+    sinon 0 €
+*/
 b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
-
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_1.montant_troisième_enfant_et_plus sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_II)
+  conséquence égal à
+    sous condition nombre de ménage.enfants >= 3
+    conséquence l551_1.base_mensuelle_prestations_familiales * 10.25 % * (
+      (nombre de ménage.enfants) - 2
+    ) sinon 0 €
+*/
 La majoration pour âge est fixée à 4 % de la base mensuelle de calcul des prestations familiales.
+/*
+champ d'application CalculAllocationsFamiliales :
+   définition d521_1.majoration_pour_âge sous condition
+     (l521_1.ressources_ménage > d521_3.plafond_II)
+   conséquence égal à
+     l551_1.base_mensuelle_prestations_familiales * 4 %
+*/
 
 II.- En application du sixième alinéa de l'article L. 521-1, le montant mensuel des allocations familiales et, le cas échéant, de la majoration pour âge est majoré d'un complément dégressif, lorsque les ressources annuelles du ménage ou de la personne dépassent l'un des plafonds défini au I ou au II de l'article D. 521-3 d'une somme inférieure à douze fois le montant mensuel des allocations familiales augmenté, le cas échéant, de la ou des majorations pour âge.
 

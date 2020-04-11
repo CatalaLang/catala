@@ -116,7 +116,7 @@
         'name' : 'keyword.control.lawspec'
       }
       {
-        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous condition|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
+        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous condition|conséquence|sinon|rempli|égal\\s+à|assertion|définition)\\b'
         'name' : 'keyword.lawspec'
       }
       {
@@ -132,11 +132,11 @@
         'name' : 'punctuation.lawspec'
       }
       {
-        'match' : '(\\+|\\-|\\*|/|\\!|ou|et|=|>|<)'
+        'match' : '(\\+|\\-|\\*|/|\\!|ou|et|=|>|<|\\x{20ac}|%)'
         'name' : 'keyword.operator.lawspec'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|\\x{20ac}|nombre|date_aujourd_hui|somme)\\b'
+        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|nombre|date_aujourd_hui|somme)\\b'
         'name' : 'support.type.lawspec'
       }
       {

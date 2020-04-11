@@ -205,7 +205,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous condition|conséquence|rempli|égal\s+à|assertion|définition)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous condition|conséquence|sinon|rempli|égal\s+à|assertion|définition)\b
     styles [] = .keyword_rule ;
   }
 
@@ -225,12 +225,12 @@ code : context {
   }
 
    : pattern {
-     regex \= (\+|\-|\*|/|\!|ou|et|=|>|<)
+     regex \= (\+|\-|\*|/|\!|ou|et|=|>|<|\u20ac|%)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|\u20ac|nombre|somme|date_aujourd_hui)\b
+    regex \= \b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|nombre|somme|date_aujourd_hui)\b
     styles [] = .primitive;
   }
 
