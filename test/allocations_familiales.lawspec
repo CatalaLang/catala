@@ -757,3 +757,21 @@ III.- Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de l
 champ d'application CalculAllocationsFamiliales :
   définition l512_1.nombre_minimum_enfants égal à 3
 */
+
+@Article D521-3@
+
+I.- Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_3.plafond_I égal à 55950 € +
+    5595 € * nombre de ménage.enfants
+*/
+
+II.- Le plafond prévu au 2° du I des articles D. 521-1 et D. 521-2 est fixé à 78 300 euros. Il est majoré de 5 595 euros par enfant à charge.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition d521_3.plafond_II égal à 78300 € +
+    5595 € * nombre de ménage.enfants
+*/
+
+III.- Les montants des plafonds et de leur majoration respective fixés au présent article sont revalorisés au 1er janvier de chaque année, conformément à l'évolution en moyenne annuelle des prix à la consommation hors tabac de l'année civile de référence, par arrêté des ministres chargés de la sécurité sociale, du budget et de l'agriculture.
