@@ -27,8 +27,8 @@ déclaration structure Ménage :
   donnée parents collection contenu Personne
   donnée parent1 contenu Personne
   donnée parent2 contenu Personne optionnel
-# Le mot optionnel permet de prévoir le cas où le
-# ménage n'a pas d'enfants
+  # Le mot optionnel permet de prévoir le cas où le
+  # ménage n'a pas d'enfants
 
 déclaration champ d'application MénageBienFormé :
   contexte ménage structure Ménage
@@ -82,6 +82,52 @@ déclaration énumération Prestation:
   -- AllocationRentréeScolaire
   -- AllocationJournalièrePresenceParentale
 
+déclaration structure PrestationsFamiliales :
+  condition conditions_hors_âge dépend de Enfant
+  condition droits_ouverts dépend de Enfant
+
+déclaration énumération ChargeAllocation :
+  -- Complète
+  -- Partagée
+
+déclaration structure AllocationsFamiliales :
+  condition droits_ouverts
+  condition conditions_hors_âge dépend de Enfant
+  donnée base contenu montant
+  donnée avec_garde_alternée contenu montant
+  donnée avec_garde_alternée_et_complément contenu montant
+  donnée montant_versé contenu montant
+  donnée récipiendaire_par_enfant contenu Personne dépend de Enfant
+  donnée charge_par_enfant contenu ChargeAllocation dépend de Enfant
+  donnée rapport_enfants_total_moyen contenu décimal
+  donnée nombre_total_enfants contenu entier
+  donnée nombre_moyen_enfants contenu décimal
+
+déclaration structure AllocationForfaitaire :
+  condition droits_ouverts dépend de Enfant
+  donnée base contenu montant
+  donnée avec_complément contenu montant
+  donnée montant_versé contenu montant
+
+déclaration énumération ChoixParentAllocataire :
+  -- UnParent contenu Personne
+  -- DeuxParents
+
+déclaration structure AllocationsGardeAlternée :
+  donnée choix_allocataire contenu ChoixParentAllocataire optionnel
+     dépend de Enfant
+  condition unique_allocataire dépend de Enfant
+  condition allocataire_double dépend de Enfant
+  condition demande_conjointe_partage_charge dépend de Enfant
+  condition desaccord_charge dépend de Enfant
+
+déclaration structure MajorationsAllocationsFamiliales :
+  condition droits_ouverts dépend de Enfant
+  donnée base_par_enfant contenu montant dépend de Enfant
+  donnée avec_garde_alternée contenu montant dépend de Enfant
+  donnée avec_garde_alternée_et_complément contenu montant dépend de Enfant
+  donnée montant_versé contenu montant dépend de Enfant
+
 déclaration structure TitreI:
   condition droits_ouverts_allocations_familiales dépend de Personne
 
@@ -92,102 +138,57 @@ déclaration structure L512_3 :
   donnée âge_limite_alinéa_2 contenu entier
   donnée âge_limite_alinéa_2_alternatif contenu entier
   donnée plafond_rémunération_alinéa_2 contenu montant
-  condition droits_ouverts_prestations_familiales
-  condition conditions_hors_âge dépend de Enfant
 
 déclaration structure L521_1 :
-  donnée allocations_familiales contenu montant
-  condition droits_ouverts_allocations_familiales
-  donnée allocation_forfaitaire contenu montant
-  condition qualifié_pour_allocation_forfaitaire dépend de Enfant
-  condition allocation_forfaitaire_versée
   donnée nombre_minimum_enfants contenu montant
   donnée ressources_ménage contenu montant
 
-déclaration énumération ChargeAllocation :
-  -- Complète
-  -- Partagée
-
-déclaration énumération ChoixParentAllocataire :
-  -- UnParent contenu Personne
-  -- DeuxParents
-
-déclaration structure L521_2 :
-  donnée récipiendaire_allocations contenu Personne dépend de Enfant
-  donnée charge_allocations contenu ChargeAllocation dépend de Enfant
-  donnée choix_allocataire_garde_alternée
-     contenu ChoixParentAllocataire optionnel
-     dépend de Enfant
-  condition garde_alternée_unique_allocataire dépend de Enfant
-  condition garde_alternée_allocataire_double dépend de Enfant
-  condition demande_conjointe_partage_charge_garde_alternée
-    dépend de Enfant
-  condition desaccord_charge_garde_alternée dépend de Enfant
-
 déclaration structure L521_3 :
   donnée âge_limite_alinéa_1 contenu entier dépend de Enfant
-# L'âge limite dépend de l'enfant considéré,
-# au contraire des autres données
   donnée minimum_alinéa_2 contenu montant
-  condition droits_ouverts_majorations_allocations_familiales
-    dépend de Enfant
-  donnée majorations_allocations_familiales contenu montant
-    dépend de Enfant
 
 déclaration structure L551_1 :
   donnée base_mensuelle_prestations_familiales contenu montant
-
-déclaration structure R521_3 :
-  donnée allocations_familiales_avec_garde_alternée contenu montant
-  donnée rapport_enfants_total_moyen contenu décimal
-  donnée nombre_total_enfants contenu entier
-  donnée nombre_moyen_enfants contenu décimal
-
-déclaration structure R521_4 :
-  donnée majorations_allocation_familiales_avec_garde_alternée
-    contenu montant
-    dépend de Enfant
 
 déclaration structure D521_1 :
   donnée montant_deuxieme_enfant contenu montant
   donnée montant_troisième_enfant_et_plus contenu montant
   donnée complément_dégressif contenu montant dépend de montant
-  donnée allocations_familiales_avec_complément contenu montant
-  donnée majoration_pour_âge_avec_complément contenu montant
-
-déclaration structure D521_2 :
-  donnée allocation_forfaitaire_avec_complément contenu montant
 
 déclaration structure D521_3 :
   donnée plafond_I contenu montant
   donnée plafond_II contenu montant
 
 déclaration champ d'application CalculPrestationsFamiliales :
-# Les règles déclarées dans PrestationsFamiliales pourront utiliser
-# ménage et l512_3 et leur données associées
+  # Les règles déclarées dans PrestationsFamiliales pourront utiliser
+  # ménage et l512_3 et leur données associées
   contexte ménage structure Ménage
-  contexte l512_3 structure L512_3
+  contexte prestations_familiales structure PrestationsFamiliales
   contexte l511_1 structure L511_1
+  contexte l512_3 structure L512_3
 inclus champ d'application MénageBienFormé contexte
   PrestationsFamiliales.ménage = MénageBienFormé.ménage
 
 déclaration champ d'application CalculAllocationsFamiliales :
   contexte ménage structure Ménage
+  contexte allocations_familiales structure AllocationsFamiliales
+  contexte allocation_forfaitaire structure AllocationForfaitaire
+  contexte allocations_garde_alternée structure AllocationsGardeAlternée
+  contexte majorations_allocations_familiales
+    structure MajorationsAllocationsFamiliales
+
   contexte titre_I structure TitreI
   contexte l521_1 structure L521_1
-  contexte l521_2 structure L521_2
   contexte l521_3 structure L521_3
   contexte l551_1 structure L551_1
-  contexte r521_3 structure R521_4
-  contexte r521_4 structure R521_4
   contexte d521_1 structure D521_1
   contexte d521_3 structure D521_3
 inclus champ d'application CalculPrestationsFamiliales contexte
-   AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
-# AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
-# le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
-# que les deux contextes parlent du même ménage pour caractériser
-# l'inclusion.
+  AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
+  # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
+  # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
+  # que les deux contextes parlent du même ménage pour caractériser
+  # l'inclusion.
 inclus champ d'application AllocationFamilialesAvril2008
 
 déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
@@ -214,14 +215,21 @@ Les prestations familiales comprennent :
 
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
+/*
+champ d'application CalculPrestationsFamiliales :
+  # On suppose dans le programme  que tous les enfants déclarés dans
+  # ménage.enfants ouvrent droit aux allocations familiales
+  assertion pour tout enfant dans ménage.enfants on a
+    prestations_familiales.droits_ouverts de enfant
+*/
 
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 /*
 champ d'application CalculPrestationsFamiliales :
-  règle sous condition
-    existe enfant dans ménage.enfants tel que
-      date_aujourd_hui <= enfant.fin_obligation_scolaire
-  conséquence l512_3.droits_ouverts_prestations_familiales rempli
+  règle dépend de enfant sous condition
+    (enfant dans ménage.enfants) et
+    (date_aujourd_hui <= enfant.fin_obligation_scolaire)
+  conséquence prestations_familiales.droits_ouverts de enfant rempli
 */
 
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
@@ -230,17 +238,18 @@ champ d'application CalculPrestationsFamiliales :
   # On définit les conditions hors âge d'abord car elles
   # sont référencées dans l'article L521-1
   règle dépend de enfant sous condition
-    (enfant dans ménage.enfants) et
-    (date_aujourd_hui <= enfant.fin_obligation_scolaire) ou
-    (enfant.rémunération < l512_3.plafond_rémunération_alinéa_2)
-  conséquence l512_3.conditions_hors_âge de enfant rempli
+    (enfant dans ménage.enfants) et (
+      (date_aujourd_hui <= enfant.fin_obligation_scolaire) ou
+      (enfant.rémunération < l512_3.plafond_rémunération_alinéa_2)
+    )
+  conséquence prestations_familiales.conditions_hors_âge de enfant rempli
 
-  règle sous condition
-    existe enfant dans ménage.enfants tel que
-      (date_aujourd_hui > enfant.fin_obligation_scolaire) et
-      (l512_3.conditions_hors_âge de enfant) et
-      (enfant.âge < l512_3.âge_limite_alinéa_2)
-  conséquence droits_ouverts_prestations_familiales rempli
+  règle dépend de enfant sous condition
+    (enfant dans ménage.enfants) et
+    (date_aujourd_hui > enfant.fin_obligation_scolaire) et
+    (l512_3.conditions_hors_âge de enfant) et
+    (enfant.âge < l512_3.âge_limite_alinéa_2)
+  conséquence prestations_familiales.droits_ouverts de enfant rempli
 */
 
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
@@ -259,48 +268,56 @@ Les allocations familiales sont dues à partir du deuxième enfant à charge.
 champ d'application CalculAllocationsFamiliales :
   règle sous condition
     nombre de ménage.enfants >= 2
-  conséquence l521_1.droits_ouverts_allocations_familiales rempli
+  conséquence allocations_familiales.droits_ouverts rempli
 
-# Les droits doivent être ouverts pour appliquer le champ AllicationsFamiliales
-  assertion l521_1.droits_ouverts_allocations_familiales
-# Le champ d'application CalculAllocationsFamiliales inclus PrestationsFamiliales,
-# mais à condition que la prestation courante soit cohérente
+  # Les droits doivent être ouverts pour appliquer le champ
+  # CalculAllocationsFamiliales. Si cette condition n'est pas remplie,
+  # alors il est inutile de calculer le reste
+  assertion allocations_familiales.droits_ouverts
+  # Le champ d'application CalculAllocationsFamiliales inclus
+  # PrestationsFamiliales, mais à condition que la prestation courante
+  # soit cohérente
   définition l511_1.prestation_courante égal à AllocationFamiliale
 */
 
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3. Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion l521_1.allocation_forfaitaire fixé par décret
+  assertion allocation_forfaitaire.montant_versé fixé par décret
+
+  # Ici, l'ouverture du droit aux allocations familiales est conditionné
+  # au fait d'avoir deux enfants à charges qui répondent aux conditions
+  # d'ouverture du droit à une prestation familiale. Pour cette raison,
+  # nous nous référrons ici aux conditions_hors_âge de prestations_familiales
+  # et non pas de allocations_familiales
+  règle dépend de enfant sous condition
+    prestations_familiales.conditions_hors_âge
+  conséquence allocations_familiales.conditions_hors_âge rempli
 
   règle dépend de enfant sous condition
+    (nombre de ménage.enfants >= l512_1.nombre_minimum_enfants) et
+    (enfant dans ménage.enfants) et
     (enfant.age = l512_3.âge_limite_alinéa_2) et
-    (l512_3.conditions_hors_âge de enfant)
-  conséquence l521_1.qualifié_pour_allocation_forfaitaire de enfant rempli
-
-  règle sous condition
-    nombre de ménage.enfants >= l512_1.nombre_minimum_enfants et (
-    existe enfant dans ménage.enfants tel que
-      l521_1.qualifié_pour_allocation_forfaitaire de enfant
-    )
-  conséquence l521_1.allocation_forfaitaire_versée rempli
+    (allocations_familiales.conditions_hors_âge de enfant)
+  conséquence allocation_forfaitaire.droits_ouverts de enfant rempli
 */
 
 
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion l512_1.allocations_familiales fixé par décret
-  assertion l512_1.allocations_familiales varie avec l521_1.ressources_ménage
-  assertion l521_3.majorations_allocations_familiales fixé par décret
-  assertion l512_1.majorations_allocations_familiales varie avec
+  assertion allocations_familiales.montant_versé fixé par décret
+  assertion allocations_familiales.montant_versé varie avec
+     l521_1.ressources_ménage
+  assertion majorations_allocations_familiales.montant_versé fixé par décret
+  assertion majorations_allocations_familiales.montant_versé varie avec
      l521_1.ressources_ménage
 */
 
 Le montant des allocations familiales varie en fonction du nombre d'enfants à charge.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion l512_1.allocations_familiales varie avec
+  assertion allocations_familiales.montant_versé varie avec
      nombre de ménage.enfants
 */
 
