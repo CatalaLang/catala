@@ -340,13 +340,13 @@ Un complément dégressif est versé lorsque les ressources du bénéficiaire d�
 Les allocations sont versées à la personne qui assume, dans quelques conditions que ce soit, la charge effective et permanente de l'enfant.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l521_2.charge_allocations de enfant
+  définition allocations_familiales.charge_par_enfant de enfant
     sous condition
       (enfant dans ménage.enfants) et
       (enfant.prise_en_charge sous forme Complète)
     conséquence égal à Complète
 
-  définition l521_2.récipiendaire_allocations de enfant
+  définition allocations_familiales.récipiendaire_par_enfant de enfant
     sous condition enfant dans ménage.enfants
     conséquence égal à ménage.parent_en_charge
 */
@@ -362,10 +362,10 @@ champ d'application CalculAllocationsFamiliales :
     (enfant.choix_allocataire_garde_alternée sous forme Présent) et
     (enfant.choix_allocataire_garde_alternée.Présent sous forme UnParent) et
     (enfant.choix_allocataire_garde_alternée.UnParent dans ménage.parents)
-  conséquence (l521_2.garde_alternée_unique_allocataire de enfant) rempli
+  conséquence (allocations_garde_alternée.unique_allocataire de enfant) rempli
 
-  définition l521_2.charge_allocations de enfant
-    sous condition l521_2.garde_alternée_unique_allocataire de enfant
+  définition allocations_familiales.charge_par_enfant de enfant
+    sous condition allocations_garde_alternée.unique_allocataire de enfant
     conséquence égal à Complète
 
 # Deuxième cas : garde alternée, parents partagent la charge pour
@@ -375,19 +375,19 @@ champ d'application CalculAllocationsFamiliales :
     (enfant.prise_en_charge sous forme GardeAlternée) et
     (enfant.choix_allocataire_garde_alternée sous forme Présent) et
     (enfant.choix_allocataire_garde_alternée.Présent sous forme DeuxParents)
-  conséquence (l521_2.garde_alternée_allocataire_double de enfant) rempli
+  conséquence (allocations_garde_alternée.allocataire_double de enfant) rempli
 
-  définition l521_2.charge_allocations de enfant
+  définition allocations_familiales.charge_par_enfant de enfant
     sous condition
       (enfant dans ménage.enfants) et
-      (l521_2.garde_alternée_allocataire_double de enfant)
+      (allocations_garde_alternée.allocataire_double de enfant)
     conséquence égal à Partagée
 
-  définition l521_2.charge_allocations de enfant sous condition
+  définition allocations_familiales.charge_par_enfant de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
-    (l521_2.demande_conjointe_partage_charge_garde_alternée de enfant ou
-     l512_2.desaccord_charge_garde_alternée de enfant)
+    (allocations_garde_alternée.demande_conjointe_partage_charge de enfant ou
+     allocations_garde_alternée.desaccord_charge de enfant)
   conséquence égal à Partagée
 
 
@@ -397,24 +397,27 @@ champ d'application CalculAllocationsFamiliales :
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne remplit pas les conditions prévues au titre I du présent livre pour l'ouverture du droit aux allocations familiales, ce droit s'ouvre du chef du père ou, à défaut, du chef de la mère.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l521_2.récipiendaire_allocations de enfant sous condition
+  définition allocations_familiales.récipiendaire_par_enfant de enfant
+  sous condition
     (enfant dans ménage.enfants) et
     (titre_I.droits_ouverts_allocations_familiales de
       (ménage.parent_en_charge de enfant))
   conséquence égal à ménage.parent1
+  # ménage.parent1 est le père ou à défaut la mère
+  # (ménage.parent2 est optionnel)
 */
 
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les allocations familiales continuent d'être évaluées en tenant compte à la fois des enfants présents au foyer et du ou des enfants confiés au service de l'aide sociale à l'enfance. La part des allocations familiales dues à la famille pour cet enfant est versée à ce service. Toutefois, le juge peut décider, d'office ou sur saisine du président du conseil général, à la suite d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou des articles 15,16,16 bis et 28 de l'ordonnance n° 45-174 du 2 février 1945 relative à l'enfance délinquante, de maintenir le versement des allocations à la famille, lorsque celle-ci participe à la prise en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de l'enfant dans son foyer.
 
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l521_2.charge_allocations de enfant
+  définition allocations_familiales.charge_par_enfant de enfant
     sous condition
       (enfant dans ménage.enfants) et
       (enfant.confié_service_social)
     conséquence égal à Complète
 
-  définition l521_2.récipiendaire_allocations de enfant
+  définition allocations_familiales.récipiendaire_par_enfant de enfant
     sous condition
       (enfant dans ménage.enfants) et
       (enfant.confié_service_social)
@@ -444,7 +447,7 @@ champ d'application CalculAllocationsFamiliales :
     (enfant != ménage.enfant_plus_âgé) et
     (enfant.âge >= l521_3.âge_limite_alinéa_1 de enfant)
   conséquence
-    l521_3.droits_ouverts_majorations_allocations_familiales de enfant
+    majorations_allocation_familiales.droits_ouverts de enfant
   rempli
 */
 
@@ -456,7 +459,7 @@ champ d'application CalculAllocationsFamiliales :
     (nombre de ménage.enfants >= l512_3.minimum_alinéa_2) et
     (enfant.âge >= l521_3.âge_limite_alinéa_1 de enfant)
   conséquence
-    l521_3.droits_ouverts_majorations_allocations_familiales de enfant
+    majorations_allocation_familiales.droits_ouverts de enfant
   rempli
 */
 
@@ -476,8 +479,7 @@ champ d'application CalculAllocationsFamiliales :
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l521_3.minimum_alinéa_2
-    égal à 3
+  définition l521_3.minimum_alinéa_2 égal à 3
 */
 
 NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les modifications induites par le décret n° 2008-409 s'appliquent aux enfants dont le onzième anniversaire est postérieur au 30 avril 2008.
@@ -506,13 +508,13 @@ Dans les situations visées au deuxième alinéa de l'article L. 521-2, l'alloca
 # deux parents désigné par l'accord est déjà modélisé dans L512-2.
 
 champ d'application CalculAllocationsFamiliales :
-  définition l521_2.charge_allocations de enfant sous condition
+  définition allocations_familiales.charge_par_enfant de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
     (
-      (l521_2.demande_conjointe_partage_charge_garde_alternée) ou
+      (allocations_garde_alternée.demande_conjointe_partage_charge) ou
       (
-        (non l521_2.demande_conjointe_partage_charge_garde_alternée) et
+        (non allocations_garde_alternée.demande_conjointe_partage_charge) et
         (enfant.choix_allocataire_garde_alternée sous forme Absent)
       )
     )
