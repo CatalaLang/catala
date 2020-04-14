@@ -225,12 +225,12 @@ code : context {
   }
 
    : pattern {
-     regex \= (\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%)
+     regex \= (\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|nombre|somme|date_aujourd_hui)\b
+    regex \= \b(entier|booléen|date|montant|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b
     styles [] = .primitive;
   }
 

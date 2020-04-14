@@ -132,11 +132,11 @@
         'name' : 'punctuation.lawspec'
       }
       {
-        'match' : '(\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\\x{20ac}|%)'
+        'match' : '(\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\\x{20ac}|%|an|mois|jour)'
         'name' : 'keyword.operator.lawspec'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|an|mois|jour|nombre|date_aujourd_hui|somme)\\b'
+        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|nombre|date_aujourd_hui|somme)\\b'
         'name' : 'support.type.lawspec'
       }
       {
