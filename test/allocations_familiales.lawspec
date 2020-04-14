@@ -139,6 +139,7 @@ déclaration structure L511_1:
 déclaration structure L512_3 :
   donnée âge_limite_alinéa_2 contenu entier
   donnée âge_limite_alinéa_2_alternatif contenu entier
+  condition âge_limite_alinéa_2_alternatif_utilisé
   donnée plafond_rémunération_alinéa_2 contenu montant
 
 déclaration structure L521_1 :
@@ -256,8 +257,9 @@ Toutefois, pour l'attribution du complément familial et de l'allocation de loge
 /*
 champ d'application CalculPrestationsFamiliales :
   définition l512_3.âge_limite_alinéa_2 sous condition
-    l511_1.prestation_courante = ComplémentFamilial ou
-    l511_1.prestation_courante = AllocationLogement
+    l512_3.âge_limite_alinéa_2_alternatif_utilisé et
+    (l511_1.prestation_courante = ComplémentFamilial ou
+     l511_1.prestation_courante = AllocationLogement)
   conséquence égal à
     l512_3.âge_limite_alinéa_2_alternatif
 */
