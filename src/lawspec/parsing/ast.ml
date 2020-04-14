@@ -50,9 +50,32 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Pos.marked list;
 }
 
+type field_decl_context_item = {
+  field_decl_context_item_name : ident Pos.marked;
+  field_decl_context_item_typ : typ Pos.marked;
+}
+
+type field_decl_include_join = {
+  parent_field_name : constructor Pos.marked;
+  parent_field_context_item : ident Pos.marked;
+  sub_field_name : constructor Pos.marked;
+  sub_field_context_item : ident Pos.marked;
+}
+
+type field_decl_include = {
+  field_decl_include_sub_field : constructor Pos.marked;
+  field_decl_include_joins : field_decl_include_join Pos.marked list;
+}
+
+type field_decl = {
+  field_decl_name : constructor Pos.marked;
+  field_decl_context : field_decl_context_item Pos.marked list;
+  field_decl_includes : field_decl_include Pos.marked list;
+}
+
 type code_item =
   | FieldUse of unit
-  | FieldDecl of unit
+  | FieldDecl of field_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
 

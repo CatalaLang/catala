@@ -269,16 +269,40 @@ struct_field:
 }
 
 field_decl_item:
-| CONTEXT ident STRUCT constructor {}
+| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_field_func) { ({
+  field_decl_context_item_name = i;
+  field_decl_context_item_typ =
+    let (typ, typ_pos) = t in
+    match func_typ with
+    | None -> (Base typ, typ_pos)
+    | Some (return_typ, return_pos) -> (Func  {
+      arg_typ = (typ, typ_pos);
+      return_typ = (return_typ, return_pos);
+    }, mk_position $sloc);
+  }, mk_position $sloc) }
 
 field_decl_include:
-| constructor DOT ident EQUAL constructor DOT ident option(condition)  {}
+| c1 = constructor DOT i1 = ident EQUAL c2 = constructor DOT i2 = ident {
+  ({
+    parent_field_name = c1;
+    parent_field_context_item = i1 ;
+    sub_field_name = c2;
+    sub_field_context_item = i2;
+  }, mk_position $sloc)
+}
 
 field_decl_includes_context:
-| CONTEXT nonempty_list(field_decl_include) {}
+| CONTEXT join = nonempty_list(field_decl_include) { join }
 
 field_decl_includes:
-| INCLUDES FIELD constructor option(field_decl_includes_context) {}
+| INCLUDES FIELD c = constructor context = option(field_decl_includes_context) {
+ ({
+   field_decl_include_sub_field = c;
+   field_decl_include_joins = match context with
+   | None -> []
+   | Some context -> context
+  }, mk_position $sloc)
+}
 
 enum_decl_line_payload:
 | CONTENT t = typ { let (t, t_pos) = t in (Base t, t_pos) }
@@ -302,8 +326,13 @@ code_item:
     struct_decl_fields = fields;
   }, mk_position $sloc)
 }
-| DECLARATION FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) {
-  (FieldDecl (), mk_position $sloc)
+| DECLARATION FIELD c = constructor COLON context = nonempty_list(field_decl_item)
+  includes = list(field_decl_includes) {
+  (FieldDecl {
+      field_decl_name = c;
+      field_decl_context = context;
+      field_decl_includes = includes;
+  }, mk_position $sloc)
 }
 | DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
   (EnumDecl {

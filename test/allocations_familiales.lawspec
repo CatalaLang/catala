@@ -31,7 +31,7 @@ déclaration structure Ménage :
   # ménage n'a pas d'enfants
 
 déclaration champ d'application MénageBienFormé :
-  contexte ménage structure Ménage
+  contexte ménage contenu Ménage
 
 champ d'application MénageBienFormé :
   assertion nombre de parents > 0 et nombre de parents <= 2
@@ -163,27 +163,27 @@ déclaration structure D521_3 :
 déclaration champ d'application CalculPrestationsFamiliales :
   # Les règles déclarées dans PrestationsFamiliales pourront utiliser
   # ménage et l512_3 et leur données associées
-  contexte ménage structure Ménage
-  contexte prestations_familiales structure PrestationsFamiliales
-  contexte l511_1 structure L511_1
-  contexte l512_3 structure L512_3
+  contexte ménage contenu Ménage
+  contexte prestations_familiales contenu PrestationsFamiliales
+  contexte l511_1 contenu L511_1
+  contexte l512_3 contenu L512_3
 inclus champ d'application MénageBienFormé contexte
   PrestationsFamiliales.ménage = MénageBienFormé.ménage
 
 déclaration champ d'application CalculAllocationsFamiliales :
-  contexte ménage structure Ménage
-  contexte allocations_familiales structure AllocationsFamiliales
-  contexte allocation_forfaitaire structure AllocationForfaitaire
-  contexte allocations_garde_alternée structure AllocationsGardeAlternée
+  contexte ménage contenu Ménage
+  contexte allocations_familiales contenu AllocationsFamiliales
+  contexte allocation_forfaitaire contenu AllocationForfaitaire
+  contexte allocations_garde_alternée contenu AllocationsGardeAlternée
   contexte majorations_allocations_familiales
-    structure MajorationsAllocationsFamiliales
+    contenu MajorationsAllocationsFamiliales
 
-  contexte titre_I structure TitreI
-  contexte l521_1 structure L521_1
-  contexte l521_3 structure L521_3
-  contexte l551_1 structure L551_1
-  contexte d521_1 structure D521_1
-  contexte d521_3 structure D521_3
+  contexte titre_I contenu TitreI
+  contexte l521_1 contenu L521_1
+  contexte l521_3 contenu L521_3
+  contexte l551_1 contenu L551_1
+  contexte d521_1 contenu D521_1
+  contexte d521_3 contenu D521_3
 inclus champ d'application CalculPrestationsFamiliales contexte
   AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
   # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
@@ -193,7 +193,7 @@ inclus champ d'application CalculPrestationsFamiliales contexte
 inclus champ d'application AllocationFamilialesAvril2008
 
 déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
-  contexte l521_3 structure L521_3
+  contexte l521_3 contenu L521_3
 */
 @@Fin métadonnées@@
 
