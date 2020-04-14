@@ -293,8 +293,8 @@ champ d'application CalculAllocationsFamiliales :
   # nous nous référrons ici aux conditions_hors_âge de prestations_familiales
   # et non pas de allocations_familiales
   règle dépend de enfant sous condition
-    prestations_familiales.conditions_hors_âge
-  conséquence allocations_familiales.conditions_hors_âge rempli
+    prestations_familiales.conditions_hors_âge de enfant
+  conséquence allocations_familiales.conditions_hors_âge de enfant rempli
 
   règle dépend de enfant sous condition
     (nombre de ménage.enfants >= l512_1.nombre_minimum_enfants) et
