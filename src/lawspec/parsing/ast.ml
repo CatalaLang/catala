@@ -12,9 +12,37 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type code_item = FieldUse of unit | FieldDecl of unit | StructDecl of unit | EnumDecl of unit
+type constructor = string
 
-type code_block = code_item list
+type ident = string
+
+type base_typ = Integer | Decimal | Boolean | Money | Date | Named of constructor
+
+type typ_data = {
+  typ_data_collection : Pos.t option;
+  typ_data_optional : Pos.t option;
+  typ_data_base : base_typ Pos.marked;
+}
+
+type typ = Condition | Data of typ_data
+
+type struct_decl_field = {
+  struct_decl_field_name : ident Pos.marked;
+  struct_decl_field_typ : typ Pos.marked;
+}
+
+type struct_decl = {
+  struct_decl_name : constructor Pos.marked;
+  struct_decl_fields : struct_decl_field Pos.marked list;
+}
+
+type code_item =
+  | FieldUse of unit
+  | FieldDecl of unit
+  | StructDecl of struct_decl
+  | EnumDecl of unit
+
+type code_block = code_item Pos.marked list
 
 type source_repr = string Pos.marked
 

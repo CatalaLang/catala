@@ -21,10 +21,10 @@ déclaration structure Enfant :
   condition confié_service_social
 
 déclaration structure Ménage :
-  donnée enfants collection contenu Enfant
+  donnée enfants contenu collection Enfant
   donnée parent_en_charge contenu Personne dépend de Enfant
   donnée enfant_plus_âgé contenu Enfant optionnel
-  donnée parents collection contenu Personne
+  donnée parents contenu collection Personne
   donnée parent1 contenu Personne
   donnée parent2 contenu Personne optionnel
   # Le mot optionnel permet de prévoir le cas où le
@@ -458,7 +458,7 @@ Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéf
 champ d'application CalculAllocationsFamiliales :
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
-    (nombre de ménage.enfants >= l512_3.minimum_alinéa_2) et
+    (nombre de ménage.enfants >= l521_3.minimum_alinéa_2) et
     (enfant.âge >= l521_3.âge_limite_alinéa_1 de enfant)
   conséquence
     majorations_allocations_familiales.droits_ouverts de enfant

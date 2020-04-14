@@ -52,26 +52,41 @@
 %%
 
 typ_base:
-| INTEGER {}
-| BOOLEAN {}
-| MONEY {}
-| DECIMAL {}
-| DATE {}
-| CONSTRUCTOR {}
+| INTEGER { (Integer, mk_position $sloc) }
+| BOOLEAN { (Boolean, mk_position $sloc) }
+| MONEY { (Money, mk_position $sloc) }
+| DECIMAL { (Decimal, mk_position $sloc) }
+| DATE { (Date, mk_position $sloc) }
+| c = constructor {
+  let (s, _) = c in
+  (Named s, mk_position $sloc)
+}
+
+collection_marked:
+| COLLECTION { mk_position $sloc }
+
+optional_marked:
+| OPTIONAL { mk_position $sloc }
 
 typ:
-| typ_base option(OPTIONAL) {}
+| collection = option(collection_marked) t = typ_base optional = option(optional_marked) {
+  (Data {
+    typ_data_collection = collection;
+    typ_data_optional = optional;
+    typ_data_base = t;
+  }, mk_position $sloc)
+}
 
 qident_late:
-| IDENT {}
-| CONSTRUCTOR {}
-| IDENT DOT qident_late {}
-| CONSTRUCTOR DOT qident_late {}
+| ident {}
+| constructor {}
+| ident DOT qident_late {}
+| constructor DOT qident_late {}
 
 qident:
-| IDENT {}
-| IDENT DOT qident_late {}
-| CONSTRUCTOR DOT qident_late {}
+| ident {}
+| ident DOT qident_late {}
+| constructor DOT qident_late {}
 
 primitive_expression:
 | NOW {}
@@ -93,7 +108,7 @@ literal:
 | num_literal PERCENT {}
 | num_literal EURO {}
 | INT_LITERAL date_qualifier {}
-| CONSTRUCTOR option(constructor_payload) {}
+| constructor option(constructor_payload) {}
 
 compare_op:
 | LESSER {}
@@ -112,7 +127,7 @@ aggregate_func:
 | CARDINAL {}
 
 aggregate:
-| aggregate_func FOR IDENT IN primitive_expression OF base_expression {}
+| aggregate_func FOR ident IN primitive_expression OF base_expression {}
 
 base_expression:
 | primitive_expression {}
@@ -120,7 +135,7 @@ base_expression:
 | literal {}
 | aggregate {}
 | func OF separated_nonempty_list(COMMA, primitive_expression) {}
-| qident WITH CONSTRUCTOR {}
+| qident WITH constructor {}
 
 mult_op:
 | MULT {}
@@ -157,11 +172,11 @@ logical_expression:
 
 optional_binding:
 | {}
-| OF IDENT {}
+| OF ident {}
 | OF LPAREN constructor_binding RPAREN {}
 
 constructor_binding:
-| CONSTRUCTOR optional_binding {}
+| constructor optional_binding {}
 
 match_arm:
 | constructor_binding COLON logical_expression {}
@@ -171,10 +186,10 @@ match_arms:
 | {}
 
 forall_prefix:
-| FOR ALL separated_nonempty_list(COMMA,IDENT) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
+| FOR ALL separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
 
 exists_prefix:
-| EXISTS IDENT IN qident SUCH THAT {}
+| EXISTS ident IN qident SUCH THAT {}
 
 expression:
 | exists_prefix expression {}
@@ -196,7 +211,7 @@ rule:
 | option(rule_parameters) option(condition_consequence) option(forall_prefix) base_expression FILLED {}
 
 definition_parameters:
-| OF separated_nonempty_list(COMMA, IDENT) {}
+| OF separated_nonempty_list(COMMA, ident) {}
 
 definition:
 | option(forall_prefix) qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression {}
@@ -207,7 +222,7 @@ variation_type:
 
 assertion_base:
 | logical_expression {}
-| qident FIXED BY IDENT {}
+| qident FIXED BY ident {}
 | qident VARIES_WITH base_expression option(variation_type) {}
 
 assertion:
@@ -221,41 +236,69 @@ application_field_item:
 | ASSERTION assertion {}
 | field_decl_includes {}
 
+ident:
+| i = IDENT { (i, mk_position $sloc) }
+
+condition_pos:
+| CONDITION { mk_position $sloc }
+
 struct_field_base:
-| DATA IDENT option(COLLECTION) CONTENT typ {}
-| CONDITION IDENT {}
+| DATA i= ident CONTENT t = typ {
+  (i, t)
+}
+| pos = condition_pos i = ident {
+  (i, (Condition, pos))
+}
 
 struct_field_func:
 | DEPENDS OF typ {}
 
 struct_field:
-| struct_field_base option(struct_field_func) {}
+| name_and_typ = struct_field_base option(struct_field_func) {
+  let (name, typ) = name_and_typ in
+  ({
+    struct_decl_field_name = name;
+    struct_decl_field_typ = typ;
+  }, mk_position $sloc)
+}
 
 field_decl_item:
-| CONTEXT IDENT STRUCT CONSTRUCTOR {}
+| CONTEXT ident STRUCT constructor {}
 
 field_decl_include:
-| CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT IDENT option(condition)  {}
+| constructor DOT ident EQUAL constructor DOT ident option(condition)  {}
 
 field_decl_includes_context:
 | CONTEXT nonempty_list(field_decl_include) {}
 
 field_decl_includes:
-| INCLUDES FIELD CONSTRUCTOR option(field_decl_includes_context) {}
+| INCLUDES FIELD constructor option(field_decl_includes_context) {}
 
 enum_decl_line_payload:
 | CONTENT typ {}
 
 enum_decl_line:
-| ALT CONSTRUCTOR option(enum_decl_line_payload) {}
+| ALT constructor option(enum_decl_line_payload) {}
+
+constructor:
+| c = CONSTRUCTOR { (c, mk_position $sloc) }
 
 code_item:
-| FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { FieldUse () }
-| DECLARATION STRUCT CONSTRUCTOR COLON list(struct_field) { StructDecl () }
-| DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {
-  FieldDecl ()
+| FIELD constructor COLON nonempty_list(application_field_item) {
+  (FieldUse (), mk_position $sloc)
 }
-| DECLARATION ENUM CONSTRUCTOR COLON nonempty_list(enum_decl_line) { EnumDecl () }
+| DECLARATION STRUCT c = constructor COLON fields = list(struct_field) {
+  (StructDecl {
+    struct_decl_name = c;
+    struct_decl_fields = fields;
+  }, mk_position $sloc)
+}
+| DECLARATION FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) {
+  (FieldDecl (), mk_position $sloc)
+}
+| DECLARATION ENUM constructor COLON nonempty_list(enum_decl_line) {
+  (EnumDecl (), mk_position $sloc)
+}
 
 code:
 | code = list(code_item) { (code, mk_position $sloc) }
