@@ -368,7 +368,7 @@ champ d'application CalculAllocationsFamiliales :
       sous forme UnParent) et
     (((allocations_garde_alternée.choix_allocataire de enfant) -> Présent -> UnParent)
       dans ménage.parents)
-  conséquence (allocations_garde_alternée.unique_allocataire de enfant) rempli
+  conséquence allocations_garde_alternée.unique_allocataire de enfant rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
     sous condition allocations_garde_alternée.unique_allocataire de enfant
@@ -381,7 +381,7 @@ champ d'application CalculAllocationsFamiliales :
     (enfant.prise_en_charge sous forme GardeAlternée) et
     (enfant.choix_allocataire_garde_alternée sous forme Présent) et
     (enfant.choix_allocataire_garde_alternée -> Présent sous forme DeuxParents)
-  conséquence (allocations_garde_alternée.allocataire_double de enfant) rempli
+  conséquence allocations_garde_alternée.allocataire_double de enfant rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
     sous condition
