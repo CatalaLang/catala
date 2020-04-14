@@ -16,15 +16,19 @@ type constructor = string
 
 type ident = string
 
-type base_typ = Integer | Decimal | Boolean | Money | Date | Named of constructor
+type primitive_typ = Integer | Decimal | Boolean | Money | Date | Named of constructor
 
-type typ_data = {
+type base_typ_data = {
   typ_data_collection : Pos.t option;
   typ_data_optional : Pos.t option;
-  typ_data_base : base_typ Pos.marked;
+  typ_data_base : primitive_typ Pos.marked;
 }
 
-type typ = Condition | Data of typ_data
+type base_typ = Condition | Data of base_typ_data
+
+type func_typ = { arg_typ : base_typ Pos.marked; return_typ : base_typ Pos.marked }
+
+type typ = Base of base_typ | Func of func_typ
 
 type struct_decl_field = {
   struct_decl_field_name : ident Pos.marked;
@@ -36,11 +40,21 @@ type struct_decl = {
   struct_decl_fields : struct_decl_field Pos.marked list;
 }
 
+type enum_decl_case = {
+  enum_decl_case_name : constructor Pos.marked;
+  enum_decl_case_typ : typ Pos.marked option;
+}
+
+type enum_decl = {
+  enum_decl_name : constructor Pos.marked;
+  enum_decl_cases : enum_decl_case Pos.marked list;
+}
+
 type code_item =
   | FieldUse of unit
   | FieldDecl of unit
   | StructDecl of struct_decl
-  | EnumDecl of unit
+  | EnumDecl of enum_decl
 
 type code_block = code_item Pos.marked list
 

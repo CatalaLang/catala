@@ -251,14 +251,20 @@ struct_field_base:
 }
 
 struct_field_func:
-| DEPENDS OF typ {}
+| DEPENDS OF t = typ { t }
 
 struct_field:
-| name_and_typ = struct_field_base option(struct_field_func) {
+| name_and_typ = struct_field_base func_typ = option(struct_field_func) {
   let (name, typ) = name_and_typ in
+  let (typ, typ_pos) = typ in
   ({
     struct_decl_field_name = name;
-    struct_decl_field_typ = typ;
+    struct_decl_field_typ = match func_typ with
+    | None -> (Base typ, typ_pos)
+    | Some (return_typ, return_pos) -> (Func  {
+      arg_typ = (typ, typ_pos);
+      return_typ = (return_typ, return_pos);
+    }, mk_position $sloc) ;
   }, mk_position $sloc)
 }
 
@@ -275,10 +281,13 @@ field_decl_includes:
 | INCLUDES FIELD constructor option(field_decl_includes_context) {}
 
 enum_decl_line_payload:
-| CONTENT typ {}
+| CONTENT t = typ { let (t, t_pos) = t in (Base t, t_pos) }
 
 enum_decl_line:
-| ALT constructor option(enum_decl_line_payload) {}
+| ALT c = constructor t = option(enum_decl_line_payload) { ({
+    enum_decl_case_name = c;
+    enum_decl_case_typ = t;
+  }, mk_position $sloc) }
 
 constructor:
 | c = CONSTRUCTOR { (c, mk_position $sloc) }
@@ -296,8 +305,11 @@ code_item:
 | DECLARATION FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) {
   (FieldDecl (), mk_position $sloc)
 }
-| DECLARATION ENUM constructor COLON nonempty_list(enum_decl_line) {
-  (EnumDecl (), mk_position $sloc)
+| DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
+  (EnumDecl {
+    enum_decl_name = c;
+    enum_decl_cases = cases;
+  }, mk_position $sloc)
 }
 
 code:
