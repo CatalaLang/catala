@@ -41,7 +41,8 @@ let driver (source_files : string list) (debug : bool) (backend : string) (outpu
           close_in input;
           exit (-1))
     source_files;
-  if backend = "LaTeX" then (
+  if backend = "LaTeX" then begin
+    Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
     let weaved_output =
       String.concat "\n\n" (List.map (fun file -> Weave.ast_to_latex file) !program)
     in
@@ -49,7 +50,8 @@ let driver (source_files : string list) (debug : bool) (backend : string) (outpu
     let oc = open_out output_file in
     Printf.fprintf oc "%s" weaved_output;
     close_out oc;
-    0 )
+    0
+  end
   else begin
     Cli.error_print (Printf.sprintf "Unkown backend: %s" backend);
     1
