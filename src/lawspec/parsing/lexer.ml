@@ -59,9 +59,6 @@ let rec lex_code lexbuf =
   | "champ d\'application" ->
       update_and_acc lexbuf;
       FIELD
-  | "si et seulement si" ->
-      update_and_acc lexbuf;
-      IFF
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
@@ -267,9 +264,6 @@ let rec lex_code lexbuf =
   | '/' ->
       update_and_acc lexbuf;
       DIV
-  | ',' ->
-      update_and_acc lexbuf;
-      COMMA
   | ':' ->
       update_and_acc lexbuf;
       COLON

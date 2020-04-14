@@ -35,12 +35,12 @@
 %token RULE CONDITION DEFINED_AS
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
 %token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
-%token COMMA CARDINAL LESSER_EQUAL GREATER_EQUAL
+%token CARDINAL LESSER_EQUAL GREATER_EQUAL
 %token ASSERTION FIXED BY YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
-%token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
+%token FIELD FILLED EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
@@ -91,126 +91,176 @@ qident:
   ((Constructor c, c_pos)::q, mk_position $sloc)
 }
 
-cident:
-| constructor {}
-| constructor ARROW cident {}
-
 atomic_expression:
-| qident {}
-| literal {}
-| LPAREN expression RPAREN {}
+| q = qident { let (q, q_pos) = q in (Qident q, q_pos) }
+| l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
+| LPAREN e = expression RPAREN { e }
 
 small_expression:
-| atomic_expression {}
-| atomic_expression ARROW cident {}
+| e = atomic_expression { e }
+| e = small_expression ARROW c = constructor {
+  (Project (e, c), mk_position $sloc)
+}
 
 constructor_payload:
-| CONTENT small_expression {}
+| CONTENT e = small_expression { e }
 
 primitive_expression:
-| small_expression {}
-| NOW {}
-| constructor option(constructor_payload) {}
-
-date_qualifier:
-| YEAR {}
+| e = small_expression { e }
+| NOW { (Builtin Now, mk_position $sloc) }
+| CARDINAL {
+   (Builtin Cardinal, mk_position $sloc)
+}
+| c = constructor p = option(constructor_payload) {
+  (Inject (c, p), mk_position $sloc)
+}
 
 num_literal:
-| INT_LITERAL {}
-| DECIMAL_LITERAL {}
+| d = INT_LITERAL { (Int d, mk_position $sloc) }
+| d = DECIMAL_LITERAL {
+  let (d1, d2) = d in
+  (Dec (d1, d2), mk_position $sloc)
+ }
+
+unit_literal:
+| PERCENT { (Percent, mk_position $sloc) }
+| EURO { (Euro, mk_position $sloc) }
+| YEAR { (Year, mk_position $sloc)}
 
 literal:
-| num_literal {}
-| num_literal PERCENT {}
-| num_literal EURO {}
-| INT_LITERAL date_qualifier {}
+| l = num_literal u = option(unit_literal) {
+   ((l, u), mk_position $sloc)
+}
+
 
 compare_op:
-| LESSER {}
-| LESSER_EQUAL {}
-| GREATER {}
-| GREATER_EQUAL {}
-| EQUAL {}
-| NOT_EQUAL {}
-
-func:
-| CARDINAL {}
-| primitive_expression {}
+| LESSER { (Lt, mk_position $sloc) }
+| LESSER_EQUAL { (Lte, mk_position $sloc) }
+| GREATER { (Gt, mk_position $sloc) }
+| GREATER_EQUAL { (Gte, mk_position $sloc) }
+| EQUAL { (Eq, mk_position $sloc) }
+| NOT_EQUAL { (Neq, mk_position $sloc) }
 
 aggregate_func:
-| SUM {}
-| CARDINAL {}
+| SUM { (AggregateSum, mk_position $sloc) }
+| CARDINAL { (AggregateCount, mk_position $sloc)}
 
 aggregate:
-| aggregate_func FOR ident IN primitive_expression OF base_expression {}
+| func = aggregate_func FOR i = ident IN e1 = primitive_expression
+  OF e2 = base_expression {
+  (Aggregate (func, i, e1, e2), mk_position $sloc)
+}
 
 base_expression:
-| primitive_expression {  ((), mk_position $sloc) }
-| aggregate { ((), mk_position $sloc) }
-| func OF base_expression { ((), mk_position $sloc) }
-| primitive_expression WITH constructor { ((), mk_position $sloc) }
-| primitive_expression IN base_expression { ((), mk_position $sloc) }
+| e = primitive_expression { e }
+| ag = aggregate { ag }
+| e1 = primitive_expression OF e2 = base_expression {
+  (FunCall (e1, e2), mk_position $sloc)
+}
+| e = primitive_expression WITH c= constructor {
+  (TestMatchCase (e, c), mk_position $sloc)
+}
+| e1 = primitive_expression IN e2 = base_expression {
+   (MemCollection (e1, e2), mk_position $sloc)
+}
 
 mult_op:
-| MULT {}
-| DIV {}
+| MULT { (Mult, mk_position $sloc) }
+| DIV { (Div, mk_position $sloc) }
 
 mult_expression:
-| base_expression {}
-| base_expression mult_op mult_expression {}
+| base_expression { (Foo (), mk_position $sloc) }
+| base_expression mult_op mult_expression { (Foo (), mk_position $sloc) }
 
 sum_op:
-| PLUS {}
-| MINUS {}
+| PLUS { (Add, mk_position $sloc) }
+| MINUS { (Sub, mk_position $sloc) }
+
+sum_unop:
+| MINUS { (Minus, mk_position $sloc) }
 
 sum_expression:
-| mult_expression {}
-| mult_expression sum_op sum_expression {}
+| e = mult_expression { e }
+| e1 = mult_expression binop = sum_op e2 = sum_expression {
+  (Binop (binop, e1, e2), mk_position $sloc)
+}
+| unop = sum_unop e = sum_expression { (Unop (unop, e), mk_position $sloc) }
 
 logical_op:
-| AND {}
-| OR {}
-| IFF {}
+| AND { (And, mk_position $sloc) }
+| OR { (Or, mk_position $sloc) }
 
 logical_unop:
-| NOT {}
+| NOT { (Not, mk_position $sloc) }
 
 compare_expression:
-| sum_expression {}
-| sum_expression compare_op compare_expression {}
+| e = sum_expression { e }
+| e1 = sum_expression binop = compare_op e2 = compare_expression {
+  (Binop (binop, e1, e2), mk_position $sloc)
+ }
 
 logical_expression:
-| compare_expression {}
-| logical_unop compare_expression {}
-| compare_expression logical_op logical_expression {}
+| e = compare_expression { e }
+| unop = logical_unop e = compare_expression { (Unop (unop, e), mk_position $sloc) }
+| e1 = compare_expression binop = logical_op e2 = logical_expression {
+   (Binop (binop, e1, e2), mk_position $sloc)
+ }
 
 optional_binding:
-| {}
-| OF ident {}
-| OF LPAREN constructor_binding RPAREN {}
+| { ([], None)}
+| OF i = ident {([], Some i)}
+| OF c = constructor cs_and_i = constructor_binding {
+  let (cs, i) = cs_and_i in
+  (c::cs, i)
+}
 
 constructor_binding:
-| constructor optional_binding {}
+| c = constructor cs_and_i = optional_binding {
+  let (cs, i) = cs_and_i in
+  (c::cs, i)
+ }
 
 match_arm:
-| constructor_binding COLON logical_expression {}
+| pat = constructor_binding COLON e = logical_expression {
+  ({
+    (* DM 14/04/2020 : I can't have the $sloc in constructor_binding... *)
+    match_case_pattern = (pat, mk_position $sloc);
+    match_case_expr = e;
+    }, mk_position $sloc)
+}
 
 match_arms:
-| ALT match_arm match_arms {}
-| {}
+| ALT a = match_arm arms = match_arms {
+  let (arms, _) = arms in
+   (a::arms, mk_position $sloc)
+}
+| { ([], mk_position $sloc)}
 
 forall_prefix:
-| FOR ALL separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,primitive_expression) WE_HAVE {}
-
-exists_prefix:
-| EXISTS  separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,primitive_expression) SUCH THAT {}
+| FOR ALL i = ident IN e = primitive_expression WE_HAVE {
+  (i, e)
+}
+ exists_prefix:
+| EXISTS i = ident IN e = primitive_expression SUCH THAT {
+  (i, e)
+}
 
 expression:
-| exists_prefix expression { ((), mk_position $sloc) }
-| forall_prefix expression { ((), mk_position $sloc) }
-| MATCH primitive_expression WITH match_arms { ((), mk_position $sloc) }
-| IF expression THEN expression ELSE base_expression { ((), mk_position $sloc) }
-| logical_expression { ((), mk_position $sloc) }
+| i_in_e1 = exists_prefix e2 = expression {
+  let (i,e1) = i_in_e1 in
+  (Exists (i, e1, e2), mk_position $sloc)
+}
+| i_in_e1 = forall_prefix e2 = expression {
+  let (i,e1) = i_in_e1 in
+  (Forall (i, e1, e2), mk_position $sloc)
+}
+| MATCH e = primitive_expression WITH arms = match_arms {
+  (MatchWith (e, arms), mk_position $sloc)
+}
+| IF e1 = expression THEN e2 = expression ELSE e3 = base_expression {
+  (IfThenElse (e1, e2, e3), mk_position $sloc)
+}
+| e = logical_expression { e }
 
 condition:
 | UNDER_CONDITION e = expression { e }
@@ -219,16 +269,31 @@ condition_consequence:
 | cond = condition CONSEQUENCE { cond }
 
 rule_parameters:
-| DEPENDS definition_parameters {}
+| DEPENDS param = definition_parameters { param }
 
 rule:
-| option(rule_parameters) option(condition_consequence) option(forall_prefix) base_expression FILLED {}
+| param = option(rule_parameters) cond = option(condition_consequence)
+  e = base_expression FILLED {
+    ({
+      rule_parameter = param;
+      rule_condition = cond;
+      rule_expr = e;
+      }, mk_position $sloc)
+  }
 
 definition_parameters:
-| OF separated_nonempty_list(COMMA, ident) {}
+| OF i = ident { i }
 
 definition:
-| option(forall_prefix) qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression {}
+| name = qident param = option(definition_parameters)
+  cond = option(condition_consequence) DEFINED_AS e = expression {
+    ({
+      definition_name = name;
+      definition_parameter = param;
+      definition_condition = cond;
+      definition_expr = e;
+      }, mk_position $sloc)
+  }
 
 variation_type:
 | INCREASING { (Increasing, mk_position $sloc) }
@@ -247,8 +312,12 @@ assertion:
 }
 
 application_field_item:
-| RULE option(OPTIONAL) rule { (Rule (), mk_position $sloc) }
-| DEFINITION option(OPTIONAL) definition { (Definition (), mk_position $sloc) }
+| RULE r = rule {
+   let (r, _) = r in (Rule r, mk_position $sloc)
+}
+| DEFINITION d = definition {
+  let (d, _) = d in (Definition d, mk_position $sloc)
+ }
 | ASSERTION contents = assertion {
   (let (cond, cont) = contents in Assertion {
     assertion_condition = cond;

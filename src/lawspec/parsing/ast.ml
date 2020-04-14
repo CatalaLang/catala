@@ -77,11 +77,60 @@ type field_decl = {
   field_decl_includes : field_decl_include Pos.marked list;
 }
 
-type expression = unit
+type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
-type rule = unit
+type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
-type definition = unit
+type unop = Not | Minus
+
+type builtin_expression = Cardinal | Now
+
+type aggregate_func = AggregateSum | AggregateCount
+
+type literal_number = Int of int | Dec of int * int
+
+type literal_unit = Percent | Euro | Year | Month | Day
+
+type literal = literal_number Pos.marked * literal_unit Pos.marked option
+
+type match_case = {
+  match_case_pattern : match_case_pattern Pos.marked;
+  match_case_expr : expression Pos.marked;
+}
+
+and match_cases = match_case Pos.marked list
+
+and expression =
+  | Exists of ident Pos.marked * expression Pos.marked * expression Pos.marked
+  | Forall of ident Pos.marked * expression Pos.marked * expression Pos.marked
+  | MatchWith of expression Pos.marked * match_cases Pos.marked
+  | Foo of unit
+  | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
+  | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
+  | Unop of unop Pos.marked * expression Pos.marked
+  | MemCollection of expression Pos.marked * expression Pos.marked
+  | TestMatchCase of expression Pos.marked * constructor Pos.marked
+  | FunCall of expression Pos.marked * expression Pos.marked
+  | Builtin of builtin_expression
+  | Aggregate of
+      aggregate_func Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
+  | Literal of literal
+  | Inject of constructor Pos.marked * expression Pos.marked option
+  | Project of expression Pos.marked * constructor Pos.marked
+  | Qident of qident
+
+type rule = {
+  rule_parameter : ident Pos.marked option;
+  rule_condition : expression Pos.marked option;
+  rule_expr : expression Pos.marked;
+}
+
+type definition = {
+  definition_name : qident Pos.marked;
+  definition_parameter : ident Pos.marked option;
+  definition_condition : expression Pos.marked option;
+  definition_expr : expression Pos.marked;
+}
 
 type variation_typ = Increasing | Decreasing
 
