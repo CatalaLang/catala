@@ -69,8 +69,9 @@ champ d'application MénageBienFormé :
   # Lorsqu'un enfant est confié au service social, il ne peut être
   # en garde alternée
   assertion pour tout enfant dans enfants on a
-    sous condition enfant.confié_service_social
-    conséquence enfant.prise_en_charge = Complète contenu service_social
+    si enfant.confié_service_social
+    alors enfant.prise_en_charge = Complète contenu service_social
+    sinon vrai
 
 déclaration énumération Prestation:
   -- PrestationAccueilJeuneEnfant
@@ -426,7 +427,7 @@ champ d'application CalculAllocationsFamiliales :
     sous condition
       (enfant dans ménage.enfants) et
       (enfant.confié_service_social)
-  conséquence égal à SERVICE_SOCIAL
+  conséquence égal à service_social
 */
 
 Un décret en Conseil d'Etat fixe les conditions d'application du présent article, notamment dans les cas énumérés ci-dessous :

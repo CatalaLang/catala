@@ -79,9 +79,17 @@ typ:
 }
 
 qident:
-| ident {}
-| ident DOT qident {}
-| constructor DOT qident {}
+| i = ident { let (i, i_pos) = i in ([Ident i, i_pos], mk_position $sloc) }
+| i = ident DOT q = qident {
+  let (i, i_pos) = i in
+  let (q, _) = q in
+  ((Ident i, i_pos)::q, mk_position $sloc)
+}
+| c = constructor DOT q = qident {
+  let (c, c_pos) = c in
+  let (q, _) = q in
+  ((Constructor c, c_pos)::q, mk_position $sloc)
+}
 
 cident:
 | constructor {}
@@ -137,11 +145,11 @@ aggregate:
 | aggregate_func FOR ident IN primitive_expression OF base_expression {}
 
 base_expression:
-| primitive_expression {}
-| aggregate {}
-| func OF base_expression {}
-| primitive_expression WITH constructor {}
-| primitive_expression IN base_expression {}
+| primitive_expression {  ((), mk_position $sloc) }
+| aggregate { ((), mk_position $sloc) }
+| func OF base_expression { ((), mk_position $sloc) }
+| primitive_expression WITH constructor { ((), mk_position $sloc) }
+| primitive_expression IN base_expression { ((), mk_position $sloc) }
 
 mult_op:
 | MULT {}
@@ -198,17 +206,17 @@ exists_prefix:
 | EXISTS  separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,primitive_expression) SUCH THAT {}
 
 expression:
-| exists_prefix expression {}
-| forall_prefix expression {}
-| MATCH primitive_expression WITH match_arms {}
-| IF expression THEN expression ELSE base_expression {}
-| logical_expression {}
+| exists_prefix expression { ((), mk_position $sloc) }
+| forall_prefix expression { ((), mk_position $sloc) }
+| MATCH primitive_expression WITH match_arms { ((), mk_position $sloc) }
+| IF expression THEN expression ELSE base_expression { ((), mk_position $sloc) }
+| logical_expression { ((), mk_position $sloc) }
 
 condition:
-| UNDER_CONDITION expression {}
+| UNDER_CONDITION e = expression { e }
 
 condition_consequence:
-| condition CONSEQUENCE {}
+| cond = condition CONSEQUENCE { cond }
 
 rule_parameters:
 | DEPENDS definition_parameters {}
@@ -223,24 +231,30 @@ definition:
 | option(forall_prefix) qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression {}
 
 variation_type:
-| INCREASING {}
-| DECREASING {}
+| INCREASING { (Increasing, mk_position $sloc) }
+| DECREASING { (Decreasing, mk_position $sloc) }
 
 assertion_base:
-| logical_expression {}
-| qident FIXED BY ident {}
-| qident VARIES_WITH base_expression option(variation_type) {}
+| e = expression { let (e, _) = e in (Assert e, mk_position $sloc) }
+| q = qident FIXED BY i = ident { (FixedBy (q, i), mk_position $sloc) }
+| q = qident VARIES_WITH e = base_expression t = option(variation_type) {
+  (VariesWith (q, e, t), mk_position $sloc)
+}
 
 assertion:
-| option(condition_consequence) assertion_base {}
-| forall_prefix assertion {}
-| exists_prefix assertion {}
+| cond = option(condition_consequence) base = assertion_base {
+  (cond, base)
+}
 
 application_field_item:
-| RULE option(OPTIONAL) rule {}
-| DEFINITION option(OPTIONAL) definition {}
-| ASSERTION assertion {}
-| field_decl_includes {}
+| RULE option(OPTIONAL) rule { (Rule (), mk_position $sloc) }
+| DEFINITION option(OPTIONAL) definition { (Definition (), mk_position $sloc) }
+| ASSERTION contents = assertion {
+  (let (cond, cont) = contents in Assertion {
+    assertion_condition = cond;
+    assertion_content = cont;
+  }, mk_position $sloc)
+}
 
 ident:
 | i = IDENT { (i, mk_position $sloc) }
@@ -323,8 +337,11 @@ constructor:
 | c = CONSTRUCTOR { (c, mk_position $sloc) }
 
 code_item:
-| FIELD constructor COLON nonempty_list(application_field_item) {
-  (FieldUse (), mk_position $sloc)
+| FIELD c = constructor COLON items = nonempty_list(application_field_item) {
+  (FieldUse {
+    field_use_name = c;
+    field_use_items = items;
+  }, mk_position $sloc)
 }
 | DECLARATION STRUCT c = constructor COLON fields = list(struct_field) {
   (StructDecl {

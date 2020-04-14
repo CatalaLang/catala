@@ -16,6 +16,10 @@ type constructor = string
 
 type ident = string
 
+type qident_element = Ident of ident | Constructor of constructor
+
+type qident = qident_element Pos.marked list
+
 type primitive_typ = Integer | Decimal | Boolean | Money | Date | Named of constructor
 
 type base_typ_data = {
@@ -73,8 +77,33 @@ type field_decl = {
   field_decl_includes : field_decl_include Pos.marked list;
 }
 
+type expression = unit
+
+type rule = unit
+
+type definition = unit
+
+type variation_typ = Increasing | Decreasing
+
+type assertion_content =
+  | Assert of expression
+  | FixedBy of qident Pos.marked * ident Pos.marked
+  | VariesWith of qident Pos.marked * expression Pos.marked * variation_typ Pos.marked option
+
+type assertion = {
+  assertion_condition : expression Pos.marked option;
+  assertion_content : assertion_content Pos.marked;
+}
+
+type field_use_item = Rule of rule | Definition of definition | Assertion of assertion
+
+type field_use = {
+  field_use_name : constructor Pos.marked;
+  field_use_items : field_use_item Pos.marked list;
+}
+
 type code_item =
-  | FieldUse of unit
+  | FieldUse of field_use
   | FieldDecl of field_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
