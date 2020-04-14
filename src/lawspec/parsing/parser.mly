@@ -39,11 +39,12 @@
 %token ASSERTION FIXED BY YEAR
 %token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
 %token FOR ALL WE_HAVE INCREASING DECREASING
-%token NOT BOOLEAN PERCENT
+%token NOT BOOLEAN PERCENT ARROW
 %token FIELD FILLED IFF EURO NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
+%token UNDER_CONDITION CONSEQUENCE
 
 %type <Ast.source_file> source_file
 
@@ -77,27 +78,34 @@ typ:
   }, mk_position $sloc)
 }
 
-qident_late:
-| ident {}
-| constructor {}
-| ident DOT qident_late {}
-| constructor DOT qident_late {}
-
 qident:
 | ident {}
-| ident DOT qident_late {}
-| constructor DOT qident_late {}
+| ident DOT qident {}
+| constructor DOT qident {}
+
+cident:
+| constructor {}
+| constructor ARROW cident {}
+
+atomic_expression:
+| qident {}
+| literal {}
+| LPAREN expression RPAREN {}
+
+small_expression:
+| atomic_expression {}
+| atomic_expression ARROW cident {}
+
+constructor_payload:
+| CONTENT small_expression {}
 
 primitive_expression:
+| small_expression {}
 | NOW {}
-| qident {}
-| LPAREN expression RPAREN {}
+| constructor option(constructor_payload) {}
 
 date_qualifier:
 | YEAR {}
-
-constructor_payload:
-| OF base_expression {}
 
 num_literal:
 | INT_LITERAL {}
@@ -108,7 +116,6 @@ literal:
 | num_literal PERCENT {}
 | num_literal EURO {}
 | INT_LITERAL date_qualifier {}
-| constructor option(constructor_payload) {}
 
 compare_op:
 | LESSER {}
@@ -120,7 +127,7 @@ compare_op:
 
 func:
 | CARDINAL {}
-| qident {}
+| primitive_expression {}
 
 aggregate_func:
 | SUM {}
@@ -131,11 +138,10 @@ aggregate:
 
 base_expression:
 | primitive_expression {}
-| qident IN qident {}
-| literal {}
 | aggregate {}
-| func OF separated_nonempty_list(COMMA, primitive_expression) {}
-| qident WITH constructor {}
+| func OF base_expression {}
+| primitive_expression WITH constructor {}
+| primitive_expression IN base_expression {}
 
 mult_op:
 | MULT {}
@@ -186,10 +192,10 @@ match_arms:
 | {}
 
 forall_prefix:
-| FOR ALL separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,qident) WE_HAVE {}
+| FOR ALL separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,primitive_expression) WE_HAVE {}
 
 exists_prefix:
-| EXISTS ident IN qident SUCH THAT {}
+| EXISTS  separated_nonempty_list(COMMA,ident) IN separated_nonempty_list(COMMA,primitive_expression) SUCH THAT {}
 
 expression:
 | exists_prefix expression {}
@@ -199,10 +205,10 @@ expression:
 | logical_expression {}
 
 condition:
-| IF expression {}
+| UNDER_CONDITION expression {}
 
 condition_consequence:
-| condition THEN {}
+| condition CONSEQUENCE {}
 
 rule_parameters:
 | DEPENDS definition_parameters {}
@@ -227,8 +233,8 @@ assertion_base:
 
 assertion:
 | option(condition_consequence) assertion_base {}
-| exists_prefix assertion {}
 | forall_prefix assertion {}
+| exists_prefix assertion {}
 
 application_field_item:
 | RULE option(OPTIONAL) rule {}

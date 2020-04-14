@@ -130,8 +130,15 @@ let rec lex_code lexbuf =
       WITH
   | "sous condition" ->
       update_and_acc lexbuf;
+      UNDER_CONDITION
+  | "si" ->
+      update_and_acc lexbuf;
       IF
   | "cons", 0xE9, "quence" ->
+      (* 0xE9 is é *)
+      update_and_acc lexbuf;
+      CONSEQUENCE
+  | "alors" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       THEN
@@ -215,6 +222,9 @@ let rec lex_code lexbuf =
       (* Integer literal*)
       update_and_acc lexbuf;
       DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
+  | "->" ->
+      update_and_acc lexbuf;
+      ARROW
   | '.' ->
       update_and_acc lexbuf;
       DOT

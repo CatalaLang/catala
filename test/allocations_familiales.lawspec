@@ -47,7 +47,7 @@ champ d'application MénageBienFormé :
 
   # Dans la traduction informatique, le ménage est en charge de chacun
   # des enfants
-  assertion pour tout enfant dans enfants on a (
+  assertion (pour tout enfant dans enfants on a
     selon enfant.prise_en_charge sous forme
     -- Complète de parent : parent dans ménage.parents
     -- GardeAlternée de parents_garde_alternée :
@@ -61,8 +61,8 @@ champ d'application MénageBienFormé :
     selon enfant.prise_en_charge sous forme
     -- Complète de parent : parent
     -- GardeAlternée de parents_garde_alternée : (
-      sous condition parents_garde_alternée.parent1 dans ménage.parents
-      conséquence parents_garde_alternée.parent1
+      si parents_garde_alternée.parent1 dans ménage.parents
+      alors parents_garde_alternée.parent1
       sinon parents_garde_alternée.parent2
   ))
 
@@ -70,7 +70,7 @@ champ d'application MénageBienFormé :
   # en garde alternée
   assertion pour tout enfant dans enfants on a
     sous condition enfant.confié_service_social
-    conséquence enfant.prise_en_charge = Complète de SERVICE_SOCIAL
+    conséquence enfant.prise_en_charge = Complète contenu service_social
 
 déclaration énumération Prestation:
   -- PrestationAccueilJeuneEnfant
@@ -299,7 +299,7 @@ champ d'application CalculAllocationsFamiliales :
   règle dépend de enfant sous condition
     (nombre de ménage.enfants >= l512_1.nombre_minimum_enfants) et
     (enfant dans ménage.enfants) et
-    (enfant.age = l512_3.âge_limite_alinéa_2) et
+    (enfant.âge = l512_3.âge_limite_alinéa_2) et
     (allocations_familiales.conditions_hors_âge de enfant)
   conséquence allocation_forfaitaire.droits_ouverts de enfant rempli
 */
@@ -361,9 +361,12 @@ champ d'application CalculAllocationsFamiliales :
   règle dépend de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
-    (enfant.choix_allocataire_garde_alternée sous forme Présent) et
-    (enfant.choix_allocataire_garde_alternée.Présent sous forme UnParent) et
-    (enfant.choix_allocataire_garde_alternée.UnParent dans ménage.parents)
+    ((allocations_garde_alternée.choix_allocataire de enfant)
+      sous forme Présent) et
+    ((allocations_garde_alternée.choix_allocataire de enfant) -> Présent
+      sous forme UnParent) et
+    (((allocations_garde_alternée.choix_allocataire de enfant) -> Présent -> UnParent)
+      dans ménage.parents)
   conséquence (allocations_garde_alternée.unique_allocataire de enfant) rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
@@ -376,7 +379,7 @@ champ d'application CalculAllocationsFamiliales :
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
     (enfant.choix_allocataire_garde_alternée sous forme Présent) et
-    (enfant.choix_allocataire_garde_alternée.Présent sous forme DeuxParents)
+    (enfant.choix_allocataire_garde_alternée -> Présent sous forme DeuxParents)
   conséquence (allocations_garde_alternée.allocataire_double de enfant) rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
@@ -603,8 +606,8 @@ champ d'application CalculAllocationsFamiliales :
   définition allocations_familiales.montant_deuxieme_enfant sous condition
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 2
-    conséquence l551_1.base_mensuelle_prestations_familiales * 32 %
+    si nombre de ménage.enfants >= 2
+    alors l551_1.base_mensuelle_prestations_familiales * 32 %
     sinon 0 €
 */
 b) 41 % pour le troisième enfant à charge et chacun des suivants.
@@ -614,8 +617,8 @@ champ d'application CalculAllocationsFamiliales :
   sous condition
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 3
-    conséquence l551_1.base_mensuelle_prestations_familiales * 41 % * (
+    si nombre de ménage.enfants >= 3
+    alors l551_1.base_mensuelle_prestations_familiales * 41 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -637,8 +640,8 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 2
-    conséquence l551_1.base_mensuelle_prestations_familiales * 32 %
+    si nombre de ménage.enfants >= 2
+    alors l551_1.base_mensuelle_prestations_familiales * 32 %
     sinon 0 €
 */
 b) 20,5 % pour le troisième enfant à charge et chacun des suivants.
@@ -649,8 +652,8 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 3
-    conséquence l551_1.base_mensuelle_prestations_familiales * 20.5 % * (
+    si nombre de ménage.enfants >= 3
+    alors l551_1.base_mensuelle_prestations_familiales * 20.5 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -673,8 +676,8 @@ champ d'application CalculAllocationsFamiliales :
   définition allocations_familiales.montant_deuxieme_enfant sous condition
     (l521_1.ressources_ménage > d521_3.plafond_II)
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 2
-    conséquence l551_1.base_mensuelle_prestations_familiales * 8 %
+    si nombre de ménage.enfants >= 2
+    alors l551_1.base_mensuelle_prestations_familiales * 8 %
     sinon 0 €
 */
 b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
@@ -684,8 +687,8 @@ champ d'application CalculAllocationsFamiliales :
   sous condition
     (l521_1.ressources_ménage > d521_3.plafond_II)
   conséquence égal à
-    sous condition nombre de ménage.enfants >= 3
-    conséquence l551_1.base_mensuelle_prestations_familiales * 10.25 % * (
+    si nombre de ménage.enfants >= 3
+    alors l551_1.base_mensuelle_prestations_familiales * 10.25 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
