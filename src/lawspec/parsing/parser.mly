@@ -250,23 +250,34 @@ enum_decl_line:
 | ALT CONSTRUCTOR option(enum_decl_line_payload) {}
 
 code_item:
-| FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { }
-| DECLARATION STRUCT CONSTRUCTOR COLON list(struct_field) {}
-| DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {}
-| DECLARATION ENUM CONSTRUCTOR COLON nonempty_list(enum_decl_line) {}
+| FIELD CONSTRUCTOR COLON nonempty_list(application_field_item) { FieldUse () }
+| DECLARATION STRUCT CONSTRUCTOR COLON list(struct_field) { StructDecl () }
+| DECLARATION FIELD CONSTRUCTOR COLON nonempty_list(field_decl_item) list(field_decl_includes) {
+  FieldDecl ()
+}
+| DECLARATION ENUM CONSTRUCTOR COLON nonempty_list(enum_decl_line) { EnumDecl () }
 
 code:
-| list(code_item) { mk_position $sloc }
+| code = list(code_item) { (code, mk_position $sloc) }
 
 metadata_block:
-| BEGIN_CODE pos = code text = END_CODE END_METADATA { (text, pos) }
+| BEGIN_CODE code_and_pos = code text = END_CODE END_METADATA {
+  let (code, pos) = code_and_pos in
+  (code, (text, pos))
+}
 
 source_file_item:
 | title = LAW_ARTICLE { LawArticle title }
 | code = LAW_CODE { LawCode code }
 | text = LAW_TEXT { LawText text }
-| BEGIN_METADATA text = metadata_block { MetadataBlock text }
-| BEGIN_CODE pos = code text = END_CODE { CodeBlock (text, pos) }
+| BEGIN_METADATA code = metadata_block {
+  let (code, source_repr) = code in
+  MetadataBlock (code, source_repr)
+}
+| BEGIN_CODE code_and_pos = code text = END_CODE {
+  let (code, pos) = code_and_pos in
+  CodeBlock (code, (text, pos))
+}
 
 source_file:
 | i = source_file_item f = source_file { i::f }

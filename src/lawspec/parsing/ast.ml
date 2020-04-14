@@ -12,11 +12,17 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+type code_item = FieldUse of unit | FieldDecl of unit | StructDecl of unit | EnumDecl of unit
+
+type code_block = code_item list
+
+type source_repr = string Pos.marked
+
 type source_file_item =
   | LawCode of string
   | LawArticle of string
   | LawText of string
-  | CodeBlock of string Pos.marked
-  | MetadataBlock of string Pos.marked
+  | CodeBlock of code_block * source_repr
+  | MetadataBlock of code_block * source_repr
 
 type source_file = source_file_item list

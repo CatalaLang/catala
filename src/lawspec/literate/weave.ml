@@ -28,11 +28,11 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
   | A.LawCode c -> P.sprintf "\\section*{%s}" c
   | A.LawText t -> pre_latexify t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
-  | A.CodeBlock c ->
+  | A.CodeBlock (_, c) ->
       P.sprintf "\\begin{minted}[firstnumber=%d]{lawspec}%s\\end{minted}"
         (Pos.get_start_line (Pos.get_position c) + 1)
         (Pos.unmark c)
-  | A.MetadataBlock c ->
+  | A.MetadataBlock (_, c) ->
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
