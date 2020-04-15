@@ -51,7 +51,7 @@ exception ParseError of string
 let raise_ParseError lexbuf =
   let { pos; _ } = lexbuf in
   let tok = lexeme lexbuf in
-  raise (ParseError (Printf.sprintf "token \"%s\" at %s" tok (Errors.print_lexer_position pos)))
+  Errors.parser_error pos (Printf.sprintf "unexpected token \"%s\"" tok)
 
 let sedlex_with_menhir lexer' parser' lexbuf =
   let lexer () =

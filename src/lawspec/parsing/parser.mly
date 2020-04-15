@@ -268,21 +268,17 @@ condition:
 condition_consequence:
 | cond = condition CONSEQUENCE { cond }
 
-rule_parameters:
-| DEPENDS param = definition_parameters { param }
-
 rule_expr:
 | i = qident p = option(definition_parameters) { (i, p) }
 
 rule:
-| param = option(rule_parameters) cond = option(condition_consequence)
-  name_and_param = rule_expr FILLED {
+| name_and_param = rule_expr cond = option(condition_consequence)
+   FILLED {
     let (name, param_applied) = name_and_param in
     ({
-      rule_parameter = param;
+      rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
-      rule_applied_parameter = param_applied;
       }, mk_position $sloc)
   }
 

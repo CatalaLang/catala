@@ -228,10 +228,10 @@ champ d'application CalculPrestationsFamiliales :
 1°) tout enfant jusqu'à la fin de l'obligation scolaire ;
 /*
 champ d'application CalculPrestationsFamiliales :
-  règle dépend de enfant sous condition
+  règle prestations_familiales.droits_ouverts de enfant sous condition
     (enfant dans ménage.enfants) et
     (date_aujourd_hui <= enfant.fin_obligation_scolaire)
-  conséquence prestations_familiales.droits_ouverts de enfant rempli
+  conséquence rempli
 */
 
 2°) après la fin de l'obligation scolaire, et jusqu'à un âge limite, tout enfant dont la rémunération éventuelle n'excède pas un plafond.
@@ -239,19 +239,19 @@ champ d'application CalculPrestationsFamiliales :
 champ d'application CalculPrestationsFamiliales :
   # On définit les conditions hors âge d'abord car elles
   # sont référencées dans l'article L521-1
-  règle dépend de enfant sous condition
+  règle prestations_familiales.conditions_hors_âge de enfant sous condition
     (enfant dans ménage.enfants) et (
       (date_aujourd_hui <= enfant.fin_obligation_scolaire) ou
       (enfant.rémunération < l512_3.plafond_rémunération_alinéa_2)
     )
-  conséquence prestations_familiales.conditions_hors_âge de enfant rempli
+  conséquence rempli
 
-  règle dépend de enfant sous condition
+  règle prestations_familiales.droits_ouverts de enfant sous condition
     (enfant dans ménage.enfants) et
     (date_aujourd_hui > enfant.fin_obligation_scolaire) et
     (l512_3.conditions_hors_âge de enfant) et
     (enfant.âge < l512_3.âge_limite_alinéa_2)
-  conséquence prestations_familiales.droits_ouverts de enfant rempli
+  conséquence rempli
 */
 
 Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
@@ -269,9 +269,9 @@ champ d'application CalculPrestationsFamiliales :
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
 champ d'application CalculAllocationsFamiliales :
-  règle sous condition
+  règle allocations_familiales.droits_ouverts sous condition
     nombre de ménage.enfants >= 2
-  conséquence allocations_familiales.droits_ouverts rempli
+  conséquence rempli
 
   # Les droits doivent être ouverts pour appliquer le champ
   # CalculAllocationsFamiliales. Si cette condition n'est pas remplie,
@@ -293,16 +293,16 @@ champ d'application CalculAllocationsFamiliales :
   # d'ouverture du droit à une prestation familiale. Pour cette raison,
   # nous nous référrons ici aux conditions_hors_âge de prestations_familiales
   # et non pas de allocations_familiales
-  règle dépend de enfant sous condition
+  règle allocations_familiales.conditions_hors_âge de enfant sous condition
     prestations_familiales.conditions_hors_âge de enfant
-  conséquence allocations_familiales.conditions_hors_âge de enfant rempli
+  conséquence  rempli
 
-  règle dépend de enfant sous condition
+  règle allocation_forfaitaire.droits_ouverts de enfant sous condition
     (nombre de ménage.enfants >= l512_1.nombre_minimum_enfants) et
     (enfant dans ménage.enfants) et
     (enfant.âge = l512_3.âge_limite_alinéa_2) et
     (allocations_familiales.conditions_hors_âge de enfant)
-  conséquence allocation_forfaitaire.droits_ouverts de enfant rempli
+  conséquence rempli
 */
 
 
@@ -359,7 +359,7 @@ En cas de résidence alternée de l'enfant au domicile de chacun des parents tel
 /*
 champ d'application CalculAllocationsFamiliales :
 # Premier cas : garde alternée, parents désignent un unique allocataire
-  règle dépend de enfant sous condition
+  règle allocations_garde_alternée.unique_allocataire de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
     ((allocations_garde_alternée.choix_allocataire de enfant)
@@ -368,7 +368,7 @@ champ d'application CalculAllocationsFamiliales :
       sous forme UnParent) et
     (((allocations_garde_alternée.choix_allocataire de enfant) -> Présent -> UnParent)
       dans ménage.parents)
-  conséquence allocations_garde_alternée.unique_allocataire de enfant rempli
+  conséquence rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
     sous condition allocations_garde_alternée.unique_allocataire de enfant
@@ -376,12 +376,12 @@ champ d'application CalculAllocationsFamiliales :
 
 # Deuxième cas : garde alternée, parents partagent la charge pour
 # l'allocation
-  règle dépend de enfant sous condition
+  règle allocations_garde_alternée.allocataire_double de enfant sous condition
     (enfant dans ménage.enfants) et
     (enfant.prise_en_charge sous forme GardeAlternée) et
     (enfant.choix_allocataire_garde_alternée sous forme Présent) et
     (enfant.choix_allocataire_garde_alternée -> Présent sous forme DeuxParents)
-  conséquence allocations_garde_alternée.allocataire_double de enfant rempli
+  conséquence rempli
 
   définition allocations_familiales.charge_par_enfant de enfant
     sous condition
@@ -448,25 +448,23 @@ d) enfants confiés à un service public, à une institution privée, à un part
 @Article L521-3@ Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une majoration des allocations familiales.
 /*
 champ d'application CalculAllocationsFamiliales :
-  règle dépend de enfant sous condition
+  règle majorations_allocations_familiales.droits_ouverts de enfant
+  sous condition
     (enfant dans ménage.enfants) et
     (enfant != ménage.enfant_plus_âgé) et
     (enfant.âge >= l521_3.âge_limite_alinéa_1 de enfant)
-  conséquence
-    majorations_allocations_familiales.droits_ouverts de enfant
-  rempli
+  conséquence rempli
 */
 
 Toutefois, les personnes ayant un nombre déterminé d'enfants à charge bénéficient de ladite majoration pour chaque enfant à charge à partir de l'âge mentionné au premier alinéa.
 /*
 champ d'application CalculAllocationsFamiliales :
-  règle dépend de enfant sous condition
+  règle majorations_allocations_familiales.droits_ouverts de enfant
+  sous condition
     (enfant dans ménage.enfants) et
     (nombre de ménage.enfants >= l521_3.minimum_alinéa_2) et
     (enfant.âge >= l521_3.âge_limite_alinéa_1 de enfant)
-  conséquence
-    majorations_allocations_familiales.droits_ouverts de enfant
-  rempli
+  conséquence rempli
 */
 
 @Article L.551-1@

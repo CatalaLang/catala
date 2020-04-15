@@ -34,12 +34,10 @@ let driver (source_files : string list) (debug : bool) (backend : string) (outpu
         let commands = Sedlex_menhir.sedlex_with_menhir Lexer.lexer Parser.source_file lexbuf in
         program := commands :: !program;
         close_in input
-      with
-      | Errors.LexingError msg | Errors.ParsingError msg -> error_print msg
-      | Sedlex_menhir.ParseError msg ->
-          error_print (Printf.sprintf "Parser error: %s" msg);
-          close_in input;
-          exit (-1))
+      with Errors.ParsingError msg ->
+        error_print msg;
+        close_in input;
+        exit (-1))
     source_files;
   if backend = "LaTeX" then begin
     Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
