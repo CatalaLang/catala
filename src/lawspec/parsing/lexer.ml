@@ -264,6 +264,9 @@ let rec lex_code lexbuf =
   | '/' ->
       update_and_acc lexbuf;
       DIV
+  | '|' ->
+      update_and_acc lexbuf;
+      VERTICAL
   | ':' ->
       update_and_acc lexbuf;
       COLON

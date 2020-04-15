@@ -498,7 +498,7 @@ champ d'application CalculAllocationFamilialesAvril2008:
 
 champ d'application CalculAllocationsFamiliales :
   définition l521_3.minimum_alinéa_2 de enfant
-  sous condition (enfant.date_naissance + 11 an <= 30/04/2008)
+  sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
   conséquence égal à
     CalculAllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
 */

@@ -87,11 +87,19 @@ type builtin_expression = Cardinal | Now
 
 type aggregate_func = AggregateSum | AggregateCount
 
+type literal_date = {
+  literal_date_day : int Pos.marked;
+  literal_date_month : int Pos.marked;
+  literal_date_year : int Pos.marked;
+}
+
 type literal_number = Int of int | Dec of int * int
 
 type literal_unit = Percent | Euro | Year | Month | Day
 
-type literal = literal_number Pos.marked * literal_unit Pos.marked option
+type literal =
+  | Number of literal_number Pos.marked * literal_unit Pos.marked option
+  | Date of literal_date
 
 type match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
@@ -104,7 +112,6 @@ and expression =
   | Exists of ident Pos.marked * expression Pos.marked * expression Pos.marked
   | Forall of ident Pos.marked * expression Pos.marked * expression Pos.marked
   | MatchWith of expression Pos.marked * match_cases Pos.marked
-  | Foo of unit
   | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
   | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
   | Unop of unop Pos.marked * expression Pos.marked

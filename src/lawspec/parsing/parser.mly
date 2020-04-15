@@ -30,7 +30,7 @@
 %token<int> INT_LITERAL
 %token<int * int> DECIMAL_LITERAL
 %token BEGIN_CODE
-%token COLON ALT DATA
+%token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS
 %token EXISTS IN SUCH THAT NOW LESSER GREATER
@@ -127,9 +127,19 @@ unit_literal:
 | EURO { (Euro, mk_position $sloc) }
 | YEAR { (Year, mk_position $sloc)}
 
+date_int:
+| d = INT_LITERAL { (d, mk_position $sloc) }
+
 literal:
 | l = num_literal u = option(unit_literal) {
-   ((l, u), mk_position $sloc)
+   (Number (l, u), mk_position $sloc)
+}
+| VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
+  (Date {
+    literal_date_day = d;
+    literal_date_month = m;
+    literal_date_year = y;
+    }, mk_position $sloc)
 }
 
 
@@ -169,8 +179,10 @@ mult_op:
 | DIV { (Div, mk_position $sloc) }
 
 mult_expression:
-| base_expression { (Foo (), mk_position $sloc) }
-| base_expression mult_op mult_expression { (Foo (), mk_position $sloc) }
+| e =  base_expression { e }
+| e1 = base_expression binop = mult_op e2  = mult_expression {
+  (Binop (binop, e1, e2), mk_position $sloc)
+}
 
 sum_op:
 | PLUS { (Add, mk_position $sloc) }
