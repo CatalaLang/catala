@@ -1,7 +1,7 @@
 (*
   This file is part of the Lawspec compiler, a specification language for tax and social benefits
   computation rules.
-  Copyright (C) 2019 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
+  Copyright (C) 2020 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
