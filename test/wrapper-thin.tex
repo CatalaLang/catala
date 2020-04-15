@@ -1,0 +1,48 @@
+\documentclass[11pt, french, a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{minted}
+\usepackage{textcomp}
+\usepackage[hidelinks]{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fullpage}
+\usepackage[many]{tcolorbox}
+
+\usepackage{draftwatermark}
+\SetWatermarkText{Brouillon}
+\SetWatermarkScale{1}
+\SetWatermarkColor[gray]{0.85}
+
+
+\fvset{
+  commandchars=\\\{\},
+  numbers=left,
+  framesep=3mm,
+  frame=leftline,
+  firstnumber=last,
+  codes={\catcode`\$=3\catcode`\^=7}
+}
+
+\title{
+  Proposition d'implémentation en programmation
+  littéraire du calcul des allocations familiales
+}
+\author{
+  Denis \bsc{Merigoux}\\Inria\and
+  Liane \bsc{Huttner}\\Université Panthéon-Sorbonne\and
+  Nicolas \bsc{Chataing}\\Inria -- École Normale Supérieure\and
+}
+
+\begin{document}
+\maketitle
+
+Les numéros de ligne à gauche servent uniquement de référence, leur numérotation
+n'est pas consécutive ici car elle respecte celle du fichier source à partir
+duquel a été généré ce document.
+
+\input{allocations_familiales}
+
+\end{document}
