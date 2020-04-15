@@ -97,6 +97,8 @@ type literal_number = Int of int | Dec of int * int
 
 type literal_unit = Percent | Euro | Year | Month | Day
 
+type collection_op = Exists | Forall | Aggregate of aggregate_func
+
 type literal =
   | Number of literal_number Pos.marked * literal_unit Pos.marked option
   | Date of literal_date
@@ -109,18 +111,16 @@ type match_case = {
 and match_cases = match_case Pos.marked list
 
 and expression =
-  | Exists of ident Pos.marked * expression Pos.marked * expression Pos.marked
-  | Forall of ident Pos.marked * expression Pos.marked * expression Pos.marked
   | MatchWith of expression Pos.marked * match_cases Pos.marked
   | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
   | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
   | Unop of unop Pos.marked * expression Pos.marked
+  | CollectionOp of
+      collection_op Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
   | MemCollection of expression Pos.marked * expression Pos.marked
   | TestMatchCase of expression Pos.marked * constructor Pos.marked
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
-  | Aggregate of
-      aggregate_func Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
   | Literal of literal
   | Inject of constructor Pos.marked * expression Pos.marked option
   | Project of expression Pos.marked * constructor Pos.marked

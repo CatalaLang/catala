@@ -152,13 +152,13 @@ compare_op:
 | NOT_EQUAL { (Neq, mk_position $sloc) }
 
 aggregate_func:
-| SUM { (AggregateSum, mk_position $sloc) }
-| CARDINAL { (AggregateCount, mk_position $sloc)}
+| SUM { (Aggregate AggregateSum, mk_position $sloc) }
+| CARDINAL { (Aggregate AggregateCount, mk_position $sloc) }
 
 aggregate:
 | func = aggregate_func FOR i = ident IN e1 = primitive_expression
   OF e2 = base_expression {
-  (Aggregate (func, i, e1, e2), mk_position $sloc)
+  (CollectionOp (func, i, e1, e2), mk_position $sloc)
 }
 
 base_expression:
@@ -248,23 +248,29 @@ match_arms:
 }
 | { ([], mk_position $sloc)}
 
+for_all_marked:
+| FOR ALL { mk_position $sloc }
+
+exists_marked:
+| EXISTS { mk_position $sloc }
+
 forall_prefix:
-| FOR ALL i = ident IN e = primitive_expression WE_HAVE {
-  (i, e)
+| pos = for_all_marked i = ident IN e = primitive_expression WE_HAVE {
+  (pos, i, e)
 }
  exists_prefix:
-| EXISTS i = ident IN e = primitive_expression SUCH THAT {
-  (i, e)
+| pos = exists_marked i = ident IN e = primitive_expression SUCH THAT {
+  (pos, i, e)
 }
 
 expression:
 | i_in_e1 = exists_prefix e2 = expression {
-  let (i,e1) = i_in_e1 in
-  (Exists (i, e1, e2), mk_position $sloc)
+  let (pos, i,e1) = i_in_e1 in
+  (CollectionOp ((Exists, pos), i, e1, e2), mk_position $sloc)
 }
 | i_in_e1 = forall_prefix e2 = expression {
-  let (i,e1) = i_in_e1 in
-  (Forall (i, e1, e2), mk_position $sloc)
+  let (pos, i,e1) = i_in_e1 in
+  (CollectionOp ((Forall, pos), i, e1, e2), mk_position $sloc)
 }
 | MATCH e = primitive_expression WITH arms = match_arms {
   (MatchWith (e, arms), mk_position $sloc)
