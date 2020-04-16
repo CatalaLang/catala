@@ -1,4 +1,4 @@
-(* This file is part of the Lawspec compiler, a specification language for tax and social benefits
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
    <denis.merigoux@inria.fr>
 
@@ -21,7 +21,7 @@ let debug_flag = ref false
 open Cmdliner
 
 let files =
-  Arg.(non_empty & pos_all file [] & info [] ~docv:"FILES" ~doc:"Lawspec files to be compiled")
+  Arg.(non_empty & pos_all file [] & info [] ~docv:"FILES" ~doc:"Catala files to be compiled")
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
@@ -40,11 +40,11 @@ let output =
           "$(i, OUTPUT) is the file that will contain the extracted function (for compiler \
            backends)")
 
-let lawspec_t f = Term.(const f $ files $ debug $ backend $ output)
+let catala_t f = Term.(const f $ files $ debug $ backend $ output)
 
 let info =
   let doc =
-    "Compiler for Lawspec, a specification language for tax and social benefits computation rules."
+    "Compiler for Catala, a specification language for tax and social benefits computation rules."
   in
   let man =
     [
@@ -60,16 +60,16 @@ let info =
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `S Manpage.s_examples;
       `P "Typical usage:";
-      `Pre "lawspec -b LaTeX file.lsp";
+      `Pre "catala -b LaTeX file.lsp";
       `S Manpage.s_bugs;
-      `P "Please file bug reports at https://gitlab.inria.fr/verifisc/lawspec/issues";
+      `P "Please file bug reports at https://gitlab.inria.fr/verifisc/catala/issues";
     ]
   in
   let exits =
     Term.default_exits
     @ [ Term.exit_info ~doc:"on parsing error." 1; Term.exit_info ~doc:"on typechecking error." 2 ]
   in
-  Term.info "lawspec"
+  Term.info "catala"
     ~version:
       ( match Build_info.V1.version () with
       | None -> "n/a"

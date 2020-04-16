@@ -1,20 +1,20 @@
 (lang dune 2.1)
-(name lawspec)
+(name catala)
 (version 0.1)
 (generate_opam_files true)
 
-(source (uri git+https://gitlab.inria.fr/verifisc/lawspec.git))
-(homepage https://gitlab.inria.fr/verifisc/lawspec)
-(bug_reports https://gitlab.inria.fr/verifisc/lawspec/issues)
+(source (uri git+https://gitlab.inria.fr/verifisc/catala.git))
+(homepage https://gitlab.inria.fr/verifisc/catala)
+(bug_reports https://gitlab.inria.fr/verifisc/catala/issues)
 (authors "Denis Merigoux")
 (maintainers "denis.merigoux@inria.fr")
 (license Apache2)
 
 
 (package
- (name lawspec)
+ (name catala)
  (synopsis "Low-level language for tax code specification")
- (description "\| The Lawspec language is designed to be a low-level target for
+ (description "\| The Catala language is designed to be a low-level target for
               "\| higher-level specification languages for fiscal legislation.
  )
  (depends

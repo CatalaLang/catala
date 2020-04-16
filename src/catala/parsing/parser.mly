@@ -1,5 +1,5 @@
 (*
-  This file is part of the Lawspec compiler, a specification language for tax and social benefits
+  This file is part of the Catala compiler, a specification language for tax and social benefits
   computation rules.
   Copyright (C) 2020 Inria, contributor: Denis Merigoux <denis.merigoux@inria.fr>
 

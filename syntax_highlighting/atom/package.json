@@ -1,16 +1,16 @@
 {
-  "name": "language-lawspec",
+  "name": "language-catala",
   "version": "1.0.0",
-  "description": "Syntax highlighting for the Lawspec",
+  "description": "Syntax highlighting for the Catala",
   "engines": {
     "atom": "*"
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.inria.fr/verifisc/lawspec.git"
+    "url": "https://gitlab.inria.fr/verifisc/catala.git"
   },
   "bugs": {
-    "url": "https://gitlab.inria.fr/verifisc/lawspec/issues"
+    "url": "https://gitlab.inria.fr/verifisc/catala/issues"
   },
   "dependencies": {},
   "license": "Apache"

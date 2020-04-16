@@ -1,10 +1,10 @@
 (include_subdirs unqualified)
 
 (library
- (public_name lawspec)
+ (public_name catala)
  (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info)
  (preprocess
   (pps sedlex.ppx)))
 
 (documentation
- (package lawspec))
+ (package catala))

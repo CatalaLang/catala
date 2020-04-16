@@ -1,4 +1,4 @@
-(* This file is part of the Lawspec compiler, a specification language for tax and social benefits
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
    <denis.merigoux@inria.fr>
 
@@ -12,15 +12,28 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Error formatting and helper functions *)
+module WithId (X : sig
+  type t
 
-(**{1 Parsing}*)
+  val to_string : t -> string
+end) : sig
+  type t
 
-exception ParsingError of string
+  val fresh : X.t -> t
 
-let print_parser_position (pos : Lexing.position) : string =
-  Printf.sprintf "%s:%d:%d" pos.pos_fname pos.Lexing.pos_lnum
-    (pos.Lexing.pos_cnum - pos.Lexing.pos_bol + 1)
+  val to_string : t -> string
 
-let parser_error sloc (msg : string) =
-  raise (ParsingError (Printf.sprintf "Parsing error: %s (%s)" msg (print_parser_position sloc)))
+  val compare : t -> t -> int
+end = struct
+  let counter : int ref = ref 0
+
+  type t = { id : int; value : X.t }
+
+  let fresh (x : X.t) =
+    counter := !counter + 1;
+    { id = !counter; value = x }
+
+  let to_string (x : t) = X.to_string x.value ^ "_" ^ string_of_int x.id
+
+  let compare (x1 : t) (x2 : t) = x1.id - x2.id
+end

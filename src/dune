@@ -1,7 +1,7 @@
 (executable
  (name main)
- (package lawspec)
- (public_name lawspec)
- (libraries lawspec)
+ (package catala)
+ (public_name catala)
+ (libraries catala)
  (preprocess
   (pps sedlex.ppx)))

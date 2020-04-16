@@ -1,4 +1,4 @@
-(* This file is part of the Lawspec compiler, a specification language for tax and social benefits
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
    <denis.merigoux@inria.fr>
 
@@ -12,4 +12,4 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-let _ = Lawspec.Driver.main ()
+let _ = Catala.Driver.main ()

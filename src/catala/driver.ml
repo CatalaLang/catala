@@ -1,4 +1,4 @@
-(* This file is part of the Lawspec compiler, a specification language for tax and social benefits
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
    <denis.merigoux@inria.fr>
 
@@ -55,4 +55,4 @@ let driver (source_files : string list) (debug : bool) (backend : string) (outpu
     1
   end
 
-let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.lawspec_t driver, Cli.info)
+let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

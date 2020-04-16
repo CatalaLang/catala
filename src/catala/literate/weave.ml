@@ -1,4 +1,4 @@
-(* This file is part of the Lawspec compiler, a specification language for tax and social benefits
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
    <denis.merigoux@inria.fr>
 
@@ -35,7 +35,7 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
   | A.LawText t -> pre_latexify t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
   | A.CodeBlock (_, c) ->
-      P.sprintf "\\begin{minted}[firstnumber=%d]{lawspec}%s\\end{minted}"
+      P.sprintf "\\begin{minted}[firstnumber=%d]{catala}%s\\end{minted}"
         (Pos.get_start_line (Pos.get_position c) + 1)
         (Pos.unmark c)
   | A.MetadataBlock (_, c) ->
@@ -44,7 +44,7 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
          break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
          \\begin{minted}[frame=none,numbersep=9mm, framesep=0mm, \
-         firstnumber=%d]{lawspec}%s\\end{minted}\n\
+         firstnumber=%d]{catala}%s\\end{minted}\n\
          \\end{tcolorbox}"
         (Pos.get_start_line (Pos.get_position c) + 1)
         (Pos.unmark c)

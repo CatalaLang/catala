@@ -3,12 +3,12 @@ from pygments.token import *
 
 import re
 
-__all__=['LawspecLexer']
+__all__=['CatalaLexer']
 
-class LawspecLexer(RegexLexer):
-    name = 'Lawspec'
-    aliases = ['lawspec']
-    filenames = ['*.lawspec']
+class CatalaLexer(RegexLexer):
+    name = 'Catala'
+    aliases = ['catala']
+    filenames = ['*.catala']
     flags = re.MULTILINE | re.UNICODE
 
     tokens = {
