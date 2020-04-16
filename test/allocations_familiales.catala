@@ -107,6 +107,7 @@ déclaration énumération ChargeAllocation :
 
 déclaration structure AllocationsFamiliales :
   condition droits_ouverts
+  donnée date_ouverture_droits contenu date
   condition conditions_hors_âge dépend de Enfant
   donnée base contenu montant
   donnée avec_garde_alternée contenu montant
@@ -905,10 +906,10 @@ champ d'application CalculAllocationsFamiliales :
   égal à
     (si allocations_familiales.droits_ouverts alors
         allocations_familiales.montant_versé
-    sinon 0 €) +
+     sinon 0 €) +
     (si majorations_allocations_familiales.droits_ouverts alors
         majorations_allocations_familiales.montant_versé
-    sinon 0 €)
+     sinon 0 €)
 */
 
 @Article D521-2@
@@ -1008,9 +1009,12 @@ champ d'application CalculAllocationsFamiliales :
     l751_1.régime_outre_mer et
     allocations_familiales.droits_ouverts
   conséquence égal à
-    allocations_familiales.montant_premier_enfant +
-    allocations_familiales.montant_deuxieme_enfant +
-    allocations_familiales.montant_troisième_enfant_et_plus
+    si nombre de ménage.enfants = 1 alors
+      allocations_familiales.montant_premier_enfant
+    sinon (
+      allocations_familiales.montant_deuxieme_enfant +
+      allocations_familiales.montant_troisième_enfant_et_plus
+    )
 
   définition allocations_familiales.montant_premier_enfant égal à
     prestations_familiales.base_mensuelle_dom * 5.88 %
@@ -1048,7 +1052,9 @@ Le montant précité de la base mensuelle de calcul des allocations familiales (
 /*
 champ d'application CalculAllocationsFamiliales :
   définition prestations_familiales.base_mensuelle
-  sous condition date_aujourd_hui >= |01/04/2020|
+  sous condition
+    date_aujourd_hui >= |01/04/2020| et
+    date_aujourd_hui < |01/04/2021|
   conséquence égal à 414.4 €
 */
 
@@ -1069,21 +1075,87 @@ Je  vous  demande  de  bien  vouloir  transmettre  à  la  connaissance  des  or
 @@Inclusion: sources/ste_20200002_0000_p000.pdf@ p. 254@@
 
 /*
-# Ici la retranscription des règles précisées dans l'annexe pour métropole
-# et DOM sauf Mayotte
+# L'annexe ne définit rien de plus que ce qui a déjà été défini dans les décrets
+# pour la métropole et les DOM
 */
 
 @@Inclusion: sources/ste_20200002_0000_p000.pdf@ p. 257@@
-
-/*
-# Ici la retranscription des règles précisées dans l'annexe pour  Mayotte
-*/
-
 @@Inclusion: sources/ste_20200002_0000_p000.pdf@ p. 258@@
 
 /*
-# La suite de Mayotte
+# Cependant, le cas de Mayotte n'est pas traité dans la loi et ce sont donc
+# les règles de cette annexe qui s'apppliquent.
+champ d'application CalculAllocationsFamiliales :
+  définition allocations_familiales.base sous condition
+    ménage.résidence = Mayotte et
+    allocations_familiales.droits_ouverts
+  conséquence égal à
+    si nombre de ménage.enfants = 1 alors
+      allocations_familiales.montant_premier_enfant
+    sinon (
+      allocations_familiales.montant_deuxieme_enfant +
+      allocations_familiales.montant_troisième_enfant_et_plus
+    )
+
+  définition allocations_familiales.montant_deuxieme_enfant sous condition
+    ménage.résidence = Mayotte et
+    date_aujourd_hui > |30/04/2020| et
+    date_aujourd_hui <= |31/12/2020|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 30.68 %
+
+  définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
+    ménage.résidence = Mayotte et
+    date_aujourd_hui > |30/04/2020| et
+    date_aujourd_hui <= |31/12/2020|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 14.3 % +
+    (si nombre de ménage.enfants >= 4 alors
+      prestations_familiales.base_mensuelle * 4.63 % *
+        (nombre de ménage.enfants - 3)
+      sinon 0 €)
+
+  définition allocations_familiales.montant_deuxieme_enfant sous condition
+    ménage.résidence = Mayotte et
+    date_aujourd_hui > |01/01/2021| et
+    date_aujourd_hui <= |31/03/2021|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 32 %
+
+  définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
+    ménage.résidence = Mayotte et
+    date_aujourd_hui > |01/01/2021| et
+    date_aujourd_hui <= |31/03/2021|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 16 % +
+    (si nombre de ménage.enfants >= 4 alors
+      prestations_familiales.base_mensuelle * 4.63 % *
+        (nombre de ménage.enfants - 3)
+      sinon 0 €)
+
+  définition allocations_familiales.montant_premier_enfant sous condition
+    ménage.résident = Mayotte et
+    allocations_familiales.date_ouverture_droits < |01/01/2012|
+  conséquence égal à
+    57.28 €
+
+  définition allocations_familiales.montant_premier_enfant sous condition
+    ménage.résident = Mayotte et
+    allocations_familiales.date_ouverture_droits >= |01/01/2012| et
+    date_aujourd_hui > |30/04/2020| et
+    date_aujourd_hui <= |31/12/2020|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 7.17 %
+
+  définition allocations_familiales.montant_premier_enfant sous condition
+    ménage.résident = Mayotte et
+    allocations_familiales.date_ouverture_droits >= |01/01/2012| et
+    date_aujourd_hui > |01/01/2021| et
+    date_aujourd_hui <= |31/03/2021|
+  conséquence égal à
+    prestations_familiales.base_mensuelle * 5.88 %
 */
+
 
 @@Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance@@
 
