@@ -900,17 +900,24 @@ champ d'application CalculAllocationsFamiliales :
     conséquence égal à complément_dégressif.dépassement / 12
 
 
-  définition allocations_familiales.avec_garde_alternée_et_complément égal à
-    allocations_familiales.avec_garde_alternée +
-    complément_dégressif.montant_versé de
-       allocations_familiales.avec_garde_alterné
+  définition allocations_familiales.avec_garde_alternée_et_complément
+  égal à
+    allocations_familiales.avec_garde_alternée + (
+      si complément_dégressif.droits_ouverts alors
+        complément_dégressif.montant_versé de
+         allocations_familiales.avec_garde_alterné
+      sinon 0 €
+    )
 
   définition
     majorations_allocations_familiales.avec_garde_alternée_et_complément
   égal à
-    majorations_allocations_familiales.avec_garde_alternée +
-    complément_dégressif.montant_versé de
-      majorations_allocations_familiales.avec_garde_alternée
+    majorations_allocations_familiales.avec_garde_alternée + (
+      si complément_dégressif.droits_ouverts alors
+        complément_dégressif.montant_versé de
+          majorations_allocations_familiales.avec_garde_alternée
+      sinon 0 €
+    )
 */
 
 @Article D521-2@
@@ -955,8 +962,11 @@ Ce complément dégressif est égal, pour chaque mois, au douzième de la diffé
 /*
 champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.avec_complément égal à
-    allocation_forfaitaire.base +
-    l521_1.complément_dégressif de allocation_forfaitaire.base
+    allocation_forfaitaire.base + (
+      si complément_dégressif.droits_ouverts alors
+        complément_dégressif.montant_versé de allocation_forfaitaire.base
+      sinon 0 €
+    )
 */
 
 III.- Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de l'article L. 521-1 est fixé à trois.
@@ -1011,6 +1021,10 @@ champ d'application CalculAllocationsFamiliales :
 
   définition allocations_familiales.montant_premier_enfant égal à
     prestations_familiales.base_mensuelle_dom * 5.88 %
+
+# Question : le complément dégressif s'applique-t-il ici ? Car le complément
+# est basé sur les plafonds du taux de base qui ne s'appliquent pas ici,
+# donc il serait logique que le plafond ne s'applique pas.
 */
 La majoration des allocations familiales pour un seul enfant à charge est fixée à 3,69 p. 100 de la base mensuelle prévue à l'article L. 755-3 à partir de onze ans et à 5,67 p. 100 à partir de seize ans.
 /*
