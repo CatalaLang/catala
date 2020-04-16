@@ -312,6 +312,23 @@ let rec lex_law lexbuf =
   | "@@", Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@" ->
       update lexbuf;
       END_METADATA
+  | ( "@@",
+      Star white_space,
+      "Inclusion:",
+      Star white_space,
+      Plus (Compl '@'),
+      Star white_space,
+      Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
+      "@@" ) ->
+      let extract_components =
+        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+      in
+      let get_component =
+        R.get_substring (R.exec ~rex:extract_components (Sedlexing.Utf8.lexeme buf))
+      in
+      update lexbuf;
+      LAW_INCLUDE
+        (get_component 1, match get_component 3 with "" -> None | s -> Some (int_of_string s))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match =

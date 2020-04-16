@@ -5,7 +5,7 @@
 *.log
 *.out
 *.fls
-*.pdf
+wrapper*.pdf
 allocations_familiales*.tex
 _minted*
 *.toc

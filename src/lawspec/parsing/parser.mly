@@ -24,6 +24,7 @@
 %token EOF
 %token<string> LAW_ARTICLE
 %token<string * int> LAW_HEADING
+%token<string * int option> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -473,6 +474,9 @@ source_file_item:
 | BEGIN_CODE code_and_pos = code text = END_CODE {
   let (code, pos) = code_and_pos in
   CodeBlock (code, (text, pos))
+}
+| includ = LAW_INCLUDE {
+  let (file, page) = includ in LawInclude (file, page)
 }
 
 source_file:

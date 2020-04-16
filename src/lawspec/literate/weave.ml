@@ -48,6 +48,14 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
          \\end{tcolorbox}"
         (Pos.get_start_line (Pos.get_position c) + 1)
         (Pos.unmark c)
+  | A.LawInclude (file, page) ->
+      let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
+      P.sprintf
+        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
+         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+        label
+        (match page with None -> "" | Some p -> P.sprintf "page=%d," p)
+        file label
 
 let ast_to_latex (file : A.source_file) : string =
   String.concat "\n\n" (List.map (fun i -> source_file_item_to_latex i) file)

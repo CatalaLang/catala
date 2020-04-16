@@ -175,5 +175,6 @@ type source_file_item =
   | LawText of string
   | CodeBlock of code_block * source_repr
   | MetadataBlock of code_block * source_repr
+  | LawInclude of string * int option
 
 type source_file = source_file_item list
