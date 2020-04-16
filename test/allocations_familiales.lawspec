@@ -110,7 +110,6 @@ déclaration structure AllocationsFamiliales :
   condition conditions_hors_âge dépend de Enfant
   donnée base contenu montant
   donnée avec_garde_alternée contenu montant
-  donnée avec_garde_alternée_et_complément contenu montant
   donnée montant_versé contenu montant
   donnée récipiendaire_par_enfant contenu Personne dépend de Enfant
   donnée charge_par_enfant contenu ChargeAllocation dépend de Enfant
@@ -123,8 +122,6 @@ déclaration structure AllocationsFamiliales :
 
 déclaration structure AllocationForfaitaire :
   condition droits_ouverts dépend de Enfant
-  donnée base contenu montant
-  donnée avec_complément contenu montant
   donnée montant_versé contenu montant
 
 déclaration énumération ChoixParentAllocataire :
@@ -143,13 +140,14 @@ déclaration structure MajorationsAllocationsFamiliales :
   condition droits_ouverts dépend de Enfant
   donnée base_par_enfant contenu montant dépend de Enfant
   donnée avec_garde_alternée contenu montant dépend de Enfant
-  donnée avec_garde_alternée_et_complément contenu montant dépend de Enfant
-  donnée montant_versé contenu montant dépend de Enfant
+  donnée montant_versé contenu montant
 
 déclaration structure ComplémentDégressif :
   condition droits_ouverts dépend de montant
   donnée dépassement contenu montant dépend de montant
-  donnée montant_versé contenu montant dépend de montant
+  donnée pour_allocation_forfaitaire contenu montant
+  donnée pour_allocations_familiales_et_majorations contenu montant
+  donnée montant_versé contenu montant
 
 déclaration structure TitreI:
   condition droits_ouverts_allocations_familiales dépend de Personne
@@ -881,14 +879,14 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_I + 12 * allocation)
   conséquence égal à
-    l521_1.ressources_ménage - d521_3.plafond_I
+    d521_3.plafond_I + 12 * allocation - l521_1.ressources_ménage
 
   définition complément_dégressif.dépassement de allocation
   sous condition
     (l521_1.ressources_ménage > d521_3.plafond_II) et
     (l521_1.ressources_ménage <= d521_3.plafond_II + 12 * allocation)
   conséquence égal à
-      l521_1.ressources_ménage - d521_3.plafond_II
+      d521_3.plafond_II + 12 * allocation - l521_1.ressources_ménage
 
   # Dans les autres cas, le dépassement est nul
   définition complément_dégressif.dépassement de allocations égal à 0 €
@@ -897,29 +895,20 @@ champ d'application CalculAllocationsFamiliales :
     sous condition complément_dégressif.dépassement de allocation > 0 €
     conséquence rempli
 
-  définition complément_dégressif.montant_versé de allocations
-    sous condition complément_dégressif.droits_ouverts
-    conséquence égal à complément_dégressif.dépassement / 12
-
-
-  définition allocations_familiales.avec_garde_alternée_et_complément
-  égal à
-    allocations_familiales.avec_garde_alternée + (
-      si complément_dégressif.droits_ouverts alors
-        complément_dégressif.montant_versé de
-         allocations_familiales.avec_garde_alterné
-      sinon 0 €
-    )
-
   définition
-    majorations_allocations_familiales.avec_garde_alternée_et_complément
+    complément_dégressif.pour_allocations_familiales_et_majorations
+  sous condition complément_dégressif.droits_ouverts de complément_dégressif.base
+  conséquence égal à
+      (complément_dégressif.dépassement de complément_dégressif.base) / 12
+
+  définition complément_dégressif.base
   égal à
-    majorations_allocations_familiales.avec_garde_alternée + (
-      si complément_dégressif.droits_ouverts alors
-        complément_dégressif.montant_versé de
-          majorations_allocations_familiales.avec_garde_alternée
-      sinon 0 €
-    )
+    (si allocations_familiales.droits_ouverts alors
+        allocations_familiales.montant_versé
+    sinon 0 €) +
+    (si majorations_allocations_familiales.droits_ouverts alors
+        majorations_allocations_familiales.montant_versé
+    sinon 0 €)
 */
 
 @Article D521-2@
@@ -928,7 +917,7 @@ I.- Le montant mensuel de l'allocation forfaitaire prévue au deuxième alinéa 
 1° Lorsque le ménage ou la personne a disposé d'un montant de ressources inférieur ou égal au plafond défini au I de l'article D. 521-3, le montant mensuel de l'allocation forfaitaire est fixé à 20,234 % de la base mensuelle de calcul des allocations familiales par enfant ;
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition allocation_forfaitaire.base sous condition
+  définition allocation_forfaitaire.montant_versé sous condition
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
     prestations_familiales.base_mensuelle * 20.234 % *
@@ -939,7 +928,7 @@ champ d'application CalculAllocationsFamiliales :
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au I de l'article D. 521-3 et inférieur ou égal à celui défini au II du même article, le montant mensuel de l'allocation forfaitaire est fixé à 10,117 % de la base mensuelle de calcul des allocations familiales par enfant ;
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition allocation_forfaitaire.base sous condition
+  définition allocation_forfaitaire.montant_versé sous condition
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
@@ -951,7 +940,7 @@ champ d'application CalculAllocationsFamiliales :
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au II de l'article D. 521-3, le montant mensuel de l'allocation forfaitaire est fixé à 5,059 % de la base mensuelle de calcul des allocations familiales par enfant.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition allocation_forfaitaire.base sous condition
+  définition allocation_forfaitaire.montant_versé sous condition
     l521_1.ressources_ménage > d521_3.plafond_II
   conséquence égal à
     prestations_familiales.base_mensuelle * 5.059 % *
@@ -963,12 +952,14 @@ II.- En application du sixième alinéa de l'article L. 521-1, le montant mensue
 Ce complément dégressif est égal, pour chaque mois, au douzième de la différence entre, d'une part, ce plafond de ressources majoré de la somme définie à l'alinéa précédent et, d'autre part, le montant des ressources.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition allocation_forfaitaire.avec_complément égal à
-    allocation_forfaitaire.base + (
-      si complément_dégressif.droits_ouverts alors
-        complément_dégressif.montant_versé de allocation_forfaitaire.base
-      sinon 0 €
-    )
+  définition
+    complément_dégressif.pour_allocation_forfaitaire
+  sous condition
+    allocation_forfaitaire.droits_ouverts et
+    complément_dégressif.droits_ouverts de allocation_forfaitaire.droits_ouverts
+  conséquence égal à
+    (complément_dégressif.dépassement
+      de allocation_forfaitaire.montant_versé) / 12
 */
 
 III.- Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de l'article L. 521-1 est fixé à trois.
