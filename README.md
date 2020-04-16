@@ -29,3 +29,14 @@ the repository, and then use `make` inside ghe `test` directory to compile the L
 ## License
 
 The library is released under the Apache license (version 2).
+
+## Pierre Catala
+
+The language is named after Pierre Catala, a professor of law who
+pionneered the French legaltech by creating a computer database of law cases,
+Juris-Data. The research group that he led in the late 1960s, the
+Centre d’études et de traitement de l’information juridique (CETIJ),
+has also influenced the creation by state conselor Lucien Mehl of the
+Centre de recherches et développement en informatique juridique (CENIJ),
+which eventually transformed into the entity managing the LegiFrance website,
+acting as the public service of legislative documentation. 
