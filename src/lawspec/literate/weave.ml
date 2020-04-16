@@ -21,11 +21,17 @@ module R = Re.Pcre
 
 let pre_latexify (s : string) =
   let percent = R.regexp "%" in
-  R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s
+  let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
+  let premier = R.regexp "1er" in
+  let s = R.substitute ~rex:premier ~subst:(fun _ -> "1\\textsuperscript{er}") s in
+  s
 
 let source_file_item_to_latex (i : A.source_file_item) : string =
   match i with
-  | A.LawCode c -> P.sprintf "\\section*{%s}" c
+  | A.LawHeading (title, precedence) ->
+      P.sprintf "\\%ssection*{%s}"
+        (match precedence with 0 -> "" | 1 -> "" | 2 -> "sub" | 3 -> "sub" | _ -> "subsub")
+        (pre_latexify title)
   | A.LawText t -> pre_latexify t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
   | A.CodeBlock (_, c) ->

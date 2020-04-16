@@ -313,13 +313,17 @@ let rec lex_law lexbuf =
   | "@@", Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@" ->
       update lexbuf;
       END_METADATA
-  | "@@", Star white_space, Star (Compl '@'), Star white_space, "@@" ->
-      let extract_code_title = R.regexp "@@\\s*([^#]*)\\s*@@" in
-      let title = R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf)) 1 in
+  | "@@", Plus (Compl '@'), "@@", Star '+' ->
+      let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
+      let get_match =
+        R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
+      in
+      let law_title = get_match 1 in
+      let precedence = String.length (get_match 2) in
       update lexbuf;
-      LAW_CODE title
-  | "@", Star white_space, Star (Compl '@'), Star white_space, "@" ->
-      let extract_article_title = R.regexp "@\\s*([^#]*)\\s*@" in
+      LAW_HEADING (law_title, precedence)
+  | "@", Plus (Compl '@'), "@" ->
+      let extract_article_title = R.regexp "@([^@]+)@" in
       let title =
         R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf)) 1
       in

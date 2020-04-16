@@ -169,7 +169,7 @@ type code_block = code_item Pos.marked list
 type source_repr = string Pos.marked
 
 type source_file_item =
-  | LawCode of string
+  | LawHeading of string * int
   | LawArticle of string
   | LawText of string
   | CodeBlock of code_block * source_repr

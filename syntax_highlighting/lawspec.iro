@@ -154,7 +154,7 @@ main : context {
       regex          \= (@@)
       styles []       = .law_title;
       : pop {
-         regex       \= (@@)
+         regex       \= (@@[\+]*)
          styles []    = .law_title;
       }
       : pattern {

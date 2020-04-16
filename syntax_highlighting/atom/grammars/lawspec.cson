@@ -26,7 +26,7 @@
             'include' : '#main__1'
           }
         ]
-        'end' : '(@@)'
+        'end' : '(@@[\\+]*)'
         'endCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.lawspec'

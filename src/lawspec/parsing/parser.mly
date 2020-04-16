@@ -23,7 +23,7 @@
 
 %token EOF
 %token<string> LAW_ARTICLE
-%token<string> LAW_CODE
+%token<string * int> LAW_HEADING
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -463,7 +463,7 @@ metadata_block:
 
 source_file_item:
 | title = LAW_ARTICLE { LawArticle title }
-| code = LAW_CODE { LawCode code }
+| heading = LAW_HEADING { let (title, precedence) = heading in LawHeading (title, precedence) }
 | text = LAW_TEXT { LawText text }
 | BEGIN_METADATA code = metadata_block {
   let (code, source_repr) = code in

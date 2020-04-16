@@ -1,5 +1,5 @@
 build:
-	latexmk -pdf -halt-on-error -shell-escape wrapper.tex
+	latexmk -g -pdf -halt-on-error -shell-escape wrapper.tex
 
 build-thin:
-	latexmk -pdf -halt-on-error -shell-escape wrapper-thin.tex
+	latexmk -g -pdf -halt-on-error -shell-escape wrapper-thin.tex
