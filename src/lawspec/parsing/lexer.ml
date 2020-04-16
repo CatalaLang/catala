@@ -39,11 +39,11 @@ let rec lex_code lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
-      (* Whitespaces *)
       update_and_acc lexbuf;
       new_line lexbuf;
       lex_code lexbuf
   | white_space ->
+      (* Whitespaces *)
       update_and_acc lexbuf;
       lex_code lexbuf
   | '#', Star (Compl '\n'), '\n' ->
@@ -215,7 +215,6 @@ let rec lex_code lexbuf =
       let dec_parts =
         R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
       in
-      update lexbuf;
       (* Integer literal*)
       update_and_acc lexbuf;
       DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
@@ -318,6 +317,14 @@ let rec lex_law lexbuf =
       let get_match =
         R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
       in
+      let get_new_lines = R.regexp "\n" in
+      let new_lines_count =
+        try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
+        with Not_found -> 0
+      in
+      for _i = 1 to new_lines_count do
+        new_line lexbuf
+      done;
       let law_title = get_match 1 in
       let precedence = String.length (get_match 2) in
       update lexbuf;
@@ -327,6 +334,14 @@ let rec lex_law lexbuf =
       let title =
         R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf)) 1
       in
+      let get_new_lines = R.regexp "\n" in
+      let new_lines_count =
+        try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
+        with Not_found -> 0
+      in
+      for _i = 1 to new_lines_count do
+        new_line lexbuf
+      done;
       update lexbuf;
       LAW_ARTICLE title
   | Plus (Compl ('@' | '/' | '\n')) ->

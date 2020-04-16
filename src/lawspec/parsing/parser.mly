@@ -291,12 +291,13 @@ rule_expr:
 
 rule:
 | name_and_param = rule_expr cond = option(condition_consequence)
-   FILLED {
+   consequence = option(NOT) FILLED {
     let (name, param_applied) = name_and_param in
     ({
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
+      rule_consequence = match consequence with Some _ -> false | None -> true
       }, mk_position $sloc)
   }
 

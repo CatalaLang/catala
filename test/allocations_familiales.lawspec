@@ -16,9 +16,18 @@ déclaration énumération PriseEnCharge :
 déclaration structure Enfant :
   donnée fin_obligation_scolaire contenu date
   donnée âge contenu entier
-  donnée rémuneration contenu montant
+  donnée rémuneration_mensuelle contenu montant
   donnée prise_en_charge contenu PriseEnCharge
   condition confié_service_social
+
+déclaration énumération Collectivité :
+  -- Guadeloupe
+  -- Guyane
+  -- Martinique
+  -- Réunion
+  -- SaintBarthélemy
+  -- SaintMartin
+  -- Autre
 
 déclaration structure Ménage :
   donnée enfants contenu collection Enfant
@@ -27,6 +36,7 @@ déclaration structure Ménage :
   donnée parents contenu collection Personne
   donnée parent1 contenu Personne
   donnée parent2 contenu Personne optionnel
+  donnée résidence contenu Collectivité
   # Le mot optionnel permet de prévoir le cas où le
   # ménage n'a pas d'enfants
 
@@ -86,6 +96,8 @@ déclaration énumération Prestation:
 déclaration structure PrestationsFamiliales :
   condition conditions_hors_âge dépend de Enfant
   condition droits_ouverts dépend de Enfant
+  donnée base_mensuelle contenu montant
+  donnée base_mensuelle_dom contenu montant
 
 déclaration énumération ChargeAllocation :
   -- Complète
@@ -103,6 +115,7 @@ déclaration structure AllocationsFamiliales :
   donnée rapport_enfants_total_moyen contenu décimal
   donnée nombre_total_enfants contenu entier
   donnée nombre_moyen_enfants contenu décimal
+  donnée montant_premier_enfant contenu montant
   donnée montant_deuxieme_enfant contenu montant
   donnée montant_troisième_enfant_et_plus contenu montant
 
@@ -131,6 +144,11 @@ déclaration structure MajorationsAllocationsFamiliales :
   donnée avec_garde_alternée_et_complément contenu montant dépend de Enfant
   donnée montant_versé contenu montant dépend de Enfant
 
+déclaration structure ComplémentDégressif :
+  condition droits_ouverts dépend de montant
+  donnée dépassement contenu montant dépend de montant
+  donnée montant_versé contenu montant dépend de montant
+
 déclaration structure TitreI:
   condition droits_ouverts_allocations_familiales dépend de Personne
 
@@ -141,7 +159,7 @@ déclaration structure L512_3 :
   donnée âge_limite_alinéa_2 contenu entier
   donnée âge_limite_alinéa_2_alternatif contenu entier
   condition âge_limite_alinéa_2_alternatif_utilisé
-  donnée plafond_rémunération_alinéa_2 contenu montant
+  donnée plafond_rémunération_mensuelle_alinéa_2 contenu montant
 
 déclaration structure L521_1 :
   donnée nombre_minimum_enfants contenu montant
@@ -151,15 +169,15 @@ déclaration structure L521_3 :
   donnée âge_limite_alinéa_1 contenu entier dépend de Enfant
   donnée minimum_alinéa_2 contenu montant
 
-déclaration structure L551_1 :
-  donnée base_mensuelle_prestations_familiales contenu montant
-
-déclaration structure D521_1 :
-  donnée complément_dégressif contenu montant dépend de montant
+déclaration structure L751_1 :
+  condition régime_outre_mer
 
 déclaration structure D521_3 :
   donnée plafond_I contenu montant
   donnée plafond_II contenu montant
+
+déclaration structure SMIC :
+  donnée brut_horaire contenu montant dépend de Collectivité
 
 déclaration champ d'application CalculPrestationsFamiliales :
   # Les règles déclarées dans PrestationsFamiliales pourront utiliser
@@ -178,11 +196,12 @@ déclaration champ d'application CalculAllocationsFamiliales :
   contexte allocations_garde_alternée contenu AllocationsGardeAlternée
   contexte majorations_allocations_familiales
     contenu MajorationsAllocationsFamiliales
+  contexte smic contenu SMIC
 
   contexte titre_I contenu TitreI
   contexte l521_1 contenu L521_1
   contexte l521_3 contenu L521_3
-  contexte l551_1 contenu L551_1
+  contexte l751_1 contenu L751_1
   contexte d521_1 contenu D521_1
   contexte d521_3 contenu D521_3
 inclus champ d'application CalculPrestationsFamiliales contexte
@@ -252,7 +271,8 @@ champ d'application CalculPrestationsFamiliales :
   règle prestations_familiales.conditions_hors_âge de enfant sous condition
     (enfant dans ménage.enfants) et (
       (date_aujourd_hui <= enfant.fin_obligation_scolaire) ou
-      (enfant.rémunération < l512_3.plafond_rémunération_alinéa_2)
+      (enfant.rémuneration_mensuelle <
+        l512_3.plafond_rémunération_mensuelle_alinéa_2)
     )
   conséquence rempli
 
@@ -319,7 +339,6 @@ champ d'application CalculAllocationsFamiliales :
   conséquence rempli
 */
 
-
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.
 /*
 champ d'application CalculAllocationsFamiliales :
@@ -351,6 +370,9 @@ Un complément dégressif est versé lorsque les ressources du bénéficiaire d�
 # Ditto, le volume du code à inclure pour formaliser cette assertion
 # est assez important et nous avons choisi de ne pas l'inclure dans ce
 # document.
+
+champ d'application CalculAllocationsFamiliales :
+  assertion complément_dégressif.montant_versé fixé par décret
 */
 
 @Article L521-2@
@@ -488,13 +510,108 @@ champ d'application CalculAllocationsFamiliales :
 @Article L.551-1@
 Le montant des prestations familiales est déterminé d'après des bases mensuelles de calcul revalorisées au 1er avril de chaque année par application du coefficient mentionné à l'article L. 161-25.
 /*
-# Voir déclaration structure L551_1 dans les métadonnées. Idem que L521-1,
-# on ne formalise pas ici l'évolution de la BAMF
+# Idem que L521-1, on ne formalise pas ici l'évolution de la BMPA
+champ d'application PrestationsFamiliales :
+  assertion prestations_familiales.base_mensuelle fixé par décret
+*/
+
+@@Livre 7 : Régimes divers - Dispositions diverses@@++
+
+@@Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la
+Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin@@+++
+
+@@Chapitre 1er : Généralités@@++++
+
+@Article L751-1@
+Les dispositions du présent titre s'appliquent en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin à l'ensemble des bénéficiaires de la législation générale de sécurité sociale, y compris les membres des professions agricoles.
+/*
+champ d'application CalculPrestationsFamiliales :
+  règle l751_1.régime_outre_mer sous condition
+    (ménage.résidence = Guadeloupe) ou
+    (ménage.résidence = Guyane) ou
+    (ménage.résidence = Martinique) ou
+    (ménage.résidence = Réunion) ou
+    (ménage.résidence = SaintBarthélemy) ou
+    (ménage.résidence = SaintMartin)
+  conséquence rempli
+*/
+
+@@Chapitre 5 : Prestations familiales et prestations assimilées@@++++
+
+@Article L755-3@
+Les dispositions des articles L. 512-1, L. 512-2, L. 512-3, L. 513-1, L. 521-2, L. 552-1, L. 553-1, L. 553-2, L. 553-4 et L. 583-3 sont applicables aux départements mentionnés à l'article L. 751-1.
+
+La base de calcul des prestations familiales est la même que celle qui est fixée en application de l'article L. 551-1.
+/*
+champ d'application CalculPrestationsFamiliales :
+  définition prestations_familiales.base_mensuelle_dom égal à
+    prestations_familiales.base_mensuelle
+*/
+
+@Article L755-11@
+Les conditions d'attribution des allocations familiales et de leurs majorations fixées par les articles L. 521-1 et L. 521-3 sont applicables dans les collectivités mentionnées à l'article L. 751-1.
+/*
+# Aucun changement dans le code, puisque les articles restent applicables
+*/
+
+Toutefois, les dispositions de l'article L. 755-12 restent en vigueur aussi longtemps que le présent chapitre V est applicable.
+
+@Article L755-12@
+Les allocations familiales sont dues, pour tout enfant, à la personne qui a effectivement la charge de celui-ci.
+/*
+champ d'application CalculAllocationsFamiliales :
+  règle allocations_familiales.droits_ouverts sous condition
+    (l751_1.régime_outre_mer) et
+    (nombre de ménage.enfants >= 1)
+  conséquence rempli
+*/
+Toutefois, les quatre derniers alinéas de l'article L. 521-1 ne sont pas applicables lorsque le ménage ou la personne a un seul enfant à charge.
+/*
+# Ceci concerne l'ouverture du droit à l'allocation forfaitaire
+# et au complément dégressif.
+
+champ d'application CalculAllocationsFamiliales :
+  règle allocation_forfaitaire.droits_ouverts de enfant sous condition
+     (l751_1.régime_outre_mer) et
+     (nombre de ménage.enfants = 1)
+  conséquence non rempli
+
+  règle
+    complément_dégressif.droits_ouvert de allocation
+  sous condition
+    (l751_1.régime_outre_mer) et
+    (nombre de ménage.enfants = 1)
+  conséquence non rempli
 */
 
 @@Partie réglementaire - Décrets en Conseil d'Etat@@+
 
 @@Livre 5 : Prestations familiales et prestations assimilées@@++
+
+@@Titre 1 : Champ d'application - Généralités@@+++
+
+@@Chapitre 2 : Champ d'application.@@++++
+
+@Article R512-2@
+Les enfants ouvrent droit aux prestations familiales jusqu'à l'âge de vingt ans sous réserve que leur rémunération n'excède pas le plafond fixé au deuxième alinéa du présent article.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition l512_3.âge_limite_alinéa_2 égal à 20 an
+*/
+
+Le plafond de rémunération mentionné au 2° de l'article L. 512-3 est égal, pour un mois, à 55 % du salaire minimum interprofessionnel de croissance défini aux articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
+
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition l512_3.plafond_rémunération_mensuelle_alinéa_2 égal à
+    55 % * smic.brut_horaire de ménage.résidence * 169
+*/
+
+Pour ceux des enfants qui bénéficient d'avantages en nature, l'évaluation de ces avantages devra être faite suivant les barèmes fixés pour l'application de la législation sur les assurances sociales.
+
+/*
+# Le programme ne tient pas en compte des avantages en nature
+*/
 
 @@Titre 2 : Prestations générales d'entretien@@+++
 
@@ -528,7 +645,6 @@ champ d'application CalculAllocationsFamiliales :
   conséquence égal à
     CalculAllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
 */
-
 @Article R521-2@
 Dans les situations visées au deuxième alinéa de l'article L. 521-2, l'allocataire est celui des deux parents qu'ils désignent d'un commun accord. A défaut d'accord sur la désignation d'un allocataire unique, chacun des deux parents peut se voir reconnaître la qualité d'allocataire :
 1° Lorsque les deux parents en ont fait la demande conjointe ;
@@ -613,6 +729,21 @@ champ d'application CalculAllocationsFamiliales :
   )
 */
 
+@@Livre 7 : Régimes divers - Dispositions diverses@@++
+
+@@Titre 5 : Départements d'outre-mer@@+++
+
+@@Chapitre 5 : Prestations familiales et prestations assimilées@@++++
+
+@Article R755-0-2@
+Le plafond de rémunération des enfants à charge mentionnés à l'article L. 512-3 est égal, pour un mois, à 55 % du salaire minimum de croissance en vigueur dans chacun des départements mentionnés à l'article L. 751-1, multiplié par 169.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition l512_3.plafond_rémunération_mensuelle_alinéa_2
+  sous condition l751_1.régime_outre_mer
+  conséquence égal à
+    55 % * smic.brut_horaire de ménage.résidence * 169
+*/
 
 @@Partie réglementaire - Décrets simples@@+
 
@@ -641,9 +772,10 @@ champ d'application CalculAllocationsFamiliales :
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
     si nombre de ménage.enfants >= 2
-    alors l551_1.base_mensuelle_prestations_familiales * 32 %
+    alors prestations_familiales.base_mensuelle * 32 %
     sinon 0 €
 */
+
 b) 41 % pour le troisième enfant à charge et chacun des suivants.
 /*
 champ d'application CalculAllocationsFamiliales :
@@ -652,7 +784,7 @@ champ d'application CalculAllocationsFamiliales :
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
     si nombre de ménage.enfants >= 3
-    alors l551_1.base_mensuelle_prestations_familiales * 41 % * (
+    alors prestations_familiales.base_mensuelle * 41 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -664,7 +796,7 @@ champ d'application CalculAllocationsFamiliales :
    sous condition
      l521_1.ressources_ménage <= d521_3.plafond_I
    conséquence égal à
-     l551_1.base_mensuelle_prestations_familiales * 16 %
+     prestations_familiales.base_mensuelle * 16 %
 */
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au I de l'article D. 521-3 et inférieur ou égal à celui défini au II du même article, les taux servant au calcul des allocations familiales sont fixés, en pourcentage de la base mensuelle prévue à l'article L. 551-1, à :
 a) 16 % pour le deuxième enfant à charge ;
@@ -675,7 +807,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 2
-    alors l551_1.base_mensuelle_prestations_familiales * 32 %
+    alors prestations_familiales.base_mensuelles * 32 %
     sinon 0 €
 */
 b) 20,5 % pour le troisième enfant à charge et chacun des suivants.
@@ -687,7 +819,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 3
-    alors l551_1.base_mensuelle_prestations_familiales * 20.5 % * (
+    alors prestations_familiales.base_mensuelle * 20.5 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -700,7 +832,7 @@ champ d'application CalculAllocationsFamiliales :
      (l521_1.ressources_ménage > d521_3.plafond_I) et
      (l521_1.ressources_ménage <= d521_3.plafond_II)
    conséquence égal à
-     l551_1.base_mensuelle_prestations_familiales * 8 %
+     prestations_familiales.base_mensuelle * 8 %
 */
 
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources supérieur au plafond défini au II de l'article D. 521-3, les taux servant au calcul des allocations familiales sont fixés, en pourcentage de la base mensuelle prévue à l'article L. 551-1, à :
@@ -711,7 +843,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 2
-    alors l551_1.base_mensuelle_prestations_familiales * 8 %
+    alors prestations_familiales.base_mensuelle * 8 %
     sinon 0 €
 */
 b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
@@ -722,7 +854,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 3
-    alors l551_1.base_mensuelle_prestations_familiales * 10.25 % * (
+    alors prestations_familiales.base_mensuelle * 10.25 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -734,7 +866,7 @@ champ d'application CalculAllocationsFamiliales :
    sous condition
      (l521_1.ressources_ménage > d521_3.plafond_II)
    conséquence égal à
-     l551_1.base_mensuelle_prestations_familiales * 4 %
+     prestations_familiales.base_mensuelle * 4 %
 */
 
 II.- En application du sixième alinéa de l'article L. 521-1, le montant mensuel des allocations familiales et, le cas échéant, de la majoration pour âge est majoré d'un complément dégressif, lorsque les ressources annuelles du ménage ou de la personne dépassent l'un des plafonds défini au I ou au II de l'article D. 521-3 d'une somme inférieure à douze fois le montant mensuel des allocations familiales augmenté, le cas échéant, de la ou des majorations pour âge.
@@ -742,33 +874,42 @@ II.- En application du sixième alinéa de l'article L. 521-1, le montant mensue
 Ce complément dégressif est égal, pour chaque mois, au douzième de la différence entre, d'une part, ce plafond de ressources majoré de la somme définie à l'alinéa précédent et, d'autre part, le montant des ressources.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition d521_1.complément_dégressif de allocation
-    sous condition
-      (l521_1.ressources_ménage > d521_3.plafond_I) et
-      (l521_1.ressources_ménage <= d521_3.plafond_I + 12 * allocation)
-    conséquence égal à
-      (d521_3.plafond_I + 12 * allocation - l521_1.ressources_ménage) / 12
+  définition complément_dégressif.dépassement de allocation
+  sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_I) et
+    (l521_1.ressources_ménage <= d521_3.plafond_I + 12 * allocation)
+  conséquence égal à
+    l521_1.ressources_ménage - d521_3.plafond_I
 
-  définition d521_1.complément_dégressif de allocation
-    sous condition
-      (l521_1.ressources_ménage > d521_3.plafond_II) et
-      (l521_1.ressources_ménage <= d521_3.plafond_II + 12 * allocation)
-    conséquence égal à
-      (d521_3.plafond_II + 12 * allocation - l521_1.ressources_ménage) / 12
+  définition complément_dégressif.dépassement de allocation
+  sous condition
+    (l521_1.ressources_ménage > d521_3.plafond_II) et
+    (l521_1.ressources_ménage <= d521_3.plafond_II + 12 * allocation)
+  conséquence égal à
+      l521_1.ressources_ménage - d521_3.plafond_II
 
-  # Dans tous les autres cas, le complément est de 0 €
-  définition d521_1.complément_dégressif de allocation égal à 0 €
+  # Dans les autres cas, le dépassement est nul
+  définition complément_dégressif.dépassement de allocations égal à 0 €
+
+  règle complément_dégressif.droits_ouverts de allocation
+    sous condition complément_dégressif.dépassement de allocation > 0 €
+    conséquence rempli
+
+  définition complément_dégressif.montant_versé de allocations
+    sous condition complément_dégressif.droits_ouverts
+    conséquence égal à complément_dégressif.dépassement / 12
+
 
   définition allocations_familiales.avec_garde_alternée_et_complément égal à
     allocations_familiales.avec_garde_alternée +
-    d521_1.complément_dégressif de
+    complément_dégressif.montant_versé de
        allocations_familiales.avec_garde_alterné
 
   définition
     majorations_allocations_familiales.avec_garde_alternée_et_complément
   égal à
     majorations_allocations_familiales.avec_garde_alternée +
-    d521_1.complément_dégressif de
+    complément_dégressif.montant_versé de
       majorations_allocations_familiales.avec_garde_alternée
 */
 
@@ -781,7 +922,7 @@ champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.base sous condition
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
-    l551_1.base_mensuelle_prestations_familiales * 20.234 % *
+    prestations_familiales.base_mensuelle * 20.234 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouverts de enfant
 */
@@ -793,7 +934,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
-    l551_1.base_mensuelle_prestations_familiales * 10.117 % *
+    prestations_familiales.base_mensuelle * 10.117 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouvert de enfant
 */
@@ -804,7 +945,7 @@ champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.base sous condition
     l521_1.ressources_ménage > d521_3.plafond_II
   conséquence égal à
-    l551_1.base_mensuelle_prestations_familiales * 5.059 % *
+    prestations_familiales.base_mensuelle * 5.059 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouvert de enfant
 */
@@ -815,7 +956,7 @@ Ce complément dégressif est égal, pour chaque mois, au douzième de la diffé
 champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.avec_complément égal à
     allocation_forfaitaire.base +
-    d521_1.complément_dégressif de allocation_forfaitaire.base
+    l521_1.complément_dégressif de allocation_forfaitaire.base
 */
 
 III.- Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de l'article L. 521-1 est fixé à trois.
@@ -841,3 +982,48 @@ champ d'application CalculAllocationsFamiliales :
 */
 
 III.- Les montants des plafonds et de leur majoration respective fixés au présent article sont revalorisés au 1er janvier de chaque année, conformément à l'évolution en moyenne annuelle des prix à la consommation hors tabac de l'année civile de référence, par arrêté des ministres chargés de la sécurité sociale, du budget et de l'agriculture.
+
+@@Livre 7 : Régimes divers - Dispositions diverses@@++
+
+@@Titre 5 : Départements d'outre-mer@@+++
+
+@@Chapitre 5 : Prestations familiales et prestations assimilées@@++++
+
+@Article D755-5@
+I. - Les taux servant au calcul des allocations familiales et de la majoration prévue à l'article L. 755-11 sont identiques à ceux mentionnés à l'article D. 521-1.
+
+/*
+# Pas de changement à déclarer
+*/
+
+II. - En application de l'article L. 755-11, 2e alinéa, le taux servant au calcul des allocations familiales servies pour un seul enfant à charge est fixé à 5,88 p. 100 de la base mensuelle prévue à l'article L. 755-3.
+
+/*
+# Composantes des allocations familiales
+champ d'application CalculAllocationsFamiliales :
+  définition allocations_familiales.base sous condition
+    l751_1.régime_outre_mer et
+    allocations_familiales.droits_ouverts
+  conséquence égal à
+    allocations_familiales.montant_premier_enfant +
+    allocations_familiales.montant_deuxieme_enfant +
+    allocations_familiales.montant_troisième_enfant_et_plus
+
+  définition allocations_familiales.montant_premier_enfant égal à
+    prestations_familiales.base_mensuelle_dom * 5.88 %
+*/
+La majoration des allocations familiales pour un seul enfant à charge est fixée à 3,69 p. 100 de la base mensuelle prévue à l'article L. 755-3 à partir de onze ans et à 5,67 p. 100 à partir de seize ans.
+/*
+champ d'application CalculAllocationsFamiliales :
+  définition l521_3.âge_limite_alinéa_1 de enfant
+  sous condition l751_1.régime_outre_mer
+  conséquence égal à 11 an
+définition
+  majorations_allocations_familiales.base_par_enfant de enfant
+sous condition
+  l751_1.régime_outre_mer et
+  (majorations_allocations_familiales.droits_ouverts de enfant)
+conséquence égal à
+  prestations_familiales.base_mensuelle_dom *
+  (si enfant.âge >= 16 an alors 5.67 % sinon 3.69 %)
+*/
