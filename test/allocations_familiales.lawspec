@@ -200,6 +200,14 @@ déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
 
 @@Code de la sécurité sociale@@
 
+@@Partie législative@@
+
+@@Livre 5 : Prestations familiales et prestations assimilées@@
+
+@@Titre 1 : Champ d'application - Généralités@@
+
+@@Chapitre 1er : Liste des prestations@@
+
 @Article L511-1@
 Les prestations familiales comprennent :
 1°) la prestation d'accueil du jeune enfant ;
@@ -214,6 +222,8 @@ Les prestations familiales comprennent :
 /*
 # Voir métadonnnée L511_1.prestation_courante
 */
+
+@@Chapitre 2 : Champ d'application@@
 
 @Article L512-3@
 Sous réserve des règles particulières à chaque prestation, ouvre droit aux prestations familiales :
@@ -264,6 +274,10 @@ champ d'application CalculPrestationsFamiliales :
   conséquence égal à
     l512_3.âge_limite_alinéa_2_alternatif
 */
+
+@@Titre 2 : Prestations générales d'entretien@@
+
+@@Chapitre 1er : Allocations familiales@@
 
 @Article L521-1@
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
@@ -467,12 +481,24 @@ champ d'application CalculAllocationsFamiliales :
   conséquence rempli
 */
 
+@@Titre 5 : Dispositions communes@@
+
+@@Chapitre 1er : Etablissement du salaire de base@@
+
 @Article L.551-1@
 Le montant des prestations familiales est déterminé d'après des bases mensuelles de calcul revalorisées au 1er avril de chaque année par application du coefficient mentionné à l'article L. 161-25.
 /*
 # Voir déclaration structure L551_1 dans les métadonnées. Idem que L521-1,
 # on ne formalise pas ici l'évolution de la BAMF
 */
+
+@@Partie réglementaire - Décrets en Conseil d'Etat@@
+
+@@Livre 5 : Prestations familiales et prestations assimilées@@
+
+@@Titre 2 : Prestations générales d'entretien@@
+
+@@Chapitre 1er : Allocations familiales@@
 
 @Article R521-1@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les enfants ouvrent droit à la majoration des allocations familiales est fixé à 14 ans.
 /*
@@ -586,6 +612,15 @@ champ d'application CalculAllocationsFamiliales :
       majorations_allocations_familiales.base_par_enfant / 2
   )
 */
+
+
+@@Partie réglementaire - Décrets simples@@
+
+@@Livre 5 : Prestations familiales et prestations assimilées@@
+
+@@Titre 2 : Prestations générales d'entretien@@
+
+@@Chapitre 1er : Allocations familiales@@
 
 @Article D521-1@
 I.- Pour l'application de l'article L. 521-1, le montant des allocations familiales et de la majoration pour âge prévue à l'article L. 521-3 est défini selon le barème suivant :
