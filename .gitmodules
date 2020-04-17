@@ -2,3 +2,4 @@
 	path = syntax_highlighting/pygments/pygments
 	url = git@github.com:pygments/pygments.git
 	branch = master
+  ignore = dirty

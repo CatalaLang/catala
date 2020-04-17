@@ -1,4 +1,4 @@
-(lang dune 2.1)
+(lang dune 2.2)
 (name catala)
 (version 0.1)
 (generate_opam_files true)

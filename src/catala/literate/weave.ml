@@ -24,7 +24,50 @@ let pre_latexify (s : string) =
   let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
   let premier = R.regexp "1er" in
   let s = R.substitute ~rex:premier ~subst:(fun _ -> "1\\textsuperscript{er}") s in
+  let underscore = R.regexp "\\_" in
+  let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
   s
+
+let wrap_latex (code : string) (source_files : string list) =
+  Printf.sprintf
+    "\\documentclass[11pt, french, a4paper]{article}\n\n\
+     \\usepackage[T1]{fontenc}\n\
+     \\usepackage[utf8]{inputenc}\n\
+     \\usepackage[french]{babel}\n\
+     \\usepackage{lmodern}\n\
+     \\usepackage{minted}\n\
+     \\usepackage{textcomp}\n\
+     \\usepackage[hidelinks]{hyperref}\n\
+     \\usepackage[dvipsnames]{xcolor}\n\
+     \\usepackage{fullpage}\n\
+     \\usepackage[many]{tcolorbox}\n\n\
+     \\fvset{\n\
+     commandchars=\\\\\\{\\},\n\
+     numbers=left,\n\
+     framesep=3mm,\n\
+     frame=leftline,\n\
+     firstnumber=last,\n\
+     codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
+     }\n\n\
+     \\title{\n\
+     Implémentation de texte législatif\n\
+     }\n\
+     \\author{\n\
+     Document généré par Catala version %s\n\
+     }\n\
+     \\begin{document}\n\
+     \\maketitle\n\n\
+     Fichiers sources tissés dans ce document : \n\
+     \\begin{itemize}%s\\end{itemize}\n\n\
+     \\[\\star\\star\\star\\]\\\\\n\
+     %s\n\n\
+     \\end{document}"
+    ( match Build_info.V1.version () with
+    | None -> "n/a"
+    | Some v -> Build_info.V1.Version.to_string v )
+    (String.concat ","
+       (List.map (fun f -> Printf.sprintf "\\item\\texttt{%s}" (pre_latexify f)) source_files))
+    code
 
 let source_file_item_to_latex (i : A.source_file_item) : string =
   match i with

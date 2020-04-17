@@ -25,11 +25,14 @@ let files =
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
+let wrap_latex_output =
+  Arg.(value & flag & info [ "wrap_latex"; "w" ] ~doc:"Wraps LaTeX output with preamble")
+
 let backend =
   Arg.(
     required
     & opt (some string) None
-    & info [ "backend"; "b" ] ~docv:"BACKEND" ~doc:"Backend selection: TeX")
+    & info [ "backend"; "b" ] ~docv:"BACKEND" ~doc:"Backend selection: LaTeX")
 
 let output =
   Arg.(
@@ -40,7 +43,7 @@ let output =
           "$(i, OUTPUT) is the file that will contain the extracted function (for compiler \
            backends)")
 
-let catala_t f = Term.(const f $ files $ debug $ backend $ output)
+let catala_t f = Term.(const f $ files $ debug $ wrap_latex_output $ backend $ output)
 
 let info =
   let doc =
