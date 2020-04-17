@@ -87,7 +87,10 @@ if you're running Linux ou MacOS, open a terminal and enter :
 
     ./install_opam.sh
 
-This will install `opam`, the OCaml dependency manager and the base OCaml compiler.
+This will install `opam`, the OCaml dependency manager and the
+base OCaml compiler. If you're on Windows, the simplest solution
+would be to use Cygwin or the Windows Subsystem for Linux.
+
 Next, install all the build dependencies with
 
     make install-dependencies
