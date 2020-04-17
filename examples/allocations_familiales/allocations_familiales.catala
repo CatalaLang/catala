@@ -2,7 +2,9 @@
 /*
 
 déclaration structure Personne :
-# Pas de données
+  donnée prénom contenu texte
+  donnée nom contenu texte
+  donnée date_de_naissance contenu date
 
 déclaration structure ParentsGardeAlternée :
   donnée parent1 contenu Personne

@@ -28,7 +28,7 @@ let pre_latexify (s : string) =
   let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
   s
 
-let wrap_latex (code : string) (source_files : string list) =
+let wrap_latex (code : string) (source_files : string list) (custom_pygments : string option) =
   Printf.sprintf
     "\\documentclass[11pt, french, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
@@ -36,6 +36,7 @@ let wrap_latex (code : string) (source_files : string list) =
      \\usepackage[french]{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
+     %s\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
@@ -62,6 +63,9 @@ let wrap_latex (code : string) (source_files : string list) =
      \\[\\star\\star\\star\\]\\\\\n\
      %s\n\n\
      \\end{document}"
+    ( match custom_pygments with
+    | None -> ""
+    | Some p -> Printf.sprintf "\\renewcommand{\\MintedPygmentize}{%s}" p )
     ( match Build_info.V1.version () with
     | None -> "n/a"
     | Some v -> Build_info.V1.Version.to_string v )

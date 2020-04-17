@@ -18,9 +18,9 @@ install:
 format:
 	dune build @fmt --auto-promote | true
 
-ALLOCATIONS_FAMILIALES_DIR=examples/allocations_familiales
+ALLOCATIONS_FAMILIALES_DIR=${CURDIR}/examples/allocations_familiales
 
-PYGMENTS_DIR=syntax_highlighting/pygments
+PYGMENTS_DIR=${CURDIR}/syntax_highlighting/pygments
 
 PYGMENTIZE=$(PYGMENTS_DIR)/pygments/env/bin/pygmentize
 
@@ -34,7 +34,11 @@ LATEXMK=latexmk $(PVC_OPTION) -g -pdf -halt-on-error -shell-escape
 
 
 %.tex: %.catala
-	dune exec src/main.exe -- --wrap_latex --debug --backend LaTeX \
+	dune exec src/main.exe --\
+	  --backend LaTeX \
+		--debug \
+		--wrap_latex \
+		--pygmentize=$(PYGMENTIZE)\
 	  --output $@ \
 		$^
 
@@ -45,6 +49,7 @@ LATEXMK=latexmk $(PVC_OPTION) -g -pdf -halt-on-error -shell-escape
 $(PYGMENTIZE): $(PYGMENTS_DIR)/set_up_pygments.sh $(PYGMENTS_DIR)/catala.py
 	chmod +x $<
 	$<
+	rm -rf  $(ALLOCATIONS_FAMILIALES_DIR)/_minted-allocations_familiales
 
 
 

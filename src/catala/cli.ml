@@ -43,7 +43,15 @@ let output =
           "$(i, OUTPUT) is the file that will contain the extracted function (for compiler \
            backends)")
 
-let catala_t f = Term.(const f $ files $ debug $ wrap_latex_output $ backend $ output)
+let pygmentize_loc =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "pygmentize"; "p" ] ~docv:"PYGMENTIZE"
+        ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
+
+let catala_t f =
+  Term.(const f $ files $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
 
 let info =
   let doc =

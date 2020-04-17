@@ -30,7 +30,7 @@
 %token<string> END_CODE
 %token<int> INT_LITERAL
 %token<int * int> DECIMAL_LITERAL
-%token BEGIN_CODE
+%token BEGIN_CODE TEXT
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS
@@ -57,6 +57,7 @@ typ_base:
 | INTEGER { (Integer, mk_position $sloc) }
 | BOOLEAN { (Boolean, mk_position $sloc) }
 | MONEY { (Money, mk_position $sloc) }
+| TEXT { (Text, mk_position $sloc) }
 | DECIMAL { (Decimal, mk_position $sloc) }
 | DATE { (Date, mk_position $sloc) }
 | c = constructor {

@@ -140,7 +140,7 @@
         'name' : 'keyword.operator.catala'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|décimal|décret|loi|nombre|somme|date_aujourd_hui)\\b'
+        'match' : '\\b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\\b'
         'name' : 'support.type.catala'
       }
       {

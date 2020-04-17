@@ -16,8 +16,8 @@ open Cli
 module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
-let driver (source_files : string list) (debug : bool) (wrap_latex_output : bool) (backend : string)
-    (output_file : string) : int =
+let driver (source_files : string list) (debug : bool) (wrap_latex_output : bool)
+    (pygmentize_loc : string option) (backend : string) (output_file : string) : int =
   Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
   let program = ref [] in
@@ -45,7 +45,8 @@ let driver (source_files : string list) (debug : bool) (wrap_latex_output : bool
       String.concat "\n\n" (List.map (fun file -> Weave.ast_to_latex file) !program)
     in
     let weaved_output =
-      if wrap_latex_output then Weave.wrap_latex weaved_output source_files else weaved_output
+      if wrap_latex_output then Weave.wrap_latex weaved_output source_files pygmentize_loc
+      else weaved_output
     in
     Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
     let oc = open_out output_file in

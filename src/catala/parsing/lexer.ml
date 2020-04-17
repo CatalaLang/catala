@@ -96,6 +96,9 @@ let rec lex_code lexbuf =
   | "montant" ->
       update_and_acc lexbuf;
       MONEY
+  | "texte" ->
+      update_and_acc lexbuf;
+      TEXT
   | "d", 0xE9, "cimal" ->
       update_and_acc lexbuf;
       DECIMAL

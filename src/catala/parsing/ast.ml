@@ -20,7 +20,7 @@ type qident_element = Ident of ident | Constructor of constructor
 
 type qident = qident_element Pos.marked list
 
-type primitive_typ = Integer | Decimal | Boolean | Money | Date | Named of constructor
+type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
 type base_typ_data = {
   typ_data_collection : Pos.t option;
