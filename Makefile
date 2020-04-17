@@ -1,6 +1,17 @@
 build: format
 	dune build
 
+install-dependencies:
+	opam install \
+		ANSITerminal \
+		sedlex \
+		menhir \
+		menhirLib \
+		dune \
+		cmdliner \
+		re
+	git submodule update --init
+
 install:
 	dune build @install
 

@@ -1,6 +1,6 @@
 (lang dune 2.2)
 (name catala)
-(version 0.1)
+(version 0.1.1)
 (generate_opam_files true)
 
 (source (uri git+https://gitlab.inria.fr/verifisc/catala.git))
@@ -21,6 +21,7 @@
    (ocaml (>= 4.07.0))
    (ANSITerminal (>= 0.8.2))
    (sedlex (>= 2.1))
+   (menhir (>= 20200211))
    (menhirLib (>= 20200211))
    (dune-build-info (>= 2.0.1))
    (cmdliner (>= 1.0.4))
