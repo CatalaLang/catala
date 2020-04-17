@@ -66,7 +66,17 @@ let wrap_latex (code : string) (source_files : string list) =
     | None -> "n/a"
     | Some v -> Build_info.V1.Version.to_string v )
     (String.concat ","
-       (List.map (fun f -> Printf.sprintf "\\item\\texttt{%s}" (pre_latexify f)) source_files))
+       (List.map
+          (fun filename ->
+            let mtime = (Unix.stat filename).Unix.st_mtime in
+            let ltime = Unix.localtime mtime in
+            let ftime =
+              Printf.sprintf "%02d/%02d/%d à %dh%02d" ltime.Unix.tm_mday ltime.Unix.tm_mon
+                (1900 + ltime.Unix.tm_year) ltime.Unix.tm_hour ltime.Unix.tm_min
+            in
+            Printf.sprintf "\\item\\texttt{%s}, dernière modification le %s"
+              (pre_latexify filename) ftime)
+          source_files))
     code
 
 let source_file_item_to_latex (i : A.source_file_item) : string =

@@ -68,6 +68,9 @@ support. You can use this virtual environnement with
 
     source syntax_highlighting/pygments/pygments/env/bin/activate
 
+The `pigmentize` executable, used for instance by the `minted` LaTeX package,
+will now point to the Catala-enabled version inside the virtual environment.
+
 ## Catala motivating example : French "allocations familiales"
 
 In the `example/allocations_familiales` folder, you will find the
@@ -75,6 +78,10 @@ In the `example/allocations_familiales` folder, you will find the
 algorithm computing French family benefits. The algorithm consists of annotations to the legislative
 texts that define the family benetifs, using the literate programming paradigm. The `catala`
 compiler can extract from the `.catala` file a lawyer-readable version of the annotated text.
+
+Currently, this lawyer-readable version comes in the form of a LaTeX document.
+You will need to have a standard LaTeX distribution installed as well as the
+`latexmk` build tool in order to enjoy the automated document generation process.
 
 To get that lawyer-readable version (which is a LaTeX-created) PDF, simply use
 
