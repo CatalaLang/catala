@@ -16,7 +16,7 @@ proceed to annotate the text article by article, in your favorite
 text editor :
 
 <center>
-![Image of Yaktocat](doc/ScreenShotAtom.png)
+![Screenshot](doc/ScreenShotAtom.png?raw=true "Screenshot")
 </center>
 
 Once your code is complete and tested, you can use the Catala
@@ -27,7 +27,7 @@ can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
 <center>
-![Image of Yaktocat](doc/CatalaScreenShot.png)
+![Screenshot](doc/CatalaScreenShot.png?raw=true "Screenshot")
 </center>
 
 The Catala language is special because its logical structure mimics
