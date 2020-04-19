@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-open Parser
+open Parser_fr
 open Sedlex_menhir
 module R = Re.Pcre
 
@@ -35,22 +35,22 @@ let update_and_acc lexbuf =
   update lexbuf;
   code_string_acc := !code_string_acc ^ Sedlexing.Utf8.lexeme lexbuf.stream
 
-let rec lex_code lexbuf =
+let rec lex_code_fr lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
       update_and_acc lexbuf;
       new_line lexbuf;
-      lex_code lexbuf
+      lex_code_fr lexbuf
   | white_space ->
       (* Whitespaces *)
       update_and_acc lexbuf;
-      lex_code lexbuf
+      lex_code_fr lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       update_and_acc lexbuf;
       new_line lexbuf;
-      lex_code lexbuf
+      lex_code_fr lexbuf
   | "*/" ->
       (* End of code section *)
       update lexbuf;
@@ -293,13 +293,13 @@ let rec lex_code lexbuf =
       EURO
   | _ -> raise_ParseError lexbuf
 
-let rec lex_law lexbuf =
+let rec lex_law_fr lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
       update lexbuf;
       new_line lexbuf;
-      lex_law lexbuf
+      lex_law_fr lexbuf
   | "/*" ->
       update lexbuf;
       is_code := true;
@@ -373,4 +373,4 @@ let rec lex_law lexbuf =
       LAW_TEXT (Sedlexing.Utf8.lexeme buf)
   | _ -> raise_ParseError lexbuf
 
-let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf
+let lexer_fr lexbuf = if !is_code then lex_code_fr lexbuf else lex_law_fr lexbuf

@@ -16,14 +16,18 @@ module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
-    (pygmentize_loc : string option) (backend : string) (output_file : string option) : int =
+    (pygmentize_loc : string option) (backend : string) (language:  string option) (output_file : string option) : int =
   Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
   if Filename.extension source_file <> ".catala" then begin
     Cli.error_print (Printf.sprintf "Source file %s must have the .catala extension!" source_file);
     exit (-1)
   end;
-  let program = Parser_driver.parse_source_files [ source_file ] in
+  let language = match language with
+  | Some l -> l
+  | None -> "fr"
+  in
+  let program = Parser_driver.parse_source_files [ source_file ] language in
   let backend_extensions_list = [ ".tex" ] in
   if backend = "Makefile" then begin
     let output_file =

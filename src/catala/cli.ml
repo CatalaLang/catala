@@ -37,6 +37,11 @@ let backend =
     & pos 0 (some string) None
     & info [] ~docv:"BACKEND" ~doc:"Backend selection among : (LaTeX, Makefile)")
 
+let language =
+  Arg.(
+    value & opt (some string) None & info ["l"; "language"] ~doc:"Input language among : en, fr (default $(i, fr))"
+    )
+
 let output =
   Arg.(
     value
@@ -53,7 +58,7 @@ let pygmentize_loc =
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
-  Term.(const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
+  Term.(const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ language $ output)
 
 let info =
   let doc =
