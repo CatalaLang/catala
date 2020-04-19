@@ -32,6 +32,11 @@ endif
 
 LATEXMK=latexmk $(PVC_OPTION) -g -pdf -halt-on-error -shell-escape
 
+$(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.catala: \
+	$(ALLOCATIONS_FAMILIALES_DIR)/metadata.catala \
+	$(ALLOCATIONS_FAMILIALES_DIR)/law.catala \
+	$(ALLOCATIONS_FAMILIALES_DIR)/state_council_decrees.catala \
+	$(ALLOCATIONS_FAMILIALES_DIR)/simple_decrees.catala \
 
 %.tex: %.catala
 	dune exec src/main.exe --\

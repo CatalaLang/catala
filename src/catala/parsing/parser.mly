@@ -30,7 +30,7 @@
 %token<string> END_CODE
 %token<int> INT_LITERAL
 %token<int * int> DECIMAL_LITERAL
-%token BEGIN_CODE TEXT
+%token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS
@@ -47,9 +47,9 @@
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE
 
-%type <Ast.source_file> source_file
+%type <Ast.source_file_or_master> source_file_or_master
 
-%start source_file
+%start source_file_or_master
 
 %%
 
@@ -483,3 +483,18 @@ source_file_item:
 source_file:
 | i = source_file_item f = source_file { i::f }
 | EOF { [] }
+
+master_file_include:
+| includ = LAW_INCLUDE {
+  let (file, page) = includ in match page with
+  | None -> (file, mk_position $sloc)
+  | Some _ -> Errors.parser_error $symbolstartpos (Printf.sprintf "Include in master file must be .catala file!" )
+}
+
+master_file_includes:
+| i = master_file_include is = master_file_includes { i::is }
+| EOF { [] }
+
+source_file_or_master:
+| MASTER_FILE is = master_file_includes { MasterFile is }
+| f = source_file { SourceFile f }

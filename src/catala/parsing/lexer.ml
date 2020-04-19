@@ -308,6 +308,10 @@ let rec lex_law lexbuf =
   | eof ->
       update lexbuf;
       EOF
+  | "@@", Star white_space, "Fichier ma", 0x00EE, "tre", Star white_space, "@@" ->
+      (* 0x00EE is î *)
+      update lexbuf;
+      MASTER_FILE
   | "@@", Star white_space, "D", 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@"
     ->
       update lexbuf;
@@ -331,7 +335,7 @@ let rec lex_law lexbuf =
       in
       update lexbuf;
       LAW_INCLUDE
-        (get_component 1, match get_component 3 with "" -> None | s -> Some (int_of_string s))
+        (get_component 1, try Some (int_of_string (get_component 3)) with Not_found -> None)
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match =

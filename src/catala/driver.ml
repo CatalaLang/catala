@@ -12,7 +12,6 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-open Cli
 module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
@@ -20,32 +19,13 @@ let driver (source_files : string list) (debug : bool) (wrap_latex_output : bool
     (pygmentize_loc : string option) (backend : string) (output_file : string) : int =
   Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
-  let program = ref [] in
-  List.iter
-    (fun source_file ->
-      let input = open_in source_file in
-      Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
-      let lexbuf =
-        Sedlex_menhir.create_lexbuf ~file:(Filename.basename source_file)
-          (Sedlexing.Utf8.from_channel input)
-      in
-      try
-        Parse_utils.current_file := source_file;
-        let commands = Sedlex_menhir.sedlex_with_menhir Lexer.lexer Parser.source_file lexbuf in
-        program := commands :: !program;
-        close_in input
-      with Errors.ParsingError msg ->
-        error_print msg;
-        close_in input;
-        exit (-1))
-    source_files;
+  let program = Parser_driver.parse_source_files source_files in
   if backend = "LaTeX" then begin
     Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
+    let weaved_output = Weave.ast_to_latex program in
     let weaved_output =
-      String.concat "\n\n" (List.map (fun file -> Weave.ast_to_latex file) !program)
-    in
-    let weaved_output =
-      if wrap_latex_output then Weave.wrap_latex weaved_output source_files pygmentize_loc
+      if wrap_latex_output then
+        Weave.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
       else weaved_output
     in
     Cli.debug_print (Printf.sprintf "Writing to %s" output_file);

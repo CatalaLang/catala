@@ -51,7 +51,7 @@ To get that lawyer-readable version (which is a LaTeX-created) PDF, simply use
     make allocations_familiales
 
 from the repository root, once you have managed to install the
-compiler (see bewlow). You can then open `examples/allocations_familiales/allocations_familiales.pdf`
+compiler (see below). You can then open `examples/allocations_familiales/allocations_familiales.pdf`
 
 ## Limitations and disclaimer
 

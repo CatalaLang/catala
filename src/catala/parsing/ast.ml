@@ -169,7 +169,7 @@ type code_block = code_item Pos.marked list
 
 type source_repr = string Pos.marked
 
-type source_file_item =
+type program_item =
   | LawHeading of string * int
   | LawArticle of string
   | LawText of string
@@ -177,4 +177,8 @@ type source_file_item =
   | MetadataBlock of code_block * source_repr
   | LawInclude of string * int option
 
-type source_file = source_file_item list
+type program = { program_items : program_item list; program_source_files : string list }
+
+type source_file_or_master =
+  | SourceFile of program_item list
+  | MasterFile of string Pos.marked list

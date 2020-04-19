@@ -83,7 +83,7 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
           source_files))
     code
 
-let source_file_item_to_latex (i : A.source_file_item) : string =
+let program_item_to_latex (i : A.program_item) : string =
   match i with
   | A.LawHeading (title, precedence) ->
       P.sprintf "\\%ssection*{%s}"
@@ -114,5 +114,5 @@ let source_file_item_to_latex (i : A.source_file_item) : string =
         (match page with None -> "" | Some p -> P.sprintf "page=%d," p)
         file label
 
-let ast_to_latex (file : A.source_file) : string =
-  String.concat "\n\n" (List.map (fun i -> source_file_item_to_latex i) file)
+let ast_to_latex (program : A.program) : string =
+  String.concat "\n\n" (List.map (fun i -> program_item_to_latex i) program.program_items)
