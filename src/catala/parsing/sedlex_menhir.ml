@@ -62,5 +62,5 @@ let sedlex_with_menhir lexer' parser' lexbuf =
   in
   let parser = MenhirLib.Convert.Simplified.traditional2revised parser' in
   try parser lexer
-  with Parser_fr.Error | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
+  with Parser.Error | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     raise_ParseError lexbuf

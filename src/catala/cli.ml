@@ -35,12 +35,13 @@ let backend =
   Arg.(
     required
     & pos 0 (some string) None
-    & info [] ~docv:"BACKEND" ~doc:"Backend selection among : (LaTeX, Makefile)")
+    & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile")
 
 let language =
   Arg.(
-    value & opt (some string) None & info ["l"; "language"] ~doc:"Input language among : en, fr (default $(i, fr))"
-    )
+    value
+    & opt (some string) None
+    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr (default fr)")
 
 let output =
   Arg.(

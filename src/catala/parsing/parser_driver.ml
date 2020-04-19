@@ -24,19 +24,22 @@ let rec parse_source_files (source_files : string list) (language : string) : As
       in
       try
         Parse_utils.current_file := source_file;
-        let lexer_lang = if language = "fr" then
-         Lexer_fr.lexer_fr
-         else begin
-         Cli.error_print (Printf.sprintf "The selected language (%s) is not supported by Catala" language);
-         exit (-1)
-         end in
+        let lexer_lang =
+          if language = "fr" then Lexer_fr.lexer_fr
+          else if language = "en" then Lexer_en.lexer_en
+          else begin
+            Cli.error_print
+              (Printf.sprintf "The selected language (%s) is not supported by Catala" language);
+            exit (-1)
+          end
+        in
         let commands_or_includes =
-          Sedlex_menhir.sedlex_with_menhir lexer_lang Parser_fr.source_file_or_master lexbuf
+          Sedlex_menhir.sedlex_with_menhir lexer_lang Parser.source_file_or_master lexbuf
         in
         close_in input;
         match commands_or_includes with
         | Ast.SourceFile commands ->
-            let rest_program = parse_source_files  rest language in
+            let rest_program = parse_source_files rest language in
             {
               program_items = commands @ rest_program.Ast.program_items;
               program_source_files = source_file :: rest_program.Ast.program_source_files;

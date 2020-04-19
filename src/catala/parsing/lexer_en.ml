@@ -35,182 +35,182 @@ let update_and_acc lexbuf =
   update lexbuf;
   code_string_acc := !code_string_acc ^ Sedlexing.Utf8.lexeme lexbuf.stream
 
-let rec lex_code_fr lexbuf =
+let rec lex_code_en lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
       update_and_acc lexbuf;
       new_line lexbuf;
-      lex_code_fr lexbuf
+      lex_code_en lexbuf
   | white_space ->
       (* Whitespaces *)
       update_and_acc lexbuf;
-      lex_code_fr lexbuf
+      lex_code_en lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       update_and_acc lexbuf;
       new_line lexbuf;
-      lex_code_fr lexbuf
+      lex_code_en lexbuf
   | "*/" ->
       (* End of code section *)
       update lexbuf;
       is_code := false;
       END_CODE !code_string_acc
-  | "champ d\'application" ->
+  | "application field" ->
       update_and_acc lexbuf;
       FIELD
-  | "donn", 0xE9, "e" ->
+  | "data" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       DATA
-  | "d", 0xE9, "pend" ->
+  | "depends" ->
       update_and_acc lexbuf;
       DEPENDS
-  | "d", 0xE9, "claration" ->
+  | "declaration" ->
       update_and_acc lexbuf;
       DECLARATION
-  | "contexte" ->
+  | "context" ->
       update_and_acc lexbuf;
       CONTEXT
-  | "inclus" ->
+  | "includes" ->
       update_and_acc lexbuf;
       INCLUDES
-  | "d", 0xE9, "croissant" ->
+  | "decreasing" ->
       update_and_acc lexbuf;
       DECREASING
-  | "croissant" ->
+  | "increasing" ->
       update_and_acc lexbuf;
       INCREASING
-  | "de" ->
+  | "of" ->
       update_and_acc lexbuf;
       OF
   | "collection" ->
       update_and_acc lexbuf;
       COLLECTION
-  | 0xE9, "num", 0xE9, "ration" ->
+  | "enumeration" ->
       update_and_acc lexbuf;
       ENUM
-  | "entier" ->
+  | "integer" ->
       update_and_acc lexbuf;
       INTEGER
-  | "montant" ->
+  | "amount" ->
       update_and_acc lexbuf;
       MONEY
-  | "texte" ->
+  | "text" ->
       update_and_acc lexbuf;
       TEXT
-  | "d", 0xE9, "cimal" ->
+  | "decimal" ->
       update_and_acc lexbuf;
       DECIMAL
   | "date" ->
       update_and_acc lexbuf;
       DATE
-  | "bool", 0xE9, "en" ->
+  | "boolean" ->
       update_and_acc lexbuf;
       BOOLEAN
-  | "somme" ->
+  | "sum" ->
       update_and_acc lexbuf;
       SUM
-  | "rempli" ->
+  | "fulfilled" ->
       update_and_acc lexbuf;
       FILLED
-  | "d", 0xE9, "finition" ->
+  | "definition" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       DEFINITION
-  | 0xE9, "gal ", 0x00E0 ->
+  | "egals" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       DEFINED_AS
-  | "selon" ->
+  | "match" ->
       update_and_acc lexbuf;
       MATCH
-  | "sous forme" ->
+  | "with pattern" ->
       update_and_acc lexbuf;
       WITH
-  | "sous condition" ->
+  | "under condition" ->
       update_and_acc lexbuf;
       UNDER_CONDITION
-  | "si" ->
+  | "if" ->
       update_and_acc lexbuf;
       IF
-  | "cons", 0xE9, "quence" ->
+  | "consequence" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       CONSEQUENCE
-  | "alors" ->
+  | "then" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       THEN
-  | "sinon" ->
+  | "else" ->
       update_and_acc lexbuf;
       ELSE
   | "condition" ->
       update_and_acc lexbuf;
       CONDITION
-  | "contenu" ->
+  | "content" ->
       update_and_acc lexbuf;
       CONTENT
   | "structure" ->
       update_and_acc lexbuf;
       STRUCT
-  | "optionnel" ->
+  | "optional" ->
       update_and_acc lexbuf;
       OPTIONAL
   | "assertion" ->
       update_and_acc lexbuf;
       ASSERTION
-  | "varie avec" ->
+  | "varies with" ->
       update_and_acc lexbuf;
       VARIES_WITH
-  | "pour" ->
+  | "for" ->
       update_and_acc lexbuf;
       FOR
-  | "tout" ->
+  | "all" ->
       update_and_acc lexbuf;
       ALL
-  | "on a" ->
+  | "we have" ->
       update_and_acc lexbuf;
       WE_HAVE
-  | "fix", 0xE9 ->
+  | "fixed" ->
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       FIXED
-  | "par" ->
+  | "by" ->
       update_and_acc lexbuf;
       BY
-  | "r", 0xE8, "gle" ->
+  | "rule" ->
       (* 0xE8 is è *)
       update_and_acc lexbuf;
       RULE
-  | "existe" ->
+  | "exists" ->
       update_and_acc lexbuf;
       EXISTS
-  | "dans" ->
+  | "in" ->
       update_and_acc lexbuf;
       IN
-  | "tel" ->
+  | "such" ->
       update_and_acc lexbuf;
       SUCH
-  | "que" ->
+  | "that" ->
       update_and_acc lexbuf;
       THAT
-  | "maintenant" ->
+  | "now" ->
       update_and_acc lexbuf;
       NOW
-  | "et" ->
+  | "and" ->
       update_and_acc lexbuf;
       AND
-  | "ou" ->
+  | "or" ->
       update_and_acc lexbuf;
       OR
-  | "non" ->
+  | "not" ->
       update_and_acc lexbuf;
       NOT
-  | "nombre" ->
+  | "number" ->
       update_and_acc lexbuf;
       CARDINAL
-  | "an" ->
+  | "year" ->
       update_and_acc lexbuf;
       YEAR
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
@@ -287,19 +287,19 @@ let rec lex_code_fr lexbuf =
       (* Integer literal*)
       update_and_acc lexbuf;
       INT_LITERAL (int_of_string (Sedlexing.Utf8.lexeme buf))
-  | 0x20AC ->
-      (* this is the euro sign € *)
+  | 0x24 ->
+      (* this is the dollar sign $ *)
       update_and_acc lexbuf;
       EURO
   | _ -> raise_ParseError lexbuf
 
-let rec lex_law_fr lexbuf =
+let rec lex_law_en lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | '\n' ->
       update lexbuf;
       new_line lexbuf;
-      lex_law_fr lexbuf
+      lex_law_en lexbuf
   | "/*" ->
       update lexbuf;
       is_code := true;
@@ -308,27 +308,25 @@ let rec lex_law_fr lexbuf =
   | eof ->
       update lexbuf;
       EOF
-  | "@@", Star white_space, "Fichier ma", 0x00EE, "tre", Star white_space, "@@" ->
-      (* 0x00EE is î *)
+  | "@@", Star white_space, "Master file", Star white_space, "@@" ->
       update lexbuf;
       MASTER_FILE
-  | "@@", Star white_space, "D", 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@"
-    ->
+  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" ->
       update lexbuf;
       BEGIN_METADATA
-  | "@@", Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@" ->
+  | "@@", Star white_space, "End metadata", Star white_space, "@@" ->
       update lexbuf;
       END_METADATA
   | ( "@@",
       Star white_space,
-      "Inclusion:",
+      "Include:",
       Star white_space,
       Plus (Compl '@'),
       Star white_space,
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
       "@@" ) ->
       let extract_components =
-        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
       in
       let get_component =
         R.get_substring (R.exec ~rex:extract_components (Sedlexing.Utf8.lexeme buf))
@@ -373,4 +371,4 @@ let rec lex_law_fr lexbuf =
       LAW_TEXT (Sedlexing.Utf8.lexeme buf)
   | _ -> raise_ParseError lexbuf
 
-let lexer_fr lexbuf = if !is_code then lex_code_fr lexbuf else lex_law_fr lexbuf
+let lexer_en lexbuf = if !is_code then lex_code_en lexbuf else lex_law_en lexbuf
