@@ -79,7 +79,8 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
                 (1900 + ltime.Unix.tm_year) ltime.Unix.tm_hour ltime.Unix.tm_min
             in
             Printf.sprintf "\\item\\texttt{%s}, dernière modification le %s"
-              (pre_latexify filename) ftime)
+              (pre_latexify (Filename.basename filename))
+              ftime)
           source_files))
     code
 

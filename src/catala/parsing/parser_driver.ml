@@ -42,7 +42,11 @@ let rec parse_source_files (source_files : string list) : Ast.program =
                 (fun includ -> current_source_file_dirname ^ "/" ^ Pos.unmark includ)
                 includes
             in
-            parse_source_files (includes @ rest)
+            let new_program = parse_source_files (includes @ rest) in
+            {
+              new_program with
+              program_source_files = source_file :: new_program.program_source_files;
+            }
       with Errors.ParsingError msg ->
         Cli.error_print msg;
         close_in input;

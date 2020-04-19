@@ -25,7 +25,7 @@ PYGMENTIZE=$(PYGMENTS_DIR)/pygments/env/bin/pygmentize
 $(PYGMENTIZE): $(PYGMENTS_DIR)/set_up_pygments.sh $(PYGMENTS_DIR)/catala.py
 	chmod +x $<
 	$<
-	rm -rf  $(ALLOCATIONS_FAMILIALES_DIR)/_minted-allocations_familiales
+	rm -rf  $(SRC_DIR)/_minted-allocations_familiales
 
 ifdef $(PVC)
 	PVC_OPTION=-pvc
@@ -35,27 +35,23 @@ endif
 
 LATEXMK=latexmk $(PVC_OPTION) -g -pdf -halt-on-error -shell-escape
 
-ALLOCATIONS_FAMILIALES_DIR=${CURDIR}/examples/allocations_familiales
-ALLOCATIONS_FAMILIALES_SRC = $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.catala
+SRC_DIR=${CURDIR}/examples/allocations_familiales
+SRC = $(SRC_DIR)/allocations_familiales.catala
 
-%.d: %.catala
-	touch $@
 
 %.tex: %.catala %.d
+	dune exec src/main.exe -- Makefile $<
 	dune exec src/main.exe --\
-		--backend LaTeX \
 		--debug \
 		--wrap_latex \
 		--pygmentize=$(PYGMENTIZE)\
-		--output $@ \
+		LaTeX \
 		$<
 
 %.pdf: %.tex $(PYGMENTIZE)
 	cd $(@D) && $(LATEXMK) $(%F)
 
-allocations_familiales: $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.pdf
-
-include $(wildcard $(ALLOCATIONS_FAMILIALES_SRC:.catala=.d))
+include $(wildcard $(SRC:.catala=.d))
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading

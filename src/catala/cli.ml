@@ -20,28 +20,30 @@ let debug_flag = ref false
 
 open Cmdliner
 
-let files =
-  Arg.(non_empty & pos_all file [] & info [] ~docv:"FILES" ~doc:"Catala files to be compiled")
+let file =
+  Arg.(
+    required
+    & pos 1 (some file) None
+    & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled")
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
 let wrap_latex_output =
-  Arg.(value & flag & info [ "wrap_latex"; "w" ] ~doc:"Wraps LaTeX output with preamble")
+  Arg.(value & flag & info [ "wrap_latex"; "w" ] ~doc:"Wraps LaTeX output with a minimal preamble")
 
 let backend =
   Arg.(
     required
-    & opt (some string) None
-    & info [ "backend"; "b" ] ~docv:"BACKEND" ~doc:"Backend selection: LaTeX")
+    & pos 0 (some string) None
+    & info [] ~docv:"BACKEND" ~doc:"Backend selection among : (LaTeX, Makefile)")
 
 let output =
   Arg.(
-    required
+    value
     & opt (some string) None
     & info [ "output"; "o" ] ~docv:"OUTPUT"
         ~doc:
-          "$(i, OUTPUT) is the file that will contain the extracted function (for compiler \
-           backends)")
+          "$(i, OUTPUT) is the file that will contain the extracted output (for compiler backends)")
 
 let pygmentize_loc =
   Arg.(
@@ -51,7 +53,8 @@ let pygmentize_loc =
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
-  Term.(const f $ files $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
+  Term.(
+    const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
 
 let info =
   let doc =
@@ -61,17 +64,12 @@ let info =
     [
       `S Manpage.s_description;
       `P
-        "The M language is used by the DGFiP to encode the rules describing the computation of the \
-         French income tax. An M program consists in several *.m files in no particular order. \
-         $(tname) will parse all the rules contained in those files that correspond to a \
-         particular application tag. Then, it will extract from this set of rules an \
-         user-specified function, than can be interpreted with a command-line prompt or compiled \
-         to a function in the language of your choice.";
+        "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts.";
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `S Manpage.s_examples;
       `P "Typical usage:";
-      `Pre "catala -b LaTeX file.lsp";
+      `Pre "catala LaTeX file.catala";
       `S Manpage.s_bugs;
       `P "Please file bug reports at https://gitlab.inria.fr/verifisc/catala/issues";
     ]
