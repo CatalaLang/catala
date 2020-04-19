@@ -60,7 +60,6 @@ let rec lex_code_en lexbuf =
       update_and_acc lexbuf;
       FIELD
   | "data" ->
-      (* 0xE9 is é *)
       update_and_acc lexbuf;
       DATA
   | "depends" ->
@@ -115,11 +114,9 @@ let rec lex_code_en lexbuf =
       update_and_acc lexbuf;
       FILLED
   | "definition" ->
-      (* 0xE9 is é *)
       update_and_acc lexbuf;
       DEFINITION
-  | "egals" ->
-      (* 0xE9 is é *)
+  | "equals" ->
       update_and_acc lexbuf;
       DEFINED_AS
   | "match" ->
@@ -135,11 +132,9 @@ let rec lex_code_en lexbuf =
       update_and_acc lexbuf;
       IF
   | "consequence" ->
-      (* 0xE9 is é *)
       update_and_acc lexbuf;
       CONSEQUENCE
   | "then" ->
-      (* 0xE9 is é *)
       update_and_acc lexbuf;
       THEN
   | "else" ->
@@ -173,7 +168,6 @@ let rec lex_code_en lexbuf =
       update_and_acc lexbuf;
       WE_HAVE
   | "fixed" ->
-      (* 0xE9 is é *)
       update_and_acc lexbuf;
       FIXED
   | "by" ->

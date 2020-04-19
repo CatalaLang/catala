@@ -47,7 +47,7 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
     let weaved_output = Weave.ast_to_latex program in
     let weaved_output =
       if wrap_latex_output then
-        Weave.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
+        Weave.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc language
       else weaved_output
     in
     let output_file =
