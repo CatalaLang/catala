@@ -1,9 +1,9 @@
 @@Fichier maître@@
 
-@@Inclusion: metadata.catala@@
+@@Inclusion: M.catala@@
 
-@@Inclusion: law.catala@@
+@@Inclusion: L.catala@@
 
-@@Inclusion: state_council_decrees.catala@@
+@@Inclusion: R.catala@@
 
-@@Inclusion: simple_decrees.catala@@
+@@Inclusion: D.catala@@

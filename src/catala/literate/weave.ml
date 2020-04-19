@@ -45,8 +45,10 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
      \\fvset{\n\
      commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
-     framesep=3mm,\n\
-     frame=leftline,\n\
+     %,framesep=3mm,\n\
+     %,frame=leftline,\n\
+     frame=lines,\n\
+     rulecolor=\\color{gray!70},\n\
      firstnumber=last,\n\
      codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
      }\n\n\
@@ -93,7 +95,9 @@ let program_item_to_latex (i : A.program_item) : string =
   | A.LawText t -> pre_latexify t
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
   | A.CodeBlock (_, c) ->
-      P.sprintf "\\begin{minted}[firstnumber=%d]{catala}%s\\end{minted}"
+      P.sprintf
+        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{catala}%s\\end{minted}"
+        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) + 1)
         (Pos.unmark c)
   | A.MetadataBlock (_, c) ->

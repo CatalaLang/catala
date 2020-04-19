@@ -16,8 +16,7 @@ module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
-    (pygmentize_loc : string option) (backend : string) (output_file : string option)
-    : int =
+    (pygmentize_loc : string option) (backend : string) (output_file : string option) : int =
   Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
   if Filename.extension source_file <> ".catala" then begin
@@ -31,15 +30,17 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
       match output_file with Some f -> f | None -> Filename.remove_extension source_file ^ ".d"
     in
     let oc = open_out output_file in
-    Printf.fprintf oc "%s:\\\n%s"
+    Printf.fprintf oc "%s:\\\n%s\n%s:"
       (String.concat "\\\n"
          ( output_file
          :: List.map
               (fun ext -> Filename.remove_extension source_file ^ ext)
               backend_extensions_list ))
+      (String.concat "\\\n" program.program_source_files)
       (String.concat "\\\n" program.program_source_files);
-      0
-  end else if backend = "LaTeX" then begin
+    0
+  end
+  else if backend = "LaTeX" then begin
     Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
     let weaved_output = Weave.ast_to_latex program in
     let weaved_output =

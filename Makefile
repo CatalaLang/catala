@@ -39,7 +39,7 @@ SRC_DIR=${CURDIR}/examples/allocations_familiales
 SRC = $(SRC_DIR)/allocations_familiales.catala
 
 
-%.tex: %.catala %.d
+%.tex: %.catala 
 	dune exec src/main.exe -- Makefile $<
 	dune exec src/main.exe --\
 		--debug \

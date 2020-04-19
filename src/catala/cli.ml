@@ -53,8 +53,7 @@ let pygmentize_loc =
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
-  Term.(
-    const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
+  Term.(const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ output)
 
 let info =
   let doc =
@@ -64,7 +63,8 @@ let info =
     [
       `S Manpage.s_description;
       `P
-        "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts.";
+        "Catala is a domain-specific language for deriving faithful-by-construction algorithms \
+         from legislative texts.";
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `S Manpage.s_examples;

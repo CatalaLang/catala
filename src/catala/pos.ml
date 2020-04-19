@@ -35,6 +35,8 @@ let get_start_line (pos : t) : int =
   let s, _ = pos.pos_loc in
   s.Lexing.pos_lnum
 
+let get_file (pos : t) : string = pos.pos_filename
+
 type 'a marked = 'a * t
 (** Everything related to the source code should keep its position stored, to improve error messages *)
 
