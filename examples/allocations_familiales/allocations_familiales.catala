@@ -1,9 +1,11 @@
 @@Fichier maître@@
 
-@@Inclusion: M.catala@@
+@@Inclusion: metadata.catala@@
 
-@@Inclusion: L.catala@@
+@@Inclusion: securite_sociale_L.catala@@
 
-@@Inclusion: R.catala@@
+@@Inclusion: securite_sociale_R.catala@@
 
-@@Inclusion: D.catala@@
+@@Inclusion: securite_sociale_D.catala@@
+
+@@Inclusion: decrets_divers.catala@@

@@ -34,11 +34,15 @@ pygments: $(PYGMENTIZE)
 
 # Examples-related rule
 
+EXAMPLES_DIR=examples
+ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
+ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/enlish_dummy
+
 allocations_familiales: $(PYGMENTIZE) build
-	$(MAKE) -C examples/allocations_familiales allocations_familiales.pdf
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
 
 english: $(PYGMENTIZE) build
-	$(MAKE) -C examples/dummy_english english.pdf
+	$(MAKE) -C $(ENGLISH_DUMMY_DIR) english.pdf
 
 all_examples: allocations_familiales english
 
@@ -48,8 +52,8 @@ all: install-dependencies install all_examples
 
 clean:
 	dune clean
-	$(MAKE) -C examples/allocations_familiales clean
-	$(MAKE) -C examples/dummy_english clean
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
+	$(MAKE) -C $(ENGLISH_DUMMY_DIR) clean
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading

@@ -122,10 +122,11 @@ let program_item_to_latex (i : A.program_item) : string =
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
          break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
-         \\begin{minted}[frame=none,numbersep=9mm, framesep=0mm, \
-         firstnumber=%d]{catala}%s\\end{minted}\n\
+         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+         label={\\hspace*{\\fill}\\texttt{%s}}]{catala}%s\\end{minted}\n\
          \\end{tcolorbox}"
         (Pos.get_start_line (Pos.get_position c) + 1)
+        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.unmark c)
   | A.LawInclude (file, page) ->
       let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
