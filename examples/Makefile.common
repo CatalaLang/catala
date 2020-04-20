@@ -4,12 +4,14 @@ PYGMENTIZE=../../syntax_highlighting/pygments/pygments/env/bin/pygmentize
 
 CATALA=dune exec ../../src/main.exe --
 
+CATALA_LANG?=fr
+
 %.tex: %.catala
 	$(CATALA) --language=en Makefile $<
 	$(CATALA) \
 		--debug \
 		--wrap_latex \
-		--language=en \
+		--language=$(CATALA_LANG) \
 		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
