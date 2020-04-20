@@ -13,8 +13,8 @@ Le montant précité de la base mensuelle de calcul des allocations familiales (
 champ d'application CalculAllocationsFamiliales :
   définition prestations_familiales.base_mensuelle
   sous condition
-    date_aujourd_hui >= |01/04/2020| et
-    date_aujourd_hui < |01/04/2021|
+    date_calcul >= |01/04/2020| et
+    date_calcul < |01/04/2021|
   conséquence égal à 414.4 €
 */
 
@@ -51,15 +51,15 @@ champ d'application CalculAllocationsFamiliales :
 
   définition allocations_familiales.montant_deuxieme_enfant sous condition
     ménage.résidence = Mayotte et
-    date_aujourd_hui > |30/04/2020| et
-    date_aujourd_hui <= |31/12/2020|
+    date_calcul > |30/04/2020| et
+    date_calcul <= |31/12/2020|
   conséquence égal à
     prestations_familiales.base_mensuelle * 30.68 %
 
   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
     ménage.résidence = Mayotte et
-    date_aujourd_hui > |30/04/2020| et
-    date_aujourd_hui <= |31/12/2020|
+    date_calcul > |30/04/2020| et
+    date_calcul <= |31/12/2020|
   conséquence égal à
     prestations_familiales.base_mensuelle * 14.3 % +
     (si nombre de ménage.enfants >= 4 alors
@@ -69,15 +69,15 @@ champ d'application CalculAllocationsFamiliales :
 
   définition allocations_familiales.montant_deuxieme_enfant sous condition
     ménage.résidence = Mayotte et
-    date_aujourd_hui > |01/01/2021| et
-    date_aujourd_hui <= |31/03/2021|
+    date_calcul > |01/01/2021| et
+    date_calcul <= |31/03/2021|
   conséquence égal à
     prestations_familiales.base_mensuelle * 32 %
 
   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
     ménage.résidence = Mayotte et
-    date_aujourd_hui > |01/01/2021| et
-    date_aujourd_hui <= |31/03/2021|
+    date_calcul > |01/01/2021| et
+    date_calcul <= |31/03/2021|
   conséquence égal à
     prestations_familiales.base_mensuelle * 16 % +
     (si nombre de ménage.enfants >= 4 alors
@@ -94,16 +94,16 @@ champ d'application CalculAllocationsFamiliales :
   définition allocations_familiales.montant_premier_enfant sous condition
     ménage.résident = Mayotte et
     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-    date_aujourd_hui > |30/04/2020| et
-    date_aujourd_hui <= |31/12/2020|
+    date_calcul > |30/04/2020| et
+    date_calcul <= |31/12/2020|
   conséquence égal à
     prestations_familiales.base_mensuelle * 7.17 %
 
   définition allocations_familiales.montant_premier_enfant sous condition
     ménage.résident = Mayotte et
     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-    date_aujourd_hui > |01/01/2021| et
-    date_aujourd_hui <= |31/03/2021|
+    date_calcul > |01/01/2021| et
+    date_calcul <= |31/03/2021|
   conséquence égal à
     prestations_familiales.base_mensuelle * 5.88 %
 */

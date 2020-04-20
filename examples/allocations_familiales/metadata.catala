@@ -184,6 +184,7 @@ déclaration structure SMIC :
 déclaration champ d'application CalculPrestationsFamiliales :
   # Les règles déclarées dans PrestationsFamiliales pourront utiliser
   # ménage et l512_3 et leur données associées
+  contexte date_calcul contenu date
   contexte ménage contenu Ménage
   contexte prestations_familiales contenu PrestationsFamiliales
   contexte l511_1 contenu L511_1
@@ -192,6 +193,7 @@ inclus champ d'application MénageBienFormé contexte
   PrestationsFamiliales.ménage = MénageBienFormé.ménage
 
 déclaration champ d'application CalculAllocationsFamiliales :
+  contexte date_calcul contenu date
   contexte ménage contenu Ménage
   contexte allocations_familiales contenu AllocationsFamiliales
   contexte allocation_forfaitaire contenu AllocationForfaitaire
@@ -208,6 +210,7 @@ déclaration champ d'application CalculAllocationsFamiliales :
   contexte d521_3 contenu D521_3
 inclus champ d'application CalculPrestationsFamiliales contexte
   AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
+  AllocationsFamiliales.date_calcul = PrestationsFamiliales.date_calcul
   # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
   # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
   # que les deux contextes parlent du même ménage pour caractériser

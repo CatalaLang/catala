@@ -40,7 +40,7 @@ champ d'application CalculPrestationsFamiliales :
 champ d'application CalculPrestationsFamiliales :
   règle prestations_familiales.droits_ouverts de enfant sous condition
     (enfant dans ménage.enfants) et
-    (date_aujourd_hui <= enfant.fin_obligation_scolaire)
+    (date_calcul <= enfant.fin_obligation_scolaire)
   conséquence rempli
 */
 
@@ -51,7 +51,7 @@ champ d'application CalculPrestationsFamiliales :
   # sont référencées dans l'article L521-1
   règle prestations_familiales.conditions_hors_âge de enfant sous condition
     (enfant dans ménage.enfants) et (
-      (date_aujourd_hui <= enfant.fin_obligation_scolaire) ou
+      (date_calcul <= enfant.fin_obligation_scolaire) ou
       (enfant.rémuneration_mensuelle <
         l512_3.plafond_rémunération_mensuelle_alinéa_2)
     )
@@ -59,7 +59,7 @@ champ d'application CalculPrestationsFamiliales :
 
   règle prestations_familiales.droits_ouverts de enfant sous condition
     (enfant dans ménage.enfants) et
-    (date_aujourd_hui > enfant.fin_obligation_scolaire) et
+    (date_calcul > enfant.fin_obligation_scolaire) et
     (l512_3.conditions_hors_âge de enfant) et
     (enfant.âge < l512_3.âge_limite_alinéa_2)
   conséquence rempli
