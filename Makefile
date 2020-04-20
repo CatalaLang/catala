@@ -1,3 +1,5 @@
+# Catala compiler rules
+
 install-dependencies:
 	opam install \
 		ANSITerminal \
@@ -9,14 +11,16 @@ install-dependencies:
 		re
 	git submodule update --init
 
+format:
+		dune build @fmt --auto-promote | true
+
 build: format
 	dune build
 
-install:
+install: build
 	dune build @install
 
-format:
-	dune build @fmt --auto-promote | true
+# Pygments syntax highilghting rules
 
 PYGMENTS_DIR=${CURDIR}/syntax_highlighting/pygments
 
@@ -25,33 +29,27 @@ PYGMENTIZE=$(PYGMENTS_DIR)/pygments/env/bin/pygmentize
 $(PYGMENTIZE): $(PYGMENTS_DIR)/set_up_pygments.sh $(PYGMENTS_DIR)/catala.py
 	chmod +x $<
 	$<
-	rm -rf  $(SRC_DIR)/_minted-allocations_familiales
 
-ifdef $(PVC)
-	PVC_OPTION=-pvc
-else
-	PVC_OPTION=
-endif
+pygments: $(PYGMENTIZE)
 
-LATEXMK=latexmk $(PVC_OPTION) -g -pdf -halt-on-error -shell-escape
+# Examples-related rule
 
-SRC_DIR=${CURDIR}/examples/allocations_familiales
-SRC = $(SRC_DIR)/allocations_familiales.catala
+allocations_familiales: $(PYGMENTIZE) build
+	$(MAKE) -C examples/allocations_familiales allocations_familiales.pdf
 
+english: $(PYGMENTIZE) build
+	$(MAKE) -C examples/dummy_english english.pdf
 
-%.tex: %.catala 
-	dune exec src/main.exe -- Makefile $<
-	dune exec src/main.exe --\
-		--debug \
-		--wrap_latex \
-		--pygmentize=$(PYGMENTIZE)\
-		LaTeX \
-		$<
+all_examples: allocations_familiales english
 
-%.pdf: %.tex $(PYGMENTIZE)
-	cd $(@D) && $(LATEXMK) $(%F)
+# Misceallenous
 
-include $(wildcard $(SRC:.catala=.d))
+all: install-dependencies install all_examples
+
+clean:
+	dune clean
+	$(MAKE) -C examples/allocations_familiales clean
+	$(MAKE) -C examples/dummy_english clean
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading
