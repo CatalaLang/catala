@@ -63,7 +63,7 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
       0
   | Cli.LaTeX ->
       Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
-      let weaved_output = Weave.ast_to_latex program in
+      let weaved_output = Weave.ast_to_latex program language in
       let weaved_output =
         if wrap_latex_output then
           Weave.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc language
