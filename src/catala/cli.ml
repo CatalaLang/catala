@@ -37,11 +37,15 @@ let backend =
     & pos 0 (some string) None
     & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile")
 
+type backend_option = LaTeX | Makefile
+
 let language =
   Arg.(
     value
     & opt (some string) None
     & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr (default fr)")
+
+type language_option = Fr | En
 
 let output =
   Arg.(

@@ -12,7 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-let rec parse_source_files (source_files : string list) (language : string) : Ast.program =
+let rec parse_source_files (source_files : string list) (language : Cli.language_option) :
+    Ast.program =
   match source_files with
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
@@ -25,13 +26,7 @@ let rec parse_source_files (source_files : string list) (language : string) : As
       try
         Parse_utils.current_file := source_file;
         let lexer_lang =
-          if language = "fr" then Lexer_fr.lexer_fr
-          else if language = "en" then Lexer_en.lexer_en
-          else begin
-            Cli.error_print
-              (Printf.sprintf "The selected language (%s) is not supported by Catala" language);
-            exit (-1)
-          end
+          match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
         in
         let commands_or_includes =
           Sedlex_menhir.sedlex_with_menhir lexer_lang Parser.source_file_or_master lexbuf
