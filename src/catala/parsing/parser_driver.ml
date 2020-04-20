@@ -43,7 +43,10 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
             let current_source_file_dirname = Filename.dirname source_file in
             let includes =
               List.map
-                (fun includ -> current_source_file_dirname ^ "/" ^ Pos.unmark includ)
+                (fun includ ->
+                  ( if current_source_file_dirname = "./" then current_source_file_dirname ^ "/"
+                  else "" )
+                  ^ Pos.unmark includ)
                 includes
             in
             let new_program = parse_source_files (includes @ rest) language in

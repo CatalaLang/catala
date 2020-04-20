@@ -1,3 +1,3 @@
-include ../Makefile.common
+SRC=allocations_familiales.catala
 
-SRC = allocations_familiales.catala
+include ../Makefile.common

@@ -57,3 +57,8 @@ clean:
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading
+
+# Special targets
+
+.PHONY: inspect clean all all_examples english allocations_familiales pygments \
+	install build format install-dependencies

@@ -2,16 +2,16 @@ LATEXMK=latexmk
 
 PYGMENTIZE=../../syntax_highlighting/pygments/pygments/env/bin/pygmentize
 
-CATALA=dune exec ../../src/main.exe --
-
 CATALA_LANG?=fr
 
-%.tex: %.catala
-	$(CATALA) --language=en Makefile $<
+CATALA=dune exec ../../src/main.exe -- --debug --language=$(CATALA_LANG)
+
+CATALA_EXE=../../_build/default/src/main.exe
+
+%.tex: %.catala $(CATALA_EXE)
+	$(CATALA) Makefile $<
 	$(CATALA) \
-		--debug \
 		--wrap_latex \
-		--language=$(CATALA_LANG) \
 		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
@@ -24,3 +24,5 @@ clean:
 	rm -rf $(SRC:.catala=.tex) $(SRC:.catala=.d) _minted-$(SRC:.catala=)
 
 include $(wildcard $(SRC:.catala=.d))
+
+.SECONDARY:
