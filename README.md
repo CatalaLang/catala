@@ -48,7 +48,7 @@ You will need to have a standard LaTeX distribution installed as well as the
 
 To get that lawyer-readable version (which is a LaTeX-created) PDF, simply use
 
-    make examples/allocations_familiales/allocations_familiales.pdf
+    make allocations_familiales
 
 from the repository root, once you have managed to install the
 compiler (see below). You can then open `examples/allocations_familiales/allocations_familiales.pdf`
@@ -69,10 +69,11 @@ implementation.
 
 ### Languages
 
-Currently, the Catala language only enjoys a French surface
-language, adapted to French law. However, it is perfectly
-possible to craft new parsers for new surface languages adapted
-to English, Spanish, etc. Contact the authors if you are interested.
+The main Catala surface language is adapted to French law, and has French
+keywords. However, it is perfectly possible to craft new parsers for new
+surface languages adapted to English, Spanish, etc. Currently, Catala also
+supports Enlish via the `--language=en` option. Contact the authors
+if you are interested.
 
 ## The Catala compiler
 

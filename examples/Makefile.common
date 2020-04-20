@@ -2,13 +2,15 @@ LATEXMK=latexmk
 
 PYGMENTIZE=../../syntax_highlighting/pygments/pygments/env/bin/pygmentize
 
+CATALA=dune exec ../../src/main.exe --
+
 %.tex: %.catala
-	dune exec ../../src/main.exe --	--language=en Makefile $<
-	dune exec ../../src/main.exe --\
+	$(CATALA) --language=en Makefile $<
+	$(CATALA) \
 		--debug \
 		--wrap_latex \
 		--language=en \
-		--pygmentize=$(PYGMENTIZE)\
+		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
 
