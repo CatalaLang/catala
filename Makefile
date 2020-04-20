@@ -36,7 +36,7 @@ pygments: $(PYGMENTIZE)
 
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
-ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/enlish_dummy
+ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
 
 allocations_familiales: $(PYGMENTIZE) build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
