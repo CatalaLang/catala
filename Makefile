@@ -8,6 +8,7 @@ install-dependencies:
 		menhirLib \
 		dune \
 		cmdliner \
+		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re
 	git submodule update --init
 

@@ -17,8 +17,8 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
   match source_files with
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
-      let input = open_in source_file in
       Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
+      let input = open_in source_file in
       let lexbuf =
         Sedlex_menhir.create_lexbuf ~file:(Filename.basename source_file)
           (Sedlexing.Utf8.from_channel input)
@@ -44,8 +44,8 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
             let includes =
               List.map
                 (fun includ ->
-                  ( if current_source_file_dirname = "./" then current_source_file_dirname ^ "/"
-                  else "" )
+                  ( if current_source_file_dirname = "./" then ""
+                  else current_source_file_dirname ^ "/" )
                   ^ Pos.unmark includ)
                 includes
             in

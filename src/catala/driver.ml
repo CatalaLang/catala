@@ -22,7 +22,7 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
   Cli.debug_print "Reading files...";
   if Filename.extension source_file <> ".catala" then begin
     Cli.error_print (Printf.sprintf "Source file %s must have the .catala extension!" source_file);
-    exit (-1)
+    exit 1
   end;
   let language =
     match language with
@@ -31,7 +31,7 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
         else if l = "en" then Cli.En
         else begin
           Cli.error_print (Printf.sprintf "The selected language (%s) is not supported by Catala" l);
-          exit (-1)
+          exit 1
         end
     | None -> Cli.Fr
   in
@@ -41,7 +41,7 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
     else begin
       Cli.error_print
         (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend);
-      exit (-1)
+      exit 1
     end
   in
   let program = Parser_driver.parse_source_files [ source_file ] language in

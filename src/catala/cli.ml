@@ -84,10 +84,7 @@ let info =
       `P "Please file bug reports at https://gitlab.inria.fr/verifisc/catala/issues";
     ]
   in
-  let exits =
-    Term.default_exits
-    @ [ Term.exit_info ~doc:"on parsing error." 1; Term.exit_info ~doc:"on typechecking error." 2 ]
-  in
+  let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
   Term.info "catala"
     ~version:
       ( match Build_info.V1.version () with

@@ -1,7 +1,13 @@
 (executable
- (name main)
+ (name catala)
  (package catala)
+ (modules catala)
  (public_name catala)
- (libraries catala)
- (preprocess
-  (pps sedlex.ppx)))
+ (libraries catala))
+
+(executable
+ (name legifrance_catala)
+ (package catala)
+ (modules legifrance_catala)
+ (public_name legifrance_catala)
+ (libraries legifrance_catala))

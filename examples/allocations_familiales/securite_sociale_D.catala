@@ -219,7 +219,7 @@ champ d'application CalculAllocationsFamiliales :
 III.- Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de l'article L. 521-1 est fixé à trois.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition l512_1.nombre_minimum_enfants égal à 3
+  définition l521_1.nombre_minimum_enfants égal à 3
 */
 
 @Article D521-3@
