@@ -15,7 +15,7 @@
 open Lwt
 
 let get_token_aux (client_id : string) (client_secret : string) : (string * string t) t =
-  let site = "https://sandbox-oauth.aife.economie.gouv.fr" in
+  let site = "https://oauth.aife.economie.gouv.fr" in
   let token_url = "/api/oauth/token" in
   let uri = Uri.of_string (site ^ token_url) in
   let headers = Cohttp.Header.init_with "Content-Type" "application/x-www-form-urlencoded" in
@@ -49,12 +49,12 @@ let get_token (client_id : string) (client_secret : string) : string =
   end
 
 let get_article_aux (access_token : string) : (string * string t) t =
-  let site = "https://sandbox-api.aife.economie.gouv.fr" in
-  let token_url = "/dila/legifrance-beta/lf-engine-app/consult/getArticle" in
+  let site = "https://api.aife.economie.gouv.fr" in
+  let token_url = "/dila/legifrance-beta/lf-engine-app/consult/legiPart" in
   let uri = Uri.of_string (site ^ token_url) in
   let headers = Cohttp.Header.init_with "Authorization" (Printf.sprintf "Bearer %s" access_token) in
   let body_string =
-    [ ("id", "LEGIARTI000006307920") ]
+    [ ("textId", "LEGITEXT000006073189"); ("date", "1587488994320") ]
     |> List.map (fun (k, v) -> Printf.sprintf {|"%s":"%s"|} k v)
     |> String.concat "," |> Printf.sprintf "{%s}"
   in
