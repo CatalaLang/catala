@@ -51,16 +51,10 @@ let get_token (client_id : string) (client_secret : string) : string =
 
 let make_api_uri (request : string) = Uri.of_string ("https://api.aife.economie.gouv.fr" ^ request)
 
-let make_api_request access_token (request_url : string) (headers_text : (string * string) list)
-    (body_string : (string * string) list) =
+let make_api_request access_token (request_url : string) (body_string : (string * string) list) =
   let uri = make_api_uri request_url in
   let headers = Cohttp.Header.init_with "Authorization" (Printf.sprintf "Bearer %s" access_token) in
   let headers = Cohttp.Header.add headers "Content-Type" "application/json" in
-  let headers =
-    List.fold_left
-      (fun headers (key, value) -> Cohttp.Header.add headers key value)
-      headers headers_text
-  in
   let body_string =
     body_string
     |> List.map (fun (k, v) -> Printf.sprintf {|"%s":"%s"|} k v)
@@ -75,14 +69,11 @@ let make_api_request access_token (request_url : string) (headers_text : (string
 let get_article (access_token : string) : string =
   let resp, body =
     Lwt_main.run
-      (make_api_request access_token "/dila/legifrance-beta/lf-engine-app/consult/getArticle" []
+      (make_api_request access_token "/dila/legifrance-beta/lf-engine-app/consult/getArticle"
          [ ("id", "LEGIARTI000006743289") ])
   in
   let body = Lwt_main.run body in
-  if resp = "200 OK" then
-    body |> Yojson.Basic.from_string
-    |> Yojson.Basic.Util.member "article"
-    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.to_string
+  if resp = "200 OK" then body
   else begin
     Catala.Cli.error_print
       (Printf.sprintf "The API request went wrong ; status is %s and the body is\n%s" resp body);
