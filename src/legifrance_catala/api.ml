@@ -41,7 +41,7 @@ let get_token (client_id : string) (client_secret : string) : string =
   if resp = "200 OK" then
     body |> Yojson.Basic.from_string
     |> Yojson.Basic.Util.member "access_token"
-    |> Yojson.Basic.to_string
+    |> Yojson.Basic.Util.to_string
   else begin
     Catala.Cli.debug_print
       (Printf.sprintf "The API access token request went wrong ; status is %s and the body is\n%s"
@@ -49,14 +49,17 @@ let get_token (client_id : string) (client_secret : string) : string =
     exit 1
   end
 
-let make_api_uri (request : string) = Uri.of_string ("https://api.aife.economie.gouv.fr" ^ request)
+let site = "https://api.aife.economie.gouv.fr"
 
-let make_api_request access_token (request_url : string) (body_string : (string * string) list) =
-  let uri = make_api_uri request_url in
+let base_token_url = "/dila/legifrance-beta/lf-engine-app/"
+
+let make_request (access_token : string) (token_url : string) (body_json : (string * string) list) :
+    (string * string t) t =
+  let uri = Uri.of_string (site ^ base_token_url ^ token_url) in
   let headers = Cohttp.Header.init_with "Authorization" (Printf.sprintf "Bearer %s" access_token) in
   let headers = Cohttp.Header.add headers "Content-Type" "application/json" in
   let body_string =
-    body_string
+    body_json
     |> List.map (fun (k, v) -> Printf.sprintf {|"%s":"%s"|} k v)
     |> String.concat "," |> Printf.sprintf "{%s}"
   in
@@ -66,14 +69,15 @@ let make_api_request access_token (request_url : string) (body_string : (string 
     body |> Cohttp_lwt.Body.to_string )
   |> return
 
-let get_article (access_token : string) : string =
+let get_article (access_token : string) (article_id : string) : string =
   let resp, body =
-    Lwt_main.run
-      (make_api_request access_token "/dila/legifrance-beta/lf-engine-app/consult/getArticle"
-         [ ("id", "LEGIARTI000006743289") ])
+    Lwt_main.run (make_request access_token "consult/getArticle" [ ("id", article_id) ])
   in
   let body = Lwt_main.run body in
-  if resp = "200 OK" then body
+  if resp = "200 OK" then
+    body |> Yojson.Basic.from_string
+    |> Yojson.Basic.Util.member "article"
+    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.Util.to_string
   else begin
     Catala.Cli.error_print
       (Printf.sprintf "The API request went wrong ; status is %s and the body is\n%s" resp body);

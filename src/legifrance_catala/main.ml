@@ -59,7 +59,7 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   if debug then Catala.Cli.debug_flag := true;
   let access_token = Api.get_token client_id client_secret in
   Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" access_token);
-  let article = Api.get_article access_token in
+  let article = Api.get_article access_token "LEGIARTI000006743289" in
   Catala.Cli.debug_print (Printf.sprintf "The content of the article is\n%s" article);
   (* LegiFrance is only supported for French texts *)
   let _program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
