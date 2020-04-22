@@ -22,7 +22,7 @@
 %}
 
 %token EOF
-%token<string * string option> LAW_ARTICLE
+%token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
 %token<string * int option> LAW_INCLUDE
 %token<string> LAW_TEXT
@@ -466,9 +466,10 @@ metadata_block:
 
 source_file_item:
 | title = LAW_ARTICLE {
-  let (title, id) = title in LawArticle {
+  let (title, id, exp_date) = title in LawArticle {
     law_article_name = (title, mk_position $sloc);
     law_article_id = id;
+    law_article_expiration_date = exp_date;
   }
 }
 | heading = LAW_HEADING { let (title, precedence) = heading in LawHeading (title, precedence) }

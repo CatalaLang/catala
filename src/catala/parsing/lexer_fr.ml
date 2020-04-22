@@ -355,13 +355,15 @@ let rec lex_law_fr lexbuf =
       LAW_HEADING (law_title, precedence)
   | "@", Plus (Compl '@'), "@" ->
       let extract_article_title =
-        R.regexp "\\@(([^\\|]+)\\|((LEGIARTI|JORFARTI)[0-9]{12})|[^\\@]+)\\@"
+        R.regexp
+          "\\@(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\@"
       in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf))
       in
       let title = try get_substring 2 with Not_found -> get_substring 1 in
-      let article_id = try Some (get_substring 3) with Not_found -> None in
+      let article_id = try Some (get_substring 4) with Not_found -> None in
+      let article_expiration_date = try Some (get_substring 7) with Not_found -> None in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
@@ -371,7 +373,7 @@ let rec lex_law_fr lexbuf =
         new_line lexbuf
       done;
       update lexbuf;
-      LAW_ARTICLE (title, article_id)
+      LAW_ARTICLE (title, article_id, article_expiration_date)
   | Plus (Compl ('@' | '/' | '\n')) ->
       update lexbuf;
       LAW_TEXT (Sedlexing.Utf8.lexeme buf)
