@@ -88,7 +88,8 @@ let parse_expiration_date (expiration_date : string) : Unix.tm =
     exit 0
 
 let print_tm (d : Unix.tm) : string =
-  Printf.sprintf "%02d/%02d/%d " d.Unix.tm_mday (1 + d.Unix.tm_mon) (1900 + d.Unix.tm_year)
+  if d.Unix.tm_year + 1900 = 2999 then "undefined date"
+  else Printf.sprintf "%02d/%02d/%d " d.Unix.tm_mday (1 + d.Unix.tm_mon) (1900 + d.Unix.tm_year)
 
 let date_before (d1 : Unix.tm) (d2 : Unix.tm) : bool = fst (Unix.mktime d1) <= fst (Unix.mktime d2)
 
@@ -109,15 +110,16 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
           | Some article_id ->
               let article = Api.get_article_json access_token article_id in
               let article_expiration_date = Api.get_article_expiration_date article in
-              if date_before article_expiration_date expiration_date then assert false
-              else
-                Catala.Cli.debug_print
-                  (Printf.sprintf "%s %s expires on %s"
-                     (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
-                     (Catala.Pos.to_string
-                        (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
-                     (print_tm article_expiration_date)
-                    ) )
+              let msg =
+                Printf.sprintf "%s %s expires on %s"
+                  (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
+                  (Catala.Pos.to_string
+                     (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
+                  (print_tm article_expiration_date)
+              in
+              if date_before article_expiration_date expiration_date then
+                Catala.Cli.warning_print msg
+              else Catala.Cli.debug_print msg )
       | _ -> ())
     program.program_items;
   exit 0

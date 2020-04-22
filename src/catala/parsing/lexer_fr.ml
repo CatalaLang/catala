@@ -355,7 +355,7 @@ let rec lex_law_fr lexbuf =
       LAW_HEADING (law_title, precedence)
   | "@", Plus (Compl '@'), "@" ->
       let extract_article_title =
-        R.regexp "\\@(([^\\|]+)\\|(LEGIARTI[0-9]{12})|[^\\@]+)\\@"
+        R.regexp "\\@(([^\\|]+)\\|((LEGIARTI|JORFARTI)[0-9]{12})|[^\\@]+)\\@"
       in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf))
