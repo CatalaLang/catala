@@ -1,6 +1,7 @@
 (library
  (name legifrance_catala)
- (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson re simple-diff ANSITerminal))
+ (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson re ANSITerminal
+   simple-diff))
 
 (documentation
  (package catala))

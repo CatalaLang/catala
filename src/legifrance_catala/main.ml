@@ -139,8 +139,11 @@ let compare_previous_article_to_new_version (access_token : string) =
   | Some text_acc ->
       let new_article = Api.get_article_json access_token text_acc.new_version in
       let new_article_text = Api.get_article_text new_article in
-      let old_list = List.filter (fun word -> word != " ") (String.split_on_char ' ' text_acc.text) in
-      let new_list = List.filter (fun word -> word != " ") (String.split_on_char ' ' new_article_text) in
+      let text_to_list text =
+        List.filter (fun word -> word <> "") (String.split_on_char ' ' text)
+      in
+      let old_list = text_to_list text_acc.text in
+      let new_list = text_to_list new_article_text in
       let diff = Diff.get_diff (Array.of_list old_list) (Array.of_list new_list) in
       Catala.Cli.warning_print
         (Printf.sprintf "Diff between old article version and new article version:\n%s"
@@ -149,13 +152,14 @@ let compare_previous_article_to_new_version (access_token : string) =
                  (fun chunk ->
                    match chunk with
                    | Diff.Equal words ->
-                       ANSITerminal.sprintf [ ] "Equal: %s" (String.concat " " (Array.to_list words))
+                       ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
                    | Diff.Added words ->
-                       ANSITerminal.sprintf [ ANSITerminal.green ] "Added: %s" (String.concat " " (Array.to_list words))
+                       ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
+                         (String.concat " " (Array.to_list words))
                    | Diff.Deleted words ->
-                       ANSITerminal.sprintf [ ANSITerminal.red ] "Deleted: %s" (String.concat " " (Array.to_list words)))
-                 diff))
-                 )
+                       ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
+                         (String.concat " " (Array.to_list words)))
+                 diff)))
 
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
