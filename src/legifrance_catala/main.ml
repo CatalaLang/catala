@@ -127,39 +127,48 @@ let check_article_expiration (article_catala : Catala.Ast.law_article) (access_t
         None
       end
 
-type article_text_acc_ref = { text : string; new_version : string }
-
-let article_text_acc : article_text_acc_ref option ref = ref None
+type article_text_acc = {
+  text : string;
+  new_version : string option;
+  current_version : string option;
+}
 
 module Diff = Simple_diff.Make (String)
 
-let compare_previous_article_to_new_version (access_token : string) =
-  match !article_text_acc with
+let compare_article_to_version (access_token : string) (text : string) (version : string) =
+  let new_article = Api.get_article_json access_token version in
+  let new_article_text = Api.get_article_text new_article in
+  let text_to_list text = List.filter (fun word -> word <> "") (String.split_on_char ' ' text) in
+  let old_list = text_to_list text in
+  let new_list = text_to_list new_article_text in
+  let diff = Diff.get_diff (Array.of_list old_list) (Array.of_list new_list) in
+  let all_equal = List.for_all (fun chunk -> match chunk with Diff.Equal _ -> true | _ -> false) diff in
+  if not all_equal then
+  Catala.Cli.warning_print
+    (Printf.sprintf "Diff:\n%s"
+       (String.concat "\n"
+          (List.map
+             (fun chunk ->
+               match chunk with
+               | Diff.Equal words ->
+                   ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
+               | Diff.Added words ->
+                   ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
+                     (String.concat " " (Array.to_list words))
+               | Diff.Deleted words ->
+                   ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
+                     (String.concat " " (Array.to_list words)))
+             diff)))
+
+let compare_to_versions (article_text_acc : article_text_acc) (access_token : string) : unit =
+  begin
+    match article_text_acc.new_version with
+    | Some version -> compare_article_to_version access_token article_text_acc.text version
+    | None -> ()
+  end;
+  match article_text_acc.current_version with
+  | Some version -> compare_article_to_version access_token article_text_acc.text version
   | None -> ()
-  | Some text_acc ->
-      let new_article = Api.get_article_json access_token text_acc.new_version in
-      let new_article_text = Api.get_article_text new_article in
-      let text_to_list text =
-        List.filter (fun word -> word <> "") (String.split_on_char ' ' text)
-      in
-      let old_list = text_to_list text_acc.text in
-      let new_list = text_to_list new_article_text in
-      let diff = Diff.get_diff (Array.of_list old_list) (Array.of_list new_list) in
-      Catala.Cli.warning_print
-        (Printf.sprintf "Diff between old article version and new article version:\n%s"
-           (String.concat "\n"
-              (List.map
-                 (fun chunk ->
-                   match chunk with
-                   | Diff.Equal words ->
-                       ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
-                   | Diff.Added words ->
-                       ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
-                         (String.concat " " (Array.to_list words))
-                   | Diff.Deleted words ->
-                       ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
-                         (String.concat " " (Array.to_list words)))
-                 diff)))
 
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
@@ -167,23 +176,33 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" access_token);
   (* LegiFrance is only supported for French texts *)
   let program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
-  List.iter
-    (fun item ->
-      match item with
-      | Catala.Ast.LawArticle article_catala -> (
-          compare_previous_article_to_new_version access_token;
-          let new_version = check_article_expiration article_catala access_token in
-          match new_version with
-          | Some (Available version) ->
-              article_text_acc := Some { text = ""; new_version = version }
-          | _ -> article_text_acc := None )
-      | Catala.Ast.LawText art_text -> (
-          match !article_text_acc with
-          | None -> ()
-          | Some text_acc ->
-              article_text_acc := Some { text_acc with text = text_acc.text ^ " " ^ art_text } )
-      | _ -> ())
-    program.program_items;
+  let article_text_acc =
+    List.fold_left
+      (fun article_text_acc item ->
+        match item with
+        | Catala.Ast.LawArticle article_catala -> (
+            compare_to_versions article_text_acc access_token;
+            let new_version = check_article_expiration article_catala access_token in
+            match new_version with
+            | Some (Available version) ->
+                {
+                  text = "";
+                  new_version = Some version;
+                  current_version = article_catala.Catala.Ast.law_article_id;
+                }
+            | _ ->
+                {
+                  text = "";
+                  new_version = None;
+                  current_version = article_catala.Catala.Ast.law_article_id;
+                } )
+        | Catala.Ast.LawText art_text ->
+            { article_text_acc with text = article_text_acc.text ^ " " ^ art_text }
+        | _ -> article_text_acc)
+      { text = ""; new_version = None; current_version = None }
+      program.program_items
+  in
+  compare_to_versions article_text_acc access_token;
   exit 0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (catala_legifrance_t driver, info)
