@@ -6,7 +6,13 @@ CATALA_LANG?=fr
 
 CATALA=dune exec ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
 
+LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe -- --debug
+
 CATALA_EXE=../../_build/default/src/catala.exe
+LEGIFRANCE_CATALA_EXE=../../_build/default/src/legifrance_catala.exe
+
+CLIENT_ID?=$(shell cat ../../legifrance_oauth_id.txt)
+CLIENT_SECRET?=$(shell cat ../../legifrance_oauth_secret.txt)
 
 %.tex: %.catala $(CATALA_EXE)
 	$(CATALA) Makefile $<
@@ -15,6 +21,9 @@ CATALA_EXE=../../_build/default/src/catala.exe
 		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
+
+%.expired: %.catala $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
+	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)
 
 %.pdf: %.tex
 	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)

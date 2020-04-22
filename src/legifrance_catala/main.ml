@@ -33,17 +33,9 @@ let client_secret =
     & pos 2 (some string) None
     & info [] ~docv:"CLIENT_SECRET" ~doc:"LegiFrance Oauth cliend secret")
 
-let expiration_date =
-  Arg.(
-    required
-    & pos 3 (some string) None
-    & info [] ~docv:"EXPIRATION_DATE"
-        ~doc:"Articles that expire before this date will yield a warning (format DD/MM/YYYY)")
-
 let debug = Arg.(value & flag & info [ "d"; "debug" ] ~doc:"Prints debug information")
 
-let catala_legifrance_t f =
-  Term.(const f $ file $ debug $ client_id $ client_secret $ expiration_date)
+let catala_legifrance_t f = Term.(const f $ file $ debug $ client_id $ client_secret)
 
 let info =
   let doc = "LegiFrance interaction tool for Catala" in
@@ -91,10 +83,11 @@ let print_tm (d : Unix.tm) : string =
   if d.Unix.tm_year + 1900 = 2999 then "undefined date"
   else Printf.sprintf "%02d/%02d/%d " d.Unix.tm_mday (1 + d.Unix.tm_mon) (1900 + d.Unix.tm_year)
 
+let is_infinity (d : Unix.tm) : bool = d.Unix.tm_year + 1900 = 2999
+
 let date_before (d1 : Unix.tm) (d2 : Unix.tm) : bool = fst (Unix.mktime d1) <= fst (Unix.mktime d2)
 
-let process_article (article_catala : Catala.Ast.law_article) (access_token : string)
-    (expiration_date : Unix.tm) : unit =
+let process_article (article_catala : Catala.Ast.law_article) (access_token : string) : unit =
   match article_catala.Catala.Ast.law_article_id with
   | None -> ()
   | Some article_id ->
@@ -111,20 +104,18 @@ let process_article (article_catala : Catala.Ast.law_article) (access_token : st
           | Some source_exp_date -> ", " ^ source_exp_date ^ " according to source code" )
       in
       if
-        date_before api_article_expiration_date expiration_date
+        (not (is_infinity api_article_expiration_date))
         ||
         match article_catala.Catala.Ast.law_article_expiration_date with
         | None -> false
         | Some source_exp_date ->
             let source_exp_date = parse_expiration_date source_exp_date in
-            date_before source_exp_date expiration_date
+            not (is_infinity source_exp_date)
       then Catala.Cli.warning_print msg
       else Catala.Cli.debug_print msg
 
-let driver (file : string) (debug : bool) (client_id : string) (client_secret : string)
-    (expiration_date : string) =
+let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
-  let expiration_date = parse_expiration_date expiration_date in
   let access_token = Api.get_token client_id client_secret in
   Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" access_token);
   (* LegiFrance is only supported for French texts *)
@@ -132,8 +123,7 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   List.iter
     (fun item ->
       match item with
-      | Catala.Ast.LawArticle article_catala ->
-          process_article article_catala access_token expiration_date
+      | Catala.Ast.LawArticle article_catala -> process_article article_catala access_token
       | _ -> ())
     program.program_items;
   exit 0
