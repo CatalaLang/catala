@@ -33,9 +33,17 @@ let client_secret =
     & pos 2 (some string) None
     & info [] ~docv:"CLIENT_SECRET" ~doc:"LegiFrance Oauth cliend secret")
 
+let expiration_date =
+  Arg.(
+    required
+    & pos 3 (some string) None
+    & info [] ~docv:"EXPIRATION_DATE"
+        ~doc:"Articles that expire before this date will yield a warning (format DD/MM/YYYY)")
+
 let debug = Arg.(value & flag & info [ "d"; "debug" ] ~doc:"Prints debug information")
 
-let catala_legifrance_t f = Term.(const f $ file $ debug $ client_id $ client_secret)
+let catala_legifrance_t f =
+  Term.(const f $ file $ debug $ client_id $ client_secret $ expiration_date)
 
 let info =
   let doc = "LegiFrance interaction tool for Catala" in
@@ -55,21 +63,63 @@ let info =
       | Some v -> Build_info.V1.Version.to_string v )
     ~doc ~exits ~man
 
-let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
+let parse_expiration_date (expiration_date : string) : Unix.tm =
+  try
+    let extract_article_title = Re.Pcre.regexp "([0-9]{2})\\/([0-9]{2})\\/([0-9]{4})" in
+    let get_substring =
+      Re.Pcre.get_substring (Re.Pcre.exec ~rex:extract_article_title expiration_date)
+    in
+    snd
+      (Unix.mktime
+         {
+           Unix.tm_mday = int_of_string (get_substring 1);
+           Unix.tm_mon = int_of_string (get_substring 2);
+           Unix.tm_year = int_of_string (get_substring 3) - 1900;
+           Unix.tm_sec = 0;
+           Unix.tm_min = 0;
+           Unix.tm_hour = 0;
+           Unix.tm_wday = 0;
+           Unix.tm_yday = 0;
+           Unix.tm_isdst = false;
+         })
+  with _ ->
+    Catala.Cli.error_print
+      (Printf.sprintf "Error while parsing expiration date argument (%s)" expiration_date);
+    exit 0
+
+let print_tm (d : Unix.tm) : string =
+  Printf.sprintf "%02d/%02d/%d " d.Unix.tm_mday (1 + d.Unix.tm_mon) (1900 + d.Unix.tm_year)
+
+let date_before (d1 : Unix.tm) (d2 : Unix.tm) : bool = fst (Unix.mktime d1) <= fst (Unix.mktime d2)
+
+let driver (file : string) (debug : bool) (client_id : string) (client_secret : string)
+    (expiration_date : string) =
   if debug then Catala.Cli.debug_flag := true;
+  let expiration_date = parse_expiration_date expiration_date in
   let access_token = Api.get_token client_id client_secret in
   Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" access_token);
-  let article = Api.get_article_json access_token "LEGIARTI000038889038" in
-  let article_text = Api.get_article_text article in
-  let article_expiration_date = Api.get_article_expiration_date article in
-  Catala.Cli.debug_print
-    (Printf.sprintf "The content of the article (that expires on %02d/%02d/%d) is\n%s"
-       article_expiration_date.Unix.tm_mday article_expiration_date.Unix.tm_mon
-       (1900 + article_expiration_date.Unix.tm_year)
-       article_text);
   (* LegiFrance is only supported for French texts *)
-  let _program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
-  (*TODO: introduce content id on Catala articles, and then retrive the text through the API *)
+  let program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
+  List.iter
+    (fun item ->
+      match item with
+      | Catala.Ast.LawArticle article_catala -> (
+          match article_catala.Catala.Ast.law_article_id with
+          | None -> ()
+          | Some article_id ->
+              let article = Api.get_article_json access_token article_id in
+              let article_expiration_date = Api.get_article_expiration_date article in
+              if date_before article_expiration_date expiration_date then assert false
+              else
+                Catala.Cli.debug_print
+                  (Printf.sprintf "%s %s expires on %s"
+                     (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
+                     (Catala.Pos.to_string
+                        (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
+                     (print_tm article_expiration_date)
+                    ) )
+      | _ -> ())
+    program.program_items;
   exit 0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (catala_legifrance_t driver, info)

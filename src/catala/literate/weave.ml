@@ -110,7 +110,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         (match precedence with 0 -> "" | 1 -> "" | 2 -> "sub" | 3 -> "sub" | _ -> "subsub")
         (pre_latexify title)
   | A.LawText t -> pre_latexify t
-  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify a)
+  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify (Pos.unmark a.law_article_name))
   | A.CodeBlock (_, c) ->
       P.sprintf
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}%s\\end{minted}"

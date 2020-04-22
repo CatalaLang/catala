@@ -169,9 +169,11 @@ type code_block = code_item Pos.marked list
 
 type source_repr = string Pos.marked
 
+type law_article = { law_article_name : string Pos.marked; law_article_id : string option }
+
 type program_item =
   | LawHeading of string * int
-  | LawArticle of string
+  | LawArticle of law_article
   | LawText of string
   | CodeBlock of code_block * source_repr
   | MetadataBlock of code_block * source_repr

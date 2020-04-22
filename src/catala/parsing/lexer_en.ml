@@ -359,7 +359,7 @@ let rec lex_law_en lexbuf =
         new_line lexbuf
       done;
       update lexbuf;
-      LAW_ARTICLE title
+      LAW_ARTICLE (title, None)
   | Plus (Compl ('@' | '/' | '\n')) ->
       update lexbuf;
       LAW_TEXT (Sedlexing.Utf8.lexeme buf)
