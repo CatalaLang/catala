@@ -39,8 +39,9 @@ let get_token (client_id : string) (client_secret : string) : string =
   let resp, body = Lwt_main.run (get_token_aux client_id client_secret) in
   let body = Lwt_main.run body in
   if resp = "200 OK" then
-    let open Yojson.Basic.Util in
-    body |> Yojson.Basic.from_string |> member "access_token" |> to_string
+    body |> Yojson.Basic.from_string
+    |> Yojson.Basic.Util.member "access_token"
+    |> Yojson.Basic.to_string
   else begin
     Catala.Cli.debug_print
       (Printf.sprintf "The API access token request went wrong ; status is %s and the body is\n%s"
@@ -48,13 +49,20 @@ let get_token (client_id : string) (client_secret : string) : string =
     exit 1
   end
 
-let get_article_aux (access_token : string) : (string * string t) t =
-  let site = "https://api.aife.economie.gouv.fr" in
-  let token_url = "/dila/legifrance-beta/lf-engine-app/consult/legiPart" in
-  let uri = Uri.of_string (site ^ token_url) in
+let make_api_uri (request : string) = Uri.of_string ("https://api.aife.economie.gouv.fr" ^ request)
+
+let make_api_request access_token (request_url : string) (headers_text : (string * string) list)
+    (body_string : (string * string) list) =
+  let uri = make_api_uri request_url in
   let headers = Cohttp.Header.init_with "Authorization" (Printf.sprintf "Bearer %s" access_token) in
+  let headers = Cohttp.Header.add headers "Content-Type" "application/json" in
+  let headers =
+    List.fold_left
+      (fun headers (key, value) -> Cohttp.Header.add headers key value)
+      headers headers_text
+  in
   let body_string =
-    [ ("textId", "LEGITEXT000006073189"); ("date", "1587488994320") ]
+    body_string
     |> List.map (fun (k, v) -> Printf.sprintf {|"%s":"%s"|} k v)
     |> String.concat "," |> Printf.sprintf "{%s}"
   in
@@ -65,14 +73,18 @@ let get_article_aux (access_token : string) : (string * string t) t =
   |> return
 
 let get_article (access_token : string) : string =
-  let resp, body = Lwt_main.run (get_article_aux access_token) in
+  let resp, body =
+    Lwt_main.run
+      (make_api_request access_token "/dila/legifrance-beta/lf-engine-app/consult/getArticle" []
+         [ ("id", "LEGIARTI000006743289") ])
+  in
   let body = Lwt_main.run body in
   if resp = "200 OK" then
-    let open Yojson.Basic.Util in
-    body |> Yojson.Basic.from_string |> member "access_token" |> to_string
+    body |> Yojson.Basic.from_string
+    |> Yojson.Basic.Util.member "article"
+    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.to_string
   else begin
-    Catala.Cli.debug_print
-      (Printf.sprintf "The API access token request went wrong ; status is %s and the body is\n%s"
-         resp body);
+    Catala.Cli.error_print
+      (Printf.sprintf "The API request went wrong ; status is %s and the body is\n%s" resp body);
     exit 1
   end
