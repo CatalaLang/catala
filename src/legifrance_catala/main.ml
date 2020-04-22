@@ -93,6 +93,34 @@ let print_tm (d : Unix.tm) : string =
 
 let date_before (d1 : Unix.tm) (d2 : Unix.tm) : bool = fst (Unix.mktime d1) <= fst (Unix.mktime d2)
 
+let process_article (article_catala : Catala.Ast.law_article) (access_token : string)
+    (expiration_date : Unix.tm) : unit =
+  match article_catala.Catala.Ast.law_article_id with
+  | None -> ()
+  | Some article_id ->
+      let article = Api.get_article_json access_token article_id in
+      let api_article_expiration_date = Api.get_article_expiration_date article in
+      let msg =
+        Printf.sprintf "%s %s expires on %s according to LegiFrance%s"
+          (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
+          (Catala.Pos.to_string
+             (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
+          (print_tm api_article_expiration_date)
+          ( match article_catala.Catala.Ast.law_article_expiration_date with
+          | None -> ""
+          | Some source_exp_date -> ", " ^ source_exp_date ^ " according to source code" )
+      in
+      if
+        date_before api_article_expiration_date expiration_date
+        ||
+        match article_catala.Catala.Ast.law_article_expiration_date with
+        | None -> false
+        | Some source_exp_date ->
+            let source_exp_date = parse_expiration_date source_exp_date in
+            date_before source_exp_date expiration_date
+      then Catala.Cli.warning_print msg
+      else Catala.Cli.debug_print msg
+
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string)
     (expiration_date : string) =
   if debug then Catala.Cli.debug_flag := true;
@@ -104,32 +132,8 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   List.iter
     (fun item ->
       match item with
-      | Catala.Ast.LawArticle article_catala -> (
-          match article_catala.Catala.Ast.law_article_id with
-          | None -> ()
-          | Some article_id ->
-              let article = Api.get_article_json access_token article_id in
-              let api_article_expiration_date = Api.get_article_expiration_date article in
-              let msg =
-                Printf.sprintf "%s %s expires on %s according to LegiFrance%s"
-                  (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
-                  (Catala.Pos.to_string
-                     (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
-                  (print_tm api_article_expiration_date)
-                  ( match article_catala.Catala.Ast.law_article_expiration_date with
-                  | None -> ""
-                  | Some source_exp_date -> ", " ^ source_exp_date ^ " according to source code" )
-              in
-              if
-                date_before api_article_expiration_date expiration_date
-                ||
-                match article_catala.Catala.Ast.law_article_expiration_date with
-                | None -> false
-                | Some source_exp_date ->
-                    let source_exp_date = parse_expiration_date source_exp_date in
-                    date_before source_exp_date expiration_date
-              then Catala.Cli.warning_print msg
-              else Catala.Cli.debug_print msg )
+      | Catala.Ast.LawArticle article_catala ->
+          process_article article_catala access_token expiration_date
       | _ -> ())
     program.program_items;
   exit 0
