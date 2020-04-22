@@ -7,7 +7,7 @@
 
 @@Chapitre 1er : Allocations familiales@@++++
 
-@Article D521-1@
+@Article D521-1|LEGIARTI000030680318@
 I.- Pour l'application de l'article L. 521-1, le montant des allocations familiales et de la majoration pour âge prévue à l'article L. 521-3 est défini selon le barème suivant :
 /*
 # Composantes des allocations familiales
@@ -165,7 +165,7 @@ champ d'application CalculAllocationsFamiliales :
      sinon 0 €)
 */
 
-@Article D521-2@
+@Article D521-2|LEGIARTI000030680324@
 I.- Le montant mensuel de l'allocation forfaitaire prévue au deuxième alinéa de l'article L. 521-1 est défini selon le barème suivant :
 
 1° Lorsque le ménage ou la personne a disposé d'un montant de ressources inférieur ou égal au plafond défini au I de l'article D. 521-3, le montant mensuel de l'allocation forfaitaire est fixé à 20,234 % de la base mensuelle de calcul des allocations familiales par enfant ;
@@ -222,7 +222,7 @@ champ d'application CalculAllocationsFamiliales :
   définition l521_1.nombre_minimum_enfants égal à 3
 */
 
-@Article D521-3@
+@Article D521-3|LEGIARTI000030678079@
 
 I.- Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
 /*
@@ -246,7 +246,7 @@ III.- Les montants des plafonds et de leur majoration respective fixés au prés
 
 @@Chapitre 5 : Prestations familiales et prestations assimilées@@++++
 
-@Article D755-5@
+@Article D755-5|LEGIARTI000006738575@
 I. - Les taux servant au calcul des allocations familiales et de la majoration prévue à l'article L. 755-11 sont identiques à ceux mentionnés à l'article D. 521-1.
 
 /*
