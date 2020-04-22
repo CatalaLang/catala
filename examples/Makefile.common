@@ -6,7 +6,7 @@ CATALA_LANG?=fr
 
 CATALA=dune exec ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
 
-CATALA_EXE=../../_build/default/src/main.exe
+CATALA_EXE=../../_build/default/src/catala.exe
 
 %.tex: %.catala $(CATALA_EXE)
 	$(CATALA) Makefile $<

@@ -1,6 +1,6 @@
 (library
  (name legifrance_catala)
- (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson))
+ (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson re))
 
 (documentation
  (package catala))

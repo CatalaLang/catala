@@ -354,10 +354,14 @@ let rec lex_law_fr lexbuf =
       update lexbuf;
       LAW_HEADING (law_title, precedence)
   | "@", Plus (Compl '@'), "@" ->
-      let extract_article_title = R.regexp "@([^@]+)@" in
-      let title =
-        R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf)) 1
+      let extract_article_title =
+        R.regexp "\\@(([^\\|]+)\\|(LEGIARTI[0-9]{12})|[^\\@]+)\\@"
       in
+      let get_substring =
+        R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf))
+      in
+      let title = try get_substring 2 with Not_found -> get_substring 1 in
+      let article_id = try Some (get_substring 3) with Not_found -> None in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
@@ -367,7 +371,7 @@ let rec lex_law_fr lexbuf =
         new_line lexbuf
       done;
       update lexbuf;
-      LAW_ARTICLE title
+      LAW_ARTICLE (title, article_id)
   | Plus (Compl ('@' | '/' | '\n')) ->
       update lexbuf;
       LAW_TEXT (Sedlexing.Utf8.lexeme buf)

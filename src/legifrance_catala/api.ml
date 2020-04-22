@@ -122,7 +122,6 @@ let get_article_expiration_date (json : Yojson.Basic.t) : Unix.tm =
     |> Yojson.Basic.Util.member "articleVersions"
     |> Yojson.Basic.Util.to_list
     |> List.find (fun version ->
-           Catala.Cli.debug_print (Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version));
            Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version) = "\"" ^ article_id ^ "\"")
     |> Yojson.Basic.Util.member "dateFin"
     |> Yojson.Basic.Util.to_int |> api_timestamp_to_localtime
