@@ -66,7 +66,7 @@ champ d'application CalculPrestationsFamiliales :
   conséquence rempli
 */
 
-Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1, l'âge limite peut être différent de celui mentionné au 2° du présent article.
+Toutefois, pour l'attribution du complément familial et de l'allocation de logement mentionnés aux 3° et 4° de l'article L. 511-1 , l'âge limite peut être différent de celui mentionné au 2° du présent article.
 /*
 champ d'application CalculPrestationsFamiliales :
   définition l512_3.âge_limite_alinéa_2 sous condition
