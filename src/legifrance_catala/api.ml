@@ -53,11 +53,15 @@ let site = "https://api.aife.economie.gouv.fr"
 
 let base_token_url = "/dila/legifrance-beta/lf-engine-app/"
 
+let api_timestamp_to_localtime (timestamp : int) : Unix.tm =
+  Unix.localtime (float_of_int (timestamp / 1000))
+
 let make_request (access_token : string) (token_url : string) (body_json : (string * string) list) :
     (string * string t) t =
   let uri = Uri.of_string (site ^ base_token_url ^ token_url) in
   let headers = Cohttp.Header.init_with "Authorization" (Printf.sprintf "Bearer %s" access_token) in
   let headers = Cohttp.Header.add headers "Content-Type" "application/json" in
+  let headers = Cohttp.Header.add headers "Accept" "application/json" in
   let body_string =
     body_json
     |> List.map (fun (k, v) -> Printf.sprintf {|"%s":"%s"|} k v)
@@ -69,17 +73,57 @@ let make_request (access_token : string) (token_url : string) (body_json : (stri
     body |> Cohttp_lwt.Body.to_string )
   |> return
 
-let get_article (access_token : string) (article_id : string) : string =
+let get_article_json (access_token : string) (article_id : string) : Yojson.Basic.t =
   let resp, body =
     Lwt_main.run (make_request access_token "consult/getArticle" [ ("id", article_id) ])
   in
   let body = Lwt_main.run body in
-  if resp = "200 OK" then
-    body |> Yojson.Basic.from_string
-    |> Yojson.Basic.Util.member "article"
-    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.Util.to_string
+  if resp = "200 OK" then (
+    try body |> Yojson.Basic.from_string
+    with Yojson.Basic.Util.Type_error (msg, obj) ->
+      Catala.Cli.error_print
+        (Printf.sprintf
+           "Error while parsing JSON answer from API: %s\nSpecific JSON:\n%s\nFull answer:\n%s" msg
+           (Yojson.Basic.to_string obj) body);
+      exit 1 )
   else begin
     Catala.Cli.error_print
       (Printf.sprintf "The API request went wrong ; status is %s and the body is\n%s" resp body);
     exit 1
   end
+
+let raise_article_parsing_error (json : Yojson.Basic.t) (msg : string) (obj : Yojson.Basic.t) =
+  Catala.Cli.error_print
+    (Printf.sprintf
+       "Error while manipulating JSON answer from API: %s\nSpecific JSON:\n%s\nFull answer:\n%s" msg
+       (Yojson.Basic.to_string obj) (Yojson.Basic.to_string json));
+  exit 1
+
+let get_article_id (json : Yojson.Basic.t) : string =
+  try
+    json
+    |> Yojson.Basic.Util.member "article"
+    |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
+  with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
+
+let get_article_text (json : Yojson.Basic.t) : string =
+  try
+    json
+    |> Yojson.Basic.Util.member "article"
+    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.Util.to_string
+  with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
+
+let get_article_expiration_date (json : Yojson.Basic.t) : Unix.tm =
+  try
+    let article_id = get_article_id json in
+
+    json
+    |> Yojson.Basic.Util.member "article"
+    |> Yojson.Basic.Util.member "articleVersions"
+    |> Yojson.Basic.Util.to_list
+    |> List.find (fun version ->
+           Catala.Cli.debug_print (Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version));
+           Yojson.Basic.to_string (Yojson.Basic.Util.member "id" version) = "\"" ^ article_id ^ "\"")
+    |> Yojson.Basic.Util.member "dateFin"
+    |> Yojson.Basic.Util.to_int |> api_timestamp_to_localtime
+  with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
