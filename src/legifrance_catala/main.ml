@@ -85,11 +85,13 @@ let print_tm (d : Unix.tm) : string =
 
 let is_infinity (d : Unix.tm) : bool = d.Unix.tm_year + 1900 = 2999
 
-let date_before (d1 : Unix.tm) (d2 : Unix.tm) : bool = fst (Unix.mktime d1) <= fst (Unix.mktime d2)
+type new_article_version = NotAvailable | Available of string
 
-let process_article (article_catala : Catala.Ast.law_article) (access_token : string) : unit =
+(* Returns the ID of the future version of the article if any *)
+let check_article_expiration (article_catala : Catala.Ast.law_article) (access_token : string) :
+    new_article_version option =
   match article_catala.Catala.Ast.law_article_id with
-  | None -> ()
+  | None -> None
   | Some article_id ->
       let article = Api.get_article_json access_token article_id in
       let api_article_expiration_date = Api.get_article_expiration_date article in
@@ -103,16 +105,57 @@ let process_article (article_catala : Catala.Ast.law_article) (access_token : st
           | None -> ""
           | Some source_exp_date -> ", " ^ source_exp_date ^ " according to source code" )
       in
-      if
-        (not (is_infinity api_article_expiration_date))
-        ||
+      let new_version_available = not (is_infinity api_article_expiration_date) in
+      let source_code_expiration =
         match article_catala.Catala.Ast.law_article_expiration_date with
         | None -> false
         | Some source_exp_date ->
             let source_exp_date = parse_expiration_date source_exp_date in
             not (is_infinity source_exp_date)
-      then Catala.Cli.warning_print msg
-      else Catala.Cli.debug_print msg
+      in
+      if new_version_available || source_code_expiration then begin
+        Catala.Cli.warning_print msg;
+        if new_version_available then begin
+          let new_version = Api.get_article_new_version article in
+          Catala.Cli.debug_print (Printf.sprintf "New version of the article: %s" new_version);
+          Some (Available new_version)
+        end
+        else Some NotAvailable
+      end
+      else begin
+        Catala.Cli.debug_print msg;
+        None
+      end
+
+type article_text_acc_ref = { text : string; new_version : string }
+
+let article_text_acc : article_text_acc_ref option ref = ref None
+
+module Diff = Simple_diff.Make (String)
+
+let compare_previous_article_to_new_version (access_token : string) =
+  match !article_text_acc with
+  | None -> ()
+  | Some text_acc ->
+      let new_article = Api.get_article_json access_token text_acc.new_version in
+      let new_article_text = Api.get_article_text new_article in
+      let old_list = List.filter (fun word -> word != " ") (String.split_on_char ' ' text_acc.text) in
+      let new_list = List.filter (fun word -> word != " ") (String.split_on_char ' ' new_article_text) in
+      let diff = Diff.get_diff (Array.of_list old_list) (Array.of_list new_list) in
+      Catala.Cli.warning_print
+        (Printf.sprintf "Diff between old article version and new article version:\n%s"
+           (String.concat "\n"
+              (List.map
+                 (fun chunk ->
+                   match chunk with
+                   | Diff.Equal words ->
+                       ANSITerminal.sprintf [ ] "Equal: %s" (String.concat " " (Array.to_list words))
+                   | Diff.Added words ->
+                       ANSITerminal.sprintf [ ANSITerminal.green ] "Added: %s" (String.concat " " (Array.to_list words))
+                   | Diff.Deleted words ->
+                       ANSITerminal.sprintf [ ANSITerminal.red ] "Deleted: %s" (String.concat " " (Array.to_list words)))
+                 diff))
+                 )
 
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
@@ -123,7 +166,18 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   List.iter
     (fun item ->
       match item with
-      | Catala.Ast.LawArticle article_catala -> process_article article_catala access_token
+      | Catala.Ast.LawArticle article_catala -> (
+          compare_previous_article_to_new_version access_token;
+          let new_version = check_article_expiration article_catala access_token in
+          match new_version with
+          | Some (Available version) ->
+              article_text_acc := Some { text = ""; new_version = version }
+          | _ -> article_text_acc := None )
+      | Catala.Ast.LawText art_text -> (
+          match !article_text_acc with
+          | None -> ()
+          | Some text_acc ->
+              article_text_acc := Some { text_acc with text = text_acc.text ^ " " ^ art_text } )
       | _ -> ())
     program.program_items;
   exit 0
