@@ -108,9 +108,20 @@ let get_article_id (json : Yojson.Basic.t) : string =
 
 let get_article_text (json : Yojson.Basic.t) : string =
   try
-    json
-    |> Yojson.Basic.Util.member "article"
-    |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.Util.to_string
+    let text =
+      json
+      |> Yojson.Basic.Util.member "article"
+      |> Yojson.Basic.Util.member "texte" |> Yojson.Basic.Util.to_string
+    in
+    (* there might be a nota *)
+    let nota =
+      try
+        json
+        |> Yojson.Basic.Util.member "article"
+        |> Yojson.Basic.Util.member "nota" |> Yojson.Basic.Util.to_string
+      with Yojson.Basic.Util.Type_error _ -> ""
+    in
+    text ^ " " ^ if nota <> "" then "NOTA : " ^ nota else ""
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
 
 let get_article_expiration_date (json : Yojson.Basic.t) : Unix.tm =
