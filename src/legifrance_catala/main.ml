@@ -134,7 +134,7 @@ type article_text_acc = {
   current_version : string option;
 }
 
-module Diff = Simple_diff.Make (String)
+module Diff = Diff.Make (String)
 
 let compare_article_to_version (access_token : string) (text : string) (version : string) :
     Diff.t option =
@@ -157,14 +157,11 @@ let compare_to_versions (article_text_acc : article_text_acc) (access_token : st
             (List.map
                (fun chunk ->
                  match chunk with
-                 | Diff.Equal words ->
-                     ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
+                 | Diff.Equal words -> ANSITerminal.sprintf [] "%s" (String.concat " " words)
                  | Diff.Added words ->
-                     ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
-                       (String.concat " " (Array.to_list words))
+                     ANSITerminal.sprintf [ ANSITerminal.green ] "(+) %s" (String.concat " " words)
                  | Diff.Deleted words ->
-                     ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
-                       (String.concat " " (Array.to_list words)))
+                     ANSITerminal.sprintf [ ANSITerminal.red ] "(-) %s" (String.concat " " words))
                diff)))
   in
   begin
