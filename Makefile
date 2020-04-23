@@ -9,7 +9,7 @@ install-dependencies:
 		dune \
 		cmdliner \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
-		re simple-diff
+		re
 	git submodule update --init
 
 format:
