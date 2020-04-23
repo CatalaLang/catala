@@ -86,12 +86,7 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
             let mtime = (Unix.stat filename).Unix.st_mtime in
             let ltime = Unix.localtime mtime in
             let ftime =
-              match language with
-              | C.Fr ->
-                  Printf.sprintf "%02d/%02d/%d à %dh%02d" ltime.Unix.tm_mday ltime.Unix.tm_mon
-                    (1900 + ltime.Unix.tm_year) ltime.Unix.tm_hour ltime.Unix.tm_min
-              | C.En ->
-                  Printf.sprintf "%02d/%02d/%d at %dh%02d" ltime.Unix.tm_mon ltime.Unix.tm_mday
+                  Printf.sprintf "%d-%02d-%02d, %d:%02d" ltime.Unix.tm_mday ltime.Unix.tm_mon
                     (1900 + ltime.Unix.tm_year) ltime.Unix.tm_hour ltime.Unix.tm_min
             in
             Printf.sprintf "\\item\\texttt{%s}, %s %s"
