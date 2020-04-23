@@ -6,7 +6,7 @@ CATALA_LANG?=fr
 
 CATALA=dune exec ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
 
-LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe -- --debug
+LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
 
 CATALA_EXE=../../_build/default/src/catala.exe
 LEGIFRANCE_CATALA_EXE=../../_build/default/src/legifrance_catala.exe
