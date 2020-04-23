@@ -128,6 +128,7 @@ let check_article_expiration (article_catala : Catala.Ast.law_article) (access_t
       end
 
 type article_text_acc = {
+  article_title : string Catala.Pos.marked;
   text : string;
   new_version : string option;
   current_version : string option;
@@ -135,39 +136,64 @@ type article_text_acc = {
 
 module Diff = Simple_diff.Make (String)
 
-let compare_article_to_version (access_token : string) (text : string) (version : string) =
+let compare_article_to_version (access_token : string) (text : string) (version : string) :
+    Diff.t option =
   let new_article = Api.get_article_json access_token version in
   let new_article_text = Api.get_article_text new_article in
   let text_to_list text = List.filter (fun word -> word <> "") (String.split_on_char ' ' text) in
   let old_list = text_to_list text in
   let new_list = text_to_list new_article_text in
   let diff = Diff.get_diff (Array.of_list old_list) (Array.of_list new_list) in
-  let all_equal = List.for_all (fun chunk -> match chunk with Diff.Equal _ -> true | _ -> false) diff in
-  if not all_equal then
-  Catala.Cli.warning_print
-    (Printf.sprintf "Diff:\n%s"
-       (String.concat "\n"
-          (List.map
-             (fun chunk ->
-               match chunk with
-               | Diff.Equal words ->
-                   ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
-               | Diff.Added words ->
-                   ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
-                     (String.concat " " (Array.to_list words))
-               | Diff.Deleted words ->
-                   ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
-                     (String.concat " " (Array.to_list words)))
-             diff)))
+  let all_equal =
+    List.for_all (fun chunk -> match chunk with Diff.Equal _ -> true | _ -> false) diff
+  in
+  if not all_equal then Some diff else None
 
 let compare_to_versions (article_text_acc : article_text_acc) (access_token : string) : unit =
+  let print_diff msg diff =
+    Catala.Cli.warning_print
+      (Printf.sprintf "%s\n%s" msg
+         (String.concat "\n"
+            (List.map
+               (fun chunk ->
+                 match chunk with
+                 | Diff.Equal words ->
+                     ANSITerminal.sprintf [] "= %s" (String.concat " " (Array.to_list words))
+                 | Diff.Added words ->
+                     ANSITerminal.sprintf [ ANSITerminal.green ] "+ %s"
+                       (String.concat " " (Array.to_list words))
+                 | Diff.Deleted words ->
+                     ANSITerminal.sprintf [ ANSITerminal.red ] "- %s"
+                       (String.concat " " (Array.to_list words)))
+               diff)))
+  in
   begin
-    match article_text_acc.new_version with
-    | Some version -> compare_article_to_version access_token article_text_acc.text version
+    match article_text_acc.current_version with
+    | Some version -> (
+        match compare_article_to_version access_token article_text_acc.text version with
+        | None -> ()
+        | Some diff ->
+            print_diff
+              (Printf.sprintf
+                 "There is a diff between the source code version of %s %s and the text stored on \
+                  LegiFrance:"
+                 (Catala.Pos.unmark article_text_acc.article_title)
+                 (Catala.Pos.to_string (Catala.Pos.get_position article_text_acc.article_title)))
+              diff )
     | None -> ()
   end;
-  match article_text_acc.current_version with
-  | Some version -> compare_article_to_version access_token article_text_acc.text version
+  match article_text_acc.new_version with
+  | Some version -> (
+      match compare_article_to_version access_token article_text_acc.text version with
+      | None -> ()
+      | Some diff ->
+          print_diff
+            (Printf.sprintf
+               "Here is the diff between the current version of %s %s and what it will become in \
+                the future:"
+               (Catala.Pos.unmark article_text_acc.article_title)
+               (Catala.Pos.to_string (Catala.Pos.get_position article_text_acc.article_title)))
+            diff )
   | None -> ()
 
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
@@ -186,12 +212,14 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
             match new_version with
             | Some (Available version) ->
                 {
+                  article_title = article_catala.law_article_name;
                   text = "";
                   new_version = Some version;
                   current_version = article_catala.Catala.Ast.law_article_id;
                 }
             | _ ->
                 {
+                  article_title = article_catala.law_article_name;
                   text = "";
                   new_version = None;
                   current_version = article_catala.Catala.Ast.law_article_id;
@@ -199,7 +227,12 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
         | Catala.Ast.LawText art_text ->
             { article_text_acc with text = article_text_acc.text ^ " " ^ art_text }
         | _ -> article_text_acc)
-      { text = ""; new_version = None; current_version = None }
+      {
+        article_title = ("", Catala.Pos.no_pos);
+        text = "";
+        new_version = None;
+        current_version = None;
+      }
       program.program_items
   in
   compare_to_versions article_text_acc access_token;
