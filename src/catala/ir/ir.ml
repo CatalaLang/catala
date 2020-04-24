@@ -160,7 +160,7 @@ type meta_assertion =
   | FixedBy of qident Pos.marked * ident Pos.marked
   | VariesWith of qident Pos.marked * expression Pos.marked * variation_typ Pos.marked option
 
-module UidMap = Map.Make (Int)
+module UidMap = Map.Make (Int32)
 
 type field = {
   field_var_map : qident UidMap.t;
