@@ -13,7 +13,7 @@ install-dependencies:
 	git submodule update --init
 
 format:
-		dune build @fmt --auto-promote | true
+	dune build @fmt --auto-promote | true
 
 build: format
 	dune build

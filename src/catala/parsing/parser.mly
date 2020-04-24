@@ -362,7 +362,7 @@ struct_field_base:
 }
 
 struct_field_func:
-| DEPENDS OF t = typ { t }
+| DEPENDS t = typ { t }
 
 struct_field:
 | name_and_typ = struct_field_base func_typ = option(struct_field_func) {
