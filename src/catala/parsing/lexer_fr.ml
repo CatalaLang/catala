@@ -63,7 +63,7 @@ let rec lex_code_fr lexbuf =
       (* 0xE9 is é *)
       update_and_acc lexbuf;
       DATA
-  | "d", 0xE9, "pend" ->
+  | "d", 0xE9, "pend de" ->
       update_and_acc lexbuf;
       DEPENDS
   | "d", 0xE9, "claration" ->
