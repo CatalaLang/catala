@@ -81,7 +81,7 @@ let parse_expiration_date (expiration_date : string) : Unix.tm =
 
 let print_tm (d : Unix.tm) : string =
   if d.Unix.tm_year + 1900 = 2999 then "undefined date"
-  else Printf.sprintf "%d-%02d-%02d" (1900 + d.Unix.tm_year) (1 + d.Unix.tm_mon)  d.Unix.tm_mday 
+  else Printf.sprintf "%d-%02d-%02d" (1900 + d.Unix.tm_year) (1 + d.Unix.tm_mon) d.Unix.tm_mday
 
 let is_infinity (d : Unix.tm) : bool = d.Unix.tm_year + 1900 = 2999
 
