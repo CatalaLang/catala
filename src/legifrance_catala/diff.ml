@@ -80,8 +80,10 @@ module Make (X : Comparable) = struct
            | Added x1 :: rest_acc, Added x2 -> Added (x1 @ x2) :: rest_acc
            | Deleted x1 :: rest_acc, Deleted x2 -> Deleted (x1 @ x2) :: rest_acc
            | Equal x1 :: rest_acc, Equal x2 -> Equal (x1 @ x2) :: rest_acc
-           | Added x1 :: Deleted x2:: rest_acc, Deleted x3 -> Deleted (x2 @ x3) :: Added x1 :: rest_acc
-           | Deleted x1 :: Added x2:: rest_acc, Added x3 -> Added (x2 @ x3) :: Deleted x1 :: rest_acc
+           | Added x1 :: Deleted x2 :: rest_acc, Deleted x3 ->
+               Deleted (x2 @ x3) :: Added x1 :: rest_acc
+           | Deleted x1 :: Added x2 :: rest_acc, Added x3 ->
+               Added (x2 @ x3) :: Deleted x1 :: rest_acc
            | _ -> diff :: acc)
          [] x)
 
