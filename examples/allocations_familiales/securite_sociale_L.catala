@@ -102,7 +102,7 @@ champ d'application CalculAllocationsFamiliales :
 Une allocation forfaitaire par enfant d'un montant fixé par décret est versée pendant un an à la personne ou au ménage qui assume la charge d'un nombre minimum d'enfants également fixé par décret lorsque l'un ou plusieurs des enfants qui ouvraient droit aux allocations familiales atteignent l'âge limite mentionné au 2° de l'article L. 512-3 . Cette allocation est versée à la condition que le ou les enfants répondent aux conditions autres que celles de l'âge pour l'ouverture du droit aux allocations familiales.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion allocation_forfaitaire.montant_versé fixé par décret
+  assertion fixé allocation_forfaitaire.montant_versé par décret
 
   # Ici, l'ouverture du droit aux allocations familiales est conditionné
   # au fait d'avoir deux enfants à charges qui répondent aux conditions
@@ -124,18 +124,18 @@ champ d'application CalculAllocationsFamiliales :
 Le montant des allocations mentionnées aux deux premiers alinéas du présent article, ainsi que celui des majorations mentionnées à l'article L. 521-3 varient en fonction des ressources du ménage ou de la personne qui a la charge des enfants, selon un barème défini par décret.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion allocations_familiales.montant_versé fixé par décret
-  assertion allocations_familiales.montant_versé varie avec
+  assertion fixé allocations_familiales.montant_versé  par décret
+  assertion varie allocations_familiales.montant_versé avec
      l521_1.ressources_ménage
-  assertion majorations_allocations_familiales.montant_versé fixé par décret
-  assertion majorations_allocations_familiales.montant_versé varie avec
+  assertion fixé majorations_allocations_familiales.montant_versé par décret
+  assertion varie majorations_allocations_familiales.montant_versé avec
      l521_1.ressources_ménage
 */
 
 Le montant des allocations familiales varie en fonction du nombre d'enfants à charge.
 /*
 champ d'application CalculAllocationsFamiliales :
-  assertion allocations_familiales.montant_versé varie avec
+  assertion varie allocations_familiales.montant_versé avec
      nombre de ménage.enfants
 */
 
@@ -154,7 +154,7 @@ Un complément dégressif est versé lorsque les ressources du bénéficiaire d�
 # document.
 
 champ d'application CalculAllocationsFamiliales :
-  assertion complément_dégressif.montant_versé fixé par décret
+  assertion fixé complément_dégressif.montant_versé par décret
 */
 
 @Article L521-2|LEGIARTI000006743210@
@@ -294,7 +294,7 @@ Le montant des prestations familiales est déterminé d'après des bases mensuel
 /*
 # Idem que L521-1, on ne formalise pas ici l'évolution de la BMPA
 champ d'application PrestationsFamiliales :
-  assertion prestations_familiales.base_mensuelle fixé par décret
+  assertion fixé prestations_familiales.base_mensuelle par décret
 */
 
 @@Livre 7 : Régimes divers - Dispositions diverses@@++

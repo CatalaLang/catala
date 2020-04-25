@@ -142,17 +142,20 @@ type definition = {
 
 type variation_typ = Increasing | Decreasing
 
-type assertion_content =
-  | Assert of expression
+type meta_assertion =
   | FixedBy of qident Pos.marked * ident Pos.marked
   | VariesWith of qident Pos.marked * expression Pos.marked * variation_typ Pos.marked option
 
 type assertion = {
   assertion_condition : expression Pos.marked option;
-  assertion_content : assertion_content Pos.marked;
+  assertion_content : expression Pos.marked;
 }
 
-type field_use_item = Rule of rule | Definition of definition | Assertion of assertion
+type field_use_item =
+  | Rule of rule
+  | Definition of definition
+  | Assertion of assertion
+  | MetaAssertion of meta_assertion
 
 type field_use = {
   field_use_name : constructor Pos.marked;
