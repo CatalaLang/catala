@@ -15,27 +15,33 @@
 open Sedlexing
 module I = Parser.MenhirInterpreter
 
-(* let lexbuf_translation (lexbuf: Sedlexing.lexbuf) : Lexing.lexbuf =
+let fail (lexbuf : lexbuf) (_ : 'semantic_value I.env) : 'a =
+  (* The parser has suspended itself because of a syntax error. Stop. *)
+  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
-   let succeed (v : 'semantic_value) : 'semantic_value = (* The parser has succeeded and produced a
-   semantic value. Return it *) v
-
-   let fail (lexbuf: Lexing.lexbuf) (_ : 'semantic_value I.checkpoint) = (* The parser has suspended
-   itself because of a syntax error. Stop. *) raise_ParseError lexbuf
-
-   let loop (lexbuf: Lexing.lexbuf) result = let supplier = I.lexer_lexbuf_to_supplie Lexer.token
-   lexbuf in I.loop_handle succeed (fail lexbuf) supplier result *)
+let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
+    (lexbuf : lexbuf) (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file_or_master =
+  match checkpoint with
+  | I.InputNeeded _env ->
+      let token = next_token () in
+      let checkpoint = I.offer checkpoint token in
+      loop next_token lexbuf checkpoint
+  | I.Shifting _ | I.AboutToReduce _ ->
+      let checkpoint = I.resume checkpoint in
+      loop next_token lexbuf checkpoint
+  | I.HandlingError env -> fail lexbuf env
+  | I.Accepted v -> v
+  | I.Rejected ->
+      (* Cannot happen as we stop at syntax error immediatly *)
+      assert false
 
 let sedlex_with_menhir (lexer' : lexbuf -> Parser.token)
-    (parser' : (Parser.token, 'semantic_value) MenhirLib.Convert.traditional) (lexbuf : lexbuf) :
-    'semantic_value =
+    (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
+    Ast.source_file_or_master =
   let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
     with_tokenizer lexer' lexbuf
   in
-  let parser : (Parser.token * Lexing.position * Lexing.position, 'a) MenhirLib.Convert.revised =
-    MenhirLib.Convert.Simplified.traditional2revised parser'
-  in
-  try parser lexer with
+  try loop lexer lexbuf (target_rule (fst @@ Sedlexing.lexing_positions lexbuf)) with
   | Parser.Error -> Errors.parser_error (Sedlexing.lexing_positions lexbuf) (Utf8.lexeme lexbuf)
   | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
       Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
@@ -55,7 +61,7 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
           match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
         in
         let commands_or_includes =
-          sedlex_with_menhir lexer_lang Parser.source_file_or_master lexbuf
+          sedlex_with_menhir lexer_lang Parser.Incremental.source_file_or_master lexbuf
         in
         close_in input;
         match commands_or_includes with
