@@ -12,6 +12,34 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+open Sedlexing
+module I = Parser.MenhirInterpreter
+
+(* let lexbuf_translation (lexbuf: Sedlexing.lexbuf) : Lexing.lexbuf =
+
+   let succeed (v : 'semantic_value) : 'semantic_value = (* The parser has succeeded and produced a
+   semantic value. Return it *) v
+
+   let fail (lexbuf: Lexing.lexbuf) (_ : 'semantic_value I.checkpoint) = (* The parser has suspended
+   itself because of a syntax error. Stop. *) raise_ParseError lexbuf
+
+   let loop (lexbuf: Lexing.lexbuf) result = let supplier = I.lexer_lexbuf_to_supplie Lexer.token
+   lexbuf in I.loop_handle succeed (fail lexbuf) supplier result *)
+
+let sedlex_with_menhir (lexer' : lexbuf -> Parser.token)
+    (parser' : (Parser.token, 'semantic_value) MenhirLib.Convert.traditional) (lexbuf : lexbuf) :
+    'semantic_value =
+  let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
+    with_tokenizer lexer' lexbuf
+  in
+  let parser : (Parser.token * Lexing.position * Lexing.position, 'a) MenhirLib.Convert.revised =
+    MenhirLib.Convert.Simplified.traditional2revised parser'
+  in
+  try parser lexer with
+  | Parser.Error -> Errors.parser_error (Sedlexing.lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
+      Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+
 let rec parse_source_files (source_files : string list) (language : Cli.language_option) :
     Ast.program =
   match source_files with
@@ -19,17 +47,15 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
   | source_file :: rest -> (
       Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
       let input = open_in source_file in
-      let lexbuf =
-        Sedlex_menhir.create_lexbuf ~file:(Filename.basename source_file)
-          (Sedlexing.Utf8.from_channel input)
-      in
+      let lexbuf = Sedlexing.Utf8.from_channel input in
+      Sedlexing.set_filename lexbuf source_file;
       try
         Parse_utils.current_file := source_file;
         let lexer_lang =
           match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
         in
         let commands_or_includes =
-          Sedlex_menhir.sedlex_with_menhir lexer_lang Parser.source_file_or_master lexbuf
+          sedlex_with_menhir lexer_lang Parser.source_file_or_master lexbuf
         in
         close_in input;
         match commands_or_includes with
