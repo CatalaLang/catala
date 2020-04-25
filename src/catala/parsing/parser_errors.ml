@@ -220,10 +220,7 @@ let message s =
       "unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#89\n"
-  | 82 ->
-      "unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#82\n"
+  | 82 -> "missing collection for testing whether an element is inside a collection or not\n"
   | 103 ->
       "unexpected token\n\
        To get a better error messsage, file an issue at \
@@ -320,10 +317,7 @@ let message s =
       "unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#107\n"
-  | 108 ->
-      "unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#108\n"
+  | 108 -> "a for all construction expects only one ident\n"
   | 109 ->
       "unexpected token\n\
        To get a better error messsage, file an issue at \

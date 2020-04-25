@@ -745,8 +745,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ## for_all_marked ident
 ##
 
-unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#108
+a for all construction expects only one ident
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL YEAR
 ##
@@ -1091,8 +1090,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ## primitive_expression IN
 ##
 
-unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#82
+missing collection for testing whether an element is inside a collection or not
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASING
 ##
