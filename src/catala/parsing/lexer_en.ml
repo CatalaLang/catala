@@ -13,207 +13,192 @@
    the License. *)
 
 open Parser
-open Sedlex_menhir
+open Sedlexing
 module R = Re.Pcre
 
 let is_code : bool ref = ref false
 
 let code_string_acc : string ref = ref ""
 
-let rec lex_code_as_string lexbuf acc =
-  let buf = lexbuf.stream in
-  match%sedlex buf with
-  | "*/" ->
-      update lexbuf;
-      END_CODE (acc ^ Sedlexing.Utf8.lexeme buf)
-  | any ->
-      update lexbuf;
-      lex_code_as_string lexbuf (acc ^ Sedlexing.Utf8.lexeme buf)
-  | _ -> raise_ParseError lexbuf
+let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
-let update_and_acc lexbuf =
-  update lexbuf;
-  code_string_acc := !code_string_acc ^ Sedlexing.Utf8.lexeme lexbuf.stream
-
-let rec lex_code_en lexbuf =
-  let buf = lexbuf.stream in
-  match%sedlex buf with
+let rec lex_code_en (lexbuf : lexbuf) : token =
+  match%sedlex lexbuf with
   | '\n' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       new_line lexbuf;
       lex_code_en lexbuf
   | white_space ->
       (* Whitespaces *)
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       lex_code_en lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       new_line lexbuf;
       lex_code_en lexbuf
   | "*/" ->
       (* End of code section *)
-      update lexbuf;
       is_code := false;
       END_CODE !code_string_acc
   | "application field" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       FIELD
   | "data" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DATA
   | "depends" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DEPENDS
   | "declaration" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DECLARATION
   | "context" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       CONTEXT
   | "includes" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       INCLUDES
   | "decreasing" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DECREASING
   | "increasing" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       INCREASING
   | "of" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       OF
   | "collection" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       COLLECTION
   | "enumeration" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ENUM
   | "integer" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       INTEGER
   | "amount" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       MONEY
   | "text" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       TEXT
   | "decimal" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DECIMAL
   | "date" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DATE
   | "boolean" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       BOOLEAN
   | "sum" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       SUM
   | "fulfilled" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       FILLED
   | "definition" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DEFINITION
   | "equals" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DEFINED_AS
   | "match" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       MATCH
   | "with pattern" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       WITH
   | "under condition" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       UNDER_CONDITION
   | "if" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       IF
   | "consequence" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       CONSEQUENCE
   | "then" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       THEN
   | "else" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ELSE
   | "condition" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       CONDITION
   | "content" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       CONTENT
   | "structure" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       STRUCT
   | "optional" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       OPTIONAL
   | "assertion" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ASSERTION
   | "varies" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       VARIES
   | "with" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       WITH_V
   | "for" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       FOR
   | "all" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ALL
   | "we have" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       WE_HAVE
   | "fixed" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       FIXED
   | "by" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       BY
   | "rule" ->
       (* 0xE8 is è *)
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       RULE
   | "exists" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       EXISTS
   | "in" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       IN
   | "such" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       SUCH
   | "that" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       THAT
   | "now" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       NOW
   | "and" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       AND
   | "or" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       OR
   | "not" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       NOT
   | "number" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       CARDINAL
   | "year" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       YEAR
   | 0x24, Star white_space, '0' .. '9', Star ('0' .. '9' | ','), Opt ('.', Rep ('0' .. '9', 0 .. 2))
     ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
-      let full_str = Sedlexing.Utf8.lexeme buf in
+      let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
       let parts = R.get_substring (R.exec ~rex:extract_parts only_numbers_str) in
       (* Integer literal*)
@@ -224,104 +209,91 @@ let rec lex_code_en lexbuf =
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
       let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
-      let dec_parts =
-        R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
-      in
+      let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
   | "->" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ARROW
   | '.' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DOT
   | "<=" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       LESSER_EQUAL
   | '<' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       LESSER
   | ">=" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       GREATER_EQUAL
   | '>' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       GREATER
   | "!=" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       NOT_EQUAL
   | '=' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       EQUAL
   | '(' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       LPAREN
   | ')' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       RPAREN
   | '+' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       PLUS
   | '-' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       MINUS
   | '*' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       MULT
   | '%' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       PERCENT
   | '/' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       DIV
   | '|' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       VERTICAL
   | ':' ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       COLON
   | "--" ->
-      update_and_acc lexbuf;
+      update_acc lexbuf;
       ALT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       (* Name of constructor *)
-      update_and_acc lexbuf;
-      CONSTRUCTOR (Sedlexing.Utf8.lexeme buf)
+      update_acc lexbuf;
+      CONSTRUCTOR (Utf8.lexeme lexbuf)
   | lowercase, Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
       (* Name of variable *)
-      update_and_acc lexbuf;
-      IDENT (Sedlexing.Utf8.lexeme buf)
+      update_acc lexbuf;
+      IDENT (Utf8.lexeme lexbuf)
   | Plus '0' .. '9' ->
       (* Integer literal*)
-      update_and_acc lexbuf;
-      INT_LITERAL (int_of_string (Sedlexing.Utf8.lexeme buf))
-  | _ -> raise_ParseError lexbuf
+      update_acc lexbuf;
+      INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
+  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
-let rec lex_law_en lexbuf =
-  let buf = lexbuf.stream in
-  match%sedlex buf with
+let rec lex_law_en (lexbuf : lexbuf) : token =
+  match%sedlex lexbuf with
   | '\n' ->
-      update lexbuf;
       new_line lexbuf;
       lex_law_en lexbuf
   | "/*" ->
-      update lexbuf;
       is_code := true;
       code_string_acc := "";
       BEGIN_CODE
-  | eof ->
-      update lexbuf;
-      EOF
-  | "@@", Star white_space, "Master file", Star white_space, "@@" ->
-      update lexbuf;
-      MASTER_FILE
-  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" ->
-      update lexbuf;
-      BEGIN_METADATA
-  | "@@", Star white_space, "End metadata", Star white_space, "@@" ->
-      update lexbuf;
-      END_METADATA
+  | eof -> EOF
+  | "@@", Star white_space, "Master file", Star white_space, "@@" -> MASTER_FILE
+  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" -> BEGIN_METADATA
+  | "@@", Star white_space, "End metadata", Star white_space, "@@" -> END_METADATA
   | ( "@@",
       Star white_space,
       "Include:",
@@ -333,47 +305,36 @@ let rec lex_law_en lexbuf =
       let extract_components =
         R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
       in
-      let get_component =
-        R.get_substring (R.exec ~rex:extract_components (Sedlexing.Utf8.lexeme buf))
-      in
-      update lexbuf;
+      let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
       LAW_INCLUDE
         (get_component 1, try Some (int_of_string (get_component 3)) with Not_found -> None)
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
-      let get_match =
-        R.get_substring (R.exec ~rex:extract_code_title (Sedlexing.Utf8.lexeme buf))
-      in
+      let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
-        with Not_found -> 0
+        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
       in
       for _i = 1 to new_lines_count do
         new_line lexbuf
       done;
       let law_title = get_match 1 in
       let precedence = String.length (get_match 2) in
-      update lexbuf;
+
       LAW_HEADING (law_title, precedence)
   | "@", Plus (Compl '@'), "@" ->
       let extract_article_title = R.regexp "@([^@]+)@" in
-      let title =
-        R.get_substring (R.exec ~rex:extract_article_title (Sedlexing.Utf8.lexeme buf)) 1
-      in
+      let title = R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf)) 1 in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Sedlexing.Utf8.lexeme buf))
-        with Not_found -> 0
+        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
       in
       for _i = 1 to new_lines_count do
         new_line lexbuf
       done;
-      update lexbuf;
+
       LAW_ARTICLE (title, None, None)
-  | Plus (Compl ('@' | '/' | '\n')) ->
-      update lexbuf;
-      LAW_TEXT (Sedlexing.Utf8.lexeme buf)
-  | _ -> raise_ParseError lexbuf
+  | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
 let lexer_en lexbuf = if !is_code then lex_code_en lexbuf else lex_law_en lexbuf

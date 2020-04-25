@@ -501,7 +501,7 @@ master_file_include:
 | includ = LAW_INCLUDE {
   let (file, page) = includ in match page with
   | None -> (file, mk_position $sloc)
-  | Some _ -> Errors.parser_error $symbolstartpos (Printf.sprintf "Include in master file must be .catala file!" )
+  | Some _ -> Errors.parser_error $sloc (Printf.sprintf "Include in master file must be .catala file!" )
 }
 
 master_file_includes:
