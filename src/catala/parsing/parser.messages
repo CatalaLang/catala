@@ -1180,8 +1180,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW WITH YEA
 ## primitive_expression WITH
 ##
 
-unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#51
+missing enumeration case for testing if an enumeration value is in a particular enumeration case
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
