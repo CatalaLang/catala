@@ -53,6 +53,11 @@ let raise_ParseError lexbuf =
   let tok = lexeme lexbuf in
   Errors.parser_error pos (Printf.sprintf "unexpected token \"%s\"" tok)
 
+let raise_LexError lexbuf =
+  let { pos; _ } = lexbuf in
+  let tok = lexeme lexbuf in
+  Errors.lexer_error pos (Printf.sprintf "unexpected token \"%s\"" tok)
+
 let sedlex_with_menhir lexer' parser' lexbuf =
   let lexer () =
     let ante_position = lexbuf.pos in
@@ -61,6 +66,6 @@ let sedlex_with_menhir lexer' parser' lexbuf =
     (token, ante_position, post_position)
   in
   let parser = MenhirLib.Convert.Simplified.traditional2revised parser' in
-  try parser lexer
-  with Parser.Error | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-    raise_ParseError lexbuf
+  try parser lexer with
+  | Parser.Error -> raise_ParseError lexbuf
+  | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ -> raise_LexError lexbuf
