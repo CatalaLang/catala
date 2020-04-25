@@ -213,7 +213,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(selon|sous\s+forme|fixé\s+par|décroissante|croissante|varie\s+avec|on\s+a|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon)\b
+    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon)\b
     styles [] = .keyword_expression ;
   }
 

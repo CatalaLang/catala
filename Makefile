@@ -40,8 +40,10 @@ ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
 ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
 
 allocations_familiales: $(PYGMENTIZE) build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.expired
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
+
+allocations_familiales_expired: build
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.expired
 
 english: $(PYGMENTIZE) build
 	$(MAKE) -C $(ENGLISH_DUMMY_DIR) english.pdf

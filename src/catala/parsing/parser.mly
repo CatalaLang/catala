@@ -38,7 +38,7 @@
 %token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
 %token CARDINAL LESSER_EQUAL GREATER_EQUAL
 %token ASSERTION FIXED BY YEAR
-%token PLUS MINUS MULT DIV MATCH WITH VARIES_WITH
+%token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
 %token FIELD FILLED EURO NOT_EQUAL DEFINITION
@@ -322,15 +322,18 @@ variation_type:
 | DECREASING { (Decreasing, mk_position $sloc) }
 
 assertion_base:
-| e = expression { let (e, _) = e in (Assert e, mk_position $sloc) }
-| q = qident FIXED BY i = ident { (FixedBy (q, i), mk_position $sloc) }
-| q = qident VARIES_WITH e = base_expression t = option(variation_type) {
-  (VariesWith (q, e, t), mk_position $sloc)
-}
+| e = expression { let (e, _) = e in (e, mk_position $sloc) }
 
 assertion:
 | cond = option(condition_consequence) base = assertion_base {
-  (cond, base)
+  (Assertion {
+    assertion_condition = cond;
+    assertion_content = base;
+    })
+}
+| FIXED q = qident BY i = ident { MetaAssertion (FixedBy (q, i)) }
+| VARIES q = qident WITH_V e = base_expression t = option(variation_type) {
+  MetaAssertion (VariesWith (q, e, t))
 }
 
 application_field_item:
@@ -341,10 +344,7 @@ application_field_item:
   let (d, _) = d in (Definition d, mk_position $sloc)
  }
 | ASSERTION contents = assertion {
-  (let (cond, cont) = contents in Assertion {
-    assertion_condition = cond;
-    assertion_content = cont;
-  }, mk_position $sloc)
+  (contents, mk_position $sloc)
 }
 
 ident:

@@ -160,9 +160,12 @@ let rec lex_code_fr lexbuf =
   | "assertion" ->
       update_and_acc lexbuf;
       ASSERTION
-  | "varie avec" ->
+  | "varie" ->
       update_and_acc lexbuf;
-      VARIES_WITH
+      VARIES
+  | "avec" ->
+      update_and_acc lexbuf;
+      WITH_V
   | "pour" ->
       update_and_acc lexbuf;
       FOR
