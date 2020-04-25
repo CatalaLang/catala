@@ -28,7 +28,7 @@ class CatalaLexer(RegexLexer):
             (u'\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|d\xe9pend\\s+de|d\xe9claration|inclus|collection|contenu|optionnel|structure|\xe9num\xe9ration|contexte|r\xe8gle|sous condition|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition)\\b', bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(vrai|faux)\\b', bygroups(Keyword.Constant)),
-            (u'\\b([0-9]+(\\.[0.9]*|))\\b', bygroups(Number.Integer)),
+            (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
             (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))', bygroups(Operator)),
             (u'(\\-\\>|\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)', bygroups(Operator)),
             (u'\\b(entier|bool\xe9en|date|montant|texte|d\xe9cimal|d\xe9cret|loi|nombre|somme|date_aujourd_hui)\\b', bygroups(Keyword.Type)),

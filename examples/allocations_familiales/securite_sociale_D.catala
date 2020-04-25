@@ -73,7 +73,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 3
-    alors prestations_familiales.base_mensuelle * 20.5 % * (
+    alors prestations_familiales.base_mensuelle * 20,5 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -108,7 +108,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_II)
   conséquence égal à
     si nombre de ménage.enfants >= 3
-    alors prestations_familiales.base_mensuelle * 10.25 % * (
+    alors prestations_familiales.base_mensuelle * 10,25 % * (
       (nombre de ménage.enfants) - 2
     ) sinon 0 €
 */
@@ -174,7 +174,7 @@ champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.montant_versé sous condition
     l521_1.ressources_ménage <= d521_3.plafond_I
   conséquence égal à
-    prestations_familiales.base_mensuelle * 20.234 % *
+    prestations_familiales.base_mensuelle * 20,234 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouverts de enfant
 */
@@ -186,7 +186,7 @@ champ d'application CalculAllocationsFamiliales :
     (l521_1.ressources_ménage > d521_3.plafond_I) et
     (l521_1.ressources_ménage <= d521_3.plafond_II)
   conséquence égal à
-    prestations_familiales.base_mensuelle * 10.117 % *
+    prestations_familiales.base_mensuelle * 10,117 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouvert de enfant
 */
@@ -197,7 +197,7 @@ champ d'application CalculAllocationsFamiliales :
   définition allocation_forfaitaire.montant_versé sous condition
     l521_1.ressources_ménage > d521_3.plafond_II
   conséquence égal à
-    prestations_familiales.base_mensuelle * 5.059 % *
+    prestations_familiales.base_mensuelle * 5,059 % *
     nombre pour enfant dans ménage.enfants de
       allocation_forfaitaire.droits_ouvert de enfant
 */
@@ -227,15 +227,15 @@ champ d'application CalculAllocationsFamiliales :
 I.-Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition d521_3.plafond_I égal à 55950 € +
-    5595 € * nombre de ménage.enfants
+  définition d521_3.plafond_I égal à 55 950 € +
+    5 595 € * nombre de ménage.enfants
 */
 
 II.-Le plafond prévu au 2° du I des articles D. 521-1 et D. 521-2 est fixé à 78 300 euros. Il est majoré de 5 595 euros par enfant à charge.
 /*
 champ d'application CalculAllocationsFamiliales :
-  définition d521_3.plafond_II égal à 78300 € +
-    5595 € * nombre de ménage.enfants
+  définition d521_3.plafond_II égal à 78 300 € +
+    5 595 € * nombre de ménage.enfants
 */
 
 III.-Les montants des plafonds et de leur majoration respective fixés au présent article sont revalorisés au 1er janvier de chaque année, conformément à l'évolution en moyenne annuelle des prix à la consommation hors tabac de l'année civile de référence, par arrêté des ministres chargés de la sécurité sociale, du budget et de l'agriculture.
@@ -270,7 +270,7 @@ champ d'application CalculAllocationsFamiliales :
     )
 
   définition allocations_familiales.montant_premier_enfant égal à
-    prestations_familiales.base_mensuelle_dom * 5.88 %
+    prestations_familiales.base_mensuelle_dom * 5,88 %
 
 # Question : le complément dégressif s'applique-t-il ici ? Car le complément
 # est basé sur les plafonds du taux de base qui ne s'appliquent pas ici,
@@ -289,5 +289,5 @@ sous condition
   (majorations_allocations_familiales.droits_ouverts de enfant)
 conséquence égal à
   prestations_familiales.base_mensuelle_dom *
-  (si enfant.âge >= 16 an alors 5.67 % sinon 3.69 %)
+  (si enfant.âge >= 16 an alors 5,67 % sinon 3,69 %)
 */

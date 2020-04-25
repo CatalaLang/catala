@@ -15,7 +15,7 @@ champ d'application CalculAllocationsFamiliales :
   sous condition
     date_calcul >= |01/04/2020| et
     date_calcul < |01/04/2021|
-  conséquence égal à 414.4 €
+  conséquence égal à 414,4 €
 */
 
 Des  règles  spécifques  s’appliquent  par  ailleurs  aux  prestations  familiales  suivantes  en  métropole  tout  comme  dans  les  collectivités  de  Guadeloupe,  Guyane,  Martinique,  La  Réunion,  Saint-Barthélemy et à Saint-Martin : l’article 37 de la LFSS pour 2018 a prévu une mesure d’harmonisation du barème de l’allocation de  base  (AB),  de  la  prime  à  la  naissance  et  de  la  prime  à  l’adoption  sur  celui  du  complément  familial. Cette réforme est applicable aux enfants nés ou adoptés à compter du 1er avril 2018 et en conséquence à l’ensemble des enfants à compter du 1er avril 2021.
@@ -54,16 +54,16 @@ champ d'application CalculAllocationsFamiliales :
     date_calcul > |30/04/2020| et
     date_calcul <= |31/12/2020|
   conséquence égal à
-    prestations_familiales.base_mensuelle * 30.68 %
+    prestations_familiales.base_mensuelle * 30,68 %
 
   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
     ménage.résidence = Mayotte et
     date_calcul > |30/04/2020| et
     date_calcul <= |31/12/2020|
   conséquence égal à
-    prestations_familiales.base_mensuelle * 14.3 % +
+    prestations_familiales.base_mensuelle * 14,3 % +
     (si nombre de ménage.enfants >= 4 alors
-      prestations_familiales.base_mensuelle * 4.63 % *
+      prestations_familiales.base_mensuelle * 4,63 % *
         (nombre de ménage.enfants - 3)
       sinon 0 €)
 
@@ -81,15 +81,14 @@ champ d'application CalculAllocationsFamiliales :
   conséquence égal à
     prestations_familiales.base_mensuelle * 16 % +
     (si nombre de ménage.enfants >= 4 alors
-      prestations_familiales.base_mensuelle * 4.63 % *
+      prestations_familiales.base_mensuelle * 4,63 % *
         (nombre de ménage.enfants - 3)
       sinon 0 €)
 
   définition allocations_familiales.montant_premier_enfant sous condition
     ménage.résident = Mayotte et
     allocations_familiales.date_ouverture_droits < |01/01/2012|
-  conséquence égal à
-    57.28 €
+  conséquence égal à 57,28 €
 
   définition allocations_familiales.montant_premier_enfant sous condition
     ménage.résident = Mayotte et
@@ -97,7 +96,7 @@ champ d'application CalculAllocationsFamiliales :
     date_calcul > |30/04/2020| et
     date_calcul <= |31/12/2020|
   conséquence égal à
-    prestations_familiales.base_mensuelle * 7.17 %
+    prestations_familiales.base_mensuelle * 7,17 %
 
   définition allocations_familiales.montant_premier_enfant sous condition
     ménage.résident = Mayotte et
@@ -105,7 +104,7 @@ champ d'application CalculAllocationsFamiliales :
     date_calcul > |01/01/2021| et
     date_calcul <= |31/03/2021|
   conséquence égal à
-    prestations_familiales.base_mensuelle * 5.88 %
+    prestations_familiales.base_mensuelle * 5,88 %
 */
 
 
@@ -124,12 +123,12 @@ champ d'application CalculAllocationsFamiliales :
     (ménage.résidence = SaintBarthélemy) ou
     (ménage.résidence = SaintMartin) ou
     (ménage.résidence = SaintPierreEtMiquelon)
-  conséquence égal à 10.15 €
+  conséquence égal à 10,15 €
 */
 2° A Mayotte, son montant est fixé à 7,66 € l'heure.
 /*
 champ d'application CalculAllocationsFamiliales :
   définition smic.brut_horaire sous condition
     (ménage.résidence = Mayotte)
-  conséquence égal à 7.66 €
+  conséquence égal à 7,66 €
 */

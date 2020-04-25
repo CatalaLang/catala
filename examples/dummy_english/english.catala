@@ -17,5 +17,5 @@ application field FamilyBenefitComputation :
   consequence equals
     if number of household.children >= 2
     then family_benefits.monthly_base * 32 %
-    else 0$
+    else $455,653.32
 */
