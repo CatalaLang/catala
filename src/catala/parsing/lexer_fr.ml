@@ -20,7 +20,7 @@ let is_code : bool ref = ref false
 
 let code_string_acc : string ref = ref ""
 
-let rec lex_code_as_string lexbuf acc =
+let rec lex_code_as_string (lexbuf : lexbuf) (acc : string) : token =
   let buf = lexbuf.stream in
   match%sedlex buf with
   | "*/" ->
