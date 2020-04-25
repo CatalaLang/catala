@@ -18,9 +18,14 @@
 
 exception ParsingError of string
 
+exception LexingError of string
+
 let print_parser_position (pos : Lexing.position) : string =
   Printf.sprintf "%s:%d:%d" pos.pos_fname pos.Lexing.pos_lnum
     (pos.Lexing.pos_cnum - pos.Lexing.pos_bol + 1)
 
 let parser_error sloc (msg : string) =
   raise (ParsingError (Printf.sprintf "Parsing error: %s (%s)" msg (print_parser_position sloc)))
+
+let lexer_error sloc (msg : string) =
+  raise (LexingError (Printf.sprintf "Lexing error: %s (%s)" msg (print_parser_position sloc)))

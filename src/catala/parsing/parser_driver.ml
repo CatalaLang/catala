@@ -54,7 +54,7 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
               new_program with
               program_source_files = source_file :: new_program.program_source_files;
             }
-      with Errors.ParsingError msg ->
+      with Errors.ParsingError msg | Errors.LexingError msg ->
         Cli.error_print msg;
         close_in input;
         exit (-1) )
