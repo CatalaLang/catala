@@ -111,7 +111,7 @@ champ d'application CalculAllocationsFamiliales :
     somme pour enfant dans ménage.enfants de (
       selon enfant.prise_en_charge sous forme
       -- Complète : 1
-      -- GardeAlternée de parents : 0.5
+      -- GardeAlternée de parents : 0,5
     )
 */
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du ou des enfants en résidence alternée et, le cas échéant, du ou des autres enfants à charge.

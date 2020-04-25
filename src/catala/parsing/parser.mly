@@ -30,6 +30,7 @@
 %token<string> END_CODE
 %token<int> INT_LITERAL
 %token<int * int> DECIMAL_LITERAL
+%token<int * int> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
@@ -41,7 +42,7 @@
 %token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
-%token FIELD FILLED EURO NOT_EQUAL DEFINITION
+%token FIELD FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
@@ -126,7 +127,6 @@ num_literal:
 
 unit_literal:
 | PERCENT { (Percent, mk_position $sloc) }
-| EURO { (Euro, mk_position $sloc) }
 | YEAR { (Year, mk_position $sloc)}
 
 date_int:
@@ -135,6 +135,13 @@ date_int:
 literal:
 | l = num_literal u = option(unit_literal) {
    (Number (l, u), mk_position $sloc)
+}
+| money = MONEY_AMOUNT {
+  let (units, cents) = money in
+  (MoneyAmount {
+    money_amount_units = units;
+    money_amount_cents = cents;
+  }, mk_position $sloc)
 }
 | VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
   (Date {

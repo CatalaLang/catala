@@ -210,6 +210,18 @@ let rec lex_code_en lexbuf =
   | "year" ->
       update_and_acc lexbuf;
       YEAR
+  | 0x24, Star white_space, '0' .. '9', Star ('0' .. '9' | ','), Opt ('.', Rep ('0' .. '9', 0 .. 2))
+    ->
+      let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
+      let full_str = Sedlexing.Utf8.lexeme buf in
+      let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
+      let parts = R.get_substring (R.exec ~rex:extract_parts only_numbers_str) in
+      (* Integer literal*)
+      let units = parts 1 in
+      let remove_commas = R.regexp "," in
+      let units = int_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) in
+      let cents = try int_of_string (parts 4) with Not_found -> 0 in
+      MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
       let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
       let dec_parts =
@@ -284,10 +296,6 @@ let rec lex_code_en lexbuf =
       (* Integer literal*)
       update_and_acc lexbuf;
       INT_LITERAL (int_of_string (Sedlexing.Utf8.lexeme buf))
-  | 0x24 ->
-      (* this is the dollar sign $ *)
-      update_and_acc lexbuf;
-      EURO
   | _ -> raise_ParseError lexbuf
 
 let rec lex_law_en lexbuf =

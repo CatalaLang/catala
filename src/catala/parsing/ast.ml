@@ -95,12 +95,15 @@ type literal_date = {
 
 type literal_number = Int of int | Dec of int * int
 
-type literal_unit = Percent | Euro | Year | Month | Day
+type literal_unit = Percent | Year | Month | Day
 
 type collection_op = Exists | Forall | Aggregate of aggregate_func
 
+type money_amount = { money_amount_units : int; money_amount_cents : int }
+
 type literal =
   | Number of literal_number Pos.marked * literal_unit Pos.marked option
+  | MoneyAmount of money_amount
   | Date of literal_date
 
 type match_case = {
