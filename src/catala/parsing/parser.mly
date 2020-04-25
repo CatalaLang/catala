@@ -18,7 +18,6 @@
 
 %{
   open Ast
-  open Parse_utils
 %}
 
 %token EOF
@@ -55,22 +54,22 @@
 %%
 
 typ_base:
-| INTEGER { (Integer, mk_position $sloc) }
-| BOOLEAN { (Boolean, mk_position $sloc) }
-| MONEY { (Money, mk_position $sloc) }
-| TEXT { (Text, mk_position $sloc) }
-| DECIMAL { (Decimal, mk_position $sloc) }
-| DATE { (Date, mk_position $sloc) }
+| INTEGER { (Integer, $sloc) }
+| BOOLEAN { (Boolean, $sloc) }
+| MONEY { (Money, $sloc) }
+| TEXT { (Text, $sloc) }
+| DECIMAL { (Decimal, $sloc) }
+| DATE { (Date, $sloc) }
 | c = constructor {
   let (s, _) = c in
-  (Named s, mk_position $sloc)
+  (Named s, $sloc)
 }
 
 collection_marked:
-| COLLECTION { mk_position $sloc }
+| COLLECTION { $sloc }
 
 optional_marked:
-| OPTIONAL { mk_position $sloc }
+| OPTIONAL { $sloc }
 
 typ:
 | collection = option(collection_marked) t = typ_base optional = option(optional_marked) {
@@ -78,20 +77,20 @@ typ:
     typ_data_collection = collection;
     typ_data_optional = optional;
     typ_data_base = t;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 
 qident:
-| i = ident { let (i, i_pos) = i in ([Ident i, i_pos], mk_position $sloc) }
+| i = ident { let (i, i_pos) = i in ([Ident i, i_pos], $sloc) }
 | i = ident DOT q = qident {
   let (i, i_pos) = i in
   let (q, _) = q in
-  ((Ident i, i_pos)::q, mk_position $sloc)
+  ((Ident i, i_pos)::q, $sloc)
 }
 | c = constructor DOT q = qident {
   let (c, c_pos) = c in
   let (q, _) = q in
-  ((Constructor c, c_pos)::q, mk_position $sloc)
+  ((Constructor c, c_pos)::q, $sloc)
 }
 
 atomic_expression:
@@ -102,7 +101,7 @@ atomic_expression:
 small_expression:
 | e = atomic_expression { e }
 | e = small_expression ARROW c = constructor {
-  (Project (e, c), mk_position $sloc)
+  (Project (e, c), $sloc)
 }
 
 constructor_payload:
@@ -110,121 +109,121 @@ constructor_payload:
 
 primitive_expression:
 | e = small_expression { e }
-| NOW { (Builtin Now, mk_position $sloc) }
+| NOW { (Builtin Now, $sloc) }
 | CARDINAL {
-   (Builtin Cardinal, mk_position $sloc)
+   (Builtin Cardinal, $sloc)
 }
 | c = constructor p = option(constructor_payload) {
-  (Inject (c, p), mk_position $sloc)
+  (Inject (c, p), $sloc)
 }
 
 num_literal:
-| d = INT_LITERAL { (Int d, mk_position $sloc) }
+| d = INT_LITERAL { (Int d, $sloc) }
 | d = DECIMAL_LITERAL {
   let (d1, d2) = d in
-  (Dec (d1, d2), mk_position $sloc)
+  (Dec (d1, d2), $sloc)
  }
 
 unit_literal:
-| PERCENT { (Percent, mk_position $sloc) }
-| YEAR { (Year, mk_position $sloc)}
+| PERCENT { (Percent, $sloc) }
+| YEAR { (Year, $sloc)}
 
 date_int:
-| d = INT_LITERAL { (d, mk_position $sloc) }
+| d = INT_LITERAL { (d, $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {
-   (Number (l, u), mk_position $sloc)
+   (Number (l, u), $sloc)
 }
 | money = MONEY_AMOUNT {
   let (units, cents) = money in
   (MoneyAmount {
     money_amount_units = units;
     money_amount_cents = cents;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 | VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
   (Date {
     literal_date_day = d;
     literal_date_month = m;
     literal_date_year = y;
-    }, mk_position $sloc)
+    }, $sloc)
 }
 
 
 compare_op:
-| LESSER { (Lt, mk_position $sloc) }
-| LESSER_EQUAL { (Lte, mk_position $sloc) }
-| GREATER { (Gt, mk_position $sloc) }
-| GREATER_EQUAL { (Gte, mk_position $sloc) }
-| EQUAL { (Eq, mk_position $sloc) }
-| NOT_EQUAL { (Neq, mk_position $sloc) }
+| LESSER { (Lt, $sloc) }
+| LESSER_EQUAL { (Lte, $sloc) }
+| GREATER { (Gt, $sloc) }
+| GREATER_EQUAL { (Gte, $sloc) }
+| EQUAL { (Eq, $sloc) }
+| NOT_EQUAL { (Neq, $sloc) }
 
 aggregate_func:
-| SUM { (Aggregate AggregateSum, mk_position $sloc) }
-| CARDINAL { (Aggregate AggregateCount, mk_position $sloc) }
+| SUM { (Aggregate AggregateSum, $sloc) }
+| CARDINAL { (Aggregate AggregateCount, $sloc) }
 
 aggregate:
 | func = aggregate_func FOR i = ident IN e1 = primitive_expression
   OF e2 = base_expression {
-  (CollectionOp (func, i, e1, e2), mk_position $sloc)
+  (CollectionOp (func, i, e1, e2), $sloc)
 }
 
 base_expression:
 | e = primitive_expression { e }
 | ag = aggregate { ag }
 | e1 = primitive_expression OF e2 = base_expression {
-  (FunCall (e1, e2), mk_position $sloc)
+  (FunCall (e1, e2), $sloc)
 }
 | e = primitive_expression WITH c= constructor {
-  (TestMatchCase (e, c), mk_position $sloc)
+  (TestMatchCase (e, c), $sloc)
 }
 | e1 = primitive_expression IN e2 = base_expression {
-   (MemCollection (e1, e2), mk_position $sloc)
+   (MemCollection (e1, e2), $sloc)
 }
 
 mult_op:
-| MULT { (Mult, mk_position $sloc) }
-| DIV { (Div, mk_position $sloc) }
+| MULT { (Mult, $sloc) }
+| DIV { (Div, $sloc) }
 
 mult_expression:
 | e =  base_expression { e }
 | e1 = base_expression binop = mult_op e2  = mult_expression {
-  (Binop (binop, e1, e2), mk_position $sloc)
+  (Binop (binop, e1, e2), $sloc)
 }
 
 sum_op:
-| PLUS { (Add, mk_position $sloc) }
-| MINUS { (Sub, mk_position $sloc) }
+| PLUS { (Add, $sloc) }
+| MINUS { (Sub, $sloc) }
 
 sum_unop:
-| MINUS { (Minus, mk_position $sloc) }
+| MINUS { (Minus, $sloc) }
 
 sum_expression:
 | e = mult_expression { e }
 | e1 = mult_expression binop = sum_op e2 = sum_expression {
-  (Binop (binop, e1, e2), mk_position $sloc)
+  (Binop (binop, e1, e2), $sloc)
 }
-| unop = sum_unop e = sum_expression { (Unop (unop, e), mk_position $sloc) }
+| unop = sum_unop e = sum_expression { (Unop (unop, e), $sloc) }
 
 logical_op:
-| AND { (And, mk_position $sloc) }
-| OR { (Or, mk_position $sloc) }
+| AND { (And, $sloc) }
+| OR { (Or, $sloc) }
 
 logical_unop:
-| NOT { (Not, mk_position $sloc) }
+| NOT { (Not, $sloc) }
 
 compare_expression:
 | e = sum_expression { e }
 | e1 = sum_expression binop = compare_op e2 = compare_expression {
-  (Binop (binop, e1, e2), mk_position $sloc)
+  (Binop (binop, e1, e2), $sloc)
  }
 
 logical_expression:
 | e = compare_expression { e }
-| unop = logical_unop e = compare_expression { (Unop (unop, e), mk_position $sloc) }
+| unop = logical_unop e = compare_expression { (Unop (unop, e), $sloc) }
 | e1 = compare_expression binop = logical_op e2 = logical_expression {
-   (Binop (binop, e1, e2), mk_position $sloc)
+   (Binop (binop, e1, e2), $sloc)
  }
 
 optional_binding:
@@ -245,23 +244,23 @@ match_arm:
 | pat = constructor_binding COLON e = logical_expression {
   ({
     (* DM 14/04/2020 : I can't have the $sloc in constructor_binding... *)
-    match_case_pattern = (pat, mk_position $sloc);
+    match_case_pattern = (pat, $sloc);
     match_case_expr = e;
-    }, mk_position $sloc)
+    }, $sloc)
 }
 
 match_arms:
 | ALT a = match_arm arms = match_arms {
   let (arms, _) = arms in
-   (a::arms, mk_position $sloc)
+   (a::arms, $sloc)
 }
-| { ([], mk_position $sloc)}
+| { ([], $sloc)}
 
 for_all_marked:
-| FOR ALL { mk_position $sloc }
+| FOR ALL { $sloc }
 
 exists_marked:
-| EXISTS { mk_position $sloc }
+| EXISTS { $sloc }
 
 forall_prefix:
 | pos = for_all_marked i = ident IN e = primitive_expression WE_HAVE {
@@ -275,17 +274,17 @@ forall_prefix:
 expression:
 | i_in_e1 = exists_prefix e2 = expression {
   let (pos, i,e1) = i_in_e1 in
-  (CollectionOp ((Exists, pos), i, e1, e2), mk_position $sloc)
+  (CollectionOp ((Exists, pos), i, e1, e2), $sloc)
 }
 | i_in_e1 = forall_prefix e2 = expression {
   let (pos, i,e1) = i_in_e1 in
-  (CollectionOp ((Forall, pos), i, e1, e2), mk_position $sloc)
+  (CollectionOp ((Forall, pos), i, e1, e2), $sloc)
 }
 | MATCH e = primitive_expression WITH arms = match_arms {
-  (MatchWith (e, arms), mk_position $sloc)
+  (MatchWith (e, arms), $sloc)
 }
 | IF e1 = expression THEN e2 = expression ELSE e3 = base_expression {
-  (IfThenElse (e1, e2, e3), mk_position $sloc)
+  (IfThenElse (e1, e2, e3), $sloc)
 }
 | e = logical_expression { e }
 
@@ -307,7 +306,7 @@ rule:
       rule_condition = cond;
       rule_name = name;
       rule_consequence = match consequence with Some _ -> false | None -> true
-      }, mk_position $sloc)
+      }, $sloc)
   }
 
 definition_parameters:
@@ -321,15 +320,15 @@ definition:
       definition_parameter = param;
       definition_condition = cond;
       definition_expr = e;
-      }, mk_position $sloc)
+      }, $sloc)
   }
 
 variation_type:
-| INCREASING { (Increasing, mk_position $sloc) }
-| DECREASING { (Decreasing, mk_position $sloc) }
+| INCREASING { (Increasing, $sloc) }
+| DECREASING { (Decreasing, $sloc) }
 
 assertion_base:
-| e = expression { let (e, _) = e in (e, mk_position $sloc) }
+| e = expression { let (e, _) = e in (e, $sloc) }
 
 assertion:
 | cond = option(condition_consequence) base = assertion_base {
@@ -345,20 +344,20 @@ assertion:
 
 application_field_item:
 | RULE r = rule {
-   let (r, _) = r in (Rule r, mk_position $sloc)
+   let (r, _) = r in (Rule r, $sloc)
 }
 | DEFINITION d = definition {
-  let (d, _) = d in (Definition d, mk_position $sloc)
+  let (d, _) = d in (Definition d, $sloc)
  }
 | ASSERTION contents = assertion {
-  (contents, mk_position $sloc)
+  (contents, $sloc)
 }
 
 ident:
-| i = IDENT { (i, mk_position $sloc) }
+| i = IDENT { (i, $sloc) }
 
 condition_pos:
-| CONDITION { mk_position $sloc }
+| CONDITION { $sloc }
 
 struct_field_base:
 | DATA i= ident CONTENT t = typ {
@@ -382,8 +381,8 @@ struct_field:
     | Some (return_typ, return_pos) -> (Func  {
       arg_typ = (typ, typ_pos);
       return_typ = (return_typ, return_pos);
-    }, mk_position $sloc) ;
-  }, mk_position $sloc)
+    }, $sloc) ;
+  }, $sloc)
 }
 
 field_decl_item:
@@ -396,8 +395,8 @@ field_decl_item:
     | Some (return_typ, return_pos) -> (Func  {
       arg_typ = (typ, typ_pos);
       return_typ = (return_typ, return_pos);
-    }, mk_position $sloc);
-  }, mk_position $sloc) }
+    }, $sloc);
+  }, $sloc) }
 
 field_decl_include:
 | c1 = constructor DOT i1 = ident EQUAL c2 = constructor DOT i2 = ident {
@@ -406,7 +405,7 @@ field_decl_include:
     parent_field_context_item = i1 ;
     sub_field_name = c2;
     sub_field_context_item = i2;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 
 field_decl_includes_context:
@@ -419,7 +418,7 @@ field_decl_includes:
    field_decl_include_joins = match context with
    | None -> []
    | Some context -> context
-  }, mk_position $sloc)
+  }, $sloc)
 }
 
 enum_decl_line_payload:
@@ -429,23 +428,23 @@ enum_decl_line:
 | ALT c = constructor t = option(enum_decl_line_payload) { ({
     enum_decl_case_name = c;
     enum_decl_case_typ = t;
-  }, mk_position $sloc) }
+  }, $sloc) }
 
 constructor:
-| c = CONSTRUCTOR { (c, mk_position $sloc) }
+| c = CONSTRUCTOR { (c, $sloc) }
 
 code_item:
 | FIELD c = constructor COLON items = nonempty_list(application_field_item) {
   (FieldUse {
     field_use_name = c;
     field_use_items = items;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 | DECLARATION STRUCT c = constructor COLON fields = list(struct_field) {
   (StructDecl {
     struct_decl_name = c;
     struct_decl_fields = fields;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 | DECLARATION FIELD c = constructor COLON context = nonempty_list(field_decl_item)
   includes = list(field_decl_includes) {
@@ -453,17 +452,17 @@ code_item:
       field_decl_name = c;
       field_decl_context = context;
       field_decl_includes = includes;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 | DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
   (EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
-  }, mk_position $sloc)
+  }, $sloc)
 }
 
 code:
-| code = list(code_item) { (code, mk_position $sloc) }
+| code = list(code_item) { (code, $sloc) }
 
 metadata_block:
 | BEGIN_CODE code_and_pos = code text = END_CODE END_METADATA {
@@ -474,7 +473,7 @@ metadata_block:
 source_file_item:
 | title = LAW_ARTICLE {
   let (title, id, exp_date) = title in LawArticle {
-    law_article_name = (title, mk_position $sloc);
+    law_article_name = (title, $sloc);
     law_article_id = id;
     law_article_expiration_date = exp_date;
   }
@@ -500,8 +499,8 @@ source_file:
 master_file_include:
 | includ = LAW_INCLUDE {
   let (file, page) = includ in match page with
-  | None -> (file, mk_position $sloc)
-  | Some _ -> Errors.parser_error $sloc (Printf.sprintf "Include in master file must be .catala file!" )
+  | None -> (file, $sloc)
+  | Some _ -> Errors.parser_error $sloc file (Printf.sprintf "Include in master file must be .catala file!" )
 }
 
 master_file_includes:

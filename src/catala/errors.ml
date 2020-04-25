@@ -20,14 +20,9 @@ exception ParsingError of string
 
 exception LexingError of string
 
-let print_parser_position ((pos1, pos2) : Lexing.position * Lexing.position) : string =
-  Printf.sprintf "%s:%d:%d-%d:%d" pos1.pos_fname pos1.Lexing.pos_lnum
-    (pos1.Lexing.pos_cnum - pos1.Lexing.pos_bol + 1)
-    pos2.Lexing.pos_lnum
-    (pos2.Lexing.pos_cnum - pos2.Lexing.pos_bol + 1)
-
-let parser_error (loc : Lexing.position * Lexing.position) (msg : string) =
-  raise (ParsingError (Printf.sprintf "Parsing error: %s (%s)" msg (print_parser_position loc)))
+let parser_error (loc : Lexing.position * Lexing.position) (token : string) (msg : string) =
+  raise
+    (ParsingError (Printf.sprintf "Parsing error at token \"%s\" %s: %s" token (Pos.to_string loc) msg))
 
 let lexer_error (loc : Lexing.position * Lexing.position) (msg : string) =
-  raise (LexingError (Printf.sprintf "Lexing error: %s (%s)" msg (print_parser_position loc)))
+  raise (LexingError (Printf.sprintf "Lexing error at %s on token \"%s\"" msg (Pos.to_string loc)))

@@ -14,28 +14,28 @@
 
 (** {1 Source code position} *)
 
-type t = { pos_filename : string; pos_loc : Lexing.position * Lexing.position }
+type t = Lexing.position * Lexing.position
 (** A position in the source code is a file, as well as begin and end location of the form col:line *)
 
 let to_string (pos : t) : string =
-  let s, e = pos.pos_loc in
-  Printf.sprintf "in file %s, from %d:%d to %d:%d" pos.pos_filename s.Lexing.pos_lnum
+  let s, e = pos in
+  Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
     (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
 let to_string_short (pos : t) : string =
-  let s, e = pos.pos_loc in
-  Printf.sprintf "%s;%d:%d--%d:%d" pos.pos_filename s.Lexing.pos_lnum
+  let s, e = pos in
+  Printf.sprintf "%s;%d:%d--%d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
     (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
 let get_start_line (pos : t) : int =
-  let s, _ = pos.pos_loc in
+  let s, _ = pos in
   s.Lexing.pos_lnum
 
-let get_file (pos : t) : string = pos.pos_filename
+let get_file (pos : t) : string = (fst pos).Lexing.pos_fname
 
 type 'a marked = 'a * t
 (** Everything related to the source code should keep its position stored, to improve error messages *)
@@ -45,7 +45,7 @@ let no_pos : t =
   let zero_pos =
     { Lexing.pos_fname = ""; Lexing.pos_lnum = 0; Lexing.pos_cnum = 0; Lexing.pos_bol = 0 }
   in
-  { pos_filename = "unknown position"; pos_loc = (zero_pos, zero_pos) }
+  (zero_pos, zero_pos)
 
 let unmark ((x, _) : 'a marked) : 'a = x
 

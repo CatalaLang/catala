@@ -15,8 +15,10 @@ install-dependencies:
 format:
 	dune build @fmt --auto-promote | true
 
-build: format
+build:
+	$(MAKE) -C src/catala/parsing parser_errors.ml
 	dune build
+	$(MAKE) format
 
 install: build
 	dune build @install

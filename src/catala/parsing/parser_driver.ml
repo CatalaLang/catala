@@ -15,9 +15,20 @@
 open Sedlexing
 module I = Parser.MenhirInterpreter
 
-let fail (lexbuf : lexbuf) (_ : 'semantic_value I.env) : 'a =
+let state (env : 'semantic_value I.env) : int =
+  match Lazy.force (I.stack env) with
+  | MenhirLib.General.Nil -> 0
+  | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
+
+let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
+    (_checkpoint : 'semantic_value I.checkpoint) : 'a =
   (* The parser has suspended itself because of a syntax error. Stop. *)
-  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  let message =
+    match Parser_errors.message (state env) with
+    | exception Not_found -> "Syntax error"
+    | msg -> msg
+  in
+  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) message
 
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
     (lexbuf : lexbuf) (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file_or_master =
@@ -29,7 +40,7 @@ let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.posit
   | I.Shifting _ | I.AboutToReduce _ ->
       let checkpoint = I.resume checkpoint in
       loop next_token lexbuf checkpoint
-  | I.HandlingError env -> fail lexbuf env
+  | I.HandlingError env -> fail lexbuf env checkpoint
   | I.Accepted v -> v
   | I.Rejected ->
       (* Cannot happen as we stop at syntax error immediatly *)
@@ -41,10 +52,9 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token)
   let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
     with_tokenizer lexer' lexbuf
   in
-  try loop lexer lexbuf (target_rule (fst @@ Sedlexing.lexing_positions lexbuf)) with
-  | Parser.Error -> Errors.parser_error (Sedlexing.lexing_positions lexbuf) (Utf8.lexeme lexbuf)
-  | Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-      Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  try loop lexer lexbuf (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
+  with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
+    Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
 let rec parse_source_files (source_files : string list) (language : Cli.language_option) :
     Ast.program =
