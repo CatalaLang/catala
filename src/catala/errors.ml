@@ -22,7 +22,8 @@ exception LexingError of string
 
 let parser_error (loc : Lexing.position * Lexing.position) (token : string) (msg : string) =
   raise
-    (ParsingError (Printf.sprintf "Parsing error at token \"%s\" %s: %s" token (Pos.to_string loc) msg))
+    (ParsingError
+       (Printf.sprintf "Parsing error at token \"%s\" %s: %s" token (Pos.to_string loc) msg))
 
 let lexer_error (loc : Lexing.position * Lexing.position) (msg : string) =
   raise (LexingError (Printf.sprintf "Lexing error at %s on token \"%s\"" msg (Pos.to_string loc)))
