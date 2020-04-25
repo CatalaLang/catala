@@ -1,6 +1,5 @@
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT BOOLEAN INCLUDES
 ##
-## Ends in an error in state: 262.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ FIELD END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
@@ -23,7 +22,6 @@ inclusion does not concern content of enumeration cases
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 257.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -32,11 +30,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRU
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#257
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 256.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -45,11 +42,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRU
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#256
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 255.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -58,11 +54,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#255
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 254.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -71,11 +66,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#254
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 253.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -84,11 +78,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#253
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 252.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -97,11 +90,10 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#252
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 250.
 ##
 ## nonempty_list(field_decl_item) -> field_decl_item . [ INCLUDES FIELD END_CODE DECLARATION ]
 ## nonempty_list(field_decl_item) -> field_decl_item . nonempty_list(field_decl_item) [ INCLUDES FIELD END_CODE DECLARATION ]
@@ -121,11 +113,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#250
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT IDENT YEAR
 ##
-## Ends in an error in state: 236.
 ##
 ## nonempty_list(field_decl_include) -> field_decl_include . [ INCLUDES FIELD END_CODE DECLARATION ]
 ## nonempty_list(field_decl_include) -> field_decl_include . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
@@ -135,11 +126,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#236
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 243.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL constructor DOT . ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -148,11 +138,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#243
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 242.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL constructor . DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -161,11 +150,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#242
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL YEAR
 ##
-## Ends in an error in state: 241.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL . constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -174,11 +162,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#241
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT YEAR
 ##
-## Ends in an error in state: 240.
 ##
 ## field_decl_include -> constructor DOT ident . EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -187,11 +174,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#240
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 239.
 ##
 ## field_decl_include -> constructor DOT . ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -200,11 +186,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#239
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 238.
 ##
 ## field_decl_include -> constructor . DOT ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -213,11 +198,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#238
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT YEAR
 ##
-## Ends in an error in state: 234.
 ##
 ## field_decl_includes_context -> CONTEXT . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -226,11 +210,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#234
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 233.
 ##
 ## field_decl_includes -> INCLUDES FIELD constructor . option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -239,11 +222,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#233
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD YEAR
 ##
-## Ends in an error in state: 232.
 ##
 ## field_decl_includes -> INCLUDES FIELD . constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -252,11 +234,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#232
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES YEAR
 ##
-## Ends in an error in state: 231.
 ##
 ## field_decl_includes -> INCLUDES . FIELD constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -265,11 +246,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#231
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
-## Ends in an error in state: 228.
 ##
 ## field_decl_item -> CONTEXT ident CONTENT typ . option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -285,11 +265,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#228
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 227.
 ##
 ## field_decl_item -> CONTEXT ident CONTENT . typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -298,11 +277,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#227
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
-## Ends in an error in state: 226.
 ##
 ## field_decl_item -> CONTEXT ident . CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -311,11 +289,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#226
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 225.
 ##
 ## field_decl_item -> CONTEXT . ident CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -324,11 +301,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT YE
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#225
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 224.
 ##
 ## code_item -> DECLARATION FIELD constructor COLON . nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -337,11 +313,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#224
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 223.
 ##
 ## code_item -> DECLARATION FIELD constructor . COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -350,11 +325,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#223
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD YEAR
 ##
-## Ends in an error in state: 222.
 ##
 ## code_item -> DECLARATION FIELD . constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -363,11 +337,10 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#222
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS BOOLEAN INCLUDES
 ##
-## Ends in an error in state: 217.
 ##
 ## list(struct_field) -> struct_field . list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -386,11 +359,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#217
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION BEGIN_METADATA
 ##
-## Ends in an error in state: 198.
 ##
 ## typ -> option(collection_marked) . typ_base option(optional_marked) [ INCLUDES FIELD END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -399,11 +371,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#198
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
-## Ends in an error in state: 205.
 ##
 ## typ -> option(collection_marked) typ_base . option(optional_marked) [ INCLUDES FIELD END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -412,11 +383,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#205
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 213.
 ##
 ## struct_field_func -> DEPENDS . typ [ INCLUDES FIELD END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -425,11 +395,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#213
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 212.
 ##
 ## struct_field -> struct_field_base . option(struct_field_func) [ FIELD END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -438,11 +407,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#212
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 219.
 ##
 ## struct_field_base -> condition_pos . ident [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -451,11 +419,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#219
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 195.
 ##
 ## struct_field_base -> DATA ident CONTENT . typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -464,11 +431,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#195
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 194.
 ##
 ## struct_field_base -> DATA ident . CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -477,11 +443,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#194
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 193.
 ##
 ## struct_field_base -> DATA . ident CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -490,11 +455,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#193
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 192.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -503,11 +467,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#192
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 191.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -516,11 +479,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#191
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 190.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -529,11 +491,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#190
 
 source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 189.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ## code_item -> DECLARATION . FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
@@ -544,11 +505,10 @@ source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#189
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
-## Ends in an error in state: 187.
 ##
 ## nonempty_list(application_field_item) -> application_field_item . [ FIELD END_CODE DECLARATION ]
 ## nonempty_list(application_field_item) -> application_field_item . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
@@ -573,11 +533,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#187
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL YEAR
 ##
-## Ends in an error in state: 43.
 ##
 ## aggregate_func -> CARDINAL . [ FOR ]
 ## primitive_expression -> CARDINAL . [ WITH THEN RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -587,11 +546,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL YEA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#43
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT MONEY_AMOUNT YEAR
 ##
-## Ends in an error in state: 68.
 ##
 ## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
@@ -601,11 +559,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#68
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 67.
 ##
 ## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -614,11 +571,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#67
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 66.
 ##
 ## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## qident -> constructor . DOT qident [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
@@ -628,11 +584,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#66
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
 ##
-## Ends in an error in state: 113.
 ##
 ## expression -> exists_prefix . expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -641,11 +596,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#113
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW SUCH YEAR
 ##
-## Ends in an error in state: 119.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression SUCH . THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -654,11 +608,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#119
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 118.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression . SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -667,11 +620,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#118
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN YEAR
 ##
-## Ends in an error in state: 117.
 ##
 ## exists_prefix -> exists_marked ident IN . primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -680,11 +632,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#117
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT YEAR
 ##
-## Ends in an error in state: 116.
 ##
 ## exists_prefix -> exists_marked ident . IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -693,11 +644,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#116
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS YEAR
 ##
-## Ends in an error in state: 115.
 ##
 ## exists_prefix -> exists_marked . ident IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -706,11 +656,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#115
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
-## Ends in an error in state: 180.
 ##
 ## assertion -> FIXED qident BY . ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -719,11 +668,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#180
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
-## Ends in an error in state: 179.
 ##
 ## assertion -> FIXED qident . BY ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -738,11 +686,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#179
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
-## Ends in an error in state: 178.
 ##
 ## assertion -> FIXED . qident BY ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -751,11 +698,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#178
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN CARDINAL WE_HAVE YEAR
 ##
-## Ends in an error in state: 106.
 ##
 ## expression -> forall_prefix . expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -764,11 +710,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#106
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 110.
 ##
 ## forall_prefix -> for_all_marked ident IN primitive_expression . WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -777,11 +722,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#110
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN YEAR
 ##
-## Ends in an error in state: 109.
 ##
 ## forall_prefix -> for_all_marked ident IN . primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -790,11 +734,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#109
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT YEAR
 ##
-## Ends in an error in state: 108.
 ##
 ## forall_prefix -> for_all_marked ident . IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -803,11 +746,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#108
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL YEAR
 ##
-## Ends in an error in state: 107.
 ##
 ## forall_prefix -> for_all_marked . ident IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -816,11 +758,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#107
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR YEAR
 ##
-## Ends in an error in state: 39.
 ##
 ## for_all_marked -> FOR . ALL [ IDENT ]
 ##
@@ -829,11 +770,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#39
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ##
-## Ends in an error in state: 126.
 ##
 ## expression -> IF expression . THEN expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -853,11 +793,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#126
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW ELSE YEAR
 ##
-## Ends in an error in state: 129.
 ##
 ## expression -> IF expression THEN expression ELSE . base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -866,11 +805,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#129
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW THEN
 ##
-## Ends in an error in state: 128.
 ##
 ## expression -> IF expression THEN expression . ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -890,11 +828,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#128
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN YEAR
 ##
-## Ends in an error in state: 127.
 ##
 ## expression -> IF expression THEN . expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -903,11 +840,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#127
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF YEAR
 ##
-## Ends in an error in state: 38.
 ##
 ## expression -> IF . expression THEN expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -916,11 +852,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#38
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 54.
 ##
 ## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -929,11 +864,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION INT_LITERAL 
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#54
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW THEN
 ##
-## Ends in an error in state: 131.
 ##
 ## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -953,11 +887,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#131
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
-## Ends in an error in state: 36.
 ##
 ## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -966,11 +899,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#36
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON NOT NOW OR
 ##
-## Ends in an error in state: 136.
 ##
 ## match_arms -> ALT match_arm . match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -990,11 +922,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#136
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 139.
 ##
 ## match_arm -> constructor_binding COLON . logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1003,11 +934,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#139
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 144.
 ##
 ## optional_binding -> OF constructor . constructor_binding [ COLON ]
 ##
@@ -1016,11 +946,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#144
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF IDENT YEAR
 ##
-## Ends in an error in state: 138.
 ##
 ## match_arm -> constructor_binding . COLON logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1029,11 +958,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#138
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF YEAR
 ##
-## Ends in an error in state: 142.
 ##
 ## optional_binding -> OF . ident [ COLON ]
 ## optional_binding -> OF . constructor constructor_binding [ COLON ]
@@ -1043,11 +971,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#142
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 141.
 ##
 ## constructor_binding -> constructor . optional_binding [ COLON ]
 ##
@@ -1056,11 +983,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#141
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT YEAR
 ##
-## Ends in an error in state: 135.
 ##
 ## match_arms -> ALT . match_arm match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1069,11 +995,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#135
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH YEAR
 ##
-## Ends in an error in state: 134.
 ##
 ## expression -> MATCH primitive_expression WITH . match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1082,11 +1007,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#134
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW YEAR
 ##
-## Ends in an error in state: 133.
 ##
 ## expression -> MATCH primitive_expression . WITH match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1095,11 +1019,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW YE
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#133
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH YEAR
 ##
-## Ends in an error in state: 35.
 ##
 ## expression -> MATCH . primitive_expression WITH match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1108,11 +1031,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#35
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MINUS YEAR
 ##
-## Ends in an error in state: 44.
 ##
 ## sum_expression -> sum_unop . sum_expression [ THEN RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1121,11 +1043,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MINUS YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#44
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT ARROW YEAR
 ##
-## Ends in an error in state: 47.
 ##
 ## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1134,11 +1055,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#47
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT YEAR
 ##
-## Ends in an error in state: 46.
 ##
 ## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
@@ -1148,11 +1068,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#46
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
-## Ends in an error in state: 103.
 ##
 ## logical_expression -> logical_unop . compare_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1161,11 +1080,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#103
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ##
-## Ends in an error in state: 82.
 ##
 ## base_expression -> primitive_expression IN . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1174,11 +1092,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#82
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASING
 ##
-## Ends in an error in state: 89.
 ##
 ## mult_expression -> base_expression . [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## mult_expression -> base_expression . mult_op mult_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -1194,11 +1111,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#89
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW MULT YEAR
 ##
-## Ends in an error in state: 92.
 ##
 ## mult_expression -> base_expression mult_op . mult_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1207,11 +1123,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW MULT YEA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#92
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW NOT_EQUAL YEAR
 ##
-## Ends in an error in state: 101.
 ##
 ## compare_expression -> sum_expression compare_op . compare_expression [ THEN RULE RPAREN OR FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1220,11 +1135,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW NOT_EQUA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#101
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
-## Ends in an error in state: 53.
 ##
 ## base_expression -> primitive_expression OF . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1233,11 +1147,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#53
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OR YEAR
 ##
-## Ends in an error in state: 124.
 ##
 ## logical_expression -> compare_expression logical_op . logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1246,11 +1159,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#124
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW PLUS YEAR
 ##
-## Ends in an error in state: 87.
 ##
 ## sum_expression -> mult_expression sum_op . sum_expression [ THEN RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1259,11 +1171,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW PLUS YEA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#87
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW WITH YEAR
 ##
-## Ends in an error in state: 51.
 ##
 ## base_expression -> primitive_expression WITH . constructor [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1272,11 +1183,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW WITH YEA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#51
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
-## Ends in an error in state: 50.
 ##
 ## base_expression -> primitive_expression . [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## base_expression -> primitive_expression . OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -1288,11 +1198,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#50
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW OF YEAR
 ##
-## Ends in an error in state: 79.
 ##
 ## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1301,11 +1210,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#79
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 78.
 ##
 ## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1314,11 +1222,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#78
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN YEAR
 ##
-## Ends in an error in state: 76.
 ##
 ## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1327,11 +1234,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#76
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT YEAR
 ##
-## Ends in an error in state: 75.
 ##
 ## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1340,11 +1246,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#75
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR YEAR
 ##
-## Ends in an error in state: 74.
 ##
 ## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1353,11 +1258,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#74
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM YEAR
 ##
-## Ends in an error in state: 73.
 ##
 ## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1366,11 +1270,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#73
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
 ##
-## Ends in an error in state: 182.
 ##
 ## assertion -> option(condition_consequence) . assertion_base [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1379,11 +1282,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#182
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
 ##
-## Ends in an error in state: 154.
 ##
 ## condition_consequence -> condition . CONSEQUENCE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR FILLED EXISTS DEFINED_AS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -1405,11 +1307,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#154
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
-## Ends in an error in state: 21.
 ##
 ## condition -> UNDER_CONDITION . expression [ CONSEQUENCE ]
 ##
@@ -1418,11 +1319,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#21
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH
 ##
-## Ends in an error in state: 171.
 ##
 ## assertion -> VARIES qident . WITH_V base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1437,11 +1337,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#171
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V NOW THEN
 ##
-## Ends in an error in state: 173.
 ##
 ## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1456,11 +1355,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#173
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
-## Ends in an error in state: 172.
 ##
 ## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1469,11 +1367,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#172
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
-## Ends in an error in state: 170.
 ##
 ## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1482,11 +1379,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#170
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV INT_LITERAL YEAR
 ##
-## Ends in an error in state: 28.
 ##
 ## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1495,11 +1391,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#28
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV YEAR
 ##
-## Ends in an error in state: 27.
 ##
 ## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1508,11 +1403,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#27
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL YEAR
 ##
-## Ends in an error in state: 26.
 ##
 ## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1521,11 +1415,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#26
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV YEAR
 ##
-## Ends in an error in state: 25.
 ##
 ## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1534,11 +1427,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#25
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL YEAR
 ##
-## Ends in an error in state: 24.
 ##
 ## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1547,11 +1439,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#24
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL YEAR
 ##
-## Ends in an error in state: 22.
 ##
 ## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1560,11 +1451,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL YEA
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#22
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION YEAR
 ##
-## Ends in an error in state: 169.
 ##
 ## application_field_item -> ASSERTION . assertion [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1573,11 +1463,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#169
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 166.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1586,11 +1475,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT DEFIN
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#166
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 164.
 ##
 ## definition -> qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1599,11 +1487,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT OF ID
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#164
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
-## Ends in an error in state: 165.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1612,11 +1499,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT UNDER
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#165
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 163.
 ##
 ## definition -> qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1631,11 +1517,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#163
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 162.
 ##
 ## application_field_item -> DEFINITION . definition [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1644,11 +1529,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#162
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 64.
 ##
 ## qident -> constructor DOT . qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
@@ -1657,11 +1541,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR DOT Y
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#64
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 63.
 ##
 ## qident -> constructor . DOT qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
@@ -1670,11 +1553,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#63
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
-## Ends in an error in state: 61.
 ##
 ## qident -> ident DOT . qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
@@ -1683,11 +1565,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#61
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT NOT FIELD
 ##
-## Ends in an error in state: 151.
 ##
 ## rule -> rule_expr option(condition_consequence) option(NOT) . FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1696,11 +1577,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT NOT FIELD
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#151
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
-## Ends in an error in state: 20.
 ##
 ## rule -> rule_expr . option(condition_consequence) option(NOT) FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1709,11 +1589,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF IDENT YE
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#20
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 158.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
 ##
@@ -1722,11 +1601,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#158
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION NOW CONSEQUENCE FIELD
 ##
-## Ends in an error in state: 149.
 ##
 ## rule -> rule_expr option(condition_consequence) . option(NOT) FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1735,11 +1613,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT UNDER_CONDI
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#149
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 157.
 ##
 ## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
 ##
@@ -1754,11 +1631,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#157
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT YEAR
 ##
-## Ends in an error in state: 60.
 ##
 ## qident -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ## qident -> ident . DOT qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
@@ -1768,11 +1644,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#60
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE YEAR
 ##
-## Ends in an error in state: 18.
 ##
 ## application_field_item -> RULE . rule [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1781,11 +1656,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#18
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 17.
 ##
 ## code_item -> FIELD constructor COLON . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1794,11 +1668,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#17
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 16.
 ##
 ## code_item -> FIELD constructor . COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1807,11 +1680,10 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#16
 
 source_file_or_master: BEGIN_CODE FIELD YEAR
 ##
-## Ends in an error in state: 14.
 ##
 ## code_item -> FIELD . constructor COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1820,11 +1692,10 @@ source_file_or_master: BEGIN_CODE FIELD YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#14
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 271.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1833,11 +1704,10 @@ source_file_or_master: BEGIN_CODE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#271
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 268.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1846,11 +1716,10 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#268
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 13.
 ##
 ## metadata_block -> BEGIN_CODE . code END_CODE END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1859,11 +1728,10 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#13
 
 source_file_or_master: BEGIN_METADATA YEAR
 ##
-## Ends in an error in state: 12.
 ##
 ## source_file_item -> BEGIN_METADATA . metadata_block [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1872,11 +1740,10 @@ source_file_or_master: BEGIN_METADATA YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#12
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 275.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##
@@ -1885,11 +1752,10 @@ source_file_or_master: LAW_TEXT YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#275
 
 source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 5.
 ##
 ## master_file_includes -> master_file_include . master_file_includes [ # ]
 ##
@@ -1898,11 +1764,10 @@ source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#5
 
 source_file_or_master: MASTER_FILE YEAR
 ##
-## Ends in an error in state: 1.
 ##
 ## source_file_or_master -> MASTER_FILE . master_file_includes [ # ]
 ##
@@ -1911,11 +1776,10 @@ source_file_or_master: MASTER_FILE YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#1
 
 source_file_or_master: YEAR
 ##
-## Ends in an error in state: 0.
 ##
 ## source_file_or_master' -> . source_file_or_master [ # ]
 ##
@@ -1924,4 +1788,4 @@ source_file_or_master: YEAR
 ##
 
 unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: $
+To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#0
