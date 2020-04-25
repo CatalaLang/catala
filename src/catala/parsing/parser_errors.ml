@@ -193,9 +193,8 @@ let message s =
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#50\n"
   | 51 ->
-      "unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#51\n"
+      "missing enumeration case for testing if an enumeration value is in a particular enumeration \
+       case\n"
   | 87 ->
       "unexpected token\n\
        To get a better error messsage, file an issue at \
