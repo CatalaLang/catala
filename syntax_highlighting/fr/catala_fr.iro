@@ -67,14 +67,14 @@ styles [] {
    color                 = light_yellow
    italic                = false
    textmate_scope        = entity.law
-   pygments_scope        = String.Doc
+   pygments_scope        = String
 }
 
 .code_delimiter : style {
    color                 = grey
    italic                = false
    textmate_scope        = comment.block.documentation
-   pygments_scope        = Comment.Special
+   pygments_scope        = String
 }
 
 .primitive : style {
