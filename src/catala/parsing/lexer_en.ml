@@ -22,7 +22,59 @@ let code_string_acc : string ref = ref ""
 
 let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
-let token_list : (string * token) list = []
+let token_list_en : (string * token) list =
+  [
+    ("application field", FIELD);
+    ("consequence", CONSEQUENCE);
+    ("data", DATA);
+    ("depends on", DEPENDS);
+    ("declaration", DECLARATION);
+    ("context", CONTEXT);
+    ("includes", INCLUDES);
+    ("decreasing", DECREASING);
+    ("increasing", INCREASING);
+    ("of", OF);
+    ("collection", COLLECTION);
+    ("enumeration", ENUM);
+    ("integer", INTEGER);
+    ("amount", MONEY);
+    ("text", TEXT);
+    ("decimal", DECIMAL);
+    ("date", DATE);
+    ("boolean", BOOLEAN);
+    ("sum", SUM);
+    ("fulfilled", FILLED);
+    ("definition", DEFINITION);
+    ("equals", DEFINED_AS);
+    ("match", MATCH);
+    ("with pattern", WITH);
+    ("under condition", UNDER_CONDITION);
+    ("if", IF);
+    ("then", THEN);
+    ("else", ELSE);
+    ("content", CONTENT);
+    ("structure", STRUCT);
+    ("optional", OPTIONAL);
+    ("assertion", ASSERTION);
+    ("varies", VARIES);
+    ("with", WITH_V);
+    ("for", FOR);
+    ("all", ALL);
+    ("we have", WE_HAVE);
+    ("fixed", FIXED);
+    ("by", BY);
+    ("rule", RULE);
+    ("exists", EXISTS);
+    ("such", SUCH);
+    ("that", THAT);
+    ("now", NOW);
+    ("and", AND);
+    ("or", OR);
+    ("not", NOT);
+    ("number", CARDINAL);
+    ("year", YEAR);
+  ]
+  @ Lexer_fr.token_list_language_agnostic
 
 let rec lex_code_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with

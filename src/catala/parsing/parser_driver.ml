@@ -146,7 +146,7 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
           match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
         in
         let token_list_lang =
-          match language with Cli.Fr -> Lexer_fr.token_list | Cli.En -> Lexer_en.token_list
+          match language with Cli.Fr -> Lexer_fr.token_list_fr | Cli.En -> Lexer_en.token_list_en
         in
         let commands_or_includes =
           sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master

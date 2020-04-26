@@ -30,7 +30,27 @@ let rec lex_code_as_string (lexbuf : lexbuf) (acc : string) : token =
 
 let update_acc (lexbuf : lexbuf) = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
-let token_list : (string * token) list =
+let token_list_language_agnostic : (string * token) list =
+  [
+    ("->", ARROW);
+    (".", DOT);
+    ("<=", LESSER_EQUAL);
+    (">=", GREATER_EQUAL);
+    (">", GREATER);
+    ("!=", NOT_EQUAL);
+    ("=", EQUAL);
+    ("(", LPAREN);
+    (")", RPAREN);
+    ("+", PLUS);
+    ("-", MINUS);
+    ("*", MULT);
+    ("/", DIV);
+    ("|", VERTICAL);
+    (":", COLON);
+    ("--", ALT);
+  ]
+
+let token_list_fr : (string * token) list =
   [
     ("champ d'application", FIELD);
     ("conséquence", CONSEQUENCE);
@@ -82,6 +102,7 @@ let token_list : (string * token) list =
     ("nombre", CARDINAL);
     ("an", YEAR);
   ]
+  @ token_list_language_agnostic
 
 let rec lex_code_fr (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
