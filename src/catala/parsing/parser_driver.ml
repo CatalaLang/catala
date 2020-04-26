@@ -91,14 +91,15 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
   (* The parser has suspended itself because of a syntax error. Stop. *)
   let custom_menhir_message =
     match Parser_errors.message (state env) with
-    | exception Not_found -> "Syntax error"
-    | msg -> msg
+    | exception Not_found ->
+        assert false (* all error states should have a message, as claimed by Menhir *)
+    | msg -> "Message: " ^ String.trim (String.uncapitalize_ascii msg)
   in
   let msg =
     match similar_token_msg with
     | None -> custom_menhir_message
     | Some similar_token_msg ->
-        Printf.sprintf "%sAutosuggestion: %s" custom_menhir_message similar_token_msg
+        Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
   in
   Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) msg
 

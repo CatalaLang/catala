@@ -35,6 +35,18 @@ let get_start_line (pos : t) : int =
   let s, _ = pos in
   s.Lexing.pos_lnum
 
+let get_start_column (pos : t) : int =
+  let s, _ = pos in
+  s.Lexing.pos_cnum - s.Lexing.pos_bol + 1
+
+let get_end_line (pos : t) : int =
+  let _, e = pos in
+  e.Lexing.pos_lnum
+
+let get_end_column (pos : t) : int =
+  let _, e = pos in
+  e.Lexing.pos_cnum - e.Lexing.pos_bol + 1
+
 let get_file (pos : t) : string = (fst pos).Lexing.pos_fname
 
 type 'a marked = 'a * t

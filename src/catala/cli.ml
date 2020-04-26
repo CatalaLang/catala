@@ -112,27 +112,45 @@ let result_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.green
 
 (** All the printers below print their argument after the correct marker *)
 
-let add_prefix_to_each_line (s : string) (prefix : string) =
-  prefix ^ String.concat ("\n" ^ prefix) (String.split_on_char '\n' s)
+let concat_with_line_depending_prefix_and_suffix (prefix : int -> string) (suffix : int -> string)
+    (ss : string list) =
+  match ss with
+  | hd :: rest ->
+      let out, _ =
+        List.fold_left
+          (fun (acc, i) s ->
+            ((acc ^ prefix i ^ s ^ if i = List.length ss - 1 then "" else suffix i), i + 1))
+          ((prefix 0 ^ hd ^ if 0 = List.length ss - 1 then "" else suffix 0), 1)
+          rest
+      in
+      out
+  | [] -> prefix 0
+
+(** The int argument of the prefix corresponds to the line number, starting at 0 *)
+let add_prefix_to_each_line (s : string) (prefix : int -> string) =
+  concat_with_line_depending_prefix_and_suffix
+    (fun i -> prefix i)
+    (fun _ -> "\n")
+    (String.split_on_char '\n' s)
 
 let debug_print (s : string) =
   if !debug_flag then begin
-    Printf.printf "%s\n" (add_prefix_to_each_line s debug_marker);
+    Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> debug_marker));
     flush stdout;
     flush stdout
   end
 
 let error_print (s : string) =
-  Printf.eprintf "%s\n" (add_prefix_to_each_line s error_marker);
+  Printf.eprintf "%s\n" (add_prefix_to_each_line s (fun _ -> error_marker));
   flush stdout;
   flush stdout
 
 let warning_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s warning_marker);
+  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> warning_marker));
   flush stdout;
   flush stdout
 
 let result_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s result_marker);
+  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> result_marker));
   flush stdout;
   flush stdout
