@@ -1,0 +1,17 @@
+{
+  "name": "language-catala-en",
+  "version": "1.0.0",
+  "description": "English syntax highlighting for the Catala language",
+  "engines": {
+    "atom": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.inria.fr/verifisc/catala.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.inria.fr/verifisc/catala/issues"
+  },
+  "dependencies": {},
+  "license": "Apache"
+}

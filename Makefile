@@ -42,9 +42,15 @@ $(PYGMENTIZE_EN): $(PYGMENTS_DIR_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catal
 
 pygments: $(PYGMENTIZE_FR) $(PYGMENTIZE_EN)
 
-atom: ${CURDIR}/syntax_highlighting/fr/atom/setup_atom.sh
+atom_fr: ${CURDIR}/syntax_highlighting/fr/atom/setup_atom.sh
 	chmod +x $<
 	$<
+
+atom_en: ${CURDIR}/syntax_highlighting/en/atom/setup_atom.sh
+	chmod +x $<
+	$<
+
+atom: atom_fr atom_en
 
 # Examples-related rule
 

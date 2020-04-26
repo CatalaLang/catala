@@ -1,4 +1,3 @@
 #! /usr/bin/env bash
 
-cd "$(dirname "$0")"
-ln -s -f ./ ~/.atom/packages/catala_fr
+ln -s -f $(dirname "$0") ~/.atom/packages/catala_fr
