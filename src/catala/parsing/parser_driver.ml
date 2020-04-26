@@ -20,39 +20,113 @@ let state (env : 'semantic_value I.env) : int =
   | MenhirLib.General.Nil -> 0
   | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
-let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
-    (_checkpoint : 'semantic_value I.checkpoint) : 'a =
+(** Computes the levenshtein distance between two strings *)
+let minimum a b c = min a (min b c)
+
+let levenshtein_distance (s : string) (t : string) : int =
+  let m = String.length s and n = String.length t in
+  (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the first i characters of
+     s and the first j characters of t *)
+  let d = Array.make_matrix (m + 1) (n + 1) 0 in
+
+  for i = 0 to m do
+    d.(i).(0) <- i (* the distance of any first string to an empty second string *)
+  done;
+  for j = 0 to n do
+    d.(0).(j) <- j (* the distance of any second string to an empty first string *)
+  done;
+
+  for j = 1 to n do
+    for i = 1 to m do
+      if s.[i - 1] = t.[j - 1] then d.(i).(j) <- d.(i - 1).(j - 1) (* no operation required *)
+      else
+        d.(i).(j) <-
+          minimum
+            (d.(i - 1).(j) + 1) (* a deletion *)
+            (d.(i).(j - 1) + 1) (* an insertion *)
+            (d.(i - 1).(j - 1) + 1) (* a substitution *)
+    done
+  done;
+
+  d.(m).(n)
+
+let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
+    (last_input_needed : 'semantic_value I.env option) : 'a =
+  let wrong_token = Utf8.lexeme lexbuf in
+  let acceptable_tokens =
+    match last_input_needed with
+    | Some last_input_needed ->
+        List.filter
+          (fun (_, t) ->
+            I.acceptable (I.input_needed last_input_needed) t (fst (lexing_positions lexbuf)))
+          token_list
+    | None -> token_list
+  in
+  let similar_acceptable_tokens =
+    List.sort
+      (fun (x, _) (y, _) ->
+        let truncated_x =
+          if String.length wrong_token <= String.length x then
+            String.sub x 0 (String.length wrong_token)
+          else x
+        in
+        let truncated_y =
+          if String.length wrong_token <= String.length y then
+            String.sub y 0 (String.length wrong_token)
+          else y
+        in
+        let levx = levenshtein_distance truncated_x wrong_token in
+        let levy = levenshtein_distance truncated_y wrong_token in
+        if levx = levy then String.length x - String.length y else levx - levy)
+      acceptable_tokens
+  in
+  let similar_token_msg =
+    if List.length similar_acceptable_tokens = 0 then None
+    else
+      Some
+        (Printf.sprintf "did you mean %s?"
+           (String.concat ", or maybe "
+              (List.map (fun (ts, _) -> Printf.sprintf "\"%s\"" ts) similar_acceptable_tokens)))
+  in
   (* The parser has suspended itself because of a syntax error. Stop. *)
-  let message =
+  let custom_menhir_message =
     match Parser_errors.message (state env) with
     | exception Not_found -> "Syntax error"
     | msg -> msg
   in
-  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) message
+  let msg =
+    match similar_token_msg with
+    | None -> custom_menhir_message
+    | Some similar_token_msg ->
+        Printf.sprintf "%sAutosuggestion: %s" custom_menhir_message similar_token_msg
+  in
+  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) msg
 
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
-    (lexbuf : lexbuf) (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file_or_master =
+    (token_list : (string * Parser.token) list) (lexbuf : lexbuf)
+    (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint) :
+    Ast.source_file_or_master =
   match checkpoint with
-  | I.InputNeeded _env ->
+  | I.InputNeeded env ->
       let token = next_token () in
       let checkpoint = I.offer checkpoint token in
-      loop next_token lexbuf checkpoint
+      loop next_token token_list lexbuf (Some env) checkpoint
   | I.Shifting _ | I.AboutToReduce _ ->
       let checkpoint = I.resume checkpoint in
-      loop next_token lexbuf checkpoint
-  | I.HandlingError env -> fail lexbuf env checkpoint
+      loop next_token token_list lexbuf last_input_needed checkpoint
+  | I.HandlingError env -> fail lexbuf env token_list last_input_needed
   | I.Accepted v -> v
   | I.Rejected ->
       (* Cannot happen as we stop at syntax error immediatly *)
       assert false
 
-let sedlex_with_menhir (lexer' : lexbuf -> Parser.token)
+let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string * Parser.token) list)
     (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
     Ast.source_file_or_master =
   let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
     with_tokenizer lexer' lexbuf
   in
-  try loop lexer lexbuf (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
+  try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
@@ -70,8 +144,12 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
         let lexer_lang =
           match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
         in
+        let token_list_lang =
+          match language with Cli.Fr -> Lexer_fr.token_list | Cli.En -> Lexer_en.token_list
+        in
         let commands_or_includes =
-          sedlex_with_menhir lexer_lang Parser.Incremental.source_file_or_master lexbuf
+          sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master
+            lexbuf
         in
         close_in input;
         match commands_or_includes with

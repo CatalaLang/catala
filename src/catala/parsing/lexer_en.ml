@@ -22,6 +22,8 @@ let code_string_acc : string ref = ref ""
 
 let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
+let token_list : (string * token) list = []
+
 let rec lex_code_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | '\n' ->
