@@ -14,23 +14,60 @@
 
 (* Constructor and identifiers *)
 
-type constructor = string
+module ApplicationFieldParam = Id.WithId (struct
+  type t = string Pos.marked
 
-type ident = string
+  let to_string x = Pos.unmark x
+end)
 
-type qident_element = Ident of ident | Constructor of constructor
+module StructFieldName = Id.WithId (struct
+  type t = string Pos.marked
+
+  let to_string x = Pos.unmark x
+end)
+
+module EnumCase = Id.WithId (struct
+  type t = string Pos.marked
+
+  let to_string x = Pos.unmark x
+end)
+
+module Field = Id.WithId (struct
+  type t = string Pos.marked
+
+  let to_string x = Pos.unmark x
+end)
+
+module Enum = Id.WithId (struct
+  type t = string Pos.marked
+
+  let to_string x = Pos.unmark x
+end)
+
+type qident_element =
+  | Ident of ApplicationFieldParam.t
+  | StructField of StructFieldName.t
+  | EnumConstructor of EnumCase.t
+  | ApplicationFieldName of Field.t
 
 type qident = qident_element Pos.marked list
 
-module VariableWithId = Id.WithId (struct
+let qident_element_to_string = function
+  | Ident x -> ApplicationFieldParam.to_string x
+  | StructField x -> StructFieldName.to_string x
+  | EnumConstructor x -> EnumCase.to_string x
+  | ApplicationFieldName x -> Field.to_string x
+
+module Var = Id.WithId (struct
   type t = qident
 
-  let to_string qid =
-    String.concat "."
-      (List.map (fun e -> match Pos.unmark e with Ident x | Constructor x -> x) qid)
+  let to_string (qid : qident) =
+    String.concat "." (List.map (fun x -> qident_element_to_string (Pos.unmark x)) qid)
 end)
 
 (* Type *)
+
+type constructor = string
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
@@ -48,7 +85,7 @@ type typ = Base of base_typ | Func of func_typ
 
 (* Expressions *)
 
-type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
+type match_case_pattern = constructor Pos.marked list * Var.t option
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -86,8 +123,7 @@ and expression =
   | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
   | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
   | Unop of unop Pos.marked * expression Pos.marked
-  | CollectionOp of
-      collection_op Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
+  | CollectionOp of collection_op Pos.marked * Var.t * expression Pos.marked * expression Pos.marked
   | MemCollection of expression Pos.marked * expression Pos.marked
   | TestMatchCase of expression Pos.marked * constructor Pos.marked
   | FunCall of expression Pos.marked * expression Pos.marked
@@ -95,21 +131,14 @@ and expression =
   | Literal of literal
   | Inject of constructor Pos.marked * expression Pos.marked option
   | Project of expression Pos.marked * constructor Pos.marked
-  | Var of int
+  | FuncParameter
+  | Var of Var.t
 
 (* a variable shall now be referred by its unique id *)
 
-(* Struct declaration *)
-type struct_decl_field = {
-  struct_decl_field_name : ident Pos.marked;
-  struct_decl_field_typ : typ Pos.marked;
-}
-
-type struct_decl = { struct_decl_fields : struct_decl_field Pos.marked list }
-
 (* Enum declaration *)
 type enum_decl_case = {
-  enum_decl_case_name : constructor Pos.marked;
+  enum_decl_case_name : EnumCase.t;
   enum_decl_case_typ : typ Pos.marked option;
 }
 
@@ -118,19 +147,18 @@ type enum_decl = { enum_decl_cases : enum_decl_case Pos.marked list }
 (* Fields *)
 
 type field_context_item = {
-  field_context_item_name : int Pos.marked;
+  field_context_item_name : ApplicationFieldParam.t;
   field_context_item_typ : typ Pos.marked;
 }
 
 type field_include_join = {
-  parent_field_name : constructor Pos.marked;
-  parent_field_context_item : ident Pos.marked;
-  sub_field_name : constructor Pos.marked;
-  sub_field_context_item : ident Pos.marked;
+  parent_field_name : Field.t;
+  parent_field_context_item : ApplicationFieldParam.t;
+  sub_field_context_item : ApplicationFieldParam.t;
 }
 
 type field_include = {
-  field_include_sub_field : constructor Pos.marked;
+  field_include_sub_field : Field.t;
   field_include_joins : field_include_join Pos.marked list;
 }
 
@@ -138,13 +166,13 @@ type field_include = {
  * be -1 *)
 
 type rule = {
-  rule_parameter : ident Pos.marked option;
+  rule_parameter : Pos.t option;
   rule_condition : expression Pos.marked option;
   rule_consequence : bool;
 }
 
 type definition = {
-  definition_parameter : ident Pos.marked option;
+  definition_parameter : Pos.t option;
   definition_condition : expression Pos.marked option;
   definition_expr : expression Pos.marked;
 }
@@ -156,14 +184,16 @@ type assertion = {
 
 type variation_typ = Increasing | Decreasing
 
+type reference_typ = Decree | Law
+
 type meta_assertion =
-  | FixedBy of qident Pos.marked * ident Pos.marked
-  | VariesWith of qident Pos.marked * expression Pos.marked * variation_typ Pos.marked option
+  | FixedBy of reference_typ
+  | VariesWith of expression Pos.marked * variation_typ Pos.marked option
 
 module UidMap = Map.Make (Int32)
 
 type field = {
-  field_var_map : qident UidMap.t;
+  field_var_map : Var.t UidMap.t;
   field_context : field_context_item Pos.marked list;
   field_includes : field_include Pos.marked list;
   field_rules : rule list UidMap.t;
@@ -172,32 +202,7 @@ type field = {
   field_meta_assertions : meta_assertion list UidMap.t;
 }
 
-module Struct = Id.WithId (struct
-  type t = constructor Pos.marked
-
-  let to_string x = Pos.unmark x
-end)
-
-module Enum = Id.WithId (struct
-  type t = constructor Pos.marked
-
-  let to_string x = Pos.unmark x
-end)
-
-module Field = Id.WithId (struct
-  type t = constructor Pos.marked
-
-  (* The position corresponds to the field declaration *)
-
-  let to_string x = Pos.unmark x
-end)
-
-module StructMap = Map.Make (Struct)
 module EnumMap = Map.Make (Enum)
 module FieldMap = Map.Make (Field)
 
-type prgm = {
-  structs : struct_decl StructMap.t;
-  enums : enum_decl EnumMap.t;
-  fields : field FieldMap.t;
-}
+type prgm = { enums : enum_decl EnumMap.t; fields : field FieldMap.t }
