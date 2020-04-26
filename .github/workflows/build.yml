@@ -21,7 +21,7 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-     
+
     - name: Set up OCaml
       uses: avsm/setup-ocaml@v1.0.1
       with:
@@ -32,4 +32,4 @@ jobs:
     - name: Run a multi-line script
       run: |
         make install-dependencies-ocaml
-        make -C examples/allocations_familiales allocations_familiales.tex
+        make build
