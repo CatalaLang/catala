@@ -532,8 +532,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## In state 185, spurious reduction of production application_field_item -> ASSERTION assertion
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#187
+Unexpected token after an application field item
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL YEAR
 ##
@@ -884,8 +883,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## In state 105, spurious reduction of production expression -> logical_expression
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#131
+Unmatched parenthesis that should have ended before this
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
@@ -1065,8 +1063,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT
 ## small_expression
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#46
+Expected operator or new item after expression
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
@@ -1119,8 +1116,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW MULT YEA
 ## base_expression mult_op
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#92
+Expected expression on the right-hand side of multiplication operator
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW NOT_EQUAL YEAR
 ##
@@ -1131,8 +1127,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW NOT_EQUA
 ## sum_expression compare_op
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#101
+Expected the second term of the comparison
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
@@ -1301,8 +1296,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## In state 148, spurious reduction of production condition -> UNDER_CONDITION expression
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#154
+Unexpected token after a condition
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
@@ -1397,8 +1391,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ## VERTICAL date_int DIV date_int DIV
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#27
+Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL YEAR
 ##
@@ -1421,8 +1414,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ## VERTICAL date_int DIV
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#25
+Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL YEAR
 ##
@@ -1445,8 +1437,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL YEA
 ## VERTICAL
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#22
+Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION YEAR
 ##
@@ -1481,8 +1472,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT OF ID
 ## qident option(definition_parameters)
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#164
+Wrong token following function parameter
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
@@ -1511,8 +1501,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## In state 60, spurious reduction of production qident -> ident
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#163
+Only the identifier you wish to define should follow the definition introducing token
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION YEAR
 ##
@@ -1638,7 +1627,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT YEAR
 ## ident
 ##
 
-Wrong ending for an identifier
+Wrong token following an identifier
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE YEAR
 ##
@@ -1661,8 +1650,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON YEAR
 ## FIELD constructor COLON
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#17
+Expected a rule, a definition or an assertion
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ##
@@ -1673,8 +1661,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ## FIELD constructor
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#16
+Expected a colon after application field constructor
 
 source_file_or_master: BEGIN_CODE FIELD YEAR
 ##
@@ -1685,8 +1672,7 @@ source_file_or_master: BEGIN_CODE FIELD YEAR
 ## FIELD
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#14
+Expecting the constructor for the application field
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
