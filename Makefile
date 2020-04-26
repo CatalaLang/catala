@@ -1,6 +1,6 @@
 # Catala compiler rules
 
-install-dependencies:
+install-dependencies-ocaml:
 	opam install \
 		ANSITerminal \
 		sedlex \
@@ -10,6 +10,8 @@ install-dependencies:
 		cmdliner \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason
+
+install-dependencies: install-dependencies-ocaml
 	git submodule update --init
 
 format:
@@ -67,4 +69,4 @@ inspect:
 # Special targets
 
 .PHONY: inspect clean all all_examples english allocations_familiales pygments \
-	install build format install-dependencies
+	install build format install-dependencies install-dependencies-ocaml
