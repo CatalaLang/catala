@@ -6,7 +6,7 @@ install-dependencies-ocaml:
 		sedlex \
 		menhir \
 		menhirLib \
-		dune \
+		dune dune-build-info \
 		cmdliner \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason
