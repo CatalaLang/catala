@@ -97,43 +97,42 @@ let info =
 (**{2 Markers}*)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
-let debug_marker () = ANSITerminal.printf [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
+let debug_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
 
 (** Prints [\[ERROR\]] in red on the terminal error output *)
-let error_marker () = ANSITerminal.eprintf [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
+let error_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
 
 (** Prints [\[WARNING\]] in yellow on the terminal standard output *)
-let warning_marker () = ANSITerminal.printf [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
+let warning_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
 
 (** Prints [\[RESULT\]] in green on the terminal standard output *)
-let result_marker () = ANSITerminal.printf [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
+let result_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
 
 (**{2 Printers}*)
 
 (** All the printers below print their argument after the correct marker *)
 
+let add_prefix_to_each_line (s : string) (prefix : string) =
+  prefix ^ String.concat ("\n" ^ prefix) (String.split_on_char '\n' s)
+
 let debug_print (s : string) =
   if !debug_flag then begin
-    debug_marker ();
-    Printf.printf "%s\n" s;
+    Printf.printf "%s\n" (add_prefix_to_each_line s debug_marker);
     flush stdout;
     flush stdout
   end
 
 let error_print (s : string) =
-  error_marker ();
-  Printf.eprintf "%s\n" s;
+  Printf.eprintf "%s\n" (add_prefix_to_each_line s error_marker);
   flush stdout;
   flush stdout
 
 let warning_print (s : string) =
-  warning_marker ();
-  Printf.printf "%s\n" s;
+  Printf.printf "%s\n" (add_prefix_to_each_line s warning_marker);
   flush stdout;
   flush stdout
 
 let result_print (s : string) =
-  result_marker ();
-  Printf.printf "%s\n" s;
+  Printf.printf "%s\n" (add_prefix_to_each_line s result_marker);
   flush stdout;
   flush stdout

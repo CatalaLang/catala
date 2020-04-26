@@ -30,20 +30,68 @@ let rec lex_code_as_string (lexbuf : lexbuf) (acc : string) : token =
 
 let update_acc (lexbuf : lexbuf) = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
+let token_list : (string * token) list =
+  [
+    ("champ d'application", FIELD);
+    ("conséquence", CONSEQUENCE);
+    ("donnée", DATA);
+    ("dépend de", DEPENDS);
+    ("déclaration", DECLARATION);
+    ("contexte", CONTEXT);
+    ("inclus", INCLUDES);
+    ("décroissant", DECREASING);
+    ("croissant", INCREASING);
+    ("de", OF);
+    ("collection", COLLECTION);
+    ("énumération", ENUM);
+    ("entier", INTEGER);
+    ("montant", MONEY);
+    ("texte", TEXT);
+    ("decimal", DECIMAL);
+    ("date", DATE);
+    ("booléen", BOOLEAN);
+    ("somme", SUM);
+    ("rempli", FILLED);
+    ("définition", DEFINITION);
+    ("égal à", DEFINED_AS);
+    ("selon", MATCH);
+    ("sous forme", WITH);
+    ("sous condition", UNDER_CONDITION);
+    ("si", IF);
+    ("alors", THEN);
+    ("sinon", ELSE);
+    ("contenu", CONTENT);
+    ("structure", STRUCT);
+    ("optionnel", OPTIONAL);
+    ("assertion", ASSERTION);
+    ("varie", VARIES);
+    ("avec", WITH_V);
+    ("pour", FOR);
+    ("tout", ALL);
+    ("on a", WE_HAVE);
+    ("fixé", FIXED);
+    ("par", BY);
+    ("règle", RULE);
+    ("existe", EXISTS);
+    ("tel", SUCH);
+    ("que", THAT);
+    ("maintenant", NOW);
+    ("et", AND);
+    ("ou", OR);
+    ("non", NOT);
+    ("nombre", CARDINAL);
+    ("an", YEAR);
+  ]
+
 let rec lex_code_fr (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      update_acc lexbuf;
-      new_line lexbuf;
-      lex_code_fr lexbuf
-  | white_space ->
+  | white_space | '\n' ->
       (* Whitespaces *)
       update_acc lexbuf;
       lex_code_fr lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       update_acc lexbuf;
-      new_line lexbuf;
       lex_code_fr lexbuf
   | "*/" ->
       (* End of code section *)
@@ -300,9 +348,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
 
 let rec lex_law_fr (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      new_line lexbuf;
-      lex_law_fr lexbuf
+  | '\n' -> lex_law_fr lexbuf
   | "/*" ->
       is_code := true;
       code_string_acc := "";
