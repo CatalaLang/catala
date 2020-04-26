@@ -3,24 +3,25 @@ from pygments.token import *
 
 import re
 
-__all__=['CatalaLexer']
+__all__=['CatalaFrLexer']
 
-class CatalaLexer(RegexLexer):
-    name = 'Catala'
-    aliases = ['catala']
+class CatalaFrLexer(RegexLexer):
+    name = 'CatalaFr'
+    aliases = ['catala_fr']
     filenames = ['*.catala']
     flags = re.MULTILINE | re.UNICODE
 
     tokens = {
         'root' : [
-        #     (u'(@@)', bygroups(Generic.Heading), 'main__1'),
-        #     (u'(@)', bygroups(Generic.Heading), 'main__2'),
-        #     (u'([^\\/\\n\\r])', bygroups(Text.Doc)),
-        #     (u'(\\/\\*)', bygroups(Comment.Special), 'code'),
-        #     ('(\n|\r|\r\n)', Text),
-        #     ('.', Text),
-        # ],
-        # 'code' : [
+            (u'(@@)', bygroups(Generic.Heading), 'main__1'),
+            (u'(@)', bygroups(Generic.Heading), 'main__2'),
+            (u'([^\\/\\n\\r])', bygroups(Text)),
+            (u'(\\/\\*)', bygroups(Text), 'code'),
+            ('(\n|\r|\r\n)', Text),
+            ('.', Text),
+        ],
+        'code' : [
+            (u'(\\*\\/)', bygroups(Text), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
             (u'(contexte)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, Text, Name.Variable)),
             (u'(donn\xe9e|condition)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, Text, Text)),
@@ -39,14 +40,16 @@ class CatalaLexer(RegexLexer):
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
-        # 'main__1' : [
-        #     (u'(.)', bygroups(Generic.Heading)),
-        #     ('(\n|\r|\r\n)', Text),
-        #     ('.', Text),
-        # ],
-        # 'main__2' : [
-        #     (u'(.)', bygroups(Generic.Heading)),
-        #     ('(\n|\r|\r\n)', Text),
-        #     ('.', Text),
-        # ]
+        'main__1' : [
+            (u'(@@)', bygroups(Generic.Heading), 'root'),
+            (u'(.)', bygroups(Generic.Heading)),
+            ('(\n|\r|\r\n)', Text),
+            ('.', Text),
+        ],
+        'main__2' : [
+            (u'(@)', bygroups(Generic.Heading), 'root'),
+            (u'(.)', bygroups(Generic.Heading)),
+            ('(\n|\r|\r\n)', Text),
+            ('.', Text),
+        ]
     }

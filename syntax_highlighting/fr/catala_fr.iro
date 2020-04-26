@@ -13,7 +13,7 @@
 # the License.
 
 
-name                   = catala
+name                   = catala_fr
 file_extensions []     = catala;
 
 ################################################################

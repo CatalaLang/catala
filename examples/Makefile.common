@@ -1,6 +1,7 @@
 LATEXMK=latexmk
 
-PYGMENTIZE=../../syntax_highlighting/pygments/pygments/env/bin/pygmentize
+PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
+PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
 
 CATALA_LANG?=fr
 
@@ -13,6 +14,13 @@ LEGIFRANCE_CATALA_EXE=../../_build/default/src/legifrance_catala.exe
 
 CLIENT_ID?=$(shell cat ../../legifrance_oauth_id.txt)
 CLIENT_SECRET?=$(shell cat ../../legifrance_oauth_secret.txt)
+
+ifeq ($(CATALA_LANG),fr)
+	PYGMENTIZE=$(PYGMENTIZE_FR)
+endif
+ifeq ($(CATALA_LANG),en)
+	PYGMENTIZE=$(PYGMENTIZE_EN)
+endif
 
 %.tex: %.catala $(CATALA_EXE)
 	$(CATALA) Makefile $<
