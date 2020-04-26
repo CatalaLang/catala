@@ -27,15 +27,24 @@ install: build
 
 # Pygments syntax highilghting rules
 
-PYGMENTS_DIR=${CURDIR}/syntax_highlighting/pygments
+PYGMENTS_DIR_FR=${CURDIR}/syntax_highlighting/fr/pygments
+PYGMENTIZE_FR=$(PYGMENTS_DIR_FR)/pygments/env/bin/pygmentize
+PYGMENTS_DIR_EN=${CURDIR}/syntax_highlighting/en/pygments
+PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-PYGMENTIZE=$(PYGMENTS_DIR)/pygments/env/bin/pygmentize
-
-$(PYGMENTIZE): $(PYGMENTS_DIR)/set_up_pygments.sh $(PYGMENTS_DIR)/catala.py
+$(PYGMENTIZE_FR): $(PYGMENTS_DIR_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
 	chmod +x $<
 	$<
 
-pygments: $(PYGMENTIZE)
+$(PYGMENTIZE_EN): $(PYGMENTS_DIR_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
+	chmod +x $<
+	$<
+
+pygments: $(PYGMENTIZE_FR) $(PYGMENTIZE_EN)
+
+atom: ${CURDIR}/syntax_highlighting/fr/atom/setup_atom.sh
+	chmod +x $<
+	$<
 
 # Examples-related rule
 
@@ -43,13 +52,13 @@ EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
 ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
 
-allocations_familiales: $(PYGMENTIZE) build
+allocations_familiales: $(PYGMENTIZE_FR) build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
 
 allocations_familiales_expired: build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.expired
 
-english: $(PYGMENTIZE) build
+english: $(PYGMENTIZE_EN) build
 	$(MAKE) -C $(ENGLISH_DUMMY_DIR) english.pdf
 
 all_examples: allocations_familiales english

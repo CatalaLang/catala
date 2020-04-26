@@ -1,7 +1,7 @@
 {
-  "name": "language-catala",
+  "name": "language-catala-fr",
   "version": "1.0.0",
-  "description": "Syntax highlighting for the Catala language",
+  "description": "French syntax highlighting for the Catala language",
   "engines": {
     "atom": "*"
   },
