@@ -27,26 +27,28 @@ install: build
 
 # Pygments syntax highilghting rules
 
-PYGMENTS_DIR_FR=${CURDIR}/syntax_highlighting/fr/pygments
+SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
+PYGMENTS_DIR_FR=$(SYNTAX_HIGHLIGHTING_FR)/pygments
 PYGMENTIZE_FR=$(PYGMENTS_DIR_FR)/pygments/env/bin/pygmentize
-PYGMENTS_DIR_EN=${CURDIR}/syntax_highlighting/en/pygments
+SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
+PYGMENTS_DIR_EN=$(SYNTAX_HIGHLIGHTING_EN)/pygments
 PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-$(PYGMENTIZE_FR): $(PYGMENTS_DIR_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
+$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
 	chmod +x $<
 	$<
 
-$(PYGMENTIZE_EN): $(PYGMENTS_DIR_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
+$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
 	chmod +x $<
 	$<
 
 pygments: $(PYGMENTIZE_FR) $(PYGMENTIZE_EN)
 
-atom_fr: ${CURDIR}/syntax_highlighting/fr/atom/setup_atom.sh
+atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	chmod +x $<
 	$<
 
-atom_en: ${CURDIR}/syntax_highlighting/en/atom/setup_atom.sh
+atom_en: ${CURDIR}/syntax_highlighting/en/setup_atom.sh
 	chmod +x $<
 	$<
 
