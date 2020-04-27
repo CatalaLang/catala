@@ -80,17 +80,15 @@ typ:
   }, $sloc)
 }
 
+qident_prefix:
+| c = constructor DOT { c }
+
 qident:
-| i = ident { let (i, i_pos) = i in ([Ident i, i_pos], $sloc) }
-| i = ident DOT q = qident {
-  let (i, i_pos) = i in
-  let (q, _) = q in
-  ((Ident i, i_pos)::q, $sloc)
-}
-| c = constructor DOT q = qident {
-  let (c, c_pos) = c in
-  let (q, _) = q in
-  ((Constructor c, c_pos)::q, $sloc)
+| p = option(qident_prefix) b = separated_nonempty_list(DOT, ident) {
+  ({
+    qident_prefix = p;
+    qident_path = b;
+    } ,$sloc)
 }
 
 atomic_expression:

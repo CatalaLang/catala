@@ -16,9 +16,7 @@ type constructor = string
 
 type ident = string
 
-type qident_element = Ident of ident | Constructor of constructor
-
-type qident = qident_element Pos.marked list
+type qident = { qident_prefix : constructor Pos.marked option; qident_path : ident Pos.marked list }
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 

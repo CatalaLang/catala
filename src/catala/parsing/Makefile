@@ -1,8 +1,10 @@
 parser.messages.raw: parser.mly
-	menhir --list-errors parser.mly > parser.messages
+	menhir --list-errors $< > parser.messages
 
-update_messages: parser.messages
-	menhir --update-errors parser.messages parser.mly > parser.messages.new
+parser.messages: parser.mly
+	menhir --update-errors $@ $< > $@.new
+	cp -f $@.new $@
+	rm $@.new
 
-parser_errors.ml: parser.mly parser.messages
-	menhir parser.mly --compile-errors parser.messages > parser_errors.ml
+parser_errors.ml: parser.messages
+	menhir parser.mly --compile-errors $< > $@
