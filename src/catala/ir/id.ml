@@ -23,6 +23,8 @@ end) : sig
 
   val to_string : t -> string
 
+  val raw : t -> X.t
+
   val compare : t -> t -> int
 end = struct
   let counter : int ref = ref 0
@@ -34,6 +36,8 @@ end = struct
     { id = !counter; value = x }
 
   let to_string (x : t) = X.to_string x.value ^ "_" ^ string_of_int x.id
+
+  let raw (x : t) = x.value
 
   let compare (x1 : t) (x2 : t) = x1.id - x2.id
 end
