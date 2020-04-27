@@ -67,7 +67,7 @@ end)
 
 module VarMap = Map.Make (Var)
 
-type constructor = Struct of Struct.t | Enum of Enum.t | EnumCase of EnumCase.t
+type constructor = Struct of Struct.t | Enum of Enum.t
 
 (* Type *)
 
@@ -87,7 +87,8 @@ type typ = Base of base_typ | Func of func_typ
 
 (* Expressions *)
 
-type match_case_pattern = constructor Pos.marked list * Var.t option
+(* The [bool] argument is true if the match case introduces a pattern *)
+type match_case_pattern = constructor Pos.marked list * bool
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -133,7 +134,7 @@ and expression =
   | Literal of literal
   | Inject of constructor Pos.marked * expression Pos.marked option
   | Project of expression Pos.marked * constructor Pos.marked
-  | FuncParameter
+  | BindingParameter of int (* The integer is the De Bruijn index *)
   | Var of Var.t Pos.marked
 
 (* Struct declaration *)
