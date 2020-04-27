@@ -114,7 +114,7 @@
         'name' : 'keyword.control.catala_en'
       }
       {
-        'match' : '\\b(application\\s+field|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under condition|consequence|fulfilled|equals|assertion|definition)\\b'
+        'match' : '\\b(application\\s+field|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|consequence|fulfilled|equals|assertion|definition)\\b'
         'name' : 'keyword.other.catala_en'
       }
       {
@@ -122,7 +122,7 @@
         'name' : 'constant.numeric.catala_en'
       }
       {
-        'match' : '\\b(vrai|faux)\\b'
+        'match' : '\\b(true|false)\\b'
         'name' : 'constant.catala_en'
       }
       {
@@ -130,11 +130,11 @@
         'name' : 'constant.numeric.catala_en'
       }
       {
-        'match' : '(\\-|\\;|\\.|\\,|\\:|\\(|\\))'
+        'match' : '(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))'
         'name' : 'punctuation.catala_en'
       }
       {
-        'match' : '(\\-|\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\x{0024}|%|year|month|day)'
+        'match' : '(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\$|%|year|month|day)'
         'name' : 'keyword.operator.catala_en'
       }
       {

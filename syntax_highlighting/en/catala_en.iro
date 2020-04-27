@@ -218,7 +218,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(application\s+field|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under condition|consequence|fulfilled|equals|assertion|definition)\b
+    regex \=  \b(application\s+field|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|consequence|fulfilled|equals|assertion|definition)\b
     styles [] = .keyword_rule ;
   }
 
@@ -228,7 +228,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(vrai|faux)\b
+    regex \= \b(true|false)\b
     styles [] = .literal ;
   }
 
@@ -245,7 +245,7 @@ code : context {
   }
 
    : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\u0024|%|year|month|day)
+     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\\$|%|year|month|day)
      styles [] = .operator;
   }
 
