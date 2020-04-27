@@ -53,6 +53,13 @@ To get that lawyer-readable version (which is a LaTeX-created) PDF, simply use
 from the repository root, once you have managed to install the
 compiler (see below). You can then open `examples/allocations_familiales/allocations_familiales.pdf`
 
+## Languages
+
+The Catala language should be adapted to any legislative text that follows a general-to-specifics statutes order. Therefore, there exists  multiple versions of the Catala surface syntax, adapted to the language of the lefislative text.
+
+Currently, Catala supports Enlish and French legislation via the `--language=en` or `--language=fr` option. Contact the authors
+if you are interested in adding support for another language.
+
 ## Limitations and disclaimer
 
 ### Early stage project
@@ -66,14 +73,6 @@ no interpreter or compiler backend is provided.
 However, the language is bound to have a complete formal semantics
 in the near future. This semantics will guide the compiler
 implementation.
-
-### Languages
-
-The main Catala surface language is adapted to French law, and has French
-keywords. However, it is perfectly possible to craft new parsers for new
-surface languages adapted to English, Spanish, etc. Currently, Catala also
-supports Enlish via the `--language=en` option. Contact the authors
-if you are interested.
 
 ## The Catala compiler
 
@@ -121,9 +120,12 @@ highlighting plugins are under version control.
 ### Atom
 
 To get Catala syntax highlighting in Atom, simply enter from
-the root of the repository :
+the root of the repository, depending on the language you want to use :
 
-    ln -s -f $(pwd)/syntax_highlighting/atom ~/.atom/packages
+    make atom_fr
+or
+
+    make atom_en
 
 You can now reload Atom and check that you have syntax highlighting on any `.catala` file.
 
@@ -131,18 +133,28 @@ You can now reload Atom and check that you have syntax highlighting on any `.cat
 
 Pygments is a Python-based versatile lexer for various
 programming languages. To use a version of Pygments
-augmented with the Catala plugin, you need to execute the
-script `syntax_highlighting/pygments/set_up_pygments.sh`
+augmented with the Catala plugin, you need to enter from the root of the repository
 
-This script assumes a `python3` executable on tour machine,
+    make pygments
+
+
+
+This will execute the
+script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and `syntax_highlighting/en/pygments/set_up_pygments.sh`.
+
+These scripts assumes a `python3` executable on tour machine,
 as well as the `virtualenv` package which you can install
 using `python3 -m pip install virtualenv` .
 
-The scripts sets up a virtual environement in `syntax_highlighting/pygments/pygments/env`, which will
+The scripts set up a virtual environement in `syntax_highlighting/fr/pygments/pygments/env` or `syntax_highlighting/en/pygments/pygments/env`, which will
 contain the modified version of Pygments that has Catala
 support. You can use this virtual environnement with
 
-    source syntax_highlighting/pygments/pygments/env/bin/activate
+    source syntax_highlighting/fr/pygments/pygments/env/bin/activate
+
+or
+
+    source syntax_highlighting/en/pygments/pygments/env/bin/activate
 
 The `pigmentize` executable, used for instance by the `minted` LaTeX package,
 will now point to the Catala-enabled version inside the virtual environment.
