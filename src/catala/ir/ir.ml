@@ -15,59 +15,61 @@
 (* Constructor and identifiers *)
 
 module ApplicationFieldParam = Id.WithId (struct
-  type t = string Pos.marked
+  type t = string
 
-  let to_string x = Pos.unmark x
+  let to_string x = x
 end)
 
-module StructFieldName = Id.WithId (struct
-  type t = string Pos.marked
+module StructField = Id.WithId (struct
+  type t = string
 
-  let to_string x = Pos.unmark x
+  let to_string x = x
 end)
 
 module EnumCase = Id.WithId (struct
-  type t = string Pos.marked
+  type t = string
 
-  let to_string x = Pos.unmark x
+  let to_string x = x
 end)
 
 module Field = Id.WithId (struct
-  type t = string Pos.marked
+  type t = string
 
-  let to_string x = Pos.unmark x
+  let to_string x = x
+end)
+
+module Struct = Id.WithId (struct
+  type t = string
+
+  let to_string x = x
 end)
 
 module Enum = Id.WithId (struct
-  type t = string Pos.marked
+  type t = string
 
-  let to_string x = Pos.unmark x
+  let to_string x = x
 end)
 
-type qident_element =
-  | Ident of ApplicationFieldParam.t
-  | StructField of StructFieldName.t
-  | EnumConstructor of EnumCase.t
-  | ApplicationFieldName of Field.t
-
-type qident = qident_element Pos.marked list
-
-let qident_element_to_string = function
-  | Ident x -> ApplicationFieldParam.to_string x
-  | StructField x -> StructFieldName.to_string x
-  | EnumConstructor x -> EnumCase.to_string x
-  | ApplicationFieldName x -> Field.to_string x
+type qident = {
+  qident_field : Field.t option;
+  qident_base : ApplicationFieldParam.t;
+  qident_path : StructField.t list;
+}
 
 module Var = Id.WithId (struct
   type t = qident
 
   let to_string (qid : qident) =
-    String.concat "." (List.map (fun x -> qident_element_to_string (Pos.unmark x)) qid)
+    let field = match qid.qident_field with Some x -> Field.raw x | None -> "" in
+    let base = ApplicationFieldParam.raw qid.qident_base in
+    String.concat "." ([ field; base ] @ List.map StructField.raw qid.qident_path)
 end)
 
-(* Type *)
+module VarMap = Map.Make (Var)
 
-type constructor = string
+type constructor = Struct of Struct.t | Enum of Enum.t | EnumCase of EnumCase.t
+
+(* Type *)
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
@@ -132,13 +134,19 @@ and expression =
   | Inject of constructor Pos.marked * expression Pos.marked option
   | Project of expression Pos.marked * constructor Pos.marked
   | FuncParameter
-  | Var of Var.t
+  | Var of Var.t Pos.marked
 
-(* a variable shall now be referred by its unique id *)
+(* Struct declaration *)
+type struct_decl_field = {
+  struct_decl_field_name : StructField.t Pos.marked;
+  struct_decl_field_typ : typ Pos.marked;
+}
+
+type struct_decl = { struct_decl_fields : struct_decl_field Pos.marked list }
 
 (* Enum declaration *)
 type enum_decl_case = {
-  enum_decl_case_name : EnumCase.t;
+  enum_decl_case_name : EnumCase.t Pos.marked;
   enum_decl_case_typ : typ Pos.marked option;
 }
 
@@ -147,23 +155,20 @@ type enum_decl = { enum_decl_cases : enum_decl_case Pos.marked list }
 (* Fields *)
 
 type field_context_item = {
-  field_context_item_name : ApplicationFieldParam.t;
+  field_context_item_name : ApplicationFieldParam.t Pos.marked;
   field_context_item_typ : typ Pos.marked;
 }
 
 type field_include_join = {
-  parent_field_name : Field.t;
-  parent_field_context_item : ApplicationFieldParam.t;
-  sub_field_context_item : ApplicationFieldParam.t;
+  parent_field_name : Field.t Pos.marked;
+  parent_field_context_item : ApplicationFieldParam.t Pos.marked;
+  sub_field_context_item : ApplicationFieldParam.t Pos.marked;
 }
 
 type field_include = {
-  field_include_sub_field : Field.t;
+  field_include_sub_field : Field.t Pos.marked;
   field_include_joins : field_include_join Pos.marked list;
 }
-
-(* In rule and definition, we keep the parameter for the name, but its uid shall
- * be -1 *)
 
 type rule = {
   rule_parameter : Pos.t option;
@@ -187,22 +192,25 @@ type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
 
 type meta_assertion =
-  | FixedBy of reference_typ
+  | FixedBy of reference_typ Pos.marked
   | VariesWith of expression Pos.marked * variation_typ Pos.marked option
 
-module UidMap = Map.Make (Int32)
-
 type field = {
-  field_var_map : Var.t UidMap.t;
+  field_var_map : qident VarMap.t;
   field_context : field_context_item Pos.marked list;
   field_includes : field_include Pos.marked list;
-  field_rules : rule list UidMap.t;
-  field_defs : definition list UidMap.t;
+  field_rules : rule list VarMap.t;
+  field_defs : definition list VarMap.t;
   field_assertions : assertion list;
-  field_meta_assertions : meta_assertion list UidMap.t;
+  field_meta_assertions : meta_assertion list VarMap.t;
 }
 
 module EnumMap = Map.Make (Enum)
 module FieldMap = Map.Make (Field)
+module StructMap = Map.Make (Struct)
 
-type prgm = { enums : enum_decl EnumMap.t; fields : field FieldMap.t }
+type prgm = {
+  enums : enum_decl EnumMap.t;
+  fields : field FieldMap.t;
+  structs : struct_decl StructMap.t;
+}
