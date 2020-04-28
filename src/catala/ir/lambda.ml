@@ -12,9 +12,6 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* TODO : change this with a WithId ? *)
-type qident = string
-
 type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate
 
 type typ_bound = int
@@ -27,13 +24,7 @@ type styp =
 
 type typ = TTyp of styp | TPoly of typ
 
-type litteral_date = {
-  literal_date_day : int Pos.marked;
-  literal_date_month : int Pos.marked;
-  literal_date_year : int Pos.marked;
-}
-
-type const = Int of int | Dec of int * int | Date of litteral_date | Bool of bool
+type const = Ir.litteral
 
 type arith_binop = Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -43,7 +34,9 @@ type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
 
 type builtin = Cardinal | AggregateSum | AggregateCount | Now
 
-type binding = qident * typ
+type binding = Ir.Var.t * typ
+
+type enum_case = Ir.EnumCase.t
 
 type term = untyped_term Pos.marked * typ option
 
@@ -57,5 +50,7 @@ and untyped_term =
   | EVar of binding
   | EFun of binding * term
   | EApp of term * term
-  | EInj of qident * term
-  | ECase of term * (qident * term) list
+  | EInj of enum_case * term
+  | ECase of term * (enum_case * term) list
+  | EPolyIntro of term
+  | EPolyApp of term * typ
