@@ -98,21 +98,21 @@ type builtin_expression = Cardinal | Now
 
 type aggregate_func = AggregateSum | AggregateCount
 
-type literal_date = {
-  literal_date_day : int Pos.marked;
-  literal_date_month : int Pos.marked;
-  literal_date_year : int Pos.marked;
+type litteral_date = {
+  litteral_date_day : int Pos.marked;
+  litteral_date_month : int Pos.marked;
+  litteral_date_year : int Pos.marked;
 }
 
-type literal_number = Int of int | Dec of int * int
+type litteral_number = Int of int | Dec of int * int
 
-type literal_unit = Percent | Euro | Year | Month | Day
+type litteral_unit = Percent | Euro | Year | Month | Day
 
 type collection_op = Exists | Forall | Aggregate of aggregate_func
 
-type literal =
-  | Number of literal_number Pos.marked * literal_unit Pos.marked option
-  | Date of literal_date
+type litteral =
+  | Number of litteral_number Pos.marked * litteral_unit Pos.marked option
+  | Date of litteral_date
 
 type match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
@@ -131,7 +131,7 @@ and expression =
   | TestMatchCase of expression Pos.marked * constructor Pos.marked
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
-  | Literal of literal
+  | Literal of litteral
   | Inject of constructor Pos.marked * expression Pos.marked option
   | Project of expression Pos.marked * constructor Pos.marked
   | BindingParameter of int (* The integer is the De Bruijn index *)
