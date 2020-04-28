@@ -3,9 +3,9 @@
 (version 0.1.1)
 (generate_opam_files true)
 
-(source (uri git+https://gitlab.inria.fr/verifisc/catala.git))
-(homepage https://gitlab.inria.fr/verifisc/catala)
-(bug_reports https://gitlab.inria.fr/verifisc/catala/issues)
+(source (uri git+https://github.com/CatalaLang/catala.git))
+(homepage https://github.com/CatalaLang/catala)
+(bug_reports https://github.com/CatalaLang/catala/issues)
 (authors "Denis Merigoux")
 (maintainers "denis.merigoux@inria.fr")
 (license Apache2)
