@@ -21,6 +21,7 @@ type styp =
   | TBound of typ_bound
   | TFun of styp * styp
   | TSum of styp list
+  | TVec of styp
 
 type typ = TTyp of styp | TPoly of typ
 
@@ -32,7 +33,7 @@ type bool_binop = And | Or
 
 type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
 
-type builtin = Cardinal | AggregateSum | AggregateCount | Now
+type builtin = Cardinal | Map | Fold | Now
 
 type binding = Ir.Var.t * typ
 
@@ -48,9 +49,13 @@ and untyped_term =
   | EExists
   | EForall
   | EVar of binding
-  | EFun of binding * term
-  | EApp of term * term
+  | EFun of binding list * term
+  | EApp of term * term list
   | EInj of enum_case * term
   | ECase of term * (enum_case * term) list
   | EPolyIntro of term
   | EPolyApp of term * typ
+
+type program_with_default_logic = term list Ir.VarMap.t
+
+type program_without_default_logic = term Ir.VarMap.t
