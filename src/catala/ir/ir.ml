@@ -210,7 +210,7 @@ module EnumMap = Map.Make (Enum)
 module FieldMap = Map.Make (Field)
 module StructMap = Map.Make (Struct)
 
-type prgm = {
+type program = {
   enums : enum_decl EnumMap.t;
   fields : field FieldMap.t;
   structs : struct_decl StructMap.t;
