@@ -292,6 +292,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       let remove_spaces = R.regexp " " in
       let units = int_of_string (R.substitute ~rex:remove_spaces ~subst:(fun _ -> "") units) in
       let cents = try int_of_string (parts 4) with Not_found -> 0 in
+      update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', ',', Star '0' .. '9' ->
       let extract_code_title = R.regexp "([0-9]+),([0-9]*)" in

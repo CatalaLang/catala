@@ -37,7 +37,8 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
   Printf.sprintf
     "<head>\n\
      <link rel='stylesheet' type='text/css' href='%s'>\n\
-     <head>\n\
+     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
+     </head>\n\
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\

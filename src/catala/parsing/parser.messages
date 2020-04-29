@@ -1,5 +1,6 @@
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT BOOLEAN INCLUDES
 ##
+## Ends in an error in state: 264.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ FIELD END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
@@ -11,17 +12,18 @@ source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRU
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 205, spurious reduction of production option(optional_marked) ->
-## In state 208, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked)
-## In state 258, spurious reduction of production enum_decl_line_payload -> CONTENT typ
-## In state 260, spurious reduction of production option(enum_decl_line_payload) -> enum_decl_line_payload
-## In state 259, spurious reduction of production enum_decl_line -> ALT constructor option(enum_decl_line_payload)
+## In state 207, spurious reduction of production option(optional_marked) -> 
+## In state 210, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked) 
+## In state 260, spurious reduction of production enum_decl_line_payload -> CONTENT typ 
+## In state 262, spurious reduction of production option(enum_decl_line_payload) -> enum_decl_line_payload 
+## In state 261, spurious reduction of production enum_decl_line -> ALT constructor option(enum_decl_line_payload) 
 ##
 
 Inclusion does not concern content of enumeration cases
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
+## Ends in an error in state: 259.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -34,6 +36,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 258.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -46,6 +49,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
+## Ends in an error in state: 257.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ FIELD END_CODE DECLARATION ALT ]
 ##
@@ -58,6 +62,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
+## Ends in an error in state: 256.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -70,6 +75,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 255.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -82,6 +88,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
+## Ends in an error in state: 254.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
@@ -94,6 +101,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
+## Ends in an error in state: 252.
 ##
 ## nonempty_list(field_decl_item) -> field_decl_item . [ INCLUDES FIELD END_CODE DECLARATION ]
 ## nonempty_list(field_decl_item) -> field_decl_item . nonempty_list(field_decl_item) [ INCLUDES FIELD END_CODE DECLARATION ]
@@ -105,11 +113,11 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 205, spurious reduction of production option(optional_marked) ->
-## In state 208, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked)
-## In state 214, spurious reduction of production struct_field_func -> DEPENDS typ
-## In state 215, spurious reduction of production option(struct_field_func) -> struct_field_func
-## In state 229, spurious reduction of production field_decl_item -> CONTEXT ident CONTENT typ option(struct_field_func)
+## In state 207, spurious reduction of production option(optional_marked) -> 
+## In state 210, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked) 
+## In state 216, spurious reduction of production struct_field_func -> DEPENDS typ 
+## In state 217, spurious reduction of production option(struct_field_func) -> struct_field_func 
+## In state 231, spurious reduction of production field_decl_item -> CONTEXT ident CONTENT typ option(struct_field_func) 
 ##
 
 Unexpected token
@@ -117,6 +125,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT IDENT YEAR
 ##
+## Ends in an error in state: 238.
 ##
 ## nonempty_list(field_decl_include) -> field_decl_include . [ INCLUDES FIELD END_CODE DECLARATION ]
 ## nonempty_list(field_decl_include) -> field_decl_include . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
@@ -130,6 +139,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT YEAR
 ##
+## Ends in an error in state: 245.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL constructor DOT . ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -142,6 +152,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 244.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL constructor . DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -154,6 +165,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL YEAR
 ##
+## Ends in an error in state: 243.
 ##
 ## field_decl_include -> constructor DOT ident EQUAL . constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -166,6 +178,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT YEAR
 ##
+## Ends in an error in state: 242.
 ##
 ## field_decl_include -> constructor DOT ident . EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -178,6 +191,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT YEAR
 ##
+## Ends in an error in state: 241.
 ##
 ## field_decl_include -> constructor DOT . ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -190,6 +204,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 240.
 ##
 ## field_decl_include -> constructor . DOT ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
@@ -202,6 +217,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT YEAR
 ##
+## Ends in an error in state: 236.
 ##
 ## field_decl_includes_context -> CONTEXT . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -214,6 +230,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 235.
 ##
 ## field_decl_includes -> INCLUDES FIELD constructor . option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -226,6 +243,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD YEAR
 ##
+## Ends in an error in state: 234.
 ##
 ## field_decl_includes -> INCLUDES FIELD . constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -238,6 +256,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES YEAR
 ##
+## Ends in an error in state: 233.
 ##
 ## field_decl_includes -> INCLUDES . FIELD constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
@@ -250,6 +269,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
+## Ends in an error in state: 230.
 ##
 ## field_decl_item -> CONTEXT ident CONTENT typ . option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -260,8 +280,8 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 205, spurious reduction of production option(optional_marked) ->
-## In state 208, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked)
+## In state 207, spurious reduction of production option(optional_marked) -> 
+## In state 210, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked) 
 ##
 
 Unexpected token
@@ -269,6 +289,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
+## Ends in an error in state: 229.
 ##
 ## field_decl_item -> CONTEXT ident CONTENT . typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -281,6 +302,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
+## Ends in an error in state: 228.
 ##
 ## field_decl_item -> CONTEXT ident . CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -293,6 +315,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT YEAR
 ##
+## Ends in an error in state: 227.
 ##
 ## field_decl_item -> CONTEXT . ident CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
@@ -305,6 +328,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON YEAR
 ##
+## Ends in an error in state: 226.
 ##
 ## code_item -> DECLARATION FIELD constructor COLON . nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -317,6 +341,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 225.
 ##
 ## code_item -> DECLARATION FIELD constructor . COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -329,6 +354,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD YEAR
 ##
+## Ends in an error in state: 224.
 ##
 ## code_item -> DECLARATION FIELD . constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
@@ -341,6 +367,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS BOOLEAN INCLUDES
 ##
+## Ends in an error in state: 219.
 ##
 ## list(struct_field) -> struct_field . list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -351,11 +378,11 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 205, spurious reduction of production option(optional_marked) ->
-## In state 208, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked)
-## In state 214, spurious reduction of production struct_field_func -> DEPENDS typ
-## In state 215, spurious reduction of production option(struct_field_func) -> struct_field_func
-## In state 216, spurious reduction of production struct_field -> struct_field_base option(struct_field_func)
+## In state 207, spurious reduction of production option(optional_marked) -> 
+## In state 210, spurious reduction of production typ -> option(collection_marked) typ_base option(optional_marked) 
+## In state 216, spurious reduction of production struct_field_func -> DEPENDS typ 
+## In state 217, spurious reduction of production option(struct_field_func) -> struct_field_func 
+## In state 218, spurious reduction of production struct_field -> struct_field_base option(struct_field_func) 
 ##
 
 Unexpected token
@@ -363,6 +390,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION BEGIN_METADATA
 ##
+## Ends in an error in state: 200.
 ##
 ## typ -> option(collection_marked) . typ_base option(optional_marked) [ INCLUDES FIELD END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -375,6 +403,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
+## Ends in an error in state: 207.
 ##
 ## typ -> option(collection_marked) typ_base . option(optional_marked) [ INCLUDES FIELD END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -387,6 +416,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
+## Ends in an error in state: 215.
 ##
 ## struct_field_func -> DEPENDS . typ [ INCLUDES FIELD END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -399,6 +429,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
+## Ends in an error in state: 214.
 ##
 ## struct_field -> struct_field_base . option(struct_field_func) [ FIELD END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -411,6 +442,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
+## Ends in an error in state: 221.
 ##
 ## struct_field_base -> condition_pos . ident [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -423,6 +455,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
+## Ends in an error in state: 197.
 ##
 ## struct_field_base -> DATA ident CONTENT . typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -435,6 +468,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
+## Ends in an error in state: 196.
 ##
 ## struct_field_base -> DATA ident . CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -447,6 +481,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
+## Ends in an error in state: 195.
 ##
 ## struct_field_base -> DATA . ident CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -459,6 +494,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
+## Ends in an error in state: 194.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -471,6 +507,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 193.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -483,6 +520,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
+## Ends in an error in state: 192.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ##
@@ -495,6 +533,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
+## Ends in an error in state: 191.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
 ## code_item -> DECLARATION . FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
@@ -509,6 +548,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
+## Ends in an error in state: 189.
 ##
 ## nonempty_list(application_field_item) -> application_field_item . [ FIELD END_CODE DECLARATION ]
 ## nonempty_list(application_field_item) -> application_field_item . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
@@ -520,22 +560,23 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 43, spurious reduction of production primitive_expression -> CARDINAL
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 121, spurious reduction of production logical_expression -> compare_expression
-## In state 105, spurious reduction of production expression -> logical_expression
-## In state 183, spurious reduction of production assertion_base -> expression
-## In state 184, spurious reduction of production assertion -> option(condition_consequence) assertion_base
-## In state 185, spurious reduction of production application_field_item -> ASSERTION assertion
+## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 185, spurious reduction of production assertion_base -> expression 
+## In state 186, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
+## In state 187, spurious reduction of production application_field_item -> ASSERTION assertion 
 ##
 
 Unexpected token after an application field item
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL YEAR
 ##
+## Ends in an error in state: 42.
 ##
 ## aggregate_func -> CARDINAL . [ FOR ]
 ## primitive_expression -> CARDINAL . [ WITH THEN RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -549,6 +590,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT MONEY_AMOUNT YEAR
 ##
+## Ends in an error in state: 69.
 ##
 ## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
@@ -562,6 +604,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT YEAR
 ##
+## Ends in an error in state: 68.
 ##
 ## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -574,9 +617,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 66.
 ##
 ## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## qident -> constructor . DOT qident [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## qident_prefix -> constructor . DOT [ IDENT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor
@@ -587,6 +631,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
 ##
+## Ends in an error in state: 115.
 ##
 ## expression -> exists_prefix . expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -599,6 +644,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW SUCH YEAR
 ##
+## Ends in an error in state: 121.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression SUCH . THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -611,6 +657,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW YEAR
 ##
+## Ends in an error in state: 120.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression . SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -623,6 +670,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN YEAR
 ##
+## Ends in an error in state: 119.
 ##
 ## exists_prefix -> exists_marked ident IN . primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -635,6 +683,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS IDENT YEAR
 ##
+## Ends in an error in state: 118.
 ##
 ## exists_prefix -> exists_marked ident . IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -647,6 +696,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION EXISTS YEAR
 ##
+## Ends in an error in state: 117.
 ##
 ## exists_prefix -> exists_marked . ident IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -659,6 +709,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
+## Ends in an error in state: 182.
 ##
 ## assertion -> FIXED qident BY . ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -671,6 +722,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
+## Ends in an error in state: 181.
 ##
 ## assertion -> FIXED qident . BY ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -681,7 +733,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 60, spurious reduction of production qident -> ident
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -689,6 +742,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
+## Ends in an error in state: 180.
 ##
 ## assertion -> FIXED . qident BY ident [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -701,6 +755,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN CARDINAL WE_HAVE YEAR
 ##
+## Ends in an error in state: 108.
 ##
 ## expression -> forall_prefix . expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -713,6 +768,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN NOW YEAR
 ##
+## Ends in an error in state: 112.
 ##
 ## forall_prefix -> for_all_marked ident IN primitive_expression . WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -725,6 +781,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN YEAR
 ##
+## Ends in an error in state: 111.
 ##
 ## forall_prefix -> for_all_marked ident IN . primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -737,6 +794,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL IDENT YEAR
 ##
+## Ends in an error in state: 110.
 ##
 ## forall_prefix -> for_all_marked ident . IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -748,6 +806,7 @@ A for all construction expects only one ident
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR ALL YEAR
 ##
+## Ends in an error in state: 109.
 ##
 ## forall_prefix -> for_all_marked . ident IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -760,6 +819,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FOR YEAR
 ##
+## Ends in an error in state: 38.
 ##
 ## for_all_marked -> FOR . ALL [ IDENT ]
 ##
@@ -772,6 +832,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ##
+## Ends in an error in state: 128.
 ##
 ## expression -> IF expression . THEN expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -782,12 +843,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 121, spurious reduction of production logical_expression -> compare_expression
-## In state 105, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -795,6 +856,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW ELSE YEAR
 ##
+## Ends in an error in state: 131.
 ##
 ## expression -> IF expression THEN expression ELSE . base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -807,6 +869,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW THEN
 ##
+## Ends in an error in state: 130.
 ##
 ## expression -> IF expression THEN expression . ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -817,12 +880,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 121, spurious reduction of production logical_expression -> compare_expression
-## In state 105, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -830,6 +893,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN YEAR
 ##
+## Ends in an error in state: 129.
 ##
 ## expression -> IF expression THEN . expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -842,6 +906,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF YEAR
 ##
+## Ends in an error in state: 37.
 ##
 ## expression -> IF . expression THEN expression ELSE base_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -854,6 +919,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION INT_LITERAL WITH_V
 ##
+## Ends in an error in state: 60.
 ##
 ## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -865,6 +931,7 @@ Expecting an unit for the preceding numeric literal, or an operator
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW THEN
 ##
+## Ends in an error in state: 133.
 ##
 ## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -875,18 +942,19 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 121, spurious reduction of production logical_expression -> compare_expression
-## In state 105, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unmatched parenthesis that should have ended before this
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
+## Ends in an error in state: 35.
 ##
 ## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -899,6 +967,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON NOT NOW OR
 ##
+## Ends in an error in state: 138.
 ##
 ## match_arms -> ALT match_arm . match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -909,12 +978,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 104, spurious reduction of production logical_expression -> logical_unop compare_expression
-## In state 140, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 106, spurious reduction of production logical_expression -> logical_unop compare_expression 
+## In state 142, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
 ##
 
 Unexpected token
@@ -922,6 +991,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON YEAR
 ##
+## Ends in an error in state: 141.
 ##
 ## match_arm -> constructor_binding COLON . logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -934,6 +1004,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 146.
 ##
 ## optional_binding -> OF constructor . constructor_binding [ COLON ]
 ##
@@ -946,6 +1017,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF IDENT YEAR
 ##
+## Ends in an error in state: 140.
 ##
 ## match_arm -> constructor_binding . COLON logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -958,6 +1030,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF YEAR
 ##
+## Ends in an error in state: 144.
 ##
 ## optional_binding -> OF . ident [ COLON ]
 ## optional_binding -> OF . constructor constructor_binding [ COLON ]
@@ -971,6 +1044,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 143.
 ##
 ## constructor_binding -> constructor . optional_binding [ COLON ]
 ##
@@ -983,6 +1057,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT YEAR
 ##
+## Ends in an error in state: 137.
 ##
 ## match_arms -> ALT . match_arm match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -995,6 +1070,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WITH YEAR
 ##
+## Ends in an error in state: 136.
 ##
 ## expression -> MATCH primitive_expression WITH . match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1007,6 +1083,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW YEAR
 ##
+## Ends in an error in state: 135.
 ##
 ## expression -> MATCH primitive_expression . WITH match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1019,6 +1096,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH YEAR
 ##
+## Ends in an error in state: 34.
 ##
 ## expression -> MATCH . primitive_expression WITH match_arms [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
 ##
@@ -1031,6 +1109,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MINUS YEAR
 ##
+## Ends in an error in state: 43.
 ##
 ## sum_expression -> sum_unop . sum_expression [ THEN RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1043,6 +1122,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT ARROW YEAR
 ##
+## Ends in an error in state: 46.
 ##
 ## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1055,6 +1135,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT YEAR
 ##
+## Ends in an error in state: 45.
 ##
 ## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
@@ -1067,6 +1148,7 @@ Expected operator or new item after expression
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
+## Ends in an error in state: 105.
 ##
 ## logical_expression -> logical_unop . compare_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1079,6 +1161,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ##
+## Ends in an error in state: 84.
 ##
 ## base_expression -> primitive_expression IN . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1090,6 +1173,7 @@ Missing collection for testing whether an element is inside a collection or not
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASING
 ##
+## Ends in an error in state: 91.
 ##
 ## mult_expression -> base_expression . [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## mult_expression -> base_expression . mult_op mult_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -1101,7 +1185,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -1109,6 +1193,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW MULT YEAR
 ##
+## Ends in an error in state: 94.
 ##
 ## mult_expression -> base_expression mult_op . mult_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1120,6 +1205,7 @@ Expected expression on the right-hand side of multiplication operator
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW NOT_EQUAL YEAR
 ##
+## Ends in an error in state: 103.
 ##
 ## compare_expression -> sum_expression compare_op . compare_expression [ THEN RULE RPAREN OR FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1131,6 +1217,7 @@ Expected the second term of the comparison
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
+## Ends in an error in state: 53.
 ##
 ## base_expression -> primitive_expression OF . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1142,6 +1229,7 @@ Invalid function application
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW OR YEAR
 ##
+## Ends in an error in state: 126.
 ##
 ## logical_expression -> compare_expression logical_op . logical_expression [ THEN RULE RPAREN FIELD END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
 ##
@@ -1154,6 +1242,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW PLUS YEAR
 ##
+## Ends in an error in state: 89.
 ##
 ## sum_expression -> mult_expression sum_op . sum_expression [ THEN RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1166,6 +1255,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW WITH YEAR
 ##
+## Ends in an error in state: 51.
 ##
 ## base_expression -> primitive_expression WITH . constructor [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1177,6 +1267,7 @@ Missing enumeration case for testing if an enumeration value is in a particular 
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
+## Ends in an error in state: 50.
 ##
 ## base_expression -> primitive_expression . [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ## base_expression -> primitive_expression . OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
@@ -1192,6 +1283,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW OF YEAR
 ##
+## Ends in an error in state: 81.
 ##
 ## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1204,6 +1296,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW YEAR
 ##
+## Ends in an error in state: 80.
 ##
 ## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1216,6 +1309,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN YEAR
 ##
+## Ends in an error in state: 78.
 ##
 ## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1228,6 +1322,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR IDENT YEAR
 ##
+## Ends in an error in state: 77.
 ##
 ## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1240,6 +1335,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM FOR YEAR
 ##
+## Ends in an error in state: 76.
 ##
 ## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1252,6 +1348,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION SUM YEAR
 ##
+## Ends in an error in state: 75.
 ##
 ## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
 ##
@@ -1264,6 +1361,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
 ##
+## Ends in an error in state: 184.
 ##
 ## assertion -> option(condition_consequence) . assertion_base [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1276,6 +1374,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
 ##
+## Ends in an error in state: 156.
 ##
 ## condition_consequence -> condition . CONSEQUENCE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR FILLED EXISTS DEFINED_AS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -1286,20 +1385,21 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 43, spurious reduction of production primitive_expression -> CARDINAL
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 89, spurious reduction of production mult_expression -> base_expression
-## In state 84, spurious reduction of production sum_expression -> mult_expression
-## In state 94, spurious reduction of production compare_expression -> sum_expression
-## In state 121, spurious reduction of production logical_expression -> compare_expression
-## In state 105, spurious reduction of production expression -> logical_expression
-## In state 148, spurious reduction of production condition -> UNDER_CONDITION expression
+## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 150, spurious reduction of production condition -> UNDER_CONDITION expression 
 ##
 
 Unexpected token after a condition
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
+## Ends in an error in state: 20.
 ##
 ## condition -> UNDER_CONDITION . expression [ CONSEQUENCE ]
 ##
@@ -1312,6 +1412,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH
 ##
+## Ends in an error in state: 173.
 ##
 ## assertion -> VARIES qident . WITH_V base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1322,7 +1423,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 60, spurious reduction of production qident -> ident
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1330,6 +1432,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V NOW THEN
 ##
+## Ends in an error in state: 175.
 ##
 ## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1340,7 +1443,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -1348,6 +1451,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
+## Ends in an error in state: 174.
 ##
 ## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1360,6 +1464,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
+## Ends in an error in state: 172.
 ##
 ## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1372,6 +1477,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV INT_LITERAL YEAR
 ##
+## Ends in an error in state: 27.
 ##
 ## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1384,6 +1490,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV YEAR
 ##
+## Ends in an error in state: 26.
 ##
 ## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1395,6 +1502,7 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL YEAR
 ##
+## Ends in an error in state: 25.
 ##
 ## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1407,6 +1515,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV YEAR
 ##
+## Ends in an error in state: 24.
 ##
 ## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1418,6 +1527,7 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL YEAR
 ##
+## Ends in an error in state: 23.
 ##
 ## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1430,6 +1540,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VERTICAL YEAR
 ##
+## Ends in an error in state: 21.
 ##
 ## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FIELD EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
 ##
@@ -1441,6 +1552,7 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION YEAR
 ##
+## Ends in an error in state: 171.
 ##
 ## application_field_item -> ASSERTION . assertion [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1453,6 +1565,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
+## Ends in an error in state: 168.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1465,6 +1578,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
+## Ends in an error in state: 166.
 ##
 ## definition -> qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1476,6 +1590,7 @@ Wrong token following function parameter
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
+## Ends in an error in state: 167.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1488,6 +1603,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
+## Ends in an error in state: 165.
 ##
 ## definition -> qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1498,13 +1614,15 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 60, spurious reduction of production qident -> ident
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Only the identifier you wish to define should follow the definition introducing token
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION YEAR
 ##
+## Ends in an error in state: 164.
 ##
 ## application_field_item -> DEFINITION . definition [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1517,11 +1635,12 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR DOT YEAR
 ##
+## Ends in an error in state: 54.
 ##
-## qident -> constructor DOT . qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## qident -> option(qident_prefix) . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## constructor DOT
+## option(qident_prefix)
 ##
 
 Unexpected token
@@ -1529,8 +1648,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 70.
 ##
-## qident -> constructor . DOT qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## qident_prefix -> constructor . DOT [ IDENT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor
@@ -1541,8 +1661,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
+## Ends in an error in state: 58.
 ##
-## qident -> ident DOT . qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident DOT
@@ -1553,6 +1674,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT NOT FIELD
 ##
+## Ends in an error in state: 153.
 ##
 ## rule -> rule_expr option(condition_consequence) option(NOT) . FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1565,6 +1687,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
+## Ends in an error in state: 19.
 ##
 ## rule -> rule_expr . option(condition_consequence) option(NOT) FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1577,6 +1700,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
+## Ends in an error in state: 160.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
 ##
@@ -1589,6 +1713,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION NOW CONSEQUENCE FIELD
 ##
+## Ends in an error in state: 151.
 ##
 ## rule -> rule_expr option(condition_consequence) . option(NOT) FILLED [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1601,6 +1726,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
+## Ends in an error in state: 159.
 ##
 ## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
 ##
@@ -1611,7 +1737,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 60, spurious reduction of production qident -> ident
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1619,9 +1746,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT YEAR
 ##
+## Ends in an error in state: 57.
 ##
-## qident -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
-## qident -> ident . DOT qident [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED FIELD EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident
@@ -1631,6 +1759,7 @@ Wrong token following an identifier
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE YEAR
 ##
+## Ends in an error in state: 18.
 ##
 ## application_field_item -> RULE . rule [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1643,6 +1772,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON YEAR
 ##
+## Ends in an error in state: 17.
 ##
 ## code_item -> FIELD constructor COLON . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1654,6 +1784,7 @@ Expected a rule, a definition or an assertion
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ##
+## Ends in an error in state: 16.
 ##
 ## code_item -> FIELD constructor . COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1665,6 +1796,7 @@ Expected a colon after application field constructor
 
 source_file_or_master: BEGIN_CODE FIELD YEAR
 ##
+## Ends in an error in state: 14.
 ##
 ## code_item -> FIELD . constructor COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
 ##
@@ -1676,6 +1808,7 @@ Expecting the constructor for the application field
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
+## Ends in an error in state: 273.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1687,6 +1820,7 @@ Wrong way to begin a code section
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
+## Ends in an error in state: 270.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1699,6 +1833,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
+## Ends in an error in state: 13.
 ##
 ## metadata_block -> BEGIN_CODE . code END_CODE END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1711,6 +1846,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_METADATA YEAR
 ##
+## Ends in an error in state: 12.
 ##
 ## source_file_item -> BEGIN_METADATA . metadata_block [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1723,6 +1859,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: LAW_TEXT YEAR
 ##
+## Ends in an error in state: 277.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##
@@ -1735,6 +1872,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 ##
+## Ends in an error in state: 5.
 ##
 ## master_file_includes -> master_file_include . master_file_includes [ # ]
 ##
@@ -1747,6 +1885,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: MASTER_FILE YEAR
 ##
+## Ends in an error in state: 1.
 ##
 ## source_file_or_master -> MASTER_FILE . master_file_includes [ # ]
 ##
@@ -1759,6 +1898,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: YEAR
 ##
+## Ends in an error in state: 0.
 ##
 ## source_file_or_master' -> . source_file_or_master [ # ]
 ##
