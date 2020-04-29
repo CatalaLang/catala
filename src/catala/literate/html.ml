@@ -66,8 +66,8 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
             let mtime = (Unix.stat filename).Unix.st_mtime in
             let ltime = Unix.localtime mtime in
             let ftime =
-              Printf.sprintf "%d-%02d-%02d, %d:%02d" ltime.Unix.tm_mday ltime.Unix.tm_mon
-                (1900 + ltime.Unix.tm_year) ltime.Unix.tm_hour ltime.Unix.tm_min
+              Printf.sprintf "%d-%02d-%02d, %d:%02d" (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon
+                ltime.Unix.tm_mday ltime.Unix.tm_hour ltime.Unix.tm_min
             in
             Printf.sprintf "<li><tt>%s</tt>, %s %s</li>"
               (pre_html (Filename.basename filename))
@@ -119,13 +119,21 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
       let h_number = precedence + 2 in
       P.sprintf "<h%d>%s</h%d>" h_number (pre_html title) h_number
   | A.LawText t -> pre_html t
-  | A.LawArticle a -> P.sprintf "<div>%s</div>" (pre_html (Pos.unmark a.law_article_name))
+  | A.LawArticle a ->
+      P.sprintf "<span style='margin-right:1em; font-weight:bold'><a href='%s'>%s</a></span>"
+        ( match (a.law_article_id, language) with
+        | Some id, C.Fr ->
+            let ltime = Unix.localtime (Unix.time ()) in
+            P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+              (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon ltime.Unix.tm_mday
+        | _ -> "#" )
+        (pre_html (Pos.unmark a.law_article_name))
   | A.CodeBlock (_, c) ->
-      P.sprintf "<div>\n<div><tt>%s</tt></div>\n%s\n</div>"
+      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
         (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
   | A.MetadataBlock (_, c) ->
-      P.sprintf "<div>\n<div><tt>%s</tt></div>\n%s\n</div>"
+      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
         (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
   | A.LawInclude (_file, _page) -> ""
