@@ -71,13 +71,17 @@ type constructor = Struct of Struct.t | Enum of Enum.t
 
 (* Type *)
 
-type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
+type primitive_typ =
+  | Integer
+  | Decimal
+  | Boolean
+  | Money
+  | Text
+  | Date
+  | Named of constructor
+  | Unit
 
-type base_typ_data = {
-  typ_data_collection : Pos.t option;
-  typ_data_optional : Pos.t option;
-  typ_data_base : primitive_typ Pos.marked;
-}
+type base_typ_data = TVec of base_typ_data | TOption of base_typ_data | TPrim of primitive_typ
 
 type base_typ = Condition | Data of base_typ_data
 
@@ -88,7 +92,10 @@ type typ = Base of base_typ | Func of func_typ
 (* Expressions *)
 
 (* The [bool] argument is true if the match case introduces a pattern *)
-type match_case_pattern = constructor Pos.marked list * bool
+type match_case_pattern =
+  | PEnum of EnumCase.t Pos.marked * match_case_pattern
+  | PVar of Pos.t
+  | PWild
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -116,49 +123,46 @@ type litteral =
 
 type match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
-  match_case_expr : expression Pos.marked;
+  match_case_expr : expression;
 }
 
 and match_cases = match_case Pos.marked list
 
-and expression =
-  | MatchWith of expression Pos.marked * match_cases Pos.marked
-  | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
-  | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
-  | Unop of unop Pos.marked * expression Pos.marked
-  | CollectionOp of collection_op Pos.marked * Var.t * expression Pos.marked * expression Pos.marked
-  | MemCollection of expression Pos.marked * expression Pos.marked
-  | TestMatchCase of expression Pos.marked * constructor Pos.marked
-  | FunCall of expression Pos.marked * expression Pos.marked
-  | Builtin of builtin_expression
-  | Literal of litteral
-  | Inject of constructor Pos.marked * expression Pos.marked option
-  | Project of expression Pos.marked * constructor Pos.marked
+and expression = expression' Pos.marked
+
+and expression' =
+  | MatchWith of expression * match_cases Pos.marked
+  | IfThenElse of expression * expression * expression
+  | Binop of binop Pos.marked
+  | Unop of unop Pos.marked
+  | CollectionOp of collection_op Pos.marked * Var.t * expression * expression
+  | MemCollection of expression * expression
+  | TestMatchCase of expression * EnumCase.t Pos.marked
+  | FunCall of expression * expression
+  | Builtin of builtin_expression Pos.marked
+  | Literal of literal
+  | Inject of constructor Pos.marked * expression option
+  | Project of expression * constructor Pos.marked
   | BindingParameter of int (* The integer is the De Bruijn index *)
   | Var of Var.t Pos.marked
 
-(* Struct declaration *)
-type struct_decl_field = {
-  struct_decl_field_name : StructField.t Pos.marked;
-  struct_decl_field_typ : typ Pos.marked;
-}
+(* Wrappers *)
 
-type struct_decl = { struct_decl_fields : struct_decl_field Pos.marked list }
+type 'a with_type = { value : 'a Pos.marked; typ : typ Pos.marked }
+
+(* Struct declaration *)
+type struct_decl_field = StructField.t with_type
+
+type struct_decl = struct_decl_field Pos.marked list
 
 (* Enum declaration *)
-type enum_decl_case = {
-  enum_decl_case_name : EnumCase.t Pos.marked;
-  enum_decl_case_typ : typ Pos.marked option;
-}
+type enum_decl_case = EnumCase.t with_type
 
-type enum_decl = { enum_decl_cases : enum_decl_case Pos.marked list }
+type enum_decl = enum_decl_case Pos.marked list
 
 (* Fields *)
 
-type field_context_item = {
-  field_context_item_name : ApplicationFieldParam.t Pos.marked;
-  field_context_item_typ : typ Pos.marked;
-}
+type field_parameter = ApplicationFieldParam.t with_type
 
 type field_include_join = {
   parent_field_name : Field.t Pos.marked;
@@ -171,22 +175,21 @@ type field_include = {
   field_include_joins : field_include_join Pos.marked list;
 }
 
+type binder = string Pos.marked
+
 type rule = {
-  rule_parameter : Pos.t option;
-  rule_condition : expression Pos.marked option;
+  rule_parameter : binder option;
+  rule_condition : expression option;
   rule_consequence : bool;
 }
 
 type definition = {
-  definition_parameter : Pos.t option;
-  definition_condition : expression Pos.marked option;
-  definition_expr : expression Pos.marked;
+  definition_parameter : binder option;
+  definition_condition : expression option;
+  definition_expr : expression;
 }
 
-type assertion = {
-  assertion_condition : expression Pos.marked option;
-  assertion_content : expression Pos.marked;
-}
+type assertion = expression
 
 type variation_typ = Increasing | Decreasing
 
@@ -194,11 +197,11 @@ type reference_typ = Decree | Law
 
 type meta_assertion =
   | FixedBy of reference_typ Pos.marked
-  | VariesWith of expression Pos.marked * variation_typ Pos.marked option
+  | VariesWith of expression * variation_typ Pos.marked option
 
 type field = {
   field_var_map : qident VarMap.t;
-  field_context : field_context_item Pos.marked list;
+  field_parameters : field_parameter Pos.marked list;
   field_includes : field_include Pos.marked list;
   field_rules : rule list VarMap.t;
   field_defs : definition list VarMap.t;
