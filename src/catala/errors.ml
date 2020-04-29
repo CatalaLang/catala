@@ -20,6 +20,8 @@ exception ParsingError of string
 
 exception LexingError of string
 
+exception WeavingError of string
+
 let retrieve_loc_text (pos : Pos.t) : string =
   let filename = Pos.get_file pos in
   let sline = Pos.get_start_line pos in
@@ -68,3 +70,5 @@ let parser_error (loc : Lexing.position * Lexing.position) (token : string) (msg
 
 let lexer_error (loc : Lexing.position * Lexing.position) (msg : string) =
   raise (LexingError (Printf.sprintf "Parsing error %s on token \"%s\"" (Pos.to_string loc) msg))
+
+let weaving_error (msg : string) = raise (WeavingError (Printf.sprintf "Weaving error: %s" msg))

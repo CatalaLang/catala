@@ -34,6 +34,7 @@ endif
 	$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
+	--pygmentize=$(PYGMENTIZE) \
 	HTML \
 	$<
 

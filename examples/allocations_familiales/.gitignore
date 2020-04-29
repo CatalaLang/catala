@@ -8,6 +8,7 @@
 allocations_familiales.tex
 allocations_familiales.pdf
 allocations_familiales.html
+allocations_familiales.css
 _minted*
 *.toc
 *.pyg

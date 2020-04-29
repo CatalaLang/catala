@@ -62,38 +62,43 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         (String.concat "\\\n" program.program_source_files)
         (String.concat "\\\n" program.program_source_files);
       0
-  | Cli.Latex | Cli.Html ->
+  | Cli.Latex | Cli.Html -> (
       Cli.debug_print
         (Printf.sprintf "Weaving literate program into %s"
            (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
-      let weaved_output =
-        ( match backend with
-        | Cli.Latex -> Latex.ast_to_latex
-        | Cli.Html -> Html.ast_to_html
-        | _ -> assert false )
-          program language
-      in
-      let weaved_output =
-        if wrap_weaved_output then
+      try
+        let weaved_output =
           match backend with
-          | Cli.Latex ->
-              Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
-                language
-          | Cli.Html -> Html.wrap_html weaved_output program.Ast.program_source_files language
+          | Cli.Latex -> Latex.ast_to_latex program language
+          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
           | _ -> assert false
-        else weaved_output
-      in
-      let output_file =
-        match output_file with
-        | Some f -> f
-        | None -> (
-            Filename.remove_extension source_file
-            ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
-      in
-      Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
-      let oc = open_out output_file in
-      Printf.fprintf oc "%s" weaved_output;
-      close_out oc;
-      0
+        in
+        let output_file =
+          match output_file with
+          | Some f -> f
+          | None -> (
+              Filename.remove_extension source_file
+              ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
+        in
+        let weaved_output =
+          if wrap_weaved_output then
+            match backend with
+            | Cli.Latex ->
+                Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
+                  language
+            | Cli.Html ->
+                Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc
+                  language output_file
+            | _ -> assert false
+          else weaved_output
+        in
+        Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
+        let oc = open_out output_file in
+        Printf.fprintf oc "%s" weaved_output;
+        close_out oc;
+        0
+      with Errors.WeavingError msg ->
+        Cli.error_print msg;
+        exit (-1) )
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)
