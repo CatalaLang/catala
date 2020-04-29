@@ -25,10 +25,17 @@ endif
 %.tex: %.catala $(CATALA_EXE)
 	$(CATALA) Makefile $<
 	$(CATALA) \
-		--wrap_latex \
+		--wrap \
 		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
+
+%.html: %.catala $(CATALA_EXE)
+	$(CATALA) Makefile $<
+	$(CATALA) \
+	--wrap \
+	HTML \
+	$<
 
 %.expired: %.catala $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
 	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)

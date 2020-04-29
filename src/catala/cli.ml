@@ -28,8 +28,10 @@ let file =
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
-let wrap_latex_output =
-  Arg.(value & flag & info [ "wrap_latex"; "w" ] ~doc:"Wraps LaTeX output with a minimal preamble")
+let wrap_weaved_output =
+  Arg.(
+    value & flag
+    & info [ "wrap"; "w" ] ~doc:"Wraps literate programming output with a minimal preamble")
 
 let backend =
   Arg.(
@@ -37,7 +39,7 @@ let backend =
     & pos 0 (some string) None
     & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile")
 
-type backend_option = LaTeX | Makefile
+type backend_option = Latex | Makefile | Html
 
 let language =
   Arg.(
@@ -63,7 +65,7 @@ let pygmentize_loc =
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
-  Term.(const f $ file $ debug $ wrap_latex_output $ pygmentize_loc $ backend $ language $ output)
+  Term.(const f $ file $ debug $ wrap_weaved_output $ pygmentize_loc $ backend $ language $ output)
 
 let info =
   let doc =
