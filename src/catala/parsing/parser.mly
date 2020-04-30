@@ -23,7 +23,7 @@
 %token EOF
 %token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
-%token<string * int option> LAW_INCLUDE
+%token<Ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -487,7 +487,7 @@ source_file_item:
   CodeBlock (code, (text, pos))
 }
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in LawInclude (file, page)
+  LawInclude includ
 }
 
 source_file:
@@ -496,9 +496,9 @@ source_file:
 
 master_file_include:
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in match page with
-  | None -> (file, $sloc)
-  | Some _ -> Errors.parser_error $sloc file (Printf.sprintf "Include in master file must be .catala file!" )
+  match includ with
+  | CatalaFile (file, _) -> (file, $sloc)
+  | _ -> Errors.parser_error $sloc "inclusion" (Printf.sprintf "Include in master file must be .catala file!" )
 }
 
 master_file_includes:

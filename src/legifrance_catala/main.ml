@@ -193,6 +193,9 @@ let compare_to_versions (article_text_acc : article_text_acc) (access_token : st
             diff )
   | None -> ()
 
+let include_legislative_text (_id : string Catala.Pos.marked) (_access_token : string) : unit =
+  assert false
+
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
   let access_token = Api.get_token client_id client_secret in
@@ -223,6 +226,9 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
                 } )
         | Catala.Ast.LawText art_text ->
             { article_text_acc with text = article_text_acc.text ^ " " ^ art_text }
+        | Catala.Ast.LawInclude (Catala.Ast.LegislativeText id) ->
+            include_legislative_text id access_token;
+            article_text_acc
         | _ -> article_text_acc)
       {
         article_title = ("", Catala.Pos.no_pos);

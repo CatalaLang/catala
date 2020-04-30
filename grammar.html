@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Grammar</title>
+    <style>
+      .specification td, th{
+          vertical-align: baseline;
+          padding: 0;
+          margin: 0;
+          font-weight: normal;
+      }
+      .specification td {
+          text-align: left;
+      }
+      .specification th {
+          text-align: right;
+          white-space: nowrap;
+      }
+      .specification th::after {
+          content: "\a0::=\a0";
+      }
+      .specification th.bar {
+          text-align: right;
+      }
+      .specification th.bar::after {
+          content: "|\a0";
+      }
+      .rule th, td {
+          padding-top: .5em;
+      }
+      .nonterminal::before {
+          content: "<";
+      }
+      .nonterminal::after {
+          content: ">";
+      }
+      .list::after {
+          content: "*";
+          vertical-align: super;
+          font-size: smaller;
+      }
+      .ne_list::after {
+          content: "+";
+          vertical-align: super;
+          font-size: smaller;
+      }
+      .option::before {
+          content: "[";
+      }
+      .option::after {
+          content: "]";
+      }
+    </style>
+  </head>
+  
+  <body>
+    
+    <table class="specification">
+      
+      <tr class="rule">
+        <th><span class="nonterminal">typ_base</span></th>
+        <td>INTEGER</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>BOOLEAN</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>MONEY</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>TEXT</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECIMAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DATE</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">constructor</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">collection_marked</span></th>
+        <td>COLLECTION</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">optional_marked</span></th>
+        <td>OPTIONAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">typ</span></th>
+        <td><span class="option"><span class="nonterminal">collection_marked</span></span>
+        <span class="nonterminal">typ_base</span>
+        <span class="option"><span class="nonterminal">optional_marked</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">qident_prefix</span></th>
+        <td><span class="nonterminal">constructor</span>
+        DOT</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">qident</span></th>
+        <td><span class="option"><span class="nonterminal">qident_prefix</span></span>
+        <span class="nonterminal">ident</span><sup>+</sup><sub>DOT</sub></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">atomic_expression</span></th>
+        <td><span class="nonterminal">qident</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">literal</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>LPAREN
+        <span class="nonterminal">expression</span>
+        RPAREN</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">small_expression</span></th>
+        <td><span class="nonterminal">atomic_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">small_expression</span>
+        ARROW
+        <span class="nonterminal">constructor</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">constructor_payload</span></th>
+        <td>CONTENT
+        <span class="nonterminal">small_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">primitive_expression</span></th>
+        <td><span class="nonterminal">small_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>NOW</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>CARDINAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">constructor</span>
+        <span class="option"><span class="nonterminal">constructor_payload</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">num_literal</span></th>
+        <td>INT_LITERAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECIMAL_LITERAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">unit_literal</span></th>
+        <td>PERCENT</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>YEAR</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">date_int</span></th>
+        <td>INT_LITERAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">literal</span></th>
+        <td><span class="nonterminal">num_literal</span>
+        <span class="option"><span class="nonterminal">unit_literal</span></span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>MONEY_AMOUNT</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>VERTICAL
+        <span class="nonterminal">date_int</span>
+        DIV
+        <span class="nonterminal">date_int</span>
+        DIV
+        <span class="nonterminal">date_int</span>
+        VERTICAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">compare_op</span></th>
+        <td>LESSER</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>LESSER_EQUAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>GREATER</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>GREATER_EQUAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>EQUAL</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>NOT_EQUAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">aggregate_func</span></th>
+        <td>SUM</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>CARDINAL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">aggregate</span></th>
+        <td><span class="nonterminal">aggregate_func</span>
+        FOR
+        <span class="nonterminal">ident</span>
+        IN
+        <span class="nonterminal">primitive_expression</span>
+        OF
+        <span class="nonterminal">base_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">base_expression</span></th>
+        <td><span class="nonterminal">primitive_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">aggregate</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">primitive_expression</span>
+        OF
+        <span class="nonterminal">base_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">primitive_expression</span>
+        WITH
+        <span class="nonterminal">constructor</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">primitive_expression</span>
+        IN
+        <span class="nonterminal">base_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">mult_op</span></th>
+        <td>MULT</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DIV</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">mult_expression</span></th>
+        <td><span class="nonterminal">base_expression</span><sup>+</sup><sub><span class="nonterminal">mult_op</span></sub></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">sum_op</span></th>
+        <td>PLUS</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>MINUS</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">sum_unop</span></th>
+        <td>MINUS</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">sum_expression</span></th>
+        <td><span class="nonterminal">mult_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">mult_expression</span>
+        <span class="nonterminal">sum_op</span>
+        <span class="nonterminal">sum_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">sum_unop</span>
+        <span class="nonterminal">sum_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">logical_op</span></th>
+        <td>AND</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>OR</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">logical_unop</span></th>
+        <td>NOT</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">compare_expression</span></th>
+        <td><span class="nonterminal">sum_expression</span><sup>+</sup><sub><span class="nonterminal">compare_op</span></sub></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">logical_expression</span></th>
+        <td><span class="nonterminal">compare_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">logical_unop</span>
+        <span class="nonterminal">compare_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">compare_expression</span>
+        <span class="nonterminal">logical_op</span>
+        <span class="nonterminal">logical_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">optional_binding</span></th>
+        <td>epsilon
+        </td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>OF
+        <span class="nonterminal">ident</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>OF
+        <span class="nonterminal">constructor</span>
+        <span class="nonterminal">constructor_binding</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">constructor_binding</span></th>
+        <td><span class="nonterminal">constructor</span>
+        <span class="nonterminal">optional_binding</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">match_arm</span></th>
+        <td><span class="nonterminal">constructor_binding</span>
+        COLON
+        <span class="nonterminal">logical_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">match_arms</span></th>
+        <td><span class="list">(ALT
+        <span class="nonterminal">match_arm</span>)</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">for_all_marked</span></th>
+        <td>FOR
+        ALL</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">exists_marked</span></th>
+        <td>EXISTS</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">forall_prefix</span></th>
+        <td><span class="nonterminal">for_all_marked</span>
+        <span class="nonterminal">ident</span>
+        IN
+        <span class="nonterminal">primitive_expression</span>
+        WE_HAVE</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">exists_prefix</span></th>
+        <td><span class="nonterminal">exists_marked</span>
+        <span class="nonterminal">ident</span>
+        IN
+        <span class="nonterminal">primitive_expression</span>
+        SUCH
+        THAT</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">expression</span></th>
+        <td><span class="nonterminal">exists_prefix</span>
+        <span class="nonterminal">expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">forall_prefix</span>
+        <span class="nonterminal">expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>MATCH
+        <span class="nonterminal">primitive_expression</span>
+        WITH
+        <span class="nonterminal">match_arms</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>IF
+        <span class="nonterminal">expression</span>
+        THEN
+        <span class="nonterminal">expression</span>
+        ELSE
+        <span class="nonterminal">base_expression</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">logical_expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">condition</span></th>
+        <td>UNDER_CONDITION
+        <span class="nonterminal">expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">condition_consequence</span></th>
+        <td><span class="nonterminal">condition</span>
+        CONSEQUENCE</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">rule_expr</span></th>
+        <td><span class="nonterminal">qident</span>
+        <span class="option"><span class="nonterminal">definition_parameters</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">rule</span></th>
+        <td><span class="nonterminal">rule_expr</span>
+        <span class="option"><span class="nonterminal">condition_consequence</span></span>
+        <span class="option">NOT</span>
+        FILLED</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">definition_parameters</span></th>
+        <td>OF
+        <span class="nonterminal">ident</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">definition</span></th>
+        <td><span class="nonterminal">qident</span>
+        <span class="option"><span class="nonterminal">definition_parameters</span></span>
+        <span class="option"><span class="nonterminal">condition_consequence</span></span>
+        DEFINED_AS
+        <span class="nonterminal">expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">variation_type</span></th>
+        <td>INCREASING</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECREASING</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">assertion_base</span></th>
+        <td><span class="nonterminal">expression</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">assertion</span></th>
+        <td><span class="option"><span class="nonterminal">condition_consequence</span></span>
+        <span class="nonterminal">assertion_base</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>FIXED
+        <span class="nonterminal">qident</span>
+        BY
+        <span class="nonterminal">ident</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>VARIES
+        <span class="nonterminal">qident</span>
+        WITH_V
+        <span class="nonterminal">base_expression</span>
+        <span class="option"><span class="nonterminal">variation_type</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">application_field_item</span></th>
+        <td>RULE
+        <span class="nonterminal">rule</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DEFINITION
+        <span class="nonterminal">definition</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>ASSERTION
+        <span class="nonterminal">assertion</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">ident</span></th>
+        <td>IDENT</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">condition_pos</span></th>
+        <td>CONDITION</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">struct_field_base</span></th>
+        <td>DATA
+        <span class="nonterminal">ident</span>
+        CONTENT
+        <span class="nonterminal">typ</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">condition_pos</span>
+        <span class="nonterminal">ident</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">struct_field_func</span></th>
+        <td>DEPENDS
+        <span class="nonterminal">typ</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">struct_field</span></th>
+        <td><span class="nonterminal">struct_field_base</span>
+        <span class="option"><span class="nonterminal">struct_field_func</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">field_decl_item</span></th>
+        <td>CONTEXT
+        <span class="nonterminal">ident</span>
+        CONTENT
+        <span class="nonterminal">typ</span>
+        <span class="option"><span class="nonterminal">struct_field_func</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">field_decl_include</span></th>
+        <td><span class="nonterminal">constructor</span>
+        DOT
+        <span class="nonterminal">ident</span>
+        EQUAL
+        <span class="nonterminal">constructor</span>
+        DOT
+        <span class="nonterminal">ident</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">field_decl_includes_context</span></th>
+        <td>CONTEXT
+        nonempty_list(<span class="nonterminal">field_decl_include</span>)</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">field_decl_includes</span></th>
+        <td>INCLUDES
+        FIELD
+        <span class="nonterminal">constructor</span>
+        <span class="option"><span class="nonterminal">field_decl_includes_context</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">enum_decl_line_payload</span></th>
+        <td>CONTENT
+        <span class="nonterminal">typ</span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">enum_decl_line</span></th>
+        <td>ALT
+        <span class="nonterminal">constructor</span>
+        <span class="option"><span class="nonterminal">enum_decl_line_payload</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">constructor</span></th>
+        <td>CONSTRUCTOR</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">code_item</span></th>
+        <td>FIELD
+        <span class="nonterminal">constructor</span>
+        COLON
+        nonempty_list(<span class="nonterminal">application_field_item</span>)</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECLARATION
+        STRUCT
+        <span class="nonterminal">constructor</span>
+        COLON
+        <span class="list"><span class="nonterminal">struct_field</span></span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECLARATION
+        FIELD
+        <span class="nonterminal">constructor</span>
+        COLON
+        nonempty_list(<span class="nonterminal">field_decl_item</span>)
+        <span class="list"><span class="nonterminal">field_decl_includes</span></span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>DECLARATION
+        ENUM
+        <span class="nonterminal">constructor</span>
+        COLON
+        nonempty_list(<span class="nonterminal">enum_decl_line</span>)</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">code</span></th>
+        <td><span class="list"><span class="nonterminal">code_item</span></span></td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">metadata_block</span></th>
+        <td>BEGIN_CODE
+        <span class="nonterminal">code</span>
+        END_CODE
+        END_METADATA</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">source_file_item</span></th>
+        <td>LAW_ARTICLE</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>LAW_HEADING</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>LAW_TEXT</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>BEGIN_METADATA
+        <span class="nonterminal">metadata_block</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>BEGIN_CODE
+        <span class="nonterminal">code</span>
+        END_CODE</td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>LAW_INCLUDE</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">source_file</span></th>
+        <td><span class="nonterminal">source_file_item</span>
+        <span class="nonterminal">source_file</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>EOF</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">master_file_include</span></th>
+        <td>LAW_INCLUDE</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">master_file_includes</span></th>
+        <td><span class="nonterminal">master_file_include</span>
+        <span class="nonterminal">master_file_includes</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td>EOF</td>
+      </tr>
+      
+      <tr class="rule">
+        <th><span class="nonterminal">source_file_or_master</span></th>
+        <td>MASTER_FILE
+        <span class="nonterminal">master_file_includes</span></td>
+      </tr>
+      <tr>
+        <th class="bar"></th>
+        <td><span class="nonterminal">source_file</span></td>
+      </tr>
+      
+      
+    </table>
+    
+  </body>
+  
+</html>

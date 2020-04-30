@@ -137,7 +137,7 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
       P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
         (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
-  | A.LawInclude (_file, _page) -> ""
+  | A.LawInclude _ -> ""
 
 let ast_to_html (program : A.program) (custom_pygments : string option)
     (language : C.language_option) : string =

@@ -128,7 +128,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
         (Pos.unmark c)
-  | A.LawInclude (file, page) ->
+  | A.LawInclude (A.PdfFile ((file, _), page)) ->
       let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
       P.sprintf
         "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
@@ -136,6 +136,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         label
         (match page with None -> "" | Some p -> P.sprintf "page=%d," p)
         file label
+  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ""
 
 let ast_to_latex (program : A.program) (language : C.language_option) : string =
   String.concat "\n\n" (List.map (fun i -> program_item_to_latex i language) program.program_items)
