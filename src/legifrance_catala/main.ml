@@ -193,8 +193,66 @@ let compare_to_versions (article_text_acc : article_text_acc) (access_token : st
             diff )
   | None -> ()
 
-let include_legislative_text (_id : string Catala.Pos.marked) (_access_token : string) : unit =
-  assert false
+let clean_html (s : string) : string =
+  let new_line = Re.Pcre.regexp "\\s*\\<br\\s*\\/\\>\\s*" in
+  let s = Re.Pcre.substitute ~rex:new_line ~subst:(fun _ -> "\n") s in
+  let tag = Re.Pcre.regexp "\\<[^\\>]+\\>" in
+  let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
+  String.trim s
+
+let include_legislative_text (id : string Catala.Pos.marked) (access_token : string) : unit =
+  let json = Api.get_text_json access_token (Catala.Pos.unmark id) in
+  let title =
+    "@@" ^ (json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string) ^ "@@"
+  in
+  let articles = json |> Yojson.Basic.Util.member "articles" |> Yojson.Basic.Util.to_list in
+  let articles =
+    List.sort
+      (fun a1 a2 ->
+        let a1_num =
+          int_of_string (a1 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
+        in
+        let a2_num =
+          int_of_string (a2 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
+        in
+        compare a1_num a2_num)
+      articles
+  in
+  let articles =
+    List.map
+      (fun article ->
+        let article_id = article |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string in
+        let article_num =
+          int_of_string (article |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
+        in
+        let article_content =
+          article |> Yojson.Basic.Util.member "content" |> Yojson.Basic.Util.to_string |> clean_html
+        in
+        Printf.sprintf "@Article %d|%s@\n%s" article_num article_id article_content)
+      articles
+  in
+  let to_insert = title ^ "\n\n" ^ String.concat "\n\n" articles in
+  let pos = Catala.Pos.get_position id in
+  Catala.Cli.debug_print (Printf.sprintf "Position: %s" (Catala.Pos.to_string pos));
+  let file = Catala.Pos.get_file pos in
+  let include_line = Catala.Pos.get_end_line pos in
+  let ic = open_in file in
+  let new_file = file ^ ".new" in
+  Catala.Cli.warning_print
+    (Printf.sprintf "LegiFrance inclusion detected, writing new contents to %s" new_file);
+  let oc = open_out new_file in
+  (* Pos.t lines start at 1 *)
+  let counter = ref 1 in
+  try
+    while true do
+      let line = input_line ic in
+      if include_line = !counter then Printf.fprintf oc "%s\n" to_insert
+      else Printf.fprintf oc "%s\n" line;
+      counter := !counter + 1
+    done
+  with End_of_file ->
+    close_in ic;
+    close_out oc
 
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;

@@ -13,3 +13,4 @@ _minted*
 *.toc
 *.pyg
 *.d
+*.new

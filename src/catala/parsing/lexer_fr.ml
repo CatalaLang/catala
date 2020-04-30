@@ -433,7 +433,8 @@ let rec lex_law_fr (lexbuf : lexbuf) : token =
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
       in
-      for _i = 1 to new_lines_count do
+      (* the -1 is here to compensate for Sedlex's automatic newline detection around token *)
+      for _i = 1 to new_lines_count - 1 do
         new_line lexbuf
       done;
 

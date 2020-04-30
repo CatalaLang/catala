@@ -73,10 +73,8 @@ let make_request (access_token : string) (token_url : string) (body_json : (stri
     body |> Cohttp_lwt.Body.to_string )
   |> return
 
-let get_article_json (access_token : string) (article_id : string) : Yojson.Basic.t =
-  let resp, body =
-    Lwt_main.run (make_request access_token "consult/getArticle" [ ("id", article_id) ])
-  in
+let run_request (request : (string * string t) t) : Yojson.Basic.t =
+  let resp, body = Lwt_main.run request in
   let body = Lwt_main.run body in
   if resp = "200 OK" then (
     try body |> Yojson.Basic.from_string
@@ -85,12 +83,15 @@ let get_article_json (access_token : string) (article_id : string) : Yojson.Basi
         (Printf.sprintf
            "Error while parsing JSON answer from API: %s\nSpecific JSON:\n%s\nFull answer:\n%s" msg
            (Yojson.Basic.to_string obj) body);
-      exit 1 )
+      exit (-1) )
   else begin
     Catala.Cli.error_print
       (Printf.sprintf "The API request went wrong ; status is %s and the body is\n%s" resp body);
-    exit 1
+    exit (-1)
   end
+
+let get_article_json (access_token : string) (article_id : string) : Yojson.Basic.t =
+  run_request (make_request access_token "consult/getArticle" [ ("id", article_id) ])
 
 let raise_article_parsing_error (json : Yojson.Basic.t) (msg : string) (obj : Yojson.Basic.t) =
   Catala.Cli.error_print
@@ -98,6 +99,9 @@ let raise_article_parsing_error (json : Yojson.Basic.t) (msg : string) (obj : Yo
        "Error while manipulating JSON answer from API: %s\nSpecific JSON:\n%s\nFull answer:\n%s" msg
        (Yojson.Basic.to_string obj) (Yojson.Basic.to_string json));
   exit 1
+
+let get_text_json (access_token : string) (text_id : string) : Yojson.Basic.t =
+  run_request (make_request access_token "consult/jorfPart" [ ("textCid", text_id) ])
 
 let get_article_id (json : Yojson.Basic.t) : string =
   try
