@@ -36,7 +36,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
       (Printf.sprintf "pygmentize command \"%s\" returned with error code %d" cmd return_code);
   Printf.sprintf
     "<head>\n\
-     <link rel='stylesheet' type='text/css' href='%s'>\n\
+     <link rel='stylesheet' type='text/css' href='%s'/>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
      </head>\n\
      <h1>%s<br />\n\
@@ -119,7 +119,7 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
   | A.LawHeading (title, precedence) ->
       let h_number = precedence + 2 in
       P.sprintf "<h%d>%s</h%d>" h_number (pre_html title) h_number
-  | A.LawText t -> pre_html t
+  | A.LawText t -> "<p>" ^ pre_html t ^ "</p>"
   | A.LawArticle a ->
       P.sprintf "<span style='margin-right:1em; font-weight:bold'><a href='%s'>%s</a></span>"
         ( match (a.law_article_id, language) with
