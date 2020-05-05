@@ -30,13 +30,13 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
   let cmd =
     Printf.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
   in
-  let oc = open_in css_file in
-  let css_as_string = really_input_string oc (in_channel_length oc) in
-  close_in oc;
   let return_code = Sys.command cmd in
   if return_code <> 0 then
     Errors.weaving_error
       (Printf.sprintf "pygmentize command \"%s\" returned with error code %d" cmd return_code);
+  let oc = open_in css_file in
+  let css_as_string = really_input_string oc (in_channel_length oc) in
+  close_in oc;
   Printf.sprintf
     "<head>\n\
      <style>\n\

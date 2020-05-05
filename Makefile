@@ -81,7 +81,7 @@ grammar.html: src/catala/parsing/parser.mly
 catala.html: src/catala/cli.ml
 	dune exec src/catala.exe -- --help=groff | groff -T html > $@
 
-legifrance_catala.html: src/legifrance_catala/main.ml
+legifrance_catala.html: src/legifrance_catala/main.ml 
 		dune exec src/legifrance_catala.exe -- --help=groff | groff -T html > $@
 
 clean:
