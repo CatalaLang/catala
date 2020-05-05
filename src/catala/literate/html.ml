@@ -23,20 +23,25 @@ module C = Cli
 let pre_html (s : string) = s
 
 let wrap_html (code : string) (source_files : string list) (custom_pygments : string option)
-    (language : Cli.language_option) (output_html_file : string) : string =
+    (language : Cli.language_option) : string =
   let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
-  let css_file = Filename.remove_extension output_html_file ^ ".css" in
+  let css_file = Filename.temp_file "catala_css_pygments" "" in
   let pygments_args = [| "-f"; "html"; "-S"; "colorful" |] in
   let cmd =
     Printf.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
   in
+  let oc = open_in css_file in
+  let css_as_string = really_input_string oc (in_channel_length oc) in
+  close_in oc;
   let return_code = Sys.command cmd in
   if return_code <> 0 then
     Errors.weaving_error
       (Printf.sprintf "pygmentize command \"%s\" returned with error code %d" cmd return_code);
   Printf.sprintf
     "<head>\n\
-     <link rel='stylesheet' type='text/css' href='%s'/>\n\
+     <style>\n\
+     %s\n\
+     </style>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
      </head>\n\
      <h1>%s<br />\n\
@@ -50,7 +55,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
      </ul>\n\
      <hrule />\n\
      %s"
-    css_file
+    css_as_string
     ( match language with
     | C.Fr -> "Implémentation de texte législatif"
     | C.En -> "Legislative text implementation" )

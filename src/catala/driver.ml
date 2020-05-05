@@ -88,7 +88,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
                   language
             | Cli.Html ->
                 Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc
-                  language output_file
+                  language
             | _ -> assert false
           else weaved_output
         in
