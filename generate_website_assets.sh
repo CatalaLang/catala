@@ -14,7 +14,7 @@ make grammar.html
 make catala.html
 make legifrance_catala.html
 
-cp  examples/allocations_familiales/allocations_familiales.html $1/
-cp grammar.html $1/
-cp catala.html $1/
-cp legifrance_catala.html $1/
+scp examples/allocations_familiales/allocations_familiales.html $1/
+scp grammar.html $1/
+scp catala.html $1/
+scp legifrance_catala.html $1/
