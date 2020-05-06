@@ -57,7 +57,7 @@ compiler (see below). You can then open `examples/allocations_familiales/allocat
 
 The Catala language should be adapted to any legislative text that follows a general-to-specifics statutes order. Therefore, there exists  multiple versions of the Catala surface syntax, adapted to the language of the lefislative text.
 
-Currently, Catala supports English and French legislation via the `--language=en` or `--language=fr` option. Contact the authors
+Currently, Catala supports English and French legislations via the `--language=en` or `--language=fr` option. Contact the authors
 if you are interested in adding support for another language.
 
 ## Limitations and disclaimer
