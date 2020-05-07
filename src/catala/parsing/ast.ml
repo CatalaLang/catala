@@ -20,11 +20,10 @@ type qident = { qident_prefix : constructor Pos.marked option; qident_path : ide
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
-type base_typ_data = {
-  typ_data_collection : Pos.t option;
-  typ_data_optional : Pos.t option;
-  typ_data_base : primitive_typ Pos.marked;
-}
+type base_typ_data =
+  | Primitive of primitive_typ
+  | Collection of base_typ_data Pos.marked
+  | Optional of base_typ_data Pos.marked
 
 type base_typ = Condition | Data of base_typ_data
 

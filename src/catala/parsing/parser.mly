@@ -72,12 +72,15 @@ optional_marked:
 | OPTIONAL { $sloc }
 
 typ:
-| collection = option(collection_marked) t = typ_base optional = option(optional_marked) {
-  (Data {
-    typ_data_collection = collection;
-    typ_data_optional = optional;
-    typ_data_base = t;
-  }, $sloc)
+| t = typ_base {
+  let t, loc = t in
+  (Primitive t, loc)
+}
+| collection_marked t = typ {
+  (Optional t, $sloc)
+}
+| optional_marked t = typ {
+  (Collection t, $sloc)
 }
 
 qident_prefix:
@@ -359,7 +362,8 @@ condition_pos:
 
 struct_field_base:
 | DATA i= ident CONTENT t = typ {
-  (i, t)
+  let t, pos = t in
+  (i, (Data t, pos))
 }
 | pos = condition_pos i = ident {
   (i, (Condition, pos))
@@ -378,7 +382,7 @@ struct_field:
     | None -> (Base typ, typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
       arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc) ;
   }, $sloc)
 }
@@ -389,10 +393,10 @@ field_decl_item:
   field_decl_context_item_typ =
     let (typ, typ_pos) = t in
     match func_typ with
-    | None -> (Base typ, typ_pos)
+    | None -> (Base (Data typ), typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      arg_typ = (Data typ, typ_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc);
   }, $sloc) }
 
@@ -420,7 +424,7 @@ field_decl_includes:
 }
 
 enum_decl_line_payload:
-| CONTENT t = typ { let (t, t_pos) = t in (Base t, t_pos) }
+| CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }
 
 enum_decl_line:
 | ALT c = constructor t = option(enum_decl_line_payload) { ({

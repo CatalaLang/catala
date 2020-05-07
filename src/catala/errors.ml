@@ -36,24 +36,25 @@ let retrieve_loc_text (pos : Pos.t) : string =
   let input_line_opt () : string option = try Some (input_line oc) with End_of_file -> None in
   let print_matched_line (line : string) (line_no : int) : string =
     let line_indent = indent_number line in
+    let error_indicator_style = [ ANSITerminal.red; ANSITerminal.Bold ] in
     line
     ^
     if line_no >= sline && line_no <= eline then
       "\n"
       ^
       if line_no = sline && line_no = eline then
-        ANSITerminal.sprintf [ ANSITerminal.red ] "%*s"
+        ANSITerminal.sprintf error_indicator_style "%*s"
           (Pos.get_end_column pos - 1)
           (String.make (Pos.get_end_column pos - Pos.get_start_column pos) '^')
       else if line_no = sline && line_no <> eline then
-        ANSITerminal.sprintf [ ANSITerminal.red ] "%*s"
+        ANSITerminal.sprintf error_indicator_style "%*s"
           (String.length line - 1)
           (String.make (String.length line - Pos.get_start_column pos) '^')
       else if line_no <> sline && line_no <> eline then
-        ANSITerminal.sprintf [ ANSITerminal.red ] "%*s%s" line_indent ""
+        ANSITerminal.sprintf error_indicator_style "%*s%s" line_indent ""
           (String.make (String.length line - line_indent) '^')
       else if line_no <> sline && line_no = eline then
-        ANSITerminal.sprintf [ ANSITerminal.red ] "%*s%*s" line_indent ""
+        ANSITerminal.sprintf error_indicator_style "%*s%*s" line_indent ""
           (Pos.get_end_column pos - 1 - line_indent)
           (String.make (Pos.get_end_column pos - line_indent) '^')
       else assert false (* should not happen *)
@@ -70,7 +71,7 @@ let retrieve_loc_text (pos : Pos.t) : string =
     | None -> []
   in
   let pos_lines = get_lines 1 in
-  let spaces = int_of_float (log (float_of_int eline)) - 2 in
+  let spaces = int_of_float (log (float_of_int eline)) in
   close_in oc;
   Printf.sprintf "%*s--> %s\n%s" spaces "" filename
     (Cli.add_prefix_to_each_line
