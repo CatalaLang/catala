@@ -53,7 +53,6 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
      <ul>\n\
      %s\n\
      </ul>\n\
-     <hrule />\n\
      %s"
     css_as_string
     ( match language with
@@ -118,33 +117,120 @@ let pygmentize_code (c : string Pos.marked) (language : C.language_option)
   close_in oc;
   output
 
-let program_item_to_html (i : A.program_item) (custom_pygments : string option)
-    (language : C.language_option) : string =
-  match i with
-  | A.LawHeading (title, precedence) ->
-      let h_number = precedence + 2 in
-      P.sprintf "<h%d>%s</h%d>" h_number (pre_html title) h_number
-  | A.LawText t -> "<p>" ^ pre_html t ^ "</p>"
-  | A.LawArticle a ->
-      P.sprintf "<span style='margin-right:1em; font-weight:bold'><a href='%s'>%s</a></span>"
-        ( match (a.law_article_id, language) with
-        | Some id, C.Fr ->
-            let ltime = Unix.localtime (Unix.time ()) in
-            P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
-              (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon ltime.Unix.tm_mday
-        | _ -> "#" )
-        (pre_html (Pos.unmark a.law_article_name))
-  | A.CodeBlock (_, c) ->
-      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
-        (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
-  | A.MetadataBlock (_, c) ->
-      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
-        (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
-  | A.LawInclude _ -> ""
+let primitive_typ_to_html (typ : Ast.primitive_typ) : string =
+  match typ with
+  | Integer -> "<span class='typ-integer'></span>"
+  | Decimal -> "<span class='typ-decimal'></span>"
+  | Boolean -> "<span class='typ-boolean'></span>"
+  | Money -> "<span class='typ-money'></span>"
+  | Text -> "<span class='typ-text'></span>"
+  | Date -> "<span class='typ-date'></span>"
+  | Named typ -> "<span class='typ-named'>" ^ typ ^ "</span>"
+
+let rec base_typ_to_html (typ : Ast.base_typ) : string =
+  let open Ast in
+  match typ with
+  | Condition -> "<span class='condition-typ'>condition</span>"
+  | Data typ -> (
+      match typ with
+      | Primitive typ -> primitive_typ_to_html typ
+      | Collection typ ->
+          Printf.sprintf "<span class='collection-typ'>%s</span>"
+            (base_typ_to_html (Data (Pos.unmark typ)))
+      | Optional typ ->
+          Printf.sprintf "<span class='optional-typ'>%s</span>"
+            (base_typ_to_html (Data (Pos.unmark typ))) )
+
+let typ_to_html (typ : Ast.typ) : string =
+  let open Ast in
+  match typ with
+  | Base typ -> base_typ_to_html typ
+  | Func f_typ ->
+      Printf.sprintf "<span class='func-typ-arg'>%s</span>\n<span class='func-typ-return'>%s</span>"
+        (base_typ_to_html (Pos.unmark f_typ.arg_typ))
+        (base_typ_to_html (Pos.unmark f_typ.return_typ))
+
+let code_ast_to_html (ast : Ast.code_block) : string =
+  let open Ast in
+  String.concat "\n\n"
+    (List.map
+       (fun item ->
+         "<div class='code-item'>\n"
+         ^ ( match Pos.unmark item with
+           | StructDecl struct_decl ->
+               let struct_fields =
+                 String.concat "\n"
+                   (List.map
+                      (fun field ->
+                        let field = Pos.unmark field in
+                        Printf.sprintf
+                          "<div class='struct-decl-field'>\n\
+                           <span class='struct-decl-field-name'>%s</span>\n\
+                           <span class='struct-decl-field-type'>%s</span>\n\
+                           </div>"
+                          (Pos.unmark field.struct_decl_field_name)
+                          (typ_to_html (Pos.unmark field.struct_decl_field_typ)))
+                      struct_decl.struct_decl_fields)
+               in
+               Printf.sprintf
+                 "<div class='struct-decl'>\n<span class='struct-decl-name'>%s</span>%s\n</div>"
+                 (Pos.unmark struct_decl.struct_decl_name)
+                 struct_fields
+           | _ -> "" )
+         ^ "\n</div>")
+       ast)
+
+type program_state = InsideArticle | OutsideArticle
+
+let program_item_to_html (i : A.program_item) (_custom_pygments : string option)
+    (language : C.language_option) (state : program_state) : string * program_state =
+  let closing_div =
+    (* First we terminate the div of the previous article if need be *)
+    match (i, state) with
+    | (A.LawHeading _ | A.LawArticle _), InsideArticle -> "<!-- Closing article div -->\n</div>\n\n"
+    | _ -> ""
+  in
+  let new_state =
+    match (i, state) with
+    | A.LawArticle _, _ -> InsideArticle
+    | A.LawHeading _, InsideArticle -> OutsideArticle
+    | _ -> state
+  in
+  (* Then we print the actual item *)
+  let item_string =
+    match i with
+    | A.LawHeading (title, precedence) ->
+        let h_number = precedence + 2 in
+        P.sprintf "<h%d class='law-heading'>%s</h%d>" h_number (pre_html title) h_number
+    | A.LawText t -> "<p class='law-text'>" ^ pre_html t ^ "</p>"
+    | A.LawArticle a ->
+        P.sprintf
+          "<div class='article-container'>\n\n<div class='article-title'><a href='%s'>%s</a></div>"
+          ( match (a.law_article_id, language) with
+          | Some id, C.Fr ->
+              let ltime = Unix.localtime (Unix.time ()) in
+              P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+                (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon ltime.Unix.tm_mday
+          | _ -> "#" )
+          (pre_html (Pos.unmark a.law_article_name))
+    | A.CodeBlock (ast, _c) | A.MetadataBlock (ast, _c) ->
+        (* let _formatted_original_code = P.sprintf "<div>\n<div
+           style='text-align:right'><tt>%s</tt></div>\n%s\n</div>" (Pos.get_file (Pos.get_position
+           c)) (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language
+           custom_pygments) in *)
+        let pretty_printed_ast = code_ast_to_html ast in
+        pretty_printed_ast
+    | A.LawInclude _ -> ""
+  in
+  (closing_div ^ item_string, new_state)
 
 let ast_to_html (program : A.program) (custom_pygments : string option)
     (language : C.language_option) : string =
-  String.concat "\n\n"
-    (List.map (fun i -> program_item_to_html i custom_pygments language) program.program_items)
+  let i_s, _ =
+    List.fold_left
+      (fun (acc, state) i ->
+        let i_s, new_state = program_item_to_html i custom_pygments language state in
+        (i_s :: acc, new_state))
+      ([], OutsideArticle) program.program_items
+  in
+  String.concat "\n\n" (List.rev i_s)
