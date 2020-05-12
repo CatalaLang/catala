@@ -114,7 +114,7 @@
         'name' : 'keyword.control.catala_en'
       }
       {
-        'match' : '\\b(application\\s+field|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|consequence|fulfilled|equals|assertion|definition)\\b'
+        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|consequence|fulfilled|equals|assertion|definition)\\b'
         'name' : 'keyword.other.catala_en'
       }
       {

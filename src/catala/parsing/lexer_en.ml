@@ -24,7 +24,7 @@ let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ 
 
 let token_list_en : (string * token) list =
   [
-    ("application field", FIELD);
+    ("scope", FIELD);
     ("consequence", CONSEQUENCE);
     ("data", DATA);
     ("depends on", DEPENDS);
@@ -78,10 +78,6 @@ let token_list_en : (string * token) list =
 
 let rec lex_code_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      update_acc lexbuf;
-      new_line lexbuf;
-      lex_code_en lexbuf
   | white_space ->
       (* Whitespaces *)
       update_acc lexbuf;
@@ -89,13 +85,12 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       update_acc lexbuf;
-      new_line lexbuf;
       lex_code_en lexbuf
   | "*/" ->
       (* End of code section *)
       is_code := false;
       END_CODE !code_string_acc
-  | "application field" ->
+  | "scope" ->
       update_acc lexbuf;
       FIELD
   | "data" ->
@@ -338,9 +333,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
 
 let rec lex_law_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      new_line lexbuf;
-      lex_law_en lexbuf
+  | '\n' -> lex_law_en lexbuf
   | "/*" ->
       is_code := true;
       code_string_acc := "";
