@@ -20,11 +20,10 @@ type qident = { qident_prefix : constructor Pos.marked option; qident_path : ide
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
-type base_typ_data = {
-  typ_data_collection : Pos.t option;
-  typ_data_optional : Pos.t option;
-  typ_data_base : primitive_typ Pos.marked;
-}
+type base_typ_data =
+  | Primitive of primitive_typ
+  | Collection of base_typ_data Pos.marked
+  | Optional of base_typ_data Pos.marked
 
 type base_typ = Condition | Data of base_typ_data
 
@@ -179,13 +178,18 @@ type law_article = {
   law_article_expiration_date : string option;
 }
 
+type law_include =
+  | PdfFile of string Pos.marked * int option
+  | CatalaFile of string Pos.marked
+  | LegislativeText of string Pos.marked
+
 type program_item =
   | LawHeading of string * int
   | LawArticle of law_article
   | LawText of string
   | CodeBlock of code_block * source_repr
   | MetadataBlock of code_block * source_repr
-  | LawInclude of string * int option
+  | LawInclude of law_include
 
 type program = { program_items : program_item list; program_source_files : string list }
 

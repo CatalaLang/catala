@@ -7,7 +7,7 @@ install-dependencies-ocaml:
 		menhir \
 		menhirLib \
 		dune dune-build-info \
-		cmdliner \
+		cmdliner obelisk \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason
 
@@ -74,6 +74,15 @@ all_examples: allocations_familiales english
 # Misceallenous
 
 all: install-dependencies install all_examples
+
+grammar.html: src/catala/parsing/parser.mly
+	obelisk html -o $@ $<
+
+catala.html: src/catala/cli.ml
+	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' > $@
+
+legifrance_catala.html: src/legifrance_catala/main.ml
+	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d'  > $@
 
 clean:
 	dune clean

@@ -260,6 +260,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       let remove_commas = R.regexp "," in
       let units = int_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) in
       let cents = try int_of_string (parts 4) with Not_found -> 0 in
+      update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
       let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
@@ -357,11 +358,15 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
       "@@" ) ->
       let extract_components =
-        R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
       in
       let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
-      LAW_INCLUDE
-        (get_component 1, try Some (int_of_string (get_component 3)) with Not_found -> None)
+      let name = get_component 1 in
+      let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
+      let pos = lexing_positions lexbuf in
+      if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
+      else if Filename.extension name = ".catala" then LAW_INCLUDE (Ast.CatalaFile (name, pos))
+      else Errors.lexer_error (lexing_positions lexbuf) "this type of file cannot be included"
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -383,7 +388,8 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
       in
-      for _i = 1 to new_lines_count do
+      (* the -1 is here to compensate for Sedlex's automatic newline detection around token *)
+      for _i = 1 to new_lines_count - 1 do
         new_line lexbuf
       done;
 

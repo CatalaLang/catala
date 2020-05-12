@@ -23,7 +23,7 @@
 %token EOF
 %token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
-%token<string * int option> LAW_INCLUDE
+%token<Ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -72,12 +72,15 @@ optional_marked:
 | OPTIONAL { $sloc }
 
 typ:
-| collection = option(collection_marked) t = typ_base optional = option(optional_marked) {
-  (Data {
-    typ_data_collection = collection;
-    typ_data_optional = optional;
-    typ_data_base = t;
-  }, $sloc)
+| t = typ_base {
+  let t, loc = t in
+  (Primitive t, loc)
+}
+| collection_marked t = typ {
+  (Optional t, $sloc)
+}
+| optional_marked t = typ {
+  (Collection t, $sloc)
 }
 
 qident_prefix:
@@ -359,7 +362,8 @@ condition_pos:
 
 struct_field_base:
 | DATA i= ident CONTENT t = typ {
-  (i, t)
+  let t, pos = t in
+  (i, (Data t, pos))
 }
 | pos = condition_pos i = ident {
   (i, (Condition, pos))
@@ -378,7 +382,7 @@ struct_field:
     | None -> (Base typ, typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
       arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc) ;
   }, $sloc)
 }
@@ -389,10 +393,10 @@ field_decl_item:
   field_decl_context_item_typ =
     let (typ, typ_pos) = t in
     match func_typ with
-    | None -> (Base typ, typ_pos)
+    | None -> (Base (Data typ), typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      arg_typ = (Data typ, typ_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc);
   }, $sloc) }
 
@@ -420,7 +424,7 @@ field_decl_includes:
 }
 
 enum_decl_line_payload:
-| CONTENT t = typ { let (t, t_pos) = t in (Base t, t_pos) }
+| CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }
 
 enum_decl_line:
 | ALT c = constructor t = option(enum_decl_line_payload) { ({
@@ -487,7 +491,7 @@ source_file_item:
   CodeBlock (code, (text, pos))
 }
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in LawInclude (file, page)
+  LawInclude includ
 }
 
 source_file:
@@ -496,9 +500,9 @@ source_file:
 
 master_file_include:
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in match page with
-  | None -> (file, $sloc)
-  | Some _ -> Errors.parser_error $sloc file (Printf.sprintf "Include in master file must be .catala file!" )
+  match includ with
+  | CatalaFile (file, _) -> (file, $sloc)
+  | _ -> Errors.parser_error $sloc "inclusion" (Printf.sprintf "Include in master file must be .catala file!" )
 }
 
 master_file_includes:
