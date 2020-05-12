@@ -26,7 +26,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
     (language : Cli.language_option) : string =
   let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
   let css_file = Filename.temp_file "catala_css_pygments" "" in
-  let pygments_args = [| "-f"; "html"; "-S"; "colorful" |] in
+  let pygments_args = [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |] in
   let cmd =
     Printf.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
   in
@@ -53,7 +53,6 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
      <ul>\n\
      %s\n\
      </ul>\n\
-     <hrule />\n\
      %s"
     css_as_string
     ( match language with
@@ -101,7 +100,9 @@ let pygmentize_code (c : string Pos.marked) (language : C.language_option)
       "-f";
       "html";
       "-O";
-      "style=colorful,linenos=table,linenostart="
+      "style=colorful,anchorlinenos=True,lineanchors=\""
+      ^ Pos.get_file (Pos.get_position c)
+      ^ "\",linenos=table,linenostart="
       ^ string_of_int (Pos.get_start_line (Pos.get_position c));
       "-o";
       temp_file_out;
@@ -118,33 +119,59 @@ let pygmentize_code (c : string Pos.marked) (language : C.language_option)
   close_in oc;
   output
 
+type program_state = InsideArticle | OutsideArticle
+
 let program_item_to_html (i : A.program_item) (custom_pygments : string option)
-    (language : C.language_option) : string =
-  match i with
-  | A.LawHeading (title, precedence) ->
-      let h_number = precedence + 2 in
-      P.sprintf "<h%d>%s</h%d>" h_number (pre_html title) h_number
-  | A.LawText t -> "<p>" ^ pre_html t ^ "</p>"
-  | A.LawArticle a ->
-      P.sprintf "<span style='margin-right:1em; font-weight:bold'><a href='%s'>%s</a></span>"
-        ( match (a.law_article_id, language) with
-        | Some id, C.Fr ->
-            let ltime = Unix.localtime (Unix.time ()) in
-            P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
-              (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon ltime.Unix.tm_mday
-        | _ -> "#" )
-        (pre_html (Pos.unmark a.law_article_name))
-  | A.CodeBlock (_, c) ->
-      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
-        (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
-  | A.MetadataBlock (_, c) ->
-      P.sprintf "<div>\n<div style='text-align:right'><tt>%s</tt></div>\n%s\n</div>"
-        (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c) language custom_pygments)
-  | A.LawInclude _ -> ""
+    (language : C.language_option) (state : program_state) : string * program_state =
+  let closing_div =
+    (* First we terminate the div of the previous article if need be *)
+    match (i, state) with
+    | (A.LawHeading _ | A.LawArticle _), InsideArticle -> "<!-- Closing article div -->\n</div>\n\n"
+    | _ -> ""
+  in
+  let new_state =
+    match (i, state) with
+    | A.LawArticle _, _ -> InsideArticle
+    | A.LawHeading _, InsideArticle -> OutsideArticle
+    | _ -> state
+  in
+  (* Then we print the actual item *)
+  let item_string =
+    match i with
+    | A.LawHeading (title, precedence) ->
+        let h_number = precedence + 2 in
+        P.sprintf "<h%d class='law-heading'>%s</h%d>" h_number (pre_html title) h_number
+    | A.LawText t -> "<p class='law-text'>" ^ pre_html t ^ "</p>"
+    | A.LawArticle a ->
+        P.sprintf
+          "<div class='article-container'>\n\n<div class='article-title'><a href='%s'>%s</a></div>"
+          ( match (a.law_article_id, language) with
+          | Some id, C.Fr ->
+              let ltime = Unix.localtime (Unix.time ()) in
+              P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+                (1900 + ltime.Unix.tm_year) (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
+          | _ -> "#" )
+          (pre_html (Pos.unmark a.law_article_name))
+    | A.CodeBlock (_, c) | A.MetadataBlock (_, c) ->
+        let formatted_original_code =
+          P.sprintf "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
+            (Pos.get_file (Pos.get_position c))
+            (pygmentize_code
+               (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c)
+               language custom_pygments)
+        in
+        formatted_original_code
+    | A.LawInclude _ -> ""
+  in
+  (closing_div ^ item_string, new_state)
 
 let ast_to_html (program : A.program) (custom_pygments : string option)
     (language : C.language_option) : string =
-  String.concat "\n\n"
-    (List.map (fun i -> program_item_to_html i custom_pygments language) program.program_items)
+  let i_s, _ =
+    List.fold_left
+      (fun (acc, state) i ->
+        let i_s, new_state = program_item_to_html i custom_pygments language state in
+        (i_s :: acc, new_state))
+      ([], OutsideArticle) program.program_items
+  in
+  String.concat "\n\n" (List.rev i_s)
