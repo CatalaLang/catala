@@ -79,10 +79,10 @@ grammar.html: src/catala/parsing/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: src/catala/cli.ml
-	dune exec src/catala.exe -- --help=groff | groff -T html > $@
+	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' > $@
 
 legifrance_catala.html: src/legifrance_catala/main.ml
-		dune exec src/legifrance_catala.exe -- --help=groff | groff -T html > $@
+	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d'  > $@
 
 clean:
 	dune clean
