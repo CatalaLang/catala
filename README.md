@@ -85,9 +85,17 @@ if you're running Linux ou MacOS, open a terminal and enter :
 
 This will install `opam`, the OCaml dependency manager and the
 base OCaml compiler. If you're on Windows, the simplest solution
-would be to use Cygwin or the Windows Subsystem for Linux.
+would be to use Cygwin or the Windows Subsystem for Linux. Catala has been tested
+with OCaml version 4.07.1. You can switch to this version by typing :
 
-Next, install all the build dependencies with
+    opam switch create 4.07.1
+
+or
+
+    opam switch 4.07.1
+
+if this version of OCaml is already installed. Next, install all the build
+dependencies with
 
     make install-dependencies
 
@@ -112,6 +120,9 @@ root directory
 
     ./generate_website_assets.sh <path-to-catala-website>/assets
 
+You will need the `man2html` executable to generate the HTML versions of the man
+pages, as well as the `scp` executable to transfer files (preferred to `cp`)
+because it also works with a remote server.
 
 #### Opam package
 
@@ -151,7 +162,7 @@ You can now reload Atom and check that you have syntax highlighting on any `.cat
 
 Pygments is a Python-based versatile lexer for various
 programming languages. To use a version of Pygments
-augmented with the Catala plugin, you need to enter from the root of the repository
+augmented with the Catala plugin, simply enter
 
     make pygments
 

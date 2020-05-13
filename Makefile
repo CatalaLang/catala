@@ -1,4 +1,6 @@
-# Catala compiler rules
+##########################################
+# Dependencies
+##########################################
 
 install-dependencies-ocaml:
 	opam install \
@@ -15,6 +17,10 @@ install-dependencies-ocaml:
 install-dependencies: install-dependencies-ocaml
 	git submodule update --init
 
+##########################################
+# Catala compiler rules
+##########################################
+
 format:
 	dune build @fmt --auto-promote | true
 
@@ -26,7 +32,9 @@ build:
 install: build
 	dune build @install
 
+##########################################
 # Pygments syntax highilghting rules
+##########################################
 
 SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
 PYGMENTS_DIR_FR=$(SYNTAX_HIGHLIGHTING_FR)/pygments
@@ -55,26 +63,28 @@ atom_en: ${CURDIR}/syntax_highlighting/en/setup_atom.sh
 
 atom: atom_fr atom_en
 
-# Examples-related rule
+##########################################
+# Examples-related rules
+##########################################
 
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
 ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
 
-allocations_familiales: $(PYGMENTIZE_FR) build
+allocations_familiales: pygments build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
 
-allocations_familiales_expired: build
+allocations_familiales_expired: pygments build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.expired
 
-english: $(PYGMENTIZE_EN) build
+english: pygments build
 	$(MAKE) -C $(ENGLISH_DUMMY_DIR) english.pdf
 
 all_examples: allocations_familiales english
 
-# Misceallenous
-
-all: install-dependencies install all_examples
+##########################################
+# Website assets
+##########################################
 
 grammar.html: src/catala/parsing/parser.mly
 	obelisk html -o $@ $<
@@ -89,6 +99,12 @@ website-assets: build pygments grammar.html catala.html legifrance_catala.html
 	$(MAKE) -C examples/allocations_familiales allocations_familiales.html
 	$(MAKE) -C examples/dummy_english english.html
 
+##########################################
+# Misceallenous
+##########################################
+
+all: install-dependencies install all_examples website-assets
+
 clean:
 	dune clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
@@ -97,7 +113,8 @@ clean:
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading
 
+##########################################
 # Special targets
-
+##########################################
 .PHONY: inspect clean all all_examples english allocations_familiales pygments \
 	install build format install-dependencies install-dependencies-ocaml
