@@ -7,13 +7,7 @@ if [[ $1 == "" ]]; then
   exit 1
 fi
 
-dest_dir=$1
-
-make -C examples/allocations_familiales allocations_familiales.html
-make -C examples/dummy_english english.html
-make grammar.html
-make catala.html
-make legifrance_catala.html
+make website-assets
 
 scp examples/allocations_familiales/allocations_familiales.html $1/
 scp examples/dummy_english/english.html $1/

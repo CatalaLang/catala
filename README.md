@@ -155,8 +155,6 @@ augmented with the Catala plugin, you need to enter from the root of the reposit
 
     make pygments
 
-
-
 This will execute the
 script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and `syntax_highlighting/en/pygments/set_up_pygments.sh`.
 

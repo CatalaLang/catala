@@ -84,6 +84,10 @@ catala.html: src/catala/cli.ml
 legifrance_catala.html: src/legifrance_catala/main.ml
 	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d'  > $@
 
+website-assets: build pygments grammar.html catala.html legifrance_catala.html
+	$(MAKE) -C examples/allocations_familiales allocations_familiales.html
+	$(MAKE) -C examples/dummy_english english.html
+
 clean:
 	dune clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
