@@ -2,6 +2,7 @@
 
 install-dependencies-ocaml:
 	opam install \
+		ocamlformat \
 		ANSITerminal \
 		sedlex \
 		menhir \
