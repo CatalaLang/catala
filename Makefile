@@ -14,8 +14,11 @@ install-dependencies-ocaml:
 		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason
 
-install-dependencies: install-dependencies-ocaml
+init-submodules:
 	git submodule update --init
+
+install-dependencies: install-dependencies-ocaml init-submodules
+
 
 ##########################################
 # Catala compiler rules
@@ -43,11 +46,11 @@ SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
 PYGMENTS_DIR_EN=$(SYNTAX_HIGHLIGHTING_EN)/pygments
 PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
+$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py init-submodules
 	chmod +x $<
 	$<
 
-$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
+$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py init-submodules
 	chmod +x $<
 	$<
 
