@@ -103,6 +103,37 @@ and install the library. Makefile aliases are here to help you: running
 
 builds the compiler from its OCaml sources.
 
+### Pygments
+
+Pygments is a Python-based versatile lexer for various
+programming languages. To use a version of Pygments
+augmented with the Catala plugin, you need to enter from the root of the repository
+
+    make pygments
+
+
+
+This will execute the
+script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and `syntax_highlighting/en/pygments/set_up_pygments.sh`.
+
+Pygments is also required to generate the website assets using the command defined below.
+
+These scripts assumes a `python3` executable on tour machine,
+as well as the `virtualenv` package which you can install
+using `python3 -m pip install virtualenv` .
+
+The scripts set up a virtual environement in `syntax_highlighting/fr/pygments/pygments/env` or `syntax_highlighting/en/pygments/pygments/env`, which will
+contain the modified version of Pygments that has Catala
+support. You can use this virtual environnement with
+
+    source syntax_highlighting/fr/pygments/pygments/env/bin/activate
+
+or
+
+    source syntax_highlighting/en/pygments/pygments/env/bin/activate
+
+The `pigmentize` executable, used for instance by the `minted` LaTeX package,
+will now point to the Catala-enabled version inside the virtual environment.
 
 #### Generating website assets
 
@@ -146,36 +177,6 @@ or
     make atom_en
 
 You can now reload Atom and check that you have syntax highlighting on any `.catala` file.
-
-### Pygments
-
-Pygments is a Python-based versatile lexer for various
-programming languages. To use a version of Pygments
-augmented with the Catala plugin, you need to enter from the root of the repository
-
-    make pygments
-
-
-
-This will execute the
-script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and `syntax_highlighting/en/pygments/set_up_pygments.sh`.
-
-These scripts assumes a `python3` executable on tour machine,
-as well as the `virtualenv` package which you can install
-using `python3 -m pip install virtualenv` .
-
-The scripts set up a virtual environement in `syntax_highlighting/fr/pygments/pygments/env` or `syntax_highlighting/en/pygments/pygments/env`, which will
-contain the modified version of Pygments that has Catala
-support. You can use this virtual environnement with
-
-    source syntax_highlighting/fr/pygments/pygments/env/bin/activate
-
-or
-
-    source syntax_highlighting/en/pygments/pygments/env/bin/activate
-
-The `pigmentize` executable, used for instance by the `minted` LaTeX package,
-will now point to the Catala-enabled version inside the virtual environment.
 
 ## Contributing
 
