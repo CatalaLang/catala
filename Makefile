@@ -46,11 +46,11 @@ SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
 PYGMENTS_DIR_EN=$(SYNTAX_HIGHLIGHTING_EN)/pygments
 PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py init-submodules
+$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
 	chmod +x $<
 	$<
 
-$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py init-submodules
+$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
 	chmod +x $<
 	$<
 
@@ -92,11 +92,15 @@ all_examples: allocations_familiales english
 grammar.html: src/catala/parsing/parser.mly
 	obelisk html -o $@ $<
 
+GENERATE_MAN_PAGE_ARGS=\
+	--help=groff | man2html | sed -e '1,8d' \
+	| tac | sed "1,18d" | tac
+
 catala.html: src/catala/cli.ml
-	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' > $@
+	dune exec src/catala.exe -- $(GENERATE_MAN_PAGE_ARGS) > $@
 
 legifrance_catala.html: src/legifrance_catala/main.ml
-	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d'  > $@
+	dune exec src/legifrance_catala.exe -- $(GENERATE_MAN_PAGE_ARGS) > $@
 
 website-assets: build pygments grammar.html catala.html legifrance_catala.html
 	$(MAKE) -C examples/allocations_familiales allocations_familiales.html
@@ -120,4 +124,5 @@ inspect:
 # Special targets
 ##########################################
 .PHONY: inspect clean all all_examples english allocations_familiales pygments \
-	install build format install-dependencies install-dependencies-ocaml
+	install build format install-dependencies install-dependencies-ocaml \
+	catala.html legifrance_catala.html
