@@ -76,7 +76,7 @@ implementation.
 
 ## The Catala compiler
 
-### OCaml requirements
+### Requirements
 
 The Catala compiler is written using OCaml. To install OCaml on your machine and
 if you're running Linux ou MacOS, open a terminal and enter :
@@ -99,7 +99,17 @@ dependencies with
 
     make install-dependencies
 
-This should ensure everything is set up for developping on Catala !
+This should ensure everything is set up for developping on the Catala compiler !
+
+Other features for generation of files and literate programming also require
+the following executables to be present
+
+    man2html virtualenv python3
+
+please install them if they're not here. On a Debian distribution, this can be
+done with
+
+    sudo apt install python3-virtualenv man2html
 
 
 ### Installation
@@ -169,13 +179,12 @@ augmented with the Catala plugin, simply enter
 This will execute the
 script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and `syntax_highlighting/en/pygments/set_up_pygments.sh`.
 
-These scripts assumes a `python3` executable on tour machine,
-as well as the `virtualenv` package which you can install
-using `python3 -m pip install virtualenv` .
-
-The scripts set up a virtual environement in `syntax_highlighting/fr/pygments/pygments/env` or `syntax_highlighting/en/pygments/pygments/env`, which will
+The scripts set up a virtual environement in
+`syntax_highlighting/fr/pygments/pygments/env` or
+`syntax_highlighting/en/pygments/pygments/env`, which will
 contain the modified version of Pygments that has Catala
-support. You can use this virtual environnement with
+support. If you want to hack something, it is possible to use this virtual
+environnement directly with
 
     source syntax_highlighting/fr/pygments/pygments/env/bin/activate
 
@@ -185,6 +194,7 @@ or
 
 The `pigmentize` executable, used for instance by the `minted` LaTeX package,
 will now point to the Catala-enabled version inside the virtual environment.
+This `source` setup is not necessary if you use the rules in the `Makefile`.
 
 ## Contributing
 

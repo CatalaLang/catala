@@ -2,6 +2,11 @@
 # Dependencies
 ##########################################
 
+EXECUTABLES = man2html virtualenv python3
+K := $(foreach exec,$(EXECUTABLES),\
+        $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
+				Please install this executable for everything to work smoothly)))
+
 install-dependencies-ocaml:
 	opam install \
 		ocamlformat \
