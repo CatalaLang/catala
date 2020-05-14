@@ -14,7 +14,7 @@
 
 (* Constructor and identifiers *)
 
-module ApplicationFieldParam = Id.WithId (struct
+module ScopeParam = Id.WithId (struct
   type t = string
 
   let to_string x = x
@@ -32,7 +32,7 @@ module EnumCase = Id.WithId (struct
   let to_string x = x
 end)
 
-module Field = Id.WithId (struct
+module Scope = Id.WithId (struct
   type t = string
 
   let to_string x = x
@@ -51,8 +51,8 @@ module Enum = Id.WithId (struct
 end)
 
 type qident = {
-  qident_field : Field.t option;
-  qident_base : ApplicationFieldParam.t;
+  qident_scope : Scope.t option;
+  qident_base : ScopeParam.t;
   qident_path : StructField.t list;
 }
 
@@ -60,9 +60,9 @@ module Var = Id.WithId (struct
   type t = qident
 
   let to_string (qid : qident) =
-    let field = match qid.qident_field with Some x -> Field.raw x | None -> "" in
-    let base = ApplicationFieldParam.raw qid.qident_base in
-    String.concat "." ([ field; base ] @ List.map StructField.raw qid.qident_path)
+    let scope = match qid.qident_scope with Some x -> Scope.raw x | None -> "" in
+    let base = ScopeParam.raw qid.qident_base in
+    String.concat "." ([ scope; base ] @ List.map StructField.raw qid.qident_path)
 end)
 
 module VarMap = Map.Make (Var)
@@ -153,22 +153,22 @@ type enum_decl_case = {
 
 type enum_decl = { enum_decl_cases : enum_decl_case Pos.marked list }
 
-(* Fields *)
+(* Scopes *)
 
-type field_context_item = {
-  field_context_item_name : ApplicationFieldParam.t Pos.marked;
-  field_context_item_typ : typ Pos.marked;
+type scope_context_item = {
+  scope_context_item_name : ScopeParam.t Pos.marked;
+  scope_context_item_typ : typ Pos.marked;
 }
 
-type field_include_join = {
-  parent_field_name : Field.t Pos.marked;
-  parent_field_context_item : ApplicationFieldParam.t Pos.marked;
-  sub_field_context_item : ApplicationFieldParam.t Pos.marked;
+type scope_include_join = {
+  parent_scope_name : Scope.t Pos.marked;
+  parent_scope_context_item : ScopeParam.t Pos.marked;
+  sub_scope_context_item : ScopeParam.t Pos.marked;
 }
 
-type field_include = {
-  field_include_sub_field : Field.t Pos.marked;
-  field_include_joins : field_include_join Pos.marked list;
+type scope_include = {
+  scope_include_sub_scope : Scope.t Pos.marked;
+  scope_include_joins : scope_include_join Pos.marked list;
 }
 
 type rule = {
@@ -196,22 +196,22 @@ type meta_assertion =
   | FixedBy of reference_typ Pos.marked
   | VariesWith of expression Pos.marked * variation_typ Pos.marked option
 
-type field = {
-  field_var_map : qident VarMap.t;
-  field_context : field_context_item Pos.marked list;
-  field_includes : field_include Pos.marked list;
-  field_rules : rule list VarMap.t;
-  field_defs : definition list VarMap.t;
-  field_assertions : assertion list;
-  field_meta_assertions : meta_assertion list VarMap.t;
+type scope = {
+  scope_var_map : qident VarMap.t;
+  scope_context : scope_context_item Pos.marked list;
+  scope_includes : scope_include Pos.marked list;
+  scope_rules : rule list VarMap.t;
+  scope_defs : definition list VarMap.t;
+  scope_assertions : assertion list;
+  scope_meta_assertions : meta_assertion list VarMap.t;
 }
 
 module EnumMap = Map.Make (Enum)
-module FieldMap = Map.Make (Field)
+module ScopeMap = Map.Make (Scope)
 module StructMap = Map.Make (Struct)
 
 type prgm = {
   enums : enum_decl EnumMap.t;
-  fields : field FieldMap.t;
+  scopes : scope ScopeMap.t;
   structs : struct_decl StructMap.t;
 }

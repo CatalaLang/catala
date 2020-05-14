@@ -343,7 +343,7 @@ assertion:
   MetaAssertion (VariesWith (q, e, t))
 }
 
-application_field_item:
+application_scope_item:
 | RULE r = rule {
    let (r, _) = r in (Rule r, $sloc)
 }
@@ -360,7 +360,7 @@ ident:
 condition_pos:
 | CONDITION { $sloc }
 
-struct_field_base:
+struct_scope_base:
 | DATA i= ident CONTENT t = typ {
   let t, pos = t in
   (i, (Data t, pos))
@@ -369,11 +369,11 @@ struct_field_base:
   (i, (Condition, pos))
 }
 
-struct_field_func:
+struct_scope_func:
 | DEPENDS t = typ { t }
 
-struct_field:
-| name_and_typ = struct_field_base func_typ = option(struct_field_func) {
+struct_scope:
+| name_and_typ = struct_scope_base func_typ = option(struct_scope_func) {
   let (name, typ) = name_and_typ in
   let (typ, typ_pos) = typ in
   ({
@@ -387,10 +387,10 @@ struct_field:
   }, $sloc)
 }
 
-field_decl_item:
-| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_field_func) { ({
-  field_decl_context_item_name = i;
-  field_decl_context_item_typ =
+scope_decl_item:
+| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { ({
+  scope_decl_context_item_name = i;
+  scope_decl_context_item_typ =
     let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
@@ -400,24 +400,24 @@ field_decl_item:
     }, $sloc);
   }, $sloc) }
 
-field_decl_include:
+scope_decl_include:
 | c1 = constructor DOT i1 = ident EQUAL c2 = constructor DOT i2 = ident {
   ({
-    parent_field_name = c1;
-    parent_field_context_item = i1 ;
-    sub_field_name = c2;
-    sub_field_context_item = i2;
+    parent_scope_name = c1;
+    parent_scope_context_item = i1 ;
+    sub_scope_name = c2;
+    sub_scope_context_item = i2;
   }, $sloc)
 }
 
-field_decl_includes_context:
-| CONTEXT join = nonempty_list(field_decl_include) { join }
+scope_decl_includes_context:
+| CONTEXT join = nonempty_list(scope_decl_include) { join }
 
-field_decl_includes:
-| INCLUDES FIELD c = constructor context = option(field_decl_includes_context) {
+scope_decl_includes:
+| INCLUDES FIELD c = constructor context = option(scope_decl_includes_context) {
  ({
-   field_decl_include_sub_field = c;
-   field_decl_include_joins = match context with
+   scope_decl_include_sub_scope = c;
+   scope_decl_include_joins = match context with
    | None -> []
    | Some context -> context
   }, $sloc)
@@ -436,24 +436,24 @@ constructor:
 | c = CONSTRUCTOR { (c, $sloc) }
 
 code_item:
-| FIELD c = constructor COLON items = nonempty_list(application_field_item) {
-  (FieldUse {
-    field_use_name = c;
-    field_use_items = items;
+| FIELD c = constructor COLON items = nonempty_list(application_scope_item) {
+  (ScopeUse {
+    scope_use_name = c;
+    scope_use_items = items;
   }, $sloc)
 }
-| DECLARATION STRUCT c = constructor COLON fields = list(struct_field) {
+| DECLARATION STRUCT c = constructor COLON scopes = list(struct_scope) {
   (StructDecl {
     struct_decl_name = c;
-    struct_decl_fields = fields;
+    struct_decl_fields = scopes;
   }, $sloc)
 }
-| DECLARATION FIELD c = constructor COLON context = nonempty_list(field_decl_item)
-  includes = list(field_decl_includes) {
-  (FieldDecl {
-      field_decl_name = c;
-      field_decl_context = context;
-      field_decl_includes = includes;
+| DECLARATION FIELD c = constructor COLON context = nonempty_list(scope_decl_item)
+  includes = list(scope_decl_includes) {
+  (ScopeDecl {
+      scope_decl_name = c;
+      scope_decl_context = context;
+      scope_decl_includes = includes;
   }, $sloc)
 }
 | DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {

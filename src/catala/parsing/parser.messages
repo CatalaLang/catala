@@ -91,13 +91,13 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 252.
+## Ends in an error in state: 232.
 ##
-## nonempty_list(field_decl_item) -> field_decl_item . [ INCLUDES FIELD END_CODE DECLARATION ]
-## nonempty_list(field_decl_item) -> field_decl_item . nonempty_list(field_decl_item) [ INCLUDES FIELD END_CODE DECLARATION ]
+## nonempty_list(scope_decl_item) -> scope_decl_item . [ INCLUDES FIELD END_CODE DECLARATION ]
+## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## field_decl_item
+## scope_decl_item
 ##
 
 Unexpected token
@@ -105,13 +105,13 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT IDENT YEAR
 ##
-## Ends in an error in state: 238.
+## Ends in an error in state: 239.
 ##
-## nonempty_list(field_decl_include) -> field_decl_include . [ INCLUDES FIELD END_CODE DECLARATION ]
-## nonempty_list(field_decl_include) -> field_decl_include . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
+## nonempty_list(scope_decl_include) -> scope_decl_include . [ INCLUDES FIELD END_CODE DECLARATION ]
+## nonempty_list(scope_decl_include) -> scope_decl_include . nonempty_list(scope_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## field_decl_include
+## scope_decl_include
 ##
 
 Unexpected token
@@ -119,9 +119,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 245.
+## Ends in an error in state: 246.
 ##
-## field_decl_include -> constructor DOT ident EQUAL constructor DOT . ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor DOT ident EQUAL constructor DOT . ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor DOT ident EQUAL constructor DOT
@@ -132,9 +132,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 244.
+## Ends in an error in state: 245.
 ##
-## field_decl_include -> constructor DOT ident EQUAL constructor . DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor DOT ident EQUAL constructor . DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor DOT ident EQUAL constructor
@@ -145,9 +145,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT EQUAL YEAR
 ##
-## Ends in an error in state: 243.
+## Ends in an error in state: 244.
 ##
-## field_decl_include -> constructor DOT ident EQUAL . constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor DOT ident EQUAL . constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor DOT ident EQUAL
@@ -158,9 +158,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT IDENT YEAR
 ##
-## Ends in an error in state: 242.
+## Ends in an error in state: 243.
 ##
-## field_decl_include -> constructor DOT ident . EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor DOT ident . EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor DOT ident
@@ -171,9 +171,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 241.
+## Ends in an error in state: 242.
 ##
-## field_decl_include -> constructor DOT . ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor DOT . ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor DOT
@@ -184,9 +184,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 240.
+## Ends in an error in state: 241.
 ##
-## field_decl_include -> constructor . DOT ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
+## scope_decl_include -> constructor . DOT ident EQUAL constructor DOT ident [ INCLUDES FIELD END_CODE DECLARATION CONSTRUCTOR ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor
@@ -197,9 +197,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR CONTEXT YEAR
 ##
-## Ends in an error in state: 236.
+## Ends in an error in state: 238.
 ##
-## field_decl_includes_context -> CONTEXT . nonempty_list(field_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
+## scope_decl_includes_context -> CONTEXT . nonempty_list(scope_decl_include) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT
@@ -210,9 +210,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 235.
+## Ends in an error in state: 237.
 ##
-## field_decl_includes -> INCLUDES FIELD constructor . option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
+## scope_decl_includes -> INCLUDES FIELD constructor . option(scope_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## INCLUDES FIELD constructor
@@ -223,9 +223,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES FIELD YEAR
 ##
-## Ends in an error in state: 234.
+## Ends in an error in state: 236.
 ##
-## field_decl_includes -> INCLUDES FIELD . constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
+## scope_decl_includes -> INCLUDES FIELD . constructor option(scope_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## INCLUDES FIELD
@@ -236,9 +236,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN INCLUDES YEAR
 ##
-## Ends in an error in state: 233.
+## Ends in an error in state: 235.
 ##
-## field_decl_includes -> INCLUDES . FIELD constructor option(field_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
+## scope_decl_includes -> INCLUDES . FIELD constructor option(scope_decl_includes_context) [ INCLUDES FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## INCLUDES
@@ -251,7 +251,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 ## Ends in an error in state: 230.
 ##
-## field_decl_item -> CONTEXT ident CONTENT typ . option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident CONTENT typ
@@ -264,7 +264,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 ## Ends in an error in state: 229.
 ##
-## field_decl_item -> CONTEXT ident CONTENT . typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident CONTENT
@@ -277,7 +277,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT ID
 ##
 ## Ends in an error in state: 228.
 ##
-## field_decl_item -> CONTEXT ident . CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident
@@ -290,7 +290,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON CONTEXT YE
 ##
 ## Ends in an error in state: 227.
 ##
-## field_decl_item -> CONTEXT . ident CONTENT typ option(struct_field_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ INCLUDES FIELD END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT
@@ -303,7 +303,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR COLON YEAR
 ##
 ## Ends in an error in state: 226.
 ##
-## code_item -> DECLARATION FIELD constructor COLON . nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION FIELD constructor COLON . nonempty_list(scope_decl_item) list(scope_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION FIELD constructor COLON
@@ -316,7 +316,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 225.
 ##
-## code_item -> DECLARATION FIELD constructor . COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION FIELD constructor . COLON nonempty_list(scope_decl_item) list(scope_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION FIELD constructor
@@ -329,7 +329,7 @@ source_file_or_master: BEGIN_CODE DECLARATION FIELD YEAR
 ##
 ## Ends in an error in state: 224.
 ##
-## code_item -> DECLARATION FIELD . constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION FIELD . constructor COLON nonempty_list(scope_decl_item) list(scope_decl_includes) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION FIELD
@@ -342,10 +342,10 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 ## Ends in an error in state: 219.
 ##
-## list(struct_field) -> struct_field . list(struct_field) [ FIELD END_CODE DECLARATION ]
+## list(struct_scope) -> struct_scope . list(struct_scope) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## struct_field
+## struct_scope
 ##
 
 Unexpected token
@@ -368,7 +368,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 ## Ends in an error in state: 215.
 ##
-## struct_field_func -> DEPENDS . typ [ INCLUDES FIELD END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope_func -> DEPENDS . typ [ INCLUDES FIELD END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
@@ -381,19 +381,19 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION
 ##
 ## Ends in an error in state: 214.
 ##
-## struct_field -> struct_field_base . option(struct_field_func) [ FIELD END_CODE DECLARATION DATA CONDITION ]
+## struct_scope -> struct_scope_base . option(struct_scope_func) [ FIELD END_CODE DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
-## struct_field_base
+## struct_scope_base
 ##
 
-Unexpected token, struct field declaration is over at this point
+Unexpected token, struct scope declaration is over at this point
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
 ## Ends in an error in state: 221.
 ##
-## struct_field_base -> condition_pos . ident [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> condition_pos . ident [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## condition_pos
@@ -406,7 +406,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDEN
 ##
 ## Ends in an error in state: 197.
 ##
-## struct_field_base -> DATA ident CONTENT . typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA ident CONTENT . typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA ident CONTENT
@@ -419,7 +419,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDEN
 ##
 ## Ends in an error in state: 196.
 ##
-## struct_field_base -> DATA ident . CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA ident . CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA ident
@@ -432,7 +432,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
 ## Ends in an error in state: 195.
 ##
-## struct_field_base -> DATA . ident CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA . ident CONTENT typ [ FIELD END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA
@@ -445,7 +445,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
 ## Ends in an error in state: 194.
 ##
-## code_item -> DECLARATION STRUCT constructor COLON . list(struct_field) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION STRUCT constructor COLON
@@ -458,7 +458,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 193.
 ##
-## code_item -> DECLARATION STRUCT constructor . COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION STRUCT constructor
@@ -471,7 +471,7 @@ source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
 ## Ends in an error in state: 192.
 ##
-## code_item -> DECLARATION STRUCT . constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION STRUCT
@@ -484,8 +484,8 @@ source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
 ## Ends in an error in state: 191.
 ##
-## code_item -> DECLARATION . STRUCT constructor COLON list(struct_field) [ FIELD END_CODE DECLARATION ]
-## code_item -> DECLARATION . FIELD constructor COLON nonempty_list(field_decl_item) list(field_decl_includes) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ FIELD END_CODE DECLARATION ]
+## code_item -> DECLARATION . FIELD constructor COLON nonempty_list(scope_decl_item) list(scope_decl_includes) [ FIELD END_CODE DECLARATION ]
 ## code_item -> DECLARATION . ENUM constructor COLON nonempty_list(enum_decl_line) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
@@ -499,29 +499,29 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ##
 ## Ends in an error in state: 189.
 ##
-## nonempty_list(application_field_item) -> application_field_item . [ FIELD END_CODE DECLARATION ]
-## nonempty_list(application_field_item) -> application_field_item . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
+## nonempty_list(application_scope_item) -> application_scope_item . [ FIELD END_CODE DECLARATION ]
+## nonempty_list(application_scope_item) -> application_scope_item . nonempty_list(application_scope_item) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## application_field_item
+## application_scope_item
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 42, spurious reduction of production primitive_expression -> CARDINAL
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 123, spurious reduction of production logical_expression -> compare_expression
-## In state 107, spurious reduction of production expression -> logical_expression
-## In state 185, spurious reduction of production assertion_base -> expression
-## In state 186, spurious reduction of production assertion -> option(condition_consequence) assertion_base
-## In state 187, spurious reduction of production application_field_item -> ASSERTION assertion
+## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 185, spurious reduction of production assertion_base -> expression 
+## In state 186, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
+## In state 187, spurious reduction of production application_scope_item -> ASSERTION assertion 
 ##
 
-Unexpected token after an application field item
+Unexpected token after a scope item
 
 source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION CARDINAL YEAR
 ##
@@ -682,8 +682,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -792,12 +792,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 123, spurious reduction of production logical_expression -> compare_expression
-## In state 107, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -829,12 +829,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 123, spurious reduction of production logical_expression -> compare_expression
-## In state 107, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -891,12 +891,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 123, spurious reduction of production logical_expression -> compare_expression
-## In state 107, spurious reduction of production expression -> logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
 ##
 
 Unmatched parenthesis that should have ended before this
@@ -927,12 +927,12 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 106, spurious reduction of production logical_expression -> logical_unop compare_expression
-## In state 142, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 106, spurious reduction of production logical_expression -> logical_unop compare_expression 
+## In state 142, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
 ##
 
 Unexpected token
@@ -1134,7 +1134,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -1334,14 +1334,14 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 42, spurious reduction of production primitive_expression -> CARDINAL
-## In state 50, spurious reduction of production base_expression -> primitive_expression
-## In state 91, spurious reduction of production mult_expression -> base_expression
-## In state 86, spurious reduction of production sum_expression -> mult_expression
-## In state 96, spurious reduction of production compare_expression -> sum_expression
-## In state 123, spurious reduction of production logical_expression -> compare_expression
-## In state 107, spurious reduction of production expression -> logical_expression
-## In state 150, spurious reduction of production condition -> UNDER_CONDITION expression
+## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 91, spurious reduction of production mult_expression -> base_expression 
+## In state 86, spurious reduction of production sum_expression -> mult_expression 
+## In state 96, spurious reduction of production compare_expression -> sum_expression 
+## In state 123, spurious reduction of production logical_expression -> compare_expression 
+## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 150, spurious reduction of production condition -> UNDER_CONDITION expression 
 ##
 
 Unexpected token after a condition
@@ -1372,8 +1372,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1392,7 +1392,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression
+## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -1503,7 +1503,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON ASSERTION YEAR
 ##
 ## Ends in an error in state: 171.
 ##
-## application_field_item -> ASSERTION . assertion [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
+## application_scope_item -> ASSERTION . assertion [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ASSERTION
@@ -1563,8 +1563,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Only the identifier you wish to define should follow the definition introducing token
@@ -1573,7 +1573,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON DEFINITION YEAR
 ##
 ## Ends in an error in state: 164.
 ##
-## application_field_item -> DEFINITION . definition [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
+## application_scope_item -> DEFINITION . definition [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEFINITION
@@ -1686,8 +1686,8 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1710,7 +1710,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON RULE YEAR
 ##
 ## Ends in an error in state: 18.
 ##
-## application_field_item -> RULE . rule [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
+## application_scope_item -> RULE . rule [ RULE FIELD END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## RULE
@@ -1723,7 +1723,7 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR COLON YEAR
 ##
 ## Ends in an error in state: 17.
 ##
-## code_item -> FIELD constructor COLON . nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
+## code_item -> FIELD constructor COLON . nonempty_list(application_scope_item) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIELD constructor COLON
@@ -1735,25 +1735,25 @@ source_file_or_master: BEGIN_CODE FIELD CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 16.
 ##
-## code_item -> FIELD constructor . COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
+## code_item -> FIELD constructor . COLON nonempty_list(application_scope_item) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIELD constructor
 ##
 
-Expected a colon after application field constructor
+Expected a colon after scope constructor
 
 source_file_or_master: BEGIN_CODE FIELD YEAR
 ##
 ## Ends in an error in state: 14.
 ##
-## code_item -> FIELD . constructor COLON nonempty_list(application_field_item) [ FIELD END_CODE DECLARATION ]
+## code_item -> FIELD . constructor COLON nonempty_list(application_scope_item) [ FIELD END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIELD
 ##
 
-Expecting the constructor for the application field
+Expecting the constructor for the scope
 
 source_file_or_master: BEGIN_CODE YEAR
 ##

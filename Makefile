@@ -34,8 +34,8 @@ format:
 
 build:
 	$(MAKE) -C src/catala/parsing parser_errors.ml
-	dune build
 	$(MAKE) format
+	dune build
 
 install: build
 	dune build @install
