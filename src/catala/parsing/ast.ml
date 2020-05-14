@@ -56,22 +56,9 @@ type scope_decl_context_item = {
   scope_decl_context_item_typ : typ Pos.marked;
 }
 
-type scope_decl_include_join = {
-  parent_scope_name : constructor Pos.marked;
-  parent_scope_context_item : ident Pos.marked;
-  sub_scope_name : constructor Pos.marked;
-  sub_scope_context_item : ident Pos.marked;
-}
-
-type scope_decl_include = {
-  scope_decl_include_sub_scope : constructor Pos.marked;
-  scope_decl_include_joins : scope_decl_include_join Pos.marked list;
-}
-
 type scope_decl = {
   scope_decl_name : constructor Pos.marked;
   scope_decl_context : scope_decl_context_item Pos.marked list;
-  scope_decl_includes : scope_decl_include Pos.marked list;
 }
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
@@ -151,11 +138,23 @@ type assertion = {
   assertion_content : expression Pos.marked;
 }
 
+type scope_inclusion_join = {
+  parent_scope_context_item : ident Pos.marked;
+  sub_scope_context_item : ident Pos.marked;
+}
+
+type scope_inclusion = {
+  scope_inclusion_sub_scope : constructor Pos.marked;
+  scope_inclusion_joins : scope_inclusion_join Pos.marked list;
+  scope_inclusion_condition : expression Pos.marked option;
+}
+
 type scope_use_item =
   | Rule of rule
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
+  | ScopeInclusion of scope_inclusion
 
 type scope_use = {
   scope_use_name : constructor Pos.marked;

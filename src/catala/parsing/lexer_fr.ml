@@ -52,7 +52,7 @@ let token_list_language_agnostic : (string * token) list =
 
 let token_list_fr : (string * token) list =
   [
-    ("champ d'application", FIELD);
+    ("champ d'application", SCOPE);
     ("conséquence", CONSEQUENCE);
     ("donnée", DATA);
     ("dépend de", DEPENDS);
@@ -120,7 +120,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       END_CODE !code_string_acc
   | "champ d\'application" ->
       update_acc lexbuf;
-      FIELD
+      SCOPE
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       update_acc lexbuf;

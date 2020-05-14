@@ -41,7 +41,7 @@
 %token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
-%token FIELD FILLED NOT_EQUAL DEFINITION
+%token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT INCLUDES ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
@@ -343,7 +343,7 @@ assertion:
   MetaAssertion (VariesWith (q, e, t))
 }
 
-application_scope_item:
+scope_item:
 | RULE r = rule {
    let (r, _) = r in (Rule r, $sloc)
 }
@@ -352,6 +352,9 @@ application_scope_item:
  }
 | ASSERTION contents = assertion {
   (contents, $sloc)
+}
+| INCLUDES incl = scope_inclusion {
+  ((ScopeInclusion incl), $sloc)
 }
 
 ident:
@@ -400,27 +403,31 @@ scope_decl_item:
     }, $sloc);
   }, $sloc) }
 
-scope_decl_include:
-| c1 = constructor DOT i1 = ident EQUAL c2 = constructor DOT i2 = ident {
+scope_inclusion_join:
+| i1 = ident EQUAL i2 = ident {
   ({
-    parent_scope_name = c1;
-    parent_scope_context_item = i1 ;
-    sub_scope_name = c2;
-    sub_scope_context_item = i2;
+    parent_scope_context_item = i1;
+    sub_scope_context_item = i2 ;
   }, $sloc)
 }
 
-scope_decl_includes_context:
-| CONTEXT join = nonempty_list(scope_decl_include) { join }
+scope_inclusion_context:
+| CONTEXT join = nonempty_list(scope_inclusion_join) { join }
 
-scope_decl_includes:
-| INCLUDES FIELD c = constructor context = option(scope_decl_includes_context) {
+scope_inclusion_condition:
+| UNDER_CONDITION e = expression { e }
+
+scope_inclusion:
+| SCOPE c = constructor context = option(scope_inclusion_context)
+   condition = option(scope_inclusion_condition)
+   {
  ({
-   scope_decl_include_sub_scope = c;
-   scope_decl_include_joins = match context with
+   scope_inclusion_sub_scope = c;
+   scope_inclusion_joins = begin match context with
    | None -> []
-   | Some context -> context
-  }, $sloc)
+   | Some context -> context end;
+   scope_inclusion_condition = condition;
+  })
 }
 
 enum_decl_line_payload:
@@ -436,7 +443,7 @@ constructor:
 | c = CONSTRUCTOR { (c, $sloc) }
 
 code_item:
-| FIELD c = constructor COLON items = nonempty_list(application_scope_item) {
+| SCOPE c = constructor COLON items = nonempty_list(scope_item) {
   (ScopeUse {
     scope_use_name = c;
     scope_use_items = items;
@@ -448,12 +455,10 @@ code_item:
     struct_decl_fields = scopes;
   }, $sloc)
 }
-| DECLARATION FIELD c = constructor COLON context = nonempty_list(scope_decl_item)
-  includes = list(scope_decl_includes) {
+| DECLARATION SCOPE c = constructor COLON context = nonempty_list(scope_decl_item) {
   (ScopeDecl {
       scope_decl_name = c;
       scope_decl_context = context;
-      scope_decl_includes = includes;
   }, $sloc)
 }
 | DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {

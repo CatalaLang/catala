@@ -91,8 +91,7 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
   (* The parser has suspended itself because of a syntax error. Stop. *)
   let custom_menhir_message =
     match Parser_errors.message (state env) with
-    | exception Not_found ->
-        assert false (* all error states should have a message, as claimed by Menhir *)
+    | exception Not_found -> "Message: unexpected token"
     | msg -> "Message: " ^ String.trim (String.uncapitalize_ascii msg)
   in
   let msg =

@@ -24,7 +24,7 @@ let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ 
 
 let token_list_en : (string * token) list =
   [
-    ("scope", FIELD);
+    ("scope", SCOPE);
     ("consequence", CONSEQUENCE);
     ("data", DATA);
     ("depends on", DEPENDS);
@@ -92,7 +92,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       END_CODE !code_string_acc
   | "scope" ->
       update_acc lexbuf;
-      FIELD
+      SCOPE
   | "data" ->
       update_acc lexbuf;
       DATA
