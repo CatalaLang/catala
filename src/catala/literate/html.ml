@@ -153,11 +153,24 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
           | _ -> "#" )
           (pre_html (Pos.unmark a.law_article_name))
     | A.CodeBlock (_, c) | A.MetadataBlock (_, c) ->
+        let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+        let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\*|\/") in
+        let syms_subst = function
+          | "!=" -> "≠"
+          | "<=" -> "≤"
+          | ">=" -> "≥"
+          | "--" -> "—"
+          | "->" -> "→"
+          | "*" -> "×"
+          | "/" -> "÷"
+          | s -> s
+        in
+        let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
         let formatted_original_code =
           P.sprintf "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
             (Pos.get_file (Pos.get_position c))
             (pygmentize_code
-               (Pos.same_pos_as ("/*" ^ Pos.unmark c ^ "*/") c)
+               (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c)
                language custom_pygments)
         in
         formatted_original_code

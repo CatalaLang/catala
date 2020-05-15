@@ -38,12 +38,20 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
      \\usepackage[%s]{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
+     \\usepackage{amssymb}\n\
+     \\usepackage{newunicodechar}\n\
      %s\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
      \\usepackage{fullpage}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\newunicodechar{÷}{$\\div$}\n\
+     \\newunicodechar{×}{$\\times$}\n\
+     \\newunicodechar{≤}{$\\leqslant$}\n\
+     \\newunicodechar{≥}{$\\geqslant$}\n\
+     \\newunicodechar{→}{$\\rightarrow$}\n\
+     \\newunicodechar{≠}{$\\neq$}\n\n\
      \\fvset{\n\
      commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
@@ -98,6 +106,21 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
           source_files))
     code
 
+let math_syms_replace (c : string) : string =
+  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\*|/") in
+  let syms2cmd = function
+    | "!=" -> "≠"
+    | "<=" -> "≤"
+    | ">=" -> "≥"
+    | "--" -> "—"
+    | "->" -> "→"
+    | "*" -> "×"
+    | "/" -> "÷"
+    | s -> s
+  in
+  R.substitute ~rex:syms ~subst:syms2cmd c
+
 let program_item_to_latex (i : A.program_item) (language : C.language_option) : string =
   match i with
   | A.LawHeading (title, precedence) ->
@@ -114,7 +137,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) + 1)
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.MetadataBlock (_, c) ->
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
@@ -127,7 +150,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         (Pos.get_start_line (Pos.get_position c) + 1)
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.LawInclude (A.PdfFile ((file, _), page)) ->
       let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
       P.sprintf
