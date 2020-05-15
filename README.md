@@ -110,7 +110,10 @@ please install them if they're not here. On a Debian distribution, this can be
 done with
 
     sudo apt install python3-virtualenv man2html
+    
+On ArchLinux :
 
+    sudo pacman -S python-virtualenv man2html
 
 ### Installation
 
