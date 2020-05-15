@@ -1,3 +1,8 @@
+
+<center>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/logo.png" alt="Catala logo" width="100"/>
+</center>
+
 # Catala
 
 Catala is a domain-specific language for deriving
@@ -15,7 +20,9 @@ socio-fiscal mechanism that you want to implement. Then, you can
 proceed to annotate the text article by article, in your favorite
 text editor :
 
-![Screenshot](https://github.com/CatalaLang/catala/raw/master/doc/ScreenShotAtom.png)
+<center>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/ScreenShotAtom.png" alt="Screenshot" height="500"/>
+</center>
 
 Once your code is complete and tested, you can use the Catala
 compiler to produce a lawyer-readable PDF version of your
@@ -24,7 +31,9 @@ in collaboration with law professionals to ensure that the code
 can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
-![Screenshot](https://github.com/CatalaLang/catala/raw/master/doc/CatalaScreenShot.png)
+<center>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/CatalaScreenShot.png" alt="Screenshot" height="500"/>
+</center>
 
 The Catala language is special because its logical structure mimics
 the logical structure of the law. Indeed, the core concept of
@@ -110,7 +119,7 @@ please install them if they're not here. On a Debian distribution, this can be
 done with
 
     sudo apt install python3-virtualenv man2html
-    
+
 On ArchLinux :
 
     sudo pacman -S python-virtualenv man2html
