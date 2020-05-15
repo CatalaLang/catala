@@ -98,6 +98,18 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
           source_files))
     code
 
+let math_syms_replace (c : string) : string =
+  let syms = R.regexp "!=|<=|>=|--|->" in
+  let syms2cmd = function
+    | "!=" -> "$\\neq$"
+    | "<=" -> "$\\leq$"
+    | ">=" -> "$\\geq$"
+    | "--" -> "\\textemdash"
+    | "->" -> "$\\rightarrow$"
+    | s -> s
+  in
+  R.substitute ~rex:syms ~subst:(fun s -> "|" ^ syms2cmd s ^ "|") c
+
 let program_item_to_latex (i : A.program_item) (language : C.language_option) : string =
   match i with
   | A.LawHeading (title, precedence) ->
@@ -108,26 +120,27 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify (Pos.unmark a.law_article_name))
   | A.CodeBlock (_, c) ->
       P.sprintf
-        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
+        "\\begin{minted}[escapeinside=||,mathescape=true,label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) + 1)
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.MetadataBlock (_, c) ->
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
          break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
-         \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
+         \\begin{minted}[escapeinside=||,mathescape=true,numbersep=9mm, firstnumber=%d, \
+         label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          /*%s*/\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
         (Pos.get_start_line (Pos.get_position c) + 1)
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.LawInclude (A.PdfFile ((file, _), page)) ->
       let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
       P.sprintf
