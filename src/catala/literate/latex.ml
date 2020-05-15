@@ -38,12 +38,20 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
      \\usepackage[%s]{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
+     \\usepackage{amssymb}\n\
+     \\usepackage{newunicodechar}\n\
      %s\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
      \\usepackage{fullpage}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\newunicodechar{÷}{$\\div$}\n\
+     \\newunicodechar{×}{$\\times$}\n\
+     \\newunicodechar{≤}{$\\leqslant$}\n\
+     \\newunicodechar{≥}{$\\geqslant$}\n\
+     \\newunicodechar{→}{$\\rightarrow$}\n\
+     \\newunicodechar{≠}{$\\neq$}\n\n\
      \\fvset{\n\
      commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
@@ -99,16 +107,19 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
     code
 
 let math_syms_replace (c : string) : string =
-  let syms = R.regexp "!=|<=|>=|--|->" in
+  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\*|/") in
   let syms2cmd = function
-    | "!=" -> "$\\neq$"
-    | "<=" -> "$\\leq$"
-    | ">=" -> "$\\geq$"
-    | "--" -> "\\textemdash"
-    | "->" -> "$\\rightarrow$"
+    | "!=" -> "≠"
+    | "<=" -> "≤"
+    | ">=" -> "≥"
+    | "--" -> "—"
+    | "->" -> "→"
+    | "*" -> "×"
+    | "/" -> "÷"
     | s -> s
   in
-  R.substitute ~rex:syms ~subst:(fun s -> "|" ^ syms2cmd s ^ "|") c
+  R.substitute ~rex:syms ~subst:syms2cmd c
 
 let program_item_to_latex (i : A.program_item) (language : C.language_option) : string =
   match i with
@@ -120,7 +131,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
   | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify (Pos.unmark a.law_article_name))
   | A.CodeBlock (_, c) ->
       P.sprintf
-        "\\begin{minted}[escapeinside=||,mathescape=true,label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
+        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
@@ -132,8 +143,7 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
          break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
-         \\begin{minted}[escapeinside=||,mathescape=true,numbersep=9mm, firstnumber=%d, \
-         label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
+         \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          /*%s*/\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
