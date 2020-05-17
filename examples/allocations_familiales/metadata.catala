@@ -191,7 +191,7 @@ déclaration champ d'application CalculPrestationsFamiliales :
   contexte l512_3 contenu L512_3
 
 champ d'application CalculPrestationsFamiliales:
-  inclus champ d'application MénageBienFormé contexte
+  inclus ménage_bien_formé champ d'application MénageBienFormé contexte
     ménage = ménage
 
 déclaration champ d'application CalculAllocationsFamiliales :
@@ -212,9 +212,11 @@ déclaration champ d'application CalculAllocationsFamiliales :
   contexte d521_3 contenu D521_3
 
 champ d'application CalculAllocationsFamiliales:
-  inclus champ d'application CalculPrestationsFamiliales contexte
-    ménage = ménage
-    date_calcul = date_calcul
+  inclus calcul_prestations_familiales
+    champ d'application CalculPrestationsFamiliales
+    contexte
+      ménage = ménage
+      date_calcul = date_calcul
   # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
   # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
   #  que les deux contextes parlent du même ménage pour caractériser

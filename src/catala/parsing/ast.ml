@@ -144,6 +144,7 @@ type scope_inclusion_join = {
 }
 
 type scope_inclusion = {
+  scope_inclusion_name : ident Pos.marked;
   scope_inclusion_sub_scope : constructor Pos.marked;
   scope_inclusion_joins : scope_inclusion_join Pos.marked list;
   scope_inclusion_condition : expression Pos.marked option;

@@ -418,10 +418,11 @@ scope_inclusion_condition:
 | UNDER_CONDITION e = expression { e }
 
 scope_inclusion:
-| SCOPE c = constructor context = option(scope_inclusion_context)
+| name = ident SCOPE c = constructor context = option(scope_inclusion_context)
    condition = option(scope_inclusion_condition)
    {
  ({
+   scope_inclusion_name = name;
    scope_inclusion_sub_scope = c;
    scope_inclusion_joins = begin match context with
    | None -> []

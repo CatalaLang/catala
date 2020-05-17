@@ -97,3 +97,73 @@ scope IncomeTaxComputation:
 */
 
 When the Catala program will execute, the right definition will be dynamically chosen by looking at which condition is true. A correctly drafted legislative source should always ensure that at most one condition is true at all times. However, if it is not the case, Catala will let you define a precedence on the conditions, which has to be justified by the law.
+
+
+@@Functions@@
+
+Catala lets you define functions anywhere in your data. Here's what it looks like in the metadata definition when we want to define a two-breackets tax computation:
+@@Begin metadata@@
+/*
+declaration structure TwoBrackets:
+  data breakpoint content amount
+  data rate1 content decimal
+  data rate2 content decimal
+
+declaration scope TwoBracketsTaxComputation :
+  context brackets content TwoBrackets
+  context tax_formula content amount depends on amount
+*/
+@@End metadata@@
+
+And in the code:
+
+@Article4@ The tax amount for a two-brackets computation is equal to the amount of income in each bracket multiplied by the rate of each bracket.
+
+/*
+scope TwoBracketsTaxComputation :
+  definition tax of income equals
+    if income <= breakpoint then
+      income * rate1
+    else (
+      breakpoint * rate1 + (income - breakpoint) * rate2
+    )
+*/
+
+@@Scope inclusion@@
+
+Now that we've defined our helper scope for computing a two-brackets tax, we want to use it in our main tax computation scope.
+
+@Article 5@ For individuals whose income is greater than \$100,000, the income tax of article 1 is computed with a two-brackets system.
+/*
+scope IncomeTaxComputation :
+  includes two_brackets_for_rich scope TwoBracketsTaxComputation
+  definition article1.income_tax under condition
+    individual.income >= $100,000
+  consequence equals
+    two_brackets_for_rich.tax of individual.income
+*/
+
+Scope inclusion also comes with a syntactic sugar for quickly and conditionnaly
+connecting context quantities :
+
+@@Begin metadata@@
+/*
+declaration scope ExemptedOfTax:
+  context article1 content Article1
+*/
+@@End metadata@@
+
+@Article 6@
+Individuals earning less than \$10,000 are exempted of the income tax mentionned at article 1.
+/*
+scope ExemptedOfTax :
+  definition article1.income_tax equals $0
+
+scope IncomeTaxComputation:
+  includes tax_exempt scope ExemptedOfTax context
+    article1 = article1
+  under condition
+    individual.income <= $10,000
+*/
+
+This snippet of code actually brings the definition of article1.income_tax of ExemptedOfTax into the IncomeTaxComputation scope, prefixing it with the "income under \$10,000" condition.

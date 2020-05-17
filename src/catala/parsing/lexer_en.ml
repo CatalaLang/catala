@@ -96,7 +96,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "data" ->
       update_acc lexbuf;
       DATA
-  | "depends" ->
+  | "depends on" ->
       update_acc lexbuf;
       DEPENDS
   | "declaration" ->
