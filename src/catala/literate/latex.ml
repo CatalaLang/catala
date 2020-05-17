@@ -108,7 +108,7 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
 
 let math_syms_replace (c : string) : string =
   let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\*|/") in
+  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|/") in
   let syms2cmd = function
     | "!=" -> "≠"
     | "<=" -> "≤"

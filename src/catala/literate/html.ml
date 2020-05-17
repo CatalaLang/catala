@@ -154,7 +154,7 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
           (pre_html (Pos.unmark a.law_article_name))
     | A.CodeBlock (_, c) | A.MetadataBlock (_, c) ->
         let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-        let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\*|\/") in
+        let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
         let syms_subst = function
           | "!=" -> "≠"
           | "<=" -> "≤"
