@@ -11,7 +11,7 @@ make website-assets
 
 scp examples/allocations_familiales/allocations_familiales.html $1/
 scp examples/dummy_english/english.html $1/
-scp examples/tutorial/tutorial.html $1/
+scp examples/tutorial/tutorial_en.html $1/
 scp grammar.html $1/
 scp catala.html $1/
 scp legifrance_catala.html $1/
