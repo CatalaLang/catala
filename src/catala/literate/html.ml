@@ -71,8 +71,8 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
             let mtime = (Unix.stat filename).Unix.st_mtime in
             let ltime = Unix.localtime mtime in
             let ftime =
-              Printf.sprintf "%d-%02d-%02d, %d:%02d" (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon
-                ltime.Unix.tm_mday ltime.Unix.tm_hour ltime.Unix.tm_min
+              Printf.sprintf "%d-%02d-%02d, %d:%02d" (1900 + ltime.Unix.tm_year)
+                (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday ltime.Unix.tm_hour ltime.Unix.tm_min
             in
             Printf.sprintf "<li><tt>%s</tt>, %s %s</li>"
               (pre_html (Filename.basename filename))
