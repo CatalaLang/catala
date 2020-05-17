@@ -135,19 +135,21 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c) + 1)
+        (Pos.get_start_line (Pos.get_position c))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
   | A.MetadataBlock (_, c) ->
+      let metadata_title = match language with C.Fr -> "Métadonnées" | C.En -> "Metadata" in
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
-         title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
-         break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
+         title=\\textcolor{black}{\\texttt{%s}},title after \
+         break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
          \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          /*%s*/\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
-        (Pos.get_start_line (Pos.get_position c) + 1)
+        metadata_title metadata_title
+        (Pos.get_start_line (Pos.get_position c))
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
         (math_syms_replace (Pos.unmark c))

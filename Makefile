@@ -78,17 +78,21 @@ atom: atom_fr atom_en
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
 ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
+TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
 
 allocations_familiales: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.pdf
-
-allocations_familiales_expired: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.expired
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.pdf
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
 english: pygments build
-	$(MAKE) -C $(ENGLISH_DUMMY_DIR) english.pdf
+	$(MAKE) -C $(ENGLISH_DUMMY_DIR) $@.pdf
+	$(MAKE) -C $(ENGLISH_DUMMY_DIR) $@.html
 
-all_examples: allocations_familiales english
+tutorial_en: pygments build
+	$(MAKE) -C $(TUTORIAL_DIR) $@.pdf
+	$(MAKE) -C $(TUTORIAL_DIR) $@.html
+
+all_examples: allocations_familiales english tutorial_en
 
 ##########################################
 # Website assets
@@ -102,14 +106,14 @@ GENERATE_MAN_PAGE_ARGS=\
 	| tac | sed "1,18d" | tac
 
 catala.html: src/catala/cli.ml
-	dune exec src/catala.exe -- $(GENERATE_MAN_PAGE_ARGS) > $@
+	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
+	| tac | sed "1,20d" | tac > $@
 
 legifrance_catala.html: src/legifrance_catala/main.ml
-	dune exec src/legifrance_catala.exe -- $(GENERATE_MAN_PAGE_ARGS) > $@
+	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d' \
+	| tac | sed "1,18d" | tac > $@ > $@
 
-website-assets: build pygments grammar.html catala.html legifrance_catala.html
-	$(MAKE) -C examples/allocations_familiales allocations_familiales.html
-	$(MAKE) -C examples/dummy_english english.html
+website-assets: all_examples grammar.html catala.html legifrance_catala.html
 
 ##########################################
 # Misceallenous
