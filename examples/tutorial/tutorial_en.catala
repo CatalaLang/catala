@@ -93,7 +93,7 @@ This article actually gives another definition for the fixed percentage, which w
 scope IncomeTaxComputation:
   definition article1.fixed_percentage under condition
     individual.number_of_children >= 2
-  consequence equals 20 %
+  consequence equals 15 %
 */
 
 When the Catala program will execute, the right definition will be dynamically chosen by looking at which condition is true. A correctly drafted legislative source should always ensure that at most one condition is true at all times. However, if it is not the case, Catala will let you define a precedence on the conditions, which has to be justified by the law.
@@ -101,7 +101,7 @@ When the Catala program will execute, the right definition will be dynamically c
 
 @@Functions@@
 
-Catala lets you define functions anywhere in your data. Here's what it looks like in the metadata definition when we want to define a two-breackets tax computation:
+Catala lets you define functions anywhere in your data. Here's what it looks like in the metadata definition when we want to define a two-brackets tax computation:
 @@Begin metadata@@
 /*
 declaration structure TwoBrackets:
@@ -133,7 +133,7 @@ scope TwoBracketsTaxComputation :
 
 Now that we've defined our helper scope for computing a two-brackets tax, we want to use it in our main tax computation scope.
 
-@Article 5@ For individuals whose income is greater than \$100,000, the income tax of article 1 is computed with a two-brackets system.
+@Article 5@ For individuals whose income is greater than $100,000, the income tax of article 1 is computed with a two-brackets system.
 /*
 scope IncomeTaxComputation :
   includes two_brackets_for_rich scope TwoBracketsTaxComputation
@@ -154,7 +154,7 @@ declaration scope ExemptedOfTax:
 @@End metadata@@
 
 @Article 6@
-Individuals earning less than \$10,000 are exempted of the income tax mentionned at article 1.
+Individuals earning less than $10,000 are exempted of the income tax mentionned at article 1.
 /*
 scope ExemptedOfTax :
   definition article1.income_tax equals $0
@@ -166,4 +166,4 @@ scope IncomeTaxComputation:
     individual.income <= $10,000
 */
 
-This snippet of code actually brings the definition of article1.income_tax of ExemptedOfTax into the IncomeTaxComputation scope, prefixing it with the "income under \$10,000" condition.
+This snippet of code actually brings the definition of article1.income_tax of ExemptedOfTax into the IncomeTaxComputation scope, prefixing it with the "income under $10,000" condition.
