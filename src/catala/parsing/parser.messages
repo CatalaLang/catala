@@ -1,19 +1,6 @@
-source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT BOOLEAN INCLUDES
-##
-## Ends in an error in state: 263.
-##
-## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
-## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## enum_decl_line
-##
-
-Inclusion does not concern content of enumeration cases
-
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 258.
+## Ends in an error in state: 246.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -26,7 +13,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 257.
+## Ends in an error in state: 245.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -39,7 +26,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 256.
+## Ends in an error in state: 244.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -52,7 +39,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 255.
+## Ends in an error in state: 243.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -65,7 +52,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 254.
+## Ends in an error in state: 242.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -78,7 +65,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 253.
+## Ends in an error in state: 241.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -91,7 +78,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 250.
+## Ends in an error in state: 238.
 ##
 ## nonempty_list(scope_decl_item) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -105,7 +92,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
-## Ends in an error in state: 248.
+## Ends in an error in state: 236.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -118,7 +105,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 247.
+## Ends in an error in state: 235.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -131,9 +118,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
-## Ends in an error in state: 246.
+## Ends in an error in state: 232.
 ##
 ## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident . SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident
@@ -144,9 +132,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 245.
+## Ends in an error in state: 231.
 ##
 ## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT . ident SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT
@@ -157,7 +146,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 244.
+## Ends in an error in state: 230.
 ##
 ## code_item -> DECLARATION SCOPE constructor COLON . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -170,7 +159,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 243.
+## Ends in an error in state: 229.
 ##
 ## code_item -> DECLARATION SCOPE constructor . COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -183,7 +172,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 242.
+## Ends in an error in state: 228.
 ##
 ## code_item -> DECLARATION SCOPE . constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -194,22 +183,9 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE YEAR
 Unexpected token
 To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#222
 
-source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS BOOLEAN INCLUDES
-##
-## Ends in an error in state: 237.
-##
-## list(struct_scope) -> struct_scope . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## struct_scope
-##
-
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#217
-
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION BEGIN_METADATA
 ##
-## Ends in an error in state: 229.
+## Ends in an error in state: 215.
 ##
 ## typ -> collection_marked . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -222,7 +198,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 233.
+## Ends in an error in state: 219.
 ##
 ## struct_scope_func -> DEPENDS . typ [ SCOPE END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -235,7 +211,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 232.
+## Ends in an error in state: 218.
 ##
 ## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -247,7 +223,7 @@ Unexpected token, struct scope declaration is over at this point
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 239.
+## Ends in an error in state: 225.
 ##
 ## struct_scope_base -> condition_pos . ident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -260,7 +236,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 215.
+## Ends in an error in state: 201.
 ##
 ## struct_scope_base -> DATA ident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -273,7 +249,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 214.
+## Ends in an error in state: 200.
 ##
 ## struct_scope_base -> DATA ident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -286,7 +262,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 213.
+## Ends in an error in state: 199.
 ##
 ## struct_scope_base -> DATA . ident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -299,7 +275,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 212.
+## Ends in an error in state: 198.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -312,7 +288,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 211.
+## Ends in an error in state: 197.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -325,7 +301,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 210.
+## Ends in an error in state: 196.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -338,7 +314,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 209.
+## Ends in an error in state: 195.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -353,7 +329,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
-## Ends in an error in state: 206.
+## Ends in an error in state: 192.
 ##
 ## nonempty_list(scope_item) -> scope_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_item) -> scope_item . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
@@ -365,26 +341,26 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 123, spurious reduction of production logical_expression -> compare_expression 
-## In state 107, spurious reduction of production expression -> logical_expression 
-## In state 203, spurious reduction of production assertion_base -> expression 
-## In state 204, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
-## In state 205, spurious reduction of production scope_item -> ASSERTION assertion 
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
+## In state 189, spurious reduction of production assertion_base -> expression
+## In state 190, spurious reduction of production assertion -> option(condition_consequence) assertion_base
+## In state 191, spurious reduction of production scope_item -> ASSERTION assertion
 ##
 
 Unexpected token after a scope item
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL YEAR
 ##
-## Ends in an error in state: 42.
+## Ends in an error in state: 39.
 ##
 ## aggregate_func -> CARDINAL . [ FOR ]
-## primitive_expression -> CARDINAL . [ WITH THEN SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## primitive_expression -> CARDINAL . [ WITH THEN SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CARDINAL
@@ -395,10 +371,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT MONEY_AMOUNT YEAR
 ##
-## Ends in an error in state: 69.
+## Ends in an error in state: 66.
 ##
-## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT small_expression
@@ -409,9 +385,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 68.
+## Ends in an error in state: 65.
 ##
-## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT
@@ -422,9 +398,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 66.
+## Ends in an error in state: 63.
 ##
-## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ## qident_prefix -> constructor . DOT [ IDENT ]
 ##
 ## The known suffix of the stack is as follows:
@@ -436,9 +412,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
 ##
-## Ends in an error in state: 115.
+## Ends in an error in state: 112.
 ##
-## expression -> exists_prefix . expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> exists_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## exists_prefix
@@ -449,7 +425,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW SUCH YEAR
 ##
-## Ends in an error in state: 121.
+## Ends in an error in state: 118.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression SUCH . THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -462,7 +438,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 120.
+## Ends in an error in state: 117.
 ##
 ## exists_prefix -> exists_marked ident IN primitive_expression . SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -475,7 +451,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT IN YEAR
 ##
-## Ends in an error in state: 119.
+## Ends in an error in state: 116.
 ##
 ## exists_prefix -> exists_marked ident IN . primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -488,7 +464,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT YEAR
 ##
-## Ends in an error in state: 118.
+## Ends in an error in state: 115.
 ##
 ## exists_prefix -> exists_marked ident . IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -501,7 +477,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS YEAR
 ##
-## Ends in an error in state: 117.
+## Ends in an error in state: 114.
 ##
 ## exists_prefix -> exists_marked . ident IN primitive_expression SUCH THAT [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -514,9 +490,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
-## Ends in an error in state: 200.
+## Ends in an error in state: 186.
 ##
-## assertion -> FIXED qident BY . ident [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED qident BY . ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIXED qident BY
@@ -527,9 +503,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
-## Ends in an error in state: 199.
+## Ends in an error in state: 185.
 ##
-## assertion -> FIXED qident . BY ident [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED qident . BY ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIXED qident
@@ -538,8 +514,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
@@ -547,9 +523,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
-## Ends in an error in state: 198.
+## Ends in an error in state: 184.
 ##
-## assertion -> FIXED . qident BY ident [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> FIXED . qident BY ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## FIXED
@@ -560,9 +536,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN CARDINAL WE_HAVE YEAR
 ##
-## Ends in an error in state: 108.
+## Ends in an error in state: 105.
 ##
-## expression -> forall_prefix . expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> forall_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## forall_prefix
@@ -573,7 +549,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 112.
+## Ends in an error in state: 109.
 ##
 ## forall_prefix -> for_all_marked ident IN primitive_expression . WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -586,7 +562,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL IDENT IN YEAR
 ##
-## Ends in an error in state: 111.
+## Ends in an error in state: 108.
 ##
 ## forall_prefix -> for_all_marked ident IN . primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -599,7 +575,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL IDENT YEAR
 ##
-## Ends in an error in state: 110.
+## Ends in an error in state: 107.
 ##
 ## forall_prefix -> for_all_marked ident . IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -611,7 +587,7 @@ A for all construction expects only one ident
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL YEAR
 ##
-## Ends in an error in state: 109.
+## Ends in an error in state: 106.
 ##
 ## forall_prefix -> for_all_marked . ident IN primitive_expression WE_HAVE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR EXISTS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -624,7 +600,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR YEAR
 ##
-## Ends in an error in state: 38.
+## Ends in an error in state: 35.
 ##
 ## for_all_marked -> FOR . ALL [ IDENT ]
 ##
@@ -637,9 +613,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ##
-## Ends in an error in state: 128.
+## Ends in an error in state: 125.
 ##
-## expression -> IF expression . THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> IF expression . THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression
@@ -648,12 +624,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 123, spurious reduction of production logical_expression -> compare_expression 
-## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unexpected token
@@ -661,9 +637,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW ELSE YEAR
 ##
-## Ends in an error in state: 131.
+## Ends in an error in state: 128.
 ##
-## expression -> IF expression THEN expression ELSE . base_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> IF expression THEN expression ELSE . base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN expression ELSE
@@ -674,9 +650,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN NOW THEN
 ##
-## Ends in an error in state: 130.
+## Ends in an error in state: 127.
 ##
-## expression -> IF expression THEN expression . ELSE base_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> IF expression THEN expression . ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN expression
@@ -685,12 +661,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 123, spurious reduction of production logical_expression -> compare_expression 
-## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unexpected token
@@ -698,9 +674,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN YEAR
 ##
-## Ends in an error in state: 129.
+## Ends in an error in state: 126.
 ##
-## expression -> IF expression THEN . expression ELSE base_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> IF expression THEN . expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN
@@ -711,9 +687,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF YEAR
 ##
-## Ends in an error in state: 37.
+## Ends in an error in state: 34.
 ##
-## expression -> IF . expression THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> IF . expression THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF
@@ -724,9 +700,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 60.
+## Ends in an error in state: 57.
 ##
-## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## num_literal
@@ -736,9 +712,9 @@ Expecting an unit for the preceding numeric literal, or an operator
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN NOW THEN
 ##
-## Ends in an error in state: 133.
+## Ends in an error in state: 130.
 ##
-## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN expression
@@ -747,21 +723,21 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 123, spurious reduction of production logical_expression -> compare_expression 
-## In state 107, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unmatched parenthesis that should have ended before this
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
-## Ends in an error in state: 35.
+## Ends in an error in state: 32.
 ##
-## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN
@@ -772,9 +748,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON NOT NOW OR
 ##
-## Ends in an error in state: 138.
+## Ends in an error in state: 135.
 ##
-## match_arms -> ALT match_arm . match_arms [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## match_arms -> ALT match_arm . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ALT match_arm
@@ -783,12 +759,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 106, spurious reduction of production logical_expression -> logical_unop compare_expression 
-## In state 142, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 103, spurious reduction of production logical_expression -> logical_unop compare_expression
+## In state 139, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
 ##
 
 Unexpected token
@@ -796,9 +772,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 141.
+## Ends in an error in state: 138.
 ##
-## match_arm -> constructor_binding COLON . logical_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
+## match_arm -> constructor_binding COLON . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor_binding COLON
@@ -809,7 +785,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 146.
+## Ends in an error in state: 143.
 ##
 ## optional_binding -> OF constructor . constructor_binding [ COLON ]
 ##
@@ -822,9 +798,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF IDENT YEAR
 ##
-## Ends in an error in state: 140.
+## Ends in an error in state: 137.
 ##
-## match_arm -> constructor_binding . COLON logical_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
+## match_arm -> constructor_binding . COLON logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor_binding
@@ -835,7 +811,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR OF YEAR
 ##
-## Ends in an error in state: 144.
+## Ends in an error in state: 141.
 ##
 ## optional_binding -> OF . ident [ COLON ]
 ## optional_binding -> OF . constructor constructor_binding [ COLON ]
@@ -849,7 +825,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 143.
+## Ends in an error in state: 140.
 ##
 ## constructor_binding -> constructor . optional_binding [ COLON ]
 ##
@@ -862,9 +838,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH ALT YEAR
 ##
-## Ends in an error in state: 137.
+## Ends in an error in state: 134.
 ##
-## match_arms -> ALT . match_arm match_arms [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## match_arms -> ALT . match_arm match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ALT
@@ -875,9 +851,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WITH YEAR
 ##
-## Ends in an error in state: 136.
+## Ends in an error in state: 133.
 ##
-## expression -> MATCH primitive_expression WITH . match_arms [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> MATCH primitive_expression WITH . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH primitive_expression WITH
@@ -888,9 +864,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW YEAR
 ##
-## Ends in an error in state: 135.
+## Ends in an error in state: 132.
 ##
-## expression -> MATCH primitive_expression . WITH match_arms [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> MATCH primitive_expression . WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH primitive_expression
@@ -901,9 +877,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH YEAR
 ##
-## Ends in an error in state: 34.
+## Ends in an error in state: 31.
 ##
-## expression -> MATCH . primitive_expression WITH match_arms [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ]
+## expression -> MATCH . primitive_expression WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH
@@ -914,9 +890,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MINUS YEAR
 ##
-## Ends in an error in state: 43.
+## Ends in an error in state: 40.
 ##
-## sum_expression -> sum_unop . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## sum_expression -> sum_unop . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## sum_unop
@@ -927,9 +903,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT ARROW YEAR
 ##
-## Ends in an error in state: 46.
+## Ends in an error in state: 43.
 ##
-## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## small_expression ARROW
@@ -940,10 +916,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT YEAR
 ##
-## Ends in an error in state: 45.
+## Ends in an error in state: 42.
 ##
-## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## small_expression
@@ -953,9 +929,9 @@ Expected operator or new item after expression
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
-## Ends in an error in state: 105.
+## Ends in an error in state: 102.
 ##
-## logical_expression -> logical_unop . compare_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
+## logical_expression -> logical_unop . compare_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## logical_unop
@@ -966,9 +942,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ##
-## Ends in an error in state: 84.
+## Ends in an error in state: 81.
 ##
-## base_expression -> primitive_expression IN . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## base_expression -> primitive_expression IN . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression IN
@@ -978,10 +954,10 @@ Missing collection for testing whether an element is inside a collection or not
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW INCREASING
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 88.
 ##
-## mult_expression -> base_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## mult_expression -> base_expression . mult_op mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## mult_expression -> base_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## mult_expression -> base_expression . mult_op mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## base_expression
@@ -990,7 +966,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
 ##
 
 Unexpected token
@@ -998,9 +974,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW MULT YEAR
 ##
-## Ends in an error in state: 94.
+## Ends in an error in state: 91.
 ##
-## mult_expression -> base_expression mult_op . mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## mult_expression -> base_expression mult_op . mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## base_expression mult_op
@@ -1010,9 +986,9 @@ Expected expression on the right-hand side of multiplication operator
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW NOT_EQUAL YEAR
 ##
-## Ends in an error in state: 103.
+## Ends in an error in state: 100.
 ##
-## compare_expression -> sum_expression compare_op . compare_expression [ THEN SCOPE RULE RPAREN OR INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## compare_expression -> sum_expression compare_op . compare_expression [ THEN SCOPE RULE RPAREN OR END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## sum_expression compare_op
@@ -1022,9 +998,9 @@ Expected the second term of the comparison
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 50.
 ##
-## base_expression -> primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## base_expression -> primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression OF
@@ -1034,9 +1010,9 @@ Invalid function application
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW OR YEAR
 ##
-## Ends in an error in state: 126.
+## Ends in an error in state: 123.
 ##
-## logical_expression -> compare_expression logical_op . logical_expression [ THEN SCOPE RULE RPAREN INCLUDES END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION ALT ]
+## logical_expression -> compare_expression logical_op . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## compare_expression logical_op
@@ -1047,9 +1023,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW PLUS YEAR
 ##
-## Ends in an error in state: 89.
+## Ends in an error in state: 86.
 ##
-## sum_expression -> mult_expression sum_op . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## sum_expression -> mult_expression sum_op . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## mult_expression sum_op
@@ -1060,9 +1036,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW WITH YEAR
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 48.
 ##
-## base_expression -> primitive_expression WITH . constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## base_expression -> primitive_expression WITH . constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression WITH
@@ -1072,12 +1048,12 @@ Missing enumeration case for testing if an enumeration value is in a particular 
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
-## Ends in an error in state: 50.
+## Ends in an error in state: 47.
 ##
-## base_expression -> primitive_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## base_expression -> primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## base_expression -> primitive_expression . WITH constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
-## base_expression -> primitive_expression . IN base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## base_expression -> primitive_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . WITH constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . IN base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression
@@ -1088,9 +1064,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW OF YEAR
 ##
-## Ends in an error in state: 81.
+## Ends in an error in state: 78.
 ##
-## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN primitive_expression OF
@@ -1101,9 +1077,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN NOW YEAR
 ##
-## Ends in an error in state: 80.
+## Ends in an error in state: 77.
 ##
-## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN primitive_expression
@@ -1114,9 +1090,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDENT IN YEAR
 ##
-## Ends in an error in state: 78.
+## Ends in an error in state: 75.
 ##
-## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN
@@ -1127,9 +1103,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDENT YEAR
 ##
-## Ends in an error in state: 77.
+## Ends in an error in state: 74.
 ##
-## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident
@@ -1140,9 +1116,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR YEAR
 ##
-## Ends in an error in state: 76.
+## Ends in an error in state: 73.
 ##
-## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR
@@ -1153,9 +1129,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM YEAR
 ##
-## Ends in an error in state: 75.
+## Ends in an error in state: 72.
 ##
-## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION AND ALT ]
+## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func
@@ -1166,9 +1142,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
 ##
-## Ends in an error in state: 202.
+## Ends in an error in state: 188.
 ##
-## assertion -> option(condition_consequence) . assertion_base [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> option(condition_consequence) . assertion_base [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(condition_consequence)
@@ -1179,7 +1155,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
 ##
-## Ends in an error in state: 156.
+## Ends in an error in state: 160.
 ##
 ## condition_consequence -> condition . CONSEQUENCE [ VERTICAL SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR FILLED EXISTS DEFINED_AS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -1190,21 +1166,21 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 42, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
-## In state 91, spurious reduction of production mult_expression -> base_expression 
-## In state 86, spurious reduction of production sum_expression -> mult_expression 
-## In state 96, spurious reduction of production compare_expression -> sum_expression 
-## In state 123, spurious reduction of production logical_expression -> compare_expression 
-## In state 107, spurious reduction of production expression -> logical_expression 
-## In state 150, spurious reduction of production condition -> UNDER_CONDITION expression 
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
+## In state 154, spurious reduction of production condition -> UNDER_CONDITION expression
 ##
 
 Unexpected token after a condition
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
-## Ends in an error in state: 20.
+## Ends in an error in state: 153.
 ##
 ## condition -> UNDER_CONDITION . expression [ CONSEQUENCE ]
 ##
@@ -1217,9 +1193,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH
 ##
-## Ends in an error in state: 191.
+## Ends in an error in state: 177.
 ##
-## assertion -> VARIES qident . WITH_V base_expression option(variation_type) [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES qident . WITH_V base_expression option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## VARIES qident
@@ -1228,8 +1204,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
@@ -1237,9 +1213,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V NOW THEN
 ##
-## Ends in an error in state: 193.
+## Ends in an error in state: 179.
 ##
-## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## VARIES qident WITH_V base_expression
@@ -1248,7 +1224,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 50, spurious reduction of production base_expression -> primitive_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
 ##
 
 Unexpected token
@@ -1256,9 +1232,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
-## Ends in an error in state: 192.
+## Ends in an error in state: 178.
 ##
-## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## VARIES qident WITH_V
@@ -1269,9 +1245,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
-## Ends in an error in state: 190.
+## Ends in an error in state: 176.
 ##
-## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## VARIES
@@ -1282,9 +1258,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV INT_LITERAL YEAR
 ##
-## Ends in an error in state: 27.
+## Ends in an error in state: 24.
 ##
-## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int DIV date_int
@@ -1295,9 +1271,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL DIV YEAR
 ##
-## Ends in an error in state: 26.
+## Ends in an error in state: 23.
 ##
-## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int DIV
@@ -1307,9 +1283,9 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV INT_LITERAL YEAR
 ##
-## Ends in an error in state: 25.
+## Ends in an error in state: 22.
 ##
-## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int
@@ -1320,9 +1296,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL DIV YEAR
 ##
-## Ends in an error in state: 24.
+## Ends in an error in state: 21.
 ##
-## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV
@@ -1332,9 +1308,9 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT_LITERAL YEAR
 ##
-## Ends in an error in state: 23.
+## Ends in an error in state: 20.
 ##
-## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int
@@ -1345,9 +1321,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL YEAR
 ##
-## Ends in an error in state: 21.
+## Ends in an error in state: 18.
 ##
-## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL
@@ -1357,9 +1333,9 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION YEAR
 ##
-## Ends in an error in state: 189.
+## Ends in an error in state: 175.
 ##
-## scope_item -> ASSERTION . assertion [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## scope_item -> ASSERTION . assertion [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ASSERTION
@@ -1370,9 +1346,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 186.
+## Ends in an error in state: 172.
 ##
-## definition -> qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## qident option(definition_parameters) option(condition_consequence) DEFINED_AS
@@ -1383,9 +1359,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 184.
+## Ends in an error in state: 170.
 ##
-## definition -> qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## qident option(definition_parameters)
@@ -1395,9 +1371,9 @@ Wrong token following function parameter
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
-## Ends in an error in state: 185.
+## Ends in an error in state: 171.
 ##
-## definition -> qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## qident option(definition_parameters) option(condition_consequence)
@@ -1408,9 +1384,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 183.
+## Ends in an error in state: 169.
 ##
-## definition -> qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## qident
@@ -1419,17 +1395,17 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Only the identifier you wish to define should follow the definition introducing token
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 182.
+## Ends in an error in state: 168.
 ##
-## scope_item -> DEFINITION . definition [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## scope_item -> DEFINITION . definition [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEFINITION
@@ -1440,9 +1416,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE CONSTRUCTOR DOT YEAR
 ##
-## Ends in an error in state: 54.
+## Ends in an error in state: 51.
 ##
-## qident -> option(qident_prefix) . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## qident -> option(qident_prefix) . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(qident_prefix)
@@ -1453,7 +1429,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 70.
+## Ends in an error in state: 67.
 ##
 ## qident_prefix -> constructor . DOT [ IDENT ]
 ##
@@ -1466,9 +1442,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
-## Ends in an error in state: 58.
+## Ends in an error in state: 55.
 ##
-## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident DOT
@@ -1479,9 +1455,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT SCOPE
 ##
-## Ends in an error in state: 153.
+## Ends in an error in state: 157.
 ##
-## rule -> rule_expr option(condition_consequence) option(NOT) . FILLED [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> rule_expr option(condition_consequence) option(NOT) . FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## rule_expr option(condition_consequence) option(NOT)
@@ -1492,9 +1468,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
-## Ends in an error in state: 19.
+## Ends in an error in state: 152.
 ##
-## rule -> rule_expr . option(condition_consequence) option(NOT) FILLED [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> rule_expr . option(condition_consequence) option(NOT) FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## rule_expr
@@ -1505,7 +1481,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 160.
+## Ends in an error in state: 164.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
 ##
@@ -1518,9 +1494,9 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION NOW CONSEQUENCE SCOPE
 ##
-## Ends in an error in state: 151.
+## Ends in an error in state: 155.
 ##
-## rule -> rule_expr option(condition_consequence) . option(NOT) FILLED [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> rule_expr option(condition_consequence) . option(NOT) FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## rule_expr option(condition_consequence)
@@ -1531,7 +1507,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 159.
+## Ends in an error in state: 163.
 ##
 ## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
 ##
@@ -1542,8 +1518,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 56, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
@@ -1551,10 +1527,10 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
-## Ends in an error in state: 57.
+## Ends in an error in state: 54.
 ##
-## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
-## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING INCLUDES IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident
@@ -1564,9 +1540,9 @@ Wrong token following an identifier
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ##
-## Ends in an error in state: 18.
+## Ends in an error in state: 151.
 ##
-## scope_item -> RULE . rule [ SCOPE RULE INCLUDES END_CODE DEFINITION DECLARATION ASSERTION ]
+## scope_item -> RULE . rule [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## RULE
@@ -1577,12 +1553,12 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 17.
+## Ends in an error in state: 150.
 ##
-## code_item -> SCOPE constructor COLON . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE constructor option(scope_use_condition) COLON . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## SCOPE constructor COLON
+## SCOPE constructor option(scope_use_condition) COLON
 ##
 
 Expected a rule, a definition or an assertion
@@ -1591,7 +1567,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 16.
 ##
-## code_item -> SCOPE constructor . COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE constructor . option(scope_use_condition) COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## SCOPE constructor
@@ -1603,7 +1579,7 @@ source_file_or_master: BEGIN_CODE SCOPE YEAR
 ##
 ## Ends in an error in state: 14.
 ##
-## code_item -> SCOPE . constructor COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE . constructor option(scope_use_condition) COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## SCOPE
@@ -1613,7 +1589,7 @@ Expecting the constructor for the scope
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 272.
+## Ends in an error in state: 260.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1625,7 +1601,7 @@ Wrong way to begin a code section
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 269.
+## Ends in an error in state: 257.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1664,7 +1640,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 276.
+## Ends in an error in state: 264.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

@@ -43,7 +43,7 @@
 %token NOT BOOLEAN PERCENT ARROW
 %token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
-%token CONTEXT INCLUDES ENUM ELSE DATE SUM
+%token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE
 
@@ -353,9 +353,6 @@ scope_item:
 | ASSERTION contents = assertion {
   (contents, $sloc)
 }
-| INCLUDES incl = scope_inclusion {
-  ((ScopeInclusion incl), $sloc)
-}
 
 ident:
 | i = IDENT { (i, $sloc) }
@@ -391,7 +388,7 @@ struct_scope:
 }
 
 scope_decl_item:
-| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { ({
+| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
   scope_decl_context_item_name = i;
   scope_decl_context_item_typ =
     let (typ, typ_pos) = t in
@@ -401,35 +398,11 @@ scope_decl_item:
       arg_typ = (Data typ, typ_pos);
       return_typ = (Data return_typ, return_pos);
     }, $sloc);
-  }, $sloc) }
-
-scope_inclusion_join:
-| i1 = ident EQUAL i2 = ident {
-  ({
-    parent_scope_context_item = i1;
-    sub_scope_context_item = i2 ;
-  }, $sloc)
-}
-
-scope_inclusion_context:
-| CONTEXT join = nonempty_list(scope_inclusion_join) { join }
-
-scope_inclusion_condition:
-| UNDER_CONDITION e = expression { e }
-
-scope_inclusion:
-| name = ident SCOPE c = constructor context = option(scope_inclusion_context)
-   condition = option(scope_inclusion_condition)
-   {
- ({
-   scope_inclusion_name = name;
-   scope_inclusion_sub_scope = c;
-   scope_inclusion_joins = begin match context with
-   | None -> []
-   | Some context -> context end;
-   scope_inclusion_condition = condition;
-  })
-}
+  }), $sloc) }
+| CONTEXT i = ident SCOPE c = constructor { ( ContextScope({
+  scope_decl_context_scope_name = i;
+  scope_decl_context_scope_sub_scope = c;
+  }), $sloc) }
 
 enum_decl_line_payload:
 | CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }
@@ -443,10 +416,14 @@ enum_decl_line:
 constructor:
 | c = CONSTRUCTOR { (c, $sloc) }
 
+scope_use_condition:
+| UNDER_CONDITION e = expression { e }
+
 code_item:
-| SCOPE c = constructor COLON items = nonempty_list(scope_item) {
+| SCOPE c = constructor e = option(scope_use_condition) COLON items = nonempty_list(scope_item) {
   (ScopeUse {
     scope_use_name = c;
+    scope_use_condition = e;
     scope_use_items = items;
   }, $sloc)
 }

@@ -58,7 +58,6 @@ let token_list_fr : (string * token) list =
     ("dépend de", DEPENDS);
     ("déclaration", DECLARATION);
     ("contexte", CONTEXT);
-    ("inclus", INCLUDES);
     ("décroissant", DECREASING);
     ("croissant", INCREASING);
     ("de", OF);
@@ -134,9 +133,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "contexte" ->
       update_acc lexbuf;
       CONTEXT
-  | "inclus" ->
-      update_acc lexbuf;
-      INCLUDES
   | "d", 0xE9, "croissant" ->
       update_acc lexbuf;
       DECREASING

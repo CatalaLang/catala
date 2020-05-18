@@ -55,7 +55,6 @@ champ d'application CalculAllocationFamilialesAvril2008:
   définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
 
 champ d'application CalculAllocationsFamiliales :
-  inclus calcul_avril_2008 champ d'application AllocationFamilialesAvril2008
   définition l521_3.minimum_alinéa_2 de enfant
   sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
   conséquence égal à

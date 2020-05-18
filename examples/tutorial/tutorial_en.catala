@@ -135,8 +135,12 @@ Now that we've defined our helper scope for computing a two-brackets tax, we wan
 
 @Article 5@ For individuals whose income is greater than $100,000, the income tax of article 1 is computed with a two-brackets system.
 /*
+declaration scope IncomeTaxComputation:
+  # The scope inclusion has to be added in the scope declaration
+  context two_brackets_for_rich scope TwoBracketsTaxComputation
+
 scope IncomeTaxComputation :
-  includes two_brackets_for_rich scope TwoBracketsTaxComputation
+
   definition article1.income_tax under condition
     individual.income >= $100,000
   consequence equals
@@ -159,11 +163,15 @@ Individuals earning less than $10,000 are exempted of the income tax mentionned 
 scope ExemptedOfTax :
   definition article1.income_tax equals $0
 
+declaration scope IncomeTaxComputation:
+  # The scope inclusion has to be added in the scope declaration
+  context tax_exempt scope ExemptedOfTax
+
 scope IncomeTaxComputation:
-  includes tax_exempt scope ExemptedOfTax context
-    article1 = article1
-  under condition
+  definition  article1.income_tax under condition
     individual.income <= $10,000
+  consequence equals
+    tax_exempt.article1.income_tax
 */
 
 This snippet of code actually brings the definition of article1.income_tax of ExemptedOfTax into the IncomeTaxComputation scope, prefixing it with the "income under $10,000" condition.
