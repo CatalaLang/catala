@@ -51,25 +51,6 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Pos.marked list;
 }
 
-type scope_decl_context_data = {
-  scope_decl_context_item_name : ident Pos.marked;
-  scope_decl_context_item_typ : typ Pos.marked;
-}
-
-type scope_decl_context_scope = {
-  scope_decl_context_scope_name : ident Pos.marked;
-  scope_decl_context_scope_sub_scope : constructor Pos.marked;
-}
-
-type scope_decl_context_item =
-  | ContextData of scope_decl_context_data
-  | ContextScope of scope_decl_context_scope
-
-type scope_decl = {
-  scope_decl_name : constructor Pos.marked;
-  scope_decl_context : scope_decl_context_item Pos.marked list;
-}
-
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
@@ -157,6 +138,26 @@ type scope_use = {
   scope_use_condition : expression Pos.marked option;
   scope_use_name : constructor Pos.marked;
   scope_use_items : scope_use_item Pos.marked list;
+}
+
+type scope_decl_context_scope = {
+  scope_decl_context_scope_name : ident Pos.marked;
+  scope_decl_context_scope_sub_scope : constructor Pos.marked;
+  scope_decl_context_scope_condition : expression Pos.marked option;
+}
+
+type scope_decl_context_data = {
+  scope_decl_context_item_name : ident Pos.marked;
+  scope_decl_context_item_typ : typ Pos.marked;
+}
+
+type scope_decl_context_item =
+  | ContextData of scope_decl_context_data
+  | ContextScope of scope_decl_context_scope
+
+type scope_decl = {
+  scope_decl_name : constructor Pos.marked;
+  scope_decl_context : scope_decl_context_item Pos.marked list;
 }
 
 type code_item =

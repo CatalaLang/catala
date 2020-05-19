@@ -1,6 +1,6 @@
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 246.
+## Ends in an error in state: 250.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -13,7 +13,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 245.
+## Ends in an error in state: 249.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -26,7 +26,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 244.
+## Ends in an error in state: 248.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -39,7 +39,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 243.
+## Ends in an error in state: 247.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -52,7 +52,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 242.
+## Ends in an error in state: 246.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -65,7 +65,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 241.
+## Ends in an error in state: 245.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -78,7 +78,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 238.
+## Ends in an error in state: 242.
 ##
 ## nonempty_list(scope_decl_item) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -92,7 +92,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
-## Ends in an error in state: 236.
+## Ends in an error in state: 240.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -105,7 +105,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 235.
+## Ends in an error in state: 239.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -121,7 +121,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT ID
 ## Ends in an error in state: 232.
 ##
 ## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> CONTEXT ident . SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident . SCOPE constructor option(scope_decl_context_condition) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident
@@ -135,7 +135,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YE
 ## Ends in an error in state: 231.
 ##
 ## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> CONTEXT . ident SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT . ident SCOPE constructor option(scope_decl_context_condition) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT
@@ -341,16 +341,16 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production primitive_expression -> CARDINAL
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 120, spurious reduction of production logical_expression -> compare_expression
-## In state 104, spurious reduction of production expression -> logical_expression
-## In state 189, spurious reduction of production assertion_base -> expression
-## In state 190, spurious reduction of production assertion -> option(condition_consequence) assertion_base
-## In state 191, spurious reduction of production scope_item -> ASSERTION assertion
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 120, spurious reduction of production logical_expression -> compare_expression 
+## In state 104, spurious reduction of production expression -> logical_expression 
+## In state 189, spurious reduction of production assertion_base -> expression 
+## In state 190, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
+## In state 191, spurious reduction of production scope_item -> ASSERTION assertion 
 ##
 
 Unexpected token after a scope item
@@ -360,7 +360,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL YEA
 ## Ends in an error in state: 39.
 ##
 ## aggregate_func -> CARDINAL . [ FOR ]
-## primitive_expression -> CARDINAL . [ WITH THEN SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## primitive_expression -> CARDINAL . [ WITH THEN SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CARDINAL
@@ -373,8 +373,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 ## Ends in an error in state: 66.
 ##
-## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## constructor_payload -> CONTENT small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT small_expression
@@ -387,7 +387,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 ## Ends in an error in state: 65.
 ##
-## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## constructor_payload -> CONTENT . small_expression [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT
@@ -400,7 +400,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CONSTRUCTOR 
 ##
 ## Ends in an error in state: 63.
 ##
-## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## primitive_expression -> constructor . option(constructor_payload) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ## qident_prefix -> constructor . DOT [ IDENT ]
 ##
 ## The known suffix of the stack is as follows:
@@ -414,7 +414,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION EXISTS IDENT
 ##
 ## Ends in an error in state: 112.
 ##
-## expression -> exists_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> exists_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## exists_prefix
@@ -514,8 +514,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -538,7 +538,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FOR ALL IDEN
 ##
 ## Ends in an error in state: 105.
 ##
-## expression -> forall_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> forall_prefix . expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## forall_prefix
@@ -615,7 +615,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ##
 ## Ends in an error in state: 125.
 ##
-## expression -> IF expression . THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> IF expression . THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression
@@ -624,12 +624,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 120, spurious reduction of production logical_expression -> compare_expression
-## In state 104, spurious reduction of production expression -> logical_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 120, spurious reduction of production logical_expression -> compare_expression 
+## In state 104, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -639,7 +639,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 ## Ends in an error in state: 128.
 ##
-## expression -> IF expression THEN expression ELSE . base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> IF expression THEN expression ELSE . base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN expression ELSE
@@ -652,7 +652,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 ## Ends in an error in state: 127.
 ##
-## expression -> IF expression THEN expression . ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> IF expression THEN expression . ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN expression
@@ -661,12 +661,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 120, spurious reduction of production logical_expression -> compare_expression
-## In state 104, spurious reduction of production expression -> logical_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 120, spurious reduction of production logical_expression -> compare_expression 
+## In state 104, spurious reduction of production expression -> logical_expression 
 ##
 
 Unexpected token
@@ -676,7 +676,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ##
 ## Ends in an error in state: 126.
 ##
-## expression -> IF expression THEN . expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> IF expression THEN . expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF expression THEN
@@ -689,7 +689,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF YEAR
 ##
 ## Ends in an error in state: 34.
 ##
-## expression -> IF . expression THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> IF . expression THEN expression ELSE base_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## IF
@@ -702,7 +702,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION INT_LITERAL 
 ##
 ## Ends in an error in state: 57.
 ##
-## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> num_literal . option(unit_literal) [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## num_literal
@@ -714,7 +714,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ##
 ## Ends in an error in state: 130.
 ##
-## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## atomic_expression -> LPAREN expression . RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN expression
@@ -723,12 +723,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 120, spurious reduction of production logical_expression -> compare_expression
-## In state 104, spurious reduction of production expression -> logical_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 120, spurious reduction of production logical_expression -> compare_expression 
+## In state 104, spurious reduction of production expression -> logical_expression 
 ##
 
 Unmatched parenthesis that should have ended before this
@@ -737,7 +737,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN YEAR
 ##
 ## Ends in an error in state: 32.
 ##
-## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## atomic_expression -> LPAREN . expression RPAREN [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## LPAREN
@@ -750,7 +750,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 ## Ends in an error in state: 135.
 ##
-## match_arms -> ALT match_arm . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## match_arms -> ALT match_arm . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ALT match_arm
@@ -759,12 +759,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 103, spurious reduction of production logical_expression -> logical_unop compare_expression
-## In state 139, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 103, spurious reduction of production logical_expression -> logical_unop compare_expression 
+## In state 139, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
 ##
 
 Unexpected token
@@ -774,7 +774,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 ## Ends in an error in state: 138.
 ##
-## match_arm -> constructor_binding COLON . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
+## match_arm -> constructor_binding COLON . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor_binding COLON
@@ -800,7 +800,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 ## Ends in an error in state: 137.
 ##
-## match_arm -> constructor_binding . COLON logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
+## match_arm -> constructor_binding . COLON logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## constructor_binding
@@ -840,7 +840,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 ## Ends in an error in state: 134.
 ##
-## match_arms -> ALT . match_arm match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## match_arms -> ALT . match_arm match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## ALT
@@ -853,7 +853,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ##
 ## Ends in an error in state: 133.
 ##
-## expression -> MATCH primitive_expression WITH . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> MATCH primitive_expression WITH . match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH primitive_expression WITH
@@ -866,7 +866,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW YE
 ##
 ## Ends in an error in state: 132.
 ##
-## expression -> MATCH primitive_expression . WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> MATCH primitive_expression . WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH primitive_expression
@@ -879,7 +879,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH YEAR
 ##
 ## Ends in an error in state: 31.
 ##
-## expression -> MATCH . primitive_expression WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
+## expression -> MATCH . primitive_expression WITH match_arms [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## MATCH
@@ -892,7 +892,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MINUS YEAR
 ##
 ## Ends in an error in state: 40.
 ##
-## sum_expression -> sum_unop . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## sum_expression -> sum_unop . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## sum_unop
@@ -905,7 +905,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT
 ##
 ## Ends in an error in state: 43.
 ##
-## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## small_expression -> small_expression ARROW . constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## small_expression ARROW
@@ -918,8 +918,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MONEY_AMOUNT
 ##
 ## Ends in an error in state: 42.
 ##
-## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## primitive_expression -> small_expression . [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## small_expression -> small_expression . ARROW constructor [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## small_expression
@@ -931,7 +931,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOT YEAR
 ##
 ## Ends in an error in state: 102.
 ##
-## logical_expression -> logical_unop . compare_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
+## logical_expression -> logical_unop . compare_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## logical_unop
@@ -944,7 +944,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW IN YEAR
 ##
 ## Ends in an error in state: 81.
 ##
-## base_expression -> primitive_expression IN . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression IN . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression IN
@@ -956,8 +956,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ##
 ## Ends in an error in state: 88.
 ##
-## mult_expression -> base_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## mult_expression -> base_expression . mult_op mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## mult_expression -> base_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## mult_expression -> base_expression . mult_op mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## base_expression
@@ -966,7 +966,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -976,7 +976,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW MULT YEA
 ##
 ## Ends in an error in state: 91.
 ##
-## mult_expression -> base_expression mult_op . mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## mult_expression -> base_expression mult_op . mult_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## base_expression mult_op
@@ -988,7 +988,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW NOT_EQUA
 ##
 ## Ends in an error in state: 100.
 ##
-## compare_expression -> sum_expression compare_op . compare_expression [ THEN SCOPE RULE RPAREN OR END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## compare_expression -> sum_expression compare_op . compare_expression [ THEN SCOPE RULE RPAREN OR END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## sum_expression compare_op
@@ -1000,7 +1000,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW OF YEAR
 ##
 ## Ends in an error in state: 50.
 ##
-## base_expression -> primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression OF
@@ -1012,7 +1012,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW OR YEAR
 ##
 ## Ends in an error in state: 123.
 ##
-## logical_expression -> compare_expression logical_op . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ALT ]
+## logical_expression -> compare_expression logical_op . logical_expression [ THEN SCOPE RULE RPAREN END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## compare_expression logical_op
@@ -1025,7 +1025,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW PLUS YEA
 ##
 ## Ends in an error in state: 86.
 ##
-## sum_expression -> mult_expression sum_op . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## sum_expression -> mult_expression sum_op . sum_expression [ THEN SCOPE RULE RPAREN OR NOT_EQUAL LESSER_EQUAL LESSER GREATER_EQUAL GREATER EQUAL END_CODE ELSE DEFINITION DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## mult_expression sum_op
@@ -1038,7 +1038,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW WITH YEA
 ##
 ## Ends in an error in state: 48.
 ##
-## base_expression -> primitive_expression WITH . constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression WITH . constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression WITH
@@ -1050,10 +1050,10 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW YEAR
 ##
 ## Ends in an error in state: 47.
 ##
-## base_expression -> primitive_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## base_expression -> primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## base_expression -> primitive_expression . WITH constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
-## base_expression -> primitive_expression . IN base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . WITH constructor [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
+## base_expression -> primitive_expression . IN base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## primitive_expression
@@ -1066,7 +1066,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 ## Ends in an error in state: 78.
 ##
-## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN primitive_expression OF
@@ -1079,7 +1079,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 ## Ends in an error in state: 77.
 ##
-## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN primitive_expression
@@ -1092,7 +1092,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 ## Ends in an error in state: 75.
 ##
-## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident IN
@@ -1105,7 +1105,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR IDEN
 ##
 ## Ends in an error in state: 74.
 ##
-## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR ident
@@ -1118,7 +1118,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM FOR YEAR
 ##
 ## Ends in an error in state: 73.
 ##
-## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func FOR
@@ -1131,7 +1131,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION SUM YEAR
 ##
 ## Ends in an error in state: 72.
 ##
-## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN SCOPE RULE RPAREN PLUS OR NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## aggregate_func
@@ -1166,14 +1166,14 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production primitive_expression -> CARDINAL
-## In state 47, spurious reduction of production base_expression -> primitive_expression
-## In state 88, spurious reduction of production mult_expression -> base_expression
-## In state 83, spurious reduction of production sum_expression -> mult_expression
-## In state 93, spurious reduction of production compare_expression -> sum_expression
-## In state 120, spurious reduction of production logical_expression -> compare_expression
-## In state 104, spurious reduction of production expression -> logical_expression
-## In state 154, spurious reduction of production condition -> UNDER_CONDITION expression
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL 
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 88, spurious reduction of production mult_expression -> base_expression 
+## In state 83, spurious reduction of production sum_expression -> mult_expression 
+## In state 93, spurious reduction of production compare_expression -> sum_expression 
+## In state 120, spurious reduction of production logical_expression -> compare_expression 
+## In state 104, spurious reduction of production expression -> logical_expression 
+## In state 154, spurious reduction of production condition -> UNDER_CONDITION expression 
 ##
 
 Unexpected token after a condition
@@ -1204,8 +1204,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1224,7 +1224,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 47, spurious reduction of production base_expression -> primitive_expression 
 ##
 
 Unexpected token
@@ -1260,7 +1260,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 ## Ends in an error in state: 24.
 ##
-## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int DIV date_int . VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int DIV date_int
@@ -1273,7 +1273,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 ## Ends in an error in state: 23.
 ##
-## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int DIV . date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int DIV
@@ -1285,7 +1285,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 ## Ends in an error in state: 22.
 ##
-## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV date_int . DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV date_int
@@ -1298,7 +1298,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 ## Ends in an error in state: 21.
 ##
-## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int DIV . date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int DIV
@@ -1310,7 +1310,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL INT
 ##
 ## Ends in an error in state: 20.
 ##
-## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL date_int . DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL date_int
@@ -1323,7 +1323,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VERTICAL YEA
 ##
 ## Ends in an error in state: 18.
 ##
-## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
+## literal -> VERTICAL . date_int DIV date_int DIV date_int VERTICAL [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER EQUAL END_CODE ELSE DIV DEFINITION DECREASING DECLARATION CONTEXT CONSEQUENCE COLON ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## VERTICAL
@@ -1395,8 +1395,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Only the identifier you wish to define should follow the definition introducing token
@@ -1418,7 +1418,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE CONSTRUCTOR DOT Y
 ##
 ## Ends in an error in state: 51.
 ##
-## qident -> option(qident_prefix) . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
+## qident -> option(qident_prefix) . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONTEXT CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(qident_prefix)
@@ -1444,7 +1444,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
 ## Ends in an error in state: 55.
 ##
-## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONTEXT CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident DOT
@@ -1518,8 +1518,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
 ##
 
 Unexpected token
@@ -1529,8 +1529,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
 ## Ends in an error in state: 54.
 ##
-## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
-## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONTEXT CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
+## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V WITH WE_HAVE UNDER_CONDITION THEN SUCH SCOPE RULE RPAREN PLUS OR OF NOT_EQUAL NOT MULT MINUS LESSER_EQUAL LESSER INCREASING IN GREATER_EQUAL GREATER FILLED EQUAL END_CODE ELSE DIV DEFINITION DEFINED_AS DECREASING DECLARATION CONTEXT CONSEQUENCE COLON BY ASSERTION ARROW AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident
@@ -1589,7 +1589,7 @@ Expecting the constructor for the scope
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 260.
+## Ends in an error in state: 264.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1601,7 +1601,7 @@ Wrong way to begin a code section
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 257.
+## Ends in an error in state: 261.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1640,7 +1640,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 264.
+## Ends in an error in state: 268.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##
