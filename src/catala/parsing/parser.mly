@@ -23,7 +23,7 @@
 %token EOF
 %token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
-%token<string * int option> LAW_INCLUDE
+%token<Ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -41,9 +41,9 @@
 %token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
-%token FIELD FILLED NOT_EQUAL DEFINITION
+%token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
-%token CONTEXT INCLUDES ENUM ELSE DATE SUM
+%token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE
 
@@ -72,12 +72,15 @@ optional_marked:
 | OPTIONAL { $sloc }
 
 typ:
-| collection = option(collection_marked) t = typ_base optional = option(optional_marked) {
-  (Data {
-    typ_data_collection = collection;
-    typ_data_optional = optional;
-    typ_data_base = t;
-  }, $sloc)
+| t = typ_base {
+  let t, loc = t in
+  (Primitive t, loc)
+}
+| collection_marked t = typ {
+  (Optional t, $sloc)
+}
+| optional_marked t = typ {
+  (Collection t, $sloc)
 }
 
 qident_prefix:
@@ -340,7 +343,7 @@ assertion:
   MetaAssertion (VariesWith (q, e, t))
 }
 
-application_field_item:
+scope_item:
 | RULE r = rule {
    let (r, _) = r in (Rule r, $sloc)
 }
@@ -357,19 +360,20 @@ ident:
 condition_pos:
 | CONDITION { $sloc }
 
-struct_field_base:
+struct_scope_base:
 | DATA i= ident CONTENT t = typ {
-  (i, t)
+  let t, pos = t in
+  (i, (Data t, pos))
 }
 | pos = condition_pos i = ident {
   (i, (Condition, pos))
 }
 
-struct_field_func:
+struct_scope_func:
 | DEPENDS t = typ { t }
 
-struct_field:
-| name_and_typ = struct_field_base func_typ = option(struct_field_func) {
+struct_scope:
+| name_and_typ = struct_scope_base func_typ = option(struct_scope_func) {
   let (name, typ) = name_and_typ in
   let (typ, typ_pos) = typ in
   ({
@@ -378,49 +382,30 @@ struct_field:
     | None -> (Base typ, typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
       arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc) ;
   }, $sloc)
 }
 
-field_decl_item:
-| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_field_func) { ({
-  field_decl_context_item_name = i;
-  field_decl_context_item_typ =
+scope_decl_item:
+| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
+  scope_decl_context_item_name = i;
+  scope_decl_context_item_typ =
     let (typ, typ_pos) = t in
     match func_typ with
-    | None -> (Base typ, typ_pos)
+    | None -> (Base (Data typ), typ_pos)
     | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (typ, typ_pos);
-      return_typ = (return_typ, return_pos);
+      arg_typ = (Data typ, typ_pos);
+      return_typ = (Data return_typ, return_pos);
     }, $sloc);
-  }, $sloc) }
-
-field_decl_include:
-| c1 = constructor DOT i1 = ident EQUAL c2 = constructor DOT i2 = ident {
-  ({
-    parent_field_name = c1;
-    parent_field_context_item = i1 ;
-    sub_field_name = c2;
-    sub_field_context_item = i2;
-  }, $sloc)
-}
-
-field_decl_includes_context:
-| CONTEXT join = nonempty_list(field_decl_include) { join }
-
-field_decl_includes:
-| INCLUDES FIELD c = constructor context = option(field_decl_includes_context) {
- ({
-   field_decl_include_sub_field = c;
-   field_decl_include_joins = match context with
-   | None -> []
-   | Some context -> context
-  }, $sloc)
-}
+  }), $sloc) }
+| CONTEXT i = ident SCOPE c = constructor { ( ContextScope({
+  scope_decl_context_scope_name = i;
+  scope_decl_context_scope_sub_scope = c;
+  }), $sloc) }
 
 enum_decl_line_payload:
-| CONTENT t = typ { let (t, t_pos) = t in (Base t, t_pos) }
+| CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }
 
 enum_decl_line:
 | ALT c = constructor t = option(enum_decl_line_payload) { ({
@@ -431,25 +416,27 @@ enum_decl_line:
 constructor:
 | c = CONSTRUCTOR { (c, $sloc) }
 
+scope_use_condition:
+| UNDER_CONDITION e = expression { e }
+
 code_item:
-| FIELD c = constructor COLON items = nonempty_list(application_field_item) {
-  (FieldUse {
-    field_use_name = c;
-    field_use_items = items;
+| SCOPE c = constructor e = option(scope_use_condition) COLON items = nonempty_list(scope_item) {
+  (ScopeUse {
+    scope_use_name = c;
+    scope_use_condition = e;
+    scope_use_items = items;
   }, $sloc)
 }
-| DECLARATION STRUCT c = constructor COLON fields = list(struct_field) {
+| DECLARATION STRUCT c = constructor COLON scopes = list(struct_scope) {
   (StructDecl {
     struct_decl_name = c;
-    struct_decl_fields = fields;
+    struct_decl_fields = scopes;
   }, $sloc)
 }
-| DECLARATION FIELD c = constructor COLON context = nonempty_list(field_decl_item)
-  includes = list(field_decl_includes) {
-  (FieldDecl {
-      field_decl_name = c;
-      field_decl_context = context;
-      field_decl_includes = includes;
+| DECLARATION SCOPE c = constructor COLON context = nonempty_list(scope_decl_item) {
+  (ScopeDecl {
+      scope_decl_name = c;
+      scope_decl_context = context;
   }, $sloc)
 }
 | DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
@@ -487,7 +474,7 @@ source_file_item:
   CodeBlock (code, (text, pos))
 }
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in LawInclude (file, page)
+  LawInclude includ
 }
 
 source_file:
@@ -496,9 +483,9 @@ source_file:
 
 master_file_include:
 | includ = LAW_INCLUDE {
-  let (file, page) = includ in match page with
-  | None -> (file, $sloc)
-  | Some _ -> Errors.parser_error $sloc file (Printf.sprintf "Include in master file must be .catala file!" )
+  match includ with
+  | CatalaFile (file, _) -> (file, $sloc)
+  | _ -> Errors.parser_error $sloc "inclusion" (Printf.sprintf "Include in master file must be .catala file!" )
 }
 
 master_file_includes:

@@ -59,6 +59,15 @@ let no_pos : t =
   in
   (zero_pos, zero_pos)
 
+let from_info (file : string) (sline : int) (scol : int) (eline : int) (ecol : int) : t =
+  let spos =
+    { Lexing.pos_fname = file; Lexing.pos_lnum = sline; Lexing.pos_cnum = scol; Lexing.pos_bol = 1 }
+  in
+  let epos =
+    { Lexing.pos_fname = file; Lexing.pos_lnum = eline; Lexing.pos_cnum = ecol; Lexing.pos_bol = 1 }
+  in
+  (spos, epos)
+
 let unmark ((x, _) : 'a marked) : 'a = x
 
 let get_position ((_, x) : 'a marked) : t = x

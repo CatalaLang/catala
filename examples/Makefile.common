@@ -1,3 +1,7 @@
+##########################################
+# Variables
+##########################################
+
 LATEXMK=latexmk
 
 PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
@@ -22,19 +26,35 @@ ifeq ($(CATALA_LANG),en)
 	PYGMENTIZE=$(PYGMENTIZE_EN)
 endif
 
+##########################################
+# Targets
+##########################################
+
 %.tex: %.catala $(CATALA_EXE)
 	$(CATALA) Makefile $<
 	$(CATALA) \
-		--wrap_latex \
+		--wrap \
 		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
+
+%.html: %.catala $(CATALA_EXE)
+	$(CATALA) Makefile $<
+	$(CATALA) \
+	--wrap \
+	--pygmentize=$(PYGMENTIZE) \
+	HTML \
+	$<
 
 %.expired: %.catala $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
 	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)
 
 %.pdf: %.tex
 	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
+
+##########################################
+# Misceallenous
+##########################################
 
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala=.tex)

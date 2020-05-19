@@ -35,10 +35,10 @@ déclaration énumération Collectivité :
 déclaration structure Ménage :
   donnée enfants contenu collection Enfant
   donnée parent_en_charge contenu Personne dépend de Enfant
-  donnée enfant_plus_âgé contenu Enfant optionnel
+  donnée enfant_plus_âgé contenu optionnel Enfant
   donnée parents contenu collection Personne
   donnée parent1 contenu Personne
-  donnée parent2 contenu Personne optionnel
+  donnée parent2 contenu optionnel Personne
   donnée résidence contenu Collectivité
   # Le mot optionnel permet de prévoir le cas où le
   # ménage n'a pas d'enfants
@@ -131,7 +131,7 @@ déclaration énumération ChoixParentAllocataire :
   -- DeuxParents
 
 déclaration structure AllocationsGardeAlternée :
-  donnée choix_allocataire contenu ChoixParentAllocataire optionnel
+  donnée choix_allocataire contenu optionnel ChoixParentAllocataire
      dépend de Enfant
   condition unique_allocataire dépend de Enfant
   condition allocataire_double dépend de Enfant
@@ -189,8 +189,13 @@ déclaration champ d'application CalculPrestationsFamiliales :
   contexte prestations_familiales contenu PrestationsFamiliales
   contexte l511_1 contenu L511_1
   contexte l512_3 contenu L512_3
-inclus champ d'application MénageBienFormé contexte
-  PrestationsFamiliales.ménage = MénageBienFormé.ménage
+  contexte ménage_bien_formé champ d'application MénageBienFormé
+
+champ d'application CalculPrestationsFamiliales:
+  définition ménage_bien_formé.ménage égal à ménage
+
+déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
+  contexte l521_3 contenu L521_3
 
 déclaration champ d'application CalculAllocationsFamiliales :
   contexte date_calcul contenu date
@@ -208,16 +213,17 @@ déclaration champ d'application CalculAllocationsFamiliales :
   contexte l751_1 contenu L751_1
   contexte d521_1 contenu D521_1
   contexte d521_3 contenu D521_3
-inclus champ d'application CalculPrestationsFamiliales contexte
-  AllocationsFamiliales.ménage = PrestationsFamiliales.ménage
-  AllocationsFamiliales.date_calcul = PrestationsFamiliales.date_calcul
+  contexte calcul_prestations_familiales
+    champ d'application CalculPrestationsFamiliales
+  contexte calcul_avril_2008
+    champ d'application CalculAllocationsFamilialesAvril2008
+
+champ d'application CalculAllocationsFamiliales:
+  définition calcul_prestations_familiales.ménage égal à ménage
+  définition calcul_prestations_familiales.date_calcul égal à date_calcul
   # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
   # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
-  # que les deux contextes parlent du même ménage pour caractériser
+  #  que les deux contextes parlent du même ménage pour caractériser
   # l'inclusion.
-inclus champ d'application AllocationFamilialesAvril2008
-
-déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
-  contexte l521_3 contenu L521_3
 */
 @@Fin métadonnées@@

@@ -15,7 +15,7 @@
 module I = Ir
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
-let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
+let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
     (output_file : string option) : int =
   Cli.debug_flag := debug;
@@ -37,7 +37,8 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
   in
   let backend =
     if backend = "Makefile" then Cli.Makefile
-    else if backend = "LaTeX" then Cli.LaTeX
+    else if backend = "LaTeX" then Cli.Latex
+    else if backend = "HTML" then Cli.Html
     else begin
       Cli.error_print
         (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend);
@@ -61,23 +62,43 @@ let driver (source_file : string) (debug : bool) (wrap_latex_output : bool)
         (String.concat "\\\n" program.program_source_files)
         (String.concat "\\\n" program.program_source_files);
       0
-  | Cli.LaTeX ->
-      Cli.debug_print (Printf.sprintf "Weaving literate program into LaTeX");
-      let weaved_output = Weave.ast_to_latex program language in
-      let weaved_output =
-        if wrap_latex_output then
-          Weave.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc language
-        else weaved_output
-      in
-      let output_file =
-        match output_file with
-        | Some f -> f
-        | None -> Filename.remove_extension source_file ^ ".tex"
-      in
-      Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
-      let oc = open_out output_file in
-      Printf.fprintf oc "%s" weaved_output;
-      close_out oc;
-      0
+  | Cli.Latex | Cli.Html -> (
+      Cli.debug_print
+        (Printf.sprintf "Weaving literate program into %s"
+           (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
+      try
+        let weaved_output =
+          match backend with
+          | Cli.Latex -> Latex.ast_to_latex program language
+          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
+          | _ -> assert false
+        in
+        let output_file =
+          match output_file with
+          | Some f -> f
+          | None -> (
+              Filename.remove_extension source_file
+              ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
+        in
+        let weaved_output =
+          if wrap_weaved_output then
+            match backend with
+            | Cli.Latex ->
+                Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
+                  language
+            | Cli.Html ->
+                Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc
+                  language
+            | _ -> assert false
+          else weaved_output
+        in
+        Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
+        let oc = open_out output_file in
+        Printf.fprintf oc "%s" weaved_output;
+        close_out oc;
+        0
+      with Errors.WeavingError msg ->
+        Cli.error_print msg;
+        exit (-1) )
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

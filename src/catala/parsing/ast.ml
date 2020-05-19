@@ -20,11 +20,10 @@ type qident = { qident_prefix : constructor Pos.marked option; qident_path : ide
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
-type base_typ_data = {
-  typ_data_collection : Pos.t option;
-  typ_data_optional : Pos.t option;
-  typ_data_base : primitive_typ Pos.marked;
-}
+type base_typ_data =
+  | Primitive of primitive_typ
+  | Collection of base_typ_data Pos.marked
+  | Optional of base_typ_data Pos.marked
 
 type base_typ = Condition | Data of base_typ_data
 
@@ -52,27 +51,23 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Pos.marked list;
 }
 
-type field_decl_context_item = {
-  field_decl_context_item_name : ident Pos.marked;
-  field_decl_context_item_typ : typ Pos.marked;
+type scope_decl_context_data = {
+  scope_decl_context_item_name : ident Pos.marked;
+  scope_decl_context_item_typ : typ Pos.marked;
 }
 
-type field_decl_include_join = {
-  parent_field_name : constructor Pos.marked;
-  parent_field_context_item : ident Pos.marked;
-  sub_field_name : constructor Pos.marked;
-  sub_field_context_item : ident Pos.marked;
+type scope_decl_context_scope = {
+  scope_decl_context_scope_name : ident Pos.marked;
+  scope_decl_context_scope_sub_scope : constructor Pos.marked;
 }
 
-type field_decl_include = {
-  field_decl_include_sub_field : constructor Pos.marked;
-  field_decl_include_joins : field_decl_include_join Pos.marked list;
-}
+type scope_decl_context_item =
+  | ContextData of scope_decl_context_data
+  | ContextScope of scope_decl_context_scope
 
-type field_decl = {
-  field_decl_name : constructor Pos.marked;
-  field_decl_context : field_decl_context_item Pos.marked list;
-  field_decl_includes : field_decl_include Pos.marked list;
+type scope_decl = {
+  scope_decl_name : constructor Pos.marked;
+  scope_decl_context : scope_decl_context_item Pos.marked list;
 }
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
@@ -152,20 +147,21 @@ type assertion = {
   assertion_content : expression Pos.marked;
 }
 
-type field_use_item =
+type scope_use_item =
   | Rule of rule
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
 
-type field_use = {
-  field_use_name : constructor Pos.marked;
-  field_use_items : field_use_item Pos.marked list;
+type scope_use = {
+  scope_use_condition : expression Pos.marked option;
+  scope_use_name : constructor Pos.marked;
+  scope_use_items : scope_use_item Pos.marked list;
 }
 
 type code_item =
-  | FieldUse of field_use
-  | FieldDecl of field_decl
+  | ScopeUse of scope_use
+  | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
 
@@ -179,13 +175,18 @@ type law_article = {
   law_article_expiration_date : string option;
 }
 
+type law_include =
+  | PdfFile of string Pos.marked * int option
+  | CatalaFile of string Pos.marked
+  | LegislativeText of string Pos.marked
+
 type program_item =
   | LawHeading of string * int
   | LawArticle of law_article
   | LawText of string
   | CodeBlock of code_block * source_repr
   | MetadataBlock of code_block * source_repr
-  | LawInclude of string * int option
+  | LawInclude of law_include
 
 type program = { program_items : program_item list; program_source_files : string list }
 
