@@ -20,20 +20,21 @@ type access_token
 (** The [access_token] is the OAuth token used in every API request for authentication *)
 
 val get_token : string -> string -> access_token
-(** [get_token cliend_id client_secret] retrieves the access token from the LegiFrance API.
-
-    @see <https://developer.aife.economie.gouv.fr/> This is the official website of the French
-    government where you have to register to get your OAuth client ID and Secret for the LegiFrance
-    API *)
+(** [get_token cliend_id client_secret] retrieves the access token from the LegiFrance API. You have
+    to register on the {{:https://developer.aife.economie.gouv.fr/} the official website of the
+    French government} to get your OAuth client ID and Secret for the LegiFrance API *)
 
 type article
-(** The type of law articles, returned by the LegiFrance API *)
 
 val retrieve_article : access_token -> string -> article
 (** [retrieve_article token article_id] returns the article from the LegiFrance API. [article_id]
-    should be of the form "LEGIARTI000006307920" *)
+    should be of the form ["LEGIARTI000006307920"] *)
 
-val get_text_json : access_token -> string -> Yojson.Basic.t
+type law_excerpt
+
+val retrieve_law_excerpt : access_token -> string -> law_excerpt
+(**[retrieve_law_excerpt token excerpt_id] returns a whole excerpt of a legislative statute from the
+   LegiFrance API. [excerpt_id] should be of the form ["JORFTEXT000033736934"] *)
 
 (**{2 Manipulating API objects}*)
 
@@ -46,3 +47,11 @@ val get_article_text : article -> string
 val get_article_expiration_date : article -> Unix.tm
 
 val get_article_new_version : article -> string
+
+(**{3 Law excerpts}*)
+
+val get_law_excerpt_title : law_excerpt -> string
+
+type law_excerpt_article = { id : string; num : string; content : string }
+
+val get_law_excerpt_articles : law_excerpt -> law_excerpt_article list

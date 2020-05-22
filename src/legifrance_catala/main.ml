@@ -194,44 +194,15 @@ let compare_to_versions (article_text_acc : article_text_acc) (access_token : Ap
             diff )
   | None -> ()
 
-let clean_html (s : string) : string =
-  let new_line = Re.Pcre.regexp "\\s*\\<br\\s*\\/\\>\\s*" in
-  let s = Re.Pcre.substitute ~rex:new_line ~subst:(fun _ -> "\n") s in
-  let tag = Re.Pcre.regexp "\\<[^\\>]+\\>" in
-  let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
-  String.trim s
-
 let include_legislative_text (id : string Catala.Pos.marked) (access_token : Api.access_token) :
     unit =
-  let json = Api.get_text_json access_token (Catala.Pos.unmark id) in
-  let title =
-    "@@" ^ (json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string) ^ "@@"
-  in
-  let articles = json |> Yojson.Basic.Util.member "articles" |> Yojson.Basic.Util.to_list in
-  let articles =
-    List.sort
-      (fun a1 a2 ->
-        let a1_num =
-          int_of_string (a1 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        let a2_num =
-          int_of_string (a2 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        compare a1_num a2_num)
-      articles
-  in
+  let excerpt = Api.retrieve_law_excerpt access_token (Catala.Pos.unmark id) in
+  let title = "@@" ^ Api.get_law_excerpt_title excerpt ^ "@@" in
   let articles =
     List.map
       (fun article ->
-        let article_id = article |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string in
-        let article_num =
-          int_of_string (article |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        let article_content =
-          article |> Yojson.Basic.Util.member "content" |> Yojson.Basic.Util.to_string |> clean_html
-        in
-        Printf.sprintf "@Article %d|%s@\n%s" article_num article_id article_content)
-      articles
+        Printf.sprintf "@Article %s|%s@\n%s" article.Api.num article.Api.id article.Api.content)
+      (Api.get_law_excerpt_articles excerpt)
   in
   let to_insert = title ^ "\n\n" ^ String.concat "\n\n" articles in
   let pos = Catala.Pos.get_position id in

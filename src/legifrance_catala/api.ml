@@ -109,17 +109,19 @@ let raise_article_parsing_error (json : Yojson.Basic.t) (msg : string) (obj : Yo
        (Yojson.Basic.to_string obj) (Yojson.Basic.to_string json));
   exit 1
 
-let get_text_json (access_token : string) (text_id : string) : Yojson.Basic.t =
+type law_excerpt = Yojson.Basic.t
+
+let retrieve_law_excerpt (access_token : string) (text_id : string) : law_excerpt =
   run_request (make_request access_token "consult/jorfPart" [ ("textCid", text_id) ])
 
-let get_article_id (json : Yojson.Basic.t) : string =
+let get_article_id (json : article) : string =
   try
     json
     |> Yojson.Basic.Util.member "article"
     |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
 
-let get_article_text (json : Yojson.Basic.t) : string =
+let get_article_text (json : article) : string =
   try
     let text =
       json
@@ -137,7 +139,7 @@ let get_article_text (json : Yojson.Basic.t) : string =
     text ^ " " ^ if nota <> "" then "NOTA : " ^ nota else ""
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
 
-let get_article_expiration_date (json : Yojson.Basic.t) : Unix.tm =
+let get_article_expiration_date (json : article) : Unix.tm =
   try
     let article_id = get_article_id json in
     json
@@ -153,7 +155,7 @@ let get_article_expiration_date (json : Yojson.Basic.t) : Unix.tm =
 let date_compare (d1 : Unix.tm) (d2 : Unix.tm) : int =
   int_of_float (fst (Unix.mktime d1)) - int_of_float (fst (Unix.mktime d2))
 
-let get_article_new_version (json : Yojson.Basic.t) : string =
+let get_article_new_version (json : article) : string =
   let expiration_date = get_article_expiration_date json in
   let get_version_date_debut (version : Yojson.Basic.t) : Unix.tm =
     version
@@ -171,3 +173,39 @@ let get_article_new_version (json : Yojson.Basic.t) : string =
            date_compare (get_version_date_debut version1) (get_version_date_debut version2))
     |> List.hd |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
+
+let get_law_excerpt_title (json : law_excerpt) : string =
+  json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string
+
+type law_excerpt_article = { id : string; num : string; content : string }
+
+let clean_html (s : string) : string =
+  let new_line = Re.Pcre.regexp "\\s*\\<br\\s*\\/\\>\\s*" in
+  let s = Re.Pcre.substitute ~rex:new_line ~subst:(fun _ -> "\n") s in
+  let tag = Re.Pcre.regexp "\\<[^\\>]+\\>" in
+  let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
+  String.trim s
+
+let get_law_excerpt_articles (json : law_excerpt) : law_excerpt_article list =
+  let articles = json |> Yojson.Basic.Util.member "articles" |> Yojson.Basic.Util.to_list in
+  let articles =
+    List.sort
+      (fun a1 a2 ->
+        let a1_num =
+          int_of_string (a1 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
+        in
+        let a2_num =
+          int_of_string (a2 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
+        in
+        compare a1_num a2_num)
+      articles
+  in
+  List.map
+    (fun article ->
+      let article_id = article |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string in
+      let article_num = article |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string in
+      let article_content =
+        article |> Yojson.Basic.Util.member "content" |> Yojson.Basic.Util.to_string |> clean_html
+      in
+      { id = article_id; num = article_num; content = article_content })
+    articles
