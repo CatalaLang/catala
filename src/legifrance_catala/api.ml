@@ -14,6 +14,8 @@
 
 open Lwt
 
+type access_token = string
+
 let get_token_aux (client_id : string) (client_secret : string) : (string * string t) t =
   let site = "https://oauth.aife.economie.gouv.fr" in
   let token_url = "/api/oauth/token" in
@@ -38,10 +40,15 @@ let get_token_aux (client_id : string) (client_secret : string) : (string * stri
 let get_token (client_id : string) (client_secret : string) : string =
   let resp, body = Lwt_main.run (get_token_aux client_id client_secret) in
   let body = Lwt_main.run body in
-  if resp = "200 OK" then
-    body |> Yojson.Basic.from_string
-    |> Yojson.Basic.Util.member "access_token"
-    |> Yojson.Basic.Util.to_string
+  if resp = "200 OK" then begin
+    let token =
+      body |> Yojson.Basic.from_string
+      |> Yojson.Basic.Util.member "access_token"
+      |> Yojson.Basic.Util.to_string
+    in
+    Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" token);
+    token
+  end
   else begin
     Catala.Cli.debug_print
       (Printf.sprintf "The API access token request went wrong ; status is %s and the body is\n%s"
@@ -73,6 +80,8 @@ let make_request (access_token : string) (token_url : string) (body_json : (stri
     body |> Cohttp_lwt.Body.to_string )
   |> return
 
+type article = Yojson.Basic.t
+
 let run_request (request : (string * string t) t) : Yojson.Basic.t =
   let resp, body = Lwt_main.run request in
   let body = Lwt_main.run body in
@@ -90,7 +99,7 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     exit (-1)
   end
 
-let get_article_json (access_token : string) (article_id : string) : Yojson.Basic.t =
+let retrieve_article (access_token : string) (article_id : string) : Yojson.Basic.t =
   run_request (make_request access_token "consult/getArticle" [ ("id", article_id) ])
 
 let raise_article_parsing_error (json : Yojson.Basic.t) (msg : string) (obj : Yojson.Basic.t) =

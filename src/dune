@@ -7,7 +7,7 @@
 
 (executable
  (name legifrance_catala)
- (package catala)
+ (package legifrance_catala)
  (modules legifrance_catala)
  (public_name legifrance_catala)
  (libraries legifrance_catala))

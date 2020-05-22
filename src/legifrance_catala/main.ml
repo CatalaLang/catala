@@ -88,12 +88,12 @@ let is_infinity (d : Unix.tm) : bool = d.Unix.tm_year + 1900 = 2999
 type new_article_version = NotAvailable | Available of string
 
 (* Returns the ID of the future version of the article if any *)
-let check_article_expiration (article_catala : Catala.Ast.law_article) (access_token : string) :
-    new_article_version option =
+let check_article_expiration (article_catala : Catala.Ast.law_article)
+    (access_token : Api.access_token) : new_article_version option =
   match article_catala.Catala.Ast.law_article_id with
   | None -> None
   | Some article_id ->
-      let article = Api.get_article_json access_token article_id in
+      let article = Api.retrieve_article access_token article_id in
       let api_article_expiration_date = Api.get_article_expiration_date article in
       let msg =
         Printf.sprintf "%s %s expires on %s according to LegiFrance%s"
@@ -136,9 +136,9 @@ type article_text_acc = {
 
 module Diff = Diff.Make (String)
 
-let compare_article_to_version (access_token : string) (text : string) (version : string) :
-    Diff.t option =
-  let new_article = Api.get_article_json access_token version in
+let compare_article_to_version (access_token : Api.access_token) (text : string) (version : string)
+    : Diff.t option =
+  let new_article = Api.retrieve_article access_token version in
   let new_article_text = Api.get_article_text new_article in
   let text_to_list text = List.filter (fun word -> word <> "") (String.split_on_char ' ' text) in
   let old_list = text_to_list text in
@@ -149,7 +149,8 @@ let compare_article_to_version (access_token : string) (text : string) (version 
   in
   if not all_equal then Some diff else None
 
-let compare_to_versions (article_text_acc : article_text_acc) (access_token : string) : unit =
+let compare_to_versions (article_text_acc : article_text_acc) (access_token : Api.access_token) :
+    unit =
   let print_diff msg diff =
     Catala.Cli.warning_print
       (Printf.sprintf "%s\n%s" msg
@@ -200,7 +201,8 @@ let clean_html (s : string) : string =
   let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
   String.trim s
 
-let include_legislative_text (id : string Catala.Pos.marked) (access_token : string) : unit =
+let include_legislative_text (id : string Catala.Pos.marked) (access_token : Api.access_token) :
+    unit =
   let json = Api.get_text_json access_token (Catala.Pos.unmark id) in
   let title =
     "@@" ^ (json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string) ^ "@@"
@@ -257,7 +259,6 @@ let include_legislative_text (id : string Catala.Pos.marked) (access_token : str
 let driver (file : string) (debug : bool) (client_id : string) (client_secret : string) =
   if debug then Catala.Cli.debug_flag := true;
   let access_token = Api.get_token client_id client_secret in
-  Catala.Cli.debug_print (Printf.sprintf "The LegiFrance API access token is %s" access_token);
   (* LegiFrance is only supported for French texts *)
   let program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
   let article_text_acc =

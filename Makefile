@@ -37,6 +37,9 @@ build:
 	$(MAKE) format
 	dune build
 
+doc: build
+	dune build @doc
+
 install: build
 	dune build @install
 
