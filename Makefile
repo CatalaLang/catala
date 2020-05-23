@@ -116,7 +116,7 @@ legifrance_catala.html: src/legifrance_catala/main.ml
 	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,18d" | tac > $@ > $@
 
-website-assets: all_examples grammar.html catala.html legifrance_catala.html
+website-assets: doc all_examples grammar.html catala.html legifrance_catala.html
 
 ##########################################
 # Misceallenous

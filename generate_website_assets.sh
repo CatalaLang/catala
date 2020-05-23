@@ -9,6 +9,7 @@ fi
 
 make website-assets
 
+scp -r _build/default/_doc/_html $1/ocaml_docs
 scp examples/allocations_familiales/allocations_familiales.html $1/
 scp examples/dummy_english/english.html $1/
 scp examples/tutorial/tutorial_en.html $1/
