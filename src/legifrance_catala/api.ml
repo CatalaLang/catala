@@ -152,9 +152,6 @@ let get_article_expiration_date (json : article) : Unix.tm =
     |> Yojson.Basic.Util.to_int |> api_timestamp_to_localtime
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
 
-let date_compare (d1 : Unix.tm) (d2 : Unix.tm) : int =
-  int_of_float (fst (Unix.mktime d1)) - int_of_float (fst (Unix.mktime d2))
-
 let get_article_new_version (json : article) : string =
   let expiration_date = get_article_expiration_date json in
   let get_version_date_debut (version : Yojson.Basic.t) : Unix.tm =
@@ -168,9 +165,9 @@ let get_article_new_version (json : article) : string =
     |> Yojson.Basic.Util.member "articleVersions"
     |> Yojson.Basic.Util.to_list
     |> List.filter (fun version ->
-           date_compare expiration_date (get_version_date_debut version) <= 0)
+           Date.date_compare expiration_date (get_version_date_debut version) <= 0)
     |> List.sort (fun version1 version2 ->
-           date_compare (get_version_date_debut version1) (get_version_date_debut version2))
+           Date.date_compare (get_version_date_debut version1) (get_version_date_debut version2))
     |> List.hd |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) -> raise_article_parsing_error json msg obj
 
