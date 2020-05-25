@@ -5,8 +5,8 @@
 *.log
 *.out
 *.fls
-tutorial_en.tex
-tutorial_en.pdf
+*.tex
+*.pdf
 _minted*
 *.toc
 *.pyg

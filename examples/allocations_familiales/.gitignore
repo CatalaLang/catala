@@ -5,10 +5,9 @@
 *.log
 *.out
 *.fls
-allocations_familiales.tex
-allocations_familiales.pdf
-allocations_familiales.html
-allocations_familiales.css
+*.tex
+*.pdf
+*.html
 _minted*
 *.toc
 *.pyg
