@@ -52,13 +52,12 @@ let token_list_language_agnostic : (string * token) list =
 
 let token_list_fr : (string * token) list =
   [
-    ("champ d'application", FIELD);
+    ("champ d'application", SCOPE);
     ("conséquence", CONSEQUENCE);
     ("donnée", DATA);
     ("dépend de", DEPENDS);
     ("déclaration", DECLARATION);
     ("contexte", CONTEXT);
-    ("inclus", INCLUDES);
     ("décroissant", DECREASING);
     ("croissant", INCREASING);
     ("de", OF);
@@ -120,7 +119,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       END_CODE !code_string_acc
   | "champ d\'application" ->
       update_acc lexbuf;
-      FIELD
+      SCOPE
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       update_acc lexbuf;
@@ -134,9 +133,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "contexte" ->
       update_acc lexbuf;
       CONTEXT
-  | "inclus" ->
-      update_acc lexbuf;
-      INCLUDES
   | "d", 0xE9, "croissant" ->
       update_acc lexbuf;
       DECREASING

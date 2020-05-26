@@ -51,29 +51,6 @@ type enum_decl = {
   enum_decl_cases : enum_decl_case Pos.marked list;
 }
 
-type field_decl_context_item = {
-  field_decl_context_item_name : ident Pos.marked;
-  field_decl_context_item_typ : typ Pos.marked;
-}
-
-type field_decl_include_join = {
-  parent_field_name : constructor Pos.marked;
-  parent_field_context_item : ident Pos.marked;
-  sub_field_name : constructor Pos.marked;
-  sub_field_context_item : ident Pos.marked;
-}
-
-type field_decl_include = {
-  field_decl_include_sub_field : constructor Pos.marked;
-  field_decl_include_joins : field_decl_include_join Pos.marked list;
-}
-
-type field_decl = {
-  field_decl_name : constructor Pos.marked;
-  field_decl_context : field_decl_context_item Pos.marked list;
-  field_decl_includes : field_decl_include Pos.marked list;
-}
-
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
@@ -151,20 +128,41 @@ type assertion = {
   assertion_content : expression Pos.marked;
 }
 
-type field_use_item =
+type scope_use_item =
   | Rule of rule
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
 
-type field_use = {
-  field_use_name : constructor Pos.marked;
-  field_use_items : field_use_item Pos.marked list;
+type scope_use = {
+  scope_use_condition : expression Pos.marked option;
+  scope_use_name : constructor Pos.marked;
+  scope_use_items : scope_use_item Pos.marked list;
+}
+
+type scope_decl_context_scope = {
+  scope_decl_context_scope_name : ident Pos.marked;
+  scope_decl_context_scope_sub_scope : constructor Pos.marked;
+  scope_decl_context_scope_condition : expression Pos.marked option;
+}
+
+type scope_decl_context_data = {
+  scope_decl_context_item_name : ident Pos.marked;
+  scope_decl_context_item_typ : typ Pos.marked;
+}
+
+type scope_decl_context_item =
+  | ContextData of scope_decl_context_data
+  | ContextScope of scope_decl_context_scope
+
+type scope_decl = {
+  scope_decl_name : constructor Pos.marked;
+  scope_decl_context : scope_decl_context_item Pos.marked list;
 }
 
 type code_item =
-  | FieldUse of field_use
-  | FieldDecl of field_decl
+  | ScopeUse of scope_use
+  | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
 

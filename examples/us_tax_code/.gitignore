@@ -7,9 +7,7 @@
 *.fls
 *.tex
 *.pdf
-*.html
 _minted*
 *.toc
 *.pyg
 *.d
-*.new

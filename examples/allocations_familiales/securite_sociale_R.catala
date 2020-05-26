@@ -58,7 +58,7 @@ champ d'application CalculAllocationsFamiliales :
   définition l521_3.minimum_alinéa_2 de enfant
   sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
   conséquence égal à
-    CalculAllocationFamilialesAvril2008.l521_3.minimum_alinéa_2 de enfant
+    calcul_avril_2008.l521_3.minimum_alinéa_2 de enfant
 */
 @Article R521-2|LEGIARTI000006750608@
 Dans les situations visées au deuxième alinéa de l'article L. 521-2 , l'allocataire est celui des deux parents qu'ils désignent d'un commun accord. A défaut d'accord sur la désignation d'un allocataire unique, chacun des deux parents peut se voir reconnaître la qualité d'allocataire :

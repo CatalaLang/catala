@@ -107,7 +107,7 @@ champ d'application CalculAllocationsFamiliales :
   # Ici, l'ouverture du droit aux allocations familiales est conditionné
   # au fait d'avoir deux enfants à charges qui répondent aux conditions
   # d'ouverture du droit à une prestation familiale. Pour cette raison,
-  # nous nous référrons ici aux conditions_hors_âge de prestations_familiales
+  # nous nous référons ici aux conditions_hors_âge de prestations_familiales
   # et non pas de allocations_familiales
   règle allocations_familiales.conditions_hors_âge de enfant sous condition
     prestations_familiales.conditions_hors_âge de enfant

@@ -23,6 +23,8 @@ module C = Cli
 let pre_latexify (s : string) =
   let percent = R.regexp "%" in
   let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
+  let dollar = R.regexp "\\$" in
+  let s = R.substitute ~rex:dollar ~subst:(fun _ -> "\\$") s in
   let premier = R.regexp "1er" in
   let s = R.substitute ~rex:premier ~subst:(fun _ -> "1\\textsuperscript{er}") s in
   let underscore = R.regexp "\\_" in
@@ -38,12 +40,20 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
      \\usepackage[%s]{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
+     \\usepackage{amssymb}\n\
+     \\usepackage{newunicodechar}\n\
      %s\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
      \\usepackage{fullpage}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\newunicodechar{÷}{$\\div$}\n\
+     \\newunicodechar{×}{$\\times$}\n\
+     \\newunicodechar{≤}{$\\leqslant$}\n\
+     \\newunicodechar{≥}{$\\geqslant$}\n\
+     \\newunicodechar{→}{$\\rightarrow$}\n\
+     \\newunicodechar{≠}{$\\neq$}\n\n\
      \\fvset{\n\
      commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
@@ -86,8 +96,8 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
             let mtime = (Unix.stat filename).Unix.st_mtime in
             let ltime = Unix.localtime mtime in
             let ftime =
-              Printf.sprintf "%d-%02d-%02d, %d:%02d" (1900 + ltime.Unix.tm_year) ltime.Unix.tm_mon
-                ltime.Unix.tm_mday ltime.Unix.tm_hour ltime.Unix.tm_min
+              Printf.sprintf "%d-%02d-%02d, %d:%02d" (1900 + ltime.Unix.tm_year)
+                (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday ltime.Unix.tm_hour ltime.Unix.tm_min
             in
             Printf.sprintf "\\item\\texttt{%s}, %s %s"
               (pre_latexify (Filename.basename filename))
@@ -97,6 +107,21 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
               ftime)
           source_files))
     code
+
+let math_syms_replace (c : string) : string =
+  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|/") in
+  let syms2cmd = function
+    | "!=" -> "≠"
+    | "<=" -> "≤"
+    | ">=" -> "≥"
+    | "--" -> "—"
+    | "->" -> "→"
+    | "*" -> "×"
+    | "/" -> "÷"
+    | s -> s
+  in
+  R.substitute ~rex:syms ~subst:syms2cmd c
 
 let program_item_to_latex (i : A.program_item) (language : C.language_option) : string =
   match i with
@@ -112,22 +137,24 @@ let program_item_to_latex (i : A.program_item) (language : C.language_option) : 
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c) + 1)
+        (Pos.get_start_line (Pos.get_position c))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.MetadataBlock (_, c) ->
+      let metadata_title = match language with C.Fr -> "Métadonnées" | C.En -> "Metadata" in
       P.sprintf
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
-         title=\\textcolor{black}{\\texttt{Métadonnées}},title after \
-         break=\\textcolor{black}{\\texttt{Métadonnées}},before skip=1em, after skip=1em]\n\
+         title=\\textcolor{black}{\\texttt{%s}},title after \
+         break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
          \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          /*%s*/\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
-        (Pos.get_start_line (Pos.get_position c) + 1)
+        metadata_title metadata_title
+        (Pos.get_start_line (Pos.get_position c))
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with C.Fr -> "catala_fr" | C.En -> "catala_en")
-        (Pos.unmark c)
+        (math_syms_replace (Pos.unmark c))
   | A.LawInclude (A.PdfFile ((file, _), page)) ->
       let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
       P.sprintf

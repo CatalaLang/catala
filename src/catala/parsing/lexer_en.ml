@@ -24,13 +24,12 @@ let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ 
 
 let token_list_en : (string * token) list =
   [
-    ("application field", FIELD);
+    ("scope", SCOPE);
     ("consequence", CONSEQUENCE);
     ("data", DATA);
     ("depends on", DEPENDS);
     ("declaration", DECLARATION);
     ("context", CONTEXT);
-    ("includes", INCLUDES);
     ("decreasing", DECREASING);
     ("increasing", INCREASING);
     ("of", OF);
@@ -78,10 +77,6 @@ let token_list_en : (string * token) list =
 
 let rec lex_code_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      update_acc lexbuf;
-      new_line lexbuf;
-      lex_code_en lexbuf
   | white_space ->
       (* Whitespaces *)
       update_acc lexbuf;
@@ -89,19 +84,18 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       update_acc lexbuf;
-      new_line lexbuf;
       lex_code_en lexbuf
   | "*/" ->
       (* End of code section *)
       is_code := false;
       END_CODE !code_string_acc
-  | "application field" ->
+  | "scope" ->
       update_acc lexbuf;
-      FIELD
+      SCOPE
   | "data" ->
       update_acc lexbuf;
       DATA
-  | "depends" ->
+  | "depends on" ->
       update_acc lexbuf;
       DEPENDS
   | "declaration" ->
@@ -110,9 +104,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "context" ->
       update_acc lexbuf;
       CONTEXT
-  | "includes" ->
-      update_acc lexbuf;
-      INCLUDES
   | "decreasing" ->
       update_acc lexbuf;
       DECREASING
@@ -338,9 +329,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
 
 let rec lex_law_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' ->
-      new_line lexbuf;
-      lex_law_en lexbuf
+  | '\n' -> lex_law_en lexbuf
   | "/*" ->
       is_code := true;
       code_string_acc := "";
@@ -358,7 +347,7 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
       "@@" ) ->
       let extract_components =
-        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
       in
       let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
       let name = get_component 1 in
