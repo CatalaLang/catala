@@ -12,33 +12,61 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* This file intends to translate from the parser ast in parsing/ast.ml to the first intermediate
-   representation in ir/ir.ml *)
+(* This file intends to desugar parsing/ast.ml ir/ir.ml *)
 
-let struct_decl_translation (prgm : Ir.program) (_struct_decl : Ast.struct_decl) = prgm
+let struct_decl_desugaring ({structs, enums, scopes, struct_fields, enum_cases} : Ir.program) (struct_decl : Ast.struct_decl) =
+  let name_with_pos = struct_decl.struct_decl_name in
+  let name = Pos.unmarked name_with_pos in
+  if StructMap.exists (fun wid v -> Ir.Struct.raw wid = name) structs then
+    (* Raise some error here *)
+    {structs; enums; scopes; struct_fields; enum_cases}
+  else (
+    (* Produce a new name *)
+    let struct_name_with_id = Ir.Struct.fresh name in
+    (* Process struct fields *)
+    let desugar_struct_fields {struct_decl_field_name, struct_decl_field_typ} =
 
-let enum_decl_translation (prgm : Ir.program) (_enum_decl : Ast.enum_decl) = prgm
+      if StructFieldMap.exists (fun wid v -> Ir.StructField.raw wid = field_name) struct_fields then (
+        (* Raise some error here *)
+      ) else 
+        Ir.StructFieldMap.add (Ir.StructField.fresh field_name) struct_name_with_id
+    in
 
-let field_decl_translation (prgm : Ir.program) (_field_decl : Ast.field_decl) = prgm
+    let desugar_struct_field field =
+       
 
-let field_use_translation (prgm : Ir.program) (_field_use : Ast.field_use) = prgm
+    let ir_struct_fields = List.fold_left struct_fields (
+    ) struct_decl.struct_decl_fields
 
-let code_item_translation (prgm : Ir.program) (code_item : Ast.code_item) =
+    let name_with_id = Ir.Struct.fresh name in
+    let structs = Ir.StructMap.add name_with_id ir_struct_decl in
+    { structs; enums; scopes }
+  )
+  
+
+let enum_decl_desugaring (prgm : Ir.program) (enum_decl : Ast.enum_decl) =
+  let 
+
+let scope_decl_desugaring (prgm : Ir.program) (_field_decl : Ast.field_decl) = prgm
+
+let scope_use_desugaring (prgm : Ir.program) (_field_use : Ast.field_use) = prgm
+
+let code_item_desugaring (prgm : Ir.program) (code_item : Ast.code_item) =
   match code_item with
-  | Ast.FieldUse field_use -> field_use_translation prgm field_use
-  | Ast.FieldDecl field_decl -> field_decl_translation prgm field_decl
+  | Ast.ScopeUse field_use -> field_use_translation prgm field_use
+  | Ast.ScopeDecl field_decl -> field_decl_translation prgm field_decl
   | Ast.StructDecl struct_decl -> struct_decl_translation prgm struct_decl
   | Ast.EnumDecl enum_decl -> enum_decl_translation prgm enum_decl
 
-let code_block_translation : Ir.program -> Ast.code_block -> Ir.program =
+let code_block_desugaring : Ir.program -> Ast.code_block -> Ir.program =
   List.fold_left (fun prgm item -> code_item_translation prgm (Pos.unmark item))
 
-let program_item_translation (prgm : Ir.program) (item : Ast.program_item) =
+let program_item_desugaring (prgm : Ir.program) (item : Ast.program_item) =
   match item with
   | Ast.MetadataBlock (block, _) | Ast.CodeBlock (block, _) -> code_block_translation prgm block
   | _ -> prgm
 
-let translation (prgm : Ast.program) =
+let desugaring (prgm : Ast.program) =
   let empty_prgm : Ir.program =
     { enums = Ir.EnumMap.empty; fields = Ir.FieldMap.empty; structs = Ir.StructMap.empty }
   in

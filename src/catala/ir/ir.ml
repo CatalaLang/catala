@@ -209,9 +209,13 @@ type scope = {
 module EnumMap = Map.Make (Enum)
 module ScopeMap = Map.Make (Scope)
 module StructMap = Map.Make (Struct)
+module StructFieldMap = Map.Make (StructField)
+module EnumCaseMap = Map.Make (EnumCase)
 
 type program = {
   enums : enum_decl EnumMap.t;
   scopes : scope ScopeMap.t;
   structs : struct_decl StructMap.t;
+  struct_fields : Struct.t StructFieldMap.t;
+  enum_cases : Enum.t EnumCaseMap.t;
 }
