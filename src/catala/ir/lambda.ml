@@ -12,20 +12,20 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate
+type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate | Unit
 
 type typ_bound = int
 
 type styp =
   | TPrimitive of primitive_typ
   | TBound of typ_bound
-  | TFun of styp * styp
-  | TSum of styp list
+  | TArrow of styp * styp
+  | TSum of Ir.Enum.t
   | TVec of styp
 
 type typ = TTyp of styp | TPoly of typ
 
-type const = Ir.litteral
+type const = Ir.literal
 
 type arith_binop = Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -39,16 +39,16 @@ type binding = Ir.Var.t * typ
 
 type enum_case = Ir.EnumCase.t
 
-type term = untyped_term Pos.marked * typ option
+type term = untyped_term Pos.marked * typ
 
 and untyped_term =
   | EConst of const
   | EOp of op
   | EBuiltin of builtin
-  | EIfThenElse
-  | EExists
-  | EForall
-  | EVar of binding
+  | EIfThenElse of term * term * term
+  | EExists of binding * term * term
+  | EForall of binding * term * term
+  | EVar of int
   | EFun of binding list * term
   | EApp of term * term list
   | EInj of enum_case * term
@@ -56,6 +56,32 @@ and untyped_term =
   | EPolyIntro of term
   | EPolyApp of term * typ
 
-type program_with_default_logic = term list Ir.VarMap.t
+(* Wrappers *)
 
-type program_without_default_logic = term Ir.VarMap.t
+type 'expr field = {
+  field_parameters : Ir.scope_context_item Pos.marked list;
+  field_rules : 'expr Ir.VarMap.t;
+  field_defs : 'expr Ir.VarMap.t;
+  field_assertion : term list;
+}
+
+type 'expr program = {
+  enums : Ir.enum_decl Ir.EnumMap.t;
+  structs : Ir.struct_decl Ir.StructMap.t;
+  fields : 'expr field Ir.ScopeMap.t;
+}
+
+type program_with_normal_logic = term program
+
+module IntMap = Map.Make (Int)
+
+type precondition = term
+
+type consequence = term
+
+type default_term = {
+  defaults : (precondition * consequence) IntMap.t;
+  ordering : (int * int) list;
+}
+
+type program_with_default_logic = default_term program
