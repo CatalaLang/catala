@@ -60,11 +60,11 @@ jobs:
         make build
 
     - name: Make examples
-     run: |
-       eval $(opam env)
-       make all_examples
+      run: |
+        eval $(opam env)
+        make all_examples
 
     - name: Make assets and documentation
-     run: |
-       eval $(opam env)
-       make all
+      run: |
+        eval $(opam env)
+        make all
