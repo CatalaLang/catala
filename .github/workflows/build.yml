@@ -41,16 +41,11 @@ jobs:
        # Version of the OCaml compiler to initialise
         ocaml-version: 4.09.1
 
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-
     - name: Install dependencies
       run: |
         eval $(opam env)
         make install-dependencies
-        sudo apt install man2html rsync
+        sudo apt install python3-dev man2html rsync
         sudo python3 -m pip install --upgrade pip
         sudo python3 -m pip install virtualenv
 
