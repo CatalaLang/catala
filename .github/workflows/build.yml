@@ -45,8 +45,8 @@ jobs:
       run: |
         eval $(opam env)
         make install-dependencies
-        sudo apt install python3-virtualenv man2html rsync
-
+        sudo apt install python3-pip man2html rsync
+        sudo python3 -m pip install virtualenv
 
     - name: Make compiler
       run: |
