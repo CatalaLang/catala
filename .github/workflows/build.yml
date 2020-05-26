@@ -49,10 +49,16 @@ jobs:
 
 
     - name: Make compiler
-      run: make build
+      run: |
+        eval $(opam env)
+        make build
 
     - name: Make examples
-      run: make all_examples
+      run: |
+        eval $(opam env)
+        make all_examples
 
     - name: Make assets and documentation
-      run: make all
+      run: |
+        eval $(opam env)
+        make all
