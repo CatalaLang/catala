@@ -95,13 +95,13 @@ if you're running Linux ou MacOS, open a terminal and enter :
 This will install `opam`, the OCaml dependency manager and the
 base OCaml compiler. If you're on Windows, the simplest solution
 would be to use Cygwin or the Windows Subsystem for Linux. Catala has been tested
-with OCaml version 4.07.1. You can switch to this version by typing :
+with OCaml version 4.09.1. You can switch to this version by typing :
 
-    opam switch create 4.07.1
+    opam switch create 4.09.1
 
 or
 
-    opam switch 4.07.1
+    opam switch 4.09.1
 
 if this version of OCaml is already installed. Next, install all the build
 dependencies with
@@ -113,16 +113,16 @@ This should ensure everything is set up for developping on the Catala compiler !
 Other features for generation of files and literate programming also require
 the following executables to be present
 
-    man2html virtualenv python3
+    man2html virtualenv python3 rsync
 
 please install them if they're not here. On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-virtualenv man2html
+    sudo apt install python3-virtualenv man2html rsync
 
 On ArchLinux :
 
-    sudo pacman -S python-virtualenv man2html
+    sudo pacman -S python-virtualenv man2html rsync
 
 ### Installation
 
@@ -143,7 +143,7 @@ root directory
     ./generate_website_assets.sh <path-to-catala-website>/assets
 
 You will need the `man2html` executable to generate the HTML versions of the man
-pages, as well as the `scp` executable to transfer files (preferred to `cp`)
+pages, as well as the `rsync` executable to transfer files (preferred to `cp`)
 because it also works with a remote server.
 
 #### Opam package
