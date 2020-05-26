@@ -71,6 +71,17 @@ type 'expr program = {
   fields : 'expr field Ir.ScopeMap.t;
 }
 
-type program_with_default_logic = term list program
-
 type program_with_normal_logic = term program
+
+module IntMap = Map.Make (Int)
+
+type precondition = term
+
+type consequence = term
+
+type default_term = {
+  defaults : (precondition * consequence) IntMap.t;
+  ordering : (int * int) list;
+}
+
+type program_with_default_logic = default_term program
