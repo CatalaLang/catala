@@ -22,6 +22,19 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Cache OPAM modules
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-opam-modules
+      with:
+        # OCaml cache files are stored in `~/.opam` on Linux/macOS
+        path: ~/.opam
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'legifrance_catala.opam') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
     - name: Set up OCaml
       uses: avsm/setup-ocaml@v1.0.1
       with:
