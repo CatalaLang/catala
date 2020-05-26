@@ -59,7 +59,7 @@ and untyped_term =
 (* Wrappers *)
 
 type 'expr field = {
-  field_parameters : Ir.field_parameter Pos.marked list;
+  field_parameters : Ir.scope_context_item Pos.marked list;
   field_rules : 'expr Ir.VarMap.t;
   field_defs : 'expr Ir.VarMap.t;
   field_assertion : term list;
@@ -68,7 +68,7 @@ type 'expr field = {
 type 'expr program = {
   enums : Ir.enum_decl Ir.EnumMap.t;
   structs : Ir.struct_decl Ir.StructMap.t;
-  fields : 'expr field Ir.FieldMap.t;
+  fields : 'expr field Ir.ScopeMap.t;
 }
 
 type program_with_default_logic = term list program
