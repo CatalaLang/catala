@@ -118,7 +118,9 @@ the following executables to be present
 please install them if they're not here. On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-virtualenv man2html rsync
+    sudo apt install python3-dev python3-setuptools man2html rsync
+    sudo python3 -m pip install --upgrade pip
+    sudo python3 -m pip install virtualenv
 
 On ArchLinux :
 
