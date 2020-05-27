@@ -1,6 +1,6 @@
 (library
- (name legifrance_catala)
+ (public_name legifrance_catala)
  (libraries catala cmdliner cohttp lwt cohttp-lwt-unix yojson re ANSITerminal))
 
 (documentation
- (package catala))
+ (package legifrance_catala))

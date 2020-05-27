@@ -1,4 +1,4 @@
 CATALA_LANG=en
-SRC=english.catala
+SRC=us_tax_code.catala
 
 include ../Makefile.common

@@ -17,7 +17,8 @@ install-dependencies-ocaml:
 		dune dune-build-info \
 		cmdliner obelisk \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
-		re reason
+		re reason\
+		obelisk
 
 init-submodules:
 	git submodule update --init
@@ -36,6 +37,9 @@ build:
 	$(MAKE) -C src/catala/parsing parser_errors.ml
 	$(MAKE) format
 	dune build
+
+doc: build
+	dune build @doc
 
 install: build
 	dune build @install
@@ -77,22 +81,22 @@ atom: atom_fr atom_en
 
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
-ENGLISH_DUMMY_DIR=$(EXAMPLES_DIR)/dummy_english
+US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
 
 allocations_familiales: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.pdf
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
-english: pygments build
-	$(MAKE) -C $(ENGLISH_DUMMY_DIR) $@.pdf
-	$(MAKE) -C $(ENGLISH_DUMMY_DIR) $@.html
+us_tax_code: pygments build
+	$(MAKE) -C $(US_TAX_CODE_DIR) $@.tex
+	$(MAKE) -C $(US_TAX_CODE_DIR) $@.html
 
 tutorial_en: pygments build
-	$(MAKE) -C $(TUTORIAL_DIR) $@.pdf
+	$(MAKE) -C $(TUTORIAL_DIR) $@.tex
 	$(MAKE) -C $(TUTORIAL_DIR) $@.html
 
-all_examples: allocations_familiales english tutorial_en
+all_examples: allocations_familiales us_tax_code tutorial_en
 
 ##########################################
 # Website assets
@@ -100,10 +104,6 @@ all_examples: allocations_familiales english tutorial_en
 
 grammar.html: src/catala/parsing/parser.mly
 	obelisk html -o $@ $<
-
-GENERATE_MAN_PAGE_ARGS=\
-	--help=groff | man2html | sed -e '1,8d' \
-	| tac | sed "1,18d" | tac
 
 catala.html: src/catala/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
@@ -113,13 +113,13 @@ legifrance_catala.html: src/legifrance_catala/main.ml
 	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,18d" | tac > $@ > $@
 
-website-assets: all_examples grammar.html catala.html legifrance_catala.html
+website-assets: doc all_examples grammar.html catala.html legifrance_catala.html
 
 ##########################################
 # Misceallenous
 ##########################################
 
-all: install-dependencies install all_examples website-assets
+all: install-dependencies build doc all_examples website-assets
 
 clean:
 	dune clean

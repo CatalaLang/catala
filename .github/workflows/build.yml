@@ -22,15 +22,44 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Opam modules cache
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-opam-modules
+      with:
+        # OCaml cache files are stored in `~/.opam` on Linux/macOS
+        path: ~/.opam
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'legifrance_catala.opam') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
     - name: Set up OCaml
       uses: avsm/setup-ocaml@v1.0.1
       with:
        # Version of the OCaml compiler to initialise
-        ocaml-version: 4.07.1
+        ocaml-version: 4.09.1
 
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
+    - name: Install dependencies
       run: |
         eval $(opam env)
-        make install-dependencies-ocaml
+        make install-dependencies
+        sudo apt install python3-dev python3-setuptools man2html rsync
+        sudo python3 -m pip install --upgrade pip
+        sudo python3 -m pip install virtualenv
+
+    - name: Make compiler
+      run: |
+        eval $(opam env)
         make build
+
+    - name: Make examples
+      run: |
+        eval $(opam env)
+        make all_examples
+
+    - name: Make assets and documentation
+      run: |
+        eval $(opam env)
+        make all

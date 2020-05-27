@@ -347,7 +347,7 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
       "@@" ) ->
       let extract_components =
-        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
       in
       let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
       let name = get_component 1 in
