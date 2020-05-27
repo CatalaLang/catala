@@ -20,7 +20,7 @@ type styp =
   | TPrimitive of primitive_typ
   | TBound of typ_bound
   | TArrow of styp * styp
-  | TSum of Ir.Enum.t
+  | TSum of Ir.uid
   | TVec of styp
 
 type typ = TTyp of styp | TPoly of typ
@@ -35,9 +35,9 @@ type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
 
 type builtin = Cardinal | Map | Fold | Now
 
-type binding = Ir.Var.t * typ
+type binding = Ir.tvar * typ
 
-type enum_case = Ir.EnumCase.t
+type enum_case = Ir.uid
 
 type term = untyped_term Pos.marked * typ
 
@@ -58,18 +58,13 @@ and untyped_term =
 
 (* Wrappers *)
 
-type 'expr field = {
-  field_parameters : Ir.scope_context_item Pos.marked list;
-  field_rules : 'expr Ir.VarMap.t;
-  field_defs : 'expr Ir.VarMap.t;
-  field_assertion : term list;
+type 'expr scope = {
+  (*field_parameters : Ir.scope_context_item Pos.marked list; field_rules : 'expr Ir.VarMap.t;
+    field_defs : 'expr Ir.VarMap.t; field_assertion : term list;*)
+  foo : 'expr;
 }
 
-type 'expr program = {
-  enums : Ir.enum_decl Ir.EnumMap.t;
-  structs : Ir.struct_decl Ir.StructMap.t;
-  fields : 'expr field Ir.ScopeMap.t;
-}
+type 'expr program = { foo : 'expr }
 
 type program_with_normal_logic = term program
 
