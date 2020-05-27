@@ -14,60 +14,21 @@
 
 (* Constructor and identifiers *)
 
-module ScopeParam = Id.WithId (struct
-  type t = string
+type uid = int
 
-  let to_string x = x
-end)
+module UidMap = Map.Make (Int)
 
-module StructField = Id.WithId (struct
-  type t = string
+type ident_typ = ScopeParam | StructField | EnumCase | Scope | Struct | Enum
 
-  let to_string x = x
-end)
+type ident = ident_typ * string
 
-module EnumCase = Id.WithId (struct
-  type t = string
+type qident = ident list
 
-  let to_string x = x
-end)
+type tvar = int
 
-module Scope = Id.WithId (struct
-  type t = string
+module VarMap = Map.Make (Int)
 
-  let to_string x = x
-end)
-
-module Struct = Id.WithId (struct
-  type t = string
-
-  let to_string x = x
-end)
-
-module Enum = Id.WithId (struct
-  type t = string
-
-  let to_string x = x
-end)
-
-type qident = {
-  qident_scope : Scope.t option;
-  qident_base : ScopeParam.t;
-  qident_path : StructField.t list;
-}
-
-module Var = Id.WithId (struct
-  type t = qident
-
-  let to_string (qid : qident) =
-    let scope = match qid.qident_scope with Some x -> Scope.raw x | None -> "" in
-    let base = ScopeParam.raw qid.qident_base in
-    String.concat "." ([ scope; base ] @ List.map StructField.raw qid.qident_path)
-end)
-
-module VarMap = Map.Make (Var)
-
-type constructor = Struct of Struct.t | Enum of Enum.t
+type constructor = ident
 
 (* Type *)
 
@@ -92,10 +53,7 @@ type typ = Base of base_typ | Func of func_typ
 (* Expressions *)
 
 (* The [bool] argument is true if the match case introduces a pattern *)
-type match_case_pattern =
-  | PEnum of EnumCase.t Pos.marked * match_case_pattern
-  | PVar of Pos.t
-  | PWild
+type match_case_pattern = PEnum of uid Pos.marked * match_case_pattern | PVar of Pos.t | PWild
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -135,90 +93,62 @@ and expression' =
   | IfThenElse of expression * expression * expression
   | Binop of binop Pos.marked
   | Unop of unop Pos.marked
-  | CollectionOp of collection_op Pos.marked * Var.t * expression * expression
+  | CollectionOp of collection_op Pos.marked * uid * expression * expression
   | MemCollection of expression * expression
-  | TestMatchCase of expression * EnumCase.t Pos.marked
+  | TestMatchCase of expression * uid
   | FunCall of expression * expression
   | Builtin of builtin_expression Pos.marked
   | Literal of literal
   | Inject of constructor Pos.marked * expression option
   | Project of expression * constructor Pos.marked
   | BindingParameter of int (* The integer is the De Bruijn index *)
-  | Var of Var.t Pos.marked
-
-(* Wrappers *)
-
-type 'a with_type = { value : 'a Pos.marked; typ : typ Pos.marked }
+  | Var of uid Pos.marked
 
 (* Struct declaration *)
-type struct_decl_field = StructField.t with_type
-
-type struct_decl = struct_decl_field Pos.marked list
+type struct_decl = uid Pos.marked list
 
 (* Enum declaration *)
-type enum_decl_case = EnumCase.t with_type
-
-type enum_decl = enum_decl_case Pos.marked list
+type enum_decl = uid Pos.marked list
 
 (* Scopes *)
+(* type scope_context_item = uid
 
-type scope_context_item = ScopeParam.t with_type
+   type scope = { parent_scope_name : uid Pos.marked; parent_scope_context_item : uid Pos.marked;
+   sub_scope_context_item : uid Pos.marked; }
 
-type scope_include_join = {
-  parent_scope_name : Scope.t Pos.marked;
-  parent_scope_context_item : ScopeParam.t Pos.marked;
-  sub_scope_context_item : ScopeParam.t Pos.marked;
-}
+   type scope_context_scope = { scope_include_sub_scope : uid Pos.marked;
 
-type scope_include = {
-  scope_include_sub_scope : Scope.t Pos.marked;
-  scope_include_joins : scope_include_join Pos.marked list;
-}
+   }
 
-type binder = string Pos.marked
+   type binder = string Pos.marked
 
-type rule = {
-  rule_parameter : binder option;
-  rule_condition : expression option;
-  rule_consequence : bool;
-}
+   type rule = { rule_parameter : binder option; rule_condition : expression option;
+   rule_consequence : bool; }
 
-type definition = {
-  definition_parameter : binder option;
-  definition_condition : expression option;
-  definition_expr : expression;
-}
+   type definition = { definition_parameter : binder option; definition_condition : expression
+   option; definition_expr : expression; }
 
-type assertion = expression
+   type assertion = expression
 
-type variation_typ = Increasing | Decreasing
+   type variation_typ = Increasing | Decreasing
 
-type reference_typ = Decree | Law
+   type reference_typ = Decree | Law
 
-type meta_assertion =
-  | FixedBy of reference_typ Pos.marked
-  | VariesWith of expression * variation_typ Pos.marked option
+   type meta_assertion = | FixedBy of reference_typ Pos.marked | VariesWith of expression *
+   variation_typ Pos.marked option
 
-type scope = {
-  scope_var_map : qident VarMap.t;
-  scope_context : scope_context_item Pos.marked list;
-  scope_includes : scope_include Pos.marked list;
-  scope_rules : rule list VarMap.t;
-  scope_defs : definition list VarMap.t;
-  scope_assertions : assertion list;
-  scope_meta_assertions : meta_assertion list VarMap.t;
-}
+   type scope = { scope_var_map : qident VarMap.t; scope_context : scope_context_item Pos.marked
+   list; scope_includes : scope_include Pos.marked list; scope_rules : rule list VarMap.t;
+   scope_defs : definition list VarMap.t; scope_assertions : assertion list; scope_meta_assertions :
+   meta_assertion list VarMap.t; }*)
 
-module EnumMap = Map.Make (Enum)
-module ScopeMap = Map.Make (Scope)
-module StructMap = Map.Make (Struct)
-module StructFieldMap = Map.Make (StructField)
-module EnumCaseMap = Map.Make (EnumCase)
+type prgm_item = Struct of struct_decl | Enum of enum_decl
 
-type program = {
-  enums : enum_decl EnumMap.t;
-  scopes : scope ScopeMap.t;
-  structs : struct_decl StructMap.t;
-  struct_fields : Struct.t StructFieldMap.t;
-  enum_cases : Enum.t EnumCaseMap.t;
+module StringMap = Map.Make (String)
+
+type prgm = {
+  items : prgm_item UidMap.t;
+  ident_to_uid : uid StringMap.t;
+  uid_to_ident : ident UidMap.t;
+  types : typ Pos.marked UidMap.t;
 }
