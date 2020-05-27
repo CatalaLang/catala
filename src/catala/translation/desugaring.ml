@@ -12,7 +12,33 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* This file intends to desugar parsing/ast.ml ir/ir.ml *)
+(* This file intends to desugar parsing/ast.ml into ir/ir.ml *)
+
+exception Desugaring of string
+
+let constructor_desugaring (prgm : Ir.program) (constructor : Ast.constructor) : Ir.constructor=
+  match StructMap.filter (fun name v -> Ir.Struct.raw name = constructor) prgm.structs with
+    | ( name_with_id, _ ) :: _ -> Ir.Struct name_with_id
+    | [] -> 
+      match EnumMap.filter (fun name v -> Ir.Enum.raw name = constructor) prgm.enums with
+        | ( name_with_id, _ ) :: _ -> Ir.Enum name_with_id
+        | [] -> raise (Desugaring ("Unbound constructor name : " ^ constructor))
+
+let typ_desugaring (prgm : Ir.program) (typ : Ast.typ) =
+  let primitive_desugaring = function
+    | Ast.Integer -> Ir.Integer
+    | Ast.Decimal -> Ir.Decimal
+    | Ast.Boolean -> Ir.Boolean
+    | Ast.Money   -> Ir.Money
+    | Ast.Text    -> Ir.Text
+    | Ast.Date    -> Ir.Date
+    | Ast.Named name -> Ir.Named (constructor_desugaring prgm name)
+  in
+
+  let base_typ_data_desugaring = function
+    | Ast.primitive prim -> { typ_data_collection : None, typ_data_collection : None,
+
+
 
 let struct_decl_desugaring ({structs, enums, scopes, struct_fields, enum_cases} : Ir.program) (struct_decl : Ast.struct_decl) =
   let name_with_pos = struct_decl.struct_decl_name in
@@ -24,16 +50,29 @@ let struct_decl_desugaring ({structs, enums, scopes, struct_fields, enum_cases} 
     (* Produce a new name *)
     let struct_name_with_id = Ir.Struct.fresh name in
     (* Process struct fields *)
-    let desugar_struct_fields {struct_decl_field_name, struct_decl_field_typ} =
+    let process_struct_field 
+      (struct_fields, field_list) 
+      {struct_decl_field_name, struct_decl_field_typ} 
+    =  
+      let field_name = Pos.unmark struct_decl_field_name in
+      let field_name_pos = Pos.get_position struct_decl_field_name in
+      let field_typ = Pos.unmark struct_decl_field_typ in
+      let field_typ_pos = Pos.get_position struct_decl_field_typ in
 
       if StructFieldMap.exists (fun wid v -> Ir.StructField.raw wid = field_name) struct_fields then (
         (* Raise some error here *)
-      ) else 
-        Ir.StructFieldMap.add (Ir.StructField.fresh field_name) struct_name_with_id
+        (struct_fields, field_list)
+      ) else (
+        let field_name_with_id = Ir.StructField.fresh field_name in
+        let struct_fields = Ir.StructFieldMap.add field_name_with_id struct_name_with_id struct_fields in
+        let ir_field_typ
+        (struct_fields,
+          :: field_list
+        )
+
     in
 
-    let desugar_struct_field field =
-       
+
 
     let ir_struct_fields = List.fold_left struct_fields (
     ) struct_decl.struct_decl_fields
