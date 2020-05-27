@@ -22,7 +22,7 @@ module type Comparable = sig
 end
 
 (** Functor that produces a [Diff] module given a comparable type *)
-module Make : functor (X : Comparable) -> sig
+module Make (X : Comparable) : sig
   type item = X.t
 
   type diff = Deleted of item list | Added of item list | Equal of item list
