@@ -17,10 +17,10 @@
 exception Desugaring of string
 
 let constructor_desugaring (prgm : Ir.program) (constructor : Ast.constructor) : Ir.constructor=
-  match StructMap.filter (fun name v -> Ir.Struct.raw name = constructor) prgm.structs with
+  match Ir.StructMap.filter (fun name v -> Ir.Struct.raw name = constructor) prgm.structs with
     | ( name_with_id, _ ) :: _ -> Ir.Struct name_with_id
     | [] -> 
-      match EnumMap.filter (fun name v -> Ir.Enum.raw name = constructor) prgm.enums with
+      match Ir.EnumMap.filter (fun name v -> Ir.Enum.raw name = constructor) prgm.enums with
         | ( name_with_id, _ ) :: _ -> Ir.Enum name_with_id
         | [] -> raise (Desugaring ("Unbound constructor name : " ^ constructor))
 
@@ -35,11 +35,26 @@ let typ_desugaring (prgm : Ir.program) (typ : Ast.typ) =
     | Ast.Named name -> Ir.Named (constructor_desugaring prgm name)
   in
 
-  let base_typ_data_desugaring = function
-    | Ast.primitive prim -> { typ_data_collection : None, typ_data_collection : None,
+  let rec base_typ_data_desugaring = function
+    | Ast.Primitive prim_typ -> Ir.TPrim (primitive_desugaring prim_typ)
+    | Ast.Collection base_typ -> Ir.TVec (base_typ_desugaring (Pos.unmark base_typ))
+    | Ast.Optional base_typ -> Ir.TOption (base_typ_desugaring (Pos.unmark base_typ))
+  in
 
+  let base_typ_desugaring = function
+    | Ast.Condition -> Ir.Condition
+    | Ast.Data base_typ_data -> Ir.Data (base_typ_data_desugaring base_typ_data)
+  in
 
+  match typ with
+    | Ast.Base base_typ -> Ir.Base (base_typ_desugaring base_typ)
+    | Ast.Func {arg_typ;return_typ} -> Ir.Func
+      {
+        arg_typ = Pos.map_under_mark base_typ_desugaring arg_typ;
+        return_typ = Pos.map_under_mark base_typ_desugaring arg_typ
+      }
 
+(*
 let struct_decl_desugaring ({structs, enums, scopes, struct_fields, enum_cases} : Ir.program) (struct_decl : Ast.struct_decl) =
   let name_with_pos = struct_decl.struct_decl_name in
   let name = Pos.unmarked name_with_pos in
@@ -110,3 +125,4 @@ let desugaring (prgm : Ast.program) =
     { enums = Ir.EnumMap.empty; fields = Ir.FieldMap.empty; structs = Ir.StructMap.empty }
   in
   List.fold_left program_item_translation empty_prgm prgm.program_items
+*)
