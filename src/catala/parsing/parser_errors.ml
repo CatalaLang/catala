@@ -380,10 +380,7 @@ let message s =
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#223\n"
-  | 230 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#224\n"
+  | 230 -> "Scope declarations must have at least one context element\n"
   | 231 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \

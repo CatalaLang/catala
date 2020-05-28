@@ -154,8 +154,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ## DECLARATION SCOPE constructor COLON
 ##
 
-Unexpected token
-To get a better error messsage, file an issue at https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#224
+Scope declarations must have at least one context element
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
@@ -341,16 +340,16 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 120, spurious reduction of production logical_expression -> compare_expression 
-## In state 104, spurious reduction of production expression -> logical_expression 
-## In state 189, spurious reduction of production assertion_base -> expression 
-## In state 190, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
-## In state 191, spurious reduction of production scope_item -> ASSERTION assertion 
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
+## In state 189, spurious reduction of production assertion_base -> expression
+## In state 190, spurious reduction of production assertion -> option(condition_consequence) assertion_base
+## In state 191, spurious reduction of production scope_item -> ASSERTION assertion
 ##
 
 Unexpected token after a scope item
@@ -514,8 +513,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
@@ -624,12 +623,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW RULE
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 120, spurious reduction of production logical_expression -> compare_expression 
-## In state 104, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unexpected token
@@ -661,12 +660,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION IF NOW THEN 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 120, spurious reduction of production logical_expression -> compare_expression 
-## In state 104, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unexpected token
@@ -723,12 +722,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION LPAREN NOW T
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 120, spurious reduction of production logical_expression -> compare_expression 
-## In state 104, spurious reduction of production expression -> logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
 ##
 
 Unmatched parenthesis that should have ended before this
@@ -759,12 +758,12 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION MATCH NOW WI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 103, spurious reduction of production logical_expression -> logical_unop compare_expression 
-## In state 139, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 103, spurious reduction of production logical_expression -> logical_unop compare_expression
+## In state 139, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
 ##
 
 Unexpected token
@@ -966,7 +965,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION NOW INCREASI
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
 ##
 
 Unexpected token
@@ -1166,14 +1165,14 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDIT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 39, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
-## In state 88, spurious reduction of production mult_expression -> base_expression 
-## In state 83, spurious reduction of production sum_expression -> mult_expression 
-## In state 93, spurious reduction of production compare_expression -> sum_expression 
-## In state 120, spurious reduction of production logical_expression -> compare_expression 
-## In state 104, spurious reduction of production expression -> logical_expression 
-## In state 154, spurious reduction of production condition -> UNDER_CONDITION expression 
+## In state 39, spurious reduction of production primitive_expression -> CARDINAL
+## In state 47, spurious reduction of production base_expression -> primitive_expression
+## In state 88, spurious reduction of production mult_expression -> base_expression
+## In state 83, spurious reduction of production sum_expression -> mult_expression
+## In state 93, spurious reduction of production compare_expression -> sum_expression
+## In state 120, spurious reduction of production logical_expression -> compare_expression
+## In state 104, spurious reduction of production expression -> logical_expression
+## In state 154, spurious reduction of production condition -> UNDER_CONDITION expression
 ##
 
 Unexpected token after a condition
@@ -1204,8 +1203,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
@@ -1224,7 +1223,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 47, spurious reduction of production base_expression -> primitive_expression 
+## In state 47, spurious reduction of production base_expression -> primitive_expression
 ##
 
 Unexpected token
@@ -1395,8 +1394,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Only the identifier you wish to define should follow the definition introducing token
@@ -1518,8 +1517,8 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident) 
+## In state 54, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 53, spurious reduction of production qident -> option(qident_prefix) separated_nonempty_list(DOT,ident)
 ##
 
 Unexpected token
