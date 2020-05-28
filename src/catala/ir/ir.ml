@@ -20,7 +20,7 @@ module UidMap = Map.Make (Int)
 
 type ident_typ = ScopeParam | StructField | EnumCase | Scope | Struct | Enum
 
-type ident = ident_typ * string
+type ident = string
 
 type qident = ident list
 
@@ -32,15 +32,7 @@ type constructor = ident
 
 (* Type *)
 
-type primitive_typ =
-  | Integer
-  | Decimal
-  | Boolean
-  | Money
-  | Text
-  | Date
-  | Named of constructor
-  | Unit
+type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of uid | Unit
 
 type base_typ_data = TVec of base_typ_data | TOption of base_typ_data | TPrim of primitive_typ
 
@@ -146,9 +138,10 @@ type prgm_item = Struct of struct_decl | Enum of enum_decl
 
 module StringMap = Map.Make (String)
 
-type prgm = {
-  items : prgm_item UidMap.t;
-  ident_to_uid : uid StringMap.t;
-  uid_to_ident : ident UidMap.t;
-  types : typ Pos.marked UidMap.t;
+type context = {
+  string_to_uid : uid StringMap.t;
+  uid_to_string : ident UidMap.t;
+  idents_typ : ident_typ UidMap.t;
 }
+
+type prgm = prgm_item UidMap.t
