@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+type uid = int
+
 type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate | Unit
 
 type typ_bound = int
@@ -35,9 +37,9 @@ type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
 
 type builtin = Cardinal | Map | Fold | Now
 
-type binding = Ir.tvar * typ
+type binding = uid * typ
 
-type enum_case = Ir.uid
+type enum_case = uid
 
 type term = untyped_term Pos.marked * typ
 

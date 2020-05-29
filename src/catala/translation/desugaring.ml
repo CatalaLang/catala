@@ -14,38 +14,48 @@
 
 exception Desugaring of string
 
-let typ_desugaring (context : Ir.context) (typ : Ast.typ) : Ir.typ =
-  let prim_typ_desugaring = function
-    | Ast.Integer -> Ir.Integer
-    | Ast.Decimal -> Ir.Decimal
-    | Ast.Boolean -> Ir.Boolean
-    | Ast.Money -> Ir.Money
-    | Ast.Text -> Ir.Text
-    | Ast.Date -> Ir.Date
-    | Ast.Named str -> (
-        match Ir.StringMap.find_opt str context.string_to_uid with
-        | Some uid -> Ir.Named uid
-        | None -> raise (Desugaring ("Unbound constructor " ^ str)) )
-  in
+(* Checks that types of the form Named constructor refer to existing structs or enum cases *)
+let check_typ_well_formed (_context : Ir.context) (_typ : Ir.typ) : unit = ()
 
-  let rec base_typ_data_desugaring = function
-    | Ast.Primitive prim_typ -> Ir.TPrim (prim_typ_desugaring prim_typ)
-    | Ast.Collection typ_data -> Ir.TVec (base_typ_data_desugaring (Pos.unmark typ_data))
-    | Ast.Optional typ_data -> Ir.TOption (base_typ_data_desugaring (Pos.unmark typ_data))
-  in
+(* Checks that the ident is well formed and transform it *)
+let desugar_qident (_context : Ir.context) (_scope : Ir.scope) (_qident : Ast.qident) : Ir.qident =
+  []
 
-  let base_typ_desugaring = function
-    | Ast.Condition -> Ir.Condition
-    | Ast.Data typ_data -> Ir.Data (base_typ_data_desugaring typ_data)
-  in
+(* Process a struct declaration, checking for wellformedness of types *)
+let process_struct_decl (context : Ir.context) (_struct : Ast.struct_decl) : Ir.context = context
 
-  let func_typ_desugaring ({ arg_typ; return_typ } : Ast.func_typ) : Ir.func_typ =
+(* Process an enum declaration, checking for wellformedness of types *)
+let process_enum_decl (context : Ir.context) (_enum : Ast.enum_decl) : Ir.context = context
+
+(* Process a scope declaration, checking for wellformedness of types *)
+let process_scope_decl (context : Ir.context) (_scope : Ast.scope_decl) : Ir.context = context
+
+(* Process one declaration, checking for wellformedness of types *)
+let process_decl (context : Ir.context) (decl : Ast.code_item) : Ir.context =
+  match decl with
+  | ScopeUse _ -> context
+  | ScopeDecl decl -> process_scope_decl context decl
+  | StructDecl decl -> process_struct_decl context decl
+  | EnumDecl decl -> process_enum_decl context decl
+
+(* Process all declarations of a given program to form its context *)
+let form_context (prgm : Ast.program) : Ir.context =
+  let context : Ir.context =
     {
-      arg_typ = Pos.map_under_mark base_typ_desugaring arg_typ;
-      return_typ = Pos.map_under_mark base_typ_desugaring return_typ;
+      counter = ref 0;
+      ident_to_uid = Hashtbl.create 1000;
+      struct_decl = Ir.IdentMap.empty;
+      enum_decl = Ir.IdentMap.empty;
+      enum_cases = Ir.IdentMap.empty;
+      scope_decl = Ir.IdentMap.empty;
+      uid_data = Ir.UidMap.empty;
     }
   in
 
-  match typ with
-  | Ast.Base base_typ -> Ir.Base (base_typ_desugaring base_typ)
-  | Ast.Func func_typ -> Ir.Func (func_typ_desugaring func_typ)
+  let process_program_item context = function
+    | Ast.MetadataBlock (block, _) ->
+        List.fold_left (fun context item -> process_decl context (Pos.unmark item)) context block
+    | _ -> context
+  in
+
+  List.fold_left process_program_item context prgm.program_items

@@ -12,35 +12,22 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* Constructor and identifiers *)
+(* Identifiers *)
 
 type uid = int
-
-module UidMap = Map.Make (Int)
-
-type ident_typ = ScopeParam | StructField | EnumCase | Scope | Struct | Enum
 
 type ident = string
 
 type qident = ident list
 
-type tvar = int
-
+module UidMap = Map.Make (Int)
+module IdentMap = Map.Make (String)
+module UidSet = Set.Make (Int)
 module VarMap = Map.Make (Int)
-
-type constructor = ident
 
 (* Type *)
 
-type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of uid | Unit
-
-type base_typ_data = TVec of base_typ_data | TOption of base_typ_data | TPrim of primitive_typ
-
-type base_typ = Condition | Data of base_typ_data
-
-type func_typ = { arg_typ : base_typ Pos.marked; return_typ : base_typ Pos.marked }
-
-type typ = Base of base_typ | Func of func_typ
+type typ = Ast.typ
 
 (* Expressions *)
 
@@ -91,57 +78,69 @@ and expression' =
   | FunCall of expression * expression
   | Builtin of builtin_expression Pos.marked
   | Literal of literal
-  | Inject of constructor Pos.marked * expression option
-  | Project of expression * constructor Pos.marked
+  | Inject of uid Pos.marked * expression option
+  | Project of expression * uid Pos.marked
   | BindingParameter of int (* The integer is the De Bruijn index *)
   | Var of uid Pos.marked
 
-(* Struct declaration *)
-type struct_decl = uid Pos.marked list
+(* Context *)
 
-(* Enum declaration *)
-type enum_decl = uid Pos.marked list
+type uid_sort =
+  | IdStruct
+  | IdEnum
+  | IdScope of expression option
+  | IdVar
+  | IdEnumCase
+  | IdStructName
+  | IdScopeName
 
-(* Scopes *)
-(* type scope_context_item = uid
-
-   type scope = { parent_scope_name : uid Pos.marked; parent_scope_context_item : uid Pos.marked;
-   sub_scope_context_item : uid Pos.marked; }
-
-   type scope_context_scope = { scope_include_sub_scope : uid Pos.marked;
-
-   }
-
-   type binder = string Pos.marked
-
-   type rule = { rule_parameter : binder option; rule_condition : expression option;
-   rule_consequence : bool; }
-
-   type definition = { definition_parameter : binder option; definition_condition : expression
-   option; definition_expr : expression; }
-
-   type assertion = expression
-
-   type variation_typ = Increasing | Decreasing
-
-   type reference_typ = Decree | Law
-
-   type meta_assertion = | FixedBy of reference_typ Pos.marked | VariesWith of expression *
-   variation_typ Pos.marked option
-
-   type scope = { scope_var_map : qident VarMap.t; scope_context : scope_context_item Pos.marked
-   list; scope_includes : scope_include Pos.marked list; scope_rules : rule list VarMap.t;
-   scope_defs : definition list VarMap.t; scope_assertions : assertion list; scope_meta_assertions :
-   meta_assertion list VarMap.t; }*)
-
-type prgm_item = Struct of struct_decl | Enum of enum_decl
-
-module StringMap = Map.Make (String)
+type uid_data = { uid_typ : typ; uid_sort : uid_sort }
 
 type context = {
-  string_to_uid : uid StringMap.t;
-  uid_to_string : ident UidMap.t;
-  idents_typ : ident_typ UidMap.t;
+  counter : uid ref;
+  ident_to_uid : (ident, uid) Hashtbl.t;
+  struct_decl : UidSet.t IdentMap.t;
+  enum_decl : UidSet.t IdentMap.t;
+  enum_cases : uid IdentMap.t;
+  scope_decl : UidSet.t IdentMap.t;
+  uid_data : uid_data UidMap.t;
 }
 
-type prgm = prgm_item UidMap.t
+let get_ident_sort (context : context) (str : string) : uid_sort list =
+  let uid_match = Hashtbl.find_all context.ident_to_uid str in
+  List.map (fun uid -> (UidMap.find uid context.uid_data).uid_sort) uid_match
+
+(* Scopes *)
+type binder = string Pos.marked
+
+type rule = {
+  rule_parameter : binder option;
+  rule_condition : expression option;
+  rule_consequence : bool;
+}
+
+type definition = {
+  definition_parameter : binder option;
+  definition_condition : expression option;
+  definition_expr : expression;
+}
+
+type assertion = expression
+
+type variation_typ = Increasing | Decreasing
+
+type reference_typ = Decree | Law
+
+type meta_assertion =
+  | FixedBy of reference_typ Pos.marked
+  | VariesWith of expression * variation_typ Pos.marked option
+
+type scope = {
+  scope_var_name : qident VarMap.t;
+  scope_rules : rule list VarMap.t;
+  scope_defs : definition list VarMap.t;
+  scope_assertions : assertion list;
+  scope_meta_assertions : meta_assertion list VarMap.t;
+}
+
+type prgm = { context : context; scopes : scope IdentMap.t }
