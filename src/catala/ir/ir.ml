@@ -14,22 +14,14 @@
 
 (* Identifiers *)
 
-type uid = int
+type uid = Context.uid
 
 type ident = string
 
 type qident = ident list
 
-module UidMap = Map.Make (Int)
-module IdentMap = Map.Make (String)
-module UidSet = Set.Make (Int)
-module VarMap = Map.Make (Int)
-
-(* Type *)
-
-type typ = Ast.typ
-
-(* Expressions *)
+module UidMap = Context.UidMap
+module VarMap = Context.VarMap
 
 (* The [bool] argument is true if the match case introduces a pattern *)
 type match_case_pattern = PEnum of uid Pos.marked * match_case_pattern | PVar of Pos.t | PWild
@@ -83,33 +75,6 @@ and expression' =
   | BindingParameter of int (* The integer is the De Bruijn index *)
   | Var of uid Pos.marked
 
-(* Context *)
-
-type uid_sort =
-  | IdStruct
-  | IdEnum
-  | IdScope of expression option
-  | IdVar
-  | IdEnumCase
-  | IdStructName
-  | IdScopeName
-
-type uid_data = { uid_typ : typ; uid_sort : uid_sort }
-
-type context = {
-  counter : uid ref;
-  ident_to_uid : (ident, uid) Hashtbl.t;
-  struct_decl : UidSet.t IdentMap.t;
-  enum_decl : UidSet.t IdentMap.t;
-  enum_cases : uid IdentMap.t;
-  scope_decl : UidSet.t IdentMap.t;
-  uid_data : uid_data UidMap.t;
-}
-
-let get_ident_sort (context : context) (str : string) : uid_sort list =
-  let uid_match = Hashtbl.find_all context.ident_to_uid str in
-  List.map (fun uid -> (UidMap.find uid context.uid_data).uid_sort) uid_match
-
 (* Scopes *)
 type binder = string Pos.marked
 
@@ -137,10 +102,11 @@ type meta_assertion =
 
 type scope = {
   scope_var_name : qident VarMap.t;
+  scope_var_type : Context.typ VarMap.t;
   scope_rules : rule list VarMap.t;
   scope_defs : definition list VarMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list VarMap.t;
 }
 
-type prgm = { context : context; scopes : scope IdentMap.t }
+type program = scope UidMap.t

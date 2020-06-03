@@ -22,6 +22,8 @@ exception LexingError of string
 
 exception WeavingError of string
 
+exception TypeUnknownError of string
+
 (** {2 Error-raising functions} *)
 
 (** You should use those rather than manually throwing the exceptions above *)
@@ -39,3 +41,7 @@ let lexer_error (loc : Pos.t) (msg : string) =
 
 (** Usage: [weaving_error message] *)
 let weaving_error (msg : string) = raise (WeavingError (Printf.sprintf "Weaving error: %s" msg))
+
+(** Usage: [type_unknown_error constructor]*)
+let type_unknown_error (loc : Pos.t) (cons : string) =
+  raise (TypeUnknownError (Printf.sprintf "Unknown constructor \"%s\" %s" cons (Pos.to_string loc)))
