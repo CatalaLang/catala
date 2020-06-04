@@ -100,6 +100,7 @@ type meta_assertion =
   | VariesWith of expression * variation_typ Pos.marked option
 
 type scope = {
+  scope_use_condition : expression option;
   scope_var_name : qident UidMap.t;
   scope_var_type : Context.typ UidMap.t;
   scope_rules : rule list UidMap.t;
@@ -107,5 +108,7 @@ type scope = {
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
+
+type program_use = scope list UidMap.t
 
 type program = scope UidMap.t

@@ -12,5 +12,15 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the license *)
 
-(** Inlines subscope definitions, rules and assertions into the parent scope **)
+module UidMap = Context.UidMap
+module UidSet = Context.UidSet
+
+(** Processes scope use to :
+
+    - regroup rules or definitions (aka defaults) of the same variable under the same hood
+    - push scope use conditions into the justification of the defaults *)
+
+let desugar (_context : Context.context) (_prgm : Ir.program_use) : Ir.program = assert false
+
+(** Inlines subscope definitions, rules and assertions into the parent scope *)
 let inline (prgm : Ir.program) : Ir.program = prgm
