@@ -14,15 +14,16 @@
 
 (* Introduce a context for all translations *)
 
-type uid = int
+type uid = Uid.t
+
+module UidSet = Uid.UidSet
+module UidMap = Uid.UidMap
 
 type ident = string
 
-type qident = ident list
+module IdentMap = Map.Make (String)
 
-module UidMap = Map.Make (Int)
-module UidSet = Set.Make (Int)
-module VarMap = Map.Make (Int)
+type qident = ident list
 
 type typ = Ast.typ
 
@@ -44,8 +45,7 @@ type uid_data = { uid_typ : typ option; uid_sort : uid_sort }
 type scope_include_data = { condition : Ast.expression option; sub_scope : ident }
 
 type context = {
-  mutable counter : uid;
-  ident_to_uid : (ident, uid) Hashtbl.t;
+  ident_to_uid : uid list IdentMap.t;
   struct_decl : UidSet.t UidMap.t;
   enum_decl : UidSet.t UidMap.t;
   enum_cases : uid UidMap.t;
@@ -55,14 +55,18 @@ type context = {
 }
 
 let get_ident_sort (context : context) (str : string) : uid_sort list =
-  let uid_match = Hashtbl.find_all context.ident_to_uid str in
+  let uid_match =
+    match IdentMap.find_opt str context.ident_to_uid with None -> [] | Some uids -> uids
+  in
   List.map (fun uid -> (UidMap.find uid context.uid_data).uid_sort) uid_match
 
-let add_ident (context : context) (ident : ident) : uid =
-  let uid = context.counter in
-  context.counter <- context.counter + 1;
-  Hashtbl.add context.ident_to_uid ident uid;
-  uid
+let find_uid_list (ident : ident) (map : uid list IdentMap.t) : uid list =
+  match IdentMap.find_opt ident map with None -> [] | Some l -> l
+
+let add_ident (context : context) (ident : ident) : context * uid =
+  let uid = Uid.fresh () in
+  let uid_list = uid :: find_uid_list ident context.ident_to_uid in
+  ({ context with ident_to_uid = IdentMap.add ident uid_list context.ident_to_uid }, uid)
 
 exception UnknownTyp of string
 
@@ -107,7 +111,7 @@ let process_struct_decl (context : context) (s : Ast.struct_decl) : context =
       raise (ContextError ("Struct name " ^ s_name ^ " is already used"))
     else ()
   in
-  let s_uid = add_ident context s_name in
+  let context, s_uid = add_ident context s_name in
   let s_data = { uid_typ = None; uid_sort = IdStructName } in
   let context =
     {
@@ -128,14 +132,14 @@ let process_struct_decl (context : context) (s : Ast.struct_decl) : context =
         Errors.type_unknown_error (Pos.get_position field.struct_decl_field_typ) cons
     in
     (* An ident can be used for different structs, but not for the same one *)
-    let possible_uid = UidSet.of_list (Hashtbl.find_all context.ident_to_uid field_name) in
+    let possible_uid = UidSet.of_list (find_uid_list field_name context.ident_to_uid) in
     let fields_uid = UidMap.find s_uid context.struct_decl in
     let _ =
       if not (UidSet.is_empty (UidSet.inter possible_uid fields_uid)) then
         raise (ContextError "Struct field is already used ")
       else ()
     in
-    let field_uid = add_ident context field_name in
+    let context, field_uid = add_ident context field_name in
     let field_data = { uid_typ = Some field_typ; uid_sort = IdStructField } in
     let s_decl = UidSet.add field_uid (UidMap.find s_uid context.struct_decl) in
     {
@@ -155,7 +159,7 @@ let process_enum_decl (context : context) (e : Ast.enum_decl) : context =
       raise (ContextError ("Enum name " ^ e_name ^ " is already used"))
     else ()
   in
-  let e_uid = add_ident context e_name in
+  let context, e_uid = add_ident context e_name in
   let e_data = { uid_typ = None; uid_sort = IdEnumName } in
   let context =
     {
@@ -180,11 +184,11 @@ let process_enum_decl (context : context) (e : Ast.enum_decl) : context =
     in
     (* For now, there can't be two enum cases with the same name *)
     let _ =
-      if List.length (Hashtbl.find_all context.ident_to_uid case_name) > 0 then
+      if List.length (find_uid_list case_name context.ident_to_uid) > 0 then
         raise (ContextError ("EnumCase name " ^ case_name ^ " is already used"))
       else ()
     in
-    let case_uid = add_ident context case_name in
+    let context, case_uid = add_ident context case_name in
     let case_data = { uid_typ = case_typ; uid_sort = IdEnumCase } in
     let e_decl = UidSet.add case_uid (UidMap.find e_uid context.enum_decl) in
     {
@@ -204,7 +208,7 @@ let process_scope_decl (context : context) (s : Ast.scope_decl) : context =
       raise (ContextError ("Scope name " ^ s_name ^ " is already used"))
     else ()
   in
-  let s_uid = add_ident context s_name in
+  let context, s_uid = add_ident context s_name in
   let s_data = { uid_typ = None; uid_sort = IdScopeName } in
   let context =
     {
@@ -223,14 +227,14 @@ let process_scope_decl (context : context) (s : Ast.scope_decl) : context =
         Errors.type_unknown_error (Pos.get_position item.scope_decl_context_item_typ) cons
     in
     (* An ident can be used for different scopes, but not for the same one *)
-    let possible_uids = UidSet.of_list (Hashtbl.find_all context.ident_to_uid item_name) in
+    let possible_uids = UidSet.of_list (find_uid_list item_name context.ident_to_uid) in
     let scope_uids = UidMap.find s_uid context.scope_decl in
     let _ =
       if not (UidSet.is_empty (UidSet.inter possible_uids scope_uids)) then
         raise (ContextError "Scope context item name is already used ")
       else ()
     in
-    let item_uid = add_ident context item_name in
+    let context, item_uid = add_ident context item_name in
     let item_data = { uid_typ = Some item_typ; uid_sort = IdScopeContextItem } in
     let s_decl = UidSet.add item_uid (UidMap.find s_uid context.scope_decl) in
     {
@@ -256,14 +260,14 @@ let process_scope_decl (context : context) (s : Ast.scope_decl) : context =
     in
 
     (* An ident can be used for different scopes, but not for the same one *)
-    let possible_uids = UidSet.of_list (Hashtbl.find_all context.ident_to_uid item_name) in
+    let possible_uids = UidSet.of_list (find_uid_list item_name context.ident_to_uid) in
     let scope_uids = UidMap.find s_uid context.scope_decl in
     let _ =
       if not (UidSet.is_empty (UidSet.inter possible_uids scope_uids)) then
         raise (ContextError "Scope context item name is already used ")
       else ()
     in
-    let item_uid = add_ident context item_name in
+    let context, item_uid = add_ident context item_name in
     let item_data = { uid_typ = None; uid_sort = IdScopeContextScope } in
     let include_data = { condition = item_condition; sub_scope = item_sub_scope } in
     let s_decl = UidSet.add item_uid (UidMap.find s_uid context.scope_decl) in
@@ -295,8 +299,7 @@ let process_decl (context : context) (decl : Ast.code_item) : context =
 let form_context (prgm : Ast.program) : context =
   let context : context =
     {
-      counter = 0;
-      ident_to_uid = Hashtbl.create 1000;
+      ident_to_uid = IdentMap.empty;
       struct_decl = UidMap.empty;
       enum_decl = UidMap.empty;
       enum_cases = UidMap.empty;

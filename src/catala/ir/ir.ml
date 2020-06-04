@@ -20,8 +20,7 @@ type ident = string
 
 type qident = ident list
 
-module UidMap = Context.UidMap
-module VarMap = Context.VarMap
+module UidMap = Uid.UidMap
 
 (* The [bool] argument is true if the match case introduces a pattern *)
 type match_case_pattern = PEnum of uid Pos.marked * match_case_pattern | PVar of Pos.t | PWild
@@ -101,12 +100,12 @@ type meta_assertion =
   | VariesWith of expression * variation_typ Pos.marked option
 
 type scope = {
-  scope_var_name : qident VarMap.t;
-  scope_var_type : Context.typ VarMap.t;
-  scope_rules : rule list VarMap.t;
-  scope_defs : definition list VarMap.t;
+  scope_var_name : qident UidMap.t;
+  scope_var_type : Context.typ UidMap.t;
+  scope_rules : rule list UidMap.t;
+  scope_defs : definition list UidMap.t;
   scope_assertions : assertion list;
-  scope_meta_assertions : meta_assertion list VarMap.t;
+  scope_meta_assertions : meta_assertion list UidMap.t;
 }
 
 type program = scope UidMap.t
