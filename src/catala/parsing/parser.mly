@@ -409,6 +409,9 @@ scope_decl_item:
     scope_decl_context_scope_condition = e;
   }), $sloc)
 }
+| CONTEXT i = ident CONDITION {
+  ((ContextCondition (Pos.unmark i)), $sloc)
+}
 
 enum_decl_line_payload:
 | CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }

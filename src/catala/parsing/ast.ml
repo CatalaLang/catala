@@ -154,6 +154,7 @@ type scope_decl_context_data = {
 type scope_decl_context_item =
   | ContextData of scope_decl_context_data
   | ContextScope of scope_decl_context_scope
+  | ContextCondition of ident
 
 type scope_decl = {
   scope_decl_name : constructor Pos.marked;

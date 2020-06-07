@@ -218,7 +218,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|consequence|fulfilled|equals|assertion|definition)\b
+    regex \=  \b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|condition|consequence|fulfilled|equals|assertion|definition)\b
     styles [] = .keyword_rule ;
   }
 

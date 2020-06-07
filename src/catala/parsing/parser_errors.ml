@@ -16,7 +16,7 @@ let message s =
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#5\n"
-  | 268 ->
+  | 269 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#275\n"
@@ -28,11 +28,11 @@ let message s =
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#13\n"
-  | 261 ->
+  | 262 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#268\n"
-  | 264 -> "Wrong way to begin a code section\n"
+  | 265 -> "Wrong way to begin a code section\n"
   | 14 -> "Expecting the constructor for the scope\n"
   | 16 -> "Expected a colon after scope constructor\n"
   | 150 -> "Expected a rule, a definition or an assertion\n"
@@ -397,31 +397,31 @@ let message s =
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#228\n"
-  | 242 ->
+  | 243 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#250\n"
-  | 245 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#252\n"
   | 246 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#253\n"
+       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#252\n"
   | 247 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#254\n"
+       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#253\n"
   | 248 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#255\n"
+       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#254\n"
   | 249 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#256\n"
+       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#255\n"
   | 250 ->
+      "Unexpected token\n\
+       To get a better error messsage, file an issue at \
+       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#256\n"
+  | 251 ->
       "Unexpected token\n\
        To get a better error messsage, file an issue at \
        https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#257\n"
