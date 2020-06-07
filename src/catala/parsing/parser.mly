@@ -409,9 +409,16 @@ scope_decl_item:
     scope_decl_context_scope_condition = e;
   }), $sloc)
 }
-| CONTEXT i = ident CONDITION {
-  ((ContextCondition (Pos.unmark i)), $sloc)
-}
+| CONTEXT i = ident _condition = CONDITION func_typ = option(struct_scope_func) { (ContextData ({
+  scope_decl_context_item_name = i;
+  scope_decl_context_item_typ =
+    match func_typ with
+    | None -> (Base (Condition), $loc(_condition))
+    | Some (return_typ, return_pos) -> (Func  {
+      arg_typ = (Condition, $loc(_condition));
+      return_typ = (Data return_typ, return_pos);
+    }, $sloc);
+  }), $sloc) }
 
 enum_decl_line_payload:
 | CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }

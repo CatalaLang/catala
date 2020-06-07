@@ -1,6 +1,6 @@
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 251.
+## Ends in an error in state: 252.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -13,7 +13,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 250.
+## Ends in an error in state: 251.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -26,7 +26,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 249.
+## Ends in an error in state: 250.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -39,7 +39,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 248.
+## Ends in an error in state: 249.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -52,7 +52,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 247.
+## Ends in an error in state: 248.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -65,7 +65,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 246.
+## Ends in an error in state: 247.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -78,7 +78,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 243.
+## Ends in an error in state: 244.
 ##
 ## nonempty_list(scope_decl_item) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -92,7 +92,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
-## Ends in an error in state: 240.
+## Ends in an error in state: 242.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -108,6 +108,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT ID
 ## Ends in an error in state: 239.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident CONTENT . CONDITION option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident CONTENT
@@ -122,7 +123,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT ID
 ##
 ## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT ident . SCOPE constructor option(scope_decl_context_condition) [ SCOPE END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> CONTEXT ident . CONDITION [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT ident . CONTENT CONDITION option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT ident
@@ -137,7 +138,7 @@ source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YE
 ##
 ## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT . ident SCOPE constructor option(scope_decl_context_condition) [ SCOPE END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> CONTEXT . ident CONDITION [ SCOPE END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> CONTEXT . ident CONTENT CONDITION option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTEXT
@@ -1590,7 +1591,7 @@ Expecting the constructor for the scope
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 265.
+## Ends in an error in state: 266.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1602,7 +1603,7 @@ Wrong way to begin a code section
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 262.
+## Ends in an error in state: 263.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1641,7 +1642,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 269.
+## Ends in an error in state: 270.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##
