@@ -28,6 +28,7 @@
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
 %token<int> INT_LITERAL
+%token TRUE FALSE
 %token<int * int> DECIMAL_LITERAL
 %token<int * int> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
@@ -148,9 +149,10 @@ literal:
     literal_date_day = d;
     literal_date_month = m;
     literal_date_year = y;
-    }, $sloc)
+  }, $sloc) 
 }
-
+| TRUE { (Bool true, $sloc) }
+| FALSE { (Bool false, $sloc) }
 
 compare_op:
 | LESSER { (Lt, $sloc) }
