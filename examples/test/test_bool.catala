@@ -1,0 +1,9 @@
+/*
+déclaration champ d'application TestBooléen :
+	contexte foo contenu booléen
+	contexte bar contenu entier
+
+champ d'application TestBooléen :
+	définition foo sous condition bar >= 0 conséquence égal à vrai
+	définition foo sous condition bar < 0 conséquence égal à faux
+*/

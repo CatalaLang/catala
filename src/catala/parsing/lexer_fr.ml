@@ -100,6 +100,8 @@ let token_list_fr : (string * token) list =
     ("non", NOT);
     ("nombre", CARDINAL);
     ("an", YEAR);
+    ("vrai", TRUE);
+    ("faux", FALSE);
   ]
   @ token_list_language_agnostic
 
@@ -271,6 +273,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "nombre" ->
       update_acc lexbuf;
       CARDINAL
+  | "vrai" ->
+      update_acc lexbuf;
+      TRUE
+  | "faux" ->
+      update_acc lexbuf;
+      FALSE
   | "an" ->
       update_acc lexbuf;
       YEAR

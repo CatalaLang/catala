@@ -72,6 +72,8 @@ let token_list_en : (string * token) list =
     ("not", NOT);
     ("number", CARDINAL);
     ("year", YEAR);
+    ("true", TRUE);
+    ("false", FALSE);
   ]
   @ Lexer_fr.token_list_language_agnostic
 
@@ -237,6 +239,12 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "number" ->
       update_acc lexbuf;
       CARDINAL
+  | "true" ->
+      update_acc lexbuf;
+      TRUE
+  | "false" ->
+      update_acc lexbuf;
+      FALSE
   | "year" ->
       update_acc lexbuf;
       YEAR

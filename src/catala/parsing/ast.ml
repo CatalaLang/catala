@@ -77,6 +77,7 @@ type money_amount = { money_amount_units : int; money_amount_cents : int }
 
 type literal =
   | Number of literal_number Pos.marked * literal_unit Pos.marked option
+  | Bool of bool
   | MoneyAmount of money_amount
   | Date of literal_date
 
