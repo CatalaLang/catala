@@ -21,8 +21,8 @@ type ident = string
 type qident = ident list
 
 module UidMap = Uid.UidMap
+module IdentMap = Context.IdentMap
 
-(* The [bool] argument is true if the match case introduces a pattern *)
 type match_case_pattern = PEnum of uid Pos.marked * match_case_pattern | PVar of Pos.t | PWild
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
@@ -31,23 +31,9 @@ type unop = Not | Minus
 
 type builtin_expression = Cardinal | Now
 
-type aggregate_func = AggregateSum | AggregateCount
+type collection_op = Ast.collection_op
 
-type literal_date = {
-  literal_date_day : int Pos.marked;
-  literal_date_month : int Pos.marked;
-  literal_date_year : int Pos.marked;
-}
-
-type literal_number = Int of int | Dec of int * int
-
-type literal_unit = Percent | Euro | Year | Month | Day
-
-type collection_op = Exists | Forall | Aggregate of aggregate_func
-
-type literal =
-  | Number of literal_number Pos.marked * literal_unit Pos.marked option
-  | Date of literal_date
+type literal = Ast.literal
 
 type match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
@@ -61,8 +47,8 @@ and expression = expression' Pos.marked
 and expression' =
   | MatchWith of expression * match_cases Pos.marked
   | IfThenElse of expression * expression * expression
-  | Binop of binop Pos.marked
-  | Unop of unop Pos.marked
+  | Binop of binop Pos.marked * expression * expression
+  | Unop of unop Pos.marked * expression
   | CollectionOp of collection_op Pos.marked * uid * expression * expression
   | MemCollection of expression * expression
   | TestMatchCase of expression * uid
@@ -77,15 +63,11 @@ and expression' =
 (* Scopes *)
 type binder = string Pos.marked
 
-type rule = {
-  rule_parameter : binder option;
-  rule_condition : expression option;
-  rule_consequence : bool;
-}
+type rule = { rule_parameter : binder option; rule_condition : expression; rule_consequence : bool }
 
 type definition = {
   definition_parameter : binder option;
-  definition_condition : expression option;
+  definition_condition : expression;
   definition_expr : expression;
 }
 
@@ -100,15 +82,14 @@ type meta_assertion =
   | VariesWith of expression * variation_typ Pos.marked option
 
 type scope = {
-  scope_use_condition : expression option;
-  scope_var_name : qident UidMap.t;
-  scope_var_type : Context.typ UidMap.t;
+  scope_uid : uid;
+  uid_to_var : ident UidMap.t;
+  var_to_uid : uid IdentMap.t;
+  uid_typ : Context.typ UidMap.t;
   scope_rules : rule list UidMap.t;
   scope_defs : definition list UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
-
-type program_use = scope list UidMap.t
 
 type program = scope UidMap.t

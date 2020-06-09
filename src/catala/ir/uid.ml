@@ -22,3 +22,8 @@ let fresh () : t =
 
 module UidSet = Set.Make (Int)
 module UidMap = Map.Make (Int)
+
+let map_add_list (key : t) (item : 'a) (map : 'a list UidMap.t) =
+  match UidMap.find_opt key map with
+  | Some l -> UidMap.add key (item :: l) map
+  | None -> UidMap.add key [ item ] map
