@@ -6,17 +6,40 @@ declaration structure Child :
 
 declaration scope ChildWellFormed :
   context child content Child
+  context rate_of_well_formedness content integer
 
 scope ChildWellFormed :
-  definition age equals years of (now - date_of_birth)
+  definition child.age is assigned to years of (now - child.date_of_birth)
 
 declaration scope ChildBenefit :
-  context child content Child
+  context child0 content Child
   context child_well_formed scope ChildWellFormed
 
 scope ChildBenefit :
-  definition child_well_formed.date_of_birth equals |01/01/2000|
-  definition child equals child_well_formed.child
+  definition child0 := child_well_formed.child
+
+
+scope ChildBenefit :
+  definition child_well_formed.child := 12 an
+
+#
+#
+#                      child
+#                        ^
+#                        |
+#  child_well_formed.rate_of_well_formedness child_well_formed.child.{age, date_of_birth}
+#                        ^                                 ^
+#                        |                                 |
+#  child_well_formed.rate_of_well_formedness child_well_formed.child.{age, date_of_birth}
+#
+#    -> [sous-graphe] ->
+#   -> [child0] -> ... -> [child n] ->
+
+# This is a translation of line 20
+child_well_formed.rate_of_well_formedness := 15%
+# This is a translation of line 19
+child := (ChildWellFormed(child_well_formed.child, child_well_formed.rate_of_well_formedness)).child
+
 
 # To what is this translating to ?
 # ChildWellFormed translates to
@@ -25,11 +48,11 @@ scope ChildBenefit :
 # So what will the implementation of ChildBenefit look like in the lambda calculus?
 #
 # let ChildBenefit (
-#   child.date_of_birth, child.age, child.child_well_formed, child_well_formed.age
+#   child.date_of_birth, child.age, child_well_formed.child.date_of_birth, child_well_formed.chuildage
 # ) =
-# let child_well_formed.date_of_birth = |01/01/2000| in
-# let (child_well_formed.date_of_birth, child_well_formed.age) = child_well_formed (
-#   child.child_well_formed, child_well_formed.age
+# #### LINE16
+# let (child_well_formed.child.date_of_birth, child_well_formed.child.age) = child_well_formed (
+#   child_well_formed.child.date_of_birth, child_well_formed.child.age
 # ) in
 # let (child.date_of_birth, child.age) =
 #   (child_well_formed.date_of_birth, child_well_formed.age)
