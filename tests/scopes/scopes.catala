@@ -27,7 +27,7 @@ scope ChildBenefit :
 # let ChildBenefit (
 #   child.date_of_birth, child.age, child.child_well_formed, child_well_formed.age
 # ) =
-# let child_well_formed.age = 12 in
+# let child_well_formed.date_of_birth = |01/01/2000| in
 # let (child_well_formed.date_of_birth, child_well_formed.age) = child_well_formed (
 #   child.child_well_formed, child_well_formed.age
 # ) in
