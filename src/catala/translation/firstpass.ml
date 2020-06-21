@@ -323,19 +323,63 @@ let uid_of_ident (context : Context.context) (scope : Ir.scope) (qident : Ast.qi
         } )
 
 (** Transform expressions from ast to ir *)
-let process_expression (_context : Context.context) (_scope : Ir.scope)
-    (_expr : Ast.expression Pos.marked) : Ir.expression * Ir.scope =
+let process_expression (context : Context.context) (scope : Ir.scope)
+    (expr : Ast.expression Pos.marked) : Ir.expression * Ir.scope =
   (* This function returns the scope because it might encounter a qident that has not been processed
      yet *)
-  assert false
+  let rec process_expr (scope : Ir.scope) (expr : Ast.expression Pos.marked) (de_bruijn : int * (int IdentMap.t)) : Ir.expression * Ir.scope =
+  let expr_pos = Pos.get_position expr in
+  match Pos.unmark expr with
+  | Ast.MatchWith (expr, cases) ->
+      let expr, scope = process_expr scope expr de_bruijn in
+      let cases, scope = process_match_cases scope cases in
+      ((Ir.MatchWith (expr, cases), expr_pos), scope)
+  | Ast.IfThenElse (i_expr, t_expr, e_expr) ->
+      let i_expr, scope = process_expr scope i_expr de_bruijn in
+      let t_expr, scope = process_expr scope t_expr de_bruijn in
+      let e_expr, scope = process_expr scope e_expr de_bruijn in
+      ((Ir.IfThenElse (i_expr, t_expr, e_expr), expr_pos), scope)
+  | Ast.Binop (binop, l_expr, r_expr) ->
+      let l_expr, scope = process_expr scope l_expr de_bruijn in
+      let r_expr, scope = process_expr scope r_expr de_bruijn in
+      ((Ir.Binop (binop, l_expr, r_expr), expr_pos), scope)
+  | Ast.Unop (unop, expr) ->
+      let expr, scope = process_expr scope expr de_bruijn in
+      ((Ir.Unop (unop, expr), expr_pos), scope)
+  | Ast.CollectionOp _ -> assert false
+  | Ast.MemCollection (elt_expr, set_expr) ->
+      let elt_expr, scope = process_expr scope elt_expr de_bruijn in
+      let set_expr, scope = process_expr scope set_expr de_bruijn in
+      ((Ir.MemCollection (elt_expr, set_expr), expr_pos), scope)
+  | Ast.TestMatchCase _ -> assert false
+  | Ast.FunCall (fun_expr, arg_expr) ->
+      let fun_expr, scope = process_expr scope fun_expr de_bruijn in
+      let arg_expr, scope = process_expr scope arg_expr de_bruijn in
+      ((Ir.FunCall (fun_expr, arg_expr), expr_pos), scope)
+  | Ast.Builtin builtin -> ((Ir.Builtin builtin, expr_pos), scope)
+  | Ast.Literal literal -> ((Ir.Literal literal, expr_pos), scope)
+  | Ast.Inject _ -> assert false
+  | Ast.Project _ -> assert false
+  | Ast.Qident qid ->
+      let uid, scope = uid_of_ident context scope qid in
+      ((Ir.Var uid, expr_pos), scope)
 
-and process_match_cases (_context : Context.context) (_scope : Ir.scope) (_cases : Ast.match_cases)
-    : Ir.match_cases =
-  assert false
+  and process_match_cases (scope : Ir.scope) (cases : Ast.match_cases Pos.marked) : Ir.match_cases Pos.marked * Ir.scope =
+    let pos = Pos.get_position cases in
+    let cases, scope =
+      List.fold_right
+        (fun case (cases, scope) ->
+          let case, scope = process_match_case context scope case in
+          (case :: cases, scope))
+        (Pos.unmark cases) ([], scope)
+    in
+    ((cases, pos), scope)
 
-and process_match_case (_context : Context.context) (_scope : Ir.scope) (_case : Ast.match_case) :
-    Ir.match_case =
-  assert false
+  and process_match_case (_context : Context.context) (_scope : Ir.scope)
+      (_case : Ast.match_case Pos.marked) : Ir.match_case Pos.marked * Ir.scope =
+    assert false
+
+  in process_expr scope expr []
 
 (** Process a rule *)
 let process_rule (rule : Ast.rule) (context : Context.context) (scope : Ir.scope)
@@ -348,7 +392,7 @@ let process_rule (rule : Ast.rule) (context : Context.context) (scope : Ir.scope
   in
   let condition =
     match precondition with
-    | Some pre -> (Ir.Binop ((Ir.And, Pos.no_pos), condition, pre), Pos.no_pos)
+    | Some pre -> (Ir.Binop ((Ast.And, Pos.no_pos), condition, pre), Pos.no_pos)
     | None -> condition
   in
   let rule : Ir.rule =
@@ -373,7 +417,7 @@ let process_def (def : Ast.definition) (context : Context.context) (scope : Ir.s
   in
   let condition =
     match precondition with
-    | Some pre -> (Ir.Binop ((Ir.And, Pos.no_pos), condition, pre), Pos.no_pos)
+    | Some pre -> (Ir.Binop ((Ast.And, Pos.no_pos), condition, pre), Pos.no_pos)
     | None -> condition
   in
 
@@ -399,7 +443,7 @@ let process_assert (assertion : Ast.assertion) (context : Context.context) (scop
   in
   let condition =
     match precondition with
-    | Some pre -> (Ir.Binop ((Ir.And, Pos.no_pos), condition, pre), Pos.no_pos)
+    | Some pre -> (Ir.Binop ((Ast.And, Pos.no_pos), condition, pre), Pos.no_pos)
     | None -> condition
   in
 

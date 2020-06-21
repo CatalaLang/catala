@@ -25,11 +25,11 @@ module IdentMap = Context.IdentMap
 
 type match_case_pattern = PEnum of uid Pos.marked * match_case_pattern | PVar of Pos.t | PWild
 
-type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+type binop = Ast.binop
 
-type unop = Not | Minus
+type unop = Ast.unop
 
-type builtin_expression = Cardinal | Now
+type builtin_expression = Ast.builtin_expression
 
 type collection_op = Ast.collection_op
 
@@ -53,12 +53,12 @@ and expression' =
   | MemCollection of expression * expression
   | TestMatchCase of expression * uid
   | FunCall of expression * expression
-  | Builtin of builtin_expression Pos.marked
+  | Builtin of builtin_expression
   | Literal of literal
   | Inject of uid Pos.marked * expression option
   | Project of expression * uid Pos.marked
   | BindingParameter of int (* The integer is the De Bruijn index *)
-  | Var of uid Pos.marked
+  | Var of uid
 
 (* Scopes *)
 type binder = string Pos.marked
