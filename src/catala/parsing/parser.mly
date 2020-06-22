@@ -28,6 +28,7 @@
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
 %token<int> INT_LITERAL
+%token TRUE FALSE
 %token<int * int> DECIMAL_LITERAL
 %token<int * int> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
@@ -148,9 +149,10 @@ literal:
     literal_date_day = d;
     literal_date_month = m;
     literal_date_year = y;
-    }, $sloc)
+  }, $sloc)
 }
-
+| TRUE { (BoolLiteral true, $sloc) }
+| FALSE { (BoolLiteral false, $sloc) }
 
 compare_op:
 | LESSER { (Lt, $sloc) }
@@ -409,6 +411,16 @@ scope_decl_item:
     scope_decl_context_scope_condition = e;
   }), $sloc)
 }
+| CONTEXT i = ident _condition = CONDITION func_typ = option(struct_scope_func) { (ContextData ({
+  scope_decl_context_item_name = i;
+  scope_decl_context_item_typ =
+    match func_typ with
+    | None -> (Base (Condition), $loc(_condition))
+    | Some (return_typ, return_pos) -> (Func  {
+      arg_typ = (Condition, $loc(_condition));
+      return_typ = (Data return_typ, return_pos);
+    }, $sloc);
+  }), $sloc) }
 
 enum_decl_line_payload:
 | CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }

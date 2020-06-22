@@ -1,5 +1,9 @@
 @@Section 132@@
 
+/*
+# We only formalize part (c) here
+*/
+
 @@Begin metadata@@
 /*
 declaration enumeration DiscountType:

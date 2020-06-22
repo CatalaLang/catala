@@ -96,25 +96,11 @@
         }
       }
       {
-        'match' : '(donnée|condition)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
-        'captures' : {
-          '1' : {
-            'name' : 'keyword.other.catala_fr'
-          }
-          '2' : {
-            'name' : 'text.catala_fr'
-          }
-          '3' : {
-            'name' : 'meta.variable_id.catala_fr'
-          }
-        }
-      }
-      {
         'match' : '\\b(selon|sous\\s+forme|fixé|par|décroissante|croissante|varie|avec|on\\s+a|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon)\\b'
         'name' : 'keyword.control.catala_fr'
       }
       {
-        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\\s+condition|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
+        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\\s+condition|condition|donnée|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
         'name' : 'keyword.other.catala_fr'
       }
       {

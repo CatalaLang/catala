@@ -208,17 +208,12 @@ code : context {
   }
 
   : pattern {
-    regex \=  (donnée|condition)(\s+)($${__SC_ID})
-    styles [] = .keyword_rule, .whitespace, .sc_id;
-  }
-
-  : pattern {
     regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|conséquence|rempli|égal\s+à|assertion|définition)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition)\b
     styles [] = .keyword_rule ;
   }
 

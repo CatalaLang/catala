@@ -208,17 +208,12 @@ code : context {
   }
 
   : pattern {
-    regex \=  (data|condition)(\s+)($${__SC_ID})
-    styles [] = .keyword_rule, .whitespace, .sc_id;
-  }
-
-  : pattern {
     regex \= \b(match|with\s+pattern|fixed|by|decreasing|increasing|varies|with|we\s+have|in|such\s+that|exists|for|all|of|if|then|else)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|consequence|fulfilled|equals|assertion|definition)\b
+    regex \=  \b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition)\b
     styles [] = .keyword_rule ;
   }
 

@@ -1,0 +1,15 @@
+*.aux
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.fls
+*.tex
+*.pdf
+*.html
+_minted*
+*.toc
+*.pyg
+*.d
+*.new

@@ -1,0 +1,89 @@
+/*
+
+declaration structure Child :
+  data date_of_birth content date
+  data age content integer
+
+declaration scope ChildWellFormed :
+  context child content Child
+  context rate_of_well_formedness content integer
+
+scope ChildWellFormed :
+  definition child.age is assigned to years of (now - child.date_of_birth)
+
+declaration scope ChildBenefit :
+  context child0 content Child
+  context child_well_formed scope ChildWellFormed
+
+scope ChildBenefit :
+  definition child0 := child_well_formed.child
+
+
+scope ChildBenefit :
+  definition child_well_formed.child := 12 an
+
+#
+#
+#                      child
+#                        ^
+#                        |
+#  child_well_formed.rate_of_well_formedness child_well_formed.child.{age, date_of_birth}
+#                        ^                                 ^
+#                        |                                 |
+#  child_well_formed.rate_of_well_formedness child_well_formed.child.{age, date_of_birth}
+#
+#    -> [sous-graphe] ->
+#   -> [child0] -> ... -> [child n] ->
+
+# This is a translation of line 20
+child_well_formed.rate_of_well_formedness := 15%
+# This is a translation of line 19
+child := (ChildWellFormed(child_well_formed.child, child_well_formed.rate_of_well_formedness)).child
+
+
+# To what is this translating to ?
+# ChildWellFormed translates to
+# (child.date_of_birth * child.age) -> (child.date_of_birth * child.age)
+
+# So what will the implementation of ChildBenefit look like in the lambda calculus?
+#
+# let ChildBenefit (
+#   child.date_of_birth, child.age, child_well_formed.child.date_of_birth, child_well_formed.chuildage
+# ) =
+# #### LINE16
+# let (child_well_formed.child.date_of_birth, child_well_formed.child.age) = child_well_formed (
+#   child_well_formed.child.date_of_birth, child_well_formed.child.age
+# ) in
+# let (child.date_of_birth, child.age) =
+#   (child_well_formed.date_of_birth, child_well_formed.age)
+# in
+# (child.date_of_birth, child.age)
+
+# We can see that definitions in the caller scope can either :
+# - set a parameter of the callee scope
+# - retrieve a result of the caller scope
+# In the caller scope, uses of callee scope variables should correspond
+# to uses of the result of these variables after calling the scope, while
+# callee scope variable definitions should correspond to callee scope parameter
+# setting before the call.
+
+# But setting a parameter of the callee scope can conflict with a definition of
+# this parameter inside the callee scope.
+
+scope ChildBenefit :
+  definition child_well_formed.age equals 12
+
+# How do we resolve things now ? Do we have
+# - child_well_formed.age = 12 or
+# - child_well_formed.age = years of (now - child_well_formed.date_of_birth) ?
+#
+# Well the answer to this question lies in default logic! More precisely, we have
+# to pick a precedence order between definitions of the caller scope and definitions
+# of the caller scope. Because the law sometimes says things like :
+#
+# "compute this benefit like mentionned at article XXX but change the threshold
+#  Foo to $ZZZZZ."
+#
+# The meaningful semantics to give here is that caller scope definition should
+# have higher precedence on callee scope definitions.
+*/

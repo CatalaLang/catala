@@ -96,25 +96,11 @@
         }
       }
       {
-        'match' : '(data|condition)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
-        'captures' : {
-          '1' : {
-            'name' : 'keyword.other.catala_en'
-          }
-          '2' : {
-            'name' : 'text.catala_en'
-          }
-          '3' : {
-            'name' : 'meta.variable_id.catala_en'
-          }
-        }
-      }
-      {
         'match' : '\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else)\\b'
         'name' : 'keyword.control.catala_en'
       }
       {
-        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|consequence|fulfilled|equals|assertion|definition)\\b'
+        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition)\\b'
         'name' : 'keyword.other.catala_en'
       }
       {
