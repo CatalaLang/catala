@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributor: Nicolas Chataing
+   <nicolas.chataing@ens.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,10 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+type uid = Uid.t
+
+module UidMap = Uid.UidMap
+
 type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate | Unit
 
 type typ_bound = int
@@ -20,12 +24,12 @@ type styp =
   | TPrimitive of primitive_typ
   | TBound of typ_bound
   | TArrow of styp * styp
-  | TSum of Ir.Enum.t
+  | TSum of uid
   | TVec of styp
 
 type typ = TTyp of styp | TPoly of typ
 
-type const = Ir.literal
+type const = Ast.literal
 
 type arith_binop = Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -35,9 +39,9 @@ type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
 
 type builtin = Cardinal | Map | Fold | Now
 
-type binding = Ir.Var.t * typ
+type binding = uid * typ
 
-type enum_case = Ir.EnumCase.t
+type enum_case = uid
 
 type term = untyped_term Pos.marked * typ
 
@@ -58,29 +62,18 @@ and untyped_term =
 
 (* Wrappers *)
 
-type 'expr field = {
-  field_parameters : Ir.scope_context_item Pos.marked list;
-  field_rules : 'expr Ir.VarMap.t;
-  field_defs : 'expr Ir.VarMap.t;
-  field_assertion : term list;
-}
-
-type 'expr program = {
-  enums : Ir.enum_decl Ir.EnumMap.t;
-  structs : Ir.struct_decl Ir.StructMap.t;
-  fields : 'expr field Ir.ScopeMap.t;
-}
+type 'expr program = { rules : 'expr UidMap.t }
 
 type program_with_normal_logic = term program
 
 module IntMap = Map.Make (Int)
 
-type precondition = term
+type justification = term
 
 type consequence = term
 
 type default_term = {
-  defaults : (precondition * consequence) IntMap.t;
+  defaults : (justification * consequence) IntMap.t;
   ordering : (int * int) list;
 }
 
