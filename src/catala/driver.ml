@@ -12,8 +12,6 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module I = Ir
-
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
