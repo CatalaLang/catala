@@ -26,7 +26,7 @@ module IdentMap = Context.IdentMap
 (* Scopes *)
 type binder = string Pos.marked
 
-type definition = { definition_parameter : binder option; definition_term : Lambda.default_term }
+type definition = Lambda.default_term
 
 type assertion = Lambda.term
 
@@ -43,7 +43,7 @@ type scope = {
   uid_to_var : ident UidMap.t;
   var_to_uid : uid IdentMap.t;
   uid_typ : Context.typ UidMap.t;
-  scope_defs : definition list UidMap.t;
+  scope_defs : definition UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
