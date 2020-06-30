@@ -18,6 +18,11 @@
 
 %{
   open Ast
+
+  type struct_or_enum_inject_content =
+  | StructContent of (ident Pos.marked * expression Pos.marked) list
+  | EnumContent of expression Pos.marked option
+
 %}
 
 %token EOF
@@ -84,30 +89,46 @@ typ:
   (Collection t, $sloc)
 }
 
-qident_prefix:
-| c = constructor DOT { c }
-
 qident:
-| p = option(qident_prefix) b = separated_nonempty_list(DOT, ident) {
-  ({
-    qident_prefix = p;
-    qident_path = b;
-    } ,$sloc)
+| b = separated_nonempty_list(DOT, ident) {
+  ( b, $sloc)
 }
 
 atomic_expression:
-| q = qident { let (q, q_pos) = q in (Qident q, q_pos) }
+| q = ident { let (q, q_pos) = q in (Ident q, q_pos) }
 | l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
 | LPAREN e = expression RPAREN { e }
 
 small_expression:
 | e = atomic_expression { e }
 | e = small_expression ARROW c = constructor {
-  (Project (e, c), $sloc)
+  (EnumProject (e, c), $sloc)
+}
+| e = small_expression DOT i = ident {
+  (Dotted (e, i), $sloc)
 }
 
-constructor_payload:
+struct_content_field:
+| field = ident COLON e = logical_expression {
+  (field, e)
+}
+
+enum_inject_content:
 | CONTENT e = small_expression { e }
+
+struct_or_enum_inject_content:
+| e = option(enum_inject_content) { EnumContent e }
+| CONTENT LPAREN ALT fields = separated_nonempty_list(ALT, struct_content_field) RPAREN {
+  StructContent fields
+}
+
+struct_or_enum_inject:
+| c = constructor data = struct_or_enum_inject_content {
+  match data with
+  | EnumContent data ->
+  (EnumInject (c, data), $sloc)
+  | _ -> assert false
+}
 
 primitive_expression:
 | e = small_expression { e }
@@ -115,8 +136,8 @@ primitive_expression:
 | CARDINAL {
    (Builtin Cardinal, $sloc)
 }
-| c = constructor p = option(constructor_payload) {
-  (Inject (c, p), $sloc)
+| e = struct_or_enum_inject {
+ e
 }
 
 num_literal:
@@ -149,7 +170,7 @@ literal:
     literal_date_day = d;
     literal_date_month = m;
     literal_date_year = y;
-  }, $sloc) 
+  }, $sloc)
 }
 | TRUE { (Bool true, $sloc) }
 | FALSE { (Bool false, $sloc) }

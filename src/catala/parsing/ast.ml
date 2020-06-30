@@ -16,7 +16,7 @@ type constructor = string
 
 type ident = string
 
-type qident = { qident_prefix : constructor Pos.marked option; qident_path : ident Pos.marked list }
+type qident = ident Pos.marked list
 
 type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
 
@@ -88,6 +88,11 @@ type match_case = {
 
 and match_cases = match_case Pos.marked list
 
+and struct_inject = {
+  struct_inject_name : constructor Pos.marked;
+  struct_inject_fields : (ident Pos.marked * expression Pos.marked) list;
+}
+
 and expression =
   | MatchWith of expression Pos.marked * match_cases Pos.marked
   | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
@@ -100,9 +105,12 @@ and expression =
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
   | Literal of literal
-  | Inject of constructor Pos.marked * expression Pos.marked option
-  | Project of expression Pos.marked * constructor Pos.marked
-  | Qident of qident
+  | EnumInject of constructor Pos.marked * expression Pos.marked option
+  | EnumProject of expression Pos.marked * constructor Pos.marked
+  | Ident of ident
+  | Dotted of expression Pos.marked * ident Pos.marked
+  (* Dotted is for both struct field projection and sub-scope variables *)
+  | StructInject of struct_inject
 
 type rule = {
   rule_parameter : ident Pos.marked option;
