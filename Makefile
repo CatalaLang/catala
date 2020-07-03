@@ -81,10 +81,15 @@ atom: atom_fr atom_en
 
 EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
+CODE_GENERAL_IMPOTS_DIR=$(EXAMPLES_DIR)/code_general_impots
 US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
 
 allocations_familiales: pygments build
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
+
+code_general_impots: pygments build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
@@ -96,7 +101,7 @@ tutorial_en: pygments build
 	$(MAKE) -C $(TUTORIAL_DIR) $@.tex
 	$(MAKE) -C $(TUTORIAL_DIR) $@.html
 
-all_examples: allocations_familiales us_tax_code tutorial_en
+all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
 
 ##########################################
 # Website assets
