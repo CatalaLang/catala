@@ -90,8 +90,8 @@ allocations_familiales: pygments build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
 code_general_impots: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.tex
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.html
 
 us_tax_code: pygments build
 	$(MAKE) -C $(US_TAX_CODE_DIR) $@.tex
