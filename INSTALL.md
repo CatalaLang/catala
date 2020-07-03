@@ -70,7 +70,7 @@ package, use the following command at the root of the repository:
 
     opam install ./
 
-You can then can the compiler using the `catala` command.
+You can then use the compiler with the `catala` command.
 
 ## Usage
 
