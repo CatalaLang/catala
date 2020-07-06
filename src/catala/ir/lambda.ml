@@ -24,12 +24,12 @@ type styp =
   | TPrimitive of primitive_typ
   | TBound of typ_bound
   | TArrow of styp * styp
-  | TSum of Ir.uid
+  | TSum of uid
   | TVec of styp
 
 type typ = TTyp of styp | TPoly of typ
 
-type const = Ir.literal
+type const = Ast.literal
 
 type arith_binop = Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
