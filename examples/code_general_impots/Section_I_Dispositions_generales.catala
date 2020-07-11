@@ -28,13 +28,13 @@ Ce revenu net global est constitué par le total des revenus nets des catégorie
 – Plus-values de cession à titre onéreux de biens ou de droits de toute nature, déterminés conformément aux dispositions des articles 14 à 155, total dont sont retranchées les charges énumérées à l'article 156.
 
 /*
-déclaration structure Categories_impot_revenu:
-donnée revenus_fonciers contenu Categorie_impot_revenu
-donnée bénéfices_industriels_commerciaux contenu Categorie_impot_revenu
-donnée remunerations_dirigeants contenu Categorie_impot_revenu
-donnée benefices_agricoles contenu Categorie_impot_revenu
-donnée traitements_salaires contenu Categorie_impot_revenu
-donnée bénéfices_non_commerciaux contenu Categorie_impot_revenu
-donnée revenus_capitaux_mobiliers contenu Categorie_impot_revenu
-donnée plus_values contenu Categorie_impot_revenu
+déclaration structure CategoriesImpotRevenu:
+donnée revenus_fonciers contenu CategorieImpotRevenu
+donnée bénéfices_industriels_commerciaux contenu CategorieImpotRevenu
+donnée remunerations_dirigeants contenu CategorieImpotRevenu
+donnée benefices_agricoles contenu CategorieImpotRevenu
+donnée traitements_salaires contenu CategorieImpotRevenu
+donnée bénéfices_non_commerciaux contenu CategorieImpotRevenu
+donnée revenus_capitaux_mobiliers contenu CategorieImpotRevenu
+donnée plus_values contenu CategorieImpotRevenu
 */
