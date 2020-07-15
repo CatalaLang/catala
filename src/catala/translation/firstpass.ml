@@ -26,58 +26,19 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
   let rec_helper = expr_to_lambda ?subdef scope ctxt in
   match expr with
   | IfThenElse (e_if, e_then, e_else) ->
-      let l_if, if_typ = rec_helper e_if in
-      let l_then, then_typ = rec_helper e_then in
-      let l_else, else_typ = rec_helper e_else in
-      if if_typ <> TBool then raise (TypingError "should be booleans")
-      else if then_typ <> else_typ then
-        raise (TypingError "then and else branch should have the same type")
-      else ((EIfThenElse ((l_if, if_typ), (l_then, then_typ), (l_else, else_typ)), pos), then_typ)
+      ((EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos), None)
   | Binop (op, e1, e2) ->
-      let l1, typ1 = rec_helper e1 in
-      let l2, typ2 = rec_helper e2 in
-      let final_typ =
-        match Pos.unmark op with
-        | And | Or ->
-            if typ1 <> TBool then raise (TypingError "Operand should be booleans")
-            else if typ2 <> TBool then raise (TypingError "Operand should be booleans")
-            else TBool
-        | Add | Sub | Mult | Div ->
-            if typ1 <> TInt then raise (TypingError "should be int")
-            else if typ2 <> TInt then raise (TypingError "should be int")
-            else TInt
-        | Lt | Lte | Gt | Gte ->
-            if typ1 <> TInt then raise (TypingError "should be int")
-            else if typ2 <> TInt then raise (TypingError "should be int")
-            else TBool
-        | Eq | Neq -> if typ1 <> typ2 then raise (TypingError "should have same types") else TBool
-      in
-      let op_untyped_term = EOp (Binop (Pos.unmark op)) in
-      let op_term = (Pos.same_pos_as op_untyped_term op, TArrow (typ1, TArrow (typ1, final_typ))) in
-      ((EApp (op_term, [ (l1, typ1); (l2, typ2) ]), pos), final_typ)
+      let op_term = (Pos.same_pos_as (EOp (Binop (Pos.unmark op))) op, None) in
+      let op_1 = ((EApp (op_term, rec_helper e1), pos), None) in
+      ((EApp (op_1, rec_helper e2), pos), None)
   | Unop (op, e) ->
-      let l, typ = rec_helper e in
-      let () =
-        match Pos.unmark op with
-        | Minus ->
-            if typ <> TInt then raise (TypingError "Neg operator expects an integer argument")
-            else ()
-        | Not ->
-            if typ <> TBool then raise (TypingError "Not operator expects a boolean argument")
-            else ()
-      in
-      let op_untyped_term = EOp (Unop (Pos.unmark op)) in
-      let op_term = (Pos.same_pos_as op_untyped_term op, TArrow (typ, typ)) in
-      ((EApp (op_term, [ (l, typ) ]), pos), typ)
-  | Literal l ->
-      let typ = match l with Number _ | MoneyAmount _ | Date _ -> TInt | Bool _ -> TBool in
-      ((ELiteral l, pos), typ)
+      let op_term = (Pos.same_pos_as (EOp (Unop (Pos.unmark op))) op, None) in
+      ((EApp (op_term, rec_helper e), pos), None)
+  | Literal l -> ((ELiteral l, pos), None)
   | Ident x -> (
       match Context.get_var_uid scope ctxt x with
       | None -> assert false
-      | Some (uid, data) ->
-          let untyped_term = match subdef with Some _ -> ECallerVar uid | None -> EVar uid in
-          ((untyped_term, pos), data.uid_typ) )
+      | Some uid -> ((EVar uid, pos), None) )
   | Dotted (e, x) -> (
       (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
       match Pos.unmark e with
@@ -89,21 +50,58 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
           in
           match subdef with
           | None -> (
-              (* No redefinition : take the uid from the current scope and it becomes an EVar *)
+              (* No redefinition : take the uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
               match Context.get_var_uid scope ctxt ident with
               | None -> assert false
-              | Some (uid, data) -> ((EVar uid, pos), data.uid_typ) )
+              | Some uid -> ((EVar uid, pos), None) )
           | Some uid when uid <> sub_uid -> (
-              (* Redefinition of a var from another scope : uid from the current scope -> ECallerVar *)
+              (* Redefinition of a var from another scope : uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
               match Context.get_var_uid scope ctxt ident with
               | None -> assert false
-              | Some (uid, data) -> ((ECallerVar uid, pos), data.uid_typ) )
+              | Some uid -> ((EVar uid, pos), None) )
           | Some sub_uid -> (
-              (* Redefinition of a var from the same scope, uid from the subscope -> EVar *)
+              (* Redefinition of a var from the same scope, uid from the subscope *)
               match Context.get_var_uid sub_uid ctxt (Pos.unmark x) with
               | None -> assert false
-              | Some (uid, data) -> ((EVar uid, pos), data.uid_typ) ) )
+              | Some uid -> ((EVar uid, pos), None) ) )
       | _ -> assert false )
   | _ -> assert false
+
+let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.term * Lambda.typ =
+  match t with
+  | EVar uid ->
+      let typ = match Context.get_uid_typ ctxt uid with None -> assert false | Some typ -> typ in
+      let term = ((EVar uid, pos), Some typ) in
+      (term, typ)
+  | EFun (_binding, _t) -> assert false
+  | EApp (t1, t2) -> (
+      let t1, typ1 = typing ctxt t1 in
+      let t2, typ2 = typing ctxt t2 in
+      match typ1 with
+      | TArrow (arg_typ, ret_typ) ->
+          if arg_typ <> typ2 then assert false else (((EApp (t1, t2), pos), Some ret_typ), ret_typ)
+      | TBool | TInt -> assert false )
+  | EIfThenElse (t_if, t_then, t_else) ->
+      let t_if, typ_if = typing ctxt t_if in
+      let t_then, typ_then = typing ctxt t_then in
+      let t_else, typ_else = typing ctxt t_else in
+      if typ_if <> TBool then assert false
+      else if typ_then <> typ_else then assert false
+      else (((EIfThenElse (t_if, t_then, t_else), pos), Some typ_then), typ_then)
+  | ELiteral l ->
+      let typ = match l with Number _ | MoneyAmount _ | Date _ -> TInt | Bool _ -> TBool in
+      (((t, pos), Some typ), typ)
+  | EOp op ->
+      let typ =
+        match op with
+        | Binop binop -> (
+            match binop with
+            | And | Or -> TArrow (TBool, TArrow (TBool, TBool))
+            | Add | Sub | Mult | Div -> TArrow (TInt, TArrow (TInt, TInt))
+            | Lt | Lte | Gt | Gte | Eq | Neq -> TArrow (TInt, TArrow (TInt, TBool)) )
+        | Unop Minus -> TArrow (TInt, TInt)
+        | Unop Not -> TArrow (TBool, TBool)
+      in
+      (((t, pos), Some typ), typ)

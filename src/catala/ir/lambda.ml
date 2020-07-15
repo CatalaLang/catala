@@ -30,16 +30,15 @@ type binding = uid * typ
 
 (*type enum_case = uid*)
 
-type term = untyped_term Pos.marked * typ
+type term = untyped_term Pos.marked * typ option
 
 and untyped_term =
   | EVar of uid
-  | EFun of binding list * term
-  | EApp of term * term list
+  | EFun of binding * term
+  | EApp of term * term
   | EIfThenElse of term * term * term
   | ELiteral of literal
   | EOp of op
-  | ECallerVar of uid
 
 (* Wrappers *)
 

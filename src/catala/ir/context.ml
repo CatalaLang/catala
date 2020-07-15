@@ -27,13 +27,19 @@ type uid_sort = IdScope | IdScopeVar | IdSubScope of uid
 
 type uid_data = { uid_typ : typ; uid_sort : uid_sort }
 
-type scope_context = { var_id_to_uid : uid IdentMap.t; var_data : uid_data UidMap.t }
+type scope_context = { var_id_to_uid : uid IdentMap.t }
 
-type context = { scope_id_to_uid : uid IdentMap.t; scopes : scope_context UidMap.t }
+type context = {
+  scope_id_to_uid : uid IdentMap.t;
+  scopes : scope_context UidMap.t;
+  data : uid_data UidMap.t;
+}
+
+(** Get the type associated to an uid *)
+let get_uid_typ (_ctxt : context) (_uid : uid) : typ option = assert false
 
 (** Get the variable uid inside the scope given in argument *)
-let get_var_uid (_scope : uid) (_ctxt : context) (_x : ident) : (uid * uid_data) option =
-  assert false
+let get_var_uid (_scope : uid) (_ctxt : context) (_x : ident) : uid option = assert false
 
 (** Get the subscope uid inside the scope given in argument *)
 let get_subscope_uid (_scope : uid) (_ctxt : context) (_y : ident) : uid option = assert false
