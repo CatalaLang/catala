@@ -12,46 +12,28 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-exception UnknownTyp of string
-
-exception ContextError of string
-
 type uid = Uid.t
 
-module UidSet = Uid.UidSet
 module UidMap = Uid.UidMap
+module UidSet = Uid.UidSet
 
 type ident = string
 
 module IdentMap = Map.Make (String)
 
-type qident = ident list
+type typ = Lambda.typ
 
-type typ = Ast.typ
+type uid_sort = IdScope | IdScopeVar | IdSubScope of uid
 
-type uid_sort =
-  | IdStruct
-  | IdEnumName
-  | IdScope
-  | IdVar
-  | IdEnumCase
-  | IdStructName
-  | IdScopeName
-  | IdStructField
-  | IdScopeContextItem
-  | IdScopeContextScope
+type uid_data = { uid_typ : typ; uid_sort : uid_sort }
 
-type uid_data = { uid_typ : typ option; uid_sort : uid_sort }
+type scope_context = { var_id_to_uid : uid IdentMap.t; var_data : uid_data UidMap.t }
 
-(* Note that the uid of the subscope should have the sort IdScopeName *)
-type scope_include_data = { condition : Ast.expression option; sub_scope : ident }
+type context = { scope_id_to_uid : uid IdentMap.t; scopes : scope_context UidMap.t }
 
-type context = {
-  ident_to_uid : uid list IdentMap.t;
-  struct_decl : UidSet.t UidMap.t;
-  enum_decl : UidSet.t UidMap.t;
-  enum_cases : uid UidMap.t;
-  scope_decl : UidSet.t UidMap.t;
-  scope_include_data : scope_include_data UidMap.t;
-  uid_data : uid_data UidMap.t;
-}
+(** Get the variable uid inside the scope given in argument *)
+let get_var_uid (_scope : uid) (_ctxt : context) (_x : ident) : (uid * uid_data) option =
+  assert false
+
+(** Get the subscope uid inside the scope given in argument *)
+let get_subscope_uid (_scope : uid) (_ctxt : context) (_y : ident) : uid option = assert false

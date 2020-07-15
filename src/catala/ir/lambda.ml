@@ -16,49 +16,30 @@ type uid = Uid.t
 
 module UidMap = Uid.UidMap
 
-type primitive_typ = TInteger | TDecimal | TBoolean | TMoney | TText | TDate | Unit
+type typ = TBool | TInt | TArrow of typ * typ
 
-type typ_bound = int
+type literal = Ast.literal
 
-type styp =
-  | TPrimitive of primitive_typ
-  | TBound of typ_bound
-  | TArrow of styp * styp
-  | TSum of uid
-  | TVec of styp
+type binop = Ast.binop
 
-type typ = TTyp of styp | TPoly of typ
+type unop = Ast.unop
 
-type const = Ast.literal
-
-type arith_binop = Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
-
-type bool_binop = And | Or
-
-type op = ArithBinop of arith_binop | BoolBinop of bool_binop | Minus | Not
-
-type builtin = Cardinal | Map | Fold | Now
+type op = Binop of binop | Unop of unop
 
 type binding = uid * typ
 
-type enum_case = uid
+(*type enum_case = uid*)
 
 type term = untyped_term Pos.marked * typ
 
 and untyped_term =
-  | EConst of const
-  | EOp of op
-  | EBuiltin of builtin
-  | EIfThenElse of term * term * term
-  | EExists of binding * term * term
-  | EForall of binding * term * term
-  | EVar of int
+  | EVar of uid
   | EFun of binding list * term
   | EApp of term * term list
-  | EInj of enum_case * term
-  | ECase of term * (enum_case * term) list
-  | EPolyIntro of term
-  | EPolyApp of term * typ
+  | EIfThenElse of term * term * term
+  | ELiteral of literal
+  | EOp of op
+  | ECallerVar of uid
 
 (* Wrappers *)
 
