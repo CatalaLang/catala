@@ -23,7 +23,7 @@ module IdentMap = Map.Make (String)
 
 type typ = Lambda.typ
 
-type uid_sort = IdScope | IdScopeVar | IdSubScope of uid
+type uid_sort = IdScope | IdScopeVar | IdSubScope of uid | IdBinder
 
 type uid_data = { uid_typ : typ; uid_sort : uid_sort }
 
@@ -34,6 +34,9 @@ type context = {
   scopes : scope_context UidMap.t;
   data : uid_data UidMap.t;
 }
+
+(** Derive the context from metadata *)
+let form_context (_prgm : Ast.program) : context = assert false
 
 (** Get the type associated to an uid *)
 let get_uid_typ (_ctxt : context) (_uid : uid) : typ option = assert false

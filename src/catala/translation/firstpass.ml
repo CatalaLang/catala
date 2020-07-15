@@ -15,8 +15,6 @@
 open Ast
 open Lambda
 
-exception TypingError of string
-
 let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 
 (** The optional argument subdef allows to choose between differents uids in case the expression is
@@ -75,7 +73,14 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
       let typ = match Context.get_uid_typ ctxt uid with None -> assert false | Some typ -> typ in
       let term = ((EVar uid, pos), Some typ) in
       (term, typ)
-  | EFun (_binding, _t) -> assert false
+  | EFun (binding, body) ->
+      (* Note that given the context formation process, the binder will already be present in the
+         context (since we are working with uids), however it's added there for the sake of clarity *)
+      let uid, arg_typ = binding in
+      let uid_data : Context.uid_data = { uid_typ = arg_typ; uid_sort = Context.IdBinder } in
+      let body, ret_typ = typing { ctxt with data = Uid.UidMap.add uid uid_data ctxt.data } body in
+      let fun_typ = TArrow (arg_typ, ret_typ) in
+      (((EFun (binding, body), pos), Some fun_typ), fun_typ)
   | EApp (t1, t2) -> (
       let t1, typ1 = typing ctxt t1 in
       let t2, typ2 = typing ctxt t2 in
@@ -105,3 +110,7 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | Unop Not -> TArrow (TBool, TBool)
       in
       (((t, pos), Some typ), typ)
+
+(** Scopes processing *)
+let translate_program_to_scope (_ctxt : Context.context) (_prgm : Ast.program) : Scope.program =
+  assert false

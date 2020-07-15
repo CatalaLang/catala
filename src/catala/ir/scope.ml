@@ -39,10 +39,6 @@ type meta_assertion =
   | VariesWith of Lambda.term * variation_typ Pos.marked option
 
 type scope = {
-  scope_uid : uid;
-  uid_to_var : ident UidMap.t;
-  var_to_uid : uid IdentMap.t;
-  uid_typ : Context.typ UidMap.t;
   scope_defs : definition UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
