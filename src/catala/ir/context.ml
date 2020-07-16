@@ -35,8 +35,43 @@ type context = {
   data : uid_data UidMap.t;
 }
 
+(** Process a subscope declaration *)
+let process_subscope_decl (_ctxt : context) (_decl : Ast.scope_decl_context_scope) : context =
+  assert false
+
+(** Process data declaration *)
+let process_data_decl (_ctxt : context) (_decl : Ast.scope_decl_context_data) : context =
+  assert false
+
+(** Process an item declaration *)
+let process_item_decl (ctxt : context) (decl : Ast.scope_decl_context_item) : context =
+  match decl with
+  | Ast.ContextData data_decl -> process_data_decl ctxt data_decl
+  | Ast.ContextScope sub_decl -> process_subscope_decl ctxt sub_decl
+
+(** Process a scope declaration *)
+let process_scope_decl (_ctxt : context) (_decl : Ast.scope_decl) : context = assert false
+
+(** Process a code item : for now it only handles scope decls *)
+let process_code_item (ctxt : context) (item : Ast.code_item) : context =
+  match item with ScopeDecl decl -> process_scope_decl ctxt decl | _ -> ctxt
+
+(** Process a code block *)
+let process_code_block (ctxt : context) (block : Ast.code_block) : context =
+  List.fold_left (fun ctxt decl -> Pos.unmark decl |> process_code_item ctxt) ctxt block
+
+(** Process a program item *)
+let process_program_item (ctxt : context) (item : Ast.program_item) : context =
+  match item with
+  | CodeBlock (block, _) | MetadataBlock (block, _) -> process_code_block ctxt block
+  | _ -> ctxt
+
 (** Derive the context from metadata *)
-let form_context (_prgm : Ast.program) : context = assert false
+let form_context (prgm : Ast.program) : context =
+  let empty_ctxt =
+    { scope_id_to_uid = IdentMap.empty; scopes = UidMap.empty; data = UidMap.empty }
+  in
+  List.fold_left process_program_item empty_ctxt prgm.program_items
 
 (** Get the type associated to an uid *)
 let get_uid_typ (ctxt : context) (uid : uid) : typ option =
