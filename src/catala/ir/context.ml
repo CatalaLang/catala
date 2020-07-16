@@ -39,10 +39,25 @@ type context = {
 let form_context (_prgm : Ast.program) : context = assert false
 
 (** Get the type associated to an uid *)
-let get_uid_typ (_ctxt : context) (_uid : uid) : typ option = assert false
+let get_uid_typ (ctxt : context) (uid : uid) : typ option =
+  UidMap.find_opt uid ctxt.data |> Option.map (fun data -> data.uid_typ)
 
 (** Get the variable uid inside the scope given in argument *)
-let get_var_uid (_scope : uid) (_ctxt : context) (_x : ident) : uid option = assert false
+let get_var_uid (scope_uid : uid) (ctxt : context) (x : ident) : uid option =
+  let scope = UidMap.find scope_uid ctxt.scopes in
+  match IdentMap.find_opt x scope.var_id_to_uid with
+  | None -> None
+  | Some uid ->
+      (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
+      let data = UidMap.find uid ctxt.data in
+      if data.uid_sort <> IdScopeVar || data.uid_sort <> IdBinder then None else Some uid
 
 (** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid (_scope : uid) (_ctxt : context) (_y : ident) : uid option = assert false
+let get_subscope_uid (scope_uid : uid) (ctxt : context) (y : ident) : uid option =
+  let scope = UidMap.find scope_uid ctxt.scopes in
+  match IdentMap.find_opt y scope.var_id_to_uid with
+  | None -> None
+  | Some sub_uid -> (
+      match (UidMap.find sub_uid ctxt.data).uid_sort with
+      | IdSubScope subscope_uid -> Some subscope_uid
+      | _ -> None )
