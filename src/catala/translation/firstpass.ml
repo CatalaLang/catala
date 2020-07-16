@@ -87,7 +87,7 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
       match typ1 with
       | TArrow (arg_typ, ret_typ) ->
           if arg_typ <> typ2 then assert false else (((EApp (t1, t2), pos), Some ret_typ), ret_typ)
-      | TBool | TInt -> assert false )
+      | TBool | TInt | TDummy -> assert false )
   | EIfThenElse (t_if, t_then, t_else) ->
       let t_if, typ_if = typing ctxt t_if in
       let t_then, typ_then = typing ctxt t_then in

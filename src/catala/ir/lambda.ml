@@ -16,7 +16,7 @@ type uid = Uid.t
 
 module UidMap = Uid.UidMap
 
-type typ = TBool | TInt | TArrow of typ * typ
+type typ = TBool | TInt | TArrow of typ * typ | TDummy
 
 type literal = Ast.literal
 
