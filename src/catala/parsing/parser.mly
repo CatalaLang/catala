@@ -410,9 +410,6 @@ struct_scope:
   }, $sloc)
 }
 
-scope_decl_context_condition:
-| UNDER_CONDITION e = expression { e }
-
 scope_decl_item:
 | CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
   scope_decl_context_item_name = i;
@@ -425,11 +422,10 @@ scope_decl_item:
       return_typ = (Data return_typ, return_pos);
     }, $sloc);
   }), $sloc) }
-| CONTEXT i = ident SCOPE c = constructor e = option(scope_decl_context_condition) {
+| CONTEXT i = ident SCOPE c = constructor {
   (ContextScope({
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
-    scope_decl_context_scope_condition = e;
   }), $sloc)
 }
 | CONTEXT i = ident _condition = CONDITION func_typ = option(struct_scope_func) { (ContextData ({
