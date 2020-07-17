@@ -37,6 +37,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     if backend = "Makefile" then Cli.Makefile
     else if backend = "LaTeX" then Cli.Latex
     else if backend = "HTML" then Cli.Html
+    else if backend = "Context" then Cli.Context
     else begin
       Cli.error_print
         (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend);
@@ -98,5 +99,8 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       with Errors.WeavingError msg ->
         Cli.error_print msg;
         exit (-1) )
+  | Cli.Context ->
+      Context.print_context (Context.form_context program);
+      0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

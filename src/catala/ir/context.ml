@@ -35,6 +35,35 @@ type context = {
   data : uid_data UidMap.t;
 }
 
+(** Print the context in a readable manner *)
+let print_context (ctxt : context) : unit =
+  let rec typ_to_string = function
+    | Lambda.TBool -> "bool"
+    | Lambda.TInt -> "num"
+    | Lambda.TDummy -> "(.)"
+    | Lambda.TArrow (t1, t2) -> Printf.sprintf "%s -> (%s)" (typ_to_string t1) (typ_to_string t2)
+  in
+  let print_var (var_id : ident) (var_uid : uid) : unit =
+    let data = UidMap.find var_uid ctxt.data in
+    let info =
+      match data.uid_sort with
+      | IdScope -> ""
+      | IdScopeVar -> Printf.sprintf "\ttyp : %s" (typ_to_string data.uid_typ)
+      | IdSubScope uid -> Printf.sprintf "\tsubscope : %n" uid
+      | IdBinder -> Printf.sprintf "\ttyp : %s" (typ_to_string data.uid_typ)
+    in
+    Printf.printf "%s (uid : %n)%s\n" var_id var_uid info;
+    ()
+  in
+
+  IdentMap.iter
+    (fun scope_ident scope_uid ->
+      Printf.printf "Scope %s (uid : %n):\n" scope_ident scope_uid;
+      IdentMap.iter print_var (UidMap.find scope_uid ctxt.scopes).var_id_to_uid;
+      Printf.printf "\n")
+    ctxt.scope_id_to_uid;
+  ()
+
 let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 
 exception UnsupportedFeature of string * Pos.t

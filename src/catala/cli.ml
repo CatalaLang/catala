@@ -37,9 +37,9 @@ let backend =
   Arg.(
     required
     & pos 0 (some string) None
-    & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile")
+    & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile, Html, Context")
 
-type backend_option = Latex | Makefile | Html
+type backend_option = Latex | Makefile | Html | Context
 
 let language =
   Arg.(
