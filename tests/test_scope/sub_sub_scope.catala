@@ -1,0 +1,15 @@
+/*
+declaration scope A:
+  context a content integer
+  context b content boolean
+
+declaration scope B:
+  context a content integer
+  context b content boolean
+  context scopeA scope A
+
+declaration scope C:
+  context a content integer
+  context b content boolean
+  context scopeB scope B
+*/
