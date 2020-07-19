@@ -67,6 +67,7 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
       | _ -> assert false )
   | _ -> assert false
 
+(** Checks that a term is well typed and annotate it *)
 let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.term * Lambda.typ =
   match t with
   | EVar uid ->
@@ -111,6 +112,197 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
       in
       (((t, pos), Some typ), typ)
 
+(* Translation from the parsed ast to the scope language *)
+
+let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) : Lambda.term =
+  match (precond, cond) with
+  | Some precond, Some cond ->
+      let op_term = ((EOp (Binop And), Pos.no_pos), None) in
+      let term = ((EApp (op_term, precond), Pos.no_pos), None) in
+      ((EApp (term, cond), Pos.no_pos), None)
+  | Some cond, None | None, Some cond -> cond
+  | None, None -> ((ELiteral (Ast.Bool true), Pos.no_pos), Some TBool)
+
+(** Process a rule from the surface language *)
+let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+    (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
+  (* For now we rule out functions *)
+  let () = match rule.rule_parameter with Some _ -> assert false | None -> () in
+  let consequence_term = ((ELiteral (Ast.Bool rule.rule_consequence), Pos.no_pos), Some TBool) in
+  let scope_prgm = UidMap.find scope prgm in
+  let scope_prgm =
+    match Pos.unmark rule.rule_name with
+    | [ x ] ->
+        let x_uid =
+          match Context.get_var_uid scope ctxt (Pos.unmark x) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let x_def =
+          match UidMap.find_opt x_uid scope_prgm.scope_defs with
+          | None -> Lambda.empty_default_term
+          | Some def -> def
+        in
+        (* Process the condition *)
+        let cond =
+          match rule.rule_condition with
+          | Some cond ->
+              let cond, typ = typing ctxt (expr_to_lambda scope ctxt cond) in
+              if typ = TBool then Some cond else assert false
+          | None -> None
+        in
+        let condition, _ = typing ctxt (merge_conditions precond cond) in
+        let x_def = Lambda.add_default condition consequence_term x_def in
+        { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
+    | [ y; x ] ->
+        let subscope_uid =
+          match Context.get_subscope_uid scope ctxt (Pos.unmark y) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let x_uid =
+          match Context.get_var_uid subscope_uid ctxt (Pos.unmark x) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let y_subdef =
+          match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
+          | Some defs -> defs
+          | None -> UidMap.empty
+        in
+        let x_redef =
+          match UidMap.find_opt x_uid y_subdef with
+          | None -> Lambda.empty_default_term
+          | Some redef -> redef
+        in
+        (* Process the condition *)
+        let cond =
+          match rule.rule_condition with
+          | Some cond ->
+              let cond, typ = typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt cond) in
+              if typ = TBool then Some cond else assert false
+          | None -> None
+        in
+        let condition, _ = typing ctxt (merge_conditions precond cond) in
+        let x_redef = Lambda.add_default condition consequence_term x_redef in
+        let y_subdef = UidMap.add x_uid x_redef y_subdef in
+        {
+          scope_prgm with
+          scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
+        }
+    | _ -> assert false
+  in
+  UidMap.add scope scope_prgm prgm
+
+let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+    (prgm : Scope.program) (def : Ast.definition) : Scope.program =
+  (* For now we rule out functions *)
+  let () = match def.definition_parameter with Some _ -> assert false | None -> () in
+  (* We first check either it is a variable or a subvariable *)
+  let scope_prgm = UidMap.find scope prgm in
+  let scope_prgm =
+    match Pos.unmark def.definition_name with
+    | [ x ] ->
+        let x_uid =
+          match Context.get_var_uid scope ctxt (Pos.unmark x) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let x_def =
+          match UidMap.find_opt x_uid scope_prgm.scope_defs with
+          | None -> Lambda.empty_default_term
+          | Some def -> def
+        in
+        let cond =
+          match def.definition_condition with
+          | Some cond ->
+              let cond, typ = typing ctxt (expr_to_lambda scope ctxt cond) in
+              if typ = TBool then Some cond else assert false
+          | None -> None
+        in
+        let condition, _ = typing ctxt (merge_conditions precond cond) in
+        let body, _ = typing ctxt (expr_to_lambda scope ctxt def.definition_expr) in
+        let x_def = Lambda.add_default condition body x_def in
+        { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
+    | [ y; x ] ->
+        let subscope_uid =
+          match Context.get_subscope_uid scope ctxt (Pos.unmark y) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let x_uid =
+          match Context.get_var_uid subscope_uid ctxt (Pos.unmark x) with
+          | None -> assert false
+          | Some uid -> uid
+        in
+        let y_subdef =
+          match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
+          | Some defs -> defs
+          | None -> UidMap.empty
+        in
+        let x_redef =
+          match UidMap.find_opt x_uid y_subdef with
+          | None -> Lambda.empty_default_term
+          | Some redef -> redef
+        in
+        let cond =
+          match def.definition_condition with
+          | Some cond ->
+              let cond, typ = typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt cond) in
+              if typ = TBool then Some cond else assert false
+          | None -> None
+        in
+        let condition, _ = typing ctxt (merge_conditions precond cond) in
+        let body, _ =
+          typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt def.definition_expr)
+        in
+        let x_redef = Lambda.add_default condition body x_redef in
+        let y_subdef = UidMap.add x_uid x_redef y_subdef in
+        {
+          scope_prgm with
+          scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
+        }
+    | _ -> assert false
+  in
+  UidMap.add scope scope_prgm prgm
+
+let process_scope_use_item (cond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+    (prgm : Scope.program) (item : Ast.scope_use_item Pos.marked) : Scope.program =
+  match Pos.unmark item with
+  | Ast.Rule rule -> process_rule cond scope ctxt prgm rule
+  | Ast.Definition def -> process_def cond scope ctxt prgm def
+  | _ -> prgm
+
+let process_scope_use (ctxt : Context.context) (prgm : Scope.program) (use : Ast.scope_use) :
+    Scope.program =
+  let name, _ = use.scope_use_name in
+  let scope_uid = Context.IdentMap.find name ctxt.scope_id_to_uid in
+  (* Make sure the scope exists *)
+  let prgm =
+    match UidMap.find_opt scope_uid prgm with
+    | Some _ -> prgm
+    | None -> UidMap.add scope_uid Scope.empty_scope prgm
+  in
+  let cond =
+    match use.scope_use_condition with
+    | Some expr ->
+        let untyped_term = expr_to_lambda scope_uid ctxt expr in
+        let term, typ = typing ctxt untyped_term in
+        if typ = TBool then Some term else assert false
+    | None -> None
+  in
+  List.fold_left (process_scope_use_item cond scope_uid ctxt) prgm use.scope_use_items
+
 (** Scopes processing *)
-let translate_program_to_scope (_ctxt : Context.context) (_prgm : Ast.program) : Scope.program =
-  assert false
+let translate_program_to_scope (ctxt : Context.context) (prgm : Ast.program) : Scope.program =
+  let empty_prgm = UidMap.empty in
+  let processer (prgm : Scope.program) (item : Ast.program_item) : Scope.program =
+    match item with
+    | CodeBlock (block, _) | MetadataBlock (block, _) ->
+        List.fold_left
+          (fun prgm item ->
+            match Pos.unmark item with ScopeUse use -> process_scope_use ctxt prgm use | _ -> prgm)
+          prgm block
+    | _ -> prgm
+  in
+  List.fold_left processer empty_prgm prgm.program_items

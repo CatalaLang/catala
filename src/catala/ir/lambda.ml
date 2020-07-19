@@ -55,6 +55,16 @@ type consequence = term
 type default_term = {
   defaults : (justification * consequence) IntMap.t;
   ordering : (int * int) list;
+  nb_defaults : int;
 }
+
+let empty_default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
+
+let add_default (just : justification) (cons : consequence) (term : default_term) =
+  {
+    term with
+    defaults = IntMap.add term.nb_defaults (just, cons) term.defaults;
+    nb_defaults = term.nb_defaults + 1;
+  }
 
 type program_with_default_logic = default_term program

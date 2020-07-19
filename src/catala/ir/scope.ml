@@ -40,8 +40,17 @@ type meta_assertion =
 
 type scope = {
   scope_defs : definition UidMap.t;
+  scope_sub_defs : definition UidMap.t UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
+
+let empty_scope =
+  {
+    scope_defs = UidMap.empty;
+    scope_sub_defs = UidMap.empty;
+    scope_assertions = [];
+    scope_meta_assertions = UidMap.empty;
+  }
 
 type program = scope UidMap.t
