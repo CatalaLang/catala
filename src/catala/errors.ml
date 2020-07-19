@@ -22,6 +22,8 @@ exception LexingError of string
 
 exception WeavingError of string
 
+exception ContextError of string
+
 (** {2 Error-raising functions} *)
 
 (** You should use those rather than manually throwing the exceptions above *)
@@ -39,3 +41,9 @@ let lexer_error (loc : Pos.t) (msg : string) =
 
 (** Usage: [weaving_error message] *)
 let weaving_error (msg : string) = raise (WeavingError (Printf.sprintf "Weaving error: %s" msg))
+
+(** Usage: [*)
+let unknown_identifier (ident : string) (loc : Pos.t) =
+  raise (ContextError (Printf.sprintf "Unknown identifier \"%s\"\n%s" ident (Pos.to_string loc)))
+
+let context_error (msg : string) = raise (ContextError (Printf.sprintf "%s" msg))

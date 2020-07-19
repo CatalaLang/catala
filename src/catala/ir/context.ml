@@ -198,25 +198,35 @@ let form_context (prgm : Ast.program) : context =
   List.fold_left process_program_item empty_ctxt prgm.program_items
 
 (** Get the type associated to an uid *)
-let get_uid_typ (ctxt : context) (uid : uid) : typ option =
-  UidMap.find_opt uid ctxt.data |> Option.map (fun data -> data.uid_typ)
+let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data).uid_typ
 
 (** Get the variable uid inside the scope given in argument *)
-let get_var_uid (scope_uid : uid) (ctxt : context) (x : ident) : uid option =
+let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked) : uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt x scope.var_id_to_uid with
-  | None -> None
+  | None -> Errors.unknown_identifier x pos
   | Some uid ->
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
       let data = UidMap.find uid ctxt.data in
-      if data.uid_sort <> IdScopeVar || data.uid_sort <> IdBinder then None else Some uid
+      if data.uid_sort <> IdScopeVar || data.uid_sort <> IdBinder then
+        let err_msg =
+          Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
+            (Pos.to_string pos)
+        in
+        Errors.context_error err_msg
+      else uid
 
 (** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid (scope_uid : uid) (ctxt : context) (y : ident) : uid option =
+let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.marked) : uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt y scope.var_id_to_uid with
-  | None -> None
+  | None -> Errors.unknown_identifier y pos
   | Some sub_uid -> (
       match (UidMap.find sub_uid ctxt.data).uid_sort with
-      | IdSubScope subscope_uid -> Some subscope_uid
-      | _ -> None )
+      | IdSubScope subscope_uid -> subscope_uid
+      | _ ->
+          let err_msg =
+            Printf.sprintf "Identifier \"%s\" should be a subscope, but it isn't\n%s" y
+              (Pos.to_string pos)
+          in
+          Errors.context_error err_msg )

@@ -33,37 +33,29 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
       let op_term = (Pos.same_pos_as (EOp (Unop (Pos.unmark op))) op, None) in
       ((EApp (op_term, rec_helper e), pos), None)
   | Literal l -> ((ELiteral l, pos), None)
-  | Ident x -> (
-      match Context.get_var_uid scope ctxt x with
-      | None -> assert false
-      | Some uid -> ((EVar uid, pos), None) )
+  | Ident x ->
+      let uid = Context.get_var_uid scope ctxt (x, pos) in
+      ((EVar uid, pos), None)
   | Dotted (e, x) -> (
       (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
       match Pos.unmark e with
       | Ident y -> (
-          let sub_uid =
-            match Context.get_subscope_uid scope ctxt y with
-            | None -> assert false
-            | Some uid -> uid
-          in
+          let sub_uid = Context.get_subscope_uid scope ctxt (Pos.same_pos_as y e) in
           match subdef with
-          | None -> (
+          | None ->
               (* No redefinition : take the uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
-              match Context.get_var_uid scope ctxt ident with
-              | None -> assert false
-              | Some uid -> ((EVar uid, pos), None) )
-          | Some uid when uid <> sub_uid -> (
+              let uid = Context.get_var_uid scope ctxt (ident, Pos.get_position e) in
+              ((EVar uid, pos), None)
+          | Some uid when uid <> sub_uid ->
               (* Redefinition of a var from another scope : uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
-              match Context.get_var_uid scope ctxt ident with
-              | None -> assert false
-              | Some uid -> ((EVar uid, pos), None) )
-          | Some sub_uid -> (
+              let uid = Context.get_var_uid scope ctxt (ident, Pos.get_position e) in
+              ((EVar uid, pos), None)
+          | Some sub_uid ->
               (* Redefinition of a var from the same scope, uid from the subscope *)
-              match Context.get_var_uid sub_uid ctxt (Pos.unmark x) with
-              | None -> assert false
-              | Some uid -> ((EVar uid, pos), None) ) )
+              let uid = Context.get_var_uid sub_uid ctxt x in
+              ((EVar uid, pos), None) )
       | _ -> assert false )
   | _ -> assert false
 
@@ -71,7 +63,7 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
 let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.term * Lambda.typ =
   match t with
   | EVar uid ->
-      let typ = match Context.get_uid_typ ctxt uid with None -> assert false | Some typ -> typ in
+      let typ = Context.get_uid_typ ctxt uid in
       let term = ((EVar uid, pos), Some typ) in
       (term, typ)
   | EFun (binding, body) ->
@@ -133,11 +125,7 @@ let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.co
   let scope_prgm =
     match Pos.unmark rule.rule_name with
     | [ x ] ->
-        let x_uid =
-          match Context.get_var_uid scope ctxt (Pos.unmark x) with
-          | None -> assert false
-          | Some uid -> uid
-        in
+        let x_uid = Context.get_var_uid scope ctxt x in
         let x_def =
           match UidMap.find_opt x_uid scope_prgm.scope_defs with
           | None -> Lambda.empty_default_term
@@ -155,16 +143,8 @@ let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.co
         let x_def = Lambda.add_default condition consequence_term x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
-        let subscope_uid =
-          match Context.get_subscope_uid scope ctxt (Pos.unmark y) with
-          | None -> assert false
-          | Some uid -> uid
-        in
-        let x_uid =
-          match Context.get_var_uid subscope_uid ctxt (Pos.unmark x) with
-          | None -> assert false
-          | Some uid -> uid
-        in
+        let subscope_uid = Context.get_subscope_uid scope ctxt y in
+        let x_uid = Context.get_var_uid subscope_uid ctxt x in
         let y_subdef =
           match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
           | Some defs -> defs
@@ -203,11 +183,7 @@ let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.con
   let scope_prgm =
     match Pos.unmark def.definition_name with
     | [ x ] ->
-        let x_uid =
-          match Context.get_var_uid scope ctxt (Pos.unmark x) with
-          | None -> assert false
-          | Some uid -> uid
-        in
+        let x_uid = Context.get_var_uid scope ctxt x in
         let x_def =
           match UidMap.find_opt x_uid scope_prgm.scope_defs with
           | None -> Lambda.empty_default_term
@@ -225,16 +201,8 @@ let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.con
         let x_def = Lambda.add_default condition body x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
-        let subscope_uid =
-          match Context.get_subscope_uid scope ctxt (Pos.unmark y) with
-          | None -> assert false
-          | Some uid -> uid
-        in
-        let x_uid =
-          match Context.get_var_uid subscope_uid ctxt (Pos.unmark x) with
-          | None -> assert false
-          | Some uid -> uid
-        in
+        let subscope_uid = Context.get_subscope_uid scope ctxt y in
+        let x_uid = Context.get_var_uid subscope_uid ctxt x in
         let y_subdef =
           match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
           | Some defs -> defs
