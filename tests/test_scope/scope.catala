@@ -3,4 +3,8 @@ declaration scope A:
   context a content amount
   context b content decimal
   context c content boolean
+
+scope A:
+  definition a under condition c consequence equals 42
+  definition b under condition not c consequence equals 1337
 */

@@ -100,7 +100,10 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         Cli.error_print msg;
         exit (-1) )
   | Cli.Context ->
-      Context.print_context (Context.form_context program);
+      let ctxt = Context.form_context program in
+      Context.print_context ctxt;
+      let scope_prgm = Firstpass.translate_program_to_scope ctxt program in
+      Scope.print_program scope_prgm;
       0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

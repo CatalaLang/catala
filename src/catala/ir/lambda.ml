@@ -40,6 +40,48 @@ and untyped_term =
   | ELiteral of literal
   | EOp of op
 
+let print_literal (l : literal) : string =
+  match l with
+  | Number (num, _) -> (
+      match Pos.unmark num with
+      | Int i -> Printf.sprintf "%n" i
+      | Dec (i, f) -> Printf.sprintf "%n.%n" i f )
+  | Bool b -> if b then "true" else "false"
+  | MoneyAmount { money_amount_units; money_amount_cents } ->
+      Printf.sprintf "%n.%n" money_amount_units money_amount_cents
+  | Date _ -> "[date]"
+
+let print_op (op : op) : string =
+  match op with
+  | Binop binop -> (
+      match binop with
+      | And -> "and"
+      | Or -> "or"
+      | Add -> "+"
+      | Sub -> "-"
+      | Mult -> "*"
+      | Div -> "/"
+      | Lt -> "<"
+      | Lte -> "<="
+      | Gt -> ">"
+      | Gte -> ">="
+      | Eq -> "="
+      | Neq -> "!=" )
+  | Unop Not -> "not"
+  | Unop Minus -> "-"
+
+let rec print_term (((t, _), _) : term) : string =
+  match t with
+  | EVar uid -> Printf.sprintf "var(%n)" uid
+  | EFun ((binder, _), body) ->
+      let sbody = print_term body in
+      Printf.sprintf "fun %n -> %s" binder sbody
+  | EApp (t1, t2) -> Printf.sprintf "(%s) (%s)" (print_term t1) (print_term t2)
+  | EIfThenElse (tif, tthen, telse) ->
+      Printf.sprintf "IF %s THEN %s ELSE %s" (print_term tif) (print_term tthen) (print_term telse)
+  | ELiteral l -> print_literal l
+  | EOp op -> print_op op
+
 (* Wrappers *)
 
 type 'expr program = { rules : 'expr UidMap.t }
@@ -57,6 +99,11 @@ type default_term = {
   ordering : (int * int) list;
   nb_defaults : int;
 }
+
+let print_default_term (term : default_term) : unit =
+  IntMap.iter
+    (fun _ (cond, body) -> Printf.printf "\t%s => %s\n" (print_term cond) (print_term body))
+    term.defaults
 
 let empty_default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
 

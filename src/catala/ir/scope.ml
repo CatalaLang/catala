@@ -54,3 +54,27 @@ let empty_scope =
   }
 
 type program = scope UidMap.t
+
+let print_scope (scope : scope) : unit =
+  let print_defs : definition UidMap.t -> unit =
+    UidMap.iter (fun uid term ->
+        Printf.printf "%n:\n" uid;
+        Lambda.print_default_term term)
+  in
+  Printf.printf ">>> Variables Definition <<<\n";
+  print_defs scope.scope_defs;
+  Printf.printf ">>> Subscope (Re)definition <<<\n";
+  UidMap.iter
+    (fun scope_uid defs ->
+      Printf.printf "__%n__:\n" scope_uid;
+      print_defs defs)
+    scope.scope_sub_defs;
+  Printf.printf "\n"
+
+let print_program (prgm : program) : unit =
+  Printf.printf "Scope program\n";
+  UidMap.iter
+    (fun uid scope ->
+      Printf.printf "Scope %n:\n" uid;
+      print_scope scope)
+    prgm

@@ -47,10 +47,10 @@ let print_context (ctxt : context) : unit =
     let data = UidMap.find var_uid ctxt.data in
     let info =
       match data.uid_sort with
-      | IdScope -> ""
-      | IdScopeVar -> Printf.sprintf "\ttyp : %s" (typ_to_string data.uid_typ)
+      | IdScope -> "\tscope"
+      | IdScopeVar -> Printf.sprintf "\ttyp : %s\tvar" (typ_to_string data.uid_typ)
       | IdSubScope uid -> Printf.sprintf "\tsubscope : %n" uid
-      | IdBinder -> Printf.sprintf "\ttyp : %s" (typ_to_string data.uid_typ)
+      | IdBinder -> Printf.sprintf "\ttyp : %s\tbinder" (typ_to_string data.uid_typ)
     in
     Printf.printf "%s (uid : %n)%s\n" var_id var_uid info;
     ()
@@ -208,7 +208,7 @@ let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked)
   | Some uid ->
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
       let data = UidMap.find uid ctxt.data in
-      if data.uid_sort <> IdScopeVar || data.uid_sort <> IdBinder then
+      if data.uid_sort <> IdScopeVar && data.uid_sort <> IdBinder then
         let err_msg =
           Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
             (Pos.to_string pos)
