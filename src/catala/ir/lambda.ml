@@ -37,8 +37,12 @@ and untyped_term =
   | EFun of binding list * term
   | EApp of term * term list
   | EIfThenElse of term * term * term
-  | ELiteral of literal
+  | EInt of int
+  | EBool of bool
+  | EDec of int * int
   | EOp of op
+
+let untype (((term, _), _) : term) : untyped_term = term
 
 let print_literal (l : literal) : string =
   match l with
@@ -82,7 +86,9 @@ let rec print_term (((t, _), _) : term) : string =
       Printf.sprintf "(%s) [%s]" (print_term f) (args |> List.map print_term |> String.concat ";")
   | EIfThenElse (tif, tthen, telse) ->
       Printf.sprintf "IF %s THEN %s ELSE %s" (print_term tif) (print_term tthen) (print_term telse)
-  | ELiteral l -> print_literal l
+  | EInt i -> Printf.sprintf "%d" i
+  | EBool b -> if b then "true" else "false"
+  | EDec (i, f) -> Printf.sprintf "%d.%d" i f
   | EOp op -> print_op op
 
 (* Wrappers *)

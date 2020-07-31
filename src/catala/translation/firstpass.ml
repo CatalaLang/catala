@@ -31,7 +31,15 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
   | Unop (op, e) ->
       let op_term = (Pos.same_pos_as (EOp (Unop (Pos.unmark op))) op, None) in
       ((EApp (op_term, [ rec_helper e ]), pos), None)
-  | Literal l -> ((ELiteral l, pos), None)
+  | Literal l ->
+      let untyped_term =
+        match l with
+        | Number ((Int i, _), _) -> EInt i
+        | Number ((Dec (i, f), _), _) -> EDec (i, f)
+        | Bool b -> EBool b
+        | _ -> assert false
+      in
+      ((untyped_term, pos), None)
   | Ident x ->
       let uid = Context.get_var_uid scope ctxt (x, pos) in
       ((EVar uid, pos), None)
@@ -96,9 +104,8 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
       if typ_if <> TBool then assert false
       else if typ_then <> typ_else then assert false
       else (((EIfThenElse (t_if, t_then, t_else), pos), Some typ_then), typ_then)
-  | ELiteral l ->
-      let typ = match l with Number _ | MoneyAmount _ | Date _ -> TInt | Bool _ -> TBool in
-      (((t, pos), Some typ), typ)
+  | EInt _ | EDec _ -> (((t, pos), Some TInt), TInt)
+  | EBool _ -> (((t, pos), Some TBool), TBool)
   | EOp op ->
       let typ =
         match op with
@@ -120,14 +127,14 @@ let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) 
       let op_term = ((EOp (Binop And), Pos.no_pos), None) in
       ((EApp (op_term, [ precond; cond ]), Pos.no_pos), None)
   | Some cond, None | None, Some cond -> cond
-  | None, None -> ((ELiteral (Ast.Bool true), Pos.no_pos), Some TBool)
+  | None, None -> ((EBool true, Pos.no_pos), Some TBool)
 
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
     (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
   (* For now we rule out functions *)
   let () = match rule.rule_parameter with Some _ -> assert false | None -> () in
-  let consequence_term = ((ELiteral (Ast.Bool rule.rule_consequence), Pos.no_pos), Some TBool) in
+  let consequence_term = ((EBool rule.rule_consequence, Pos.no_pos), Some TBool) in
   let scope_prgm = UidMap.find scope prgm in
   let scope_prgm =
     match Pos.unmark rule.rule_name with
