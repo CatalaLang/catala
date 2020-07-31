@@ -34,8 +34,8 @@ type term = untyped_term Pos.marked * typ option
 
 and untyped_term =
   | EVar of uid
-  | EFun of binding * term
-  | EApp of term * term
+  | EFun of binding list * term
+  | EApp of term * term list
   | EIfThenElse of term * term * term
   | ELiteral of literal
   | EOp of op
@@ -73,10 +73,13 @@ let print_op (op : op) : string =
 let rec print_term (((t, _), _) : term) : string =
   match t with
   | EVar uid -> Printf.sprintf "var(%n)" uid
-  | EFun ((binder, _), body) ->
+  | EFun (binders, body) ->
       let sbody = print_term body in
-      Printf.sprintf "fun %n -> %s" binder sbody
-  | EApp (t1, t2) -> Printf.sprintf "(%s) (%s)" (print_term t1) (print_term t2)
+      Printf.sprintf "fun %s -> %s"
+        (binders |> List.map (fun (x, _) -> Printf.sprintf "%d" x) |> String.concat " ")
+        sbody
+  | EApp (f, args) ->
+      Printf.sprintf "(%s) [%s]" (print_term f) (args |> List.map print_term |> String.concat ";")
   | EIfThenElse (tif, tthen, telse) ->
       Printf.sprintf "IF %s THEN %s ELSE %s" (print_term tif) (print_term tthen) (print_term telse)
   | ELiteral l -> print_literal l
