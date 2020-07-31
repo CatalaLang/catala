@@ -99,7 +99,28 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
   in
   ((evaled_term, pos), typ)
 
-let eval_default_term (_term : Lambda.default_term) : Lambda.term option = assert false
+(* Evaluates a default term : see the formalization for an insight about this operation *)
+let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) : Lambda.term option =
+  (* First filter out the term which justification are false *)
+  let candidates =
+    IntMap.filter
+      (fun _ (cond, _) ->
+        match eval_term exec_ctxt cond |> Lambda.untype with EBool b -> b | _ -> assert false)
+      term.defaults
+  in
+  (* Now filter out the terms that have a predecessor *)
+  let module ISet = Set.Make (Int) in
+  let key_candidates = IntMap.fold (fun x _ -> ISet.add x) candidates ISet.empty in
+  let chosen_one =
+    List.fold_left
+      (fun set (lo, hi) -> if ISet.mem lo set && ISet.mem hi set then ISet.remove hi set else set)
+      key_candidates term.ordering
+  in
+  match ISet.elements chosen_one with
+  | [ x ] ->
+      let _, cons = IntMap.find x term.defaults in
+      Some (eval_term exec_ctxt cons)
+  | _ -> (* TODO : error reporting for cause of conflicts *) None
 
 (** Returns the scheduling of the scope variables, if y is a subscope and x a variable of y, then we
     have two different variable y.x(internal) and y.x(result) and the ordering y.x(internal) -> y ->
