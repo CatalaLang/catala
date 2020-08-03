@@ -136,7 +136,7 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
   let vertices =
     UidSet.fold
       (fun uid verts ->
-        match (UidMap.find uid ctxt.data).uid_sort with
+        match Context.get_uid_sort ctxt uid with
         | IdScopeVar | IdSubScope _ -> UidMap.add uid (G.V.create uid) verts
         | _ -> verts)
       (UidMap.find scope_uid ctxt.scopes).uid_set UidMap.empty
@@ -205,7 +205,7 @@ let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (pr
     (fun v_uid exec_context ->
       let uid = G.V.label v_uid in
       (* Printf.printf "Executing %d...\n" uid; *)
-      match (UidMap.find uid ctxt.data).uid_sort with
+      match Context.get_uid_sort ctxt uid with
       | IdScopeVar -> (
           let def = UidMap.find uid scope_prgm.scope_defs in
           match eval_default_term exec_context def with
@@ -227,7 +227,7 @@ let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (pr
           (* Now let's merge back the value from the output context *)
           UidSet.fold
             (fun var_uid exec_context ->
-              match (UidMap.find var_uid ctxt.data).uid_sort with
+              match Context.get_uid_sort ctxt var_uid with
               | IdSubScopeVar (ref_uid, _) ->
                   let value = UidMap.find ref_uid out_context in
                   UidMap.add var_uid value exec_context

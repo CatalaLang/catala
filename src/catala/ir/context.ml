@@ -84,6 +84,12 @@ exception UnsupportedFeature of string * Pos.t
 
 exception UndefinedIdentifier of string * Pos.t
 
+(** Get the type associated to an uid *)
+let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data).uid_typ
+
+(** Get the sort associated to an uid *)
+let get_uid_sort (ctxt : context) (uid : uid) : uid_sort = (UidMap.find uid ctxt.data).uid_sort
+
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_scope) :
     context =
@@ -94,7 +100,7 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
     match IdentMap.find_opt subscope ctxt.scope_id_to_uid with
     | None -> raise (UndefinedIdentifier (subscope, s_pos))
     | Some uid -> (
-        match (UidMap.find uid ctxt.data).uid_sort with
+        match get_uid_sort ctxt uid with
         | IdScope -> uid
         | _ -> raise (UndefinedIdentifier ("...", s_pos)) )
   in
@@ -230,9 +236,6 @@ let form_context (prgm : Ast.program) : context =
   in
   List.fold_left process_program_item empty_ctxt prgm.program_items
 
-(** Get the type associated to an uid *)
-let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data).uid_typ
-
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked) : uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
@@ -240,8 +243,7 @@ let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked)
   | None -> Errors.unknown_identifier x pos
   | Some uid -> (
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
-      let data = UidMap.find uid ctxt.data in
-      match data.uid_sort with
+      match get_uid_sort ctxt uid with
       | IdScopeVar | IdBinder | IdSubScopeVar _ -> uid
       | _ ->
           let err_msg =
@@ -256,7 +258,7 @@ let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.ma
   match IdentMap.find_opt y scope.var_id_to_uid with
   | None -> Errors.unknown_identifier y pos
   | Some sub_uid -> (
-      match (UidMap.find sub_uid ctxt.data).uid_sort with
+      match get_uid_sort ctxt sub_uid with
       | IdSubScope scope_ref -> (sub_uid, scope_ref)
       | _ ->
           let err_msg =
