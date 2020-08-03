@@ -5,6 +5,9 @@ declaration scope A:
   context c content boolean
 
 scope A:
+  definition c equals false
   definition a under condition c consequence equals 42
+  definition a under condition not c consequence equals 0
   definition b under condition not c consequence equals 1337
+  definition b under condition c consequence equals 0
 */
