@@ -104,6 +104,12 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       Context.print_context ctxt;
       let scope_prgm = Firstpass.translate_program_to_scope ctxt program in
       Scope.print_program scope_prgm;
+      Uid.UidMap.iter
+        (fun scope_uid _ ->
+          Printf.printf "Execution schedule of scope %d\n" scope_uid;
+          let _ = Interpreter.execute_scope ctxt scope_prgm scope_uid in
+          ())
+        scope_prgm;
       0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

@@ -12,6 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module G = Graph.Pack.Digraph
 open Lambda
 
 type uid = int
@@ -19,6 +20,7 @@ type uid = int
 type scope_uid = int
 
 module UidMap = Uid.UidMap
+module UidSet = Uid.UidSet
 
 type exec_context = Lambda.untyped_term UidMap.t
 
@@ -125,10 +127,69 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) : 
 (** Returns the scheduling of the scope variables, if y is a subscope and x a variable of y, then we
     have two different variable y.x(internal) and y.x(result) and the ordering y.x(internal) -> y ->
     y.x(result) *)
-let schedule_scope (_scope : Scope.scope) : uid list = assert false
+let build_scope_schedule (ctxt : Context.context) (prgm : Scope.program) (scope_uid : scope_uid) :
+    G.t =
+  let g = G.create ~size:100 () in
+  let scope = UidMap.find scope_uid prgm in
+  (* Add all the vertices to the graph *)
+  let vertices =
+    UidSet.fold
+      (fun uid verts ->
+        match (UidMap.find uid ctxt.data).uid_sort with
+        | IdScopeVar | IdSubScope _ -> UidMap.add uid (G.V.create uid) verts
+        | _ -> verts)
+      (UidMap.find scope_uid ctxt.scopes).uid_set UidMap.empty
+  in
+  UidMap.iter (fun _ v -> G.add_vertex g v) vertices;
+  (* Process definitions dependencies. There are two types of dependencies : var -> var; sub_scope
+     -> var *)
+  UidMap.iter
+    (fun var_uid def ->
+      let fv = Lambda.default_term_fv def in
+      UidSet.iter
+        (fun uid ->
+          let data = UidMap.find uid ctxt.data in
+          let from_uid =
+            match data.uid_sort with
+            | IdScopeVar -> uid
+            | IdSubScopeVar (_, sub_scope_uid) -> sub_scope_uid
+            | _ -> assert false
+          in
+          Printf.printf "%d -> %d" from_uid var_uid;
+          G.add_edge g (UidMap.find from_uid vertices) (UidMap.find var_uid vertices);
+          Printf.printf ".\n")
+        fv)
+    scope.scope_defs;
+  (* Process sub-definitions dependencies. Only one kind of dependencies : var -> sub_scopes*)
+  UidMap.iter
+    (fun sub_scope_uid defs ->
+      UidMap.iter
+        (fun _ def ->
+          let fv = Lambda.default_term_fv def in
+          UidSet.iter
+            (fun var_uid ->
+              (* Process only uid from the current scope (not the subscope) *)
+              if Context.belongs_to ctxt var_uid scope_uid then (
+                Printf.printf "%d -> %d" var_uid sub_scope_uid;
+                G.add_edge g (UidMap.find var_uid vertices) (UidMap.find sub_scope_uid vertices);
+                Printf.printf ".\n" )
+              else ())
+            fv)
+        defs)
+    scope.scope_sub_defs;
+  g
 
 let merge_var_redefs (_subscope : uid) (_caller_scope : scope_uid) (_prgm : Scope.program) :
     Scope.scope =
   assert false
 
-let execute_scope (_scope : scope_uid) (_prgm : Scope.program) : exec_context = assert false
+let execute_scope (ctxt : Context.context) (prgm : Scope.program) (scope_uid : scope_uid) :
+    exec_context =
+  let _scope = UidMap.find scope_uid prgm in
+  let schedule = build_scope_schedule ctxt prgm scope_uid in
+  let exec_context : exec_context = UidMap.empty in
+  G.Topological.fold
+    (fun v_uid exec_context ->
+      Printf.printf "%d\n" (G.V.label v_uid);
+      exec_context)
+    schedule exec_context

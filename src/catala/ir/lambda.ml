@@ -15,6 +15,7 @@
 type uid = Uid.t
 
 module UidMap = Uid.UidMap
+module UidSet = Uid.UidSet
 
 type typ = TBool | TInt | TArrow of typ * typ | TDummy
 
@@ -124,3 +125,24 @@ let add_default (just : justification) (cons : consequence) (term : default_term
   }
 
 type program_with_default_logic = default_term program
+
+let rec term_free_vars (term : term) : UidSet.t =
+  match untype term with
+  | EVar uid -> UidSet.singleton uid
+  | EFun (bindings, body) ->
+      let body_fv = term_free_vars body in
+      let bindings = bindings |> List.map (fun (x, _) -> x) |> UidSet.of_list in
+      UidSet.diff body_fv bindings
+  | EApp (f, args) ->
+      List.fold_left (fun fv arg -> UidSet.union fv (term_free_vars arg)) (term_free_vars f) args
+  | EIfThenElse (t_if, t_then, t_else) ->
+      UidSet.union (term_free_vars t_if)
+        (UidSet.union (term_free_vars t_then) (term_free_vars t_else))
+  | _ -> UidSet.empty
+
+let default_term_fv (term : default_term) : UidSet.t =
+  IntMap.fold
+    (fun _ (cond, body) ->
+      let fv = UidSet.union (term_free_vars cond) (term_free_vars body) in
+      UidSet.union fv)
+    term.defaults UidSet.empty

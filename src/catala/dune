@@ -2,7 +2,8 @@
 
 (library
  (public_name catala)
- (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info)
+ (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info
+   ocamlgraph)
  (preprocess
   (pps sedlex.ppx)))
 

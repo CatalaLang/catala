@@ -14,6 +14,12 @@
 
 type uid = Uid.t
 
+type scope_uid = uid
+
+type var_uid = uid
+
+type sub_scope_uid = uid
+
 module UidMap = Uid.UidMap
 module UidSet = Uid.UidSet
 
@@ -23,11 +29,16 @@ module IdentMap = Map.Make (String)
 
 type typ = Lambda.typ
 
-type uid_sort = IdScope | IdScopeVar | IdSubScope of uid | IdBinder
+type uid_sort =
+  | IdScope
+  | IdScopeVar
+  | IdSubScope of uid
+  | IdSubScopeVar of var_uid * sub_scope_uid
+  | IdBinder
 
 type uid_data = { uid_typ : typ; uid_sort : uid_sort }
 
-type scope_context = { var_id_to_uid : uid IdentMap.t }
+type scope_context = { var_id_to_uid : uid IdentMap.t; uid_set : UidSet.t }
 
 type context = {
   scope_id_to_uid : uid IdentMap.t;
@@ -49,7 +60,10 @@ let print_context (ctxt : context) : unit =
       match data.uid_sort with
       | IdScope -> "\tscope"
       | IdScopeVar -> Printf.sprintf "\ttyp : %s\tvar" (typ_to_string data.uid_typ)
-      | IdSubScope uid -> Printf.sprintf "\tsubscope : %n" uid
+      | IdSubScope uid -> Printf.sprintf "\tsubscope : %d" uid
+      | IdSubScopeVar (var_uid, sub_scope_uid) ->
+          Printf.sprintf "\ttype : %s\tsubvar(%d, scope %d)" (typ_to_string data.uid_typ) var_uid
+            sub_scope_uid
       | IdBinder -> Printf.sprintf "\ttyp : %s\tbinder" (typ_to_string data.uid_typ)
     in
     Printf.printf "%s (uid : %n)%s\n" var_id var_uid info;
@@ -89,13 +103,21 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
   match IdentMap.find_opt name scope_ctxt.var_id_to_uid with
   | Some _ -> assert false (* Variable is already used in this scope *)
   | None ->
-      let uid = Uid.fresh () in
-      let scope_ctxt = { var_id_to_uid = IdentMap.add name uid scope_ctxt.var_id_to_uid } in
+      let sub_scope_uid = Uid.fresh () in
+      let scope_ctxt =
+        {
+          var_id_to_uid = IdentMap.add name sub_scope_uid scope_ctxt.var_id_to_uid;
+          uid_set = UidSet.add sub_scope_uid scope_ctxt.uid_set;
+        }
+      in
       let ctxt =
         {
           ctxt with
           scopes = UidMap.add scope scope_ctxt ctxt.scopes;
-          data = UidMap.add uid { uid_typ = Lambda.TDummy; uid_sort = IdSubScope sub_uid } ctxt.data;
+          data =
+            UidMap.add sub_scope_uid
+              { uid_typ = Lambda.TDummy; uid_sort = IdSubScope sub_uid }
+              ctxt.data;
         }
       in
       (* Now duplicate all variables from the subscope *)
@@ -103,13 +125,16 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
         (fun sub_var sub_uid ctxt ->
           let fresh_uid = Uid.fresh () in
           let fresh_varname = subscope_ident name sub_var in
+          let scope_ctxt = UidMap.find scope ctxt.scopes in
           let scope_ctxt =
             {
-              var_id_to_uid =
-                IdentMap.add fresh_varname fresh_uid (UidMap.find scope ctxt.scopes).var_id_to_uid;
+              var_id_to_uid = IdentMap.add fresh_varname fresh_uid scope_ctxt.var_id_to_uid;
+              uid_set = UidSet.add fresh_uid scope_ctxt.uid_set;
             }
           in
-          let data = UidMap.find sub_uid ctxt.data in
+          let sub_data = UidMap.find sub_uid ctxt.data in
+          (* Add a reference to the subvar *)
+          let data = { sub_data with uid_sort = IdSubScopeVar (sub_uid, sub_scope_uid) } in
           {
             ctxt with
             scopes = UidMap.add scope scope_ctxt ctxt.scopes;
@@ -143,7 +168,12 @@ let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
   | None ->
       (* We now can get a fresh uid for the data *)
       let uid = Uid.fresh () in
-      let scope_ctxt = { var_id_to_uid = IdentMap.add name uid scope_ctxt.var_id_to_uid } in
+      let scope_ctxt =
+        {
+          var_id_to_uid = IdentMap.add name uid scope_ctxt.var_id_to_uid;
+          uid_set = UidSet.add uid scope_ctxt.uid_set;
+        }
+      in
       {
         ctxt with
         scopes = UidMap.add scope scope_ctxt ctxt.scopes;
@@ -169,7 +199,10 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
         {
           scope_id_to_uid = IdentMap.add name scope_uid ctxt.scope_id_to_uid;
           data = UidMap.add scope_uid { uid_typ = Lambda.TDummy; uid_sort = IdScope } ctxt.data;
-          scopes = UidMap.add scope_uid { var_id_to_uid = IdentMap.empty } ctxt.scopes;
+          scopes =
+            UidMap.add scope_uid
+              { var_id_to_uid = IdentMap.empty; uid_set = UidSet.empty }
+              ctxt.scopes;
         }
       in
       List.fold_left
@@ -205,16 +238,17 @@ let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked)
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt x scope.var_id_to_uid with
   | None -> Errors.unknown_identifier x pos
-  | Some uid ->
+  | Some uid -> (
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
       let data = UidMap.find uid ctxt.data in
-      if data.uid_sort <> IdScopeVar && data.uid_sort <> IdBinder then
-        let err_msg =
-          Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
-            (Pos.to_string pos)
-        in
-        Errors.context_error err_msg
-      else uid
+      match data.uid_sort with
+      | IdScopeVar | IdBinder | IdSubScopeVar _ -> uid
+      | _ ->
+          let err_msg =
+            Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
+              (Pos.to_string pos)
+          in
+          Errors.context_error err_msg )
 
 (** Get the subscope uid inside the scope given in argument *)
 let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.marked) : uid =
@@ -230,3 +264,8 @@ let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.ma
               (Pos.to_string pos)
           in
           Errors.context_error err_msg )
+
+(** Checks if the var_uid belongs to the scope scope_uid *)
+let belongs_to (ctxt : context) (uid : var_uid) (scope_uid : scope_uid) : bool =
+  let scope = UidMap.find scope_uid ctxt.scopes in
+  UidSet.mem uid scope.uid_set

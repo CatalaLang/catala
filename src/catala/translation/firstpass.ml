@@ -91,12 +91,18 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
       in
       let fun_typ = build_typ bindings in
       (((EFun (bindings, body), pos), Some fun_typ), fun_typ)
-  | EApp (f, args) -> (
-      let _f, f_typ = typing ctxt f in
-      let _args, _args_typ = args |> List.map (typing ctxt) |> List.split in
-      match f_typ with
-      | TArrow (_arg_typ, _ret_typ) -> assert false
-      | TBool | TInt | TDummy -> assert false )
+  | EApp (f, args) ->
+      let f, f_typ = typing ctxt f in
+      let args, args_typ = args |> List.map (typing ctxt) |> List.split in
+      let rec check_arrow_typ f_typ args_typ =
+        match (f_typ, args_typ) with
+        | typ, [] -> typ
+        | TArrow (arg_typ, ret_typ), fst_typ :: typs ->
+            if arg_typ = fst_typ then check_arrow_typ ret_typ typs else assert false
+        | _ -> assert false
+      in
+      let ret_typ = check_arrow_typ f_typ args_typ in
+      (((EApp (f, args), pos), Some ret_typ), ret_typ)
   | EIfThenElse (t_if, t_then, t_else) ->
       let t_if, typ_if = typing ctxt t_if in
       let t_then, typ_then = typing ctxt t_then in
