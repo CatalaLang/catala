@@ -251,13 +251,13 @@ let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked)
           Errors.context_error err_msg )
 
 (** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.marked) : uid =
+let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.marked) : uid * uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt y scope.var_id_to_uid with
   | None -> Errors.unknown_identifier y pos
   | Some sub_uid -> (
       match (UidMap.find sub_uid ctxt.data).uid_sort with
-      | IdSubScope subscope_uid -> subscope_uid
+      | IdSubScope scope_ref -> (sub_uid, scope_ref)
       | _ ->
           let err_msg =
             Printf.sprintf "Identifier \"%s\" should be a subscope, but it isn't\n%s" y

@@ -47,7 +47,7 @@ let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Cont
       (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
       match Pos.unmark e with
       | Ident y -> (
-          let sub_uid = Context.get_subscope_uid scope ctxt (Pos.same_pos_as y e) in
+          let _, sub_uid = Context.get_subscope_uid scope ctxt (Pos.same_pos_as y e) in
           match subdef with
           | None ->
               (* No redefinition : take the uid from the current scope *)
@@ -163,8 +163,8 @@ let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.co
         let x_def = Lambda.add_default condition consequence_term x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
-        let subscope_uid = Context.get_subscope_uid scope ctxt y in
-        let x_uid = Context.get_var_uid subscope_uid ctxt x in
+        let subscope_uid, scope_ref = Context.get_subscope_uid scope ctxt y in
+        let x_uid = Context.get_var_uid scope_ref ctxt x in
         let y_subdef =
           match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
           | Some defs -> defs
@@ -179,7 +179,7 @@ let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.co
         let cond =
           match rule.rule_condition with
           | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt cond) in
+              let cond, typ = typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt cond) in
               if typ = TBool then Some cond else assert false
           | None -> None
         in
@@ -221,8 +221,8 @@ let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.con
         let x_def = Lambda.add_default condition body x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
-        let subscope_uid = Context.get_subscope_uid scope ctxt y in
-        let x_uid = Context.get_var_uid subscope_uid ctxt x in
+        let subscope_uid, scope_ref = Context.get_subscope_uid scope ctxt y in
+        let x_uid = Context.get_var_uid scope_ref ctxt x in
         let y_subdef =
           match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
           | Some defs -> defs
@@ -236,13 +236,13 @@ let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.con
         let cond =
           match def.definition_condition with
           | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt cond) in
+              let cond, typ = typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt cond) in
               if typ = TBool then Some cond else assert false
           | None -> None
         in
         let condition, _ = typing ctxt (merge_conditions precond cond) in
         let body, _ =
-          typing ctxt (expr_to_lambda ~subdef:subscope_uid scope ctxt def.definition_expr)
+          typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt def.definition_expr)
         in
         let x_redef = Lambda.add_default condition body x_redef in
         let y_subdef = UidMap.add x_uid x_redef y_subdef in

@@ -106,9 +106,12 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       Scope.print_program scope_prgm;
       Uid.UidMap.iter
         (fun scope_uid _ ->
-          Printf.printf "Execution schedule of scope %d\n" scope_uid;
-          let _ = Interpreter.execute_scope ctxt scope_prgm scope_uid in
-          ())
+          Printf.printf "Execution of scope %d\n" scope_uid;
+          let exec_ctxt = Interpreter.execute_scope ctxt scope_prgm scope_uid in
+          Uid.UidMap.iter
+            (fun uid value ->
+              Printf.printf "Var %d:\t%s\n" uid (Lambda.print_term ((value, Pos.no_pos), None)))
+            exec_ctxt)
         scope_prgm;
       0
 

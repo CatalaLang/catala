@@ -169,10 +169,8 @@ let build_scope_schedule (ctxt : Context.context) (prgm : Scope.program) (scope_
           UidSet.iter
             (fun var_uid ->
               (* Process only uid from the current scope (not the subscope) *)
-              if Context.belongs_to ctxt var_uid scope_uid then (
-                Printf.printf "%d -> %d" var_uid sub_scope_uid;
-                G.add_edge g (UidMap.find var_uid vertices) (UidMap.find sub_scope_uid vertices);
-                Printf.printf ".\n" )
+              if Context.belongs_to ctxt var_uid scope_uid then
+                G.add_edge g (UidMap.find var_uid vertices) (UidMap.find sub_scope_uid vertices)
               else ())
             fv)
         defs)
@@ -185,11 +183,22 @@ let merge_var_redefs (_subscope : uid) (_caller_scope : scope_uid) (_prgm : Scop
 
 let execute_scope (ctxt : Context.context) (prgm : Scope.program) (scope_uid : scope_uid) :
     exec_context =
-  let _scope = UidMap.find scope_uid prgm in
+  let scope_prgm = UidMap.find scope_uid prgm in
   let schedule = build_scope_schedule ctxt prgm scope_uid in
-  let exec_context : exec_context = UidMap.empty in
+  let empty_context : exec_context = UidMap.empty in
+  (*G.Topological.fold (fun v_uid exec_context -> Printf.printf "%d\n" (G.V.label v_uid);
+    exec_context) schedule exec_context*)
   G.Topological.fold
     (fun v_uid exec_context ->
-      Printf.printf "%d\n" (G.V.label v_uid);
-      exec_context)
-    schedule exec_context
+      let uid = G.V.label v_uid in
+      match (UidMap.find uid ctxt.data).uid_sort with
+      | IdScopeVar -> (
+          let def = UidMap.find uid scope_prgm.scope_defs in
+          match eval_default_term exec_context def with
+          | Some value -> UidMap.add uid (Lambda.untype value) exec_context
+          | None ->
+              Printf.printf "Something went wrong…\n";
+              assert false )
+      | IdSubScope _ -> assert false
+      | _ -> assert false)
+    schedule empty_context
