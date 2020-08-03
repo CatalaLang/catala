@@ -102,17 +102,17 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
   | Cli.Context ->
       let ctxt = Context.form_context program in
       Context.print_context ctxt;
-      let scope_prgm = Firstpass.translate_program_to_scope ctxt program in
-      Scope.print_program scope_prgm;
+      let prgm = Firstpass.translate_program_to_scope ctxt program in
       Uid.UidMap.iter
-        (fun scope_uid _ ->
-          Printf.printf "Execution of scope %d\n" scope_uid;
-          let exec_ctxt = Interpreter.execute_scope ctxt scope_prgm scope_uid in
+        (fun _uid scope ->
+          Printf.printf "Execution of scope %d\n" scope.Scope.scope_uid;
+          let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
           Uid.UidMap.iter
             (fun uid value ->
               Printf.printf "Var %d:\t%s\n" uid (Lambda.print_term ((value, Pos.no_pos), None)))
-            exec_ctxt)
-        scope_prgm;
+            exec_ctxt;
+          Printf.printf "\n")
+        prgm;
       0
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

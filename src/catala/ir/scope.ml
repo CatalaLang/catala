@@ -39,14 +39,16 @@ type meta_assertion =
   | VariesWith of Lambda.term * variation_typ Pos.marked option
 
 type scope = {
+  scope_uid : uid;
   scope_defs : definition UidMap.t;
   scope_sub_defs : definition UidMap.t UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
 
-let empty_scope =
+let empty_scope (uid : uid) : scope =
   {
+    scope_uid = uid;
     scope_defs = UidMap.empty;
     scope_sub_defs = UidMap.empty;
     scope_assertions = [];

@@ -24,6 +24,8 @@ module UidSet = Uid.UidSet
 
 type exec_context = Lambda.untyped_term UidMap.t
 
+let empty_exec_ctxt = UidMap.empty
+
 let rec substitute (var : uid) (value : Lambda.untyped_term) (term : Lambda.term) : Lambda.term =
   let (term', pos), typ = term in
   let subst = substitute var value in
@@ -127,10 +129,9 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) : 
 (** Returns the scheduling of the scope variables, if y is a subscope and x a variable of y, then we
     have two different variable y.x(internal) and y.x(result) and the ordering y.x(internal) -> y ->
     y.x(result) *)
-let build_scope_schedule (ctxt : Context.context) (prgm : Scope.program) (scope_uid : scope_uid) :
-    G.t =
+let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
   let g = G.create ~size:100 () in
-  let scope = UidMap.find scope_uid prgm in
+  let scope_uid = scope.scope_uid in
   (* Add all the vertices to the graph *)
   let vertices =
     UidSet.fold
@@ -148,16 +149,16 @@ let build_scope_schedule (ctxt : Context.context) (prgm : Scope.program) (scope_
       let fv = Lambda.default_term_fv def in
       UidSet.iter
         (fun uid ->
-          let data = UidMap.find uid ctxt.data in
-          let from_uid =
-            match data.uid_sort with
-            | IdScopeVar -> uid
-            | IdSubScopeVar (_, sub_scope_uid) -> sub_scope_uid
-            | _ -> assert false
-          in
-          Printf.printf "%d -> %d" from_uid var_uid;
-          G.add_edge g (UidMap.find from_uid vertices) (UidMap.find var_uid vertices);
-          Printf.printf ".\n")
+          if Context.belongs_to ctxt uid scope_uid then
+            let data = UidMap.find uid ctxt.data in
+            let from_uid =
+              match data.uid_sort with
+              | IdScopeVar -> uid
+              | IdSubScopeVar (_, sub_scope_uid) -> sub_scope_uid
+              | _ -> assert false
+            in
+            G.add_edge g (UidMap.find from_uid vertices) (UidMap.find var_uid vertices)
+          else ())
         fv)
     scope.scope_defs;
   (* Process sub-definitions dependencies. Only one kind of dependencies : var -> sub_scopes*)
@@ -177,20 +178,33 @@ let build_scope_schedule (ctxt : Context.context) (prgm : Scope.program) (scope_
     scope.scope_sub_defs;
   g
 
-let merge_var_redefs (_subscope : uid) (_caller_scope : scope_uid) (_prgm : Scope.program) :
-    Scope.scope =
-  assert false
+let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.t) : Scope.scope =
+  {
+    subscope with
+    scope_defs =
+      UidMap.fold
+        (fun uid new_def sub_defs ->
+          match UidMap.find_opt uid sub_defs with
+          | None -> UidMap.add uid new_def sub_defs
+          | Some old_def ->
+              let def = Lambda.merge_default_terms old_def new_def in
+              UidMap.add uid def sub_defs)
+        redefs subscope.scope_defs;
+  }
 
-let execute_scope (ctxt : Context.context) (prgm : Scope.program) (scope_uid : scope_uid) :
-    exec_context =
-  let scope_prgm = UidMap.find scope_uid prgm in
-  let schedule = build_scope_schedule ctxt prgm scope_uid in
-  let empty_context : exec_context = UidMap.empty in
+let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (prgm : Scope.program)
+    (scope_prgm : Scope.scope) : exec_context =
+  let schedule = build_scope_schedule ctxt scope_prgm in
+
+  (* Printf.printf "Scheduling : "; *)
+  (* G.Topological.iter (fun v_uid -> Printf.printf "%d; " (G.V.label v_uid)) schedule; *)
+  (* Printf.printf "\n"; *)
   (*G.Topological.fold (fun v_uid exec_context -> Printf.printf "%d\n" (G.V.label v_uid);
     exec_context) schedule exec_context*)
   G.Topological.fold
     (fun v_uid exec_context ->
       let uid = G.V.label v_uid in
+      (* Printf.printf "Executing %d...\n" uid; *)
       match (UidMap.find uid ctxt.data).uid_sort with
       | IdScopeVar -> (
           let def = UidMap.find uid scope_prgm.scope_defs in
@@ -199,6 +213,25 @@ let execute_scope (ctxt : Context.context) (prgm : Scope.program) (scope_uid : s
           | None ->
               Printf.printf "Something went wrong…\n";
               assert false )
-      | IdSubScope _ -> assert false
+      | IdSubScope sub_scope_ref ->
+          (* Merge the new definitions *)
+          let sub_scope_prgm = UidMap.find sub_scope_ref prgm in
+          let redefs =
+            match UidMap.find_opt uid scope_prgm.scope_sub_defs with
+            | Some defs -> defs
+            | None -> UidMap.empty
+          in
+          let new_sub_scope_prgm = merge_var_redefs sub_scope_prgm redefs in
+          (* Scope.print_scope new_sub_scope_prgm; *)
+          let out_context = execute_scope ctxt exec_context prgm new_sub_scope_prgm in
+          (* Now let's merge back the value from the output context *)
+          UidSet.fold
+            (fun var_uid exec_context ->
+              match (UidMap.find var_uid ctxt.data).uid_sort with
+              | IdSubScopeVar (ref_uid, _) ->
+                  let value = UidMap.find ref_uid out_context in
+                  UidMap.add var_uid value exec_context
+              | _ -> exec_context)
+            (UidMap.find scope_prgm.scope_uid ctxt.scopes).uid_set exec_context
       | _ -> assert false)
-    schedule empty_context
+    schedule exec_context

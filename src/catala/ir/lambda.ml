@@ -112,7 +112,7 @@ type default_term = {
 
 let print_default_term (term : default_term) : unit =
   IntMap.iter
-    (fun _ (cond, body) -> Printf.printf "\t%s => %s\n" (print_term cond) (print_term body))
+    (fun _ (cond, body) -> Printf.printf "\t%s => %s\t\n" (print_term cond) (print_term body))
     term.defaults
 
 let empty_default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
@@ -123,6 +123,31 @@ let add_default (just : justification) (cons : consequence) (term : default_term
     defaults = IntMap.add term.nb_defaults (just, cons) term.defaults;
     nb_defaults = term.nb_defaults + 1;
   }
+
+(** Merge two defalts terms, taking into account that one has higher precedence than the other *)
+let merge_default_terms (lo_term : default_term) (hi_term : default_term) : default_term =
+  let n = lo_term.nb_defaults in
+  let n' = hi_term.nb_defaults in
+  let defaults =
+    IntMap.fold (fun k default -> IntMap.add (n + k) default) hi_term.defaults lo_term.defaults
+  in
+  let rec add_hi_prec = function
+    | [] -> lo_term.ordering
+    | (k, k') :: xs -> (n + k, n + k') :: add_hi_prec xs
+  in
+  let prec = add_hi_prec hi_term.ordering in
+  let gen_prec lo hi =
+    List.fold_left
+      (fun acc x_lo ->
+        let sub_list = List.fold_left (fun acc' x_hi -> (x_hi, x_lo) :: acc') [] hi in
+        sub_list :: acc)
+      [] lo
+    |> List.flatten
+  in
+  let rec gen_list i j acc = if i = j then acc else gen_list (i + 1) j (i :: acc) in
+  let gen_list i j = gen_list i j [] in
+  let prec' = gen_prec (gen_list 0 n) (gen_list n (n + n')) in
+  { defaults; ordering = prec @ prec'; nb_defaults = n + n' }
 
 type program_with_default_logic = default_term program
 

@@ -269,7 +269,7 @@ let process_scope_use (ctxt : Context.context) (prgm : Scope.program) (use : Ast
   let prgm =
     match UidMap.find_opt scope_uid prgm with
     | Some _ -> prgm
-    | None -> UidMap.add scope_uid Scope.empty_scope prgm
+    | None -> UidMap.add scope_uid (Scope.empty_scope scope_uid) prgm
   in
   let cond =
     match use.scope_use_condition with

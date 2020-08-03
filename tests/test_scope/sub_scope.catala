@@ -11,7 +11,7 @@ declaration scope B:
 
 scope A:
   definition a_base equals 1
-  definition a equals 42
+  definition a equals -1
   definition b equals a > 0
 
 scope B:
