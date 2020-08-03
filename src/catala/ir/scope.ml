@@ -12,16 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* Identifiers *)
-
-type uid = Context.uid
-
-type ident = string
-
-type qident = ident list
-
 module UidMap = Uid.UidMap
-module IdentMap = Context.IdentMap
 
 (* Scopes *)
 type binder = string Pos.marked
@@ -39,14 +30,14 @@ type meta_assertion =
   | VariesWith of Lambda.term * variation_typ Pos.marked option
 
 type scope = {
-  scope_uid : uid;
+  scope_uid : Uid.t;
   scope_defs : definition UidMap.t;
   scope_sub_defs : definition UidMap.t UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
 
-let empty_scope (uid : uid) : scope =
+let empty_scope (uid : Uid.t) : scope =
   {
     scope_uid = uid;
     scope_defs = UidMap.empty;
@@ -63,9 +54,9 @@ let print_scope (scope : scope) : unit =
         Printf.printf "%n:\n" uid;
         Lambda.print_default_term term)
   in
-  Printf.printf ">>> Variables Definition <<<\n";
+  Printf.printf "___Variables Definition___\n";
   print_defs scope.scope_defs;
-  Printf.printf ">>> Subscope (Re)definition <<<\n";
+  Printf.printf "___Subscope (Re)definition___\n";
   UidMap.iter
     (fun scope_uid defs ->
       Printf.printf "__%n__:\n" scope_uid;

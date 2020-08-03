@@ -14,11 +14,11 @@
 
 type uid = Uid.t
 
-type scope_uid = uid
+type scope_uid = Uid.t
 
-type var_uid = uid
+type var_uid = Uid.t
 
-type sub_scope_uid = uid
+type sub_scope_uid = Uid.t
 
 module UidMap = Uid.UidMap
 module UidSet = Uid.UidSet
@@ -29,14 +29,14 @@ module IdentMap = Map.Make (String)
 
 type typ = Lambda.typ
 
-type uid_sort =
+type sort =
   | IdScope
   | IdScopeVar
   | IdSubScope of uid
   | IdSubScopeVar of var_uid * sub_scope_uid
   | IdBinder
 
-type uid_data = { uid_typ : typ; uid_sort : uid_sort }
+type uid_data = { uid_typ : typ; uid_sort : sort }
 
 type scope_context = { var_id_to_uid : uid IdentMap.t; uid_set : UidSet.t }
 
@@ -88,7 +88,7 @@ exception UndefinedIdentifier of string * Pos.t
 let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data).uid_typ
 
 (** Get the sort associated to an uid *)
-let get_uid_sort (ctxt : context) (uid : uid) : uid_sort = (UidMap.find uid ctxt.data).uid_sort
+let get_uid_sort (ctxt : context) (uid : uid) : sort = (UidMap.find uid ctxt.data).uid_sort
 
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_scope) :

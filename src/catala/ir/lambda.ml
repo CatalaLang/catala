@@ -92,11 +92,7 @@ let rec print_term (((t, _), _) : term) : string =
   | EDec (i, f) -> Printf.sprintf "%d.%d" i f
   | EOp op -> print_op op
 
-(* Wrappers *)
-
-type 'expr program = { rules : 'expr UidMap.t }
-
-type program_with_normal_logic = term program
+(* Default terms *)
 
 module IntMap = Map.Make (Int)
 
@@ -115,7 +111,7 @@ let print_default_term (term : default_term) : unit =
     (fun _ (cond, body) -> Printf.printf "\t%s => %s\t\n" (print_term cond) (print_term body))
     term.defaults
 
-let empty_default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
+let empty_default_term : default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
 
 let add_default (just : justification) (cons : consequence) (term : default_term) =
   {
@@ -149,8 +145,7 @@ let merge_default_terms (lo_term : default_term) (hi_term : default_term) : defa
   let prec' = gen_prec (gen_list 0 n) (gen_list n (n + n')) in
   { defaults; ordering = prec @ prec'; nb_defaults = n + n' }
 
-type program_with_default_logic = default_term program
-
+(** Returns the free variables of a term *)
 let rec term_free_vars (term : term) : UidSet.t =
   match untype term with
   | EVar uid -> UidSet.singleton uid
@@ -165,6 +160,7 @@ let rec term_free_vars (term : term) : UidSet.t =
         (UidSet.union (term_free_vars t_then) (term_free_vars t_else))
   | _ -> UidSet.empty
 
+(** Returns the free variable of a default term *)
 let default_term_fv (term : default_term) : UidSet.t =
   IntMap.fold
     (fun _ (cond, body) ->
