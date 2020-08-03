@@ -45,9 +45,14 @@ let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr (default fr)")
+    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr, nv (default nv)")
 
-type language_option = Fr | En
+type language_option = [ `Fr | `En | `NonVerbose ]
+
+type reduced_lang_option = [ `Fr | `En ]
+
+let reduce_lang (lang : language_option) : reduced_lang_option =
+  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr
 
 let output =
   Arg.(

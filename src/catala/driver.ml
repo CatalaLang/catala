@@ -25,13 +25,13 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
   let language =
     match language with
     | Some l ->
-        if l = "fr" then Cli.Fr
-        else if l = "en" then Cli.En
+        if l = "fr" then `Fr
+        else if l = "en" then `En
         else begin
           Cli.error_print (Printf.sprintf "The selected language (%s) is not supported by Catala" l);
           exit 1
         end
-    | None -> Cli.Fr
+    | None -> `NonVerbose
   in
   let backend =
     if backend = "Makefile" then Cli.Makefile
@@ -68,8 +68,8 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       try
         let weaved_output =
           match backend with
-          | Cli.Latex -> Latex.ast_to_latex program language
-          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
+          | Cli.Latex -> Latex.ast_to_latex program (Cli.reduce_lang language)
+          | Cli.Html -> Html.ast_to_html program pygmentize_loc (Cli.reduce_lang language)
           | _ -> assert false
         in
         let output_file =

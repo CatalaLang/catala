@@ -1,0 +1,7 @@
+/*
+declaration scope A:
+  context x content int
+
+scope A:
+  def x ? true ~= 42
+*/

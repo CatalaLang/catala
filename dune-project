@@ -27,6 +27,7 @@
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
    (dune (and :build ))
+   (ocamlgraph (>= 1.8.8))
  )
 )
 
