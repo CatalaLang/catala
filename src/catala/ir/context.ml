@@ -261,7 +261,7 @@ let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.ma
       | _ ->
           let err_msg =
             Printf.sprintf "Identifier \"%s\" should be a subscope, but it isn't\n%s" y
-              (Pos.to_string pos)
+              (Pos.retrieve_loc_text pos)
           in
           Errors.context_error err_msg )
 

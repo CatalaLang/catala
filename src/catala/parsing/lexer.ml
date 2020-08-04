@@ -25,7 +25,7 @@ let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ 
 let token_list : (string * token) list =
   [
     ("scope", SCOPE);
-    ("~", CONSEQUENCE);
+    ("|", CONSEQUENCE);
     ("data", DATA);
     ("depends on", DEPENDS);
     ("declaration", DECLARATION);
@@ -67,8 +67,8 @@ let token_list : (string * token) list =
     ("such", SUCH);
     ("that", THAT);
     ("now", NOW);
-    ("and", AND);
-    ("or", OR);
+    ("&&", AND);
+    ("||", OR);
     ("not", NOT);
     ("number", CARDINAL);
     ("year", YEAR);
@@ -163,9 +163,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "if" ->
       update_acc lexbuf;
       IF
-  | "~" ->
-      update_acc lexbuf;
-      CONSEQUENCE
   | "then" ->
       update_acc lexbuf;
       THEN
@@ -227,15 +224,18 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "now" ->
       update_acc lexbuf;
       NOW
-  | "and" ->
+  | "&&" ->
       update_acc lexbuf;
       AND
-  | "or" ->
+  | "||" ->
       update_acc lexbuf;
       OR
   | "not" ->
       update_acc lexbuf;
       NOT
+  | "|" ->
+      update_acc lexbuf;
+      CONSEQUENCE
   | "number" ->
       update_acc lexbuf;
       CARDINAL

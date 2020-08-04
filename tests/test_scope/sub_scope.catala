@@ -22,5 +22,5 @@ scope A:
 scope B:
   def a = 42
   def b = scopeA.b
-  def scopeA.a ? a > 0 ~= scopeA.a_base 
+  def scopeA.a ? a > 0 |= scopeA.a_base 
 */
