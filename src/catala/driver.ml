@@ -27,6 +27,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     | Some l ->
         if l = "fr" then `Fr
         else if l = "en" then `En
+        else if l = "non-verbose" then `NonVerbose
         else begin
           Cli.error_print (Printf.sprintf "The selected language (%s) is not supported by Catala" l);
           exit 1
@@ -62,14 +63,15 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         (String.concat "\\\n" program.program_source_files);
       0
   | Cli.Latex | Cli.Html -> (
+      let language : Cli.backend_lang = Cli.to_backend_lang language in
       Cli.debug_print
         (Printf.sprintf "Weaving literate program into %s"
            (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
       try
         let weaved_output =
           match backend with
-          | Cli.Latex -> Latex.ast_to_latex program (Cli.reduce_lang language)
-          | Cli.Html -> Html.ast_to_html program pygmentize_loc (Cli.reduce_lang language)
+          | Cli.Latex -> Latex.ast_to_latex program language
+          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
           | _ -> assert false
         in
         let output_file =
@@ -105,14 +107,15 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         let prgm = Firstpass.translate_program_to_scope ctxt program in
         Uid.UidMap.iter
           (fun _uid scope ->
-            Printf.printf "Execution of scope %d\n" scope.Scope.scope_uid;
+            Cli.debug_print (Printf.sprintf "Execution of scope %d\n" scope.Scope.scope_uid);
             let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
             Uid.UidMap.iter
               (fun uid value ->
-                Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
-                  (Lambda.print_term ((value, Pos.no_pos), TDummy)))
+                Cli.debug_print
+                  (Printf.sprintf "Var %s:\t%s\n" (Uid.get_ident uid)
+                     (Lambda.print_term ((value, Pos.no_pos), TDummy))))
               exec_ctxt;
-            Printf.printf "\n")
+            Cli.debug_print "\n")
           prgm;
         0
       with Errors.ContextError msg | Errors.DefaultConflict msg ->

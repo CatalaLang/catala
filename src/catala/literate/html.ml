@@ -23,8 +23,7 @@ module C = Cli
 let pre_html (s : string) = s
 
 let wrap_html (code : string) (source_files : string list) (custom_pygments : string option)
-    (language : Cli.language_option) : string =
-  let language = C.reduce_lang language in
+    (language : Cli.backend_lang) : string =
   let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
   let css_file = Filename.temp_file "catala_css_pygments" "" in
   let pygments_args = [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |] in
@@ -82,7 +81,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
           source_files))
     code
 
-let pygmentize_code (c : string Pos.marked) (language : C.reduced_lang_option)
+let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
     (custom_pygments : string option) : string =
   C.debug_print (Printf.sprintf "Pygmenting the code chunk %s" (Pos.to_string (Pos.get_position c)));
   let temp_file_in = Filename.temp_file "catala_html_pygments" "in" in
@@ -121,7 +120,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.reduced_lang_option)
 type program_state = InsideArticle | OutsideArticle
 
 let program_item_to_html (i : A.program_item) (custom_pygments : string option)
-    (language : C.reduced_lang_option) (state : program_state) : string * program_state =
+    (language : C.backend_lang) (state : program_state) : string * program_state =
   let closing_div =
     (* First we terminate the div of the previous article if need be *)
     match (i, state) with
@@ -177,8 +176,8 @@ let program_item_to_html (i : A.program_item) (custom_pygments : string option)
   in
   (closing_div ^ item_string, new_state)
 
-let ast_to_html (program : A.program) (custom_pygments : string option)
-    (language : C.reduced_lang_option) : string =
+let ast_to_html (program : A.program) (custom_pygments : string option) (language : C.backend_lang)
+    : string =
   let i_s, _ =
     List.fold_left
       (fun (acc, state) i ->

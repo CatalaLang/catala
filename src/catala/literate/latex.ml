@@ -32,8 +32,7 @@ let pre_latexify (s : string) =
   s
 
 let wrap_latex (code : string) (source_files : string list) (custom_pygments : string option)
-    (language : Cli.language_option) =
-  let language = C.reduce_lang language in
+    (language : C.backend_lang) =
   Printf.sprintf
     "\\documentclass[11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
@@ -122,7 +121,7 @@ let math_syms_replace (c : string) : string =
   in
   R.substitute ~rex:syms ~subst:syms2cmd c
 
-let program_item_to_latex (i : A.program_item) (language : C.reduced_lang_option) : string =
+let program_item_to_latex (i : A.program_item) (language : C.backend_lang) : string =
   match i with
   | A.LawHeading (title, precedence) ->
       P.sprintf "\\%ssection*{%s}"
@@ -164,5 +163,5 @@ let program_item_to_latex (i : A.program_item) (language : C.reduced_lang_option
         file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ""
 
-let ast_to_latex (program : A.program) (language : C.reduced_lang_option) : string =
+let ast_to_latex (program : A.program) (language : C.backend_lang) : string =
   String.concat "\n\n" (List.map (fun i -> program_item_to_latex i language) program.program_items)

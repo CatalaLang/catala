@@ -130,8 +130,8 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
-let rec parse_source_files (source_files : string list) (language : Cli.language_option) :
-    Ast.program =
+let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
+    =
   match source_files with
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
