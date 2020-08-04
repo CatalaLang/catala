@@ -37,7 +37,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     if backend = "Makefile" then Cli.Makefile
     else if backend = "LaTeX" then Cli.Latex
     else if backend = "HTML" then Cli.Html
-    else if backend = "Context" then Cli.Context
+    else if backend = "Interpret" then Cli.Interpret
     else begin
       Cli.error_print
         (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend);
@@ -99,20 +99,24 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       with Errors.WeavingError msg ->
         Cli.error_print msg;
         exit (-1) )
-  | Cli.Context ->
-      let ctxt = Context.form_context program in
-      Context.print_context ctxt;
-      let prgm = Firstpass.translate_program_to_scope ctxt program in
-      Uid.UidMap.iter
-        (fun _uid scope ->
-          Printf.printf "Execution of scope %d\n" scope.Scope.scope_uid;
-          let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
-          Uid.UidMap.iter
-            (fun uid value ->
-              Printf.printf "Var %d:\t%s\n" uid (Lambda.print_term ((value, Pos.no_pos), None)))
-            exec_ctxt;
-          Printf.printf "\n")
-        prgm;
-      0
+  | Cli.Interpret -> (
+      try
+        let ctxt = Context.form_context program in
+        Context.print_context ctxt;
+        let prgm = Firstpass.translate_program_to_scope ctxt program in
+        Uid.UidMap.iter
+          (fun _uid scope ->
+            Printf.printf "Execution of scope %d\n" scope.Scope.scope_uid;
+            let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
+            Uid.UidMap.iter
+              (fun uid value ->
+                Printf.printf "Var %d:\t%s\n" uid (Lambda.print_term ((value, Pos.no_pos), None)))
+              exec_ctxt;
+            Printf.printf "\n")
+          prgm;
+        0
+      with Errors.ContextError msg | Errors.DefaultConflict msg ->
+        Cli.error_print msg;
+        exit (-1) )
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

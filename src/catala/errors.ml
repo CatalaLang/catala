@@ -24,6 +24,8 @@ exception WeavingError of string
 
 exception ContextError of string
 
+exception DefaultConflict of string
+
 (** {2 Error-raising functions} *)
 
 (** You should use those rather than manually throwing the exceptions above *)
@@ -47,3 +49,18 @@ let unknown_identifier (ident : string) (loc : Pos.t) =
   raise (ContextError (Printf.sprintf "Unknown identifier \"%s\"\n%s" ident (Pos.to_string loc)))
 
 let context_error (msg : string) = raise (ContextError (Printf.sprintf "%s" msg))
+
+let default_conflict (ident : int) (pos : Pos.t list) =
+  if List.length pos = 0 then
+    raise
+      (DefaultConflict
+         (Printf.sprintf "Error conflict for variable %d, no justification is true." ident))
+  else
+    let pos_str = pos |> List.map Pos.to_string |> String.concat "\n\t" in
+    raise
+      (DefaultConflict
+         (Printf.sprintf
+            "Conflict error for variable %d : following justifications are true without \
+             precedences :\n\
+             \t%s"
+            ident pos_str))

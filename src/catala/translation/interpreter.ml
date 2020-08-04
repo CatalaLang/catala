@@ -104,7 +104,8 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
   ((evaled_term, pos), typ)
 
 (* Evaluates a default term : see the formalization for an insight about this operation *)
-let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) : Lambda.term option =
+let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
+    (Lambda.term, Pos.t list) result =
   (* First filter out the term which justification are false *)
   let candidates =
     IntMap.filter
@@ -123,8 +124,10 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) : 
   match ISet.elements chosen_one with
   | [ x ] ->
       let _, cons = IntMap.find x term.defaults in
-      Some (eval_term exec_ctxt cons)
-  | _ -> (* TODO : error reporting for cause of conflicts *) None
+      Ok (eval_term exec_ctxt cons)
+  | xs ->
+      let pos = xs |> List.map (fun x -> IntMap.find x term.defaults |> fst |> Lambda.get_pos) in
+      Error pos
 
 (** Returns the scheduling of the scope variables, if y is a subscope and x a variable of y, then we
     have two different variable y.x(internal) and y.x(result) and the ordering y.x(internal) -> y ->
@@ -209,10 +212,8 @@ let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (pr
       | IdScopeVar -> (
           let def = UidMap.find uid scope_prgm.scope_defs in
           match eval_default_term exec_context def with
-          | Some value -> UidMap.add uid (Lambda.untype value) exec_context
-          | None ->
-              Printf.printf "Something went wrong…\n";
-              assert false )
+          | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
+          | Error pos -> Errors.default_conflict uid pos )
       | IdSubScope sub_scope_ref ->
           (* Merge the new definitions *)
           let sub_scope_prgm = UidMap.find sub_scope_ref prgm in

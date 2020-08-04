@@ -45,6 +45,10 @@ and untyped_term =
 
 let untype (((term, _), _) : term) : untyped_term = term
 
+let get_pos (((_, pos), _) : term) : Pos.t = pos
+
+let get_typ ((_, typ) : term) : typ option = typ
+
 let print_literal (l : literal) : string =
   match l with
   | Number (num, _) -> (
