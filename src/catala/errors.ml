@@ -56,7 +56,7 @@ let default_conflict (ident : string) (pos : Pos.t list) =
       (DefaultConflict
          (Printf.sprintf "Error conflict for variable %s, no justification is true." ident))
   else
-    let pos_str = pos |> List.map Pos.to_string |> String.concat "\n\t" in
+    let pos_str = pos |> List.map Pos.retrieve_loc_text |> String.concat "\n\t" in
     raise
       (DefaultConflict
          (Printf.sprintf
