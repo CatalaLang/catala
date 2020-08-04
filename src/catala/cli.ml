@@ -37,17 +37,23 @@ let backend =
   Arg.(
     required
     & pos 0 (some string) None
-    & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile")
+    & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile, Html, Interpret")
 
-type backend_option = Latex | Makefile | Html
+type backend_option = Latex | Makefile | Html | Interpret
 
 let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr (default fr)")
+    & info [ "l"; "language" ] ~docv:"LANG"
+        ~doc:"Input language among: en, fr, non-verbose (default non-verbose)")
 
-type language_option = Fr | En
+type frontend_lang = [ `Fr | `En | `NonVerbose ]
+
+type backend_lang = [ `Fr | `En ]
+
+let to_backend_lang (lang : frontend_lang) : backend_lang =
+  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr
 
 let output =
   Arg.(

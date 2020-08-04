@@ -18,7 +18,8 @@ install-dependencies-ocaml:
 		cmdliner obelisk \
 		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason\
-		obelisk
+		obelisk\
+		ocamlgraph
 
 init-submodules:
 	git submodule update --init

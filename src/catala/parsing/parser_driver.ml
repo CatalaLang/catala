@@ -130,8 +130,8 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
-let rec parse_source_files (source_files : string list) (language : Cli.language_option) :
-    Ast.program =
+let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
+    =
   match source_files with
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
@@ -142,10 +142,16 @@ let rec parse_source_files (source_files : string list) (language : Cli.language
       try
         Parse_utils.current_file := source_file;
         let lexer_lang =
-          match language with Cli.Fr -> Lexer_fr.lexer_fr | Cli.En -> Lexer_en.lexer_en
+          match language with
+          | `Fr -> Lexer_fr.lexer_fr
+          | `En -> Lexer_en.lexer_en
+          | `NonVerbose -> Lexer.lexer
         in
         let token_list_lang =
-          match language with Cli.Fr -> Lexer_fr.token_list_fr | Cli.En -> Lexer_en.token_list_en
+          match language with
+          | `Fr -> Lexer_fr.token_list_fr
+          | `En -> Lexer_en.token_list_en
+          | `NonVerbose -> Lexer.token_list
         in
         let commands_or_includes =
           sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master

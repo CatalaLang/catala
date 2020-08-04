@@ -12,16 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* Identifiers *)
-
-type uid = Context.uid
-
-type ident = string
-
-type qident = ident list
-
 module UidMap = Uid.UidMap
-module IdentMap = Context.IdentMap
 
 (* Scopes *)
 type binder = string Pos.marked
@@ -39,13 +30,20 @@ type meta_assertion =
   | VariesWith of Lambda.term * variation_typ Pos.marked option
 
 type scope = {
-  scope_uid : uid;
-  uid_to_var : ident UidMap.t;
-  var_to_uid : uid IdentMap.t;
-  uid_typ : Context.typ UidMap.t;
+  scope_uid : Uid.t;
   scope_defs : definition UidMap.t;
+  scope_sub_defs : definition UidMap.t UidMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list UidMap.t;
 }
+
+let empty_scope (uid : Uid.t) : scope =
+  {
+    scope_uid = uid;
+    scope_defs = UidMap.empty;
+    scope_sub_defs = UidMap.empty;
+    scope_assertions = [];
+    scope_meta_assertions = UidMap.empty;
+  }
 
 type program = scope UidMap.t

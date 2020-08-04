@@ -1,9 +1,10 @@
 /*
-déclaration champ d'application TestBooléen :
-	contexte foo contenu booléen
-	contexte bar contenu entier
+declaration scope TestBool :
+	context foo content bool 
+	context bar content int
 
-champ d'application TestBooléen :
-	définition foo sous condition bar >= 0 conséquence égal à vrai
-	définition foo sous condition bar < 0 conséquence égal à faux
+scope TestBool :
+  def bar = 1
+  def foo ? bar >= 0 |= true
+	def foo ? bar < 0 |= false 
 */

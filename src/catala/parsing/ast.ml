@@ -152,7 +152,6 @@ type scope_use = {
 type scope_decl_context_scope = {
   scope_decl_context_scope_name : ident Pos.marked;
   scope_decl_context_scope_sub_scope : constructor Pos.marked;
-  scope_decl_context_scope_condition : expression Pos.marked option;
 }
 
 type scope_decl_context_data = {

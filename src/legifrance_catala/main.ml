@@ -175,7 +175,7 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
   if debug then Catala.Cli.debug_flag := true;
   let access_token = Api.get_token client_id client_secret in
   (* LegiFrance is only supported for French texts *)
-  let program = Catala.Parser_driver.parse_source_files [ file ] Catala.Cli.Fr in
+  let program = Catala.Parser_driver.parse_source_files [ file ] `Fr in
   let article_text_acc =
     List.fold_left
       (fun article_text_acc item ->
