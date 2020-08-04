@@ -24,13 +24,13 @@ let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.
   let rec_helper = expr_to_lambda ?subdef scope ctxt in
   match expr with
   | IfThenElse (e_if, e_then, e_else) ->
-      ((EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos), None)
+      ((EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos), TDummy)
   | Binop (op, e1, e2) ->
-      let op_term = (Pos.same_pos_as (EOp (Binop (Pos.unmark op))) op, None) in
-      ((EApp (op_term, [ rec_helper e1; rec_helper e2 ]), pos), None)
+      let op_term = (Pos.same_pos_as (EOp (Binop (Pos.unmark op))) op, TDummy) in
+      ((EApp (op_term, [ rec_helper e1; rec_helper e2 ]), pos), TDummy)
   | Unop (op, e) ->
-      let op_term = (Pos.same_pos_as (EOp (Unop (Pos.unmark op))) op, None) in
-      ((EApp (op_term, [ rec_helper e ]), pos), None)
+      let op_term = (Pos.same_pos_as (EOp (Unop (Pos.unmark op))) op, TDummy) in
+      ((EApp (op_term, [ rec_helper e ]), pos), TDummy)
   | Literal l ->
       let untyped_term =
         match l with
@@ -39,10 +39,10 @@ let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.
         | Bool b -> EBool b
         | _ -> assert false
       in
-      ((untyped_term, pos), None)
+      ((untyped_term, pos), TDummy)
   | Ident x ->
       let uid = Context.get_var_uid scope ctxt (x, pos) in
-      ((EVar uid, pos), None)
+      ((EVar uid, pos), TDummy)
   | Dotted (e, x) -> (
       (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
       match Pos.unmark e with
@@ -53,16 +53,16 @@ let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.
               (* No redefinition : take the uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
               let uid = Context.get_var_uid scope ctxt (ident, Pos.get_position e) in
-              ((EVar uid, pos), None)
+              ((EVar uid, pos), TDummy)
           | Some uid when uid <> sub_uid ->
               (* Redefinition of a var from another scope : uid from the current scope *)
               let ident = subscope_ident y (Pos.unmark x) in
               let uid = Context.get_var_uid scope ctxt (ident, Pos.get_position e) in
-              ((EVar uid, pos), None)
+              ((EVar uid, pos), TDummy)
           | Some sub_uid ->
               (* Redefinition of a var from the same scope, uid from the subscope *)
               let uid = Context.get_var_uid sub_uid ctxt x in
-              ((EVar uid, pos), None) )
+              ((EVar uid, pos), TDummy) )
       | _ -> assert false )
   | _ -> assert false
 
@@ -71,7 +71,7 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
   match t with
   | EVar uid ->
       let typ = Context.get_uid_typ ctxt uid in
-      let term = ((EVar uid, pos), Some typ) in
+      let term = ((EVar uid, pos), typ) in
       (term, typ)
   | EFun (bindings, body) ->
       (* Note that given the context formation process, the binder will already be present in the
@@ -90,7 +90,7 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | (_, arg_t) :: args -> TArrow (arg_t, build_typ args)
       in
       let fun_typ = build_typ bindings in
-      (((EFun (bindings, body), pos), Some fun_typ), fun_typ)
+      (((EFun (bindings, body), pos), fun_typ), fun_typ)
   | EApp (f, args) ->
       let f, f_typ = typing ctxt f in
       let args, args_typ = args |> List.map (typing ctxt) |> List.split in
@@ -102,16 +102,16 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | _ -> assert false
       in
       let ret_typ = check_arrow_typ f_typ args_typ in
-      (((EApp (f, args), pos), Some ret_typ), ret_typ)
+      (((EApp (f, args), pos), ret_typ), ret_typ)
   | EIfThenElse (t_if, t_then, t_else) ->
       let t_if, typ_if = typing ctxt t_if in
       let t_then, typ_then = typing ctxt t_then in
       let t_else, typ_else = typing ctxt t_else in
       if typ_if <> TBool then assert false
       else if typ_then <> typ_else then assert false
-      else (((EIfThenElse (t_if, t_then, t_else), pos), Some typ_then), typ_then)
-  | EInt _ | EDec _ -> (((t, pos), Some TInt), TInt)
-  | EBool _ -> (((t, pos), Some TBool), TBool)
+      else (((EIfThenElse (t_if, t_then, t_else), pos), typ_then), typ_then)
+  | EInt _ | EDec _ -> (((t, pos), TInt), TInt)
+  | EBool _ -> (((t, pos), TBool), TBool)
   | EOp op ->
       let typ =
         match op with
@@ -123,24 +123,24 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | Unop Minus -> TArrow (TInt, TInt)
         | Unop Not -> TArrow (TBool, TBool)
       in
-      (((t, pos), Some typ), typ)
+      (((t, pos), typ), typ)
 
 (* Translation from the parsed ast to the scope language *)
 
 let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) : Lambda.term =
   match (precond, cond) with
   | Some precond, Some cond ->
-      let op_term = ((EOp (Binop And), Pos.no_pos), None) in
-      ((EApp (op_term, [ precond; cond ]), Pos.no_pos), None)
+      let op_term = ((EOp (Binop And), Pos.no_pos), TDummy) in
+      ((EApp (op_term, [ precond; cond ]), Pos.no_pos), TDummy)
   | Some cond, None | None, Some cond -> cond
-  | None, None -> ((EBool true, Pos.no_pos), Some TBool)
+  | None, None -> ((EBool true, Pos.no_pos), TBool)
 
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
     (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
   (* For now we rule out functions *)
   let () = match rule.rule_parameter with Some _ -> assert false | None -> () in
-  let consequence_term = ((EBool rule.rule_consequence, Pos.no_pos), Some TBool) in
+  let consequence_term = ((EBool rule.rule_consequence, Pos.no_pos), TBool) in
   let scope_prgm = UidMap.find scope prgm in
   let scope_prgm =
     match Pos.unmark rule.rule_name with
@@ -200,6 +200,7 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
   let () = match def.definition_parameter with Some _ -> assert false | None -> () in
   (* We first check either it is a variable or a subvariable *)
   let scope_prgm = UidMap.find scope prgm in
+  let pos = Pos.get_position def.definition_name in
   let scope_prgm =
     match Pos.unmark def.definition_name with
     | [ x ] ->
@@ -250,7 +251,9 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           scope_prgm with
           scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
         }
-    | _ -> assert false
+    | _ ->
+        Cli.debug_print (Printf.sprintf "Structs are not handled yet.\n%s\n" (Pos.to_string pos));
+        assert false
   in
   UidMap.add scope scope_prgm prgm
 

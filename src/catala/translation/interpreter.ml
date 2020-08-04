@@ -77,7 +77,7 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
                       | Sub -> ( - )
                       | Mult -> ( * )
                       | Div -> ( / )
-                      | _ -> fun _ _ -> 0
+                      | _ -> assert false
                     in
                     let op_comp =
                       match binop with
@@ -87,7 +87,7 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
                       | Gte -> ( >= )
                       | Eq -> ( = )
                       | Neq -> ( <> )
-                      | _ -> fun _ _ -> false
+                      | _ -> assert false
                     in
                     match binop with
                     | Add | Sub | Mult | Div -> EInt (op_arith i1 i2)
@@ -113,7 +113,7 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
         match eval_term exec_ctxt cond |> Lambda.untype with EBool b -> b | _ -> assert false)
       term.defaults
   in
-  (* Now filter out the terms that have a predecessor *)
+  (* Now filter out the terms that have a predecessor which justification is true *)
   let module ISet = Set.Make (Int) in
   let key_candidates = IntMap.fold (fun x _ -> ISet.add x) candidates ISet.empty in
   let chosen_one =

@@ -47,14 +47,14 @@ type context = {
 }
 
 (** Print the context in a readable manner *)
-let print_context (ctxt : context) : unit =
+let print_context (ctxt : context) : string =
   let rec typ_to_string = function
     | Lambda.TBool -> "bool"
     | Lambda.TInt -> "num"
     | Lambda.TDummy -> "(.)"
     | Lambda.TArrow (t1, t2) -> Printf.sprintf "%s -> (%s)" (typ_to_string t1) (typ_to_string t2)
   in
-  let print_var (var_id : ident) (var_uid : uid) : unit =
+  let print_var ((var_id, var_uid) : ident * uid) : string =
     let data = UidMap.find var_uid ctxt.data in
     let info =
       match data.uid_sort with
@@ -66,17 +66,15 @@ let print_context (ctxt : context) : unit =
             sub_scope_uid
       | IdBinder -> Printf.sprintf "\ttyp : %s\tbinder" (typ_to_string data.uid_typ)
     in
-    Printf.printf "%s (uid : %n)%s\n" var_id var_uid info;
-    ()
+    Printf.sprintf "%s (uid : %n)%s\n" var_id var_uid info
   in
-
-  IdentMap.iter
-    (fun scope_ident scope_uid ->
-      Printf.printf "Scope %s (uid : %n):\n" scope_ident scope_uid;
-      IdentMap.iter print_var (UidMap.find scope_uid ctxt.scopes).var_id_to_uid;
-      Printf.printf "\n")
-    ctxt.scope_id_to_uid;
-  ()
+  let print_scope ((scope_ident, scope_uid) : ident * Uid.t) : string =
+    Printf.sprintf "Scope %s (uid : %n):\n" scope_ident scope_uid
+    ^ ( (UidMap.find scope_uid ctxt.scopes).var_id_to_uid |> IdentMap.bindings |> List.map print_var
+      |> String.concat "" )
+    ^ Printf.sprintf "\n"
+  in
+  ctxt.scope_id_to_uid |> IdentMap.bindings |> List.map print_scope |> String.concat ""
 
 let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 

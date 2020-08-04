@@ -17,6 +17,7 @@ type uid = Uid.t
 module UidMap = Uid.UidMap
 module UidSet = Uid.UidSet
 
+(* TDummy means the term is not typed *)
 type typ = TBool | TInt | TArrow of typ * typ | TDummy
 
 type literal = Ast.literal
@@ -31,7 +32,7 @@ type binding = uid * typ
 
 (*type enum_case = uid*)
 
-type term = untyped_term Pos.marked * typ option
+type term = untyped_term Pos.marked * typ
 
 and untyped_term =
   | EVar of uid
@@ -47,7 +48,7 @@ let untype (((term, _), _) : term) : untyped_term = term
 
 let get_pos (((_, pos), _) : term) : Pos.t = pos
 
-let get_typ ((_, typ) : term) : typ option = typ
+let get_typ ((_, typ) : term) : typ = typ
 
 let print_literal (l : literal) : string =
   match l with
@@ -104,6 +105,8 @@ type justification = term
 
 type consequence = term
 
+(* (x,y) in ordering means that default x has precedence over default y : if both are true then x
+   would be choser over y *)
 type default_term = {
   defaults : (justification * consequence) IntMap.t;
   ordering : (int * int) list;

@@ -102,7 +102,6 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
   | Cli.Interpret -> (
       try
         let ctxt = Context.form_context program in
-        Context.print_context ctxt;
         let prgm = Firstpass.translate_program_to_scope ctxt program in
         Uid.UidMap.iter
           (fun _uid scope ->
@@ -111,7 +110,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
             Uid.UidMap.iter
               (fun uid value ->
                 Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
-                  (Lambda.print_term ((value, Pos.no_pos), None)))
+                  (Lambda.print_term ((value, Pos.no_pos), TDummy)))
               exec_ctxt;
             Printf.printf "\n")
           prgm;
