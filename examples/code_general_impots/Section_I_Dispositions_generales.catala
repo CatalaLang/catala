@@ -39,10 +39,13 @@ donnée revenus_capitaux_mobiliers contenu montant
 donnée plus_values contenu montant
 donnée total contenu montant
 
+déclaration champ d'application CalculImpotSurLeRevenu :
+  contexte revenu_net_global contenu RevenuNetGlobal
+
 champ d'application CalculImpotSurLeRevenu:
-  définition RevenuNetGlobal.total égal à
-    RevenuNetGlobal.revenus_fonciers + RevenuNetGlobal.bénéfices_industriels_commerciaux
-    + RevenuNetGlobal.remunerations_dirigeants + RevenuNetGlobal.benefices_agricoles
-    + RevenuNetGlobal.traitements_salaires + RevenuNetGlobal.bénéfices_non_commerciaux
-    + RevenuNetGlobal.revenus_capitaux_mobiliers + RevenuNetGlobal.plus_values
+  définition revenu_net_global.total égal à
+    revenu_net_global.revenus_fonciers + revenu_net_global.bénéfices_industriels_commerciaux
+    + revenu_net_global.remunerations_dirigeants + revenu_net_global.benefices_agricoles
+    + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
+    + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
 */
