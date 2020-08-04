@@ -91,7 +91,7 @@ let get_uid_sort (ctxt : context) (uid : uid) : sort = (UidMap.find uid ctxt.dat
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_scope) :
     context =
-  let name, _ = decl.scope_decl_context_scope_name in
+  let name, decl_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   (* First check that the designated subscope is a scope *)
   let sub_uid =
@@ -107,7 +107,7 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
   match IdentMap.find_opt name scope_ctxt.var_id_to_uid with
   | Some _ -> assert false (* Variable is already used in this scope *)
   | None ->
-      let sub_scope_uid = Uid.fresh name in
+      let sub_scope_uid = Uid.fresh name decl_pos in
       let scope_ctxt =
         {
           var_id_to_uid = IdentMap.add name sub_scope_uid scope_ctxt.var_id_to_uid;
@@ -128,7 +128,8 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
       IdentMap.fold
         (fun sub_var sub_uid ctxt ->
           let fresh_varname = subscope_ident name sub_var in
-          let fresh_uid = Uid.fresh fresh_varname in
+          (* We use the same pos as the subscope declaration *)
+          let fresh_uid = Uid.fresh fresh_varname decl_pos in
           let scope_ctxt = UidMap.find scope ctxt.scopes in
           let scope_ctxt =
             {
@@ -165,13 +166,13 @@ let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
         | Ast.Named _ -> raise (UnsupportedFeature ("Struct or enum types", typ_pos)) )
     | Ast.Func _ -> raise (UnsupportedFeature ("Function types", typ_pos))
   in
-  let name = Pos.unmark decl.scope_decl_context_item_name in
+  let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = UidMap.find scope ctxt.scopes in
   match IdentMap.find_opt name scope_ctxt.var_id_to_uid with
   | Some _ -> (* Variable is already used in this scope *) assert false
   | None ->
       (* We now can get a fresh uid for the data *)
-      let uid = Uid.fresh name in
+      let uid = Uid.fresh name pos in
       let scope_ctxt =
         {
           var_id_to_uid = IdentMap.add name uid scope_ctxt.var_id_to_uid;
@@ -193,12 +194,12 @@ let process_item_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
 
 (** Process a scope declaration *)
 let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
-  let name, _ = decl.scope_decl_name in
+  let name, pos = decl.scope_decl_name in
   (* Checks if the name is already used *)
   match IdentMap.find_opt name ctxt.scope_id_to_uid with
   | Some _ -> assert false
   | None ->
-      let scope_uid = Uid.fresh name in
+      let scope_uid = Uid.fresh name pos in
       let ctxt =
         {
           scope_id_to_uid = IdentMap.add name scope_uid ctxt.scope_id_to_uid;
