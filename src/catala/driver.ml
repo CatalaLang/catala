@@ -113,7 +113,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
               (fun uid value ->
                 Cli.debug_print
                   (Printf.sprintf "Var %s:\t%s\n" (Uid.get_ident uid)
-                     (Lambda.print_term ((value, Pos.no_pos), TDummy))))
+                     (Debug.print_term ((value, Pos.no_pos), TDummy))))
               exec_ctxt;
             Cli.debug_print "\n")
           prgm;

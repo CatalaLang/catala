@@ -136,7 +136,7 @@ let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) 
   | None, None -> ((EBool true, Pos.no_pos), TBool)
 
 (** Process a rule from the surface language *)
-let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
   (* For now we rule out functions *)
   let () = match rule.rule_parameter with Some _ -> assert false | None -> () in

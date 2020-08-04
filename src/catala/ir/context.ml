@@ -46,36 +46,6 @@ type context = {
   data : uid_data UidMap.t;
 }
 
-(** Print the context in a readable manner *)
-let print_context (ctxt : context) : string =
-  let rec typ_to_string = function
-    | Lambda.TBool -> "bool"
-    | Lambda.TInt -> "num"
-    | Lambda.TDummy -> "(.)"
-    | Lambda.TArrow (t1, t2) -> Printf.sprintf "%s -> (%s)" (typ_to_string t1) (typ_to_string t2)
-  in
-  let print_var ((var_id, var_uid) : ident * uid) : string =
-    let data = UidMap.find var_uid ctxt.data in
-    let info =
-      match data.uid_sort with
-      | IdScope -> "\tscope"
-      | IdScopeVar -> Printf.sprintf "\ttyp : %s\tvar" (typ_to_string data.uid_typ)
-      | IdSubScope uid -> Printf.sprintf "\tsubscope : %d" uid
-      | IdSubScopeVar (var_uid, sub_scope_uid) ->
-          Printf.sprintf "\ttype : %s\tsubvar(%d, scope %d)" (typ_to_string data.uid_typ) var_uid
-            sub_scope_uid
-      | IdBinder -> Printf.sprintf "\ttyp : %s\tbinder" (typ_to_string data.uid_typ)
-    in
-    Printf.sprintf "%s (uid : %n)%s\n" var_id var_uid info
-  in
-  let print_scope ((scope_ident, scope_uid) : ident * Uid.t) : string =
-    Printf.sprintf "Scope %s (uid : %n):\n" scope_ident scope_uid
-    ^ ( (UidMap.find scope_uid ctxt.scopes).var_id_to_uid |> IdentMap.bindings |> List.map print_var
-      |> String.concat "" )
-    ^ Printf.sprintf "\n"
-  in
-  ctxt.scope_id_to_uid |> IdentMap.bindings |> List.map print_scope |> String.concat ""
-
 let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 
 exception UnsupportedFeature of string * Pos.t

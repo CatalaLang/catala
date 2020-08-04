@@ -12,8 +12,6 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type uid = Uid.t
-
 module UidMap = Uid.UidMap
 module UidSet = Uid.UidSet
 
@@ -28,14 +26,14 @@ type unop = Ast.unop
 
 type op = Binop of binop | Unop of unop
 
-type binding = uid * typ
+type binding = Uid.t * typ
 
 (*type enum_case = uid*)
 
 type term = untyped_term Pos.marked * typ
 
 and untyped_term =
-  | EVar of uid
+  | EVar of Uid.t
   | EFun of binding list * term
   | EApp of term * term list
   | EIfThenElse of term * term * term
@@ -49,53 +47,6 @@ let untype (((term, _), _) : term) : untyped_term = term
 let get_pos (((_, pos), _) : term) : Pos.t = pos
 
 let get_typ ((_, typ) : term) : typ = typ
-
-let print_literal (l : literal) : string =
-  match l with
-  | Number (num, _) -> (
-      match Pos.unmark num with
-      | Int i -> Printf.sprintf "%n" i
-      | Dec (i, f) -> Printf.sprintf "%n.%n" i f )
-  | Bool b -> if b then "true" else "false"
-  | MoneyAmount { money_amount_units; money_amount_cents } ->
-      Printf.sprintf "%n.%n" money_amount_units money_amount_cents
-  | Date _ -> "[date]"
-
-let print_op (op : op) : string =
-  match op with
-  | Binop binop -> (
-      match binop with
-      | And -> "and"
-      | Or -> "or"
-      | Add -> "+"
-      | Sub -> "-"
-      | Mult -> "*"
-      | Div -> "/"
-      | Lt -> "<"
-      | Lte -> "<="
-      | Gt -> ">"
-      | Gte -> ">="
-      | Eq -> "="
-      | Neq -> "!=" )
-  | Unop Not -> "not"
-  | Unop Minus -> "-"
-
-let rec print_term (((t, _), _) : term) : string =
-  match t with
-  | EVar uid -> Printf.sprintf "%s(%d)" (Uid.get_ident uid) uid
-  | EFun (binders, body) ->
-      let sbody = print_term body in
-      Printf.sprintf "fun %s -> %s"
-        (binders |> List.map (fun (x, _) -> Printf.sprintf "%d" x) |> String.concat " ")
-        sbody
-  | EApp (f, args) ->
-      Printf.sprintf "(%s) [%s]" (print_term f) (args |> List.map print_term |> String.concat ";")
-  | EIfThenElse (tif, tthen, telse) ->
-      Printf.sprintf "IF %s THEN %s ELSE %s" (print_term tif) (print_term tthen) (print_term telse)
-  | EInt i -> Printf.sprintf "%d" i
-  | EBool b -> if b then "true" else "false"
-  | EDec (i, f) -> Printf.sprintf "%d.%d" i f
-  | EOp op -> print_op op
 
 (* Default terms *)
 
@@ -112,11 +63,6 @@ type default_term = {
   ordering : (int * int) list;
   nb_defaults : int;
 }
-
-let print_default_term (term : default_term) : unit =
-  IntMap.iter
-    (fun _ (cond, body) -> Printf.printf "\t%s => %s\t\n" (print_term cond) (print_term body))
-    term.defaults
 
 let empty_default_term : default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
 
