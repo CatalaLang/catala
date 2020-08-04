@@ -38,4 +38,11 @@ donnée bénéfices_non_commerciaux contenu montant
 donnée revenus_capitaux_mobiliers contenu montant
 donnée plus_values contenu montant
 donnée total contenu montant
+
+champ d'application CalculImpotSurLeRevenu:
+  définition RevenuNetGlobal.total égal à
+    RevenuNetGlobal.revenus_fonciers + RevenuNetGlobal.bénéfices_industriels_commerciaux
+    + RevenuNetGlobal.remunerations_dirigeants + RevenuNetGlobal.benefices_agricoles
+    + RevenuNetGlobal.traitements_salaires + RevenuNetGlobal.bénéfices_non_commerciaux
+    + RevenuNetGlobal.revenus_capitaux_mobiliers + RevenuNetGlobal.plus_values
 */
