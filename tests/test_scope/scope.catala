@@ -1,13 +1,13 @@
 /*
 declaration scope A:
-  context a content amount
-  context b content decimal
-  context c content boolean
+  context a content int
+  context b content dec
+  context c content bool
 
 scope A:
-  definition c equals false
-  definition a under condition c consequence equals 42
-  definition a under condition not c consequence equals 0
-  definition b under condition not c consequence equals 1337
-  definition b under condition c consequence equals 0
+  def c = false
+  def a ? c ~= 42
+  def a ? not c ~= 0
+  def b ? not c ~= 1337
+  def b ? not c ~= 0
 */
