@@ -109,7 +109,7 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
   match IdentMap.find_opt name scope_ctxt.var_id_to_uid with
   | Some _ -> assert false (* Variable is already used in this scope *)
   | None ->
-      let sub_scope_uid = Uid.fresh () in
+      let sub_scope_uid = Uid.fresh name in
       let scope_ctxt =
         {
           var_id_to_uid = IdentMap.add name sub_scope_uid scope_ctxt.var_id_to_uid;
@@ -129,8 +129,8 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
       (* Now duplicate all variables from the subscope *)
       IdentMap.fold
         (fun sub_var sub_uid ctxt ->
-          let fresh_uid = Uid.fresh () in
           let fresh_varname = subscope_ident name sub_var in
+          let fresh_uid = Uid.fresh fresh_varname in
           let scope_ctxt = UidMap.find scope ctxt.scopes in
           let scope_ctxt =
             {
@@ -173,7 +173,7 @@ let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
   | Some _ -> (* Variable is already used in this scope *) assert false
   | None ->
       (* We now can get a fresh uid for the data *)
-      let uid = Uid.fresh () in
+      let uid = Uid.fresh name in
       let scope_ctxt =
         {
           var_id_to_uid = IdentMap.add name uid scope_ctxt.var_id_to_uid;
@@ -200,7 +200,7 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
   match IdentMap.find_opt name ctxt.scope_id_to_uid with
   | Some _ -> assert false
   | None ->
-      let scope_uid = Uid.fresh () in
+      let scope_uid = Uid.fresh name in
       let ctxt =
         {
           scope_id_to_uid = IdentMap.add name scope_uid ctxt.scope_id_to_uid;

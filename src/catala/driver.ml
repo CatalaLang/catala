@@ -110,7 +110,8 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
             let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
             Uid.UidMap.iter
               (fun uid value ->
-                Printf.printf "Var %d:\t%s\n" uid (Lambda.print_term ((value, Pos.no_pos), None)))
+                Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
+                  (Lambda.print_term ((value, Pos.no_pos), None)))
               exec_ctxt;
             Printf.printf "\n")
           prgm;

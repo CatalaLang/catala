@@ -19,7 +19,7 @@ let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 
 (** The optional argument subdef allows to choose between differents uids in case the expression is
     a redefinition of a subvariable *)
-let rec expr_to_lambda ?(subdef : uid option) (scope : Context.uid) (ctxt : Context.context)
+let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.context)
     ((expr, pos) : Ast.expression Pos.marked) : Lambda.term =
   let rec_helper = expr_to_lambda ?subdef scope ctxt in
   match expr with
@@ -194,7 +194,7 @@ let process_rule (precond : Lambda.term option) (scope : uid) (ctxt : Context.co
   in
   UidMap.add scope scope_prgm prgm
 
-let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (def : Ast.definition) : Scope.program =
   (* For now we rule out functions *)
   let () = match def.definition_parameter with Some _ -> assert false | None -> () in
@@ -254,7 +254,7 @@ let process_def (precond : Lambda.term option) (scope : uid) (ctxt : Context.con
   in
   UidMap.add scope scope_prgm prgm
 
-let process_scope_use_item (cond : Lambda.term option) (scope : uid) (ctxt : Context.context)
+let process_scope_use_item (cond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (item : Ast.scope_use_item Pos.marked) : Scope.program =
   match Pos.unmark item with
   | Ast.Rule rule -> process_rule cond scope ctxt prgm rule

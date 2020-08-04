@@ -213,7 +213,7 @@ let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (pr
           let def = UidMap.find uid scope_prgm.scope_defs in
           match eval_default_term exec_context def with
           | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
-          | Error pos -> Errors.default_conflict uid pos )
+          | Error pos -> Errors.default_conflict (Uid.get_ident uid) pos )
       | IdSubScope sub_scope_ref ->
           (* Merge the new definitions *)
           let sub_scope_prgm = UidMap.find sub_scope_ref prgm in

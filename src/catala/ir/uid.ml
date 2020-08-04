@@ -14,14 +14,21 @@
 
 type t = int
 
-let counter = ref 0
-
-let fresh () : t =
-  incr counter;
-  !counter
-
 module UidSet = Set.Make (Int)
 module UidMap = Map.Make (Int)
+
+type ident = string
+
+let ident_tbl = ref UidMap.empty
+
+let counter = ref 0
+
+let fresh (id : ident) : t =
+  incr counter;
+  ident_tbl := UidMap.add !counter id !ident_tbl;
+  !counter
+
+let get_ident (uid : t) = UidMap.find uid !ident_tbl
 
 let map_add_list (key : t) (item : 'a) (map : 'a list UidMap.t) =
   match UidMap.find_opt key map with

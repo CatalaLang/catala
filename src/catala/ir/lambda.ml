@@ -81,7 +81,7 @@ let print_op (op : op) : string =
 
 let rec print_term (((t, _), _) : term) : string =
   match t with
-  | EVar uid -> Printf.sprintf "var(%n)" uid
+  | EVar uid -> Printf.sprintf "%s(%d)" (Uid.get_ident uid) uid
   | EFun (binders, body) ->
       let sbody = print_term body in
       Printf.sprintf "fun %s -> %s"

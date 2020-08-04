@@ -50,17 +50,17 @@ let unknown_identifier (ident : string) (loc : Pos.t) =
 
 let context_error (msg : string) = raise (ContextError (Printf.sprintf "%s" msg))
 
-let default_conflict (ident : int) (pos : Pos.t list) =
+let default_conflict (ident : string) (pos : Pos.t list) =
   if List.length pos = 0 then
     raise
       (DefaultConflict
-         (Printf.sprintf "Error conflict for variable %d, no justification is true." ident))
+         (Printf.sprintf "Error conflict for variable %s, no justification is true." ident))
   else
     let pos_str = pos |> List.map Pos.to_string |> String.concat "\n\t" in
     raise
       (DefaultConflict
          (Printf.sprintf
-            "Conflict error for variable %d : following justifications are true without \
+            "Conflict error for variable %s : following justifications are true without \
              precedences :\n\
              \t%s"
             ident pos_str))
