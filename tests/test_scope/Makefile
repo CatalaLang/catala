@@ -1,4 +1,4 @@
 CATALA_LANG=nv
-SRC=test_bool.catala
+SRC=scope.catala
 
 include ../Makefile.common

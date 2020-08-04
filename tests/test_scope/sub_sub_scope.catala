@@ -1,15 +1,15 @@
 /*
 declaration scope A:
-  context a content integer
-  context b content boolean
+  context a content int
+  context b content boo
 
 declaration scope B:
-  context a content integer
-  context b content boolean
+  context a content int
+  context b content bool
   context scopeA scope A
 
 declaration scope C:
-  context a content integer
-  context b content boolean
+  context a content int
+  context b content bool
   context scopeB scope B
 */

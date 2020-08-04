@@ -1,21 +1,21 @@
 /*
 declaration scope A:
-  context a content integer
-  context b content boolean
-  context a_base content integer
+  context a content int
+  context b content bool
+  context a_base content int
 
 declaration scope B:
-  context a content integer
-  context b content boolean
+  context a content int
+  context b content bool
   context scopeA scope A
 
 scope A:
-  definition a_base equals 1
-  definition a equals -1
-  definition b equals a > 0
+  def a_base = 1
+  def a = -1
+  def b = a > 0
 
 scope B:
-  definition a equals 42
-  definition b equals scopeA.b
-  definition scopeA.a under condition a > 0 consequence equals scopeA.a_base 
+  def a = 42
+  def b = scopeA.b
+  def scopeA.a ? a > 0 ~= scopeA.a_base 
 */
