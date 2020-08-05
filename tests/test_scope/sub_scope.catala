@@ -1,12 +1,8 @@
 /*
-declaration scope O:
-  context o content bool
-
 declaration scope A:
   context a content int
   context b content bool
   context a_base content int
-  context scopeO scope O
 
 declaration scope B:
   context a content int

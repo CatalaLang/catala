@@ -107,15 +107,14 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         let prgm = Firstpass.translate_program_to_scope ctxt program in
         Uid.UidMap.iter
           (fun _uid scope ->
-            Cli.debug_print (Printf.sprintf "Execution of scope %d\n" scope.Scope.scope_uid);
+            Printf.printf "Execution of scope %s:\n" (Uid.get_ident scope.Scope.scope_uid);
             let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
             Uid.UidMap.iter
               (fun uid value ->
-                Cli.debug_print
-                  (Printf.sprintf "Var %s:\t%s\n" (Uid.get_ident uid)
-                     (Debug.print_term ((value, Pos.no_pos), TDummy))))
+                Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
+                  (Debug.print_term ((value, Pos.no_pos), TDummy)))
               exec_ctxt;
-            Cli.debug_print "\n")
+            Printf.printf "\n")
           prgm;
         0
       with Errors.ContextError msg | Errors.DefaultConflict msg ->

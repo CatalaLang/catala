@@ -71,27 +71,29 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
                     let i1, i2 =
                       match args with [ EInt i1; EInt i2 ] -> (i1, i2) | _ -> assert false
                     in
-                    let op_arith =
-                      match binop with
-                      | Add -> ( + )
-                      | Sub -> ( - )
-                      | Mult -> ( * )
-                      | Div -> ( / )
-                      | _ -> assert false
-                    in
-                    let op_comp =
-                      match binop with
-                      | Lt -> ( < )
-                      | Lte -> ( <= )
-                      | Gt -> ( > )
-                      | Gte -> ( >= )
-                      | Eq -> ( = )
-                      | Neq -> ( <> )
-                      | _ -> assert false
-                    in
                     match binop with
-                    | Add | Sub | Mult | Div -> EInt (op_arith i1 i2)
-                    | _ -> EBool (op_comp i1 i2) ) )
+                    | Add | Sub | Mult | Div ->
+                        let op_arith =
+                          match binop with
+                          | Add -> ( + )
+                          | Sub -> ( - )
+                          | Mult -> ( * )
+                          | Div -> ( / )
+                          | _ -> assert false
+                        in
+                        EInt (op_arith i1 i2)
+                    | _ ->
+                        let op_comp =
+                          match binop with
+                          | Lt -> ( < )
+                          | Lte -> ( <= )
+                          | Gt -> ( > )
+                          | Gte -> ( >= )
+                          | Eq -> ( = )
+                          | Neq -> ( <> )
+                          | _ -> assert false
+                        in
+                        EBool (op_comp i1 i2) ) )
             | Unop Minus -> ( match args with [ EInt i ] -> EInt (-i) | _ -> assert false )
             | Unop Not -> ( match args with [ EBool b ] -> EBool (not b) | _ -> assert false ) )
         | _ -> assert false )
