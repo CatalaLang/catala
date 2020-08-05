@@ -44,7 +44,6 @@ let lexer_error (loc : Pos.t) (msg : string) =
 (** Usage: [weaving_error message] *)
 let weaving_error (msg : string) = raise (WeavingError (Printf.sprintf "Weaving error: %s" msg))
 
-(** Usage: [*)
 let unknown_identifier (ident : string) (loc : Pos.t) =
   raise (ContextError (Printf.sprintf "Unknown identifier \"%s\"\n%s" ident (Pos.to_string loc)))
 
