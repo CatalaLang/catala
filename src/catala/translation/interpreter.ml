@@ -197,25 +197,30 @@ let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.
         redefs subscope.scope_defs;
   }
 
-let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (prgm : Scope.program)
-    (scope_prgm : Scope.scope) : exec_context =
+let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
+    (prgm : Scope.program) (scope_prgm : Scope.scope) : exec_context =
   let schedule = build_scope_schedule ctxt scope_prgm in
 
   (* Printf.printf "Scheduling : "; *)
-  (* G.Topological.iter (fun v_uid -> Printf.printf "%d; " (G.V.label v_uid)) schedule; *)
+  (* G.Topological.iter (fun v_uid -> Printf.printf "%s; " (G.V.label v_uid |> Uid.get_ident))
+     schedule; *)
   (* Printf.printf "\n"; *)
-  (*G.Topological.fold (fun v_uid exec_context -> Printf.printf "%d\n" (G.V.label v_uid);
-    exec_context) schedule exec_context*)
   G.Topological.fold
     (fun v_uid exec_context ->
       let uid = G.V.label v_uid in
-      (* Printf.printf "Executing %d...\n" uid; *)
       match Context.get_uid_sort ctxt uid with
       | IdScopeVar -> (
-          let def = UidMap.find uid scope_prgm.scope_defs in
-          match eval_default_term exec_context def with
-          | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
-          | Error pos -> Errors.default_conflict (Uid.get_ident uid) pos )
+          match UidMap.find_opt uid scope_prgm.scope_defs with
+          | Some def -> (
+              match eval_default_term exec_context def with
+              | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
+              | Error pos -> Errors.default_conflict (Uid.get_ident uid) pos )
+          | None ->
+              Cli.error_print
+                (Printf.sprintf "Variable %s is undefined AND unused in scope %s"
+                   (Uid.get_ident uid)
+                   (Uid.get_ident scope_prgm.scope_uid));
+              assert false )
       | IdSubScope sub_scope_ref ->
           (* Merge the new definitions *)
           let sub_scope_prgm = UidMap.find sub_scope_ref prgm in
@@ -226,14 +231,19 @@ let rec execute_scope (ctxt : Context.context) (exec_context : exec_context) (pr
           in
           let new_sub_scope_prgm = merge_var_redefs sub_scope_prgm redefs in
           (* Scope.print_scope new_sub_scope_prgm; *)
-          let out_context = execute_scope ctxt exec_context prgm new_sub_scope_prgm in
+          let out_context = execute_scope ctxt ~exec_context prgm new_sub_scope_prgm in
           (* Now let's merge back the value from the output context *)
           UidSet.fold
             (fun var_uid exec_context ->
               match Context.get_uid_sort ctxt var_uid with
-              | IdSubScopeVar (ref_uid, _) ->
-                  let value = UidMap.find ref_uid out_context in
-                  UidMap.add var_uid value exec_context
+              | IdSubScopeVar (ref_uid, scope_ref) ->
+                  if uid = scope_ref then
+                    match Context.get_uid_sort ctxt ref_uid with
+                    | IdScopeVar | IdSubScopeVar _ ->
+                        let value = UidMap.find ref_uid out_context in
+                        UidMap.add var_uid value exec_context
+                    | _ -> exec_context
+                  else exec_context
               | _ -> exec_context)
             (UidMap.find scope_prgm.scope_uid ctxt.scopes).uid_set exec_context
       | _ -> assert false)

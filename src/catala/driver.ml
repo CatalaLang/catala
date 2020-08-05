@@ -108,7 +108,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         Uid.UidMap.iter
           (fun _uid scope ->
             Printf.printf "Execution of scope %s:\n" (Uid.get_ident scope.Scope.scope_uid);
-            let exec_ctxt = Interpreter.execute_scope ctxt Interpreter.empty_exec_ctxt prgm scope in
+            let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
             Uid.UidMap.iter
               (fun uid value ->
                 Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
