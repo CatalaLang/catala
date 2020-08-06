@@ -44,7 +44,14 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
   let evaled_term =
     match term with
     | EFun _ | EInt _ | EDec _ | EBool _ | EOp _ -> term (* already a value *)
-    | EVar uid -> ( match UidMap.find_opt uid exec_ctxt with Some t -> t | None -> assert false )
+    | EVar uid -> (
+        match UidMap.find_opt uid exec_ctxt with
+        | Some t -> t
+        | None ->
+            Cli.error_print
+              (Printf.sprintf "Variable %s is not defined.\n%s" (Uid.get_ident uid)
+                 (Pos.retrieve_loc_text pos));
+            assert false )
     | EApp (f, args) -> (
         (* First evaluate and match the function body *)
         let f = f |> eval_term exec_ctxt |> Lambda.untype in
