@@ -138,9 +138,7 @@ let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) 
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
-  (* For now we rule out functions *)
-  let () = match rule.rule_parameter with Some _ -> assert false | None -> () in
-  let consequence_term = ((EBool rule.rule_consequence, Pos.no_pos), TBool) in
+  let consequence = ((EBool rule.rule_consequence, Pos.no_pos), TBool) in
   let scope_prgm = UidMap.find scope prgm in
   let scope_prgm =
     match Pos.unmark rule.rule_name with
@@ -151,16 +149,32 @@ let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.
           | None -> Lambda.empty_default_term
           | Some def -> def
         in
+        (* tmp_ctxt redefines just the ident lookup for the argument binding (in case x is a
+           function *)
+        let tmp_ctxt, arg_uid = Context.add_binding ctxt scope x_uid rule.rule_parameter in
         (* Process the condition *)
         let cond =
           match rule.rule_condition with
           | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda scope ctxt cond) in
+              let cond, typ = typing tmp_ctxt (expr_to_lambda scope ctxt cond) in
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let x_def = Lambda.add_default condition consequence_term x_def in
+        (* If the variable is a function wrap the expression in a EFun *)
+        let condition = merge_conditions precond cond in
+        let condition, consequence =
+          match arg_uid with
+          | None -> (condition, consequence)
+          | Some arg_uid ->
+              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
+              ( ((EFun ([ binding ], condition), Pos.no_pos), TDummy),
+                ((EFun ([ binding ], consequence), Pos.no_pos), TDummy) )
+        in
+        (* Now type the expressions *)
+        let condition, _ = typing ctxt condition in
+        let consequence, _ = typing ctxt consequence in
+        (* And add the default *)
+        let x_def = Lambda.add_default condition consequence x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
         let subscope_uid, scope_ref = Context.get_subscope_uid scope ctxt y in
@@ -175,16 +189,29 @@ let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.
           | None -> Lambda.empty_default_term
           | Some redef -> redef
         in
+        let tmp_ctxt, arg_uid = Context.add_binding ctxt scope x_uid rule.rule_parameter in
         (* Process the condition *)
         let cond =
           match rule.rule_condition with
           | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt cond) in
+              let cond, typ = expr_to_lambda ~subdef:scope_ref scope tmp_ctxt cond |> typing ctxt in
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let x_redef = Lambda.add_default condition consequence_term x_redef in
+        (* If the variable is a function wrap the expression in a EFun *)
+        let condition = merge_conditions precond cond in
+        let condition, consequence =
+          match arg_uid with
+          | None -> (condition, consequence)
+          | Some arg_uid ->
+              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
+              ( ((EFun ([ binding ], condition), Pos.no_pos), TDummy),
+                ((EFun ([ binding ], consequence), Pos.no_pos), TDummy) )
+        in
+        (* Now type the expressions *)
+        let condition, _ = typing ctxt condition in
+        let consequence, _ = typing ctxt consequence in
+        let x_redef = Lambda.add_default condition consequence x_redef in
         let y_subdef = UidMap.add x_uid x_redef y_subdef in
         {
           scope_prgm with
@@ -196,8 +223,6 @@ let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.
 
 let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (def : Ast.definition) : Scope.program =
-  (* For now we rule out functions *)
-  let () = match def.definition_parameter with Some _ -> assert false | None -> () in
   (* We first check either it is a variable or a subvariable *)
   let scope_prgm = UidMap.find scope prgm in
   let pos = Pos.get_position def.definition_name in

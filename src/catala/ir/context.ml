@@ -31,7 +31,7 @@ type typ = Lambda.typ
 
 type sort =
   | IdScope
-  | IdScopeVar
+  | IdScopeVar of uid option
   | IdSubScope of uid
   | IdSubScopeVar of var_uid * sub_scope_uid
   | IdBinder
@@ -117,31 +117,34 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
           })
         subscope_ctxt.var_id_to_uid ctxt
 
+let process_base_typ ((typ, typ_pos) : Ast.base_typ Pos.marked) : Lambda.typ =
+  match typ with
+  | Ast.Condition -> Lambda.TBool
+  | Ast.Data (Ast.Collection _) -> raise (UnsupportedFeature ("Collection type", typ_pos))
+  | Ast.Data (Ast.Optional _) -> raise (UnsupportedFeature ("Option type", typ_pos))
+  | Ast.Data (Ast.Primitive prim) -> (
+      match prim with
+      | Ast.Integer | Ast.Decimal | Ast.Money | Ast.Date -> Lambda.TInt
+      | Ast.Boolean -> Lambda.TBool
+      | Ast.Text -> raise (UnsupportedFeature ("Text type", typ_pos))
+      | Ast.Named _ -> raise (UnsupportedFeature ("Struct or enum types", typ_pos)) )
+
+let process_type ((typ, typ_pos) : Ast.typ Pos.marked) : Lambda.typ =
+  match typ with
+  | Ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
+  | Ast.Func { arg_typ; return_typ } ->
+      Lambda.TArrow (process_base_typ arg_typ, process_base_typ return_typ)
+
 (** Process data declaration *)
 let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_data) : context
     =
   (* First check the type of the context data *)
-  let typ, typ_pos = decl.scope_decl_context_item_typ in
-  let ltyp =
-    match typ with
-    | Ast.Base Ast.Condition -> Lambda.TBool
-    | Ast.Base (Ast.Data (Ast.Collection _)) ->
-        raise (UnsupportedFeature ("Collection type", typ_pos))
-    | Ast.Base (Ast.Data (Ast.Optional _)) -> raise (UnsupportedFeature ("Option type", typ_pos))
-    | Ast.Base (Ast.Data (Ast.Primitive prim)) -> (
-        match prim with
-        | Ast.Integer | Ast.Decimal | Ast.Money | Ast.Date -> Lambda.TInt
-        | Ast.Boolean -> Lambda.TBool
-        | Ast.Text -> raise (UnsupportedFeature ("Text type", typ_pos))
-        | Ast.Named _ -> raise (UnsupportedFeature ("Struct or enum types", typ_pos)) )
-    | Ast.Func _ -> raise (UnsupportedFeature ("Function types", typ_pos))
-  in
+  let lambda_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = UidMap.find scope ctxt.scopes in
   match IdentMap.find_opt name scope_ctxt.var_id_to_uid with
   | Some _ -> (* Variable is already used in this scope *) assert false
-  | None ->
-      (* We now can get a fresh uid for the data *)
+  | None -> (
       let uid = Uid.fresh name pos in
       let scope_ctxt =
         {
@@ -149,11 +152,21 @@ let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
           uid_set = UidSet.add uid scope_ctxt.uid_set;
         }
       in
-      {
-        ctxt with
-        scopes = UidMap.add scope scope_ctxt ctxt.scopes;
-        data = UidMap.add uid { uid_typ = ltyp; uid_sort = IdScopeVar } ctxt.data;
-      }
+
+      match lambda_typ with
+      | TArrow (arg_typ, _) ->
+          (* We now can get a fresh uid for the data *)
+          let arg_uid = Uid.fresh (Printf.sprintf "ARG_OF(%s)" name) pos in
+          let arg_data = { uid_typ = arg_typ; uid_sort = IdBinder } in
+          let var_data = { uid_typ = lambda_typ; uid_sort = IdScopeVar (Some arg_uid) } in
+          let data = ctxt.data |> UidMap.add uid var_data |> UidMap.add arg_uid arg_data in
+          { ctxt with scopes = UidMap.add scope scope_ctxt ctxt.scopes; data }
+      | _ ->
+          {
+            ctxt with
+            scopes = UidMap.add scope scope_ctxt ctxt.scopes;
+            data = UidMap.add uid { uid_typ = lambda_typ; uid_sort = IdScopeVar None } ctxt.data;
+          } )
 
 (** Process an item declaration *)
 let process_item_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_item) : context
@@ -213,7 +226,7 @@ let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked)
   | Some uid -> (
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
       match get_uid_sort ctxt uid with
-      | IdScopeVar | IdBinder | IdSubScopeVar _ -> uid
+      | IdScopeVar _ | IdBinder | IdSubScopeVar _ -> uid
       | _ ->
           let err_msg =
             Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
@@ -240,3 +253,26 @@ let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.ma
 let belongs_to (ctxt : context) (uid : var_uid) (scope_uid : scope_uid) : bool =
   let scope = UidMap.find scope_uid ctxt.scopes in
   UidSet.mem uid scope.uid_set
+
+(** Adds a binding to the context *)
+let add_binding (ctxt : context) (scope_uid : Uid.t) (fun_uid : Uid.t)
+    (bind_name : ident Pos.marked option) : context * Uid.t option =
+  match bind_name with
+  | None -> (ctxt, None)
+  | Some name ->
+      let name = Pos.unmark name in
+      let scope_ctxt = UidMap.find scope_uid ctxt.scopes in
+      let arg_uid =
+        match get_uid_sort ctxt fun_uid with
+        | IdScopeVar (Some arg_uid) -> arg_uid
+        | _ ->
+            Cli.error_print
+              (Printf.sprintf "Var %s is supposed to be a function but it isn't\n%s"
+                 (Uid.get_ident fun_uid)
+                 (Uid.get_pos fun_uid |> Pos.retrieve_loc_text));
+            assert false
+      in
+      let scope_ctxt =
+        { scope_ctxt with var_id_to_uid = IdentMap.add name arg_uid scope_ctxt.var_id_to_uid }
+      in
+      ({ ctxt with scopes = UidMap.add scope_uid scope_ctxt ctxt.scopes }, Some arg_uid)
