@@ -39,7 +39,7 @@ let backend =
     & pos 0 (some string) None
     & info [] ~docv:"BACKEND" ~doc:"Backend selection among: LaTeX, Makefile, Html, Interpret")
 
-type backend_option = Latex | Makefile | Html | Interpret
+type backend_option = Latex | Makefile | Html | Run
 
 let language =
   Arg.(
@@ -47,6 +47,10 @@ let language =
     & opt (some string) None
     & info [ "l"; "language" ] ~docv:"LANG"
         ~doc:"Input language among: en, fr, non-verbose (default non-verbose)")
+
+let ex_scope =
+  Arg.(
+    value & opt (some string) None & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be executed")
 
 type frontend_lang = [ `Fr | `En | `NonVerbose ]
 
@@ -71,7 +75,9 @@ let pygmentize_loc =
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
-  Term.(const f $ file $ debug $ wrap_weaved_output $ pygmentize_loc $ backend $ language $ output)
+  Term.(
+    const f $ file $ debug $ wrap_weaved_output $ pygmentize_loc $ backend $ language $ ex_scope
+    $ output)
 
 let info =
   let doc =

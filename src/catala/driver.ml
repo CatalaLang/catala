@@ -15,7 +15,7 @@
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
-    (output_file : string option) : int =
+    (ex_scope : string option) (output_file : string option) : int =
   Cli.debug_flag := debug;
   Cli.debug_print "Reading files...";
   if Filename.extension source_file <> ".catala" then begin
@@ -38,7 +38,7 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
     if backend = "Makefile" then Cli.Makefile
     else if backend = "LaTeX" then Cli.Latex
     else if backend = "HTML" then Cli.Html
-    else if backend = "Interpret" then Cli.Interpret
+    else if backend = "run" then Cli.Run
     else begin
       Cli.error_print
         (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend);
@@ -101,21 +101,29 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
       with Errors.WeavingError msg ->
         Cli.error_print msg;
         exit (-1) )
-  | Cli.Interpret -> (
+  | Cli.Run -> (
       try
         let ctxt = Context.form_context program in
+        let scope_uid =
+          match ex_scope with
+          | None ->
+              Cli.error_print "No scope was provided for execution.";
+              assert false
+          | Some name -> (
+              match Context.IdentMap.find_opt name ctxt.scope_id_to_uid with
+              | None ->
+                  Cli.error_print (Printf.sprintf "There is no scope %s inside the program." name);
+                  assert false
+              | Some uid -> uid )
+        in
         let prgm = Firstpass.translate_program_to_scope ctxt program in
+        let scope = Uid.UidMap.find scope_uid prgm in
+        let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
         Uid.UidMap.iter
-          (fun _uid scope ->
-            Printf.printf "Execution of scope %s:\n" (Uid.get_ident scope.Scope.scope_uid);
-            let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
-            Uid.UidMap.iter
-              (fun uid value ->
-                Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
-                  (Debug.print_term ((value, Pos.no_pos), TDummy)))
-              exec_ctxt;
-            Printf.printf "\n")
-          prgm;
+          (fun uid value ->
+            Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
+              (Debug.print_term ((value, Pos.no_pos), TDummy)))
+          exec_ctxt;
         0
       with Errors.ContextError msg | Errors.DefaultConflict msg ->
         Cli.error_print msg;
