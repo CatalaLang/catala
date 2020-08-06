@@ -31,11 +31,21 @@ Ce revenu net global est constitué par le total des revenus nets des catégorie
 déclaration structure RevenuNetGlobal:
 donnée revenus_fonciers contenu montant
 donnée bénéfices_industriels_commerciaux contenu montant
-donnée remunerations_dirigeants contenu montant
-donnée benefices_agricoles contenu montant
+donnée rémunérations_dirigeants contenu montant
+donnée bénéfices_agricoles contenu montant
 donnée traitements_salaires contenu montant
 donnée bénéfices_non_commerciaux contenu montant
 donnée revenus_capitaux_mobiliers contenu montant
 donnée plus_values contenu montant
 donnée total contenu montant
+
+déclaration champ d'application CalculImpotSurLeRevenu :
+  contexte revenu_net_global contenu RevenuNetGlobal
+
+champ d'application CalculImpotSurLeRevenu:
+  définition revenu_net_global.total égal à
+    revenu_net_global.revenus_fonciers + revenu_net_global.bénéfices_industriels_commerciaux
+    + revenu_net_global.rémunérations_dirigeants + revenu_net_global.bénéfices_agricoles
+    + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
+    + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
 */
