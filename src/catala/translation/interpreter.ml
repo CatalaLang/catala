@@ -44,7 +44,14 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
   let evaled_term =
     match term with
     | EFun _ | EInt _ | EDec _ | EBool _ | EOp _ -> term (* already a value *)
-    | EVar uid -> ( match UidMap.find_opt uid exec_ctxt with Some t -> t | None -> assert false )
+    | EVar uid -> (
+        match UidMap.find_opt uid exec_ctxt with
+        | Some t -> t
+        | None ->
+            Cli.error_print
+              (Printf.sprintf "Variable %s is not defined.\n%s" (Uid.get_ident uid)
+                 (Pos.retrieve_loc_text pos));
+            assert false )
     | EApp (f, args) -> (
         (* First evaluate and match the function body *)
         let f = f |> eval_term exec_ctxt |> Lambda.untype in
@@ -142,7 +149,7 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
     UidSet.fold
       (fun uid verts ->
         match Context.get_uid_sort ctxt uid with
-        | IdScopeVar | IdSubScope _ -> UidMap.add uid (G.V.create uid) verts
+        | IdScopeVar _ | IdSubScope _ -> UidMap.add uid (G.V.create uid) verts
         | _ -> verts)
       (UidMap.find scope_uid ctxt.scopes).uid_set UidMap.empty
   in
@@ -158,7 +165,7 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
             let data = UidMap.find uid ctxt.data in
             let from_uid =
               match data.uid_sort with
-              | IdScopeVar -> uid
+              | IdScopeVar _ -> uid
               | IdSubScopeVar (_, sub_scope_uid) -> sub_scope_uid
               | _ -> assert false
             in
@@ -209,7 +216,7 @@ let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
     (fun v_uid exec_context ->
       let uid = G.V.label v_uid in
       match Context.get_uid_sort ctxt uid with
-      | IdScopeVar -> (
+      | IdScopeVar _ -> (
           match UidMap.find_opt uid scope_prgm.scope_defs with
           | Some def -> (
               match eval_default_term exec_context def with
@@ -239,7 +246,7 @@ let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
               | IdSubScopeVar (ref_uid, scope_ref) ->
                   if uid = scope_ref then
                     match Context.get_uid_sort ctxt ref_uid with
-                    | IdScopeVar | IdSubScopeVar _ ->
+                    | IdScopeVar _ | IdSubScopeVar _ ->
                         let value = UidMap.find ref_uid out_context in
                         UidMap.add var_uid value exec_context
                     | _ -> exec_context

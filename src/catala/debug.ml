@@ -28,7 +28,8 @@ let print_context (ctxt : Context.context) : string =
     let info =
       match data.uid_sort with
       | IdScope -> "\tscope"
-      | IdScopeVar -> Printf.sprintf "\ttyp : %s\tvar" (typ_to_string data.uid_typ)
+      | IdScopeVar None -> Printf.sprintf "\ttyp : %s\tvar" (typ_to_string data.uid_typ)
+      | IdScopeVar (Some _) -> Printf.sprintf "\ttyp : %s\tfun" (typ_to_string data.uid_typ)
       | IdSubScope uid -> Printf.sprintf "\tsubscope : %d" uid
       | IdSubScopeVar (var_uid, sub_scope_uid) ->
           Printf.sprintf "\ttype : %s\tsubvar(%d, scope %d)" (typ_to_string data.uid_typ) var_uid

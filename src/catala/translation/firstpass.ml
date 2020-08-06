@@ -64,6 +64,7 @@ let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.
               let uid = Context.get_var_uid sub_uid ctxt x in
               ((EVar uid, pos), TDummy) )
       | _ -> assert false )
+  | FunCall (f, arg) -> ((EApp (rec_helper f, [ rec_helper arg ]), pos), TDummy)
   | _ -> assert false
 
 (** Checks that a term is well typed and annotate it *)
@@ -135,69 +136,9 @@ let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) 
   | Some cond, None | None, Some cond -> cond
   | None, None -> ((EBool true, Pos.no_pos), TBool)
 
-(** Process a rule from the surface language *)
-let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
-    (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
-  (* For now we rule out functions *)
-  let () = match rule.rule_parameter with Some _ -> assert false | None -> () in
-  let consequence_term = ((EBool rule.rule_consequence, Pos.no_pos), TBool) in
-  let scope_prgm = UidMap.find scope prgm in
-  let scope_prgm =
-    match Pos.unmark rule.rule_name with
-    | [ x ] ->
-        let x_uid = Context.get_var_uid scope ctxt x in
-        let x_def =
-          match UidMap.find_opt x_uid scope_prgm.scope_defs with
-          | None -> Lambda.empty_default_term
-          | Some def -> def
-        in
-        (* Process the condition *)
-        let cond =
-          match rule.rule_condition with
-          | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda scope ctxt cond) in
-              if typ = TBool then Some cond else assert false
-          | None -> None
-        in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let x_def = Lambda.add_default condition consequence_term x_def in
-        { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
-    | [ y; x ] ->
-        let subscope_uid, scope_ref = Context.get_subscope_uid scope ctxt y in
-        let x_uid = Context.get_var_uid scope_ref ctxt x in
-        let y_subdef =
-          match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
-          | Some defs -> defs
-          | None -> UidMap.empty
-        in
-        let x_redef =
-          match UidMap.find_opt x_uid y_subdef with
-          | None -> Lambda.empty_default_term
-          | Some redef -> redef
-        in
-        (* Process the condition *)
-        let cond =
-          match rule.rule_condition with
-          | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt cond) in
-              if typ = TBool then Some cond else assert false
-          | None -> None
-        in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let x_redef = Lambda.add_default condition consequence_term x_redef in
-        let y_subdef = UidMap.add x_uid x_redef y_subdef in
-        {
-          scope_prgm with
-          scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
-        }
-    | _ -> assert false
-  in
-  UidMap.add scope scope_prgm prgm
-
+(* Process a definition *)
 let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (def : Ast.definition) : Scope.program =
-  (* For now we rule out functions *)
-  let () = match def.definition_parameter with Some _ -> assert false | None -> () in
   (* We first check either it is a variable or a subvariable *)
   let scope_prgm = UidMap.find scope prgm in
   let pos = Pos.get_position def.definition_name in
@@ -210,6 +151,9 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           | None -> Lambda.empty_default_term
           | Some def -> def
         in
+        (* ctxt redefines just the ident lookup for the argument binding (in case x is a function *)
+        let ctxt, arg_uid = Context.add_binding ctxt scope x_uid def.definition_parameter in
+        (* Process the condition *)
         let cond =
           match def.definition_condition with
           | Some cond ->
@@ -217,8 +161,17 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let body, _ = typing ctxt (expr_to_lambda scope ctxt def.definition_expr) in
+        let condition = merge_conditions precond cond |> typing ctxt |> fst in
+        let body = expr_to_lambda scope ctxt def.definition_expr in
+        (* In case it is a function, wrap it in a EFun*)
+        let body =
+          ( match arg_uid with
+          | None -> body
+          | Some arg_uid ->
+              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
+              ((EFun ([ binding ], body), Pos.no_pos), TDummy) )
+          |> typing ctxt |> fst
+        in
         let x_def = Lambda.add_default condition body x_def in
         { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
     | [ y; x ] ->
@@ -234,16 +187,26 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           | None -> Lambda.empty_default_term
           | Some redef -> redef
         in
+        (* ctxt redefines just the ident lookup for the argument binding (in case x is a function *)
+        let ctxt, arg_uid = Context.add_binding ctxt scope x_uid def.definition_parameter in
+        (* Process cond with the subdef argument*)
         let cond =
           match def.definition_condition with
           | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt cond) in
+              let cond, typ = expr_to_lambda ~subdef:scope_ref scope ctxt cond |> typing ctxt in
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition, _ = typing ctxt (merge_conditions precond cond) in
-        let body, _ =
-          typing ctxt (expr_to_lambda ~subdef:scope_ref scope ctxt def.definition_expr)
+        let condition = merge_conditions precond cond |> typing ctxt |> fst in
+        let body = expr_to_lambda ~subdef:scope_ref scope ctxt def.definition_expr in
+        (* In case it is a function, wrap it in a EFun*)
+        let body =
+          ( match arg_uid with
+          | None -> body
+          | Some arg_uid ->
+              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
+              ((EFun ([ binding ], body), Pos.no_pos), TDummy) )
+          |> typing ctxt |> fst
         in
         let x_redef = Lambda.add_default condition body x_redef in
         let y_subdef = UidMap.add x_uid x_redef y_subdef in
@@ -257,6 +220,20 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
   in
   UidMap.add scope scope_prgm prgm
 
+(** Process a rule from the surface language *)
+let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
+    (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
+  let consequence_expr = Ast.Literal (Ast.Bool rule.rule_consequence) in
+  let def =
+    {
+      definition_name = rule.rule_name;
+      definition_parameter = rule.rule_parameter;
+      definition_condition = rule.rule_condition;
+      definition_expr = (consequence_expr, Pos.no_pos);
+    }
+  in
+  process_def precond scope ctxt prgm def
+
 let process_scope_use_item (cond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (item : Ast.scope_use_item Pos.marked) : Scope.program =
   match Pos.unmark item with
@@ -266,7 +243,7 @@ let process_scope_use_item (cond : Lambda.term option) (scope : Uid.t) (ctxt : C
 
 let process_scope_use (ctxt : Context.context) (prgm : Scope.program) (use : Ast.scope_use) :
     Scope.program =
-  let name, _ = use.scope_use_name in
+  let name = fst use.scope_use_name in
   let scope_uid = Context.IdentMap.find name ctxt.scope_id_to_uid in
   (* Make sure the scope exists *)
   let prgm =

@@ -1,0 +1,14 @@
+/*
+declaration scope S:
+  context f content int depends on int
+  context x content int
+  context b content bool
+
+scope S:
+  def f of x ? (x >= x) |= x + x
+  def f of x ? not b |= x * x
+
+  def b = false
+
+  def x = f of 3
+*/
