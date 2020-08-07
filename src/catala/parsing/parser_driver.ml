@@ -50,6 +50,9 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
+let raise_parser_error (loc : Pos.t) (token : string) (msg : string) =
+  Errors.raise_spanned_error (Printf.sprintf "Syntax error at token \"%s\"\n%s" token msg) loc
+
 let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
     (last_input_needed : 'semantic_value I.env option) : 'a =
   let wrong_token = Utf8.lexeme lexbuf in
@@ -100,7 +103,7 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
     | Some similar_token_msg ->
         Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
   in
-  Errors.parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) msg
+  raise_parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) msg
 
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
     (token_list : (string * Parser.token) list) (lexbuf : lexbuf)
@@ -128,7 +131,7 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   in
   try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-    Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+    Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "malformed token"
 
 let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
     =
@@ -139,48 +142,43 @@ let rec parse_source_files (source_files : string list) (language : Cli.frontend
       let input = open_in source_file in
       let lexbuf = Sedlexing.Utf8.from_channel input in
       Sedlexing.set_filename lexbuf source_file;
-      try
-        Parse_utils.current_file := source_file;
-        let lexer_lang =
-          match language with
-          | `Fr -> Lexer_fr.lexer_fr
-          | `En -> Lexer_en.lexer_en
-          | `NonVerbose -> Lexer.lexer
-        in
-        let token_list_lang =
-          match language with
-          | `Fr -> Lexer_fr.token_list_fr
-          | `En -> Lexer_en.token_list_en
-          | `NonVerbose -> Lexer.token_list
-        in
-        let commands_or_includes =
-          sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master
-            lexbuf
-        in
-        close_in input;
-        match commands_or_includes with
-        | Ast.SourceFile commands ->
-            let rest_program = parse_source_files rest language in
-            {
-              program_items = commands @ rest_program.Ast.program_items;
-              program_source_files = source_file :: rest_program.Ast.program_source_files;
-            }
-        | Ast.MasterFile includes ->
-            let current_source_file_dirname = Filename.dirname source_file in
-            let includes =
-              List.map
-                (fun includ ->
-                  ( if current_source_file_dirname = "./" then ""
-                  else current_source_file_dirname ^ "/" )
-                  ^ Pos.unmark includ)
-                includes
-            in
-            let new_program = parse_source_files (includes @ rest) language in
-            {
-              new_program with
-              program_source_files = source_file :: new_program.program_source_files;
-            }
-      with Errors.ParsingError msg | Errors.LexingError msg ->
-        Cli.error_print msg;
-        close_in input;
-        exit (-1) )
+      Parse_utils.current_file := source_file;
+      let lexer_lang =
+        match language with
+        | `Fr -> Lexer_fr.lexer_fr
+        | `En -> Lexer_en.lexer_en
+        | `NonVerbose -> Lexer.lexer
+      in
+      let token_list_lang =
+        match language with
+        | `Fr -> Lexer_fr.token_list_fr
+        | `En -> Lexer_en.token_list_en
+        | `NonVerbose -> Lexer.token_list
+      in
+      let commands_or_includes =
+        sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master
+          lexbuf
+      in
+      close_in input;
+      match commands_or_includes with
+      | Ast.SourceFile commands ->
+          let rest_program = parse_source_files rest language in
+          {
+            program_items = commands @ rest_program.Ast.program_items;
+            program_source_files = source_file :: rest_program.Ast.program_source_files;
+          }
+      | Ast.MasterFile includes ->
+          let current_source_file_dirname = Filename.dirname source_file in
+          let includes =
+            List.map
+              (fun includ ->
+                ( if current_source_file_dirname = "./" then ""
+                else current_source_file_dirname ^ "/" )
+                ^ Pos.unmark includ)
+              includes
+          in
+          let new_program = parse_source_files (includes @ rest) language in
+          {
+            new_program with
+            program_source_files = source_file :: new_program.program_source_files;
+          } )

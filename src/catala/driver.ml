@@ -62,58 +62,51 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
         (String.concat "\\\n" program.program_source_files)
         (String.concat "\\\n" program.program_source_files);
       0
-  | Cli.Latex | Cli.Html -> (
+  | Cli.Latex | Cli.Html ->
       let language : Cli.backend_lang = Cli.to_backend_lang language in
       Cli.debug_print
         (Printf.sprintf "Weaving literate program into %s"
            (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
-      try
-        let weaved_output =
+      let weaved_output =
+        match backend with
+        | Cli.Latex -> Latex.ast_to_latex program language
+        | Cli.Html -> Html.ast_to_html program pygmentize_loc language
+        | _ -> assert false
+      in
+      let output_file =
+        match output_file with
+        | Some f -> f
+        | None -> (
+            Filename.remove_extension source_file
+            ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
+      in
+      let weaved_output =
+        if wrap_weaved_output then
           match backend with
-          | Cli.Latex -> Latex.ast_to_latex program language
-          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
+          | Cli.Latex ->
+              Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
+                language
+          | Cli.Html ->
+              Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc language
           | _ -> assert false
-        in
-        let output_file =
-          match output_file with
-          | Some f -> f
-          | None -> (
-              Filename.remove_extension source_file
-              ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
-        in
-        let weaved_output =
-          if wrap_weaved_output then
-            match backend with
-            | Cli.Latex ->
-                Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
-                  language
-            | Cli.Html ->
-                Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc
-                  language
-            | _ -> assert false
-          else weaved_output
-        in
-        Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
-        let oc = open_out output_file in
-        Printf.fprintf oc "%s" weaved_output;
-        close_out oc;
-        0
-      with Errors.WeavingError msg ->
-        Cli.error_print msg;
-        exit (-1) )
+        else weaved_output
+      in
+      Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
+      let oc = open_out output_file in
+      Printf.fprintf oc "%s" weaved_output;
+      close_out oc;
+      0
   | Cli.Run -> (
       try
         let ctxt = Context.form_context program in
         let scope_uid =
           match ex_scope with
-          | None ->
-              Cli.error_print "No scope was provided for execution.";
-              exit (-1)
+          | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
               match Context.IdentMap.find_opt name ctxt.scope_id_to_uid with
               | None ->
-                  Cli.error_print (Printf.sprintf "There is no scope %s inside the program." name);
-                  exit (-1)
+                  Errors.raise_error
+                    (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
         let prgm = Firstpass.translate_program_to_scope ctxt program in
@@ -121,12 +114,11 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
           match Uid.UidMap.find_opt scope_uid prgm with
           | Some scope -> scope
           | None ->
-              Cli.error_print
+              Errors.raise_spanned_error
                 (Printf.sprintf
-                   "Scope %s does not define anything, and therefore cannot be executed\n\n%s"
-                   (Uid.get_ident scope_uid)
-                   (Pos.retrieve_loc_text (Uid.get_pos scope_uid)));
-              exit (-1)
+                   "Scope %s does not define anything, and therefore cannot be executed"
+                   (Uid.get_ident scope_uid))
+                (Uid.get_pos scope_uid)
         in
         let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
         Uid.UidMap.iter
@@ -136,8 +128,8 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
                  (Debug.print_term ((value, Uid.get_pos uid), TDummy))))
           exec_ctxt;
         0
-      with Errors.ContextError msg | Errors.DefaultConflict msg ->
-        Cli.error_print msg;
+      with Errors.StructuredError (msg, pos) ->
+        Cli.error_print (Errors.print_structured_error msg pos);
         exit (-1) )
 
 let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)

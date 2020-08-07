@@ -14,52 +14,22 @@
 
 (** Error formatting and helper functions *)
 
-(** {2 Errors}*)
+exception StructuredError of (string * (string option * Pos.t) list)
 
-exception ParsingError of string
+let print_structured_error (msg : string) (pos : (string option * Pos.t) list) : string =
+  Printf.sprintf "%s\n\n%s" msg
+    (String.concat "\n"
+       (List.map
+          (fun (msg, pos) ->
+            Printf.sprintf "%s%s"
+              (match msg with None -> "" | Some msg -> msg ^ "\n")
+              (Pos.retrieve_loc_text pos))
+          pos))
 
-exception LexingError of string
+let raise_spanned_error (msg : string) ?(span_msg : string option) (span : Pos.t) : 'a =
+  raise (StructuredError (msg, [ (span_msg, span) ]))
 
-exception WeavingError of string
+let raise_multispanned_error (msg : string) (spans : (string option * Pos.t) list) =
+  raise (StructuredError (msg, spans))
 
-exception ContextError of string
-
-exception DefaultConflict of string
-
-(** {2 Error-raising functions} *)
-
-(** You should use those rather than manually throwing the exceptions above *)
-
-(** Usage: [parser_error error_token message] *)
-let parser_error (loc : Pos.t) (token : string) (msg : string) =
-  raise
-    (ParsingError
-       (Printf.sprintf "Syntax error at token \"%s\" %s\n%s\n%s" token (Pos.to_string loc)
-          (Pos.retrieve_loc_text loc) msg))
-
-(** Usage: [parser_error error_token] *)
-let lexer_error (loc : Pos.t) (msg : string) =
-  raise (LexingError (Printf.sprintf "Parsing error %s on token \"%s\"" (Pos.to_string loc) msg))
-
-(** Usage: [weaving_error message] *)
-let weaving_error (msg : string) = raise (WeavingError (Printf.sprintf "Weaving error: %s" msg))
-
-let unknown_identifier (ident : string) (loc : Pos.t) =
-  raise (ContextError (Printf.sprintf "Unknown identifier \"%s\"\n%s" ident (Pos.to_string loc)))
-
-let context_error (msg : string) = raise (ContextError (Printf.sprintf "%s" msg))
-
-let default_conflict (ident : string) (pos : Pos.t list) =
-  if List.length pos = 0 then
-    raise
-      (DefaultConflict
-         (Printf.sprintf "Error conflict for variable %s, no justification is true." ident))
-  else
-    let pos_str = pos |> List.map Pos.retrieve_loc_text |> String.concat "\n\t" in
-    raise
-      (DefaultConflict
-         (Printf.sprintf
-            "Conflict error for variable %s, the following justifications are true but are not \
-             related by a precedence:\n\
-             \t%s"
-            ident pos_str))
+let raise_error (msg : string) : 'a = raise (StructuredError (msg, []))

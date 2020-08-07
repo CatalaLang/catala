@@ -527,7 +527,7 @@ master_file_include:
 | includ = LAW_INCLUDE {
   match includ with
   | CatalaFile (file, _) -> (file, $sloc)
-  | _ -> Errors.parser_error $sloc "inclusion" (Printf.sprintf "Include in master file must be .catala file!" )
+  | _ -> Errors.raise_spanned_error (Printf.sprintf "Include in master file must be .catala file!") $sloc
 }
 
 master_file_includes:

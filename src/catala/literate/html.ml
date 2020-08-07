@@ -22,6 +22,11 @@ module C = Cli
 
 let pre_html (s : string) = s
 
+let raise_failed_pygments (command : string) (error_code : int) : 'a =
+  Errors.raise_error
+    (Printf.sprintf "Weaving to HTML failed: pygmentize command \"%s\" returned with error code %d"
+       command error_code)
+
 let wrap_html (code : string) (source_files : string list) (custom_pygments : string option)
     (language : Cli.backend_lang) : string =
   let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
@@ -31,9 +36,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
     Printf.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
   in
   let return_code = Sys.command cmd in
-  if return_code <> 0 then
-    Errors.weaving_error
-      (Printf.sprintf "pygmentize command \"%s\" returned with error code %d" cmd return_code);
+  if return_code <> 0 then raise_failed_pygments cmd return_code;
   let oc = open_in css_file in
   let css_as_string = really_input_string oc (in_channel_length oc) in
   close_in oc;
@@ -109,9 +112,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
   in
   let cmd = Printf.sprintf "%s %s" pygments (String.concat " " (Array.to_list pygments_args)) in
   let return_code = Sys.command cmd in
-  if return_code <> 0 then
-    Errors.weaving_error
-      (Printf.sprintf "pygmentize command \"%s\" returned with error code %d" cmd return_code);
+  if return_code <> 0 then raise_failed_pygments cmd return_code;
   let oc = open_in temp_file_out in
   let output = really_input_string oc (in_channel_length oc) in
   close_in oc;

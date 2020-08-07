@@ -20,13 +20,14 @@ let is_code : bool ref = ref false
 
 let code_string_acc : string ref = ref ""
 
+let raise_lexer_error (loc : Pos.t) (token : string) (msg : string) =
+  Errors.raise_spanned_error (Printf.sprintf "Parsing error on token \"%s\": %s" token msg) loc
+
 let rec lex_code_as_string (lexbuf : lexbuf) (acc : string) : token =
   match%sedlex lexbuf with
   | "*/" -> END_CODE (acc ^ Utf8.lexeme lexbuf)
   | any -> lex_code_as_string lexbuf (acc ^ Utf8.lexeme lexbuf)
-  | _ ->
-      Errors.lexer_error (lexing_positions lexbuf)
-        (Printf.sprintf "unexpected token \"%s\"" (Utf8.lexeme lexbuf))
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unexpected token"
 
 let update_acc (lexbuf : lexbuf) = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
@@ -370,7 +371,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* Integer literal*)
       update_acc lexbuf;
       INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
-  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let rec lex_law_fr (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
@@ -407,7 +408,7 @@ let rec lex_law_fr (lexbuf : lexbuf) : token =
       if R.pmatch ~rex:jorftext name then LAW_INCLUDE (Ast.LegislativeText (name, pos))
       else if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
       else if Filename.extension name = ".catala" then LAW_INCLUDE (Ast.CatalaFile (name, pos))
-      else Errors.lexer_error (lexing_positions lexbuf) "this type of file cannot be included"
+      else raise_lexer_error (lexing_positions lexbuf) name "this type of file cannot be included"
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -444,6 +445,6 @@ let rec lex_law_fr (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
   | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let lexer_fr (lexbuf : lexbuf) : token = if !is_code then lex_code_fr lexbuf else lex_law_fr lexbuf

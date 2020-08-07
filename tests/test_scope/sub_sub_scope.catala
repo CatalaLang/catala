@@ -18,7 +18,7 @@ scope A:
 
 scope B:
   definition a.x under condition a.u consequence equals 1
-  definition y under condition a.x = 1 consequence equals 1
+  definition y under condition a.x = 0 consequence equals 1
 
 scope C:
   definition a.x equals 2

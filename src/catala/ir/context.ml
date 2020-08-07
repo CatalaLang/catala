@@ -48,9 +48,14 @@ type context = {
 
 let subscope_ident (y : string) (x : string) : string = y ^ "::" ^ x
 
-exception UnsupportedFeature of string * Pos.t
+let raise_unsupported_feature (msg : string) (pos : Pos.t) =
+  Errors.raise_spanned_error (Printf.sprintf "Unsupported feature: %s" msg) pos
 
-exception UndefinedIdentifier of string * Pos.t
+let raise_undefined_identifier (msg : string) (pos : Pos.t) =
+  Errors.raise_spanned_error (Printf.sprintf "Undefined identifier: %s" msg) pos
+
+let raise_unknown_identifier (msg : string) (pos : Pos.t) =
+  Errors.raise_spanned_error (Printf.sprintf "Unknown identifier: %s" msg) pos
 
 (** Get the type associated to an uid *)
 let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data).uid_typ
@@ -66,11 +71,11 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
   (* First check that the designated subscope is a scope *)
   let sub_uid =
     match IdentMap.find_opt subscope ctxt.scope_id_to_uid with
-    | None -> raise (UndefinedIdentifier (subscope, s_pos))
+    | None -> raise_undefined_identifier subscope s_pos
     | Some uid -> (
         match get_uid_sort ctxt uid with
         | IdScope -> uid
-        | _ -> raise (UndefinedIdentifier ("...", s_pos)) )
+        | _ -> raise_undefined_identifier "..." s_pos )
   in
   let scope_ctxt = UidMap.find scope ctxt.scopes in
   let subscope_ctxt = UidMap.find sub_uid ctxt.scopes in
@@ -120,14 +125,14 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
 let process_base_typ ((typ, typ_pos) : Ast.base_typ Pos.marked) : Lambda.typ =
   match typ with
   | Ast.Condition -> Lambda.TBool
-  | Ast.Data (Ast.Collection _) -> raise (UnsupportedFeature ("Collection type", typ_pos))
-  | Ast.Data (Ast.Optional _) -> raise (UnsupportedFeature ("Option type", typ_pos))
+  | Ast.Data (Ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
+  | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
       | Ast.Integer | Ast.Decimal | Ast.Money | Ast.Date -> Lambda.TInt
       | Ast.Boolean -> Lambda.TBool
-      | Ast.Text -> raise (UnsupportedFeature ("Text type", typ_pos))
-      | Ast.Named _ -> raise (UnsupportedFeature ("Struct or enum types", typ_pos)) )
+      | Ast.Text -> raise_unsupported_feature "text type" typ_pos
+      | Ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
 
 let process_type ((typ, typ_pos) : Ast.typ Pos.marked) : Lambda.typ =
   match typ with
@@ -222,32 +227,26 @@ let form_context (prgm : Ast.program) : context =
 let get_var_uid (scope_uid : uid) (ctxt : context) ((x, pos) : ident Pos.marked) : uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt x scope.var_id_to_uid with
-  | None -> Errors.unknown_identifier x pos
+  | None -> raise_undefined_identifier x pos
   | Some uid -> (
       (* Checks that the uid has sort IdScopeVar or IdScopeBinder *)
       match get_uid_sort ctxt uid with
       | IdScopeVar _ | IdBinder | IdSubScopeVar _ -> uid
       | _ ->
-          let err_msg =
-            Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't\n%s" x
-              (Pos.to_string pos)
-          in
-          Errors.context_error err_msg )
+          let err_msg = Printf.sprintf "Identifier \"%s\" should be a variable, but it isn't" x in
+          Errors.raise_spanned_error err_msg pos )
 
 (** Get the subscope uid inside the scope given in argument *)
 let get_subscope_uid (scope_uid : uid) (ctxt : context) ((y, pos) : ident Pos.marked) : uid * uid =
   let scope = UidMap.find scope_uid ctxt.scopes in
   match IdentMap.find_opt y scope.var_id_to_uid with
-  | None -> Errors.unknown_identifier y pos
+  | None -> raise_unknown_identifier y pos
   | Some sub_uid -> (
       match get_uid_sort ctxt sub_uid with
       | IdSubScope scope_ref -> (sub_uid, scope_ref)
       | _ ->
-          let err_msg =
-            Printf.sprintf "Identifier \"%s\" should be a subscope, but it isn't\n%s" y
-              (Pos.retrieve_loc_text pos)
-          in
-          Errors.context_error err_msg )
+          let err_msg = Printf.sprintf "Identifier \"%s\" should be a subscope, but it isn't" y in
+          Errors.raise_spanned_error err_msg pos )
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : var_uid) (scope_uid : scope_uid) : bool =

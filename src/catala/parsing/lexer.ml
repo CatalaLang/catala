@@ -333,7 +333,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Integer literal*)
       update_acc lexbuf;
       INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
-  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  | _ -> Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let rec lex_law (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
@@ -363,7 +363,9 @@ let rec lex_law (lexbuf : lexbuf) : token =
       let pos = lexing_positions lexbuf in
       if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
       else if Filename.extension name = ".catala" then LAW_INCLUDE (Ast.CatalaFile (name, pos))
-      else Errors.lexer_error (lexing_positions lexbuf) "this type of file cannot be included"
+      else
+        Lexer_fr.raise_lexer_error (lexing_positions lexbuf) name
+          "this type of file cannot be included"
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -392,6 +394,6 @@ let rec lex_law (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, None, None)
   | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> Errors.lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+  | _ -> Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf

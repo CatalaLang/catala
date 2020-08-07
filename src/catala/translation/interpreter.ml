@@ -114,9 +114,9 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
 
 (* Evaluates a default term : see the formalization for an insight about this operation *)
 let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
-    (Lambda.term, Pos.t list) result =
+    (Lambda.term, Pos.t list * Pos.t list) result =
   (* First filter out the term which justification are false *)
-  let candidates =
+  let candidates : 'a IntMap.t =
     IntMap.filter
       (fun _ (cond, _) ->
         match eval_term exec_ctxt cond |> Lambda.untype with EBool b -> b | _ -> assert false)
@@ -135,8 +135,14 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
       let _, cons = IntMap.find x term.defaults in
       Ok (eval_term exec_ctxt cons)
   | xs ->
-      let pos = xs |> List.map (fun x -> IntMap.find x term.defaults |> fst |> Lambda.get_pos) in
-      Error pos
+      let true_pos =
+        xs |> List.map (fun x -> IntMap.find x term.defaults |> fst |> Lambda.get_pos)
+      in
+      let false_pos : Pos.t list =
+        let bindings : (scope_uid * (term * term)) list = term.defaults |> IntMap.bindings in
+        List.map (fun (_, (cond, _)) -> Lambda.get_pos cond) bindings
+      in
+      Error (true_pos, false_pos)
 
 (** Returns the scheduling of the scope variables, if y is a subscope and x a variable of y, then we
     have two different variable y.x(internal) and y.x(result) and the ordering y.x(internal) -> y ->
@@ -204,6 +210,28 @@ let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.
         redefs subscope.scope_defs;
   }
 
+let raise_default_conflict (id : string Pos.marked) (true_pos : Pos.t list) (false_pos : Pos.t list)
+    =
+  if List.length true_pos = 0 then
+    let justifications : (string option * Pos.t) list =
+      List.map (fun pos -> (Some "This justification is false:", pos)) false_pos
+    in
+    Errors.raise_multispanned_error
+      (Printf.sprintf "Default logic error for variable %s: no justification is true."
+         (Pos.unmark id))
+      ( ( Some (Printf.sprintf "The error concerns this variable %s" (Pos.unmark id)),
+          Pos.get_position id )
+      :: justifications )
+  else
+    let justifications : (string option * Pos.t) list =
+      List.map (fun pos -> (Some "This justification is true:", pos)) true_pos
+    in
+    Errors.raise_multispanned_error
+      "Default logic conflict, multiple justifications are true but are not related by a precedence"
+      ( ( Some (Printf.sprintf "The conflict concerns this variable %s" (Pos.unmark id)),
+          Pos.get_position id )
+      :: justifications )
+
 let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
     (prgm : Scope.program) (scope_prgm : Scope.scope) : exec_context =
   let schedule = build_scope_schedule ctxt scope_prgm in
@@ -221,7 +249,8 @@ let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
           | Some def -> (
               match eval_default_term exec_context def with
               | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
-              | Error pos -> Errors.default_conflict (Uid.get_ident uid) pos )
+              | Error (true_pos, false_pos) ->
+                  raise_default_conflict (Uid.get_ident uid, Uid.get_pos uid) true_pos false_pos )
           | None ->
               Cli.error_print
                 (Printf.sprintf "Variable %s is undefined in scope %s\n\n%s\n\n%s"
