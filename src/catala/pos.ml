@@ -63,6 +63,7 @@ let indent_number (s : string) : int =
 
 let retrieve_loc_text (pos : t) : string =
   let filename = get_file pos in
+  let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
   if filename = "" then "No position information"
   else
     let sline = get_start_line pos in
@@ -113,7 +114,7 @@ let retrieve_loc_text (pos : t) : string =
     let pos_lines = get_lines 1 in
     let spaces = int_of_float (floor (log (float_of_int eline))) in
     close_in oc;
-    Printf.sprintf "%*s--> %s\n%s" spaces "" filename
+    ANSITerminal.sprintf blue_style "%*s--> %s\n%s" spaces "" filename
       (Cli.add_prefix_to_each_line
          (Printf.sprintf "\n%s\n" (String.concat "\n" pos_lines))
          (fun i ->
@@ -122,14 +123,14 @@ let retrieve_loc_text (pos : t) : string =
              cur_line >= sline
              && cur_line <= sline + (2 * (eline - sline))
              && cur_line mod 2 = sline mod 2
-           then Printf.sprintf "%*d | " spaces (sline + ((cur_line - sline) / 2))
+           then ANSITerminal.sprintf blue_style "%*d | " spaces (sline + ((cur_line - sline) / 2))
            else if cur_line >= sline - include_extra_count && cur_line < sline then
-             Printf.sprintf "%*d | " spaces cur_line
+             ANSITerminal.sprintf blue_style "%*d | " spaces cur_line
            else if
              cur_line <= sline + (2 * (eline - sline)) + 1 + include_extra_count
              && cur_line > sline + (2 * (eline - sline)) + 1
-           then Printf.sprintf "%*d | " spaces (cur_line - (eline - sline + 1))
-           else Printf.sprintf "%*s | " spaces ""))
+           then ANSITerminal.sprintf blue_style "%*d | " spaces (cur_line - (eline - sline + 1))
+           else ANSITerminal.sprintf blue_style "%*s | " spaces ""))
 
 type 'a marked = 'a * t
 
