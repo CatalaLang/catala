@@ -59,7 +59,7 @@ let default_conflict (ident : string) (pos : Pos.t list) =
     raise
       (DefaultConflict
          (Printf.sprintf
-            "Conflict error for variable %s : following justifications are true without \
-             precedences :\n\
+            "Conflict error for variable %s, the following justifications are true but are not \
+             related by a precedence:\n\
              \t%s"
             ident pos_str))

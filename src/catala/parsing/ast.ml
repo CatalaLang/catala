@@ -116,7 +116,7 @@ type rule = {
   rule_parameter : ident Pos.marked option;
   rule_condition : expression Pos.marked option;
   rule_name : qident Pos.marked;
-  rule_consequence : bool;
+  rule_consequence : bool Pos.marked;
 }
 
 type definition = {

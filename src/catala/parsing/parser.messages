@@ -1,6 +1,6 @@
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 260.
+## Ends in an error in state: 261.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -13,7 +13,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 259.
+## Ends in an error in state: 260.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -26,7 +26,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 258.
+## Ends in an error in state: 259.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -39,7 +39,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 257.
+## Ends in an error in state: 258.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -52,7 +52,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 256.
+## Ends in an error in state: 257.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -65,7 +65,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 255.
+## Ends in an error in state: 256.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -78,7 +78,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT BOOLEAN DEPENDS BOOLEAN DEPENDS
 ##
-## Ends in an error in state: 252.
+## Ends in an error in state: 253.
 ##
 ## nonempty_list(scope_decl_item) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -92,7 +92,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT DATA
 ##
-## Ends in an error in state: 248.
+## Ends in an error in state: 249.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -105,7 +105,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 247.
+## Ends in an error in state: 248.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -118,7 +118,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
-## Ends in an error in state: 244.
+## Ends in an error in state: 245.
 ##
 ## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT ident . SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
@@ -133,7 +133,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 243.
+## Ends in an error in state: 244.
 ##
 ## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT . ident SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
@@ -148,7 +148,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 242.
+## Ends in an error in state: 243.
 ##
 ## code_item -> DECLARATION SCOPE constructor COLON . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -160,7 +160,7 @@ Scope declarations must have at least one context element
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 241.
+## Ends in an error in state: 242.
 ##
 ## code_item -> DECLARATION SCOPE constructor . COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -173,7 +173,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 240.
+## Ends in an error in state: 241.
 ##
 ## code_item -> DECLARATION SCOPE . constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -186,7 +186,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION BEGIN_METADATA
 ##
-## Ends in an error in state: 227.
+## Ends in an error in state: 228.
 ##
 ## typ -> collection_marked . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -199,7 +199,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 231.
+## Ends in an error in state: 232.
 ##
 ## struct_scope_func -> DEPENDS . typ [ SCOPE END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -212,7 +212,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 230.
+## Ends in an error in state: 231.
 ##
 ## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -224,7 +224,7 @@ Unexpected token, struct scope declaration is over at this point
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 237.
+## Ends in an error in state: 238.
 ##
 ## struct_scope_base -> condition_pos . ident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -237,7 +237,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 213.
+## Ends in an error in state: 214.
 ##
 ## struct_scope_base -> DATA ident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -250,7 +250,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 212.
+## Ends in an error in state: 213.
 ##
 ## struct_scope_base -> DATA ident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -263,7 +263,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 211.
+## Ends in an error in state: 212.
 ##
 ## struct_scope_base -> DATA . ident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -276,7 +276,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 210.
+## Ends in an error in state: 211.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -289,7 +289,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 209.
+## Ends in an error in state: 210.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -302,7 +302,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 208.
+## Ends in an error in state: 209.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -315,7 +315,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 207.
+## Ends in an error in state: 208.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -330,7 +330,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
-## Ends in an error in state: 204.
+## Ends in an error in state: 205.
 ##
 ## nonempty_list(scope_item) -> scope_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_item) -> scope_item . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
@@ -349,9 +349,9 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THE
 ## In state 71, spurious reduction of production compare_expression -> sum_expression 
 ## In state 103, spurious reduction of production logical_expression -> compare_expression 
 ## In state 110, spurious reduction of production expression -> logical_expression 
-## In state 201, spurious reduction of production assertion_base -> expression 
-## In state 202, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
-## In state 203, spurious reduction of production scope_item -> ASSERTION assertion 
+## In state 202, spurious reduction of production assertion_base -> expression 
+## In state 203, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
+## In state 204, spurious reduction of production scope_item -> ASSERTION assertion 
 ##
 
 Unexpected token after a scope item
@@ -492,7 +492,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
-## Ends in an error in state: 198.
+## Ends in an error in state: 199.
 ##
 ## assertion -> FIXED qident BY . ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -505,7 +505,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
-## Ends in an error in state: 197.
+## Ends in an error in state: 198.
 ##
 ## assertion -> FIXED qident . BY ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -516,7 +516,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 177, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 178, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
 ## In state 160, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
@@ -525,7 +525,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
-## Ends in an error in state: 196.
+## Ends in an error in state: 197.
 ##
 ## assertion -> FIXED . qident BY ident [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1145,7 +1145,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
 ##
-## Ends in an error in state: 200.
+## Ends in an error in state: 201.
 ##
 ## assertion -> option(condition_consequence) . assertion_base [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1158,7 +1158,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
 ##
-## Ends in an error in state: 169.
+## Ends in an error in state: 170.
 ##
 ## condition_consequence -> condition . CONSEQUENCE [ VERTICAL TRUE SUM NOW NOT MONEY_AMOUNT MINUS MATCH LPAREN INT_LITERAL IF IDENT FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL CONSTRUCTOR CARDINAL ]
 ##
@@ -1196,7 +1196,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V NOW THEN
 ##
-## Ends in an error in state: 191.
+## Ends in an error in state: 192.
 ##
 ## assertion -> VARIES qident WITH_V base_expression . option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1215,7 +1215,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
-## Ends in an error in state: 190.
+## Ends in an error in state: 191.
 ##
 ## assertion -> VARIES qident WITH_V . base_expression option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1228,7 +1228,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
-## Ends in an error in state: 188.
+## Ends in an error in state: 189.
 ##
 ## assertion -> VARIES . qident WITH_V base_expression option(variation_type) [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1316,7 +1316,7 @@ Expected date inside "|...|"
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION YEAR
 ##
-## Ends in an error in state: 187.
+## Ends in an error in state: 188.
 ##
 ## scope_item -> ASSERTION . assertion [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1329,7 +1329,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 184.
+## Ends in an error in state: 185.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1342,7 +1342,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 182.
+## Ends in an error in state: 183.
 ##
 ## definition -> qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1354,7 +1354,7 @@ Wrong token following function parameter
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
-## Ends in an error in state: 183.
+## Ends in an error in state: 184.
 ##
 ## definition -> qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1367,7 +1367,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 181.
+## Ends in an error in state: 182.
 ##
 ## definition -> qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1378,7 +1378,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 177, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 178, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
 ## In state 160, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
@@ -1386,7 +1386,7 @@ Only the identifier you wish to define should follow the definition introducing 
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 180.
+## Ends in an error in state: 181.
 ##
 ## scope_item -> DEFINITION . definition [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -1399,7 +1399,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
-## Ends in an error in state: 178.
+## Ends in an error in state: 179.
 ##
 ## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
 ##
@@ -1412,12 +1412,12 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT SCOPE
 ##
-## Ends in an error in state: 166.
+## Ends in an error in state: 167.
 ##
-## rule -> rule_expr option(condition_consequence) option(NOT) . FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## rule_expr option(condition_consequence) option(NOT)
+## option(NOT)
 ##
 
 Unexpected token
@@ -1427,7 +1427,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YE
 ##
 ## Ends in an error in state: 161.
 ##
-## rule -> rule_expr . option(condition_consequence) option(NOT) FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> rule_expr . option(condition_consequence) rule_consequence [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## rule_expr
@@ -1438,7 +1438,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 173.
+## Ends in an error in state: 174.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
 ##
@@ -1453,7 +1453,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDI
 ##
 ## Ends in an error in state: 164.
 ##
-## rule -> rule_expr option(condition_consequence) . option(NOT) FILLED [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> rule_expr option(condition_consequence) . rule_consequence [ SCOPE RULE END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## rule_expr option(condition_consequence)
@@ -1464,7 +1464,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 172.
+## Ends in an error in state: 173.
 ##
 ## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
 ##
@@ -1475,7 +1475,7 @@ source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 177, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
+## In state 178, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
 ## In state 160, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
@@ -1484,7 +1484,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
-## Ends in an error in state: 177.
+## Ends in an error in state: 178.
 ##
 ## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
 ## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
@@ -1546,7 +1546,7 @@ Expecting the constructor for the scope
 
 source_file_or_master: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 274.
+## Ends in an error in state: 275.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1558,7 +1558,7 @@ Wrong way to begin a code section
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 271.
+## Ends in an error in state: 272.
 ##
 ## metadata_block -> BEGIN_CODE code END_CODE . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -1597,7 +1597,7 @@ To get a better error messsage, file an issue at https://github.com/CatalaLang/c
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 278.
+## Ends in an error in state: 279.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

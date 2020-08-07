@@ -108,21 +108,32 @@ let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
           match ex_scope with
           | None ->
               Cli.error_print "No scope was provided for execution.";
-              assert false
+              exit (-1)
           | Some name -> (
               match Context.IdentMap.find_opt name ctxt.scope_id_to_uid with
               | None ->
                   Cli.error_print (Printf.sprintf "There is no scope %s inside the program." name);
-                  assert false
+                  exit (-1)
               | Some uid -> uid )
         in
         let prgm = Firstpass.translate_program_to_scope ctxt program in
-        let scope = Uid.UidMap.find scope_uid prgm in
+        let scope =
+          match Uid.UidMap.find_opt scope_uid prgm with
+          | Some scope -> scope
+          | None ->
+              Cli.error_print
+                (Printf.sprintf
+                   "Scope %s does not define anything, and therefore cannot be executed\n\n%s"
+                   (Uid.get_ident scope_uid)
+                   (Pos.retrieve_loc_text (Uid.get_pos scope_uid)));
+              exit (-1)
+        in
         let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
         Uid.UidMap.iter
           (fun uid value ->
-            Printf.printf "Var %s:\t%s\n" (Uid.get_ident uid)
-              (Debug.print_term ((value, Pos.no_pos), TDummy)))
+            Cli.result_print
+              (Printf.sprintf "%s -> %s" (Uid.get_ident uid)
+                 (Debug.print_term ((value, Uid.get_pos uid), TDummy))))
           exec_ctxt;
         0
       with Errors.ContextError msg | Errors.DefaultConflict msg ->

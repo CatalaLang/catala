@@ -128,13 +128,14 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
 
 (* Translation from the parsed ast to the scope language *)
 
-let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option) : Lambda.term =
+let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option)
+    (default_pos : Pos.t) : Lambda.term =
   match (precond, cond) with
   | Some precond, Some cond ->
-      let op_term = ((EOp (Binop And), Pos.no_pos), TDummy) in
-      ((EApp (op_term, [ precond; cond ]), Pos.no_pos), TDummy)
+      let op_term = ((EOp (Binop And), Pos.get_position (fst precond)), TDummy) in
+      ((EApp (op_term, [ precond; cond ]), Pos.get_position (fst precond)), TDummy)
   | Some cond, None | None, Some cond -> cond
-  | None, None -> ((EBool true, Pos.no_pos), TBool)
+  | None, None -> ((EBool true, default_pos), TBool)
 
 (* Process a definition *)
 let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
@@ -161,7 +162,9 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition = merge_conditions precond cond |> typing ctxt |> fst in
+        let condition =
+          merge_conditions precond cond (Pos.get_position def.definition_name) |> typing ctxt |> fst
+        in
         let body = expr_to_lambda scope ctxt def.definition_expr in
         (* In case it is a function, wrap it in a EFun*)
         let body =
@@ -169,7 +172,7 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           | None -> body
           | Some arg_uid ->
               let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
-              ((EFun ([ binding ], body), Pos.no_pos), TDummy) )
+              ((EFun ([ binding ], body), Pos.get_position def.definition_expr), TDummy) )
           |> typing ctxt |> fst
         in
         let x_def = Lambda.add_default condition body x_def in
@@ -197,7 +200,9 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
               if typ = TBool then Some cond else assert false
           | None -> None
         in
-        let condition = merge_conditions precond cond |> typing ctxt |> fst in
+        let condition =
+          merge_conditions precond cond (Pos.get_position def.definition_name) |> typing ctxt |> fst
+        in
         let body = expr_to_lambda ~subdef:scope_ref scope ctxt def.definition_expr in
         (* In case it is a function, wrap it in a EFun*)
         let body =
@@ -205,7 +210,7 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           | None -> body
           | Some arg_uid ->
               let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
-              ((EFun ([ binding ], body), Pos.no_pos), TDummy) )
+              ((EFun ([ binding ], body), Pos.get_position def.definition_expr), TDummy) )
           |> typing ctxt |> fst
         in
         let x_redef = Lambda.add_default condition body x_redef in
@@ -223,13 +228,13 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
     (prgm : Scope.program) (rule : Ast.rule) : Scope.program =
-  let consequence_expr = Ast.Literal (Ast.Bool rule.rule_consequence) in
+  let consequence_expr = Ast.Literal (Ast.Bool (Pos.unmark rule.rule_consequence)) in
   let def =
     {
       definition_name = rule.rule_name;
       definition_parameter = rule.rule_parameter;
       definition_condition = rule.rule_condition;
-      definition_expr = (consequence_expr, Pos.no_pos);
+      definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
     }
   in
   process_def precond scope ctxt prgm def

@@ -321,15 +321,22 @@ condition_consequence:
 rule_expr:
 | i = qident p = option(definition_parameters) { (i, p) }
 
+rule_consequence:
+| flag = option(NOT) FILLED {
+  let b = match flag with Some _ -> false | None -> true in
+  (b, $sloc)
+}
+
 rule:
 | name_and_param = rule_expr cond = option(condition_consequence)
-   consequence = option(NOT) FILLED {
+   consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
+    let cons : bool Pos.marked = consequence in
     ({
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
-      rule_consequence = match consequence with Some _ -> false | None -> true
+      rule_consequence = cons;
       }, $sloc)
   }
 
