@@ -1,4 +1,0 @@
-CATALA_LANG=nv
-SRC=test_bool.catala
-
-include ../Makefile.common

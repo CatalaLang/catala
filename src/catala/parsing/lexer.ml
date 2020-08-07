@@ -35,7 +35,7 @@ let token_list : (string * token) list =
     ("of", OF);
     ("collection", COLLECTION);
     ("enumeration", ENUM);
-    ("integer", INTEGER);
+    ("int", INTEGER);
     ("amount", MONEY);
     ("text", TEXT);
     ("decimal", DECIMAL);
