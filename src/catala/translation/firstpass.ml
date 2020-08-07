@@ -219,9 +219,7 @@ let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.c
           scope_prgm with
           scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
         }
-    | _ ->
-        Cli.debug_print (Printf.sprintf "Structs are not handled yet.\n%s\n" (Pos.to_string pos));
-        assert false
+    | _ -> Errors.raise_spanned_error "Structs are not handled yet" pos
   in
   UidMap.add scope scope_prgm prgm
 

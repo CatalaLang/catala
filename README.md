@@ -87,6 +87,10 @@ implementation.
 
 See [the dedicated readme](INSTALL.md).
 
+## Test suite
+
+See [the dedicated readme](tests/README.md).
+
 ## Contributing
 
 See [the dedicated readme](CONTRIBUTING.md).

@@ -1,0 +1,6 @@
+[RESULT] a::u -> true
+[RESULT] a::x -> 2
+[RESULT] b::a::u -> true
+[RESULT] b::a::x -> 1
+[RESULT] b::y -> 3
+[RESULT] z -> 2

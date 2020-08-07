@@ -13,11 +13,12 @@
    the License. *)
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
-let driver (source_file : string) (debug : bool) (wrap_weaved_output : bool)
+let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
     (ex_scope : string option) (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
+    Cli.style_flag := not unstyled;
     Cli.debug_print "Reading files...";
     if Filename.extension source_file <> ".catala" then
       Errors.raise_error

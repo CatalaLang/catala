@@ -1,8 +1,10 @@
+default: build
+
 ##########################################
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3
+EXECUTABLES = man2html virtualenv python3 colordiff
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -105,6 +107,15 @@ tutorial_en: pygments build
 all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
 
 ##########################################
+# Execute test suite
+##########################################
+
+.FORCE:
+
+tests: build .FORCE
+	$(MAKE) -C tests
+
+##########################################
 # Website assets
 ##########################################
 
@@ -125,7 +136,7 @@ website-assets: doc all_examples grammar.html catala.html legifrance_catala.html
 # Misceallenous
 ##########################################
 
-all: install-dependencies build doc all_examples website-assets
+all: install-dependencies build doc tests all_examples website-assets
 
 clean:
 	dune clean
