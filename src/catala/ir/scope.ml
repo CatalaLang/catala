@@ -17,7 +17,7 @@ module UidMap = Uid.UidMap
 (* Scopes *)
 type binder = string Pos.marked
 
-type definition = Lambda.default_term
+type definition = Lambda.term
 
 type assertion = Lambda.term
 

@@ -14,6 +14,7 @@
 
 module UidMap = Uid.UidMap
 module UidSet = Uid.UidSet
+module IntMap = Map.Make (Int)
 
 (* TDummy means the term is not typed *)
 type typ = TBool | TInt | TArrow of typ * typ | TDummy
@@ -41,6 +42,15 @@ and untyped_term =
   | EBool of bool
   | EDec of int * int
   | EOp of op
+  | EDefault of default_term
+
+(* (x,y) in ordering means that default x has precedence over default y : if both are true then x
+   would be choser over y *)
+and default_term = {
+  defaults : (term * term) IntMap.t;
+  ordering : (int * int) list;
+  nb_defaults : int;
+}
 
 let untype (((term, _), _) : term) : untyped_term = term
 
@@ -48,25 +58,9 @@ let get_pos (((_, pos), _) : term) : Pos.t = pos
 
 let get_typ ((_, typ) : term) : typ = typ
 
-(* Default terms *)
-
-module IntMap = Map.Make (Int)
-
-type justification = term
-
-type consequence = term
-
-(* (x,y) in ordering means that default x has precedence over default y : if both are true then x
-   would be choser over y *)
-type default_term = {
-  defaults : (justification * consequence) IntMap.t;
-  ordering : (int * int) list;
-  nb_defaults : int;
-}
-
 let empty_default_term : default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
 
-let add_default (just : justification) (cons : consequence) (term : default_term) =
+let add_default (just : term) (cons : term) (term : default_term) =
   {
     term with
     defaults = IntMap.add term.nb_defaults (just, cons) term.defaults;
@@ -99,24 +93,22 @@ let merge_default_terms (lo_term : default_term) (hi_term : default_term) : defa
   { defaults; ordering = prec @ prec'; nb_defaults = n + n' }
 
 (** Returns the free variables of a term *)
-let rec term_free_vars (term : term) : UidSet.t =
+let rec term_fv (term : term) : UidSet.t =
   match untype term with
   | EVar uid -> UidSet.singleton uid
   | EFun (bindings, body) ->
-      let body_fv = term_free_vars body in
+      let body_fv = term_fv body in
       let bindings = bindings |> List.map (fun (x, _) -> x) |> UidSet.of_list in
       UidSet.diff body_fv bindings
-  | EApp (f, args) ->
-      List.fold_left (fun fv arg -> UidSet.union fv (term_free_vars arg)) (term_free_vars f) args
+  | EApp (f, args) -> List.fold_left (fun fv arg -> UidSet.union fv (term_fv arg)) (term_fv f) args
   | EIfThenElse (t_if, t_then, t_else) ->
-      UidSet.union (term_free_vars t_if)
-        (UidSet.union (term_free_vars t_then) (term_free_vars t_else))
+      UidSet.union (term_fv t_if) (UidSet.union (term_fv t_then) (term_fv t_else))
+  | EDefault default -> default_term_fv default
   | _ -> UidSet.empty
 
-(** Returns the free variable of a default term *)
-let default_term_fv (term : default_term) : UidSet.t =
+and default_term_fv (term : default_term) : UidSet.t =
   IntMap.fold
     (fun _ (cond, body) ->
-      let fv = UidSet.union (term_free_vars cond) (term_free_vars body) in
+      let fv = UidSet.union (term_fv cond) (term_fv body) in
       UidSet.union fv)
     term.defaults UidSet.empty

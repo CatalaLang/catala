@@ -68,12 +68,11 @@ let rec expr_to_lambda ?(subdef : Uid.t option) (scope : Uid.t) (ctxt : Context.
   | _ -> assert false
 
 (** Checks that a term is well typed and annotate it *)
-let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.term * Lambda.typ =
+let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.term =
   match t with
   | EVar uid ->
       let typ = Context.get_uid_typ ctxt uid in
-      let term = ((EVar uid, pos), typ) in
-      (term, typ)
+      ((EVar uid, pos), typ)
   | EFun (bindings, body) ->
       (* Note that given the context formation process, the binder will already be present in the
          context (since we are working with uids), however it's added there for the sake of clarity *)
@@ -85,16 +84,19 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
           ctxt.data bindings
       in
 
-      let body, ret_typ = typing { ctxt with data = ctxt_data } body in
+      let body = typing { ctxt with data = ctxt_data } body in
+      let ret_typ = Lambda.get_typ body in
       let rec build_typ = function
         | [] -> ret_typ
         | (_, arg_t) :: args -> TArrow (arg_t, build_typ args)
       in
       let fun_typ = build_typ bindings in
-      (((EFun (bindings, body), pos), fun_typ), fun_typ)
+      ((EFun (bindings, body), pos), fun_typ)
   | EApp (f, args) ->
-      let f, f_typ = typing ctxt f in
-      let args, args_typ = args |> List.map (typing ctxt) |> List.split in
+      let f = typing ctxt f in
+      let f_typ = Lambda.get_typ f in
+      let args = List.map (typing ctxt) args in
+      let args_typ = List.map Lambda.get_typ args in
       let rec check_arrow_typ f_typ args_typ =
         match (f_typ, args_typ) with
         | typ, [] -> typ
@@ -103,16 +105,19 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | _ -> assert false
       in
       let ret_typ = check_arrow_typ f_typ args_typ in
-      (((EApp (f, args), pos), ret_typ), ret_typ)
+      ((EApp (f, args), pos), ret_typ)
   | EIfThenElse (t_if, t_then, t_else) ->
-      let t_if, typ_if = typing ctxt t_if in
-      let t_then, typ_then = typing ctxt t_then in
-      let t_else, typ_else = typing ctxt t_else in
+      let t_if = typing ctxt t_if in
+      let typ_if = Lambda.get_typ t_if in
+      let t_then = typing ctxt t_then in
+      let typ_then = Lambda.get_typ t_then in
+      let t_else = typing ctxt t_else in
+      let typ_else = Lambda.get_typ t_else in
       if typ_if <> TBool then assert false
       else if typ_then <> typ_else then assert false
-      else (((EIfThenElse (t_if, t_then, t_else), pos), typ_then), typ_then)
-  | EInt _ | EDec _ -> (((t, pos), TInt), TInt)
-  | EBool _ -> (((t, pos), TBool), TBool)
+      else ((EIfThenElse (t_if, t_then, t_else), pos), typ_then)
+  | EInt _ | EDec _ -> ((t, pos), TInt)
+  | EBool _ -> ((t, pos), TBool)
   | EOp op ->
       let typ =
         match op with
@@ -124,7 +129,23 @@ let rec typing (ctxt : Context.context) (((t, pos), _) : Lambda.term) : Lambda.t
         | Unop Minus -> TArrow (TInt, TInt)
         | Unop Not -> TArrow (TBool, TBool)
       in
-      (((t, pos), typ), typ)
+      ((t, pos), typ)
+  | EDefault t ->
+      let defaults =
+        IntMap.map
+          (fun (just, cons) ->
+            let just = typing ctxt just in
+            if Lambda.get_typ just <> TBool then
+              let cons = typing ctxt cons in
+              (just, cons)
+            else assert false)
+          t.defaults
+      in
+      let typ_cons = IntMap.choose defaults |> snd |> snd |> Lambda.get_typ in
+      IntMap.iter
+        (fun _ (_, cons) -> if Lambda.get_typ cons <> typ_cons then assert false else ())
+        defaults;
+      ((EDefault { t with defaults }, pos), typ_cons)
 
 (* Translation from the parsed ast to the scope language *)
 
@@ -137,93 +158,24 @@ let merge_conditions (precond : Lambda.term option) (cond : Lambda.term option)
   | Some cond, None | None, Some cond -> cond
   | None, None -> ((EBool true, default_pos), TBool)
 
-(* Process a definition *)
-let process_def (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
-    (prgm : Scope.program) (def : Ast.definition) : Scope.program =
-  (* We first check either it is a variable or a subvariable *)
-  let scope_prgm = UidMap.find scope prgm in
-  let pos = Pos.get_position def.definition_name in
-  let scope_prgm =
-    match Pos.unmark def.definition_name with
-    | [ x ] ->
-        let x_uid = Context.get_var_uid scope ctxt x in
-        let x_def =
-          match UidMap.find_opt x_uid scope_prgm.scope_defs with
-          | None -> Lambda.empty_default_term
-          | Some def -> def
-        in
-        (* ctxt redefines just the ident lookup for the argument binding (in case x is a function *)
-        let ctxt, arg_uid = Context.add_binding ctxt scope x_uid def.definition_parameter in
-        (* Process the condition *)
-        let cond =
-          match def.definition_condition with
-          | Some cond ->
-              let cond, typ = typing ctxt (expr_to_lambda scope ctxt cond) in
-              if typ = TBool then Some cond else assert false
-          | None -> None
-        in
-        let condition =
-          merge_conditions precond cond (Pos.get_position def.definition_name) |> typing ctxt |> fst
-        in
-        let body = expr_to_lambda scope ctxt def.definition_expr in
-        (* In case it is a function, wrap it in a EFun*)
-        let body =
-          ( match arg_uid with
-          | None -> body
-          | Some arg_uid ->
-              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
-              ((EFun ([ binding ], body), Pos.get_position def.definition_expr), TDummy) )
-          |> typing ctxt |> fst
-        in
-        let x_def = Lambda.add_default condition body x_def in
-        { scope_prgm with scope_defs = UidMap.add x_uid x_def scope_prgm.scope_defs }
-    | [ y; x ] ->
-        let subscope_uid, scope_ref = Context.get_subscope_uid scope ctxt y in
-        let x_uid = Context.get_var_uid scope_ref ctxt x in
-        let y_subdef =
-          match UidMap.find_opt subscope_uid scope_prgm.scope_sub_defs with
-          | Some defs -> defs
-          | None -> UidMap.empty
-        in
-        let x_redef =
-          match UidMap.find_opt x_uid y_subdef with
-          | None -> Lambda.empty_default_term
-          | Some redef -> redef
-        in
-        (* ctxt redefines just the ident lookup for the argument binding (in case x is a function *)
-        let ctxt, arg_uid = Context.add_binding ctxt scope x_uid def.definition_parameter in
-        (* Process cond with the subdef argument*)
-        let cond =
-          match def.definition_condition with
-          | Some cond ->
-              let cond, typ = expr_to_lambda ~subdef:scope_ref scope ctxt cond |> typing ctxt in
-              if typ = TBool then Some cond else assert false
-          | None -> None
-        in
-        let condition =
-          merge_conditions precond cond (Pos.get_position def.definition_name) |> typing ctxt |> fst
-        in
-        let body = expr_to_lambda ~subdef:scope_ref scope ctxt def.definition_expr in
-        (* In case it is a function, wrap it in a EFun*)
-        let body =
-          ( match arg_uid with
-          | None -> body
-          | Some arg_uid ->
-              let binding = (arg_uid, Context.get_uid_typ ctxt arg_uid) in
-              ((EFun ([ binding ], body), Pos.get_position def.definition_expr), TDummy) )
-          |> typing ctxt |> fst
-        in
-        let x_redef = Lambda.add_default condition body x_redef in
-        let y_subdef = UidMap.add x_uid x_redef y_subdef in
-        {
-          scope_prgm with
-          scope_sub_defs = UidMap.add subscope_uid y_subdef scope_prgm.scope_sub_defs;
-        }
-    | _ ->
-        Cli.debug_print (Printf.sprintf "Structs are not handled yet.\n%s\n" (Pos.to_string pos));
-        assert false
+let process_default (ctxt : Context.context) (scope : Uid.t) (def : Lambda.default_term)
+    (precond : Lambda.term option) (just : Ast.expression Pos.marked option)
+    (body : Ast.expression Pos.marked) (subdef : Uid.t option) : Lambda.default_term =
+  let just =
+    match just with
+    | Some cond ->
+        let cond = expr_to_lambda ?subdef scope ctxt cond |> typing ctxt in
+        if Lambda.get_typ cond = TBool then Some cond else assert false
+    | None -> None
   in
-  UidMap.add scope scope_prgm prgm
+  let condition = merge_conditions precond just (Pos.get_position body) |> typing ctxt in
+  let body = expr_to_lambda ?subdef scope ctxt body |> typing ctxt in
+  Lambda.add_default condition body def
+
+(* Process a definition *)
+let process_def (_precond : Lambda.term option) (_scope : Uid.t) (_ctxt : Context.context)
+    (_prgm : Scope.program) (_def : Ast.definition) : Scope.program =
+  assert false
 
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
@@ -260,8 +212,8 @@ let process_scope_use (ctxt : Context.context) (prgm : Scope.program) (use : Ast
     match use.scope_use_condition with
     | Some expr ->
         let untyped_term = expr_to_lambda scope_uid ctxt expr in
-        let term, typ = typing ctxt untyped_term in
-        if typ = TBool then Some term else assert false
+        let term = typing ctxt untyped_term in
+        if Lambda.get_typ term = TBool then Some term else assert false
     | None -> None
   in
   List.fold_left (process_scope_use_item cond scope_uid ctxt) prgm use.scope_use_items
