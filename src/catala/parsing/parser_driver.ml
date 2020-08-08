@@ -131,7 +131,7 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   in
   try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-    Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "malformed token"
+    Lexer.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "malformed token"
 
 let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
     =

@@ -1,14 +1,14 @@
 /*
-declaration scope S:
-  context f content int depends on int
-  context x content int
-  context b content bool
+new scope S:
+  param f type int fun of int
+  param x type int
+  param b type bool
 
 scope S:
-  def f of x ? (x >= x) |= x + x
-  def f of x ? not b |= x * x
+  def f of x [ (x >= x) ] := x + x
+  def f of x [ not b ] := x * x
 
-  def b = false
+  def b := false
 
-  def x = f of 3
+  def x := f of 3
 */

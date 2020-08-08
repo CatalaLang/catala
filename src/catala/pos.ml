@@ -112,11 +112,11 @@ let retrieve_loc_text (pos : t) : string =
       | None -> []
     in
     let pos_lines = get_lines 1 in
-    let spaces = int_of_float (floor (log (float_of_int eline))) in
+    let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
     close_in oc;
     Cli.print_with_style blue_style "%*s--> %s\n%s" spaces "" filename
       (Cli.add_prefix_to_each_line
-         (Printf.sprintf "\n%s\n" (String.concat "\n" pos_lines))
+         (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
          (fun i ->
            let cur_line = sline - include_extra_count + i - 1 in
            if

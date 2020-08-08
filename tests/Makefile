@@ -31,6 +31,6 @@ test_scope/sub_scope.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
 	$(call interpret_with_scope_and_compare,nv,B)
 test_scope/sub_sub_scope.catala:
-	$(call interpret_with_scope_and_compare,en,A)
-	$(call interpret_with_scope_and_compare,en,B)
-	$(call interpret_with_scope_and_compare,en,C)
+	$(call interpret_with_scope_and_compare,nv,A)
+	$(call interpret_with_scope_and_compare,nv,B)
+	$(call interpret_with_scope_and_compare,nv,C)

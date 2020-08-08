@@ -1,22 +1,22 @@
 /*
-declaration scope A:
-  context a content int
-  context b content bool
-  context a_base content int
+new scope A:
+  param a type int
+  param b type bool
+  param a_base type int
 
-declaration scope B:
-  context a content int
-  context b content bool
-  context scopeA scope A
-  context scopeAbis scope A
+new scope B:
+  param a type int
+  param b type bool
+  param scopeA scope A
+  param scopeAbis scope A
 
 scope A:
-  def a_base = 1
-  def a = -1
-  def b = a > 0
+  def a_base := 1
+  def a := -1
+  def b := a > 0
 
 scope B:
-  def a = 42
-  def b = scopeA.b
-  def scopeA.a ? a > 0 |= scopeA.a_base 
+  def a := 42
+  def b := scopeA.b
+  def scopeA.a [ a > 0 ] := scopeA.a_base
 */

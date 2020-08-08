@@ -1,22 +1,19 @@
 [ERROR] Default logic conflict, multiple justifications are true but are not related by a precedence
 [ERROR]
 [ERROR] The conflict concerns this variable y
+[ERROR]  --> test_scope/sub_sub_scope.catala
+[ERROR]   |
+[ERROR] 8 |   param y type int
+[ERROR]   |         ^
+[ERROR]
+[ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
 [ERROR]    |
-[ERROR]  8 |   context y content integer
-[ERROR]    |           ^
+[ERROR] 21 |   def y [ a.x = 1 ] := 1
+[ERROR]    |           ^^^^^^^
+[ERROR]
+[ERROR] This justification is true:
+[ERROR]   --> test_scope/sub_sub_scope.catala
 [ERROR]    |
-[ERROR]
-[ERROR] This justification is true:
-[ERROR]    --> test_scope/sub_sub_scope.catala
-[ERROR]     |
-[ERROR]  21 |   definition y under condition a.x = 1 consequence equals 1
-[ERROR]     |                                ^^^^^^^
-[ERROR]     |
-[ERROR]
-[ERROR] This justification is true:
-[ERROR]    --> test_scope/sub_sub_scope.catala
-[ERROR]     |
-[ERROR]  22 |   definition y under condition a.x + 1 = 2 consequence equals 1
-[ERROR]     |                                ^^^^^^^^^^^
-[ERROR]     |
+[ERROR] 22 |   def y [ a.x + 1 = 2 ] := 1
+[ERROR]    |           ^^^^^^^^^^^

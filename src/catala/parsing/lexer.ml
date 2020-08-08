@@ -22,19 +22,42 @@ let code_string_acc : string ref = ref ""
 
 let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
+let raise_lexer_error (loc : Pos.t) (token : string) (msg : string) =
+  Errors.raise_spanned_error (Printf.sprintf "Parsing error on token \"%s\": %s" token msg) loc
+
+let token_list_language_agnostic : (string * token) list =
+  [
+    ("->", ARROW);
+    (".", DOT);
+    ("<=", LESSER_EQUAL);
+    (">=", GREATER_EQUAL);
+    (">", GREATER);
+    ("!=", NOT_EQUAL);
+    ("=", EQUAL);
+    ("(", LPAREN);
+    (")", RPAREN);
+    ("+", PLUS);
+    ("-", MINUS);
+    ("*", MULT);
+    ("/", DIV);
+    ("|", VERTICAL);
+    (":", COLON);
+    ("--", ALT);
+  ]
+
 let token_list : (string * token) list =
   [
     ("scope", SCOPE);
-    ("|", CONSEQUENCE);
+    ("]", CONSEQUENCE);
     ("data", DATA);
-    ("depends on", DEPENDS);
-    ("declaration", DECLARATION);
-    ("context", CONTEXT);
+    ("fun of", DEPENDS);
+    ("new", DECLARATION);
+    ("param", CONTEXT);
     ("decreasing", DECREASING);
     ("increasing", INCREASING);
     ("of", OF);
-    ("collection", COLLECTION);
-    ("enumeration", ENUM);
+    ("set", COLLECTION);
+    ("enum", ENUM);
     ("int", INTEGER);
     ("amount", MONEY);
     ("text", TEXT);
@@ -42,21 +65,21 @@ let token_list : (string * token) list =
     ("date", DATE);
     ("boolean", BOOLEAN);
     ("sum", SUM);
-    ("fulfilled", FILLED);
+    ("ok", FILLED);
     ("def", DEFINITION);
     ("equals", DEFINED_AS);
     ("match", MATCH);
-    ("with pattern", WITH);
-    ("?", UNDER_CONDITION);
+    ("with", WITH);
+    ("[", UNDER_CONDITION);
     ("if", IF);
     ("then", THEN);
     ("else", ELSE);
-    ("content", CONTENT);
-    ("structure", STRUCT);
-    ("optional", OPTIONAL);
-    ("assertion", ASSERTION);
+    ("type", CONTENT);
+    ("struct", STRUCT);
+    ("option", OPTIONAL);
+    ("assert", ASSERTION);
     ("varies", VARIES);
-    ("with", WITH_V);
+    ("with parameter", WITH_V);
     ("for", FOR);
     ("all", ALL);
     ("we have", WE_HAVE);
@@ -75,7 +98,7 @@ let token_list : (string * token) list =
     ("true", TRUE);
     ("false", FALSE);
   ]
-  @ Lexer_fr.token_list_language_agnostic
+  @ token_list_language_agnostic
 
 let rec lex_code (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
@@ -97,13 +120,13 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "data" ->
       update_acc lexbuf;
       DATA
-  | "depends on" ->
+  | "fun of" ->
       update_acc lexbuf;
       DEPENDS
-  | "declaration" ->
+  | "new" ->
       update_acc lexbuf;
       DECLARATION
-  | "context" ->
+  | "param" ->
       update_acc lexbuf;
       CONTEXT
   | "decreasing" ->
@@ -115,10 +138,10 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "of" ->
       update_acc lexbuf;
       OF
-  | "collection" ->
+  | "set" ->
       update_acc lexbuf;
       COLLECTION
-  | "enumeration" ->
+  | "enum" ->
       update_acc lexbuf;
       ENUM
   | "int" ->
@@ -142,22 +165,28 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "sum" ->
       update_acc lexbuf;
       SUM
-  | "fulfilled" ->
+  | "ok" ->
       update_acc lexbuf;
       FILLED
   | "def" ->
       update_acc lexbuf;
       DEFINITION
-  | "=" ->
+  | ":=" ->
       update_acc lexbuf;
       DEFINED_AS
+  | "varies" ->
+      update_acc lexbuf;
+      VARIES
+  | "with" ->
+      update_acc lexbuf;
+      WITH_V
   | "match" ->
       update_acc lexbuf;
       MATCH
-  | "with pattern" ->
+  | "with" ->
       update_acc lexbuf;
       WITH
-  | "?" ->
+  | "[" ->
       update_acc lexbuf;
       UNDER_CONDITION
   | "if" ->
@@ -172,24 +201,18 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "condition" ->
       update_acc lexbuf;
       CONDITION
-  | "content" ->
+  | "type" ->
       update_acc lexbuf;
       CONTENT
   | "structure" ->
       update_acc lexbuf;
       STRUCT
-  | "optional" ->
+  | "option" ->
       update_acc lexbuf;
       OPTIONAL
-  | "assertion" ->
+  | "assert" ->
       update_acc lexbuf;
       ASSERTION
-  | "varies" ->
-      update_acc lexbuf;
-      VARIES
-  | "with" ->
-      update_acc lexbuf;
-      WITH_V
   | "for" ->
       update_acc lexbuf;
       FOR
@@ -233,7 +256,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "not" ->
       update_acc lexbuf;
       NOT
-  | "|" ->
+  | "]" ->
       update_acc lexbuf;
       CONSEQUENCE
   | "number" ->
@@ -333,7 +356,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Integer literal*)
       update_acc lexbuf;
       INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
-  | _ -> Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let rec lex_law (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
@@ -363,9 +386,7 @@ let rec lex_law (lexbuf : lexbuf) : token =
       let pos = lexing_positions lexbuf in
       if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
       else if Filename.extension name = ".catala" then LAW_INCLUDE (Ast.CatalaFile (name, pos))
-      else
-        Lexer_fr.raise_lexer_error (lexing_positions lexbuf) name
-          "this type of file cannot be included"
+      else raise_lexer_error (lexing_positions lexbuf) name "this type of file cannot be included"
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -394,6 +415,6 @@ let rec lex_law (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, None, None)
   | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> Lexer_fr.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf
