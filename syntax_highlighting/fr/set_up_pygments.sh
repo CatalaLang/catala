@@ -6,7 +6,7 @@ if grep -q "CatalaFrLexer" pygments/pygments/pygments/lexers/_mapping.py
 then
   :
 else
-  sed -i "78i\\    'CatalaFrLexer': ('pygments.lexers.catala_fr', 'CatalaFr', ('catala_fr'), ('*.catala'), ('text/x-catala-fr',))," pygments/pygments/pygments/lexers/_mapping.py
+  sed -i "78i\\    'CatalaFrLexer': ('pygments.lexers.catala_fr', 'CatalaFr', ('catala_fr'), ('*.catala_fr'), ('text/x-catala-fr',))," pygments/pygments/pygments/lexers/_mapping.py
 fi
 cd pygments/pygments
 virtualenv -p python3 env

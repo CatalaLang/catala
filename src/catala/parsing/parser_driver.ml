@@ -139,7 +139,7 @@ let rec parse_source_files (source_files : string list) (language : Cli.frontend
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
       Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
-      let input = open_in source_file in
+      let input = try open_in source_file with Sys_error msg -> Errors.raise_error msg in
       let lexbuf = Sedlexing.Utf8.from_channel input in
       Sedlexing.set_filename lexbuf source_file;
       Parse_utils.current_file := source_file;

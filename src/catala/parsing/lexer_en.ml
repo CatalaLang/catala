@@ -338,15 +338,9 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       L.code_string_acc := "";
       BEGIN_CODE
   | eof -> EOF
-  | "@@", Star white_space, "Master file", Star white_space, "@@" ->
-      Cli.debug_print "A1";
-      MASTER_FILE
-  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" ->
-      Cli.debug_print "A1";
-      BEGIN_METADATA
-  | "@@", Star white_space, "End metadata", Star white_space, "@@" ->
-      Cli.debug_print "A1";
-      END_METADATA
+  | "@@", Star white_space, "Master file", Star white_space, "@@" -> MASTER_FILE
+  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" -> BEGIN_METADATA
+  | "@@", Star white_space, "End metadata", Star white_space, "@@" -> END_METADATA
   | ( "@@",
       Star white_space,
       "Include:",
@@ -363,8 +357,7 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
       let pos = lexing_positions lexbuf in
       if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
-      else if Filename.extension name = ".catala" then LAW_INCLUDE (Ast.CatalaFile (name, pos))
-      else L.raise_lexer_error (lexing_positions lexbuf) name "this type of file cannot be included"
+      else LAW_INCLUDE (Ast.CatalaFile (name, pos))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in

@@ -3,12 +3,12 @@ from pygments.token import *
 
 import re
 
-__all__=['CatalaFrLexer']
+__all__=['CatalaNvLexer']
 
-class CatalaFrLexer(RegexLexer):
-    name = 'CatalaFr'
-    aliases = ['catala_fr']
-    filenames = ['*.catala_fr']
+class CatalaNvLexer(RegexLexer):
+    name = 'CatalaNv'
+    aliases = ['catala_nv']
+    filenames = ['*.catala']
     flags = re.MULTILINE | re.UNICODE
 
     tokens = {
@@ -21,17 +21,16 @@ class CatalaFrLexer(RegexLexer):
             ('.', Text),
         ],
         'code' : [
-            (u'(\\*\\/)', bygroups(Text), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
-            (u'(contexte)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, Text, Name.Variable)),
-            (u'\\b(selon|sous\\s+forme|fix\xe9|par|d\xe9croissante|croissante|varie|avec|on\\s+a|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon)\\b', bygroups(Keyword.Reserved)),
-            (u'\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|d\xe9pend\\s+de|d\xe9claration|inclus|collection|contenu|optionnel|structure|\xe9num\xe9ration|contexte|r\xe8gle|sous\\s+condition|condition|donn\xe9e|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition)\\b', bygroups(Keyword.Declaration)),
+            (u'(param)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)', bygroups(Keyword.Declaration, Text, Name.Variable)),
+            (u'\\b(match|with|fixed|by|decreasing|increasing|varies|with\\s+param|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else)\\b', bygroups(Keyword.Reserved)),
+            (u'\\b(scope|fun\\s+of|new|includes|set|type|option|struct|enume|param|rule|condition|data|ok|assert|def)\\b', bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
-            (u'\\b(vrai|faux)\\b', bygroups(Keyword.Constant)),
+            (u'\\b(true|false)\\b', bygroups(Keyword.Constant)),
             (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
-            (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))', bygroups(Operator)),
-            (u'(\\-\\>|\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)', bygroups(Operator)),
-            (u'\\b(entier|bool\xe9en|date|montant|texte|d\xe9cimal|d\xe9cret|loi|nombre|somme|date_aujourd_hui)\\b', bygroups(Keyword.Type)),
+            (u'(\\-\\-|\\;|\\.|\\,|\\:=|\\:|\\(|\\)|\\[|\\])', bygroups(Operator)),
+            (u'(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\\\$|%|year|month|day)', bygroups(Operator)),
+            (u'\\b(int|bool|date|amount|text|decimal|number|sum|now)\\b', bygroups(Keyword.Type)),
             (u'\\b([A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)\\b', bygroups(Name.Class, Operator, Name.Variable)),
             (u'\\b([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\'\\.]*)\\b', bygroups(Name.Variable, Operator, Text)),
             (u'\\b([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)\\b', bygroups(Name.Variable)),
@@ -40,13 +39,11 @@ class CatalaFrLexer(RegexLexer):
             ('.', Text),
         ],
         'main__1' : [
-            (u'(@@)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
         'main__2' : [
-            (u'(@)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),

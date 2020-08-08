@@ -76,7 +76,11 @@ atom_en: ${CURDIR}/syntax_highlighting/en/setup_atom.sh
 	chmod +x $<
 	$<
 
-atom: atom_fr atom_en
+atom_nv: ${CURDIR}/syntax_highlighting/nv/setup_atom.sh
+	chmod +x $<
+	$<
+
+atom: atom_fr atom_en atom_nv
 
 ##########################################
 # Examples-related rules

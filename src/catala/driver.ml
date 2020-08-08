@@ -20,9 +20,6 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.debug_print "Reading files...";
-    if Filename.extension source_file <> ".catala" then
-      Errors.raise_error
-        (Printf.sprintf "Source file %s must have the .catala extension!" source_file);
     let language =
       match language with
       | Some l ->

@@ -13,8 +13,8 @@
 # the License.
 
 
-name                   = catala_fr
-file_extensions []     = catala_fr;
+name                   = catala_nv
+file_extensions []     = catala;
 
 ################################################################
 ## Styles
@@ -203,17 +203,17 @@ code : context {
   }
 
   : pattern {
-    regex \=  (contexte)(\s+)($${__SC_ID})
+    regex \=  (param)(\s+)($${__SC_ID})
     styles [] = .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {
-    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon)\b
+    regex \= \b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition)\b
+    regex \=  \b(scope|fun\s+of|new|includes|set|type|option|struct|enume|param|rule|condition|data|ok|assert|def)\b
     styles [] = .keyword_rule ;
   }
 
@@ -223,7 +223,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(vrai|faux)\b
+    regex \= \b(true|false)\b
     styles [] = .literal ;
   }
 
@@ -235,17 +235,17 @@ code : context {
 
 
   : pattern {
-     regex \= (\-\-|\;|\.|\,|\:|\(|\))
+     regex \= (\-\-|\;|\.|\,|\:=|\:|\(|\)|\[|\])
      styles [] = .punctuation;
   }
 
    : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)
+     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\\$|%|year|month|day)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b
+    regex \= \b(int|bool|date|amount|text|decimal|number|sum|now)\b
     styles [] = .primitive;
   }
 

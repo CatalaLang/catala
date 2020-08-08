@@ -1,3 +1,4 @@
-SRC=allocations_familiales.catala
+CATALA_LANG=fr
+SRC=allocations_familiales.catala_fr
 
 include ../Makefile.common
