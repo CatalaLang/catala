@@ -55,9 +55,9 @@ jobs:
         make build
 
     - name: Run tests
-        run: |
-          eval $(opam env)
-          make tests
+      run: |
+        eval $(opam env)
+        make tests
 
     - name: Make examples
       run: |
