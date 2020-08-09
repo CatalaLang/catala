@@ -214,8 +214,38 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
     scope.scope_sub_defs;
   g
 
-let merge_var_redefs (_subscope : Scope.scope) (_redefs : Scope.definition UidMap.t) : Scope.scope =
-  assert false
+let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.t) : Scope.scope =
+  let merge_defaults : Lambda.term -> Lambda.term -> Lambda.term =
+    Lambda.map_untype2 (fun old_t new_t ->
+        match (old_t, new_t) with
+        | EDefault old_def, EDefault new_def ->
+            EDefault (Lambda.merge_default_terms old_def new_def)
+        | EFun ([ bind ], old_t), EFun (_, new_t) ->
+            let body =
+              Lambda.map_untype2
+                (fun old_t new_t ->
+                  match (old_t, new_t) with
+                  | EDefault old_def, EDefault new_def ->
+                      EDefault (Lambda.merge_default_terms old_def new_def)
+                  | _ -> assert false)
+                old_t new_t
+            in
+            EFun ([ bind ], body)
+        | _ -> assert false)
+  in
+
+  {
+    subscope with
+    scope_defs =
+      UidMap.fold
+        (fun uid new_def sub_defs ->
+          match UidMap.find_opt uid sub_defs with
+          | None -> UidMap.add uid new_def sub_defs
+          | Some old_def ->
+              let def = merge_defaults old_def new_def in
+              UidMap.add uid def sub_defs)
+        redefs subscope.scope_defs;
+  }
 
 (*{ subscope with scope_defs = UidMap.fold (fun uid new_def sub_defs -> match UidMap.find_opt uid
   sub_defs with | None -> UidMap.add uid new_def sub_defs | Some old_def -> let def =
