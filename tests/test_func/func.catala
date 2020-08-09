@@ -5,7 +5,7 @@ declaration scope S:
   context b content bool
 
 scope S:
-  def f of x ? (x >= x) |= x + x
+  def f of x ? x > x |= x + x
   def f of x ? not b |= x * x
 
   def b = false

@@ -58,6 +58,9 @@ let get_pos (((_, pos), _) : term) : Pos.t = pos
 
 let get_typ ((_, typ) : term) : typ = typ
 
+let map_untype (f : untyped_term -> untyped_term) (((term, pos), typ) : term) : term =
+  ((f term, pos), typ)
+
 let empty_default_term : default_term = { defaults = IntMap.empty; ordering = []; nb_defaults = 0 }
 
 let add_default (just : term) (cons : term) (term : default_term) =

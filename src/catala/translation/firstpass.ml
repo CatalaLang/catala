@@ -173,9 +173,87 @@ let process_default (ctxt : Context.context) (scope : Uid.t) (def : Lambda.defau
   Lambda.add_default condition body def
 
 (* Process a definition *)
-let process_def (_precond : Lambda.term option) (_scope : Uid.t) (_ctxt : Context.context)
-    (_prgm : Scope.program) (_def : Ast.definition) : Scope.program =
-  assert false
+let process_def (precond : Lambda.term option) (scope_uid : Uid.t) (ctxt : Context.context)
+    (prgm : Scope.program) (def : Ast.definition) : Scope.program =
+  let scope : Scope.scope = UidMap.find scope_uid prgm in
+  let default_pos = Pos.get_position def.definition_expr in
+  let is_func = match def.definition_parameter with Some _ -> true | None -> false in
+  let scope_updated =
+    match Pos.unmark def.definition_name with
+    | [ x ] ->
+        let x_uid = Context.get_var_uid scope_uid ctxt x in
+        let ctxt, arg_uid = Context.add_binding ctxt scope_uid x_uid def.definition_parameter in
+        let x_def =
+          match UidMap.find_opt x_uid scope.scope_defs with
+          | Some def -> def
+          | None ->
+              let typ = Context.get_uid_typ ctxt x_uid in
+              if is_func then Scope.empty_func_def (Option.get arg_uid) default_pos typ
+              else Scope.empty_var_def default_pos typ
+        in
+        let x_def =
+          Lambda.map_untype
+            (fun t ->
+              match t with
+              | EDefault default ->
+                  EDefault
+                    (process_default ctxt scope_uid default precond def.definition_condition
+                       def.definition_expr None)
+              | EFun ([ bind ], term) -> (
+                  match arg_uid with
+                  | Some bind' ->
+                      if fst bind <> bind' then assert false
+                      else
+                        let term =
+                          Lambda.map_untype
+                            (fun t ->
+                              match t with
+                              | EDefault default ->
+                                  EDefault
+                                    (process_default ctxt scope_uid default precond
+                                       def.definition_condition def.definition_expr None)
+                              | _ -> assert false)
+                            term
+                        in
+                        EFun ([ bind ], term)
+                  | None -> assert false )
+              | _ -> assert false)
+            x_def
+        in
+        { scope with scope_defs = UidMap.add x_uid x_def scope.scope_defs }
+    | [ y; x ] ->
+        let y_uid, subscope_uid = Context.get_subscope_uid scope_uid ctxt y in
+        let x_uid = Context.get_var_uid subscope_uid ctxt x in
+        let ctxt, arg_uid = Context.add_binding ctxt subscope_uid x_uid def.definition_parameter in
+        let y_redefs =
+          match UidMap.find_opt y_uid scope.scope_sub_defs with
+          | Some redefs -> redefs
+          | None -> UidMap.empty
+        in
+        let x_redef =
+          match UidMap.find_opt x_uid y_redefs with
+          | Some redef -> redef
+          | None ->
+              let typ = Context.get_uid_typ ctxt x_uid in
+              if is_func then Scope.empty_func_def (Option.get arg_uid) default_pos typ
+              else Scope.empty_var_def default_pos typ
+        in
+        let x_redef =
+          Lambda.map_untype
+            (fun t ->
+              match t with
+              | EDefault default ->
+                  EDefault
+                    (process_default ctxt scope_uid default precond def.definition_condition
+                       def.definition_expr (Some subscope_uid))
+              | _ -> assert false)
+            x_redef
+        in
+        let y_redefs = UidMap.add x_uid x_redef y_redefs in
+        { scope with scope_sub_defs = UidMap.add y_uid y_redefs scope.scope_sub_defs }
+    | _ -> assert false
+  in
+  UidMap.add scope_uid scope_updated prgm
 
 (** Process a rule from the surface language *)
 let process_rule (precond : Lambda.term option) (scope : Uid.t) (ctxt : Context.context)
