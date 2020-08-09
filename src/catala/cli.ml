@@ -18,6 +18,9 @@ let source_files : string list ref = ref []
 (** Prints debug information *)
 let debug_flag = ref false
 
+(* Styles the terminal output *)
+let style_flag = ref true
+
 open Cmdliner
 
 let file =
@@ -27,6 +30,8 @@ let file =
     & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled")
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
+
+let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling from terminal output")
 
 let wrap_weaved_output =
   Arg.(
@@ -76,8 +81,8 @@ let pygmentize_loc =
 
 let catala_t f =
   Term.(
-    const f $ file $ debug $ wrap_weaved_output $ pygmentize_loc $ backend $ language $ ex_scope
-    $ output)
+    const f $ file $ debug $ unstyled $ wrap_weaved_output $ pygmentize_loc $ backend $ language
+    $ ex_scope $ output)
 
 let info =
   let doc =
@@ -110,17 +115,20 @@ let info =
 
 (**{2 Markers}*)
 
+let print_with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
+  if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
+
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
-let debug_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
+let debug_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
 
 (** Prints [\[ERROR\]] in red on the terminal error output *)
-let error_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
+let error_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
 
 (** Prints [\[WARNING\]] in yellow on the terminal standard output *)
-let warning_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
+let warning_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
 
 (** Prints [\[RESULT\]] in green on the terminal standard output *)
-let result_marker = ANSITerminal.sprintf [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
+let result_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
 
 (**{2 Printers}*)
 
@@ -149,22 +157,22 @@ let add_prefix_to_each_line (s : string) (prefix : int -> string) =
 
 let debug_print (s : string) =
   if !debug_flag then begin
-    Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> debug_marker));
+    Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> debug_marker ()));
     flush stdout;
     flush stdout
   end
 
 let error_print (s : string) =
-  Printf.eprintf "%s\n" (add_prefix_to_each_line s (fun _ -> error_marker));
+  Printf.eprintf "%s\n" (add_prefix_to_each_line s (fun _ -> error_marker ()));
   flush stdout;
   flush stdout
 
 let warning_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> warning_marker));
+  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> warning_marker ()));
   flush stdout;
   flush stdout
 
 let result_print (s : string) =
-  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> result_marker));
+  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> result_marker ()));
   flush stdout;
   flush stdout

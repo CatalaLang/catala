@@ -265,11 +265,10 @@ let add_binding (ctxt : context) (scope_uid : Uid.t) (fun_uid : Uid.t)
         match get_uid_sort ctxt fun_uid with
         | IdScopeVar (Some arg_uid) -> arg_uid
         | _ ->
-            Cli.error_print
-              (Printf.sprintf "Var %s is supposed to be a function but it isn't\n%s"
-                 (Uid.get_ident fun_uid)
-                 (Uid.get_pos fun_uid |> Pos.retrieve_loc_text));
-            assert false
+            Errors.raise_spanned_error
+              (Printf.sprintf "Var %s is supposed to be a function but it isn't"
+                 (Uid.get_ident fun_uid))
+              (Uid.get_pos fun_uid)
       in
       let scope_ctxt =
         { scope_ctxt with var_id_to_uid = IdentMap.add name arg_uid scope_ctxt.var_id_to_uid }

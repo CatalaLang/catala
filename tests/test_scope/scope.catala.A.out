@@ -1,0 +1,19 @@
+[ERROR] Default logic conflict, multiple justifications are true but are not related by a precedence
+[ERROR]
+[ERROR] The conflict concerns this variable b
+[ERROR]  --> test_scope/scope.catala
+[ERROR]   |
+[ERROR] 4 |   param b type dec
+[ERROR]   |         ^
+[ERROR]
+[ERROR] This justification is true:
+[ERROR]   --> test_scope/scope.catala
+[ERROR]    |
+[ERROR] 11 |   def b [ not c ] := 1337
+[ERROR]    |           ^^^^^
+[ERROR]
+[ERROR] This justification is true:
+[ERROR]   --> test_scope/scope.catala
+[ERROR]    |
+[ERROR] 12 |   def b [ not c ] := 0
+[ERROR]    |           ^^^^^

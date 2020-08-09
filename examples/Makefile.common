@@ -7,9 +7,7 @@ LATEXMK=latexmk
 PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
 PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
 
-CATALA_LANG?=fr
-
-CATALA=dune exec ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
+CATALA=dune exec --no-print-director ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
 
 LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
 
@@ -30,7 +28,7 @@ endif
 # Targets
 ##########################################
 
-%.tex: %.catala $(CATALA_EXE)
+%.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
 	$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
@@ -38,7 +36,7 @@ endif
 		LaTeX \
 		$<
 
-%.html: %.catala $(CATALA_EXE)
+%.html: %.catala_$(CATALA_LANG) $(CATALA_EXE)
 	$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
@@ -46,7 +44,7 @@ endif
 	HTML \
 	$<
 
-%.expired: %.catala $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
+%.expired: %.catala_$(CATALA_LANG) $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
 	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)
 
 %.pdf: %.tex
@@ -57,9 +55,9 @@ endif
 ##########################################
 
 clean:
-	$(LATEXMK) -f -C $(SRC:.catala=.tex)
-	rm -rf $(SRC:.catala=.tex) $(SRC:.catala=.d) _minted-$(SRC:.catala=)
+	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
+	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) $(SRC:.catala_$(CATALA_LANG)=.d) _minted-$(SRC:.catala_$(CATALA_LANG)=)
 
-include $(wildcard $(SRC:.catala=.d))
+include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 
 .SECONDARY:

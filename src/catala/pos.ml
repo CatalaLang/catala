@@ -63,6 +63,7 @@ let indent_number (s : string) : int =
 
 let retrieve_loc_text (pos : t) : string =
   let filename = get_file pos in
+  let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
   if filename = "" then "No position information"
   else
     let sline = get_start_line pos in
@@ -83,18 +84,18 @@ let retrieve_loc_text (pos : t) : string =
         "\n"
         ^
         if line_no = sline && line_no = eline then
-          ANSITerminal.sprintf error_indicator_style "%*s"
+          Cli.print_with_style error_indicator_style "%*s"
             (get_end_column pos - 1)
             (String.make (get_end_column pos - get_start_column pos) '^')
         else if line_no = sline && line_no <> eline then
-          ANSITerminal.sprintf error_indicator_style "%*s"
+          Cli.print_with_style error_indicator_style "%*s"
             (String.length line - 1)
             (String.make (String.length line - get_start_column pos) '^')
         else if line_no <> sline && line_no <> eline then
-          ANSITerminal.sprintf error_indicator_style "%*s%s" line_indent ""
+          Cli.print_with_style error_indicator_style "%*s%s" line_indent ""
             (String.make (String.length line - line_indent) '^')
         else if line_no <> sline && line_no = eline then
-          ANSITerminal.sprintf error_indicator_style "%*s%*s" line_indent ""
+          Cli.print_with_style error_indicator_style "%*s%*s" line_indent ""
             (get_end_column pos - 1 - line_indent)
             (String.make (get_end_column pos - line_indent) '^')
         else assert false (* should not happen *)
@@ -111,25 +112,25 @@ let retrieve_loc_text (pos : t) : string =
       | None -> []
     in
     let pos_lines = get_lines 1 in
-    let spaces = int_of_float (floor (log (float_of_int eline))) in
+    let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
     close_in oc;
-    Printf.sprintf "%*s--> %s\n%s" spaces "" filename
+    Cli.print_with_style blue_style "%*s--> %s\n%s" spaces "" filename
       (Cli.add_prefix_to_each_line
-         (Printf.sprintf "\n%s\n" (String.concat "\n" pos_lines))
+         (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
          (fun i ->
            let cur_line = sline - include_extra_count + i - 1 in
            if
              cur_line >= sline
              && cur_line <= sline + (2 * (eline - sline))
              && cur_line mod 2 = sline mod 2
-           then Printf.sprintf "%*d | " spaces (sline + ((cur_line - sline) / 2))
+           then Cli.print_with_style blue_style "%*d | " spaces (sline + ((cur_line - sline) / 2))
            else if cur_line >= sline - include_extra_count && cur_line < sline then
-             Printf.sprintf "%*d | " spaces cur_line
+             Cli.print_with_style blue_style "%*d | " spaces cur_line
            else if
              cur_line <= sline + (2 * (eline - sline)) + 1 + include_extra_count
              && cur_line > sline + (2 * (eline - sline)) + 1
-           then Printf.sprintf "%*d | " spaces (cur_line - (eline - sline + 1))
-           else Printf.sprintf "%*s | " spaces ""))
+           then Cli.print_with_style blue_style "%*d | " spaces (cur_line - (eline - sline + 1))
+           else Cli.print_with_style blue_style "%*s | " spaces ""))
 
 type 'a marked = 'a * t
 

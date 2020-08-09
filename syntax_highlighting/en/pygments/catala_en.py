@@ -8,7 +8,7 @@ __all__=['CatalaEnLexer']
 class CatalaEnLexer(RegexLexer):
     name = 'CatalaEn'
     aliases = ['catala_en']
-    filenames = ['*.catala']
+    filenames = ['*.catala_en']
     flags = re.MULTILINE | re.UNICODE
 
     tokens = {

@@ -251,7 +251,7 @@ let process_def (precond : Lambda.term option) (scope_uid : Uid.t) (ctxt : Conte
         in
         let y_redefs = UidMap.add x_uid x_redef y_redefs in
         { scope with scope_sub_defs = UidMap.add y_uid y_redefs scope.scope_sub_defs }
-    | _ -> assert false
+    | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
   in
   UidMap.add scope_uid scope_updated prgm
 

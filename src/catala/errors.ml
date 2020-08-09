@@ -17,8 +17,9 @@
 exception StructuredError of (string * (string option * Pos.t) list)
 
 let print_structured_error (msg : string) (pos : (string option * Pos.t) list) : string =
-  Printf.sprintf "%s\n\n%s" msg
-    (String.concat "\n"
+  Printf.sprintf "%s%s%s" msg
+    (if List.length pos = 0 then "" else "\n\n")
+    (String.concat "\n\n"
        (List.map
           (fun (msg, pos) ->
             Printf.sprintf "%s%s"

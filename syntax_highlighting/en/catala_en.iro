@@ -14,7 +14,7 @@
 
 
 name                   = catala_en
-file_extensions []     = catala;
+file_extensions []     = catala_en;
 
 ################################################################
 ## Styles

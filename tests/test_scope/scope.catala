@@ -1,13 +1,13 @@
 /*
-declaration scope A:
-  context a content int
-  context b content dec
-  context c content bool
+new scope A:
+  param a type int
+  param b type dec
+  param c type bool
 
 scope A:
-  def c = false
-  def a ? c |= 42
-  def a ? not c |= 0
-  def b ? not c |= 1337
-  def b ? not c |= 0
+  def c := false
+  def a [ c ] := 42
+  def a [ not c ] := 0
+  def b [ not c ] := 1337
+  def b [ not c ] := 0
 */

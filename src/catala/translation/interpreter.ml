@@ -57,10 +57,9 @@ let rec eval_term (top_uid : Uid.t) (exec_ctxt : exec_context) (term : Lambda.te
         match UidMap.find_opt uid exec_ctxt with
         | Some t -> t
         | None ->
-            Cli.error_print
-              (Printf.sprintf "Variable %s is not defined.\n%s" (Uid.get_ident uid)
-                 (Pos.retrieve_loc_text pos));
-            assert false )
+            Errors.raise_spanned_error
+              (Printf.sprintf "Variable %s is not defined" (Uid.get_ident uid))
+              pos )
     | EApp (f, args) -> (
         (* First evaluate and match the function body *)
         let f = f |> eval_term top_uid exec_ctxt |> Lambda.untype in
@@ -240,30 +239,23 @@ let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
           | Some def ->
               UidMap.add uid (eval_term uid exec_context def |> Lambda.untype) exec_context
           | None ->
-              Cli.error_print
-                (Printf.sprintf "Variable %s is undefined in scope %s\n\n%s\n\n%s"
-                   (Uid.get_ident uid)
-                   (Uid.get_ident scope_prgm.scope_uid)
-                   (Pos.retrieve_loc_text (Uid.get_pos scope_prgm.scope_uid))
-                   (Pos.retrieve_loc_text (Uid.get_pos uid)));
-              exit (-1) )
+              Errors.raise_multispanned_error
+                (Printf.sprintf "Variable %s is undefined in scope %s" (Uid.get_ident uid)
+                   (Uid.get_ident scope_prgm.scope_uid))
+                [ (None, Uid.get_pos scope_prgm.scope_uid); (None, Uid.get_pos uid) ] )
       | IdSubScope sub_scope_ref ->
           (* Merge the new definitions *)
           let sub_scope_prgm =
             match UidMap.find_opt sub_scope_ref prgm with
             | Some sub_scope -> sub_scope
             | None ->
-                Cli.error_print
+                Errors.raise_multispanned_error
                   (Printf.sprintf
-                     "The subscope %s of %s does not define aything, and therefore cannot be \
-                      executed\n\n\
-                      %s\n\n\
-                      %s"
+                     "The subscope %s of %s has no definition inside it, and therefore cannot be \
+                      executed"
                      (Uid.get_ident scope_prgm.scope_uid)
-                     (Uid.get_ident sub_scope_ref)
-                     (Pos.retrieve_loc_text (Uid.get_pos scope_prgm.scope_uid))
-                     (Pos.retrieve_loc_text (Uid.get_pos sub_scope_ref)));
-                exit (-1)
+                     (Uid.get_ident sub_scope_ref))
+                  [ (None, Uid.get_pos scope_prgm.scope_uid); (None, Uid.get_pos sub_scope_ref) ]
           in
           let redefs =
             match UidMap.find_opt uid scope_prgm.scope_sub_defs with
