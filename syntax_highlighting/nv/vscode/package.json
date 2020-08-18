@@ -1,0 +1,25 @@
+{
+    "name": "catala-nv",
+    "displayName": "catala-nv",
+    "description": "Syntax highlighting for non-verbose Catala programs",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.48.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "catala_nv",
+            "aliases": ["catala_nv", "catala_nv"],
+            "extensions": [".catala"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "catala_nv",
+            "scopeName": "source.catala_nv",
+            "path": "./syntaxes/catalavs.xml"
+        }]
+    }
+}

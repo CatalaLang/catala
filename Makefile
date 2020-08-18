@@ -48,7 +48,7 @@ install: build
 	dune build @install
 
 ##########################################
-# Pygments syntax highilghting rules
+# Syntax highlighting rules
 ##########################################
 
 SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
@@ -81,6 +81,20 @@ atom_nv: ${CURDIR}/syntax_highlighting/nv/setup_atom.sh
 	$<
 
 atom: atom_fr atom_en atom_nv
+
+vscode_fr: ${CURDIR}/syntax_highlighting/fr/setup_vscode.sh
+	chmod +x $<
+	$<
+
+vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
+	chmod +x $<
+	$<
+
+vscode_nv: ${CURDIR}/syntax_highlighting/nv/setup_vscode.sh
+	chmod +x $<
+	$<
+
+vscode: vscode_fr vscode_en vscode_nv
 
 ##########################################
 # Examples-related rules

@@ -1,0 +1,25 @@
+{
+    "name": "catala-fr",
+    "displayName": "catala-fr",
+    "description": "Syntax highlighting for French Catala programs",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.48.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "catala_fr",
+            "aliases": ["catala_fr", "catala_fr"],
+            "extensions": [".catala_fr"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "catala_fr",
+            "scopeName": "source.catala_fr",
+            "path": "./syntaxes/catalavs.xml"
+        }]
+    }
+}
