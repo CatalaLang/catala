@@ -45,6 +45,7 @@ jobs:
       run: |
         eval $(opam env)
         make install-dependencies
+        sudo apt update
         sudo apt install python3-dev python3-setuptools man2html rsync colordiff
         sudo python3 -m pip install --upgrade pip
         sudo python3 -m pip install virtualenv
