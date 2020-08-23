@@ -17,7 +17,17 @@ module UidMap = Uid.UidMap
 (* Scopes *)
 type binder = string Pos.marked
 
-type definition = Lambda.default_term
+type definition = Lambda.term
+
+let empty_func_def (bind : Uid.t) (pos : Pos.t) (typ : Lambda.typ) : definition =
+  match typ with
+  | TArrow (t_arg, t_ret) ->
+      let body_term : Lambda.term = ((EDefault Lambda.empty_default_term, pos), t_ret) in
+      ((EFun ([ (bind, t_arg) ], body_term), pos), typ)
+  | _ -> assert false
+
+let empty_var_def (pos : Pos.t) (typ : Lambda.typ) : definition =
+  ((EDefault Lambda.empty_default_term, pos), typ)
 
 type assertion = Lambda.term
 

@@ -26,20 +26,29 @@ type exec_context = Lambda.untyped_term UidMap.t
 
 let empty_exec_ctxt = UidMap.empty
 
-let rec substitute (var : uid) (value : Lambda.untyped_term) (term : Lambda.term) : Lambda.term =
-  let (term', pos), typ = term in
-  let subst = substitute var value in
-  let subst_term =
-    match term' with
-    | EVar uid -> if var = uid then value else term'
-    | EFun (bindings, body) -> EFun (bindings, subst body)
-    | EApp (f, args) -> EApp (subst f, List.map subst args)
-    | EIfThenElse (t_if, t_then, t_else) -> EIfThenElse (subst t_if, subst t_then, subst t_else)
-    | EInt _ | EBool _ | EDec _ | EOp _ -> term'
-  in
-  ((subst_term, pos), typ)
+let raise_default_conflict (id : string Pos.marked) (true_pos : Pos.t list) (false_pos : Pos.t list)
+    =
+  if List.length true_pos = 0 then
+    let justifications : (string option * Pos.t) list =
+      List.map (fun pos -> (Some "This justification is false:", pos)) false_pos
+    in
+    Errors.raise_multispanned_error
+      (Printf.sprintf "Default logic error for variable %s: no justification is true."
+         (Pos.unmark id))
+      ( ( Some (Printf.sprintf "The error concerns this variable %s" (Pos.unmark id)),
+          Pos.get_position id )
+      :: justifications )
+  else
+    let justifications : (string option * Pos.t) list =
+      List.map (fun pos -> (Some "This justification is true:", pos)) true_pos
+    in
+    Errors.raise_multispanned_error
+      "Default logic conflict, multiple justifications are true but are not related by a precedence"
+      ( ( Some (Printf.sprintf "The conflict concerns this variable %s" (Pos.unmark id)),
+          Pos.get_position id )
+      :: justifications )
 
-let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term =
+let rec eval_term (top_uid : Uid.t) (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term =
   let (term, pos), typ = term in
   let evaled_term =
     match term with
@@ -53,18 +62,20 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
               pos )
     | EApp (f, args) -> (
         (* First evaluate and match the function body *)
-        let f = f |> eval_term exec_ctxt |> Lambda.untype in
+        let f = f |> eval_term top_uid exec_ctxt |> Lambda.untype in
         match f with
         | EFun (bindings, body) ->
-            let body =
+            let exec_ctxt =
               List.fold_left2
-                (fun body arg (uid, _) ->
-                  substitute uid (arg |> eval_term exec_ctxt |> Lambda.untype) body)
-                body args bindings
+                (fun ctxt arg (uid, _) ->
+                  UidMap.add uid (arg |> eval_term top_uid exec_ctxt |> Lambda.untype) ctxt)
+                exec_ctxt args bindings
             in
-            eval_term exec_ctxt body |> Lambda.untype
+            eval_term top_uid exec_ctxt body |> Lambda.untype
         | EOp op -> (
-            let args = List.map (fun arg -> arg |> eval_term exec_ctxt |> Lambda.untype) args in
+            let args =
+              List.map (fun arg -> arg |> eval_term top_uid exec_ctxt |> Lambda.untype) args
+            in
             match op with
             | Binop binop -> (
                 match binop with
@@ -104,21 +115,29 @@ let rec eval_term (exec_ctxt : exec_context) (term : Lambda.term) : Lambda.term 
             | Unop Not -> ( match args with [ EBool b ] -> EBool (not b) | _ -> assert false ) )
         | _ -> assert false )
     | EIfThenElse (t_if, t_then, t_else) ->
-        ( match eval_term exec_ctxt t_if |> Lambda.untype with
-        | EBool b -> if b then eval_term exec_ctxt t_then else eval_term exec_ctxt t_else
+        ( match eval_term top_uid exec_ctxt t_if |> Lambda.untype with
+        | EBool b ->
+            if b then eval_term top_uid exec_ctxt t_then else eval_term top_uid exec_ctxt t_else
         | _ -> assert false )
         |> Lambda.untype
+    | EDefault t -> (
+        match eval_default_term top_uid exec_ctxt t with
+        | Ok value -> value |> Lambda.untype
+        | Error (true_pos, false_pos) ->
+            raise_default_conflict (Uid.get_ident top_uid, Uid.get_pos top_uid) true_pos false_pos )
   in
   ((evaled_term, pos), typ)
 
 (* Evaluates a default term : see the formalization for an insight about this operation *)
-let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
+and eval_default_term (top_uid : Uid.t) (exec_ctxt : exec_context) (term : Lambda.default_term) :
     (Lambda.term, Pos.t list * Pos.t list) result =
   (* First filter out the term which justification are false *)
   let candidates : 'a IntMap.t =
     IntMap.filter
       (fun _ (cond, _) ->
-        match eval_term exec_ctxt cond |> Lambda.untype with EBool b -> b | _ -> assert false)
+        match eval_term top_uid exec_ctxt cond |> Lambda.untype with
+        | EBool b -> b
+        | _ -> assert false)
       term.defaults
   in
   (* Now filter out the terms that have a predecessor which justification is true *)
@@ -132,7 +151,7 @@ let eval_default_term (exec_ctxt : exec_context) (term : Lambda.default_term) :
   match ISet.elements chosen_one with
   | [ x ] ->
       let _, cons = IntMap.find x term.defaults in
-      Ok (eval_term exec_ctxt cons)
+      Ok (eval_term top_uid exec_ctxt cons)
   | xs ->
       let true_pos =
         xs |> List.map (fun x -> IntMap.find x term.defaults |> fst |> Lambda.get_pos)
@@ -163,7 +182,7 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
      -> var *)
   UidMap.iter
     (fun var_uid def ->
-      let fv = Lambda.default_term_fv def in
+      let fv = Lambda.term_fv def in
       UidSet.iter
         (fun uid ->
           if Context.belongs_to ctxt uid scope_uid then
@@ -183,7 +202,7 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
     (fun sub_scope_uid defs ->
       UidMap.iter
         (fun _ def ->
-          let fv = Lambda.default_term_fv def in
+          let fv = Lambda.term_fv def in
           UidSet.iter
             (fun var_uid ->
               (* Process only uid from the current scope (not the subscope) *)
@@ -196,6 +215,25 @@ let build_scope_schedule (ctxt : Context.context) (scope : Scope.scope) : G.t =
   g
 
 let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.t) : Scope.scope =
+  let merge_defaults : Lambda.term -> Lambda.term -> Lambda.term =
+    Lambda.map_untype2 (fun old_t new_t ->
+        match (old_t, new_t) with
+        | EDefault old_def, EDefault new_def ->
+            EDefault (Lambda.merge_default_terms old_def new_def)
+        | EFun ([ bind ], old_t), EFun (_, new_t) ->
+            let body =
+              Lambda.map_untype2
+                (fun old_t new_t ->
+                  match (old_t, new_t) with
+                  | EDefault old_def, EDefault new_def ->
+                      EDefault (Lambda.merge_default_terms old_def new_def)
+                  | _ -> assert false)
+                old_t new_t
+            in
+            EFun ([ bind ], body)
+        | _ -> assert false)
+  in
+
   {
     subscope with
     scope_defs =
@@ -204,32 +242,15 @@ let merge_var_redefs (subscope : Scope.scope) (redefs : Scope.definition UidMap.
           match UidMap.find_opt uid sub_defs with
           | None -> UidMap.add uid new_def sub_defs
           | Some old_def ->
-              let def = Lambda.merge_default_terms old_def new_def in
+              let def = merge_defaults old_def new_def in
               UidMap.add uid def sub_defs)
         redefs subscope.scope_defs;
   }
 
-let raise_default_conflict (id : string Pos.marked) (true_pos : Pos.t list) (false_pos : Pos.t list)
-    =
-  if List.length true_pos = 0 then
-    let justifications : (string option * Pos.t) list =
-      List.map (fun pos -> (Some "This justification is false:", pos)) false_pos
-    in
-    Errors.raise_multispanned_error
-      (Printf.sprintf "Default logic error for variable %s: no justification is true."
-         (Pos.unmark id))
-      ( ( Some (Printf.sprintf "The error concerns this variable %s" (Pos.unmark id)),
-          Pos.get_position id )
-      :: justifications )
-  else
-    let justifications : (string option * Pos.t) list =
-      List.map (fun pos -> (Some "This justification is true:", pos)) true_pos
-    in
-    Errors.raise_multispanned_error
-      "Default logic conflict, multiple justifications are true but are not related by a precedence"
-      ( ( Some (Printf.sprintf "The conflict concerns this variable %s" (Pos.unmark id)),
-          Pos.get_position id )
-      :: justifications )
+(*{ subscope with scope_defs = UidMap.fold (fun uid new_def sub_defs -> match UidMap.find_opt uid
+  sub_defs with | None -> UidMap.add uid new_def sub_defs | Some old_def -> let def =
+  Lambda.merge_default_terms old_def new_def in UidMap.add uid def sub_defs) redefs
+  subscope.scope_defs; }*)
 
 let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
     (prgm : Scope.program) (scope_prgm : Scope.scope) : exec_context =
@@ -245,11 +266,8 @@ let rec execute_scope ?(exec_context = empty_exec_ctxt) (ctxt : Context.context)
       match Context.get_uid_sort ctxt uid with
       | IdScopeVar _ -> (
           match UidMap.find_opt uid scope_prgm.scope_defs with
-          | Some def -> (
-              match eval_default_term exec_context def with
-              | Ok value -> UidMap.add uid (Lambda.untype value) exec_context
-              | Error (true_pos, false_pos) ->
-                  raise_default_conflict (Uid.get_ident uid, Uid.get_pos uid) true_pos false_pos )
+          | Some def ->
+              UidMap.add uid (eval_term uid exec_context def |> Lambda.untype) exec_context
           | None ->
               Errors.raise_multispanned_error
                 (Printf.sprintf "Variable %s is undefined in scope %s" (Uid.get_ident uid)

@@ -85,9 +85,9 @@ let rec print_term (((t, _), _) : Lambda.term) : string =
   | EBool b -> if b then "true" else "false"
   | EDec (i, f) -> Printf.sprintf "%d.%d" i f
   | EOp op -> print_op op
+  | EDefault t -> print_default_term t
 
-(** Print default term *)
-let print_default_term (term : Lambda.default_term) : string =
+and print_default_term (term : Lambda.default_term) : string =
   term.defaults |> Lambda.IntMap.bindings
   |> List.map (fun (_, (cond, body)) ->
          Printf.sprintf "\t%s => %s" (print_term cond) (print_term body))
@@ -97,8 +97,7 @@ let print_default_term (term : Lambda.default_term) : string =
 let print_scope (scope : Scope.scope) : string =
   let print_defs (defs : Scope.definition UidMap.t) : string =
     defs |> UidMap.bindings
-    |> List.map (fun (uid, term) ->
-           Printf.sprintf "%s:\n%s" (Uid.get_ident uid) (print_default_term term))
+    |> List.map (fun (uid, term) -> Printf.sprintf "%s:\n%s" (Uid.get_ident uid) (print_term term))
     |> String.concat ""
   in
   "___Variables Definition___\n" ^ print_defs scope.scope_defs ^ "___Subscope (Re)definition___\n"
