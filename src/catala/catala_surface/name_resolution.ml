@@ -15,46 +15,25 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking lexical scopes into
     account *)
 
-module IdentMap = Map.Make (String)
-
-(** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
-module ScopeDef = struct
-  type t =
-    | Var of Uid.Var.t
-    | SubScopeVar of Uid.SubScope.t * Uid.Var.t
-        (** In this case, the [Uid.Var.t] lives inside the context of the subscope's original
-            declaration *)
-
-  let compare x y =
-    match (x, y) with
-    | Var x, Var y
-    | Var x, SubScopeVar (_, y)
-    | SubScopeVar (_, x), Var y
-    | SubScopeVar (_, x), SubScopeVar (_, y) ->
-        compare x.id y.id
-end
-
-module ScopeDefMap = Map.Make (ScopeDef)
-
 type ident = string
 
 type typ = Lambda_ast.typ
 
-type def_context = { var_idmap : Uid.LocalVar.t IdentMap.t }
+type def_context = { var_idmap : Uid.LocalVar.t Uid.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
     matching *)
 
 type scope_context = {
-  var_idmap : Uid.Var.t IdentMap.t;
-  sub_scopes_idmap : Uid.SubScope.t IdentMap.t;
+  var_idmap : Uid.Var.t Uid.IdentMap.t;
+  sub_scopes_idmap : Uid.SubScope.t Uid.IdentMap.t;
   sub_scopes : Uid.Scope.t Uid.SubScopeMap.t;
-  definitions : def_context ScopeDefMap.t;
+  definitions : def_context Uid.ScopeDefMap.t;
       (** Contains the local variables in all the definitions *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
 type context = {
-  scope_idmap : Uid.Scope.t IdentMap.t;
+  scope_idmap : Uid.Scope.t Uid.IdentMap.t;
   scopes : scope_context Uid.ScopeMap.t;
   var_typs : typ Uid.VarMap.t;
 }
@@ -76,21 +55,24 @@ let process_subscope_decl (scope : Uid.Scope.t) (ctxt : context)
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
-  match IdentMap.find_opt subscope scope_ctxt.var_idmap with
+  match Uid.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
       Errors.raise_multispanned_error "subscope name already used"
-        [ (Some "first use", Pos.get_position use.info); (Some "second use", s_pos) ]
+        [
+          (Some "first use", Pos.get_position (Uid.SubScope.get_info use));
+          (Some "second use", s_pos);
+        ]
   | None ->
-      let sub_scope_uid = Uid.Scope.fresh (subscope, s_pos) in
+      let sub_scope_uid = Uid.SubScope.fresh (subscope, s_pos) in
       let original_subscope_uid =
-        match IdentMap.find_opt name ctxt.scope_idmap with
+        match Uid.IdentMap.find_opt name ctxt.scope_idmap with
         | None -> raise_unknown_identifier "for a scope" (name, name_pos)
         | Some id -> id
       in
       let scope_ctxt =
         {
           scope_ctxt with
-          sub_scopes_idmap = IdentMap.add name sub_scope_uid scope_ctxt.sub_scopes_idmap;
+          sub_scopes_idmap = Uid.IdentMap.add name sub_scope_uid scope_ctxt.sub_scopes_idmap;
           sub_scopes = Uid.SubScopeMap.add sub_scope_uid original_subscope_uid scope_ctxt.sub_scopes;
         }
       in
@@ -122,13 +104,15 @@ let process_data_decl (scope : Uid.Scope.t) (ctxt : context)
   let data_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
-  match IdentMap.find_opt name scope_ctxt.var_idmap with
+  match Uid.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
       Errors.raise_multispanned_error "var name already used"
-        [ (Some "first use", Pos.get_position use.info); (Some "second use", pos) ]
+        [ (Some "first use", Pos.get_position (Uid.Var.get_info use)); (Some "second use", pos) ]
   | None ->
       let uid = Uid.Var.fresh (name, pos) in
-      let scope_ctxt = { scope_ctxt with var_idmap = IdentMap.add name uid scope_ctxt.var_idmap } in
+      let scope_ctxt =
+        { scope_ctxt with var_idmap = Uid.IdentMap.add name uid scope_ctxt.var_idmap }
+      in
       {
         ctxt with
         scopes = Uid.ScopeMap.add scope scope_ctxt ctxt.scopes;
@@ -143,14 +127,16 @@ let process_item_decl (scope : Uid.Scope.t) (ctxt : context)
   | Catala_ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Adds a binding to the context *)
-let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : ScopeDef.t)
+let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : Uid.ScopeDef.t)
     (name : ident Pos.marked) : context =
   let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  let def_ctx = ScopeDefMap.find def_uid scope_ctxt.definitions in
+  let def_ctx = Uid.ScopeDefMap.find def_uid scope_ctxt.definitions in
   let local_var_uid = Uid.LocalVar.fresh name in
-  let def_ctx = { var_idmap = IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap } in
+  let def_ctx =
+    { var_idmap = Uid.IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap }
+  in
   let scope_ctxt =
-    { scope_ctxt with definitions = ScopeDefMap.add def_uid def_ctx scope_ctxt.definitions }
+    { scope_ctxt with definitions = Uid.ScopeDefMap.add def_uid def_ctx scope_ctxt.definitions }
   in
   { ctxt with scopes = Uid.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
 
@@ -158,22 +144,22 @@ let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : Scop
 let process_scope_decl (ctxt : context) (decl : Catala_ast.scope_decl) : context =
   let name, pos = decl.scope_decl_name in
   (* Checks if the name is already used *)
-  match IdentMap.find_opt name ctxt.scope_idmap with
+  match Uid.IdentMap.find_opt name ctxt.scope_idmap with
   | Some use ->
       Errors.raise_multispanned_error "scope name already used"
-        [ (Some "first use", Pos.get_position use.info); (Some "second use", pos) ]
+        [ (Some "first use", Pos.get_position (Uid.Scope.get_info use)); (Some "second use", pos) ]
   | None ->
       let scope_uid = Uid.Scope.fresh (name, pos) in
       let ctxt =
         {
           ctxt with
-          scope_idmap = IdentMap.add name scope_uid ctxt.scope_idmap;
+          scope_idmap = Uid.IdentMap.add name scope_uid ctxt.scope_idmap;
           scopes =
             Uid.ScopeMap.add scope_uid
               {
-                var_idmap = IdentMap.empty;
-                sub_scopes_idmap = IdentMap.empty;
-                definitions = ScopeDefMap.empty;
+                var_idmap = Uid.IdentMap.empty;
+                sub_scopes_idmap = Uid.IdentMap.empty;
+                definitions = Uid.ScopeDefMap.empty;
                 sub_scopes = Uid.SubScopeMap.empty;
               }
               ctxt.scopes;
@@ -184,28 +170,29 @@ let process_scope_decl (ctxt : context) (decl : Catala_ast.scope_decl) : context
         ctxt decl.scope_decl_context
 
 let qident_to_scope_def (ctxt : context) (scope_uid : Uid.Scope.t)
-    (id : Catala_ast.qident Pos.marked) : ScopeDef.t =
+    (id : Catala_ast.qident Pos.marked) : Uid.ScopeDef.t =
   let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
   match Pos.unmark id with
   | [ x ] -> (
-      match IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
+      match Uid.IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
       | None -> raise_unknown_identifier "for a var of the scope" x
-      | Some id -> ScopeDef.Var id )
+      | Some id -> Uid.ScopeDef.Var id )
   | [ s; x ] -> (
       let sub_scope_uid =
-        match IdentMap.find_opt (Pos.unmark s) scope_ctxt.sub_scopes_idmap with
+        match Uid.IdentMap.find_opt (Pos.unmark s) scope_ctxt.sub_scopes_idmap with
         | None -> raise_unknown_identifier "for a subscope of this scope" s
         | Some id -> id
       in
-      let sub_scope_ctx = Uid.ScopeMap.find sub_scope_uid ctxt.scopes in
-      match IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
+      let real_sub_scope_uid = Uid.SubScopeMap.find sub_scope_uid scope_ctxt.sub_scopes in
+      let sub_scope_ctx = Uid.ScopeMap.find real_sub_scope_uid ctxt.scopes in
+      match Uid.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
       | None -> raise_unknown_identifier "for a var of this subscope" x
-      | Some id -> ScopeDef.SubScopeVar (sub_scope_uid, id) )
+      | Some id -> Uid.ScopeDef.SubScopeVar (sub_scope_uid, id) )
   | _ -> raise_unsupported_feature "wrong qident" (Pos.get_position id)
 
 let process_scope_use (ctxt : context) (use : Catala_ast.scope_use) : context =
   let scope_uid =
-    match IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
+    match Uid.IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
     | None -> raise_unknown_identifier "for a scope" use.scope_use_name
     | Some id -> id
   in
@@ -219,14 +206,15 @@ let process_scope_use (ctxt : context) (use : Catala_ast.scope_use) : context =
             {
               var_idmap =
                 ( match def.definition_parameter with
-                | None -> IdentMap.empty
-                | Some param -> IdentMap.singleton (Pos.unmark param) (Uid.LocalVar.fresh param) );
+                | None -> Uid.IdentMap.empty
+                | Some param -> Uid.IdentMap.singleton (Pos.unmark param) (Uid.LocalVar.fresh param)
+                );
             }
           in
           let scope_ctxt =
             {
               scope_ctxt with
-              definitions = ScopeDefMap.add def_uid def_ctxt scope_ctxt.definitions;
+              definitions = Uid.ScopeDefMap.add def_uid def_ctxt scope_ctxt.definitions;
             }
           in
           { ctxt with scopes = Uid.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
@@ -259,7 +247,7 @@ let process_program_item (ctxt : context) (item : Catala_ast.program_item)
 (** Derive the context from metadata, in two passes *)
 let form_context (prgm : Catala_ast.program) : context =
   let empty_ctxt =
-    { scope_idmap = IdentMap.empty; scopes = Uid.ScopeMap.empty; var_typs = Uid.VarMap.empty }
+    { scope_idmap = Uid.IdentMap.empty; scopes = Uid.ScopeMap.empty; var_typs = Uid.VarMap.empty }
   in
   let ctxt =
     List.fold_left
@@ -274,7 +262,7 @@ let form_context (prgm : Catala_ast.program) : context =
 let get_var_uid (scope_uid : Uid.Scope.t) (ctxt : context) ((x, pos) : ident Pos.marked) : Uid.Var.t
     =
   let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  match IdentMap.find_opt x scope.var_idmap with
+  match Uid.IdentMap.find_opt x scope.var_idmap with
   | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
   | Some uid -> uid
 
@@ -282,11 +270,19 @@ let get_var_uid (scope_uid : Uid.Scope.t) (ctxt : context) ((x, pos) : ident Pos
 let get_subscope_uid (scope_uid : Uid.Scope.t) (ctxt : context) ((y, pos) : ident Pos.marked) :
     Uid.SubScope.t =
   let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  match IdentMap.find_opt y scope.sub_scopes_idmap with
+  match Uid.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
   | Some sub_uid -> sub_uid
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : Uid.Var.t) (scope_uid : Uid.Scope.t) : bool =
   let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  IdentMap.exists (fun _ var_uid -> uid.id = var_uid.Uid.Var.id) scope.var_idmap
+  Uid.IdentMap.exists (fun _ var_uid -> Uid.Var.compare uid var_uid = 0) scope.var_idmap
+
+let get_def_typ (ctxt : context) (def : Uid.ScopeDef.t) : typ =
+  match def with
+  | Uid.ScopeDef.SubScopeVar (_, x)
+  (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
+     the original subscope *)
+  | Uid.ScopeDef.Var x ->
+      Uid.VarMap.find x ctxt.var_typs

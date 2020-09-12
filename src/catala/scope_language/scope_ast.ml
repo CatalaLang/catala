@@ -12,21 +12,12 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module UidMap = Uid.UidMap
-
 (* Scopes *)
-type binder = string Pos.marked
+type binder = Uid.LocalVar.t
 
 type definition = Lambda_ast.term
 
-let empty_func_def (bind : Uid.t) (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
-  match typ with
-  | TArrow (t_arg, t_ret) ->
-      let body_term : Lambda_ast.term = ((EDefault Lambda_ast.empty_default_term, pos), t_ret) in
-      ((EFun ([ (bind, t_arg) ], body_term), pos), typ)
-  | _ -> assert false
-
-let empty_var_def (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
+let empty_def (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
   ((EDefault Lambda_ast.empty_default_term, pos), typ)
 
 type assertion = Lambda_ast.term
@@ -40,20 +31,18 @@ type meta_assertion =
   | VariesWith of Lambda_ast.term * variation_typ Pos.marked option
 
 type scope = {
-  scope_uid : Uid.t;
-  scope_defs : definition UidMap.t;
-  scope_sub_defs : definition UidMap.t UidMap.t;
+  scope_uid : Uid.Scope.t;
+  scope_defs : definition Uid.ScopeDefMap.t;
   scope_assertions : assertion list;
-  scope_meta_assertions : meta_assertion list UidMap.t;
+  scope_meta_assertions : meta_assertion list;
 }
 
-let empty_scope (uid : Uid.t) : scope =
+let empty_scope (uid : Uid.Scope.t) : scope =
   {
     scope_uid = uid;
-    scope_defs = UidMap.empty;
-    scope_sub_defs = UidMap.empty;
+    scope_defs = Uid.ScopeDefMap.empty;
     scope_assertions = [];
-    scope_meta_assertions = UidMap.empty;
+    scope_meta_assertions = [];
   }
 
-type program = scope UidMap.t
+type program = scope Uid.ScopeMap.t

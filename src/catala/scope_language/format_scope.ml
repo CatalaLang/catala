@@ -12,27 +12,21 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module UidMap = Uid.UidMap
-
 (** Print a scope program *)
 let print_scope (scope : Scope_ast.scope) : string =
-  let print_defs (defs : Scope_ast.definition UidMap.t) : string =
-    defs |> UidMap.bindings
+  let print_defs (defs : Scope_ast.definition Uid.ScopeDefMap.t) : string =
+    defs |> Uid.ScopeDefMap.bindings
     |> List.map (fun (uid, term) ->
-           Printf.sprintf "%s:\n%s" (Uid.get_ident uid) (Format_lambda.print_term term))
+           Printf.sprintf "%s:\n%s" (Uid.ScopeDef.format_t uid) (Format_lambda.print_term term))
     |> String.concat ""
   in
   "___Variables Definition___\n" ^ print_defs scope.scope_defs ^ "___Subscope (Re)definition___\n"
-  ^ ( scope.scope_sub_defs |> UidMap.bindings
-    |> List.map (fun (scope_uid, defs) ->
-           Printf.sprintf "__%s__:\n%s" (Uid.get_ident scope_uid) (print_defs defs))
-    |> String.concat "" )
   ^ "\n"
 
 (** Print the whole program *)
 let print_program (prgm : Scope_ast.program) : string =
-  prgm |> UidMap.bindings
+  prgm |> Uid.ScopeMap.bindings
   |> List.map (fun (uid, scope) ->
-         Printf.sprintf "Scope %s:\n%s" (Uid.get_ident uid) (print_scope scope))
+         Printf.sprintf "Scope %s:\n%s" (Uid.Scope.format_t uid) (print_scope scope))
   |> String.concat "\n"
   |> Printf.sprintf "Scope program\n%s"

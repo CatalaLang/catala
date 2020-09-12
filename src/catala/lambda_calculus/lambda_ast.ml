@@ -23,14 +23,16 @@ type unop = Catala_ast.unop
 
 type op = Binop of binop | Unop of unop
 
-type binding = Uid.Var.t * typ
+type binding = Uid.LocalVar.t * typ
 
 (*type enum_case = uid*)
 
 type term = untyped_term Pos.marked * typ
 
 and untyped_term =
-  | EVar of Uid.Var.t
+  | EVar of Uid.SubScope.t option * Uid.Var.t
+      (** This case is only for terms embedded in the scope language *)
+  | ELocalVar of Uid.LocalVar.t
   | EFun of binding list * term
   | EApp of term * term list
   | EIfThenElse of term * term * term
@@ -84,25 +86,3 @@ let merge_default_terms (lo_term : default_term) (hi_term : default_term) : defa
   let gen_list i j = gen_list i j [] in
   let prec' = gen_prec (gen_list 0 n) (gen_list n (n + n')) in
   { defaults; ordering = prec @ prec' }
-
-(** Returns the free variables of a term *)
-let rec term_fv (term : term) : Uid.VarSet.t =
-  match untype term with
-  | EVar uid -> Uid.VarSet.singleton uid
-  | EFun (bindings, body) ->
-      let body_fv = term_fv body in
-      let bindings = bindings |> List.map (fun (x, _) -> x) |> Uid.VarSet.of_list in
-      Uid.VarSet.diff body_fv bindings
-  | EApp (f, args) ->
-      List.fold_left (fun fv arg -> Uid.VarSet.union fv (term_fv arg)) (term_fv f) args
-  | EIfThenElse (t_if, t_then, t_else) ->
-      Uid.VarSet.union (term_fv t_if) (Uid.VarSet.union (term_fv t_then) (term_fv t_else))
-  | EDefault default -> default_term_fv default
-  | _ -> Uid.VarSet.empty
-
-and default_term_fv (term : default_term) : Uid.VarSet.t =
-  List.fold_left
-    (fun acc (cond, body) ->
-      let fv = Uid.VarSet.union (term_fv cond) (term_fv body) in
-      Uid.VarSet.union fv acc)
-    Uid.VarSet.empty term.defaults
