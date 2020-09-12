@@ -12,30 +12,47 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = int
+module Make (X : sig
+  type info
+end) =
+struct
+  type t = { id : int; info : X.info }
 
-module UidSet = Set.Make (Int)
-module UidMap = Map.Make (Int)
+  module UidSet = Set.Make (Int)
+  module UidMap = Map.Make (Int)
 
-type ident = string
+  let ident_tbl = ref UidMap.empty
 
-let ident_tbl = ref UidMap.empty
+  let counter = ref 0
 
-let pos_tbl = ref UidMap.empty
+  let fresh (info : X.info) : t =
+    incr counter;
+    ident_tbl := UidMap.add !counter info !ident_tbl;
+    { id = !counter; info }
 
-let counter = ref 0
+  let get_info (uid : t) : X.info = UidMap.find uid.id !ident_tbl
 
-let fresh (id : ident) (pos : Pos.t) : t =
-  incr counter;
-  ident_tbl := UidMap.add !counter id !ident_tbl;
-  pos_tbl := UidMap.add !counter pos !pos_tbl;
-  !counter
+  let map_add_list (key : t) (item : 'a) (map : 'a list UidMap.t) =
+    match UidMap.find_opt key.id map with
+    | Some l -> UidMap.add key.id (item :: l) map
+    | None -> UidMap.add key.id [ item ] map
 
-let get_ident (uid : t) : ident = UidMap.find uid !ident_tbl
+  let compare (x : t) (y : t) : int = compare x.id y.id
+end
 
-let get_pos (uid : t) : Pos.t = UidMap.find uid !pos_tbl
+module MarkedString = struct
+  type info = string Pos.marked
+end
 
-let map_add_list (key : t) (item : 'a) (map : 'a list UidMap.t) =
-  match UidMap.find_opt key map with
-  | Some l -> UidMap.add key (item :: l) map
-  | None -> UidMap.add key [ item ] map
+module Scope = Make (MarkedString)
+module ScopeSet = Set.Make (Scope)
+module ScopeMap = Map.Make (Scope)
+module Var = Make (MarkedString)
+module VarSet = Set.Make (Var)
+module VarMap = Map.Make (Var)
+module LocalVar = Make (MarkedString)
+module LocalVarSet = Set.Make (LocalVar)
+module LocalVarMap = Map.Make (LocalVar)
+module SubScope = Make (MarkedString)
+module SubScopeSet = Set.Make (SubScope)
+module SubScopeMap = Map.Make (SubScope)

@@ -18,9 +18,6 @@ type uid = int
 
 type scope_uid = int
 
-module UidMap = Uid.UidMap
-module UidSet = Uid.UidSet
-
 type exec_context = Lambda_ast.untyped_term UidMap.t
 
 let empty_exec_ctxt = UidMap.empty
