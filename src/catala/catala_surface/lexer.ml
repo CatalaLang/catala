@@ -14,44 +14,72 @@
 
 open Parser
 open Sedlexing
-module L = Lexer
 module R = Re.Pcre
 
-let token_list_en : (string * token) list =
+let is_code : bool ref = ref false
+
+let code_string_acc : string ref = ref ""
+
+let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
+
+let raise_lexer_error (loc : Pos.t) (token : string) (msg : string) =
+  Errors.raise_spanned_error (Printf.sprintf "Parsing error on token \"%s\": %s" token msg) loc
+
+let token_list_language_agnostic : (string * token) list =
+  [
+    ("->", ARROW);
+    (".", DOT);
+    ("<=", LESSER_EQUAL);
+    (">=", GREATER_EQUAL);
+    (">", GREATER);
+    ("!=", NOT_EQUAL);
+    ("=", EQUAL);
+    ("(", LPAREN);
+    (")", RPAREN);
+    ("+", PLUS);
+    ("-", MINUS);
+    ("*", MULT);
+    ("/", DIV);
+    ("|", VERTICAL);
+    (":", COLON);
+    ("--", ALT);
+  ]
+
+let token_list : (string * token) list =
   [
     ("scope", SCOPE);
-    ("consequence", CONSEQUENCE);
+    ("]", CONSEQUENCE);
     ("data", DATA);
-    ("depends on", DEPENDS);
-    ("declaration", DECLARATION);
-    ("context", CONTEXT);
+    ("fun of", DEPENDS);
+    ("new", DECLARATION);
+    ("param", CONTEXT);
     ("decreasing", DECREASING);
     ("increasing", INCREASING);
     ("of", OF);
-    ("collection", COLLECTION);
-    ("enumeration", ENUM);
-    ("integer", INTEGER);
+    ("set", COLLECTION);
+    ("enum", ENUM);
+    ("int", INTEGER);
     ("amount", MONEY);
     ("text", TEXT);
     ("decimal", DECIMAL);
     ("date", DATE);
     ("boolean", BOOLEAN);
     ("sum", SUM);
-    ("fulfilled", FILLED);
-    ("definition", DEFINITION);
+    ("ok", FILLED);
+    ("def", DEFINITION);
     ("equals", DEFINED_AS);
     ("match", MATCH);
-    ("with pattern", WITH);
-    ("under condition", UNDER_CONDITION);
+    ("with", WITH);
+    ("[", UNDER_CONDITION);
     ("if", IF);
     ("then", THEN);
     ("else", ELSE);
-    ("content", CONTENT);
-    ("structure", STRUCT);
-    ("optional", OPTIONAL);
-    ("assertion", ASSERTION);
+    ("type", CONTENT);
+    ("struct", STRUCT);
+    ("option", OPTIONAL);
+    ("assert", ASSERTION);
     ("varies", VARIES);
-    ("with", WITH_V);
+    ("with parameter", WITH_V);
     ("for", FOR);
     ("all", ALL);
     ("we have", WE_HAVE);
@@ -62,186 +90,186 @@ let token_list_en : (string * token) list =
     ("such", SUCH);
     ("that", THAT);
     ("now", NOW);
-    ("and", AND);
-    ("or", OR);
+    ("&&", AND);
+    ("||", OR);
     ("not", NOT);
     ("number", CARDINAL);
     ("year", YEAR);
     ("true", TRUE);
     ("false", FALSE);
   ]
-  @ L.token_list_language_agnostic
+  @ token_list_language_agnostic
 
-let rec lex_code_en (lexbuf : lexbuf) : token =
+let rec lex_code (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | white_space ->
       (* Whitespaces *)
-      L.update_acc lexbuf;
-      lex_code_en lexbuf
+      update_acc lexbuf;
+      lex_code lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
-      L.update_acc lexbuf;
-      lex_code_en lexbuf
+      update_acc lexbuf;
+      lex_code lexbuf
   | "*/" ->
       (* End of code section *)
-      L.is_code := false;
-      END_CODE !L.code_string_acc
+      is_code := false;
+      END_CODE !code_string_acc
   | "scope" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       SCOPE
   | "data" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DATA
-  | "depends on" ->
-      L.update_acc lexbuf;
+  | "fun of" ->
+      update_acc lexbuf;
       DEPENDS
-  | "declaration" ->
-      L.update_acc lexbuf;
+  | "new" ->
+      update_acc lexbuf;
       DECLARATION
-  | "context" ->
-      L.update_acc lexbuf;
+  | "param" ->
+      update_acc lexbuf;
       CONTEXT
   | "decreasing" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DECREASING
   | "increasing" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       INCREASING
   | "of" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       OF
-  | "collection" ->
-      L.update_acc lexbuf;
+  | "set" ->
+      update_acc lexbuf;
       COLLECTION
-  | "enumeration" ->
-      L.update_acc lexbuf;
+  | "enum" ->
+      update_acc lexbuf;
       ENUM
-  | "integer" ->
-      L.update_acc lexbuf;
+  | "int" ->
+      update_acc lexbuf;
       INTEGER
   | "amount" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       MONEY
   | "text" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       TEXT
-  | "decimal" ->
-      L.update_acc lexbuf;
+  | "dec" ->
+      update_acc lexbuf;
       DECIMAL
   | "date" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DATE
-  | "boolean" ->
-      L.update_acc lexbuf;
+  | "bool" ->
+      update_acc lexbuf;
       BOOLEAN
   | "sum" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       SUM
-  | "fulfilled" ->
-      L.update_acc lexbuf;
+  | "ok" ->
+      update_acc lexbuf;
       FILLED
-  | "definition" ->
-      L.update_acc lexbuf;
+  | "def" ->
+      update_acc lexbuf;
       DEFINITION
-  | "equals" ->
-      L.update_acc lexbuf;
+  | ":=" ->
+      update_acc lexbuf;
       DEFINED_AS
-  | "match" ->
-      L.update_acc lexbuf;
-      MATCH
-  | "with pattern" ->
-      L.update_acc lexbuf;
-      WITH
-  | "under condition" ->
-      L.update_acc lexbuf;
-      UNDER_CONDITION
-  | "if" ->
-      L.update_acc lexbuf;
-      IF
-  | "consequence" ->
-      L.update_acc lexbuf;
-      CONSEQUENCE
-  | "then" ->
-      L.update_acc lexbuf;
-      THEN
-  | "else" ->
-      L.update_acc lexbuf;
-      ELSE
-  | "condition" ->
-      L.update_acc lexbuf;
-      CONDITION
-  | "content" ->
-      L.update_acc lexbuf;
-      CONTENT
-  | "structure" ->
-      L.update_acc lexbuf;
-      STRUCT
-  | "optional" ->
-      L.update_acc lexbuf;
-      OPTIONAL
-  | "assertion" ->
-      L.update_acc lexbuf;
-      ASSERTION
   | "varies" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       VARIES
   | "with" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       WITH_V
+  | "match" ->
+      update_acc lexbuf;
+      MATCH
+  | "with" ->
+      update_acc lexbuf;
+      WITH
+  | "[" ->
+      update_acc lexbuf;
+      UNDER_CONDITION
+  | "if" ->
+      update_acc lexbuf;
+      IF
+  | "then" ->
+      update_acc lexbuf;
+      THEN
+  | "else" ->
+      update_acc lexbuf;
+      ELSE
+  | "condition" ->
+      update_acc lexbuf;
+      CONDITION
+  | "type" ->
+      update_acc lexbuf;
+      CONTENT
+  | "structure" ->
+      update_acc lexbuf;
+      STRUCT
+  | "option" ->
+      update_acc lexbuf;
+      OPTIONAL
+  | "assert" ->
+      update_acc lexbuf;
+      ASSERTION
   | "for" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       FOR
   | "all" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       ALL
   | "we have" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       WE_HAVE
   | "fixed" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       FIXED
   | "by" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       BY
   | "rule" ->
       (* 0xE8 is è *)
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       RULE
   | "exists" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       EXISTS
   | "in" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       IN
   | "such" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       SUCH
   | "that" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       THAT
   | "now" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       NOW
-  | "and" ->
-      L.update_acc lexbuf;
+  | "&&" ->
+      update_acc lexbuf;
       AND
-  | "or" ->
-      L.update_acc lexbuf;
+  | "||" ->
+      update_acc lexbuf;
       OR
   | "not" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       NOT
+  | "]" ->
+      update_acc lexbuf;
+      CONSEQUENCE
   | "number" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       CARDINAL
   | "true" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       TRUE
   | "false" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       FALSE
   | "year" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       YEAR
   | 0x24, Star white_space, '0' .. '9', Star ('0' .. '9' | ','), Opt ('.', Rep ('0' .. '9', 0 .. 2))
     ->
@@ -254,88 +282,88 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       let remove_commas = R.regexp "," in
       let units = int_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) in
       let cents = try int_of_string (parts 4) with Not_found -> 0 in
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
       let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
       let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
   | "->" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       ARROW
   | '.' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DOT
   | "<=" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       LESSER_EQUAL
   | '<' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       LESSER
   | ">=" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       GREATER_EQUAL
   | '>' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       GREATER
   | "!=" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       NOT_EQUAL
   | '=' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       EQUAL
   | '(' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       LPAREN
   | ')' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       RPAREN
   | '+' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       PLUS
   | '-' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       MINUS
   | '*' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       MULT
   | '%' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       PERCENT
   | '/' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       DIV
   | '|' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       VERTICAL
   | ':' ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       COLON
   | "--" ->
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       ALT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       (* Name of constructor *)
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       CONSTRUCTOR (Utf8.lexeme lexbuf)
   | lowercase, Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
       (* Name of variable *)
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       IDENT (Utf8.lexeme lexbuf)
   | Plus '0' .. '9' ->
       (* Integer literal*)
-      L.update_acc lexbuf;
+      update_acc lexbuf;
       INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
-let rec lex_law_en (lexbuf : lexbuf) : token =
+let rec lex_law (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' -> lex_law_en lexbuf
+  | '\n' -> lex_law lexbuf
   | "/*" ->
-      L.is_code := true;
-      L.code_string_acc := "";
+      is_code := true;
+      code_string_acc := "";
       BEGIN_CODE
   | eof -> EOF
   | "@@", Star white_space, "Master file", Star white_space, "@@" -> MASTER_FILE
@@ -356,8 +384,8 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       let name = get_component 1 in
       let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
       let pos = lexing_positions lexbuf in
-      if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
-      else LAW_INCLUDE (Ast.CatalaFile (name, pos))
+      if Filename.extension name = ".pdf" then LAW_INCLUDE (Catala_ast.PdfFile ((name, pos), pages))
+      else LAW_INCLUDE (Catala_ast.CatalaFile (name, pos))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -386,6 +414,6 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, None, None)
   | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
-let lexer_en lexbuf = if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf
+let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf

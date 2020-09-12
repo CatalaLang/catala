@@ -81,10 +81,10 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
           if wrap_weaved_output then
             match backend with
             | Cli.Latex ->
-                Latex.wrap_latex weaved_output program.Ast.program_source_files pygmentize_loc
-                  language
+                Latex.wrap_latex weaved_output program.Catala_ast.program_source_files
+                  pygmentize_loc language
             | Cli.Html ->
-                Html.wrap_html weaved_output program.Ast.program_source_files pygmentize_loc
+                Html.wrap_html weaved_output program.Catala_ast.program_source_files pygmentize_loc
                   language
             | _ -> assert false
           else weaved_output
@@ -95,18 +95,18 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         close_out oc;
         0
     | Cli.Run ->
-        let ctxt = Context.form_context program in
+        let ctxt = Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Context.IdentMap.find_opt name ctxt.scope_id_to_uid with
+              match Name_resolution.IdentMap.find_opt name ctxt.scope_id_to_uid with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
-        let prgm = Firstpass.translate_program_to_scope ctxt program in
+        let prgm = Desugaring.translate_program_to_scope ctxt program in
         let scope =
           match Uid.UidMap.find_opt scope_uid prgm with
           | Some scope -> scope
@@ -117,12 +117,12 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
                    (Uid.get_ident scope_uid))
                 (Uid.get_pos scope_uid)
         in
-        let exec_ctxt = Interpreter.execute_scope ctxt prgm scope in
+        let exec_ctxt = Scope_interpreter.execute_scope ctxt prgm scope in
         Uid.UidMap.iter
           (fun uid value ->
             Cli.result_print
               (Printf.sprintf "%s -> %s" (Uid.get_ident uid)
-                 (Debug.print_term ((value, Uid.get_pos uid), TDummy))))
+                 (Format_lambda.print_term ((value, Uid.get_pos uid), TDummy))))
           exec_ctxt;
         0
   with Errors.StructuredError (msg, pos) ->

@@ -17,19 +17,19 @@ module UidMap = Uid.UidMap
 (* Scopes *)
 type binder = string Pos.marked
 
-type definition = Lambda.term
+type definition = Lambda_ast.term
 
-let empty_func_def (bind : Uid.t) (pos : Pos.t) (typ : Lambda.typ) : definition =
+let empty_func_def (bind : Uid.t) (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
   match typ with
   | TArrow (t_arg, t_ret) ->
-      let body_term : Lambda.term = ((EDefault Lambda.empty_default_term, pos), t_ret) in
+      let body_term : Lambda_ast.term = ((EDefault Lambda_ast.empty_default_term, pos), t_ret) in
       ((EFun ([ (bind, t_arg) ], body_term), pos), typ)
   | _ -> assert false
 
-let empty_var_def (pos : Pos.t) (typ : Lambda.typ) : definition =
-  ((EDefault Lambda.empty_default_term, pos), typ)
+let empty_var_def (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
+  ((EDefault Lambda_ast.empty_default_term, pos), typ)
 
-type assertion = Lambda.term
+type assertion = Lambda_ast.term
 
 type variation_typ = Increasing | Decreasing
 
@@ -37,7 +37,7 @@ type reference_typ = Decree | Law
 
 type meta_assertion =
   | FixedBy of reference_typ Pos.marked
-  | VariesWith of Lambda.term * variation_typ Pos.marked option
+  | VariesWith of Lambda_ast.term * variation_typ Pos.marked option
 
 type scope = {
   scope_uid : Uid.t;

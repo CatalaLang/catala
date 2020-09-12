@@ -16,12 +16,13 @@ module UidMap = Uid.UidMap
 module IdentMap = Map.Make (String)
 
 (** Print the context in a readable manner *)
-let print_context (ctxt : Context.context) : string =
+let print_context (ctxt : Name_resolution.context) : string =
   let rec typ_to_string = function
-    | Lambda.TBool -> "bool"
-    | Lambda.TInt -> "num"
-    | Lambda.TDummy -> "(.)"
-    | Lambda.TArrow (t1, t2) -> Printf.sprintf "%s -> (%s)" (typ_to_string t1) (typ_to_string t2)
+    | Lambda_ast.TBool -> "bool"
+    | Lambda_ast.TInt -> "num"
+    | Lambda_ast.TDummy -> "(.)"
+    | Lambda_ast.TArrow (t1, t2) ->
+        Printf.sprintf "%s -> (%s)" (typ_to_string t1) (typ_to_string t2)
   in
   let print_var ((var_id, var_uid) : Uid.ident * Uid.t) : string =
     let data = UidMap.find var_uid ctxt.data in
@@ -46,10 +47,10 @@ let print_context (ctxt : Context.context) : string =
   in
   ctxt.scope_id_to_uid |> IdentMap.bindings |> List.map print_scope |> String.concat ""
 
-(* Printing functions for Lambda.term *)
+(* Printing functions for Lambda_ast.term *)
 
 (** Operator printer *)
-let print_op (op : Lambda.op) : string =
+let print_op (op : Lambda_ast.op) : string =
   match op with
   | Binop binop -> (
       match binop with
@@ -68,8 +69,8 @@ let print_op (op : Lambda.op) : string =
   | Unop Not -> "not"
   | Unop Minus -> "-"
 
-(** Print Lambda.term *)
-let rec print_term (((t, _), _) : Lambda.term) : string =
+(** Print Lambda_ast.term *)
+let rec print_term (((t, _), _) : Lambda_ast.term) : string =
   match t with
   | EVar uid -> Printf.sprintf "%s(%d)" (Uid.get_ident uid) uid
   | EFun (binders, body) ->
@@ -87,30 +88,8 @@ let rec print_term (((t, _), _) : Lambda.term) : string =
   | EOp op -> print_op op
   | EDefault t -> print_default_term t
 
-and print_default_term (term : Lambda.default_term) : string =
-  term.defaults |> Lambda.IntMap.bindings
+and print_default_term (term : Lambda_ast.default_term) : string =
+  term.defaults |> Lambda_ast.IntMap.bindings
   |> List.map (fun (_, (cond, body)) ->
          Printf.sprintf "\t%s => %s" (print_term cond) (print_term body))
   |> String.concat "\n"
-
-(** Print a scope program *)
-let print_scope (scope : Scope.scope) : string =
-  let print_defs (defs : Scope.definition UidMap.t) : string =
-    defs |> UidMap.bindings
-    |> List.map (fun (uid, term) -> Printf.sprintf "%s:\n%s" (Uid.get_ident uid) (print_term term))
-    |> String.concat ""
-  in
-  "___Variables Definition___\n" ^ print_defs scope.scope_defs ^ "___Subscope (Re)definition___\n"
-  ^ ( scope.scope_sub_defs |> UidMap.bindings
-    |> List.map (fun (scope_uid, defs) ->
-           Printf.sprintf "__%s__:\n%s" (Uid.get_ident scope_uid) (print_defs defs))
-    |> String.concat "" )
-  ^ "\n"
-
-(** Print the whole program *)
-let print_program (prgm : Scope.program) : string =
-  prgm |> UidMap.bindings
-  |> List.map (fun (uid, scope) ->
-         Printf.sprintf "Scope %s:\n%s" (Uid.get_ident uid) (print_scope scope))
-  |> String.concat "\n"
-  |> Printf.sprintf "Scope program\n%s"

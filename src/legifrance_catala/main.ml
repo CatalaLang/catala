@@ -17,26 +17,26 @@
 type new_article_version = NotAvailable | Available of string
 
 (** Returns the ID of the future version of the article if any *)
-let check_article_expiration (article_catala : Catala.Ast.law_article)
+let check_article_expiration (article_catala : Catala.Catala_ast.law_article)
     (access_token : Api.access_token) : new_article_version option =
-  match article_catala.Catala.Ast.law_article_id with
+  match article_catala.Catala.Catala_ast.law_article_id with
   | None -> None
   | Some article_id ->
       let article = Api.retrieve_article access_token article_id in
       let api_article_expiration_date = Api.get_article_expiration_date article in
       let msg =
         Printf.sprintf "%s %s expires on %s according to LegiFrance%s"
-          (Catala.Pos.unmark article_catala.Catala.Ast.law_article_name)
+          (Catala.Pos.unmark article_catala.Catala.Catala_ast.law_article_name)
           (Catala.Pos.to_string
-             (Catala.Pos.get_position article_catala.Catala.Ast.law_article_name))
+             (Catala.Pos.get_position article_catala.Catala.Catala_ast.law_article_name))
           (Date.print_tm api_article_expiration_date)
-          ( match article_catala.Catala.Ast.law_article_expiration_date with
+          ( match article_catala.Catala.Catala_ast.law_article_expiration_date with
           | None -> ""
           | Some source_exp_date -> ", " ^ source_exp_date ^ " according to source code" )
       in
       let new_version_available = not (Date.is_infinity api_article_expiration_date) in
       let source_code_expiration =
-        match article_catala.Catala.Ast.law_article_expiration_date with
+        match article_catala.Catala.Catala_ast.law_article_expiration_date with
         | None -> false
         | Some source_exp_date ->
             let source_exp_date = Date.parse_expiration_date source_exp_date in
@@ -180,7 +180,7 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
     List.fold_left
       (fun article_text_acc item ->
         match item with
-        | Catala.Ast.LawArticle article_catala -> (
+        | Catala.Catala_ast.LawArticle article_catala -> (
             compare_to_versions article_text_acc access_token;
             let new_version = check_article_expiration article_catala access_token in
             match new_version with
@@ -189,18 +189,18 @@ let driver (file : string) (debug : bool) (client_id : string) (client_secret : 
                   article_title = article_catala.law_article_name;
                   text = "";
                   new_version = Some version;
-                  current_version = article_catala.Catala.Ast.law_article_id;
+                  current_version = article_catala.Catala.Catala_ast.law_article_id;
                 }
             | _ ->
                 {
                   article_title = article_catala.law_article_name;
                   text = "";
                   new_version = None;
-                  current_version = article_catala.Catala.Ast.law_article_id;
+                  current_version = article_catala.Catala.Catala_ast.law_article_id;
                 } )
-        | Catala.Ast.LawText art_text ->
+        | Catala.Catala_ast.LawText art_text ->
             { article_text_acc with text = article_text_acc.text ^ " " ^ art_text }
-        | Catala.Ast.LawInclude (Catala.Ast.LegislativeText id) ->
+        | Catala.Catala_ast.LawInclude (Catala.Catala_ast.LegislativeText id) ->
             include_legislative_text id access_token;
             article_text_acc
         | _ -> article_text_acc)

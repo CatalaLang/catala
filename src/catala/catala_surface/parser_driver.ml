@@ -108,7 +108,7 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
     (token_list : (string * Parser.token) list) (lexbuf : lexbuf)
     (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint) :
-    Ast.source_file_or_master =
+    Catala_ast.source_file_or_master =
   match checkpoint with
   | I.InputNeeded env ->
       let token = next_token () in
@@ -125,7 +125,7 @@ let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.posit
 
 let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string * Parser.token) list)
     (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
-    Ast.source_file_or_master =
+    Catala_ast.source_file_or_master =
   let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
     with_tokenizer lexer' lexbuf
   in
@@ -133,8 +133,8 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Lexer.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "malformed token"
 
-let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
-    =
+let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) :
+    Catala_ast.program =
   match source_files with
   | [] -> { program_items = []; program_source_files = [] }
   | source_file :: rest -> (
@@ -161,13 +161,13 @@ let rec parse_source_files (source_files : string list) (language : Cli.frontend
       in
       close_in input;
       match commands_or_includes with
-      | Ast.SourceFile commands ->
+      | Catala_ast.SourceFile commands ->
           let rest_program = parse_source_files rest language in
           {
-            program_items = commands @ rest_program.Ast.program_items;
-            program_source_files = source_file :: rest_program.Ast.program_source_files;
+            program_items = commands @ rest_program.Catala_ast.program_items;
+            program_source_files = source_file :: rest_program.Catala_ast.program_source_files;
           }
-      | Ast.MasterFile includes ->
+      | Catala_ast.MasterFile includes ->
           let current_source_file_dirname = Filename.dirname source_file in
           let includes =
             List.map

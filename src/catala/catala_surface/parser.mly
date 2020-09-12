@@ -17,7 +17,7 @@
 *)
 
 %{
-  open Ast
+  open Catala_ast
 
   type struct_or_enum_inject_content =
   | StructContent of (ident Pos.marked * expression Pos.marked) list
@@ -28,7 +28,7 @@
 %token EOF
 %token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
-%token<Ast.law_include> LAW_INCLUDE
+%token<Catala_ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
@@ -53,7 +53,7 @@
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE
 
-%type <Ast.source_file_or_master> source_file_or_master
+%type <Catala_ast.source_file_or_master> source_file_or_master
 
 %start source_file_or_master
 

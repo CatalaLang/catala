@@ -15,7 +15,7 @@
 (** This modules weaves the source code and the legislative text together into a document that law
     professionals can understand. *)
 
-module A = Ast
+module A = Catala_ast
 module P = Printf
 module R = Re.Pcre
 module C = Cli

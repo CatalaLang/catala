@@ -19,11 +19,11 @@ module IntMap = Map.Make (Int)
 (* TDummy means the term is not typed *)
 type typ = TBool | TInt | TArrow of typ * typ | TDummy
 
-type literal = Ast.literal
+type literal = Catala_ast.literal
 
-type binop = Ast.binop
+type binop = Catala_ast.binop
 
-type unop = Ast.unop
+type unop = Catala_ast.unop
 
 type op = Binop of binop | Unop of unop
 

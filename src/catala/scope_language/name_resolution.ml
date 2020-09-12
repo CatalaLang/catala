@@ -27,7 +27,7 @@ type ident = string
 
 module IdentMap = Map.Make (String)
 
-type typ = Lambda.typ
+type typ = Lambda_ast.typ
 
 type sort =
   | IdScope
@@ -64,8 +64,8 @@ let get_uid_typ (ctxt : context) (uid : uid) : typ = (UidMap.find uid ctxt.data)
 let get_uid_sort (ctxt : context) (uid : uid) : sort = (UidMap.find uid ctxt.data).uid_sort
 
 (** Process a subscope declaration *)
-let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_scope) :
-    context =
+let process_subscope_decl (scope : uid) (ctxt : context)
+    (decl : Catala_ast.scope_decl_context_scope) : context =
   let name, decl_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   (* First check that the designated subscope is a scope *)
@@ -95,7 +95,7 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
           scopes = UidMap.add scope scope_ctxt ctxt.scopes;
           data =
             UidMap.add sub_scope_uid
-              { uid_typ = Lambda.TDummy; uid_sort = IdSubScope sub_uid }
+              { uid_typ = Lambda_ast.TDummy; uid_sort = IdSubScope sub_uid }
               ctxt.data;
         }
       in
@@ -122,27 +122,28 @@ let process_subscope_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_
           })
         subscope_ctxt.var_id_to_uid ctxt
 
-let process_base_typ ((typ, typ_pos) : Ast.base_typ Pos.marked) : Lambda.typ =
+let process_base_typ ((typ, typ_pos) : Catala_ast.base_typ Pos.marked) : Lambda_ast.typ =
   match typ with
-  | Ast.Condition -> Lambda.TBool
-  | Ast.Data (Ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
-  | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
-  | Ast.Data (Ast.Primitive prim) -> (
+  | Catala_ast.Condition -> Lambda_ast.TBool
+  | Catala_ast.Data (Catala_ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
+  | Catala_ast.Data (Catala_ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
+  | Catala_ast.Data (Catala_ast.Primitive prim) -> (
       match prim with
-      | Ast.Integer | Ast.Decimal | Ast.Money | Ast.Date -> Lambda.TInt
-      | Ast.Boolean -> Lambda.TBool
-      | Ast.Text -> raise_unsupported_feature "text type" typ_pos
-      | Ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
+      | Catala_ast.Integer | Catala_ast.Decimal | Catala_ast.Money | Catala_ast.Date ->
+          Lambda_ast.TInt
+      | Catala_ast.Boolean -> Lambda_ast.TBool
+      | Catala_ast.Text -> raise_unsupported_feature "text type" typ_pos
+      | Catala_ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
 
-let process_type ((typ, typ_pos) : Ast.typ Pos.marked) : Lambda.typ =
+let process_type ((typ, typ_pos) : Catala_ast.typ Pos.marked) : Lambda_ast.typ =
   match typ with
-  | Ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
-  | Ast.Func { arg_typ; return_typ } ->
-      Lambda.TArrow (process_base_typ arg_typ, process_base_typ return_typ)
+  | Catala_ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
+  | Catala_ast.Func { arg_typ; return_typ } ->
+      Lambda_ast.TArrow (process_base_typ arg_typ, process_base_typ return_typ)
 
 (** Process data declaration *)
-let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_data) : context
-    =
+let process_data_decl (scope : uid) (ctxt : context) (decl : Catala_ast.scope_decl_context_data) :
+    context =
   (* First check the type of the context data *)
   let lambda_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
@@ -174,14 +175,14 @@ let process_data_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_cont
           } )
 
 (** Process an item declaration *)
-let process_item_decl (scope : uid) (ctxt : context) (decl : Ast.scope_decl_context_item) : context
-    =
+let process_item_decl (scope : uid) (ctxt : context) (decl : Catala_ast.scope_decl_context_item) :
+    context =
   match decl with
-  | Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
-  | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
+  | Catala_ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
+  | Catala_ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Process a scope declaration *)
-let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
+let process_scope_decl (ctxt : context) (decl : Catala_ast.scope_decl) : context =
   let name, pos = decl.scope_decl_name in
   (* Checks if the name is already used *)
   match IdentMap.find_opt name ctxt.scope_id_to_uid with
@@ -191,7 +192,7 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
       let ctxt =
         {
           scope_id_to_uid = IdentMap.add name scope_uid ctxt.scope_id_to_uid;
-          data = UidMap.add scope_uid { uid_typ = Lambda.TDummy; uid_sort = IdScope } ctxt.data;
+          data = UidMap.add scope_uid { uid_typ = Lambda_ast.TDummy; uid_sort = IdScope } ctxt.data;
           scopes =
             UidMap.add scope_uid
               { var_id_to_uid = IdentMap.empty; uid_set = UidSet.empty }
@@ -203,21 +204,21 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
         ctxt decl.scope_decl_context
 
 (** Process a code item : for now it only handles scope decls *)
-let process_code_item (ctxt : context) (item : Ast.code_item) : context =
+let process_code_item (ctxt : context) (item : Catala_ast.code_item) : context =
   match item with ScopeDecl decl -> process_scope_decl ctxt decl | _ -> ctxt
 
 (** Process a code block *)
-let process_code_block (ctxt : context) (block : Ast.code_block) : context =
+let process_code_block (ctxt : context) (block : Catala_ast.code_block) : context =
   List.fold_left (fun ctxt decl -> Pos.unmark decl |> process_code_item ctxt) ctxt block
 
 (** Process a program item *)
-let process_program_item (ctxt : context) (item : Ast.program_item) : context =
+let process_program_item (ctxt : context) (item : Catala_ast.program_item) : context =
   match item with
   | CodeBlock (block, _) | MetadataBlock (block, _) -> process_code_block ctxt block
   | _ -> ctxt
 
 (** Derive the context from metadata *)
-let form_context (prgm : Ast.program) : context =
+let form_context (prgm : Catala_ast.program) : context =
   let empty_ctxt =
     { scope_id_to_uid = IdentMap.empty; scopes = UidMap.empty; data = UidMap.empty }
   in

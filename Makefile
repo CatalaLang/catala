@@ -37,7 +37,7 @@ format:
 	dune build @fmt --auto-promote | true
 
 build:
-	$(MAKE) -C src/catala/parsing parser_errors.ml
+	$(MAKE) -C src/catala/catala_surface parser_errors.ml
 	$(MAKE) format
 	dune build
 
@@ -137,7 +137,7 @@ tests: build .FORCE
 # Website assets
 ##########################################
 
-grammar.html: src/catala/parsing/parser.mly
+grammar.html: src/catala/catala_surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: src/catala/cli.ml
