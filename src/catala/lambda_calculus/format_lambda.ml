@@ -16,6 +16,13 @@ module IdentMap = Map.Make (String)
 
 (* Printing functions for Lambda_ast.term *)
 
+let rec format_typ (ty : Lambda_ast.typ) : string =
+  match ty with
+  | TBool -> "bool"
+  | TInt -> "int"
+  | TArrow (t1, t2) -> Format.sprintf "(%s) -> (%s)" (format_typ t1) (format_typ t2)
+  | TDummy -> "??"
+
 (** Operator printer *)
 let print_op (op : Lambda_ast.op) : string =
   match op with
