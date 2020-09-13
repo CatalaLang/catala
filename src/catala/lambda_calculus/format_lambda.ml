@@ -43,13 +43,20 @@ let print_op (op : Lambda_ast.op) : string =
   | Unop Not -> "not"
   | Unop Minus -> "-"
 
+let rec repeat_string n s = if n = 0 then "" else s ^ repeat_string (n - 1) s
+
+let print_prefix (prefix : Lambda_ast.var_prefix) : string =
+  match prefix with
+  | NoPrefix -> ""
+  | SubScopePrefix s -> Uid.SubScope.format_t s ^ "."
+  | CallerPrefix (i, s) -> (
+      repeat_string i "CALLER."
+      ^ match s with None -> "" | Some s -> Uid.SubScope.format_t s ^ "." )
+
 (** Print Lambda_ast.term *)
 let rec print_term (((t, _), _) : Lambda_ast.term) : string =
   match t with
-  | EVar (s, uid) ->
-      Printf.sprintf "%s%s"
-        (match s with None -> "" | Some s -> Uid.SubScope.format_t s ^ ".")
-        (Uid.Var.format_t uid)
+  | EVar (s, uid) -> Printf.sprintf "%s%s" (print_prefix s) (Uid.Var.format_t uid)
   | ELocalVar uid -> Uid.LocalVar.format_t uid
   | EFun (binders, body) ->
       let sbody = print_term body in

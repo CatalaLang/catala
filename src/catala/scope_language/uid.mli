@@ -20,76 +20,60 @@ module MarkedString : sig
   val format_info : 'a * 'b -> 'a
 end
 
-module Scope : sig
+module type Id = sig
   type t
 
-  val fresh : MarkedString.info -> t
+  type info
 
-  val get_info : t -> MarkedString.info
+  val fresh : info -> t
+
+  val get_info : t -> info
 
   val compare : t -> t -> int
 
   val format_t : t -> string
+
+  val hash : t -> int
 end
+
+module Scope : Id with type info = MarkedString.info
 
 module ScopeSet : Set.S with type elt = Scope.t
 
 module ScopeMap : Map.S with type key = Scope.t
 
-module Var : sig
-  type t
-
-  val fresh : MarkedString.info -> t
-
-  val get_info : t -> MarkedString.info
-
-  val compare : t -> t -> int
-
-  val format_t : t -> string
-end
+module Var : Id with type info = MarkedString.info
 
 module VarSet : Set.S with type elt = Var.t
 
 module VarMap : Map.S with type key = Var.t
 
-module LocalVar : sig
-  type t
-
-  val fresh : MarkedString.info -> t
-
-  val get_info : t -> MarkedString.info
-
-  val compare : t -> t -> int
-
-  val format_t : t -> string
-end
+module LocalVar : Id with type info = MarkedString.info
 
 module LocalVarSet : Set.S with type elt = LocalVar.t
 
 module LocalVarMap : Map.S with type key = LocalVar.t
 
-module SubScope : sig
-  type t
-
-  val fresh : MarkedString.info -> t
-
-  val get_info : t -> MarkedString.info
-
-  val compare : t -> t -> int
-
-  val format_t : t -> string
-end
+module SubScope : Id with type info = MarkedString.info
 
 module SubScopeSet : Set.S with type elt = SubScope.t
 
 module SubScopeMap : Map.S with type key = SubScope.t
 
 module ScopeDef : sig
-  type t = Var of Var.t | SubScopeVar of SubScope.t * Var.t
+  type t =
+    | Var of Var.t
+    | SubScopeVar of SubScope.t * Var.t
+        (** In this case, the [Uid.Var.t] lives inside the context of the subscope's original
+            declaration *)
 
   val compare : t -> t -> int
 
   val format_t : t -> string
+
+  val hash : t -> int
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t
+
+module ScopeDefSet : Set.S with type elt = ScopeDef.t

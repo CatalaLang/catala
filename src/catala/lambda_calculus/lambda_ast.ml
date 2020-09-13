@@ -25,12 +25,17 @@ type op = Binop of binop | Unop of unop
 
 type binding = Uid.LocalVar.t * typ
 
-(*type enum_case = uid*)
+type var_prefix =
+  (* See [Scope_interpreter] for details about the meaning of this case. The `int` means the number
+     of times you have to go to the parent caller to get the variable *)
+  | CallerPrefix of int * Uid.SubScope.t option
+  | NoPrefix
+  | SubScopePrefix of Uid.SubScope.t
 
 type term = untyped_term Pos.marked * typ
 
 and untyped_term =
-  | EVar of Uid.SubScope.t option * Uid.Var.t
+  | EVar of var_prefix * Uid.Var.t
       (** This case is only for terms embedded in the scope language *)
   | ELocalVar of Uid.LocalVar.t
   | EFun of binding list * term
@@ -86,3 +91,30 @@ let merge_default_terms (lo_term : default_term) (hi_term : default_term) : defa
   let gen_list i j = gen_list i j [] in
   let prec' = gen_prec (gen_list 0 n) (gen_list n (n + n')) in
   { defaults; ordering = prec @ prec' }
+
+(** Returns the free variables (scope language variables) of a term. Used to build the dependency
+    graph *)
+let rec term_fv (term : term) : Uid.ScopeDefSet.t =
+  match untype term with
+  | EVar (NoPrefix, uid) -> Uid.ScopeDefSet.singleton (Uid.ScopeDef.Var uid)
+  | EVar (SubScopePrefix sub_uid, uid) ->
+      Uid.ScopeDefSet.singleton (Uid.ScopeDef.SubScopeVar (sub_uid, uid))
+  | EVar (CallerPrefix _, _) ->
+      Uid.ScopeDefSet.empty
+      (* here we return an empty dependency because when calling a subscope, the variables of the
+         caller graph needed for it are already computed *)
+  | ELocalVar _ -> Uid.ScopeDefSet.empty
+  | EFun (_, body) -> term_fv body
+  | EApp (f, args) ->
+      List.fold_left (fun fv arg -> Uid.ScopeDefSet.union fv (term_fv arg)) (term_fv f) args
+  | EIfThenElse (t_if, t_then, t_else) ->
+      Uid.ScopeDefSet.union (term_fv t_if) (Uid.ScopeDefSet.union (term_fv t_then) (term_fv t_else))
+  | EDefault default -> default_term_fv default
+  | EBool _ | EInt _ | EDec _ | EOp _ -> Uid.ScopeDefSet.empty
+
+and default_term_fv (term : default_term) : Uid.ScopeDefSet.t =
+  List.fold_left
+    (fun acc (cond, body) ->
+      let fv = Uid.ScopeDefSet.union (term_fv cond) (term_fv body) in
+      Uid.ScopeDefSet.union fv acc)
+    Uid.ScopeDefSet.empty term.defaults

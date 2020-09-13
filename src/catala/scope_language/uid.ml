@@ -14,13 +14,30 @@
 
 module IdentMap = Map.Make (String)
 
+module type Id = sig
+  type t
+
+  type info
+
+  val fresh : info -> t
+
+  val get_info : t -> info
+
+  val compare : t -> t -> int
+
+  val format_t : t -> string
+
+  val hash : t -> int
+end
+
 module Make (X : sig
   type info
 
   val format_info : info -> string
-end) =
-struct
+end) : Id with type info = X.info = struct
   type t = { id : int; info : X.info }
+
+  type info = X.info
 
   let counter = ref 0
 
@@ -32,7 +49,9 @@ struct
 
   let compare (x : t) (y : t) : int = compare x.id y.id
 
-  let format_t (x : t) : string = Printf.sprintf "%s[%d]" (X.format_info x.info) x.id
+  let format_t (x : t) : string = Printf.sprintf "%s" (X.format_info x.info)
+
+  let hash (x : t) : int = x.id
 end
 
 module MarkedString = struct
@@ -64,16 +83,16 @@ module ScopeDef = struct
 
   let compare x y =
     match (x, y) with
-    | Var x, Var y
-    | Var x, SubScopeVar (_, y)
-    | SubScopeVar (_, x), Var y
-    | SubScopeVar (_, x), SubScopeVar (_, y) ->
-        compare x.id y.id
+    | Var x, Var y | Var x, SubScopeVar (_, y) | SubScopeVar (_, x), Var y -> Var.compare x y
+    | SubScopeVar (_, x), SubScopeVar (_, y) -> SubScope.compare x y
 
   let format_t x =
     match x with
     | Var v -> Var.format_t v
     | SubScopeVar (s, v) -> Printf.sprintf "%s.%s" (SubScope.format_t s) (Var.format_t v)
+
+  let hash x = match x with Var v -> Var.hash v | SubScopeVar (_, v) -> Var.hash v
 end
 
 module ScopeDefMap = Map.Make (ScopeDef)
+module ScopeDefSet = Set.Make (ScopeDef)

@@ -48,14 +48,14 @@ let rec expr_to_lambda (scope : Uid.Scope.t) (def_key : Uid.ScopeDef.t option)
           match Uid.IdentMap.find_opt x def_ctxt.var_idmap with
           | None -> (
               match Uid.IdentMap.find_opt x scope_ctxt.var_idmap with
-              | Some uid -> ((EVar (None, uid), pos), TDummy)
+              | Some uid -> ((EVar (NoPrefix, uid), pos), TDummy)
               | None ->
                   Name_resolution.raise_unknown_identifier "for a local or scope-wide variable"
                     (x, pos) )
           | Some uid -> ((ELocalVar uid, pos), TDummy) )
       | None -> (
           match Uid.IdentMap.find_opt x scope_ctxt.var_idmap with
-          | Some uid -> ((EVar (None, uid), pos), TDummy)
+          | Some uid -> ((EVar (NoPrefix, uid), pos), TDummy)
           | None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) )
       )
   | Dotted (e, x) -> (
@@ -69,7 +69,7 @@ let rec expr_to_lambda (scope : Uid.Scope.t) (def_key : Uid.ScopeDef.t option)
             Uid.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
           in
           let subscope_var_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in
-          ((EVar (Some subscope_uid, subscope_var_uid), pos), TDummy)
+          ((EVar (SubScopePrefix subscope_uid, subscope_var_uid), pos), TDummy)
       | _ ->
           Name_resolution.raise_unsupported_feature
             "left hand side of a dotted expression should be an identifier" pos )
