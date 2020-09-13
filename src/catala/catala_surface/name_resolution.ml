@@ -63,10 +63,10 @@ let process_subscope_decl (scope : Uid.Scope.t) (ctxt : context)
           (Some "second use", s_pos);
         ]
   | None ->
-      let sub_scope_uid = Uid.SubScope.fresh (subscope, s_pos) in
+      let sub_scope_uid = Uid.SubScope.fresh (name, name_pos) in
       let original_subscope_uid =
-        match Uid.IdentMap.find_opt name ctxt.scope_idmap with
-        | None -> raise_unknown_identifier "for a scope" (name, name_pos)
+        match Uid.IdentMap.find_opt subscope ctxt.scope_idmap with
+        | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
         | Some id -> id
       in
       let scope_ctxt =

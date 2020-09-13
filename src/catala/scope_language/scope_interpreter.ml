@@ -33,6 +33,9 @@ module Vertex = struct
     | Var x, Var y -> Uid.Var.compare x y = 0
     | SubScope x, SubScope y -> Uid.SubScope.compare x y = 0
     | _ -> false
+
+  let format_t (x : t) : string =
+    match x with Var v -> Uid.Var.format_t v | SubScope v -> Uid.SubScope.format_t v
 end
 
 (** On the edges, the label is the expression responsible for the use of the variable *)
@@ -293,5 +296,6 @@ let rec execute_scope ?(exec_context = Lambda_interpreter.empty_exec_ctxt)
           in
           let exec_context = rewrite_context_before_executing_subscope subscope_uid exec_context in
           let exec_context = execute_scope ~exec_context ctxt prgm subscope in
-          rewrite_context_after_executing_subscope subscope_uid exec_context)
+          let exec_context = rewrite_context_after_executing_subscope subscope_uid exec_context in
+          exec_context)
     deps exec_context

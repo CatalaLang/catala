@@ -73,7 +73,7 @@ let add_default (just : term) (cons : term) (term : default_term) =
 let merge_default_terms (lo_term : default_term) (hi_term : default_term) : default_term =
   let n = List.length lo_term.defaults in
   let n' = List.length hi_term.defaults in
-  let defaults = hi_term.defaults @ lo_term.defaults in
+  let defaults = lo_term.defaults @ hi_term.defaults in
   let rec add_hi_prec = function
     | [] -> lo_term.ordering
     | (k, k') :: xs -> (n + k, n + k') :: add_hi_prec xs

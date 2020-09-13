@@ -74,6 +74,11 @@ let rec print_term (((t, _), _) : Lambda_ast.term) : string =
   | EDefault t -> print_default_term t
 
 and print_default_term (term : Lambda_ast.default_term) : string =
-  term.defaults
-  |> List.map (fun (cond, body) -> Printf.sprintf "\t%s => %s" (print_term cond) (print_term body))
-  |> String.concat "\n"
+  ( term.defaults
+  |> List.mapi (fun i (cond, body) ->
+         Printf.sprintf "[%d]\t%s => %s" i (print_term cond) (print_term body))
+  |> String.concat "\n" )
+  ^ "\n"
+  ^ ( term.ordering
+    |> List.map (fun (hi, lo) -> Printf.sprintf "%d > %d" hi lo)
+    |> String.concat ", " )

@@ -43,6 +43,14 @@ module ExecContext = Map.Make (ExecContextKey)
 
 type exec_context = Lambda_ast.untyped_term ExecContext.t
 
+let format_exec_context (ctx : exec_context) =
+  String.concat "\n"
+    (List.map
+       (fun (key, value) ->
+         Printf.sprintf "%s -> %s" (ExecContextKey.format_t key)
+           (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))
+       (ExecContext.bindings ctx))
+
 let empty_exec_ctxt = ExecContext.empty
 
 let raise_default_conflict (def : Uid.ScopeDef.t) (true_pos : Pos.t list) (false_pos : Pos.t list) =
