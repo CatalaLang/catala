@@ -100,7 +100,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Name_resolution.IdentMap.find_opt name ctxt.scope_id_to_uid with
+              match Uid.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
@@ -108,21 +108,23 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         in
         let prgm = Desugaring.translate_program_to_scope ctxt program in
         let scope =
-          match Uid.UidMap.find_opt scope_uid prgm with
+          match Uid.ScopeMap.find_opt scope_uid prgm with
           | Some scope -> scope
           | None ->
+              let scope_info = Uid.Scope.get_info scope_uid in
               Errors.raise_spanned_error
                 (Printf.sprintf
                    "Scope %s does not define anything, and therefore cannot be executed"
-                   (Uid.get_ident scope_uid))
-                (Uid.get_pos scope_uid)
+                   (Pos.unmark scope_info))
+                (Pos.get_position scope_info)
         in
         let exec_ctxt = Scope_interpreter.execute_scope ctxt prgm scope in
-        Uid.UidMap.iter
-          (fun uid value ->
+        Lambda_interpreter.ExecContext.iter
+          (fun context_key value ->
             Cli.result_print
-              (Printf.sprintf "%s -> %s" (Uid.get_ident uid)
-                 (Format_lambda.print_term ((value, Uid.get_pos uid), TDummy))))
+              (Printf.sprintf "%s -> %s"
+                 (Lambda_interpreter.ExecContextKey.format_t context_key)
+                 (Format_lambda.print_term ((value, Pos.no_pos), TDummy))))
           exec_ctxt;
         0
   with Errors.StructuredError (msg, pos) ->

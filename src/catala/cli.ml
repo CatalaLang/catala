@@ -164,8 +164,8 @@ let debug_print (s : string) =
 
 let error_print (s : string) =
   Printf.eprintf "%s\n" (add_prefix_to_each_line s (fun _ -> error_marker ()));
-  flush stdout;
-  flush stdout
+  flush stderr;
+  flush stderr
 
 let warning_print (s : string) =
   Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> warning_marker ()));

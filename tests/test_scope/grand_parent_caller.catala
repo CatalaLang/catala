@@ -1,0 +1,24 @@
+/*
+new scope A:
+  param x type int
+
+new scope B:
+  param a scope A
+  param y type int
+
+new scope C:
+  param b scope B
+  param z type int
+
+
+scope A:
+  def x := 0
+
+scope B:
+  def a.x := y
+  def y := 1
+
+scope C:
+  def b.y := z
+  def z = 2
+*/
