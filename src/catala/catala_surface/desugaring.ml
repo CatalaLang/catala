@@ -206,13 +206,30 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Scope_ast.program
 let translate_program_to_scope (ctxt : Name_resolution.context) (prgm : Catala_ast.program) :
     Scope_ast.program =
   let empty_prgm = Uid.ScopeMap.empty in
-  let processer (prgm : Scope_ast.program) (item : Catala_ast.program_item) : Scope_ast.program =
+  let processer_article_item (prgm : Scope_ast.program) (item : Catala_ast.law_article_item) :
+      Scope_ast.program =
     match item with
-    | CodeBlock (block, _) | MetadataBlock (block, _) ->
+    | CodeBlock (block, _) ->
         List.fold_left
           (fun prgm item ->
             match Pos.unmark item with ScopeUse use -> process_scope_use ctxt prgm use | _ -> prgm)
           prgm block
     | _ -> prgm
   in
-  List.fold_left processer empty_prgm prgm.program_items
+  let rec processer_structure (prgm : Scope_ast.program) (item : Catala_ast.law_structure) :
+      Scope_ast.program =
+    match item with
+    | LawHeading (_, children) ->
+        List.fold_left (fun prgm child -> processer_structure prgm child) prgm children
+    | LawArticle (_, children) ->
+        List.fold_left (fun prgm child -> processer_article_item prgm child) prgm children
+    | MetadataBlock (b, c) -> processer_article_item prgm (CodeBlock (b, c))
+    | IntermediateText _ -> prgm
+  in
+
+  let processer_item (prgm : Scope_ast.program) (item : Catala_ast.program_item) : Scope_ast.program
+      =
+    match item with LawStructure s -> processer_structure prgm s
+  in
+
+  List.fold_left processer_item empty_prgm prgm.program_items

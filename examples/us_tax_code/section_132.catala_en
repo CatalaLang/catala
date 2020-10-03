@@ -1,11 +1,8 @@
 @@Section 132@@
 
-/*
-# We only formalize part (c) here
-*/
-
 @@Begin metadata@@
 /*
+# We only formalize part (c) here
 declaration enumeration DiscountType:
   -- Property
   -- Services

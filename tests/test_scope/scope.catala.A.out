@@ -3,17 +3,17 @@
 [ERROR] The conflict concerns this variable b
 [ERROR]  --> test_scope/scope.catala
 [ERROR]   |
-[ERROR] 4 |   param b type dec
+[ERROR] 6 |   param b type dec
 [ERROR]   |         ^
 [ERROR]
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/scope.catala
 [ERROR]    |
-[ERROR] 11 |   def b [ not c ] := 1337
+[ERROR] 13 |   def b [ not c ] := 1337
 [ERROR]    |           ^^^^^
 [ERROR]
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/scope.catala
 [ERROR]    |
-[ERROR] 12 |   def b [ not c ] := 0
+[ERROR] 14 |   def b [ not c ] := 0
 [ERROR]    |           ^^^^^

@@ -18,7 +18,6 @@ install-dependencies-ocaml:
 		menhirLib \
 		dune dune-build-info \
 		cmdliner obelisk \
-		tls  cohttp lwt cohttp-lwt-unix yojson\
 		re reason\
 		obelisk\
 		ocamlgraph
@@ -159,7 +158,9 @@ all: install-dependencies build doc tests all_examples website-assets
 clean:
 	dune clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
-	$(MAKE) -C $(ENGLISH_DUMMY_DIR) clean
+	$(MAKE) -C $(US_TAX_CODE_DIR) clean
+	$(MAKE) -C $(TUTORIAL_DIR) clean
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading

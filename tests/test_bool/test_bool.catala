@@ -1,3 +1,5 @@
+@Article@
+
 /*
 new scope TestBool :
 	param foo type bool

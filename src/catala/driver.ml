@@ -64,12 +64,6 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
              (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
-        let weaved_output =
-          match backend with
-          | Cli.Latex -> Latex.ast_to_latex program language
-          | Cli.Html -> Html.ast_to_html program pygmentize_loc language
-          | _ -> assert false
-        in
         let output_file =
           match output_file with
           | Some f -> f
@@ -77,21 +71,25 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
               Filename.remove_extension source_file
               ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
         in
-        let weaved_output =
-          if wrap_weaved_output then
-            match backend with
-            | Cli.Latex ->
-                Latex.wrap_latex weaved_output program.Catala_ast.program_source_files
-                  pygmentize_loc language
-            | Cli.Html ->
-                Html.wrap_html weaved_output program.Catala_ast.program_source_files pygmentize_loc
-                  language
-            | _ -> assert false
-          else weaved_output
+        let oc = open_out output_file in
+        let weave_output =
+          match backend with
+          | Cli.Latex -> Latex.ast_to_latex language
+          | Cli.Html -> Html.ast_to_html pygmentize_loc language
+          | _ -> assert false
         in
         Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
-        let oc = open_out output_file in
-        Printf.fprintf oc "%s" weaved_output;
+        let fmt = Format.formatter_of_out_channel oc in
+        if wrap_weaved_output then
+          match backend with
+          | Cli.Latex ->
+              Latex.wrap_latex program.Catala_ast.program_source_files pygmentize_loc language fmt
+                (fun fmt -> weave_output fmt program)
+          | Cli.Html ->
+              Html.wrap_html program.Catala_ast.program_source_files pygmentize_loc language fmt
+                (fun fmt -> weave_output fmt program)
+          | _ -> assert false
+        else weave_output fmt program;
         close_out oc;
         0
     | Cli.Run ->

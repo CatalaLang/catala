@@ -189,13 +189,20 @@ type law_include =
   | CatalaFile of string Pos.marked
   | LegislativeText of string Pos.marked
 
-type program_item =
-  | LawHeading of string * int
-  | LawArticle of law_article
+type law_article_item =
   | LawText of string
   | CodeBlock of code_block * source_repr
-  | MetadataBlock of code_block * source_repr
   | LawInclude of law_include
+
+type law_heading = { law_heading_name : string; law_heading_precedence : int }
+
+type law_structure =
+  | LawHeading of law_heading * law_structure list
+  | LawArticle of law_article * law_article_item list
+  | MetadataBlock of code_block * source_repr
+  | IntermediateText of string
+
+type program_item = LawStructure of law_structure
 
 type program = { program_items : program_item list; program_source_files : string list }
 

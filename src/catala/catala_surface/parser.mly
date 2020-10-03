@@ -497,21 +497,9 @@ metadata_block:
   (code, (text, pos))
 }
 
-source_file_item:
-| title = LAW_ARTICLE {
-  let (title, id, exp_date) = title in LawArticle {
-    law_article_name = (title, $sloc);
-    law_article_id = id;
-    law_article_expiration_date = exp_date;
-  }
-}
-| heading = LAW_HEADING { let (title, precedence) = heading in LawHeading (title, precedence) }
+law_article_item:
 | text = LAW_TEXT { LawText text }
-| BEGIN_METADATA code = metadata_block {
-  let (code, source_repr) = code in
-  MetadataBlock (code, source_repr)
-}
-| BEGIN_CODE code_and_pos = code text = END_CODE {
+| BEGIN_CODE code_and_pos = code text = END_CODE  {
   let (code, pos) = code_and_pos in
   CodeBlock (code, (text, pos))
 }
@@ -519,8 +507,43 @@ source_file_item:
   LawInclude includ
 }
 
+law_article:
+| title = LAW_ARTICLE {
+  let (title, id, exp_date) = title in {
+    law_article_name = (title, $sloc);
+    law_article_id = id;
+    law_article_expiration_date = exp_date;
+  }
+}
+
+law_heading:
+| heading = LAW_HEADING { let (title, precedence) = heading in  { 
+    law_heading_name = title;
+    law_heading_precedence = precedence;
+  }
+}
+
+law_articles_items:
+| hd = law_article_item tl = law_articles_items{ hd::tl }
+| { [] }
+
+source_file_item:
+| article = law_article items = law_articles_items  {
+  LawStructure (LawArticle (article, items))
+}
+| heading = law_heading {
+  LawStructure (LawHeading (heading, []))
+}
+| BEGIN_METADATA code = metadata_block {
+  let (code, source_repr) = code in
+  LawStructure (MetadataBlock (code, source_repr))
+}
+| text = LAW_TEXT { LawStructure (IntermediateText text) }
+
 source_file:
-| i = source_file_item f = source_file { i::f }
+| i = source_file_item f = source_file { 
+  i::f 
+}
 | EOF { [] }
 
 master_file_include:
@@ -536,4 +559,48 @@ master_file_includes:
 
 source_file_or_master:
 | MASTER_FILE is = master_file_includes { MasterFile is }
-| f = source_file { SourceFile f }
+| f = source_file { 
+  (* 
+    now here the heading structure is completely flat because of the 
+    [source_file_item] rule. We need to tree-i-fy the flat structure,
+    by looking at the precedence of the law headings.
+  *)
+  let rec law_struct_list_to_tree (f: program_item list) : program_item list = 
+    match f with 
+    | [] -> []
+    | [item] -> [item]
+    | first_item::rest -> 
+      let rest_tree = law_struct_list_to_tree rest in 
+      begin match rest_tree with 
+      | [] -> assert false (* there should be at least one rest element *)
+      | rest_head::rest_tail -> 
+        begin match first_item with 
+        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _) -> 
+          (* if an article or an include is just before a new heading or a new article, 
+             then we don't merge it with what comes next *)
+          first_item::rest_head::rest_tail
+        | LawStructure (LawHeading (heading, _)) -> 
+          (* here we have encountered a heading, which is going to "gobble" 
+             everything in the [rest_tree] until it finds a heading of 
+             at least the same precedence *)
+          let rec split_rest_tree (rest_tree: program_item list) 
+            : law_structure list * program_item list =
+            match rest_tree with 
+            | [] -> [], [] 
+            | (LawStructure (LawHeading (new_heading, _)))::_ 
+              when new_heading.law_heading_precedence <= heading.law_heading_precedence
+              ->
+              (* we stop gobbling *) 
+              [], rest_tree
+            | (LawStructure first)::after ->
+              (* we continue gobbling *)
+              let after_gobbled, after_out = split_rest_tree after in 
+              first::after_gobbled, after_out 
+          in 
+          let gobbled, rest_out = split_rest_tree rest_tree in 
+          (LawStructure (LawHeading (heading, gobbled)))::rest_out    
+        end
+      end
+  in
+  SourceFile (law_struct_list_to_tree f)
+}

@@ -16,7 +16,6 @@
     professionals can understand. *)
 
 module A = Catala_ast
-module P = Printf
 module R = Re.Pcre
 module C = Cli
 
@@ -31,9 +30,9 @@ let pre_latexify (s : string) =
   let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
   s
 
-let wrap_latex (code : string) (source_files : string list) (custom_pygments : string option)
-    (language : C.backend_lang) =
-  Printf.sprintf
+let wrap_latex (source_files : string list) (custom_pygments : string option)
+    (language : C.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) =
+  Format.fprintf fmt
     "\\documentclass[11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
      \\usepackage[utf8]{inputenc}\n\
@@ -73,9 +72,7 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
      \\maketitle\n\n\
      %s : \n\
      \\begin{itemize}%s\\end{itemize}\n\n\
-     \\[\\star\\star\\star\\]\\\\\n\
-     %s\n\n\
-     \\end{document}"
+     \\[\\star\\star\\star\\]\\\\\n"
     (match language with `Fr -> "french" | `En -> "english")
     ( match custom_pygments with
     | None -> ""
@@ -103,8 +100,9 @@ let wrap_latex (code : string) (source_files : string list) (custom_pygments : s
               (pre_latexify (Filename.basename filename))
               (match language with `Fr -> "dernière modification le" | `En -> "last modification")
               ftime)
-          source_files))
-    code
+          source_files));
+  wrapped fmt;
+  Format.fprintf fmt "\n\n\\end{document}"
 
 let math_syms_replace (c : string) : string =
   let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
@@ -121,16 +119,12 @@ let math_syms_replace (c : string) : string =
   in
   R.substitute ~rex:syms ~subst:syms2cmd c
 
-let program_item_to_latex (i : A.program_item) (language : C.backend_lang) : string =
+let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatter)
+    (i : A.law_article_item) : unit =
   match i with
-  | A.LawHeading (title, precedence) ->
-      P.sprintf "\\%ssection*{%s}"
-        (match precedence with 0 -> "" | 1 -> "" | 2 -> "sub" | 3 -> "sub" | _ -> "subsub")
-        (pre_latexify title)
-  | A.LawText t -> pre_latexify t
-  | A.LawArticle a -> P.sprintf "\\paragraph{%s}" (pre_latexify (Pos.unmark a.law_article_name))
+  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c) ->
-      P.sprintf
+      Format.fprintf fmt
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
          /*%s*/\n\
          \\end{minted}"
@@ -138,9 +132,40 @@ let program_item_to_latex (i : A.program_item) (language : C.backend_lang) : str
         (Pos.get_start_line (Pos.get_position c))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
+  | A.LawInclude (A.PdfFile ((file, _), page)) ->
+      let label = file ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p in
+      Format.fprintf fmt
+        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
+         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+        label
+        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
+        file label
+  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
+
+let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
+  match i with
+  | A.LawHeading (heading, children) ->
+      Format.fprintf fmt "\\%ssection*{%s}\n\n"
+        ( match heading.law_heading_precedence with
+        | 0 -> ""
+        | 1 -> ""
+        | 2 -> "sub"
+        | 3 -> "sub"
+        | _ -> "subsub" )
+        (pre_latexify heading.law_heading_name);
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+        (law_structure_to_latex language) fmt children
+  | A.LawArticle (article, children) ->
+      Format.fprintf fmt "\\paragraph{%s}\n\n" (pre_latexify (Pos.unmark article.law_article_name));
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+        (law_article_item_to_latex language)
+        fmt children
   | A.MetadataBlock (_, c) ->
       let metadata_title = match language with `Fr -> "Métadonnées" | `En -> "Metadata" in
-      P.sprintf
+      Format.fprintf fmt
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
@@ -153,15 +178,13 @@ let program_item_to_latex (i : A.program_item) (language : C.backend_lang) : str
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
-  | A.LawInclude (A.PdfFile ((file, _), page)) ->
-      let label = file ^ match page with None -> "" | Some p -> P.sprintf "_page_%d," p in
-      P.sprintf
-        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
-         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
-        label
-        (match page with None -> "" | Some p -> P.sprintf "page=%d," p)
-        file label
-  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ""
+  | A.IntermediateText t -> Format.fprintf fmt "%s" (pre_latexify t)
 
-let ast_to_latex (program : A.program) (language : C.backend_lang) : string =
-  String.concat "\n\n" (List.map (fun i -> program_item_to_latex i language) program.program_items)
+let program_item_to_latex (language : C.backend_lang) (fmt : Format.formatter) (i : A.program_item)
+    : unit =
+  match i with A.LawStructure law_s -> law_structure_to_latex language fmt law_s
+
+let ast_to_latex (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) : unit =
+  Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+    (program_item_to_latex language) fmt program.program_items

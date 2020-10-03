@@ -27,20 +27,21 @@ let raise_failed_pygments (command : string) (error_code : int) : 'a =
     (Printf.sprintf "Weaving to HTML failed: pygmentize command \"%s\" returned with error code %d"
        command error_code)
 
-let wrap_html (code : string) (source_files : string list) (custom_pygments : string option)
-    (language : Cli.backend_lang) : string =
+let wrap_html (source_files : string list) (custom_pygments : string option)
+    (language : Cli.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) :
+    unit =
   let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
   let css_file = Filename.temp_file "catala_css_pygments" "" in
   let pygments_args = [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |] in
   let cmd =
-    Printf.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
+    Format.sprintf "%s %s > %s" pygments (String.concat " " (Array.to_list pygments_args)) css_file
   in
   let return_code = Sys.command cmd in
   if return_code <> 0 then raise_failed_pygments cmd return_code;
   let oc = open_in css_file in
   let css_as_string = really_input_string oc (in_channel_length oc) in
   close_in oc;
-  Printf.sprintf
+  Format.fprintf fmt
     "<head>\n\
      <style>\n\
      %s\n\
@@ -55,8 +56,7 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
      </p>\n\
      <ul>\n\
      %s\n\
-     </ul>\n\
-     %s"
+     </ul>\n"
     css_as_string
     ( match language with
     | `Fr -> "Implémentation de texte législatif"
@@ -81,8 +81,8 @@ let wrap_html (code : string) (source_files : string list) (custom_pygments : st
               (pre_html (Filename.basename filename))
               (match language with `Fr -> "dernière modification le" | `En -> "last modification")
               ftime)
-          source_files))
-    code
+          source_files));
+  wrapped fmt
 
 let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
     (custom_pygments : string option) : string =
@@ -110,7 +110,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
       temp_file_in;
     |]
   in
-  let cmd = Printf.sprintf "%s %s" pygments (String.concat " " (Array.to_list pygments_args)) in
+  let cmd = Format.asprintf "%s %s" pygments (String.concat " " (Array.to_list pygments_args)) in
   let return_code = Sys.command cmd in
   if return_code <> 0 then raise_failed_pygments cmd return_code;
   let oc = open_in temp_file_out in
@@ -120,70 +120,67 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
 
 type program_state = InsideArticle | OutsideArticle
 
-let program_item_to_html (i : A.program_item) (custom_pygments : string option)
-    (language : C.backend_lang) (state : program_state) : string * program_state =
-  let closing_div =
-    (* First we terminate the div of the previous article if need be *)
-    match (i, state) with
-    | (A.LawHeading _ | A.LawArticle _), InsideArticle -> "<!-- Closing article div -->\n</div>\n\n"
-    | _ -> ""
-  in
-  let new_state =
-    match (i, state) with
-    | A.LawArticle _, _ -> InsideArticle
-    | A.LawHeading _, InsideArticle -> OutsideArticle
-    | _ -> state
-  in
-  (* Then we print the actual item *)
-  let item_string =
-    match i with
-    | A.LawHeading (title, precedence) ->
-        let h_number = precedence + 2 in
-        P.sprintf "<h%d class='law-heading'>%s</h%d>" h_number (pre_html title) h_number
-    | A.LawText t -> "<p class='law-text'>" ^ pre_html t ^ "</p>"
-    | A.LawArticle a ->
-        P.sprintf
-          "<div class='article-container'>\n\n<div class='article-title'><a href='%s'>%s</a></div>"
-          ( match (a.law_article_id, language) with
-          | Some id, `Fr ->
-              let ltime = Unix.localtime (Unix.time ()) in
-              P.sprintf "https://beta.legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
-                (1900 + ltime.Unix.tm_year) (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
-          | _ -> "#" )
-          (pre_html (Pos.unmark a.law_article_name))
-    | A.CodeBlock (_, c) | A.MetadataBlock (_, c) ->
-        let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-        let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
-        let syms_subst = function
-          | "!=" -> "≠"
-          | "<=" -> "≤"
-          | ">=" -> "≥"
-          | "--" -> "—"
-          | "->" -> "→"
-          | "*" -> "×"
-          | "/" -> "÷"
-          | s -> s
-        in
-        let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
-        let formatted_original_code =
-          P.sprintf "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
-            (Pos.get_file (Pos.get_position c))
-            (pygmentize_code
-               (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c)
-               language custom_pygments)
-        in
-        formatted_original_code
-    | A.LawInclude _ -> ""
-  in
-  (closing_div ^ item_string, new_state)
+let law_article_item_to_html (custom_pygments : string option) (language : C.backend_lang)
+    (fmt : Format.formatter) (i : A.law_article_item) : unit =
+  match i with
+  | A.LawText t -> Format.fprintf fmt "<p class='law-text'>%s</p>" (pre_html t)
+  | A.CodeBlock (_, c) ->
+      let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+      let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
+      let syms_subst = function
+        | "!=" -> "≠"
+        | "<=" -> "≤"
+        | ">=" -> "≥"
+        | "--" -> "—"
+        | "->" -> "→"
+        | "*" -> "×"
+        | "/" -> "÷"
+        | s -> s
+      in
+      let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
+      Format.fprintf fmt "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
+        (Pos.get_file (Pos.get_position c))
+        (pygmentize_code (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c) language custom_pygments)
+  | A.LawInclude _ -> ()
 
-let ast_to_html (program : A.program) (custom_pygments : string option) (language : C.backend_lang)
-    : string =
-  let i_s, _ =
-    List.fold_left
-      (fun (acc, state) i ->
-        let i_s, new_state = program_item_to_html i custom_pygments language state in
-        (i_s :: acc, new_state))
-      ([], OutsideArticle) program.program_items
-  in
-  String.concat "\n\n" (List.rev i_s)
+let rec law_structure_to_html (custom_pygments : string option) (language : C.backend_lang)
+    (fmt : Format.formatter) (i : A.law_structure) : unit =
+  match i with
+  | A.LawHeading (heading, children) ->
+      let h_number = heading.law_heading_precedence + 2 in
+      Format.fprintf fmt "<h%d class='law-heading'>%s</h%d>\n" h_number
+        (pre_html heading.law_heading_name)
+        h_number;
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+        (law_structure_to_html custom_pygments language)
+        fmt children
+  | A.LawArticle (a, children) ->
+      Format.fprintf fmt
+        "<div class='article-container'>\n\n<div class='article-title'><a href='%s'>%s</a></div>\n"
+        ( match (a.law_article_id, language) with
+        | Some id, `Fr ->
+            let ltime = Unix.localtime (Unix.time ()) in
+            P.sprintf "https://legifrance.gouv.fr/codes/id/%s/%d-%02d-%02d" id
+              (1900 + ltime.Unix.tm_year) (ltime.Unix.tm_mon + 1) ltime.Unix.tm_mday
+        | _ -> "#" )
+        (pre_html (Pos.unmark a.law_article_name));
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+        (law_article_item_to_html custom_pygments language)
+        fmt children;
+      Format.fprintf fmt "\n</div>"
+  | A.MetadataBlock (b, c) ->
+      law_article_item_to_html custom_pygments language fmt (A.CodeBlock (b, c))
+  | A.IntermediateText t -> Format.fprintf fmt "<p class='law-text'>%s</p>" (pre_html t)
+
+let program_item_to_html (custom_pygments : string option) (language : C.backend_lang)
+    (fmt : Format.formatter) (i : A.program_item) : unit =
+  match i with A.LawStructure s -> law_structure_to_html custom_pygments language fmt s
+
+let ast_to_html (custom_pygments : string option) (language : C.backend_lang)
+    (fmt : Format.formatter) (program : A.program) : unit =
+  Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+    (program_item_to_html custom_pygments language)
+    fmt program.program_items

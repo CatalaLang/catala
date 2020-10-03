@@ -4,413 +4,140 @@
 
 let message s =
   match s with
-  | 0 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#0\n"
-  | 1 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#1\n"
-  | 5 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#5\n"
-  | 279 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#275\n"
-  | 12 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#12\n"
-  | 13 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#13\n"
-  | 272 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#268\n"
-  | 275 -> "Wrong way to begin a code section\n"
-  | 14 -> "Expecting the constructor for the scope\n"
-  | 16 -> "Expected a colon after scope constructor\n"
-  | 158 -> "Expected a rule, a definition or an assertion\n"
-  | 159 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#18\n"
-  | 178 -> "Wrong token following an identifier\n"
-  | 173 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#157\n"
-  | 164 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#149\n"
-  | 174 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#158\n"
-  | 161 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#20\n"
-  | 167 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#151\n"
-  | 179 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#61\n"
-  | 181 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#162\n"
-  | 182 -> "Only the identifier you wish to define should follow the definition introducing token\n"
-  | 184 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#165\n"
-  | 183 -> "Wrong token following function parameter\n"
-  | 185 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#166\n"
-  | 188 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#169\n"
-  | 18 -> "Expected date inside \"|...|\"\n"
-  | 20 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#24\n"
-  | 21 -> "Expected date inside \"|...|\"\n"
-  | 22 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#26\n"
-  | 23 -> "Expected date inside \"|...|\"\n"
-  | 24 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#28\n"
-  | 189 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#170\n"
-  | 191 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#172\n"
-  | 192 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#173\n"
-  | 162 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#21\n"
-  | 170 -> "Unexpected token after a condition\n"
-  | 201 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#182\n"
-  | 90 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#73\n"
-  | 91 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#74\n"
-  | 92 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#75\n"
-  | 93 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#76\n"
-  | 95 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#78\n"
-  | 96 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#79\n"
-  | 51 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#50\n"
-  | 52 ->
-      "Missing enumeration case for testing if an enumeration value is in a particular enumeration \
-       case\n"
-  | 82 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#87\n"
-  | 106 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#124\n"
-  | 54 -> "Invalid function application\n"
-  | 78 -> "Expected the second term of the comparison\n"
-  | 87 -> "Expected expression on the right-hand side of multiplication operator\n"
-  | 84 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#89\n"
-  | 133 -> "Missing collection for testing whether an element is inside a collection or not\n"
-  | 100 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#103\n"
-  | 46 -> "Expected operator or new item after expression\n"
-  | 49 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#47\n"
-  | 43 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#44\n"
-  | 32 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#35\n"
-  | 140 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#133\n"
-  | 141 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#134\n"
-  | 142 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#135\n"
-  | 148 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#141\n"
-  | 149 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#142\n"
-  | 145 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#138\n"
-  | 151 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#144\n"
-  | 146 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#139\n"
-  | 143 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#136\n"
-  | 33 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#36\n"
-  | 126 -> "Unmatched parenthesis that should have ended before this\n"
-  | 55 -> "Expecting an unit for the preceding numeric literal, or an operator\n"
-  | 35 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#38\n"
-  | 136 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#127\n"
-  | 137 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#128\n"
-  | 138 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#129\n"
-  | 135 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#126\n"
-  | 37 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#39\n"
-  | 112 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#107\n"
-  | 113 -> "A for all construction expects only one ident\n"
-  | 114 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#109\n"
-  | 115 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#110\n"
-  | 111 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#106\n"
-  | 197 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#178\n"
-  | 198 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#179\n"
-  | 199 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#180\n"
-  | 120 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#115\n"
-  | 121 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#116\n"
-  | 122 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#117\n"
-  | 123 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#118\n"
-  | 124 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#119\n"
-  | 118 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#113\n"
-  | 62 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#66\n"
-  | 63 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#67\n"
-  | 128 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#68\n"
-  | 42 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#43\n"
-  | 205 -> "Unexpected token after a scope item\n"
-  | 208 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#189\n"
-  | 209 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#190\n"
-  | 210 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#191\n"
-  | 211 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#192\n"
-  | 212 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#193\n"
-  | 213 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#194\n"
-  | 214 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#195\n"
-  | 238 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#219\n"
-  | 231 -> "Unexpected token, struct scope declaration is over at this point\n"
-  | 232 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#213\n"
-  | 228 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#198\n"
-  | 241 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#222\n"
-  | 242 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#223\n"
-  | 243 -> "Scope declarations must have at least one context element\n"
-  | 244 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#225\n"
-  | 245 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#226\n"
-  | 248 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#227\n"
-  | 249 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#228\n"
-  | 253 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#250\n"
-  | 256 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#252\n"
-  | 257 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#253\n"
-  | 258 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#254\n"
-  | 259 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#255\n"
-  | 260 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#256\n"
-  | 261 ->
-      "Unexpected token\n\
-       To get a better error messsage, file an issue at \
-       https://github.com/CatalaLang/catala/issues with this parser error token: ERROR#257\n"
+  | 0 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 1 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 5 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 275 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 278 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 285 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 281 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 13 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 15 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 16 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 17 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 19 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 20 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 21 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 22 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 23 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 45 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 51 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 50 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 81 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 105 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 53 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 77 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 86 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 83 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 132 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 46 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 156 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 48 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 89 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 90 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 91 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 92 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 94 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 95 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 99 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 42 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 31 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 140 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 141 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 147 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 148 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 144 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 150 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 145 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 142 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 139 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 32 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 125 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 54 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 34 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 135 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 136 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 137 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 134 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 36 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 111 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 112 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 113 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 114 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 110 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 119 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 120 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 121 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 122 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 123 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 117 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 61 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 62 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 127 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 63 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 64 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 68 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 69 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 65 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 66 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 41 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 157 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 158 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 177 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 172 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 163 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 173 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 160 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 166 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 178 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 180 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 181 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 183 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 182 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 184 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 187 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 188 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 190 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 191 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 189 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 161 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 169 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 200 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 196 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 197 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 198 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 204 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 207 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 208 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 209 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 210 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 211 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 212 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 213 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 237 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 230 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 231 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 235 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 224 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 227 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 240 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 241 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 242 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 243 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 244 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 245 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 252 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 247 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 248 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 250 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 255 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 256 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 257 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 258 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 259 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 260 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 265 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 11 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 12 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
+  | 271 -> "<YOUR SYNTAX ERROR MESSAGE HERE>\n"
   | _ -> raise Not_found

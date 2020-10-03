@@ -238,11 +238,28 @@ let process_code_block (ctxt : context) (block : Catala_ast.code_block)
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
 (** Process a program item *)
+let process_law_article_item (ctxt : context) (item : Catala_ast.law_article_item)
+    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
+  match item with CodeBlock (block, _) -> process_code_block ctxt block process_item | _ -> ctxt
+
+(** Process a law structure *)
+let rec process_law_structure (ctxt : context) (s : Catala_ast.law_structure)
+    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
+  match s with
+  | Catala_ast.LawHeading (_, children) ->
+      List.fold_left (fun ctxt child -> process_law_structure ctxt child process_item) ctxt children
+  | Catala_ast.LawArticle (_, children) ->
+      List.fold_left
+        (fun ctxt child -> process_law_article_item ctxt child process_item)
+        ctxt children
+  | Catala_ast.MetadataBlock (b, c) ->
+      process_law_article_item ctxt (Catala_ast.CodeBlock (b, c)) process_item
+  | Catala_ast.IntermediateText _ -> ctxt
+
+(** Process a program item *)
 let process_program_item (ctxt : context) (item : Catala_ast.program_item)
     (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
-  match item with
-  | CodeBlock (block, _) | MetadataBlock (block, _) -> process_code_block ctxt block process_item
-  | _ -> ctxt
+  match item with Catala_ast.LawStructure s -> process_law_structure ctxt s process_item
 
 (** Derive the context from metadata, in two passes *)
 let form_context (prgm : Catala_ast.program) : context =

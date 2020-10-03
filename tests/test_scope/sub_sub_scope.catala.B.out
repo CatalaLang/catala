@@ -3,17 +3,17 @@
 [ERROR] The conflict concerns this variable y
 [ERROR]  --> test_scope/sub_sub_scope.catala
 [ERROR]   |
-[ERROR] 8 |   param y type int
+[ERROR] 10 |   param y type int
 [ERROR]   |         ^
 [ERROR]
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
 [ERROR]    |
-[ERROR] 21 |   def y [ a.x = 1 ] := 1
+[ERROR] 23 |   def y [ a.x = 1 ] := 1
 [ERROR]    |           ^^^^^^^
 [ERROR]
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
 [ERROR]    |
-[ERROR] 22 |   def y [ a.x + 1 = 2 ] := 1
+[ERROR] 24 |   def y [ a.x + 1 = 2 ] := 1
 [ERROR]    |           ^^^^^^^^^^^
