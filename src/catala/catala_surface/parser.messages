@@ -8,7 +8,7 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ## BEGIN_CODE code END_CODE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+should not happen, please file an issue at https://github.com/CatalaLang/catala/issues
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
@@ -20,7 +20,7 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ## BEGIN_CODE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a declaration or a scope use
 
 source_file_or_master: BEGIN_METADATA YEAR
 ##
@@ -32,7 +32,7 @@ source_file_or_master: BEGIN_METADATA YEAR
 ## BEGIN_METADATA
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a declaration or a scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
@@ -45,7 +45,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON
 ## enum_decl_line
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected another enum case, or a new declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
@@ -57,7 +57,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON
 ## CONTENT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a content type
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
@@ -69,7 +69,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON
 ## ALT constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a payload for your enum case, or another case or declaration 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
@@ -81,7 +81,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON
 ## ALT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of an enum case 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
@@ -93,7 +93,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON
 ## DECLARATION ENUM constructor COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an enum case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
@@ -105,7 +105,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ## DECLARATION ENUM constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM YEAR
 ##
@@ -117,7 +117,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM YEAR
 ## DECLARATION ENUM
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of your enum
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONDITION YEAR
 ##
@@ -129,7 +129,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT ident CONDITION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the next context item or a dependency declaration for this item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT YEAR
 ##
@@ -141,7 +141,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT ident CONTENT typ
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the next context item or a dependency declaration for this item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
@@ -153,7 +153,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT ident CONTENT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the type of this context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT SCOPE CONSTRUCTOR YEAR
 ##
@@ -166,7 +166,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## scope_decl_item
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the next context item, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT SCOPE YEAR
 ##
@@ -178,7 +178,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT ident SCOPE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the subscope for this context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
@@ -192,7 +192,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the kind of this context item: is it a condition, a sub-scope or a data?
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
 ##
@@ -206,7 +206,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## CONTEXT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of this new context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
@@ -218,7 +218,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## DECLARATION SCOPE constructor COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a context item introduced by "context"
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
@@ -230,7 +230,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ## DECLARATION SCOPE constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon followed by the list of context items of this scope
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE YEAR
 ##
@@ -242,7 +242,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE YEAR
 ## DECLARATION SCOPE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the scope you are declaring
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION YEAR
 ##
@@ -254,7 +254,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## collection_marked
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a new struct item, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS OPTIONAL YEAR
 ##
@@ -266,7 +266,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## optional_marked
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a new struct item, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
