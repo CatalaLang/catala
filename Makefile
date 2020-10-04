@@ -143,11 +143,7 @@ catala.html: src/catala/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-legifrance_catala.html: src/legifrance_catala/main.ml
-	dune exec src/legifrance_catala.exe -- --help=groff | man2html | sed -e '1,8d' \
-	| tac | sed "1,18d" | tac > $@ > $@
-
-website-assets: doc all_examples grammar.html catala.html legifrance_catala.html
+website-assets: doc all_examples grammar.html catala.html
 
 ##########################################
 # Misceallenous
@@ -170,4 +166,4 @@ inspect:
 ##########################################
 .PHONY: inspect clean all all_examples english allocations_familiales pygments \
 	install build format install-dependencies install-dependencies-ocaml \
-	catala.html legifrance_catala.html
+	catala.html
