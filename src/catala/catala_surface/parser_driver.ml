@@ -50,20 +50,31 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
-let raise_parser_error (loc : Pos.t) (token : string) (msg : string) =
-  Errors.raise_spanned_error (Printf.sprintf "Syntax error at token \"%s\"\n%s" token msg) loc
+let syntax_hints_style = [ ANSITerminal.yellow ]
+
+let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token : string)
+    (msg : string) : 'a =
+  Errors.raise_multispanned_error
+    (Printf.sprintf "Syntax error at token %s\n%s"
+       (Cli.print_with_style syntax_hints_style "\"%s\"" token)
+       msg)
+    ( ( match last_good_loc with
+      | None -> []
+      | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ] )
+    @ [ (Some "Error token:", error_loc) ] )
 
 let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
     (last_input_needed : 'semantic_value I.env option) : 'a =
   let wrong_token = Utf8.lexeme lexbuf in
-  let acceptable_tokens =
+  let acceptable_tokens, last_positions =
     match last_input_needed with
     | Some last_input_needed ->
-        List.filter
-          (fun (_, t) ->
-            I.acceptable (I.input_needed last_input_needed) t (fst (lexing_positions lexbuf)))
-          token_list
-    | None -> token_list
+        ( List.filter
+            (fun (_, t) ->
+              I.acceptable (I.input_needed last_input_needed) t (fst (lexing_positions lexbuf)))
+            token_list,
+          Some (I.positions last_input_needed) )
+    | None -> (token_list, None)
   in
   let similar_acceptable_tokens =
     List.sort
@@ -83,19 +94,25 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
         if levx = levy then String.length x - String.length y else levx - levy)
       acceptable_tokens
   in
+
   let similar_token_msg =
     if List.length similar_acceptable_tokens = 0 then None
     else
       Some
         (Printf.sprintf "did you mean %s?"
            (String.concat ", or maybe "
-              (List.map (fun (ts, _) -> Printf.sprintf "\"%s\"" ts) similar_acceptable_tokens)))
+              (List.map
+                 (fun (ts, _) -> Cli.print_with_style syntax_hints_style "\"%s\"" ts)
+                 similar_acceptable_tokens)))
   in
   (* The parser has suspended itself because of a syntax error. Stop. *)
   let custom_menhir_message =
     match Parser_errors.message (state env) with
-    | exception Not_found -> "Message: unexpected token"
-    | msg -> "Message: " ^ String.trim (String.uncapitalize_ascii msg)
+    | exception Not_found ->
+        "Message: " ^ Cli.print_with_style syntax_hints_style "%s" "unexpected token"
+    | msg ->
+        "Message: "
+        ^ Cli.print_with_style syntax_hints_style "%s" (String.trim (String.uncapitalize_ascii msg))
   in
   let msg =
     match similar_token_msg with
@@ -103,7 +120,7 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
     | Some similar_token_msg ->
         Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
   in
-  raise_parser_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) msg
+  raise_parser_error (lexing_positions lexbuf) last_positions (Utf8.lexeme lexbuf) msg
 
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
     (token_list : (string * Parser.token) list) (lexbuf : lexbuf)

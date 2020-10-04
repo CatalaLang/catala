@@ -1191,7 +1191,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 109, spurious reduction of production expression -> logical_expression 
 ##
 
-unbalanced parenthesis
+unmatched parenthesis that should have been closed by here
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LPAREN YEAR
 ##
@@ -1538,7 +1538,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## base_expression mult_op
 ##
 
-expected an expression on the right side of the multiplication operator
+expected an expression on the right side of the multiplication or division operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE NOT_EQUAL YEAR
 ##
@@ -1586,7 +1586,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## mult_expression sum_op
 ##
 
-expected an expression on the right side of the sum operator
+expected an expression on the right side of the sum or minus operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WE_HAVE
 ##
@@ -1607,7 +1607,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-expected an operator to compose the expression with
+expected an operator to compose the expression on the left with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH YEAR
 ##
@@ -1633,7 +1633,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## small_expression
 ##
 
-expected an operator to compose the expression with
+expected an operator to compose the expression on the left with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL DIV INT_LITERAL DIV INT_LITERAL YEAR
 ##
