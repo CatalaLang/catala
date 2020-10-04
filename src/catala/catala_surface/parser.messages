@@ -254,7 +254,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## collection_marked
 ##
 
-expected a new struct item, or another declaration or scope use
+expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS OPTIONAL YEAR
 ##
@@ -266,7 +266,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## optional_marked
 ##
 
-expected a new struct item, or another declaration or scope use
+expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
@@ -278,7 +278,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## struct_scope
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
@@ -290,7 +290,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## DEPENDS
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the type of the parameter of this struct data function
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
@@ -302,7 +302,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## struct_scope_base
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
@@ -314,7 +314,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## condition_pos
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of this struct condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
@@ -326,7 +326,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## DATA ident CONTENT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the type of this struct data
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
@@ -338,7 +338,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## DATA ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the type of this struct data, introduced by the content keyword
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
@@ -350,7 +350,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## DATA
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of this struct data 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
@@ -362,7 +362,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COL
 ## DECLARATION STRUCT constructor COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected struct data or condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
@@ -374,7 +374,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEA
 ## DECLARATION STRUCT constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT YEAR
 ##
@@ -386,7 +386,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT YEAR
 ## DECLARATION STRUCT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the struct name
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION YEAR
 ##
@@ -400,7 +400,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION YEAR
 ## DECLARATION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the kind of the declaration (struct, scope or enum)
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION CARDINAL THEN
 ##
@@ -428,7 +428,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## In state 203, spurious reduction of production scope_item -> ASSERTION assertion 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a new scope use item 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT BY YEAR
 ##
@@ -440,7 +440,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## FIXED qident BY
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the legislative text by which the value of the variable is fixed
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED IDENT WITH_V
 ##
@@ -459,7 +459,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## In state 159, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the legislative text by which the value of the variable is fixed
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION FIXED YEAR
 ##
@@ -471,7 +471,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## FIXED
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the variable that should be fixed
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
 ##
@@ -483,7 +483,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## option(condition_consequence)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for this definition under condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
 ##
@@ -508,7 +508,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## In state 162, spurious reduction of production condition -> UNDER_CONDITION expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a consequence for this definition under condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION YEAR
 ##
@@ -520,7 +520,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## UNDER_CONDITION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for this condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT UNDER_CONDITION
 ##
@@ -539,7 +539,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## In state 159, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an indication about what this variable varies with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V TRUE THEN
 ##
@@ -558,7 +558,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an indication about the variation sense of the variable, or a new scope item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES IDENT WITH_V YEAR
 ##
@@ -570,7 +570,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## VARIES qident WITH_V
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+the variable varies with an expression that was expected here
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION VARIES YEAR
 ##
@@ -582,7 +582,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## VARIES
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expecting the name of the varying variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION YEAR
 ##
@@ -594,7 +594,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## ASSERTION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression that shoud be asserted during execution
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
@@ -606,7 +606,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## qident option(definition_parameters) option(condition_consequence) DEFINED_AS
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the definition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
@@ -618,7 +618,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## qident option(definition_parameters)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a expression for defining this function, introduced by the defined as keyword
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
@@ -630,7 +630,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## qident option(definition_parameters) option(condition_consequence)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the consequence of this definition under condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
@@ -649,7 +649,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## In state 159, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the defined as keyword to introduce the definition of this variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
@@ -661,7 +661,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## DEFINITION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the variable you want to define
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
@@ -673,7 +673,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## ident DOT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a struct field or a sub-scope context item after the dot
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT FALSE
 ##
@@ -685,7 +685,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## option(NOT)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the filled keyword the this rule 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
@@ -697,7 +697,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## rule_expr
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the expression of the rule
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
@@ -709,7 +709,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## OF
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the parameter for this dependent variable 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION TRUE CONSEQUENCE FALSE
 ##
@@ -721,7 +721,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## rule_expr option(condition_consequence)
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected filled or not filled for a rule consequence
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
@@ -740,7 +740,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## In state 159, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a condition or a consequence for this rule
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
@@ -753,7 +753,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a condition or a consequence for this rule, or the rest of the variable qualified name
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ##
@@ -765,7 +765,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ## RULE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the variable subject to the rule
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON YEAR
 ##
@@ -777,7 +777,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON YEAR
 ## SCOPE constructor option(scope_use_condition) COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a scope use item: a rule, definition or assertion
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CARDINAL YEAR
 ##
@@ -790,7 +790,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## CARDINAL
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the keyword following cardinal to compute the number of elements in a set
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN ALT IDENT COLON CARDINAL ALT YEAR
 ##
@@ -802,7 +802,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## struct_content_field ALT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected another field of the struct
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN ALT IDENT COLON CARDINAL THEN
 ##
@@ -827,7 +827,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 101, spurious reduction of production struct_content_field -> ident COLON logical_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected another field of the struct or the end of the struct literal
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN ALT IDENT COLON YEAR
 ##
@@ -839,7 +839,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## ident COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the field of the struct
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN ALT IDENT YEAR
 ##
@@ -851,7 +851,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon and then the expression for the field of the struct
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN ALT YEAR
 ##
@@ -863,7 +863,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## CONTENT LPAREN ALT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of field of the struct that you are building
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT LPAREN YEAR
 ##
@@ -876,7 +876,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## CONTENT LPAREN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a struct field creation introduced by a dash
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT TRUE YEAR
 ##
@@ -890,7 +890,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## CONTENT small_expression
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+the expression for the content of the enum case is already well-formed, expected an operator to form a bigger expression
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR CONTENT YEAR
 ##
@@ -903,7 +903,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## CONTENT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the content of this enum case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR YEAR
 ##
@@ -915,7 +915,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a payload for the enum case constructor, or the rest of the expression (with an operator ?)
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
 ##
@@ -927,7 +927,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## exists_prefix
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the existential test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN TRUE SUCH YEAR
 ##
@@ -939,7 +939,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## exists_marked ident IN primitive_expression SUCH
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a keyword to complete the "such that" construction
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN TRUE WITH
 ##
@@ -957,7 +957,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a keyword to form the "such that" expression for the existential test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN YEAR
 ##
@@ -969,7 +969,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## exists_marked ident IN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression that designates the set subject to the existential test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT YEAR
 ##
@@ -981,7 +981,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## exists_marked ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "in" keyword to continue this existential test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS YEAR
 ##
@@ -993,7 +993,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## exists_marked
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an identifier that will designate the existential witness for the test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT IN CARDINAL WE_HAVE YEAR
 ##
@@ -1005,7 +1005,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## forall_prefix
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT IN TRUE WITH
 ##
@@ -1023,7 +1023,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "we have" keyword for this universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT IN YEAR
 ##
@@ -1035,7 +1035,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## for_all_marked ident IN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the expression designating the set on which to perform the universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL IDENT YEAR
 ##
@@ -1047,7 +1047,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## for_all_marked ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "in" keyword for the rest of the universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR ALL YEAR
 ##
@@ -1059,7 +1059,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## for_all_marked
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an identifier for the bound variable of the universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION FOR YEAR
 ##
@@ -1071,7 +1071,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## FOR
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "all" keyword to mean the "for all" construction of the universal test
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE SCOPE
 ##
@@ -1095,7 +1095,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 109, spurious reduction of production expression -> logical_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "then" keyword as the conditional expression is complete
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE THEN TRUE ELSE YEAR
 ##
@@ -1107,7 +1107,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## IF expression THEN expression ELSE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the "else" branch of this conditional construction
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE THEN TRUE THEN
 ##
@@ -1131,7 +1131,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 109, spurious reduction of production expression -> logical_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "else" branch of this conditional expression as the "then" branch is complete
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE THEN YEAR
 ##
@@ -1143,7 +1143,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## IF expression THEN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression the for the "then" branch of the conditiona
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF YEAR
 ##
@@ -1155,7 +1155,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## IF
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the test of the conditional
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION INT_LITERAL WITH_V
 ##
@@ -1167,7 +1167,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## num_literal
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a unit for this literal, or a valid operator to complete the expression 
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LPAREN TRUE THEN
 ##
@@ -1191,7 +1191,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 109, spurious reduction of production expression -> logical_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+unbalanced parenthesis
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LPAREN YEAR
 ##
@@ -1203,7 +1203,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## LPAREN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression inside the parenthesis
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WE_HAVE
 ##
@@ -1221,7 +1221,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "with patter" keyword to complete the pattern matching expression
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON NOT TRUE OR
 ##
@@ -1245,7 +1245,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 146, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected another match case or the rest of the expression since the previous match case is complete
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON YEAR
 ##
@@ -1257,7 +1257,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## constructor_binding COLON
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for this pattern matching case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR OF CONSTRUCTOR YEAR
 ##
@@ -1269,7 +1269,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## OF constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon or a binding for the enum constructor payload
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR OF IDENT YEAR
 ##
@@ -1281,7 +1281,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## constructor_binding
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon and then the expression for this matching case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR OF YEAR
 ##
@@ -1294,7 +1294,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## OF
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an identifier for this enum case binding
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR YEAR
 ##
@@ -1306,7 +1306,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a binding for the constructor payload, or a colon and the matching case expression
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT YEAR
 ##
@@ -1318,7 +1318,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## ALT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the constructor for the enum case in the pattern matching
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH YEAR
 ##
