@@ -1330,7 +1330,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## MATCH primitive_expression WITH
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a pattern matching case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH YEAR
 ##
@@ -1342,7 +1342,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## MATCH
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression to match with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINUS YEAR
 ##
@@ -1354,7 +1354,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## sum_unop
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression to take the opposite of
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION NOT YEAR
 ##
@@ -1366,7 +1366,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## logical_unop
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression to take the negation of
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM FOR IDENT IN TRUE OF YEAR
 ##
@@ -1378,7 +1378,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## aggregate_func FOR ident IN primitive_expression OF
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression to compute its aggregation over the set
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM FOR IDENT IN TRUE WITH
 ##
@@ -1396,7 +1396,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "for" keyword and the expression to compute the aggregate
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM FOR IDENT IN YEAR
 ##
@@ -1408,7 +1408,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## aggregate_func FOR ident IN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression standing for the set over which to compute the aggregation operation
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM FOR IDENT YEAR
 ##
@@ -1420,7 +1420,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## aggregate_func FOR ident
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "in" keyword
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM FOR YEAR
 ##
@@ -1432,7 +1432,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## aggregate_func FOR
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an identifier for the aggregation bound variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION SUM YEAR
 ##
@@ -1444,7 +1444,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## aggregate_func
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the "for" keyword to spell the aggregation
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE ARROW YEAR
 ##
@@ -1456,7 +1456,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## small_expression ARROW
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a constructor, to get the payload of this enum case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE ASSERTION
 ##
@@ -1482,7 +1482,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 155, spurious reduction of production option(scope_use_condition) -> scope_use_condition 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a colon after the scope use precondition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE DOT YEAR
 ##
@@ -1494,7 +1494,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## small_expression DOT
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an identifier standing for a struct field or a subscope name
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE IN YEAR
 ##
@@ -1506,7 +1506,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## primitive_expression IN
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression standing for the set you want to test for membership
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE INCREASING
 ##
@@ -1526,7 +1526,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 50, spurious reduction of production base_expression -> primitive_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an operator to compose the expression on the left
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE MULT YEAR
 ##
@@ -1538,7 +1538,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## base_expression mult_op
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression on the right side of the multiplication operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE NOT_EQUAL YEAR
 ##
@@ -1550,7 +1550,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## sum_expression compare_op
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression on the right side of the comparison operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE OF YEAR
 ##
@@ -1562,7 +1562,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## primitive_expression OF
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression for the argument of this function call
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE OR YEAR
 ##
@@ -1574,7 +1574,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## compare_expression logical_op
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression on the right side of the logical operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE PLUS YEAR
 ##
@@ -1586,7 +1586,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## mult_expression sum_op
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression on the right side of the sum operator
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WE_HAVE
 ##
@@ -1607,7 +1607,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## In state 45, spurious reduction of production primitive_expression -> small_expression 
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an operator to compose the expression with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE WITH YEAR
 ##
@@ -1619,7 +1619,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## primitive_expression WITH
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an enum constructor to test if the expression on the left
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE YEAR
 ##
@@ -1633,7 +1633,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## small_expression
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an operator to compose the expression with
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL DIV INT_LITERAL DIV INT_LITERAL YEAR
 ##
@@ -1645,7 +1645,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL date_int DIV date_int DIV date_int
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a delimiter to finish the date literal
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL DIV INT_LITERAL DIV YEAR
 ##
@@ -1657,7 +1657,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL date_int DIV date_int DIV
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the third component of the date literal
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL DIV INT_LITERAL YEAR
 ##
@@ -1669,7 +1669,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL date_int DIV date_int
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a "/"
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL DIV YEAR
 ##
@@ -1681,7 +1681,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL date_int DIV
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the second component of the date literal
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL INT_LITERAL YEAR
 ##
@@ -1693,7 +1693,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL date_int
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a "/"
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION VERTICAL YEAR
 ##
@@ -1705,7 +1705,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## VERTICAL
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the first component of the date literal
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION YEAR
 ##
@@ -1717,7 +1717,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## UNDER_CONDITION
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an expression which will act as the condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR YEAR
 ##
@@ -1729,7 +1729,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR YEAR
 ## SCOPE constructor
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a scope use precondition or a colon
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE YEAR
 ##
@@ -1741,7 +1741,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE YEAR
 ## SCOPE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected the name of the scope you want to use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE YEAR
 ##
@@ -1753,7 +1753,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE YEAR
 ## BEGIN_CODE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a declaration or a scope use
 
 source_file_or_master: LAW_ARTICLE LAW_TEXT YEAR
 ##
@@ -1765,7 +1765,7 @@ source_file_or_master: LAW_ARTICLE LAW_TEXT YEAR
 ## law_article_item
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a code block, a metadata block, more law text or a heading
 
 source_file_or_master: LAW_ARTICLE YEAR
 ##
@@ -1777,7 +1777,7 @@ source_file_or_master: LAW_ARTICLE YEAR
 ## law_article
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a code block, a metadata block, more law text or a heading
 
 source_file_or_master: LAW_HEADING YEAR
 ##
@@ -1789,7 +1789,7 @@ source_file_or_master: LAW_HEADING YEAR
 ## source_file_item
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected some text, another heading or a law article
 
 source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 ##
@@ -1801,7 +1801,8 @@ source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 ## master_file_include
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected another inclusion of a Catala file, since this file is a master file which can only contain inclusions of other Catala files
+
 
 source_file_or_master: MASTER_FILE YEAR
 ##
@@ -1813,7 +1814,7 @@ source_file_or_master: MASTER_FILE YEAR
 ## MASTER_FILE
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected an inclusion of a Catala file, since this file is a master file which can only contain inclusions of other Catala files
 
 source_file_or_master: YEAR
 ##
@@ -1825,5 +1826,5 @@ source_file_or_master: YEAR
 ##
 ##
 
-<YOUR SYNTAX ERROR MESSAGE HERE>
+expected a law heading, a law article, some text of the declaration of a master file
 
