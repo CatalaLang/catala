@@ -527,10 +527,15 @@ law_articles_items:
 | hd = law_article_item tl = law_articles_items{ hd::tl }
 | { [] }
 
-source_file_item:
+law_text:
+| text = LAW_TEXT { LawStructure (IntermediateText text) }
+
+source_file_article:
 | article = law_article items = law_articles_items  {
   LawStructure (LawArticle (article, items))
 }
+
+source_file_item:
 | heading = law_heading {
   LawStructure (LawHeading (heading, []))
 }
@@ -538,13 +543,18 @@ source_file_item:
   let (code, source_repr) = code in
   LawStructure (MetadataBlock (code, source_repr))
 }
-| text = LAW_TEXT { LawStructure (IntermediateText text) }
 
-source_file:
-| i = source_file_item f = source_file { 
+source_file_after_text:
+| i = source_file_article f = source_file_after_text { 
   i::f 
 }
+| i = source_file_item l = list(law_text) f = source_file_after_text { 
+  i::l@f 
+}
 | EOF { [] }
+
+source_file:
+| l = list(law_text) f = source_file_after_text { l@f }
 
 master_file_include:
 | includ = LAW_INCLUDE {
