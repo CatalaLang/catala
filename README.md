@@ -21,7 +21,7 @@ proceed to annotate the text article by article, in your favorite
 text editor :
 
 <center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/ScreenShotAtom.png" alt="Screenshot" height="500"/>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/ScreenShotVSCode.png" alt="Screenshot" height="500"/>
 </center>
 
 Once your code is complete and tested, you can use the Catala
