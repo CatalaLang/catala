@@ -43,6 +43,7 @@
 \newcommand{\synop}{\synvar{\odot}}
 \newcommand{\synand}{\synvar{\wedge}}
 \newcommand{\synor}{\synvar{\vee}}
+\newcommand{\synemptydefault}{\synvar{\varnothing}}
 \newcommand{\synmerge}{\synkeyword{~++~}}
 
 \newcommand{\synvardef}{\synkeyword{definition~}}
@@ -125,40 +126,23 @@
 
 \subsection{Syntax}
 
-In this part, we describe how to add \textit{prerequisite-free} default logic to a simply-typed $\lambda$-calculus, in the form of a new construct
-$$\syndefault{b}{e}{n}$$
-where $\nicefrac{b_i}{e_i}$ stands for a \textit{default} with $b_i$ its \textit{justification} and $e_i$ its \textit{consequence}; the construction includes a partial ordering on $[1..n]$ which reprensents the \textit{preference} relation among defaults. The error term \synerror corresponds in a runtime failure of the default construction in the case where either no justification is true, or two justifications are true and there is no preference between them. The justification being booleans, we also add syntax for boolean and boolean operations.
-
 \begin{figure}[h]
 \centering
 \fbox{\begin{tabular}{lrrll}
   Type&\synvar{\tau}&\syndef&\synbool&boolean type\\
   &&\synalt&\synvar{\tau}\;\syntyparrow\;\synvar{\tau}&function type \\
   &&&&\\
-  Identifier&\synvar{i}&\syndef&\synvar{x}&\\
+  Expression&\synvar{e}&\syndef&\synvar{x}\synalt\synlambda{x}{\tau}{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
+  &&\synalt&\synvar{D}&default term\\
   &&&&\\
-  Expression&\synvar{e}&\syndef&\synvar{i}\synalt\synlambda{i}{\tau}{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
-  &&\synalt&\syntrue\synalt\synfalse&boolean literals\\
-  &&\synalt&\synif\synvar{e}\synthen\synvar{e}\synelse\synvar{e}&conditionals\\
-  &&\synalt&$\left[[\nicefrac{\synvar{e}}{\synvar{e}}]^+;\prec\right]$&default expression\\
-  &&\synalt&\synerror&error term\\
+  Default&\synvar{D}&\syndef&$\{\nicefrac{\synvar{e}}{\synvar{e}}, [\synvar{D}^*]\}$&default term\\
+  &&\synalt&\synerror&conflict error term\\
+  &&\synalt&\synemptydefault&empty error term\\
 \end{tabular}}
 \caption{Syntax of the default calculus}
 \end{figure}
 
-Note that we can define the usual boolean operators \synand\;and \synor\;as :
-$$\synand~\synvar{x}~\synvar{y} = \synif\synvar{x}\synthen(\synif\synvar{y}\synthen\syntrue\synelse\synfalse)\synelse\synfalse$$
-$$\synor~\synvar{x}~\synvar{y} = \synif\synvar{x}\synthen\syntrue\synelse(\synif\synvar{y}\synthen\syntrue\synelse\synfalse)$$
-
-We will make explicit use of this later on. We also add a \textit{let} binding expression, which is syntactic sugar for~:
-$$\synlet\synvar{i}\syncolon\synvar{\tau}\synequal\synvar{e_1}\synin\synvar{e_2} = (\synlambda{i}{\tau}{e_2})\;\synvar{e_1}$$.
-
-Finally, we define a merging operator \synmerge :
-$$ \synvar{e_1}\synmerge\synvar{e_2}=\synlet\synvar{x}\syncolon\synvar{\tau}=\synvar{e_1}\synin\synif\synvar{(=)}~\synvar{x}~\synerror\synthen\synvar{e_2}\synelse\synvar{x} $$
-
 \subsection{Typing}
-
-We consider typing contexts defined as followed, where the order of the elements in the context doesn't matter.
 
 \begin{center}
   \begin{tabular}{lrr}
@@ -166,16 +150,7 @@ We consider typing contexts defined as followed, where the order of the elements
   \end{tabular}
 \end{center}
 
-Typing judgments are of the form $\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$.
-
-The \textsc{Figure} \ref{fig:typing} presents the typing rule of the default-calculus. Rules \textsc{Var}, \textsc{Abs} and \textsc{App} are those of the simply-types lambda-calculus. Rules \textsc{True}, \textsc{False} and \textsc{IfThenElse} come from the addition of booleans. Finally we explain the \textsc{DefaultBase}, \textsc{DefaultFun} and \textsc{Error} rules.
-
-We naturally want to type a default construction with the type of its \textit{consequences}, and the \textit{justifications} should be or (should return) booleans. The \textsc{DefaultBase} rules does just that. There are two ways then to go around expliciting the construction as a function :
-\begin{itemize}
-  \item putting the lambda abstraction outside of the construction in which case the base rule suffice;
-  \item allowing the abstraction inside the construction. We then need the \textsc{DefaultFun} rule to type the construction as $\tau_1 \rightarrow \ldots \rightarrow \tau_n \rightarrow \tau$ (then the justifications have type $\tau_1\rightarrow\ldots\rightarrow\tau_n\rightarrow\synbool$). One can note that the recursive rule is needed to get the \synvar{bool} case as the result of the function (otherwise we would get $(\tau_1\rightarrow\ldots\rightarrow\tau_n)\rightarrow\synbool$).
-\end{itemize}
-To handle runtime error, we mark the \synerror\;has having any type.
+Typing judgments : $\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$.
 
 \begin{figure}
 \centering
@@ -193,30 +168,25 @@ To handle runtime error, we mark the \synerror\;has having any type.
   }
   {\typctx{\Gamma}\typvdash\synvar{e_1}\;\synvar{e_2}\typcolon\synvar{\tau_1}}
   
-  \inferrule[True]{ }{\typctx{\Gamma}\typvdash\syntrue\typcolon\synbool}
-
-  \inferrule[False]{ }{\typctx{\Gamma}\typvdash\synfalse\typcolon\synbool}
-  
-  \inferrule[IfThenElse]
-  {
-    \typctx{\Gamma}\typvdash\synvar{b}\typcolon\synbool\\
-    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau}\\
-    \typctx{\Gamma}\typvdash\synvar{e_2}\typcolon\synvar{\tau}
-  }
-  {\typctx{\Gamma}\typvdash\synif\synvar{b}\synthen\synvar{e_1}\synelse\synvar{e_2}\typcolon\synvar{\tau}}
-  
   \inferrule[DefaultBase]
   {
-    \typctx{\Gamma}\typvdash\synvar{b_1}\ldots\synvar{b_n}\typcolon\synbool\\
-    \typctx{\Gamma}\typvdash\synvar{e_1}\ldots\synvar{e_n}\typcolon\synvar{\tau}
+    \typctx{\Gamma}\typvdash\synvar{b}\typcolon\synbool\\
+    \typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}\\
+    \typctx{\Gamma}\typvdash\synvar{D_i}\typcolon{\tau}
   }
-  {\typctx{\Gamma}\typvdash\syndefault{b}{e}{n}\typcolon\synvar{\tau}}
+  {\typctx{\Gamma}\typvdash\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1},\ldots,\synvar{D_n}]\}\typcolon\synvar{\tau}}
 
   \inferrule[DefaultFun]
-  {\typctx{\Gamma}\typcomma\synvar{x_1}\typcolon\synvar{\tau}\typcomma\ldots\typcomma\synvar{x_n}\typcolon\synvar{\tau}\typvdash\syndefault{b}{e}{n}\typcolon\synvar{\tau'}}
-  {\typctx{\Gamma}\typvdash\left[\nicefrac {\synvar{\lambda}\synvar{x_1}\syncolon\synvar{\tau}\syndot\synvar{b_1}} {\synvar{\lambda}\synvar{x_1}\syncolon\synvar{\tau}\syndot\synvar{e_1}} ,\;\ldots,\; \nicefrac {\synvar{\lambda}\synvar{x_n}\syncolon\synvar{\tau}\syndot\synvar{b_n}} {\synvar{\lambda}\synvar{x_n}\syncolon\synvar{\tau}\syndot\synvar{e_n}} \right]\typcolon\synvar{\tau}\syntyparrow\synvar{\tau'}}
-  
-  \inferrule[Error]{}{\typctx{\Gamma}\typvdash\synerror\typcolon\synvar{\tau}}
+  {
+    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\{\nicefrac{\synvar{b}}{\synvar{e}} ,[]\}\typcolon\synvar{\tau'}\\
+    \typctx{\Gamma}\typvdash\synvar{D_i}\typcolon\synvar{\tau}\syntyparrow\synvar{\tau'}
+  }
+  {\typctx{\Gamma}\typvdash\{\nicefrac{\synlambda{\synvar{x}}{\synvar{\tau}}{\synvar{b}}}{\synlambda{\synvar{x}}{\synvar{\tau}}{\synvar{e}}}, [\synvar{D_1},\ldots,\synvar{D_n}]\}\typcolon\tau\syntyparrow\tau'}
+
+  \inferrule[ConflictError]{}{\typctx{\Gamma}\typvdash\synerror\typcolon\synvar{\tau}}
+
+  \inferrule[EmptyError]{}{\typctx{\Gamma}\typvdash\synemptydefault\typcolon\synvar{\tau}}
+
 \end{mathpar}}
 \caption{Default calculus typing rules}
   \label{fig:typing}
@@ -224,460 +194,67 @@ To handle runtime error, we mark the \synerror\;has having any type.
 
 \subsection{Evaluation}
 
-We define a \textit{call-by-value} reduction strategy for our calculus.
+\newcommand{\exDeval}{\exctx{\;\Downarrow\;}}
+\newcommand{\exnotDeval}{\exctx{\;\nRightarrow\;}}
 
-Values are the functions and the \syntrue\;and \synfalse\;literals. The evaluation strategy is quite classic hence not described further, except for the default construction.
+$$ A([D_1, \ldots, D_n]) = \#\{i | D_i \exnotDeval \synemptydefault \} $$
+$$ B([D_1, \ldots, D_n]) = e~|~D_i \exDeval e \wedge e \neq \synemptydefault $$
+
+\begin{figure}
+\centering
+\fbox{\begin{mathpar}
+  \inferrule[JustifTrue]
+  {\synvar{b}\exevalstar\top}
+  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval e}
+
+  \inferrule[NoJustifTrue]
+  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) = 0}
+  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synemptydefault}
+
+  \inferrule[DefaultOk]
+  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) = 1\\B([D_1, \ldots, D_n]) = \synvar{e}}
+  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synvar{e}}
+  
+  \inferrule[DefaultConflict]
+  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) > 1}
+  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synerror}
+
+\end{mathpar}}
+  \caption{Default evaluation}
+\end{figure}
 
 \begin{center}
   \begin{tabular}{rcll}
     \synvar{v}&\syndef&\synlambda{i}{\tau}{e}&functions\\
-              &\synalt&\syntrue\synalt\synfalse&boolean literals\\
-    \synvar{C}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&\\
-              &\synalt&\synif\synhole\synthen\synvar{e}\synelse\synvar{e}&\\
-              &\synalt&$\left[\;\ldots,\;\nicefrac{\cdot}{e},\;\ldots;\prec\right]$&\\
+    \synvar{C}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&
   \end{tabular}
 \end{center}
-
-We also evaluate under a context $\Omega_v$ which binds free variables to values $\exctx{\Omega_v} = \exemptyv\synalt\exctx{\Omega_v}\excomma\synvar{x}\exvarmap\synvar{v}$ (note that the order of the bindings inside the evaluation context is not relevant). And we introduce an evaluation judgments of the form $\exctx{\Omega_v}\exvdash\synvar{e}\exeval\synvar{e}$
-
-As hinted earlier the default operator should reduce to the default which justification is true \textbf{and} the smallest, in the sense that if another justification is true, then the first one must be smaller, if this applies to none of the default, then we should return an error.
-
-Finally, we need to show how errors propagate. This is done simply using the \textsc{ErrorPror} rule. Of course in a real implementation, the error type would contain some information on the nature of the error, but this is not the purpose of this formalization.
 
 \begin{figure}
   \centering\fbox{
 \begin{mathpar}
-  \inferrule[$\beta_v$]{}{\synlambda{i}{\tau}{e})\;\synvar{v}\exeval[\synvar{x}\mapsto\synvar{v}]e}
+  \inferrule[$\beta_v$]{}{(\synlambda{x}{\tau}{e})\;\synvar{v}\exeval[\synvar{x}\mapsto\synvar{v}]e}
+
+  \inferrule[$\beta_d$]{}{\{\nicefrac{\synvar{b}}{\synvar{e}},[D_1,\ldots,D_n]\}~v\exeval\{\nicefrac{\synvar{b}\;\synvar{v}}{\synvar{e}\;\synvar{v}},[\synvar{D_1}\;\synvar{v},\ldots,\synvar{D_n}\;\synvar{v}]\}}
 
   \inferrule[Context]
   {\synvar{e}\exeval\synvar{e'}}
-  {\exvdash\synvar{C}[\synvar{e}]\exeval\synvar{C}[\synvar{e'}]}
+  {\synvar{C}[\synvar{e}]\exeval\synvar{C}[\synvar{e'}]}
 
-  \inferrule[IfTrue]{ }{\synif\syntrue\synthen\synvar{e_1}\synelse\synvar{e_2}\exeval\synvar{e_1}}
-
-  \inferrule[IfFalse]{ }{\synif\synfalse\synthen\synvar{e_1}\synelse\synvar{e_2}\exeval\synvar{e_2}}
+  \inferrule[Default]
+  {\synvar{D}\exDeval\synvar{e}}
+  {\synvar{D}\exeval\synvar{e}}
   
-  \inferrule[EDefault]
-  {
-    \synvar{v_i}=\syntrue\\
-    \forall j\neq i\syndot\synvar{v_j}=\syntrue\Rightarrow i\prec j
-  }
-  {\syndefault{v}{e}{n}\exeval\synvar{e_i}}
-
-  \inferrule[EDefaultError]
-  {\forall\synvar{i}\syndot\synvar{v_i}=\synfalse\vee(\exists j\neq i.\;v_j=\syntrue\wedge i\nprec j)}
-  {\syndefault{v}{e}{n}\exeval\synerror}
-  
-  \inferrule[ErrorProp]
+  \inferrule[ConflictError]
   {e\exeval\synerror}
   {C[e]\exeval\synerror}
+
+  \inferrule[EmptyError]
+  {e\exeval\synemptydefault}
+  {C[e]\exeval\synemptydefault}
 \end{mathpar}
 }
 \caption{Default calculus evaluation}
-\end{figure}
-
-
-\subsection{Default compilation}
-
-We now describe how to compile the default constructor in term of the rest of the language, and show that this compilation preserves the semantics of the program.
-The main idea to tackle races between justifications (two justifications being true without preference between the two), is to use the remark that if $i \nprec j \wedge j \nprec i$, then $b_i$ and $b_j$ should not be true at the same time.
-In the following \textsc{DefaultComp} rule, note that we may reorder the defaults to match the condition.
-
-\begin{mathpar}
-  \inferrule[DefaultComp]
-  {
-    \forall i\in\{2..n\}.\;i\nprec 1\\
-    \left[\nicefrac{b_2}{e_2},\;\ldots,\;\nicefrac{b_{n}}{e_{n}};\;\prec\right] \excomp e_{df}
-  }
-{\syndefault{b}{e}{n}\excomp\synif\synvar{b_1}\wedge\bigvee_{i,\;1\nprec i\wedge 1\nprec i} b_i\synthen\synerror\synelse\left(\synif\synvar{b_1}\synthen\synvar{e_1}\synelse\synvar{e_{df}\right)}}
-
-  \inferrule[EmptyDefaultComp]{ }{[]\excomp\synerror}
-\end{mathpar}
-
-One thing to note is that the size of the resulting expression is proportional to the square of the number of defaults. One could of course reduce the number of error catching test by performing a static analysis on the justifications to show that some are incompatible. In practice however the number of defaults in legislative text is very limited (in french law text usually less than ten and in american one less than a hundred).
-
-\begin{theorem}
-  Let $d = \syndefault{b}{e}{n}$ and $d\excomp e_{df}$, then: $d \exeval e \Longrightarrow e_{df} \exevalstar e$.
-\end{theorem}
-
-\section{Scope language}
-
-Sticking to a legislative drafting style raises an interesting programming language question : how does one achieves modularity that is equivalent to the way law is written ? In this part, we introduce an overlay to the presented calculus that enables to work with scopes (\textit{champ d'application} in french).
-
-From a legal point of view, a scope is a set of rules that applies and defines persons and objects. From a programming language point of view, this means a scope should be some sort of functions that takes as input a context (more precisely a set of variables that describe the context) and returns the same context with the rules of the scopes applied.
-
-We then achieve some modularity through subscoping, which is halfway between a scope inclusion and a scope call. 
-
-Let's imagine we have a complicated law status $A$ from 2005, and the same status from 2020. We can then introduce two scopes $\mathsf{A\_2005}$ and $\mathsf{A\_2020}$ that capture the rules from this status. Now maybe the law specify that under some condition $\mathcal{C}$ the status from 2020 should be exactly the status from 2005. Instead of rewriting everything from the 2005 status into the code of $\mathsf{A\_2020}$ we would then keep the two separate and include the former into the latter, under condition $\mathcal{C}$. In practice one does that by adding a default to the rule that specifies the result of the computation of the form $\nicefrac{\mathcal{C}}{\mathsf{A\_2005.res}}$.
-
-Now we can imagine something even trickier. What if the 2020 status says : under condition $\mathcal{C}$, use the 2005 status, with the amount $x$ being capped to $10$ ? Here the call to the subscope redefines it ! One could of course imagine rewriting the 2005 status entirely with thus little tweak. But we think the default logic mechanism solves it for us : in the 2005 status, we can rewrite the rule concerning $x$ as a two step rule : $x' = e_{2005};\;x = \nicefrac{\syntrue}{x'}$. We could then in the 2020 status add a rule like $x = \nicefrac{x'>10}{10}$, and annotate this rule as having priority over the former rule.
-
-The scope language we present now formalizes those idea.
-
-\subsection{Syntax}
-
-We build upon the default calculus, which serves as a language of expressions. We add a new kind of identifiers to reflect subscope inclusion.
-\begin{figure}
-\centering
-\fbox{\begin{tabular}{lrrll}
-  Identifier&\synvar{i}&\syndef&\synvar{x}\synalt\synscope{y}{S}.\synvar{x}&Extended identifiers for \synvar{e}\\
-  &&&&\\
-  Statement&\synname{stmt}&\syndef&\synvardef\synvar{i}~$[[\nicefrac{\synvar{e}}{\synvar{e}}]^+;\;\prec]$&Variable definition\\
-           &&\synalt&\synscopecall\synscope{y}{S}&Subscope execution\\
-  &&&&\\
-  Scope&\synname{Sdef}&\syndef&(\synvar{S}\syncolon$[\synname{stmt}]^*$)&Scope definition\\
-  &&&&\\
-  Program&\synname{p}&\syndef&$[\synname{Sdef}]^*$&\\
-\end{tabular}}
-\caption{Syntax of the scope language}
-\end{figure}
-
-\subsection{Well formedness}
-
-The well-formedness context \wfctx{\Gamma} of a scope gives the order of execution of variable inside the scope, hence its order is important.It goes the same for the global context \wfctx{\Delta}.
-
-\begin{center}
-\begin{tabular}{lrrll}
-Scope context & \wfctx{\Gamma} & \syndef & \wfgammaempty & Empty context \\
-&& \synalt & \wfctx{\Gamma}\wfcomma \synvar{x} & Variable \\
-&& \synalt & \wfctx{\Gamma}\wfcomma (\synvar{y}\syncolon\synvar{S}) & Subscope \\
-Program context & \wfctx{\Delta} & \syndef & \wfdeltaempty & \\
-                && \synalt & \wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma}\\
-\end{tabular}
-\end{center}
-
-We introduce judgments to check well-formedness. For an identifier, it will check that it is available in the context. For a statement it will check that all free variables of the statement are available in the context. As mentionned earlier, the \wfctx{\Delta} produced at the end of the check gives an ordering among scopes, and inside each scope, an ordering among statements.
-
-\begin{center}
-  \begin{tabular}{lc}\toprule
-    Identifier well-formedness & \wfctx{\Delta}\wfvdash\synvar{x}\wfokin\synvar{S} \\
-    Statement well-formedness & \wfctx{\Delta}\wfvdash\synname{stmt}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}\\
-                              & \wfctx{\Delta}\wfvdash\synname{stmts}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}\\
-    Scope definition well-formedness & \wfctx{\Delta}\wfvdash\synname{Sdef}\wfok\wfArrow\wfctx{\Delta}\\
-                                     & \wfctx{\Delta}\wfvdash\synname{Sdefs}\wfok\wfArrow\wfctx{\Delta}\\
-    Program well-formedness & \wfvdash\synname{p}\wfok\wfArrow\wfctx{\Delta}\\                              
-    \bottomrule
-  \end{tabular}
-\end{center}
-
-In the \textsc{WfSubVarDef} rule, we make sure that the refinement of a \synscope{y}{S}.\synvar{x} happens before the call to the subscope \synscope{y}{S}, but in the same time we allow this refinement to have free variables from the \synvar{y} scope.
-
-\begin{figure}
-  \centering\fbox{
-\begin{mathpar}
-  \inferrule[WfVarIdent] 
-  {\wfctx{\Delta}(\synvar{S})\wfeq\wfctx{\Gamma} \\ \synvar{x} \in \wfctx{\Gamma}}
-  {\wfctx{\Delta}\wfvdash\synvar{x}\wfokin\synvar{S}}
-
-  \inferrule[WfSubVarIdent]
-  {
-    \wfctx{\Delta}(\synvar{S})\wfeq\wfctx{\Gamma} \\ 
-    \synscope{y}{S'} \in \wfctx{\Gamma} \\
-    \wfctx{\Delta}\wfvdash\synvar{x}\wfokin\synvar{S'}
-  }
-  {\wfctx{\Delta}\wfvdash\synscope{y}{S'}.\synvar{x}\wfokin\synvar{S}}
-  
-  \inferrule[WfVarDef]
-  {
-    \wfctx{\Delta}(\synvar{S})\wfeq\wfctx{\Gamma} \\ 
-    \neg (\synvar{x} \in \wfctx{\Gamma}) \\ 
-    \forall\synvar{i}\in\mathsf{FV}(\syndefault{b}{e}{n}.~
-      \wfctx{\Delta}\wfvdash\synvar{i}\wfokin\synvar{S}
-  }
-  {\wfctx{\Delta}\wfvdash\synvardef\synvar{x}~(\syndefault{b}{e}{n})\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}\wfcomma\synvar{x}}
-
-  \inferrule[WfSubVarDef]
-  {
-    \wfctx{\Delta}\wfeq\wfctx{\Delta'}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma} \\
-    \neg (\synscope{y}{S} \in \wfctx{\Gamma} \\
-    \forall\synvar{i}\in\mathsf{FV}(\syndefault{b}{e}{n}).~
-    \wfctx{\Delta'}\wfcomma\synvar{S}\wfarrow(\wfctx{\Gamma}\wfcomma\synscope{y}{S'})\wfvdash\synvar{i}\wfokin\synvar{S}
-  }
-  {\wfctx{\Delta}\wfvdash\synvardef\synscope{y}{S'}.\synvar{x}~\syndefault{b}{e}{n}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}}
-
-  \inferrule[WfCallScope]
-  {\wfctx{\Delta}(\synvar{S})\wfeq\wfctx{\Gamma}}
-  {\wfctx{\Delta}\wfvdash\synscopecall\synscope{y}{S'}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}\wfcomma\synscope{y}{S'}}
-
-  \inferrule[WfStmtList]
-  {
-    \wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma}\wfvdash\synname{stmt}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma'}\\
-    \wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma'}\wfvdash\synname{stmts}\wfokin{S}\wfArrow\wfctx{\Gamma''}
-  }
-  {\wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma}\wfvdash\synname{stmt}::\synname{stmts}\wfokin\synvar{S}\wfArrow\wfctx{\Gamma''}}
-
-  \inferrule[WfEmptyStmtList]
-  {}
-  {\wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma}\wfvdash[]\wfokin\synvar{S}\wfArrow\wfctx{\Gamma}}
-
-  \inferrule[WfScopeDef]
-  {
-    \synvar{S}\notin\wfctx{\Delta}\\
-    \wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfgammaempty\wfvdash\synname{stmts}\wfokin{S}\wfArrow\wfctx{\Gamma}
-  }
-  {\wfctx{\Delta}\wfvdash(\synvar{S}:\synname{stmts})\wfok\wfArrow\wfctx{\Delta}\wfcomma\synvar{S}\wfarrow\wfctx{\Gamma}}
-
-  \inferrule[WfScopeDefList]
-  {
-    \wfctx{\Delta}\wfvdash\synname{Sdef}\wfok\wfArrow\wfctx{\Delta'}\\
-    \wfctx{\Delta'}\wfvdash\synname{Sdefs}\wfok\wfArrow\wfctx{\Delta''}
-  }
-  {\wfctx{\Delta}\wfvdash\synname{Sdef}::\synname{Sdefs}\wfok\wfArrow\wfctx{\Delta''}}
-
-  \inferrule[WfEmptyScopeDefList]{}{\wfctx{\Delta}\wfvdash[]\wfok\wfArrow\wfctx{\Delta}}
-  
-  \inferrule[WfProgram]{\wfdeltaempty\wfvdash\synname{p}\wfok\wfArrow\wfctx{\Delta}}{\wfvdash\synname{p}\wfok\wfArrow\wfctx{\Delta}}
-\end{mathpar}
-}
-\caption{Well-formedness of programs}
-\end{figure}
-
-\subsection{Execution}
-
-Let's now provide an executional semantics to well-formed programs of our scope language. The execution context is composed of an evaluation context to evaluate free variables of expressions, and of a scope argument context for each of the subscopes. We also introduce a new type of identifiers $\synvar{i}\syndef\ldots\synalt\excaller.\synvar{x}$ which makes it possible to refer to variables of the caller scope.
-
-\begin{center}
-\begin{tabular}{rrll}
-\exctx{\Omegaarg} & \syndef & \exemptyarg & \\
-& \synalt & \exctx{\Omegaarg}\excomma\synscope{y}{S}\exscopemap\exctx{\Omega_v} & Subscope arguments \\
-\exctx{\Omega} & \syndef & \exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg} & Execution context \\
-\exempty & \syndef & \exemptyv\exsemicolon\exemptyarg& Empty execution context
-\end{tabular}
-\end{center}
-
-\begin{center}
-  \begin{tabular}{lc}\toprule
-    Variable execution & \exctx{\Omega}\exvdash\synvar{i}\exeval\synvar{v} \\
-    Statement execution & \synname{p},\;\exctx{\Omega}\exvdash\synname{stmt}\exArrow\exctx{\Omega}\\
-                        & \synname{p},\;\exctx{\Omega}\exvdash\synname{stmts}\exArrow\exctx{\Omega}\\
-    Scope execution & \synname{p}\exvdash\synname{Sdef}\exArrow\exctx{\Omega_v}\\
-  \bottomrule
-\end{tabular}
-\end{center}
-
-Rule \textsc{EExpr} forms the link with the default calculus we previously defined.
-
-Rule \textsc{EVarDef} evaluates the default expression as a value and binds it to the variable name in the evaluation context. We can note the parallel with the well-formedness rule \textsc{WfVarDef}, in the sense that once a variable is defined it is made available as a free-variable in further computation, and the well-formedness rule ensured that all the free-variables of the default expression are well-defined.
-
-Rules \textsc{ESubVarDef} and \textsc{EScopeCall} defines the precise semantics of subscopes. We really see \exctx{\Omegaarg} as a way to collect argument (re)definitions. The $\exrewrite{\synscope{y}{S}}{.}$ function rewrites an expression by modifying the free variable identifiers :
-
-\newcommand{\rewrite}[1]{\exrewrite{\synscope{y}{S}}{#1}}
-
-$$
-\begin{array}{lcl}
-  \rewrite{x} & = & \excaller.x\\
-  \rewrite{\synscope{y}{S}.x} & = & x\\
-  \rewrite{\synscope{y'}{S'}.x} & = & \excaller.\synscope{y'}{S'}.x\\
-  \rewrite{e_1~e_2} & = & \rewrite{e_1}~\rewrite{e_2}\\
-  \rewrite{\synlambda{x}{\tau}{e}} & = & \synlambda{x}{\tau}{\rewrite{e}}\\
-  \rewrite{\synif b \synthen e_1 \synelse e_2} & = & \synif\rewrite{b}\synthen\rewrite{e_1}\synelse\rewrite{e_2}\\
-  \rewrite{\syntrue} & = & \syntrue\\
-  \rewrite{\synfalse} & = & \synfalse\\
-  \rewrite{\syndefault{b}{e}{n}} & = & \left[\nicefrac{\rewrite{b_1}}{\rewrite{e_1}},\;\ldots,\;\nicefrac{\rewrite{b_n}}{\rewrite{e_n}};\;\prec\right]
-\end{array}
-$$
-
-It allows to merge the expression in the target scope, by removing the scope qualifier from the subscope variables and adding a special qualifier \excaller\;to avoid naming conflicts.
-
-\begin{figure}[h!]
-\centering
-\fbox{
-\begin{mathpar}
-  \inferrule[MergeDef]
-  {
-    \synname{Sdef} = \synvardef\synvar{x}~\synvar{e},\synname{Sdef'}\\
-    \exctx{\omega}\exeq\exctx{\omega'}\excomma\synvar{x}\exvarmap{e'}\\
-    \synname{Sdef''} = \exmerge(\synname{Sdef'},\omega')\\
-  }
-  { \exmerge(\synname{Sdef};\exctx{\omega}) = \synvardef\synvar{x}~(\synvar{e}\synmerge\synvar{e'})
-  ,\;\synname{Sdef''} }
-
-  \inferrule[MergeCall]
-  {
-    \synname{Sdef'} = \exmerge(\synname{Sdef};\exctx{\omega})\\
-  }
-  { \exmerge(\synscopecall\synscope{y}{S},\synname{Sdef};\exctx{\omega}) = \synscopecall\synscope{y}{S},\;\synname{Sdef'} }
-
-  \inferrule[MergeEmpty]
-  { }
-  { \exmerge([],\exctx{\omega}) = []}
-\end{mathpar}}
-\caption{The merge function}
-\label{fig:merge}
-\end{figure}
-
-The \exmerge\;function merges all the new definitions written in the caller scope into the callee scope : in other words it rewrites the callee scope. It takes an argument context $\omega$ and a scope definition \textsf{Sdef} and merges the two. The definitions of the caller scope take precedence on the definitions of the callee in the default logic mechanism. The \synmerge operator allows us to do just that. 
-The \exmerge\;function is defined by the rules in Figure \ref{fig:merge}.
-
-The $\Theta$ function then reorder a program \synname{p} such that $\wfvdash\synname{p}\wfok\wfArrow\wfctx{\Delta}$.
-
-We note $\excaller.\exctx{\Omega_v}$ to designate the evaluation context where bindings of the form $i\exvarmap v$ are replaced by $\excaller.i\exvarmap v$.
-
-\begin{figure}
-\centering\fbox{
-\begin{mathpar}
-  \inferrule[MergeBackVar]
-  {\exmergeback{\exctx{\omega}}{\synscope{y}{S}}=\exctx{\Omega_v}}
-  {\exmergeback{\synvar{x}\exvarmap\synvar{v}\excomma\exctx{\omega}}{\synscope{y}{S}} = \exctx{\Omega_v}\excomma\synscope{y}{S}.\synvar{x}\exvarmap\synvar{v}}
-
-  \inferrule[MergeBackDropCaller]
-  { }
-  {\exmergeback{\excaller.\synvar{i}\exvarmap\synvar{v}\excomma\exctx{\omega}}{\synscope{y}{S}} = \exmergeback{\exctx{\omega}}{\synscope{y}{S}}}
-
-  \inferrule[MergeBackDropSubScope]
-  { y \neq y' }
-  {\exmergeback{\synscope{y'}{S'}.\synvar{x}\exvarmap\synvar{v}\excomma\exctx{\omega}}{\synscope{y}{S}} = \exmergeback{\exctx{\omega}}{\synscope{y}{S}}}
-
-  \inferrule[MergeBackEmpty]{ }{\exmergeback{[]}{\synscope{y}{S}} = []}
-\end{mathpar}
-}
-\caption{The $\mu^{-1}$ functions}
-\label{fig:mergeback}
-\end{figure}
-
-Finally, the $\mu^{-1}$ functions merges back the evaluation context of the callee scope into the caller scope context : it is defined in Figure \ref{fig:mergeback}. We also write $\exctx{\Omega_v}\excomma\exctx{\Omega'_v}$ to denote the (disjoint) union of evaluation contexts (variables defined more than once is ruled out by the well formedness predicate).
-
-To sum up the \textsc{EScopeCall} rule : when you call the scope \synscope{y}{S}, you need to first merge the (re)definitions of the variables of the scope, then reorder the scope statements (because redefinition may add some dependencies to the variables of the subscopes), execute the subscope to get it's output evaluation context, and append this context to the evaluation context of the caller scope (to make the variables available for further computations).
-
-\begin{figure}
-  \centering\fbox{
-\begin{mathpar}
-  \inferrule[EExpr]
-  {\exctx{\Omega}\exeq\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg} \\ \exctx{\Omega_v}\exvdash\synvar{e}\exeval\synvar{e'}}
-  {\exctx{\Omega}\exvdash\synvar{e}\exeval\synvar{e'}}
-  
-  \inferrule[EVarDef]
-  {
-    \exctx{\Omega}\exeq\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg}\\
-    \exctx{\Omega}\exvdash\syndefault{b}{e}{n}\exevalstar\synvar{v}
-  }
-  {\exctx{\Omega}\exvdash\synvardef\synvar{x}~\syndefault{b}{e}{n}\exArrow\exctx{\Omega_v}\excomma\synvar{x}\exvarmap\synvar{v}\exsemicolon\exctx{\Omegaarg}}
-
-  \inferrule[ESubVarDef]
-  {
-    \exctx{\Omega}\exeq\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg}\excomma\synscope{y}{S}\exscopemap\exctx{\omega_S}\\
-    \exctx{\omega_S'}\exeq\exctx{\omega_S}\excomma\synvar{x}\exvarmap\exrewrite{\synscope{y}{S}}{\syndefault{b}{e}{n}}
-  }
-  {\synname{p},\exctx{\Omega}\exvdash\synvardef\synscope{y}{S}.\synvar{x}~\syndefault{b}{e}{n}\exArrow\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg}\excomma\synscope{y}{S}\exscopemap\exctx{\omega_S'}}
-
-  \inferrule[EScopeCall]
-  {
-    \exctx{\Omega}\exeq\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg}\excomma\synvar{y}\exscopemap\exctx{\omega_S}\\
-    \synname{Sdef} = \mu(\synname{p}(\synvar{S}),\exctx{\omega_S}) \\
-    \synname{p'} = \Theta(\synname{p}[\synvar{S}\rightarrow\synname{Sdef}])\\
-    \synname{p'},(\excaller.\exctx{\Omega_v},\exemptyarg)\exvdash\synvar{S}\exArrow\exctx{\omega_x}\exsemicolon\exctx{\omega_y} \\
-    \exctx{\Omega_v'}\exeq\exctx{\Omega_v}\excomma\mu^{-1}(\exctx{\omega_x}\excomma\synvar{y})
-  }
-  {\synname{p},\exctx{\Omega}\exvdash\synscopecall\synscope{y}{S}\exArrow\exctx{\Omega_v'}\exsemicolon\exctx{\Omegaarg}}
-  
-  \inferrule[EStmtList]
-  {
-    \synname{p},\exctx{\Omega}\exvdash\synname{stmt}\exArrow\exctx{\Omega'}\\
-    \synname{p},\exctx{\Omega}'\exvdash\synname{stmts}\exArrow\exctx{\Omega''}\\
-  }
-  {\synname{p},\exctx{\Omega}\exvdash\synname{stmt}::\synname{stmts}\exArrow\exctx{\Omega''}}
-
-  \inferrule[EEmptyStmtList]{}{\synname{p},\exctx{\Omega}\exvdash[]\exArrow\exctx{\Omega}}
-
-  \inferrule[EScope]
-  {
-    \synname{p},\exempty\exvdash\synname{stmts}\exArrow\exctx{\Omega_v}\exsemicolon\exctx{\Omegaarg}
-  }
-  {\synname{p}\exvdash(\synvar{S}:\synname{stmts})\exArrow\exctx{\Omega_v}}
-\end{mathpar}
-}
-\caption{Scope execution}
-\label{scope_execution}
-\end{figure}
-
-\subsection{Scope inlining}
-
-Here we have to introduce identifiers of the type $[\synscope{y}{S}.]^*\synvar{x}$. 
-After that the inlining is really simple; recursively for a subscope \synscope{y}{S}, we need to :
-\begin{itemize}
-  \item integrate the "argument definition";
-  \item reorder the statements such that the scope definition is well formed;
-  \item inline its own subscopes;
-  \item rewrite all variables to prepend \synscope{y}{S} (except for the caller variables !)
-  \item replace the \synscopecall in the caller by the list of definitions produced
-\end{itemize}
-
-\newcommand{\exinline}{\exctx{\;\ggg\;}}
-
-This calls for some partial execution of the scope, we will now have two predicates of the form : $\exctx{\Omegaarg}\exsemicolon\synname{p}\exvdash\synname{stmt}\exinline\exctx{\Omegaarg}\exsemicolon\synname{stmts}$ and $\synname{p}\exvdash\synname{Sdef}\exinline\synname{Sdef}$
-
-\begin{figure}
-\centering\fbox{
-\begin{mathpar}
-  \inferrule[InVarDef]
-  { }
-  {\exctx{\Omegaarg}\exsemicolon\synname{p}\exvdash\synvardef\synvar{x}\;\syndefault{b}{e}{n}\exinline\exctx{\Omegaarg}\exsemicolon\left[\synvardef\synvar{x}\;\syndefault{b}{e}{n}\right]}
-
-  \inferrule[InSubVarDef]
-  { 
-    \exctx{\omega'}\exeq\exctx{\omega}\excomma\synvar{x}\exvarmap\exrewrite{\synscope{y}{S}}{\syndefault{b}{e}{n}}
-  }
-  { \exctx{\Omegaarg}\excomma\synvar{y}\exscopemap\exctx{\omega}\exsemicolon\synname{p}\exvdash\synvardef\synscope{y}{S}\;\syndefault{b}{e}{n}\exinline\exctx{\Omegaarg}\excomma\synvar{y}\exscopemap\exctx{\omega'}\exsemicolon[] }
-
-  \inferrule[InScopeCall]
-  { 
-    \synname{Sdef}=\exmerge(\synname{p}(S),\exctx{\omega})\\
-    \synname{p'} = \Theta{\synname{p}[S\rightarrow\synname{Sdef}]}\\
-    \synname{p'}\exvdash\synname{p'}(\synname{S})\exinline(S:\synname{stmts})\\
-  }
-  { \exctx{\Omegaarg}\excomma\synvar{y}\exscopemap\exctx{\omega}\exsemicolon\synname{p}\exvdash\synscopecall\synscope{y}{S}\exinline\exctx{\Omegaarg}\exsemicolon\exrewrite{\synscope{y}{S}}{\synname{stmts}}^{-1} }
-
-  \inferrule[InStmtList]
-  { 
-    \exctx{\Omegaarg}\exsemicolon\synname{p}\exvdash\synname{stmt}\exinline\exctx{\Omegaarg'}\exsemicolon\synname{stmts'}\\
-    \exctx{\Omegaarg'}\exsemicolon\synname{p}\exvdash\synname{stmts}\exinline\exctx{\Omegaarg''}\exsemicolon\synname{stmts''}
-  }
-  { \exctx{\Omegaarg}\exsemicolon\synname{p}\exvdash\synname{stmt}::\synname{stmts}\exinline\exctx{\Omegaarg''}\exsemicolon\synname{stmts'}::\synname{stmts''} }
-
-  \inferrule[InEmptyStmtList]
-  { }
-  { \exctx{\Omegaarg}\exsemicolon\synname{p}\exvdash[]\exinline\exctx{\Omegaarg}\exsemicolon[] }
-
-  \inferrule[InScope]
-  { \exemptyarg\exsemicolon\synname{p}\exvdash\synname{stmts}\exinline\exctx{\Omegaarg}\exsemicolon\synname{stmts'} }
-  { \synname{p}\exvdash(S:\synname{stmts})\exinline(S:\synname{stmts'}) }
-\end{mathpar}
-}
-\caption{Scope inlining}
-\label{fig:inlining}
-\end{figure}
-
-We now have the following theorem.
-
-\begin{theorem}
-  Let \synname{p} a program, \synname{Sdef} a scope from this program and its inlined counterpart \synname{Sdef_{in}} ($\synname{p}\exvdash\synname{Sdef}\exinline\synname{Sdef_{in}}$). Let \exctx{\Omega_v} and \exctx{\Omega_v'} such that $\synname{p}\exvdash\synname{Sdef}\exArrow\exctx{\Omega_v}$ and $\synname{p}\exvdash\synname{Sdef_{in}}\exArrow\exctx{\Omega_v'}$. Then :
-  $$\exctx{\Omega_v} = \exctx{\Omega_v'}|_{\synname{dom}(\exctx{\Omega_v})}$$
-\end{theorem}
-
-\subsection{Compilation to the default calculus}
-
-After we have inlined everything, we can compile to the default calculus with a series of \synlet expressions (with the assumption that the scope we rewrite is well-formed).
-
-\newcommand{\excompile}{\exctx{\;\rhd\;}}
-
-\begin{figure}[h]
-\centering
-\fbox{
-\begin{mathpar}
-  \inferrule[CompStmtList]
-  { \synname{stmts}\excompile\synvar{e} }
-  { (\synvardef\synvar{i}\;\syndefault{b}{e}{n})::\synname{stmts}\excompile\synlet\synvar{i}\synequal\syndefault{b}{e}{n}\synin\synvar{e} }
-
-  \inferrule[CompEmptyStmtList]
-  { }
-  {[]\excompile\synerror}
-
-  \inferrule[CompScope]
-  {\synname{p}\exvdash\synname{Sdef}\exinline(S:\synname{stmts}) \\ \synname{stmts}\excompile e_S}
-  {\synname{p}\exvdash\synname{Sdef}\excompile e_S}
-\end{mathpar}
-}
-\caption{Scope language to default calculus}
 \end{figure}
 
 \end{document}
