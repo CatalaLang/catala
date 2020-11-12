@@ -10,6 +10,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{nicefrac}
+\usepackage{csquotes}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
@@ -33,42 +34,44 @@
 \newcommand{\synelse}{\synkeyword{~else~}}
 \newcommand{\synlet}{\synkeyword{let~}}
 \newcommand{\synin}{\synkeyword{~in~}}
-\newcommand{\synequal}{\synkeyword{~=~}}
+\newcommand{\synequal}{\synpunct{~=~}}
+\newcommand{\synjust}{~\synpunct{:\raisebox{-0.9pt}{-}}~}
+\newcommand{\syntyped}{~\synpunct{:}~}
+\newcommand{\syndot}{\synpunct{.}~}
 \newcommand{\syntrue}{\synkeyword{true}}
 \newcommand{\synfalse}{\synkeyword{false}}
-\newcommand{\syninj}[1]{\synkeyword{inj}\synvar{_{#1}}\;}
-\newcommand{\synpi}[1]{\synvar{\Pi}$_{#1}$\;}
-\newcommand{\synLambda}{\synvar{\Lambda}}
-\newcommand{\syntypforall}{\synvar{\forall}}
-\newcommand{\synop}{\synvar{\odot}}
-\newcommand{\synand}{\synvar{\wedge}}
-\newcommand{\synor}{\synvar{\vee}}
+\newcommand{\synop}{\synpunct{\odot}}
+\newcommand{\synlambda}{\synpunct{$\lambda$}~}
+\newcommand{\synand}{\synpunct{\wedge}}
+\newcommand{\synor}{\synpunct{\vee}}
+\newcommand{\synlparen}{\synpunct{(}}
+\newcommand{\synrparen}{\synpunct{)}}
+\newcommand{\synlbracket}{\synpunct{\{}}
+\newcommand{\synrbracket}{\synpunct{\}}}
+\newcommand{\synlangle}{\synpunct{$\langle$}}
+\newcommand{\synrangle}{\synpunct{$\rangle$}}
+\newcommand{\synmid}{\synpunct{~$|$~}}
 \newcommand{\synemptydefault}{\synvar{\varnothing}}
+\newcommand{\synerror}{\synvar{\circledast}}
 \newcommand{\synmerge}{\synkeyword{~++~}}
 
 \newcommand{\synvardef}{\synkeyword{definition~}}
 \newcommand{\synscopecall}{\synkeyword{scope\_call~}}
 
-\newcommand{\syntyparrow}{\synvar{\rightarrow}}
-\newcommand{\syntypsum}{\synvar{+}}
-\newcommand{\syntypproduct}{\synvar{\times}}
-\newcommand{\syndiamond}{\;\synvar{\diamond}\;}
-\newcommand{\synerror}{\synvar{\circledast}}
-\newcommand{\syndot}{.\;}
+\newcommand{\synarrow}{~\synpunct{$\rightarrow$}~}
+\newcommand{\syntypsum}{\synpunct{$+$}}
+\newcommand{\syntypproduct}{\synpunct{$\times$}}
+\newcommand{\syndiamond}{\;\synpunct{$\diamond$}\;}
+\newcommand{\syncomma}{\synpunct{,}}
+\newcommand{\synellipsis}{\synpunct{,$\ldots$,}}
 
 \newcommand{\syndef}{$ ::= $}
 \newcommand{\synalt}{\;$|$\;}
-\newcommand{\syncolon}{\;:\;}
 
-\newcommand{\synlambda}[3]{\ensuremath{\lambda#1:#2.\;#3}}
-\newcommand{\syncaseof}[3]{\syncase\synvar{#1}\synof\synvar{#2}\syndiamond\synvar{#3}}
-\newcommand{\synscope}[2]{\synvar{(#1:#2)}}
-\newcommand{\syndefault}[3]{\left[\nicefrac{\synvar{#1_1}}{\synvar{#2_1}},\;\ldots,\;\nicefrac{\synvar{#1_#3}}{\synvar{#2_#3}};\prec\right]}
 \newcommand{\synhole}{\synvar{\cdot}}
 
 %% Typing
 \newcommand{\typctx}[1]{\textcolor{orange!90!black}{\ensuremath{#1}}}
-
 \newcommand{\typempty}{\typctx{\varnothing}}
 \newcommand{\typcomma}{\typctx{,\;}}
 \newcommand{\typvdash}{\typctx{\;\vdash\;}}
@@ -111,88 +114,228 @@
 \newcommand{\exsemicolon}{\exctx{;~}}
 \newcommand{\excomp}{\dashrightarrow}
 
-\newcommand{\exrewrite}[2]{\left\langle#2\right\rangle_{#1}}
-\newcommand{\exmerge}{\exctx{\mu}}
-\newcommand{\exmergeback}[2]{\exctx{\mu^{-1}(}#1\exsemicolon#2\exctx{)}}
 
-\title{Catala formalization}
+\title{Formalization of the Catala language}
 \date{}
-\author{Nicolas Chataing}
+\author{Nicolas Chataing, Denis Merigoux}
 
 \begin{document}
 \maketitle
 
 \section{Default calculus}
 
+We chose to present the core Catala as a lambda-calculus augmented by a special 
+\enquote{default} expression. This special expression enables to deal with 
+the logical structure underlying tax law.
+
 \subsection{Syntax}
-
-\begin{figure}[h]
-\centering
-\fbox{\begin{tabular}{lrrll}
-  Type&\synvar{\tau}&\syndef&\synbool&boolean type\\
-  &&\synalt&\synvar{\tau}\;\syntyparrow\;\synvar{\tau}&function type \\
-  &&&&\\
-  Expression&\synvar{e}&\syndef&\synvar{x}\synalt\synlambda{x}{\tau}{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
-  &&\synalt&\synvar{D}&default term\\
-  &&&&\\
-  Default&\synvar{D}&\syndef&$\{\nicefrac{\synvar{e}}{\synvar{e}}, [\synvar{D}^*]\}$&default term\\
-  &&\synalt&\synerror&conflict error term\\
-  &&\synalt&\synemptydefault&empty error term\\
-\end{tabular}}
-\caption{Syntax of the default calculus}
-\end{figure}
-
-\subsection{Typing}
+\label{sec:defaultcalc:syntax}
 
 \begin{center}
-  \begin{tabular}{lrr}
-    \typctx{\Gamma}&\syndef&\typempty\synalt\typctx{\Gamma}\typcomma\synvar{\alpha}\synalt\typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\sigma}
+\begin{tabular}{lrrll}
+  Type&\synvar{\tau}&\syndef&\synbool&boolean type\\
+  &&\synalt&\synvar{\tau}\synarrow\synvar{\tau}&function type \\
+  &&&&\\
+  Expression&\synvar{e}&\syndef&\synvar{x}\synalt\syntrue\synalt\synfalse&variable, literal\\
+  &&\synalt&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
+  &&\synalt&\synvar{d}&default term\\
+  &&&&\\
+  Default&\synvar{d}&\syndef&\synlangle\synvar{e}\synjust\synvar{e}\synmid $[\synvar{d}^*]$\synrangle&default term\\
+  &&\synalt&\synerror&conflict error term\\
+  &&\synalt&\synemptydefault&empty error term\\
+\end{tabular}
+\end{center}
+
+The syntax of the lambda calculus is enriched with a construction coming from 
+default logic. Particularly, we focus on a subset of default logic called 
+categorical, prioritized default logic. In this setting, a default is a logical 
+rule of the form $A \synjust B$ where $A$ is the justification of the rule and 
+$B$ is the consequence. The rule can only be applied if $A$ is consistent with 
+our current knowledge. If multiple rules $A \synjust B_1$ and $A \synjust B_2$
+can be applied at the same time, then only one of them is applied through 
+an explicit order of the rules.
+
+To translate this form of logic inside our programming language, we set $A$ to 
+be an expression that can be evaluated to \syntrue{} or \synfalse{}, and $B$
+the value that the default should evaluate to if $A$ is true. If $A$ is false,
+then we look up for other rules of lesser priority to apply. This priority 
+is encoded trough a syntactic tree data structure\footnote{Thanks to Pierre-Évariste Dagand for this insight.}. 
+
+In the term \synlangle\synvar{e_{\text{just}}}\synjust
+\synvar{e_{\text{cons}}}\synmid $[\synvar{d}^*]$\synrangle, \synvar{e_{\text{just}}} 
+is the justification $A$, \synvar{e_{\text{cons}}} is the consequence $B$ and 
+$[\synvar{d}^*]$ is the list of rules to be considered if \synvar{e_{\text{just}}} 
+evaluates to \synfalse{}. 
+ 
+Of course, this evaluation scheme can fail if no more 
+rules can be applied, or if two or more rules of the same priority have their 
+justification evaluate to \syntrue{}. The error terms \synerror{} and \synemptydefault{}
+encode these failure cases.
+
+\subsection{Typing}
+\label{sec:defaultcalc:typing}
+
+The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$} reads as
+\enquote{under context $\typctx{\Gamma}$, expression $\synvar{e}$ has type $\synvar{\tau}$}.
+
+\begin{center}
+  \begin{tabular}{lrrll}
+    Typing context&\typctx{\Gamma}&\syndef&\typempty&empty context\\
+    (unordered map)&&\synalt&\typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}&typed variable\\
   \end{tabular}
 \end{center}
 
-Typing judgments : $\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$.
 
-\begin{figure}
-\centering
-\fbox{\begin{mathpar}
-  \inferrule[Var]{ }{\typctx{\Gamma}\typcomma\synvar{x}\syncolon\synvar{\sigma}\typvdash\synvar{x}\syncolon\synvar{\sigma}}
+We start by the usual rules of simply-typed lambda calculus.
+\begin{center}
+\begin{mathpar}
+  \inferrule[Var]{ }{
+      \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\synvar{x}\syntyped\synvar{\tau}
+  }
 
   \inferrule[Abs]
   {\typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\synvar{e}\typcolon\synvar{\tau'}}
-  {\typctx{\Gamma}\typvdash\synlambda{x}{\tau}{e}\typcolon\synvar{\tau}\syntyparrow\synvar{\tau'}}
+  {\typctx{\Gamma}\typvdash\synlambda\synlparen\synvar{x}\syntyped{\tau}\synrparen\syndot\synvar{e}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}}
 
   \inferrule[App]
   {
-    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau_2}\syntyparrow\synvar{\tau_1}\\
+    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau_2}\synarrow\synvar{\tau_1}\\
     \typctx{\Gamma}\typvdash\synvar{e_2}\typcolon\synvar{\tau_2}
   }
   {\typctx{\Gamma}\typvdash\synvar{e_1}\;\synvar{e_2}\typcolon\synvar{\tau_1}}
-  
-  \inferrule[DefaultBase]
-  {
-    \typctx{\Gamma}\typvdash\synvar{b}\typcolon\synbool\\
-    \typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}\\
-    \typctx{\Gamma}\typvdash\synvar{D_i}\typcolon{\tau}
-  }
-  {\typctx{\Gamma}\typvdash\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1},\ldots,\synvar{D_n}]\}\typcolon\synvar{\tau}}
+\end{mathpar}
+\end{center}  
 
-  \inferrule[DefaultFun]
-  {
-    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\{\nicefrac{\synvar{b}}{\synvar{e}} ,[]\}\typcolon\synvar{\tau'}\\
-    \typctx{\Gamma}\typvdash\synvar{D_i}\typcolon\synvar{\tau}\syntyparrow\synvar{\tau'}
-  }
-  {\typctx{\Gamma}\typvdash\{\nicefrac{\synlambda{\synvar{x}}{\synvar{\tau}}{\synvar{b}}}{\synlambda{\synvar{x}}{\synvar{\tau}}{\synvar{e}}}, [\synvar{D_1},\ldots,\synvar{D_n}]\}\typcolon\tau\syntyparrow\tau'}
+Then we move to the special default terms. First, the error terms that stand for 
+any type.
 
+\begin{center}
+\begin{mathpar}
   \inferrule[ConflictError]{}{\typctx{\Gamma}\typvdash\synerror\typcolon\synvar{\tau}}
 
   \inferrule[EmptyError]{}{\typctx{\Gamma}\typvdash\synemptydefault\typcolon\synvar{\tau}}
+\end{mathpar}
+\end{center}
 
-\end{mathpar}}
-\caption{Default calculus typing rules}
-  \label{fig:typing}
-\end{figure}
+Now the interesting part for the default terms. As mentioned earlier, the 
+justification \synvar{e_{\text{just}}} is a boolean, while \synvar{e_{\text{cons}}}
+can evaluate to any value. \TirName{DefaultBase} specifies how the tree structure 
+of the default should be typed.
+
+\begin{center}
+\begin{mathpar}
+  \inferrule[DefaultBase]
+  {
+    \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
+    \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}\\
+    \forall i\in[\![1;n]\!],\;\typctx{\Gamma}\typvdash\synvar{d_i}\typcolon{\tau}
+  }
+  {\typctx{\Gamma}\typvdash\synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid 
+  \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\synvar{\tau}}
+\end{mathpar}
+\end{center}
+The situation becomes more complex in the presence of functions. Indeed, want 
+our default expressions to depend on parameters. By only allowing \synvar{e_{\text{just}}}
+to be \synbool{}, we force the user to declare the parameters in a \synlambda 
+that wraps the default from the outside. Using this scheme, all the expressions 
+inside the tree structure of the default will depend on the same bound variable 
+\synvar{x}.
+
+However, this scheme is not adapted to the way Catala will expose default 
+to the user. Indeed, each legislative article will yield a rule that will be 
+encoded into a \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression.
+Later, all these expression will be collected and turned into the tree data 
+structure according to the priorities defined by the law. But if each 
+\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression depends on 
+a parameter, the source code will include bindings for free variables in each 
+of the default tree node. Rather than to hoist these bindings outside of the 
+default and perform $\alpha$-renaming, we prefer to explicitly allow bindings 
+inside the default tree nodes. Hence, we include a dedicated typing rule, 
+\TirName{DefaultFun}, as well as a later rule for performing $\beta$-reduction 
+under the default.
+
+\begin{center}
+\begin{mathpar}
+  \inferrule[DefaultFun]
+  {
+    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\typvdash\
+    \synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid\synrangle
+    \typcolon\synvar{\tau'}\\
+    \forall i\in[\![1;n]\!],\;
+    \typctx{\Gamma}\typvdash\synvar{d_i}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
+  }
+  {\typctx{\Gamma}\typvdash
+  \synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
+  \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid
+  \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\tau\synarrow\tau'}
+\end{mathpar}
+\end{center}
 
 \subsection{Evaluation}
+
+We give this default calculus small-step, structured operational semantics. The 
+one-step reduction judgment is of the form \fbox{\synvar{e}\exeval\synvar{e'}}.
+
+In our simple language, values are just booleans or functions and we use a evaluation contexts. 
+Evaluation contexts are contexts where the hole can only occur at some
+admissible positions that often described by a grammar.
+
+\begin{center}
+  \begin{tabular}{lrrll}
+    Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
+                    &&\synalt&\syntrue\synalt\synfalse & booleans\\
+    Evaluation &\synvar{C}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
+       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default justification evaluation\\
+                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default consequence evaluation\\
+                    &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_{i-1}}
+                    \syncomma\synhole\syncomma\synvar{d_{i+1}}\synellipsis\synvar{d_n}\synrangle&sub-default evaluation
+  \end{tabular}
+\end{center}
+
+Note that our language is call-by-value.
+First, we present the usual reduction rules for beta-reduction 
+(function application and default application) 
+and evaluation inside a context hole.
+
+\begin{center}
+\begin{mathpar}
+   \inferrule[Context]
+  {\synvar{e}\exeval\synvar{e'}}
+  {\synvar{C}[\synvar{e}]\exeval\synvar{C}[\synvar{e'}]}
+
+ \inferrule[$\beta_v$]{}{
+   (\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot{e})\;\synvar{v}
+    \exeval\synvar{e}[\synvar{x}\mapsto\synvar{v}]
+ }
+
+   \inferrule[$\beta_d$]{}{
+     \synlangle \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
+     \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid 
+     \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\;\synvar{v}\exeval\\
+      \synlangle \synvar{e_{\text{just}}}[\synvar{x}\mapsto\synvar{v}]\synjust
+     \synvar{e_{\text{cons}}}[\synvar{x}\mapsto\synvar{v}]\synmid 
+     \synvar{d_1}\;\synvar{v}\synellipsis\synvar{d_n}\;\synvar{v}\synrangle
+     }
+
+
+\end{mathpar}
+\end{center}
+
+Now we have to describe how the default terms reduce. Thanks to a the 
+\TirName{Context} rule, we can suppose that the justification of the default 
+is already reduced to a variable \synvar{v}. By applying the beta-reduction 
+rule $\beta_d$, we can further reduce to the case where \synvar{v} is a boolean.
+This is where we encode our default logic evaluation semantics. If \synvar{v} is 
+\syntrue{}, then this rule applies and we reduce to the consequence. We don't 
+even have to consider rules of lower priority lower in the tree.
+
+\begin{center}
+\begin{mathpar}
+  \inferrule[DefaultJustifTrue]
+  {}
+  {\synlangle \syntrue\synjust \synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\exeval e}
+\end{mathpar}
+\end{center}
 
 \newcommand{\exDeval}{\exctx{\;\Downarrow\;}}
 \newcommand{\exnotDeval}{\exctx{\;\nRightarrow\;}}
@@ -200,13 +343,8 @@ Typing judgments : $\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$.
 $$ A([D_1, \ldots, D_n]) = \#\{i | D_i \exnotDeval \synemptydefault \} $$
 $$ B([D_1, \ldots, D_n]) = e~|~D_i \exDeval e \wedge e \neq \synemptydefault $$
 
-\begin{figure}
-\centering
-\fbox{\begin{mathpar}
-  \inferrule[JustifTrue]
-  {\synvar{b}\exevalstar\top}
-  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval e}
-
+\begin{center}
+\begin{mathpar}
   \inferrule[NoJustifTrue]
   {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) = 0}
   {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synemptydefault}
@@ -219,27 +357,14 @@ $$ B([D_1, \ldots, D_n]) = e~|~D_i \exDeval e \wedge e \neq \synemptydefault $$
   {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) > 1}
   {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synerror}
 
-\end{mathpar}}
-  \caption{Default evaluation}
-\end{figure}
-
-\begin{center}
-  \begin{tabular}{rcll}
-    \synvar{v}&\syndef&\synlambda{i}{\tau}{e}&functions\\
-    \synvar{C}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&
-  \end{tabular}
+\end{mathpar}
 \end{center}
 
-\begin{figure}
-  \centering\fbox{
+
+
+\begin{center}
 \begin{mathpar}
-  \inferrule[$\beta_v$]{}{(\synlambda{x}{\tau}{e})\;\synvar{v}\exeval[\synvar{x}\mapsto\synvar{v}]e}
 
-  \inferrule[$\beta_d$]{}{\{\nicefrac{\synvar{b}}{\synvar{e}},[D_1,\ldots,D_n]\}~v\exeval\{\nicefrac{\synvar{b}\;\synvar{v}}{\synvar{e}\;\synvar{v}},[\synvar{D_1}\;\synvar{v},\ldots,\synvar{D_n}\;\synvar{v}]\}}
-
-  \inferrule[Context]
-  {\synvar{e}\exeval\synvar{e'}}
-  {\synvar{C}[\synvar{e}]\exeval\synvar{C}[\synvar{e'}]}
 
   \inferrule[Default]
   {\synvar{D}\exDeval\synvar{e}}
@@ -253,8 +378,6 @@ $$ B([D_1, \ldots, D_n]) = e~|~D_i \exDeval e \wedge e \neq \synemptydefault $$
   {e\exeval\synemptydefault}
   {C[e]\exeval\synemptydefault}
 \end{mathpar}
-}
-\caption{Default calculus evaluation}
-\end{figure}
+\end{center}
 
 \end{document}
