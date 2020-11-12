@@ -36,6 +36,10 @@ declaration scope Section121:
 
 Gross income shall not include gain from the sale or exchange of property if, during the 5-year period ending on the date of the sale or exchange, such property has been owned and used by the taxpayer as the taxpayer’s principal residence for periods aggregating 2 years or more.
 /*
+# It's actually agragated. Input: how many days have you lived in the property 
+# for the last five years.
+# FIXME: how many days have you used the property as the principal residence in the 
+# last five years
 scope Section121:
   definition ownage_considered_for_gain_inclusion of ownage equals
     ownage.owner = taxpayer and ownage.user = taxpayer and 
