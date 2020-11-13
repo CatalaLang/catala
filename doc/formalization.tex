@@ -9,8 +9,9 @@
 \usepackage{mathpartir}
 \usepackage{xcolor}
 \usepackage{booktabs}
-\usepackage{nicefrac}
 \usepackage{csquotes}
+\usepackage{biblatex}
+\addbibresource{catala.bib}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
@@ -110,11 +111,40 @@
 \begin{document}
 \maketitle
 
+\tableofcontents
+
+\section{Introduction}
+
+Tax law defines how taxes should be computed, depending on various characteristic
+of the fiscal household. Government agencies around the world use computer 
+programs to compute the law, which are derived from the local tax law. Translating 
+tax law into an unambiguous program is tricky because the law is subject to 
+interpretations and ambiguities. The goal of the Catala domain-specific language 
+is to provide a way to clearly express the interpretation chosen for the 
+computer program, and display it close to the law it is supposed to model.
+
+To complete this goal, our language needs some kind of \emph{locality} property
+that enables cutting the computer program in bits that match the way the 
+legislative text is structured. This subject has been extensively studied by
+Lawsky \cite{lawsky2017, lawsky2018, lawsky2020form}, whose work has greatly 
+inspired our approach.
+
+The structure exhibited by Lawsky follows a kind of non-monotonic logic called 
+default logic \cite{Reiter1987}. Indeed, unlike traditional programming, when the law defines 
+a value for a variable, it does so in a \emph{base case} that applies only if 
+no \emph{exceptions} apply. To determine the value of a variable, one needs to 
+first consider all the exceptions that could modify the base case. 
+
+It is this precise behavior which we intend to capture when defining the semantics 
+of Catala.
+
 \section{Default calculus}
 
-We chose to present the core Catala as a lambda-calculus augmented by a special 
+We chose to present the core of Catala as a lambda-calculus augmented by a special 
 \enquote{default} expression. This special expression enables to deal with 
-the logical structure underlying tax law.
+the logical structure underlying tax law. This lambda-calculus has only unit and 
+boolean values, but this base could be enriched with more complex values and traditional 
+lambda-calculus extensions (such as algebraic data types).
 
 \subsection{Syntax}
 \label{sec:defaultcalc:syntax}
@@ -134,9 +164,9 @@ the logical structure underlying tax law.
 \end{tabular}
 \end{center}
 
-The syntax of the lambda calculus is enriched with a construction coming from 
+To the syntax of the lambda calculus, we add a construction coming from 
 default logic. Particularly, we focus on a subset of default logic called 
-categorical, prioritized default logic. In this setting, a default is a logical 
+categorical, prioritized default logic \cite{Brewka2000}. In this setting, a default is a logical 
 rule of the form $A \synjust B$ where $A$ is the justification of the rule and 
 $B$ is the consequence. The rule can only be applied if $A$ is consistent with 
 our current knowledge. If multiple rules $A \synjust B_1$ and $A \synjust B_2$
@@ -165,7 +195,6 @@ encode these failure cases.
 
 The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$} reads as
 \enquote{under context $\typctx{\Gamma}$, expression $\synvar{e}$ has type $\synvar{\tau}$}.
-
 \begin{center}
   \begin{tabular}{lrrll}
     Typing context&\typctx{\Gamma}&\syndef&\typempty&empty context\\
@@ -175,7 +204,6 @@ The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\t
 
 
 We start by the usual rules of simply-typed lambda calculus.
-\begin{center}
 \begin{mathpar}
   \inferrule[UnitLit]{}{ 
       \typctx{\Gamma}\typvdash\synunit\syntyped\synunitt
@@ -204,25 +232,19 @@ We start by the usual rules of simply-typed lambda calculus.
   }
   {\typctx{\Gamma}\typvdash\synvar{e_1}\;\synvar{e_2}\typcolon\synvar{\tau_1}}
 \end{mathpar}
-\end{center}  
 
 Then we move to the special default terms. First, the error terms that stand for 
 any type.
-
-\begin{center}
 \begin{mathpar}
   \inferrule[ConflictError]{}{\typctx{\Gamma}\typvdash\synerror\typcolon\synvar{\tau}}
 
   \inferrule[EmptyError]{}{\typctx{\Gamma}\typvdash\synemptydefault\typcolon\synvar{\tau}}
 \end{mathpar}
-\end{center}
 
 Now the interesting part for the default terms. As mentioned earlier, the 
 justification \synvar{e_{\text{just}}} is a boolean, while \synvar{e_{\text{cons}}}
 can evaluate to any value. \TirName{DefaultBase} specifies how the tree structure 
 of the default should be typed.
-
-\begin{center}
 \begin{mathpar}
   \inferrule[DefaultBase]
   {
@@ -233,7 +255,7 @@ of the default should be typed.
   {\typctx{\Gamma}\typvdash\synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid 
   \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\synvar{\tau}}
 \end{mathpar}
-\end{center}
+
 The situation becomes more complex in the presence of functions. Indeed, want 
 our default expressions to depend on parameters. By only allowing \synvar{e_{\text{just}}}
 to be \synbool{}, we force the user to declare the parameters in a \synlambda 
@@ -241,10 +263,10 @@ that wraps the default from the outside. Using this scheme, all the expressions
 inside the tree structure of the default will depend on the same bound variable 
 \synvar{x}.
 
-However, this scheme is not adapted to the way Catala will expose default 
+However, this scheme is not adapted to the way Catala will expose defaults 
 to the user. Indeed, each legislative article will yield a rule that will be 
 encoded into a \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression.
-Later, all these expression will be collected and turned into the tree data 
+Later, all these expressions will be collected and turned into the tree data 
 structure according to the priorities defined by the law. But if each 
 \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression depends on 
 a parameter, the source code will include bindings for free variables in each 
@@ -253,8 +275,6 @@ default and perform $\alpha$-renaming, we prefer to explicitly allow bindings
 inside the default tree nodes. Hence, we include a dedicated typing rule, 
 \TirName{DefaultFun}, as well as a later rule for performing $\beta$-reduction 
 under the default.
-
-\begin{center}
 \begin{mathpar}
   \inferrule[DefaultFun]
   {
@@ -269,7 +289,6 @@ under the default.
   \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid
   \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\tau\synarrow\tau'}
 \end{mathpar}
-\end{center}
 
 \subsection{Evaluation}
 
@@ -279,7 +298,6 @@ one-step reduction judgment is of the form \fbox{\synvar{e}\exeval\synvar{e'}}.
 In our simple language, values are just booleans or functions and we use a evaluation contexts. 
 Evaluation contexts are contexts where the hole can only occur at some
 admissible positions that often described by a grammar.
-
 \begin{center}
   \begin{tabular}{lrrll}
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
@@ -298,8 +316,6 @@ Note that our language is call-by-value.
 First, we present the usual reduction rules for beta-reduction 
 (function application and default application) 
 and evaluation inside a context hole.
-
-\begin{center}
 \begin{mathpar}
    \inferrule[Context]
   {\synvar{e}\exeval\synvar{e'}}
@@ -323,7 +339,6 @@ and evaluation inside a context hole.
      \synvar{d_1'}\synellipsis\synvar{d_n'}\synrangle
      }
 \end{mathpar}
-\end{center}
 
 Now we have to describe how the default terms reduce. Thanks to a the 
 \TirName{Context} rule, we can suppose that the justification of the default 
@@ -332,14 +347,11 @@ rule $\beta_d$, we can further reduce to the case where \synvar{v} is a boolean.
 This is where we encode our default logic evaluation semantics. If \synvar{v} is 
 \syntrue{}, then this rule applies and we reduce to the consequence. We don't 
 even have to consider rules of lower priority lower in the tree.
-
-\begin{center}
 \begin{mathpar}
   \inferrule[DefaultJustifTrue]
   {}
   {\synlangle \syntrue\synjust \synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\exeval e}
 \end{mathpar}
-\end{center}
 
 If \synvar{v} is \synfalse{}, then we have to consider rules of lower priority
 \synvar{d_1}\synellipsis\synvar{d_n} that should be all evaluated (left to right),
@@ -357,7 +369,6 @@ the number of empty error terms \synemptydefault{} among the values. We then cas
 \end{itemize}
 
 
-\begin{center}
 \begin{mathpar}
   \inferrule[DefaultJustifFalseNoSub]
   {}
@@ -372,7 +383,6 @@ the number of empty error terms \synemptydefault{} among the values. We then cas
   {\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) <n - 1}
   {\synlangle \synfalse\synjust \synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_n}\synrangle\exeval \synerror{}}
 \end{mathpar}
-\end{center}
 
 Last, we need to define how our error terms propagate. Because the rules for 
 sub-default evaluation have to count the number of error terms in the list 
@@ -382,7 +392,6 @@ distinction between the $\lambda$-calculus evaluation contexts $\synvar{C_\lambd
 and the sub-default evaluation context. Hence the following rules for error 
 propagation.
 
-\begin{center}
 \begin{mathpar}
    \inferrule[ContextEmptyError]
   {\synvar{e}\exeval\synemptydefault}
@@ -392,7 +401,40 @@ propagation.
   {\synvar{e}\exeval\synerror}
   {\synvar{C_\lambda}[\synvar{e}]\exeval\synerror}
 \end{mathpar}
-\end{center}
 
+\section{Scope language}
+
+Our core default calculus provides a value language adapted to the drafting style 
+of tax law. Each article of law will provide one or more rules encoded as 
+defaults. But how to collect those defaults into a single expression that 
+will compute the result that we want? How to reuse existing rules in different 
+contexts?
+
+These question point out the lack of an abstraction structure adapted to 
+the legislative drafting style. Indeed, our \synlambda functions are not 
+convenient to compose together the rules scattered around the legislative text. 
+Moreover, the abstractions defined in the legislative text exhibit a behavior
+quite different from \synlambda functions.
+
+First, the blurred limits between abstraction units.
+In the legislative text, objects and data are referred in a free variable style.
+It is up to us to put the necessary bindings for these free variables, but 
+it is not trivial to do so. For that, one need to define the perimeter of 
+each abstraction unit, a legislative \emph{scope}, which might encompass multiple 
+articles.
+
+Second, the confusion between local variables and function parameters. The 
+base-case vs. exception structure of the law also extends between legislative 
+scopes. For instance, a scope $A$ can define a variable $x$ to have value $a$, but 
+another legislative scope $B$ can \emph{call into} $A$ but specifying that 
+$x$ should be $b$. In this setting, $B$ defines an exception for $x$, that 
+should be dealt with using our default calculus.
+
+Based on these two characteristic, we propose a high-level \emph{scope language},
+semantically defined by its encoding in the default calculus.
+
+\subsection{Syntax}
+
+\printbibliography
 
 \end{document}
