@@ -7,6 +7,8 @@
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{mathpartir}
+\usepackage{turnstile}
+\usepackage{fancyvrb}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{csquotes}
@@ -21,18 +23,20 @@
 \newcommand{\synkeyword}[1]{\textcolor{red!60!black}{\texttt{#1}}}
 \newcommand{\synpunct}[1]{\textcolor{black!40!white}{\texttt{#1}}}
 \newcommand{\synname}[1]{\ensuremath{\mathsf{#1}}}
-
 \newcommand{\synbool}{\synkeyword{bool}}
 \newcommand{\synnum}{\synkeyword{num}}
 \newcommand{\syndate}{\synkeyword{date}}
 \newcommand{\synvec}{\synkeyword{vec~}}
 \newcommand{\synopt}{\synkeyword{opt~}}
 \newcommand{\synrule}{\synkeyword{rule~}}
+\newcommand{\synlet}{\synkeyword{let~}}
+\newcommand{\synin}{\synkeyword{in~}}
 \newcommand{\syncall}{\synkeyword{call~}}
 \newcommand{\synscope}{\synkeyword{scope~}}
 \newcommand{\synequal}{\synpunct{~=~}}
 \newcommand{\synjust}{~\synpunct{:\raisebox{-0.9pt}{-}}~}
 \newcommand{\syntyped}{~\synpunct{:}~}
+\newcommand{\syncomma}{\synpunct{,}}
 \newcommand{\syndot}{\synpunct{.}~}
 \newcommand{\synunit}{\synpunct{()}}
 \newcommand{\synunitt}{\synkeyword{unit}}
@@ -54,20 +58,13 @@
 \newcommand{\synemptydefault}{\synvar{\varnothing}}
 \newcommand{\synerror}{\synvar{\circledast}}
 \newcommand{\synmerge}{\synkeyword{~++~}}
-
 \newcommand{\synvardef}{\synkeyword{definition~}}
 \newcommand{\synscopecall}{\synkeyword{scope\_call~}}
-
+\newcommand{\synlarrow}{~\synpunct{$\leftarrow$}~}
 \newcommand{\synarrow}{~\synpunct{$\rightarrow$}~}
-\newcommand{\syntypsum}{\synpunct{$+$}}
-\newcommand{\syntypproduct}{\synpunct{$\times$}}
-\newcommand{\syndiamond}{\;\synpunct{$\diamond$}\;}
-\newcommand{\syncomma}{\synpunct{,}}
 \newcommand{\synellipsis}{\synpunct{,$\ldots$,}}
-
 \newcommand{\syndef}{$ ::= $}
 \newcommand{\synalt}{\;$|$\;}
-
 \newcommand{\synhole}{\synvar{\cdot}}
 
 %% Typing
@@ -79,7 +76,7 @@
 \newcommand{\typlpar}{\typctx{(}}
 \newcommand{\typrpar}{\typctx{)}}
 
-%% Evaluation and execution
+%% Evaluation
 \newcommand{\exctx}[1]{\textcolor{blue!80!black}{\ensuremath{#1}}}
 \newcommand{\exeemptysubdefaults}{\exctx{\mathsf{empty\_count}}}
 \newcommand{\execonflictsubdefaults}{\exctx{\mathsf{conflict\_count}}}
@@ -99,6 +96,18 @@
 \newcommand{\exat}{\exctx{\texttt{\;@\;}}}
 \newcommand{\exsemicolon}{\exctx{;~}}
 \newcommand{\excomp}{\dashrightarrow}
+
+%% Reduction of the scope language 
+\newcommand{\redctx}[1]{\textcolor{green!50!black}{\ensuremath{#1}}}
+\newcommand{\reduces}{\redctx{~\rightsquigarrow~}}
+\newcommand{\redvdash}{\redctx{\;\vdash\;}}
+\newcommand{\redturnstile}[1]{\;\ensuremath{\redctx{\vdash}_{#1}}\;\;}
+\newcommand{\redcomma}{\redctx{,\;}}
+\newcommand{\redsc}{\redctx{;\;}}
+\newcommand{\redcolon}{\redctx{\;:\;}}
+\newcommand{\redempty}{\redctx{\varnothing}}
+\newcommand{\redproduce}{\;\redctx{\Rrightarrow}\;}
+\newcommand{\redellipsis}{\redctx{,\ldots,}}
 
 
 \title{Formalization of the Catala language}
@@ -275,7 +284,7 @@ under the default.
 \begin{mathpar}
   \inferrule[DefaultFun]
   {
-    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\typvdash\
+    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\
     \synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid\synrangle
     \typcolon\synvar{\tau'}\\
     \forall i\in[\![1;n]\!],\;
@@ -441,24 +450,155 @@ $S$ can also call into another scope $S'$, as a function can call
 into another. These calls are scattered in the legislative texts and have 
 to be identified by the programmer. Since $S$ can call $S'$ multiple times
 with different \enquote{parameters}, we have to distinguish between these
-sub-call and give them different names \synlparen\synvar{S'}\synarrow\synvar{s_1}\synrparen,
- \synlparen\synvar{S'}\synarrow\synvar{s_2}\synrparen, etc.
-
+sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_1}\synrparen,
+ \synlparen\synvar{S'}\synlarrow\synvar{s_2}\synrparen, etc. A program $P$ is 
+ a list of scope declarations $\sigma$.
 
 \begin{center}
 \begin{tabular}{lrrll}
   Scope name&\synvar{S}&&&\\
   Location&\synvar{\ell}&\syndef&\synvar{a}&scope variable\\
-        &&\synalt&\synlparen\synvar{S}\synarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare&sub-scope variable\\
+        &&\synalt&\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare&sub-scope variable\\
   Expression&\synvar{e}&\syndef&\synvar{\ell}&location\\
   &&\synalt&$\cdots$&default calculus expressions\\
   &&&&\\
-  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\synequal\synlangle\synvar{e}\synjust\synvar{e}\synrangle&variable definition\\
-  &&\synalt&\syncall\synlparen\synvar{S}\synarrow\synvar{s}\synrparen&sub-scope call\\
+  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust\synvar{e}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle
+      &Location definition\\
+  &&\synalt&\syncall\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen&sub-scope call\\
   Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
-
+  Program&\synvar{P}&\syndef&$[\sigma^*]$&\\
 \end{tabular}
 \end{center}
+ 
+\subsection{Running example}
+
+Let's illustrate how the scope language plays out with a simple program 
+that calls a sub-scope:
+\begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt]
+scope X:
+  rule a = < true :- 0 >
+  rule b = < true :- a + 1>
+
+scope Y:
+  rule (X<-x)[a] = < true :- 42 >
+  call (X<-x)
+  rule c = < (X<-x)[b] == 1 :- false >
+  rule c = < (X<-x)[b] == 43 :- true >
+\end{Verbatim}
+
+Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
+a single default whose justification is \Verb+true+. Hence, \Verb+a+ should evaluate 
+to \Verb+0+ and \Verb+b+ should evaluate to \Verb+1+.
+
+Now, consider scope \Verb+Y+. It defines a single variable \Verb+c+ with two defaults 
+lines 8 and 9, but the justifications for these two defaults use the result of 
+the evaluation (line 7) of variable \Verb+b+ of the sub-scope \Verb+(X<-x)+. 
+Line 6 shows an example of providing an \enquote{argument} to the  subscope call.
+The execution goes like this: at line 7 when calling the sub-scope,
+\Verb+(X<-x)[a]+ has two defaults, one coming from line 2, the other calling 
+from line 6. Because the caller has priority over the callee, the two defaults 
+should evaluate to \Verb+42+, and thus \Verb+(X<-x)[b]+ evaluates to \Verb+43+.
+This triggers the default of line 9 which evaluates \Verb+c+ to \Verb+true+. 
+
+The goal of the next section is to provided an encoding of the scope language 
+into the lambda calculus that is compatible with this intuitive description 
+of how scopes should evaluate.
+
+To get a high-level 
+picture of the translation, we show what the simple program will translate 
+to, using ML-like syntax with defaults:
+\begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt]
+let X (a: unit -> int) (b: unit -> int) : (int * int) =
+  let a : unit -> int = a ++ (fun () -> < true :- 0 >) in
+  let a : int = a () in  
+  let b : unit -> int = b ++ (fun () -> < true :- a + 1>) in 
+  let b : int = b () in
+  (a, b)
+
+let Y (c: unit -> bool) : bool = 
+  let X_x_a : unit -> int = fun () -> < false :- EmptyError > in 
+  let X_x_b : unit -> int = fun () -> < false :- EmptyError > in
+  let X_x_a : unit -> int = X_x_a ++ (fun () -> < true :- 42 >) in 
+  let (X_x_a, X_x_b) : int * int = X(X_x_a, X_x_b) in 
+  let c = c ++ fun () -> < X_x_b == 1 :- false > in 
+  let c = c ++ fun () -> < X_x_b == 43 :- true > in 
+  let c = () in 
+  c 
+\end{Verbatim}
+
+We start unravelling this translation with the scope \Verb+X+. \Verb+X+ has 
+been turned into a function whose arguments are all the local variables of the 
+scope. However, the arguments have type \Verb+unit -> <type>+. Indeed, we want the 
+arguments of \Verb+X+ (line 1 ) to be the default expression supplied by the caller of
+\Verb+X+, which will later be merged with a higher priority (operator \Verb|++|) to the default 
+expression defining the local variables of \Verb+X+ (lines 2 and 4). But since defaults are not 
+values in our default calculus, we have to thunk them in the arguments of \Verb|X| 
+so that their evaluation is delayed. After the defaults have been merged, we apply 
+\Verb+()+ to the thunk (lines 3 and 5) to force evaluation and get back the value.
+Finally, \Verb+X+ returns the tuple of all its local variables (line 6).
+
+The translation of \Verb+Y+ exhibits the pattern for sub-scope calls.
+First, all the arguments of the sub-scope call are defined to a neutral expression 
+(line 9 and 10) which will be ignored by the default evaluation rules.
+Then, eventual re-definitions of the arguments of \Verb+X+ are merged to these 
+neutral defaults (line 11). The sub-scope call is translated to a regular 
+function call (line 12). The results of the call are then used in the definitions 
+of \Verb+c+ (lines 13-14), before \Verb+c+ is evaluated (line 15). 
+
+\subsection{Formalization of the translation}
+
+
+The main judgment of reduction from scope language to default calculus is 
+\fbox{$\synvar{P}\redvdash\synvar{\sigma}\reduces\synvar{e}$}, which reduces 
+a scope declaration to a function in the default calculus. 
+
+\begin{center}
+  \begin{tabular}{lrrll}
+    Translation context&\redctx{\Delta}&\syndef&\redempty&empty context\\
+    (unordered map)&&\synalt&\redctx{\Delta}\redcomma\synvar{a}\redcolon\synvar{\tau}&typed scope variable\\
+    &&\synalt&\redctx{\Delta}\redcomma\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synvar{\tau}&typed sub-scope variable\\
+  \end{tabular}
+\end{center}
+
+The translation context \redctx{\Delta} is similar to the typing context \typctx{\Gamma} of 
+the default calculus, but it only takes into account the new scope-related variables. We will describe 
+the translation from top to bottom, in order to keep the big picture in mind.
+We will assume the default calculus has been expanded with the usual ML 
+\synlet \synin construction, as well as tuples. Here is the top-level rule for 
+translating scopes.
+
+\begin{mathpar}
+\inferrule[T-Scope]{
+  \synvar{P}\redsc\redempty\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
+  \reduces \synvar{e} \redproduce \synvar{a_1}\redcolon\synvar{\tau_1}\redellipsis \synvar{a_m}\redcolon\synvar{\tau_m}\redcomma\redctx{\Delta'}
+}{
+  \synvar{P}\redvdash\synscope\synvar{S}\syntyped\synvar{r_1}\synellipsis\synvar{r_n}\reduces\\
+  \synlet\synvar{S}\;(\synvar{a_1}\syntyped\synunitt\synarrow\synvar{\tau_1})\;\cdots\;(\synvar{a_m}\syntyped\synunitt\synarrow\synvar{\tau_m})\synequal
+  \synvar{e}[\synhole\mapsto\synlparen\synvar{a_1}\synellipsis\synvar{a_n}\synrparen]
+}
+\end{mathpar}
+
+This rule has a lot to unpack, but it is just the formal description of the 
+translation scheme described earlier. To translate scope declaration \synvar{S}
+with associated rules  \synvar{r_1}\synellipsis\synvar{r_n}, we use a helper 
+judgment  \fbox{\synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
+\reduces \synvar{e} \redproduce \redctx{\Delta'}} which reads as \enquote{
+given a program \synvar{P} and a translation context \redctx{\Delta},
+the rules \synvar{r_1}\synellipsis\synvar{r_n} belonging to scope \synvar{S}
+translate to the expression \synvar{e}, producing a new typing context 
+\redctx{\Delta'}
+}. In the \TirName{T-Scope} rule, we isolate in the resulting \redctx{\Delta'} all the 
+scope variables \synvar{a_1},\ldots,\synvar{a_m} from the sub-scope variables.
+Indeed, those variable will be the arguments and the return values of the function 
+corresponding to the scope \synvar{S}. The expression \synvar{e} that stands 
+for rules \synvar{r_1}\synellipsis\synvar{r_n} is a series of \synlet bindings,
+the last one finishing by a hole (\synhole). We use this hole as a placeholder 
+to be filled with the return value of the function, which is the tuple 
+\synlparen\synvar{a_1}\synellipsis\synvar{a_n}\synrparen. Note that in accordance
+to the translation scheme and the need for a delayed evaluation of defaults, 
+the arguments of \synvar{S} have a thunked type.
+
+
 
 \printbibliography
 
