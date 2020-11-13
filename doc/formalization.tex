@@ -38,6 +38,8 @@
 \newcommand{\synjust}{~\synpunct{:\raisebox{-0.9pt}{-}}~}
 \newcommand{\syntyped}{~\synpunct{:}~}
 \newcommand{\syndot}{\synpunct{.}~}
+\newcommand{\synunit}{\synpunct{()}}
+\newcommand{\synunitt}{\synkeyword{unit}}
 \newcommand{\syntrue}{\synkeyword{true}}
 \newcommand{\synfalse}{\synkeyword{false}}
 \newcommand{\synop}{\synpunct{\odot}}
@@ -79,24 +81,10 @@
 \newcommand{\typlpar}{\typctx{(}}
 \newcommand{\typrpar}{\typctx{)}}
 
-%% Well-formedness
-\newcommand{\wfctx}[1]{\textcolor{green!50!black}{\ensuremath{#1}}}
-\newcommand{\wfkeyword}[1]{\textcolor{green!50!black}{\texttt{#1}}}
-
-\newcommand{\wfgammaempty}{\wfctx{\varnothing_\Gamma}}
-\newcommand{\wfdeltaempty}{\wfctx{\varnothing_\Delta}}
-\newcommand{\wfcomma}{\wfctx{,}\;}
-\newcommand{\wfok}{\wfkeyword{~ok}}
-\newcommand{\wfokin}{\wfkeyword{~ok~in~}}
-\newcommand{\wfArrow}{\wfctx{~\Rightarrow~}}
-\newcommand{\wfarrow}{\wfctx{~\rightarrow~}}
-\newcommand{\wfeq}{\;\wfctx{=}\;}
-\newcommand{\wfvdash}{\;\wfctx{\vdash}\;}
-\newcommand{\wfsemicolon}{\wfctx{;\;}}
-
 %% Evaluation and execution
 \newcommand{\exctx}[1]{\textcolor{blue!80!black}{\ensuremath{#1}}}
-
+\newcommand{\exeemptysubdefaults}{\exctx{\mathsf{empty\_count}}}
+\newcommand{\execonflictsubdefaults}{\exctx{\mathsf{conflict\_count}}}
 \newcommand{\Omegaarg}{\Omega_{arg}}
 \newcommand{\excaller}{\exctx{\complement}}
 \newcommand{\excomma}{\exctx{,}\;}
@@ -116,7 +104,7 @@
 
 
 \title{Formalization of the Catala language}
-\date{}
+\date{November 2020}
 \author{Nicolas Chataing, Denis Merigoux}
 
 \begin{document}
@@ -133,10 +121,10 @@ the logical structure underlying tax law.
 
 \begin{center}
 \begin{tabular}{lrrll}
-  Type&\synvar{\tau}&\syndef&\synbool&boolean type\\
+  Type&\synvar{\tau}&\syndef&\synbool\synalt\synunitt&boolean and unit types\\
   &&\synalt&\synvar{\tau}\synarrow\synvar{\tau}&function type \\
   &&&&\\
-  Expression&\synvar{e}&\syndef&\synvar{x}\synalt\syntrue\synalt\synfalse&variable, literal\\
+  Expression&\synvar{e}&\syndef&\synvar{x}\synalt\syntrue\synalt\synfalse\synalt\synunit&variable, literal\\
   &&\synalt&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
   &&\synalt&\synvar{d}&default term\\
   &&&&\\
@@ -189,7 +177,19 @@ The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\t
 We start by the usual rules of simply-typed lambda calculus.
 \begin{center}
 \begin{mathpar}
-  \inferrule[Var]{ }{
+  \inferrule[UnitLit]{}{ 
+      \typctx{\Gamma}\typvdash\synunit\syntyped\synunitt
+  }
+
+  \inferrule[TrueLit]{}{ 
+      \typctx{\Gamma}\typvdash\syntrue\syntyped\synbool
+  }
+
+  \inferrule[FalseLit]{}{ 
+      \typctx{\Gamma}\typvdash\synfalse\syntyped\synbool
+  }
+
+  \inferrule[Var]{}{
       \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\synvar{x}\syntyped\synvar{\tau}
   }
 
@@ -284,9 +284,11 @@ admissible positions that often described by a grammar.
   \begin{tabular}{lrrll}
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
-    Evaluation &\synvar{C}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
+                    &&\synalt&\synerror\synalt\synemptydefault&errors\\
+    Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
        contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default justification evaluation\\
                     &&\synalt&\synlangle\syntrue\synjust\synhole\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default consequence evaluation\\
+               &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
                     &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_{i-1}}
                     \syncomma\synhole\syncomma\synvar{d_{i+1}}\synellipsis\synvar{d_n}\synrangle&sub-default evaluation
   \end{tabular}
@@ -308,16 +310,18 @@ and evaluation inside a context hole.
     \exeval\synvar{e}[\synvar{x}\mapsto\synvar{v}]
  }
 
-   \inferrule[$\beta_d$]{}{
+   \inferrule[$\beta_d$]{
+     \synvar{d_1}\;\synvar{v}\exeval \synvar{d_1'}\\
+     \cdots\\
+     \synvar{d_n}\;\synvar{v}\exeval \synvar{d_n'}
+   }{
      \synlangle \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
      \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid 
      \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\;\synvar{v}\exeval\\
       \synlangle \synvar{e_{\text{just}}}[\synvar{x}\mapsto\synvar{v}]\synjust
      \synvar{e_{\text{cons}}}[\synvar{x}\mapsto\synvar{v}]\synmid 
-     \synvar{d_1}\;\synvar{v}\synellipsis\synvar{d_n}\;\synvar{v}\synrangle
+     \synvar{d_1'}\synellipsis\synvar{d_n'}\synrangle
      }
-
-
 \end{mathpar}
 \end{center}
 
@@ -337,47 +341,58 @@ even have to consider rules of lower priority lower in the tree.
 \end{mathpar}
 \end{center}
 
-\newcommand{\exDeval}{\exctx{\;\Downarrow\;}}
-\newcommand{\exnotDeval}{\exctx{\;\nRightarrow\;}}
-
-$$ A([D_1, \ldots, D_n]) = \#\{i | D_i \exnotDeval \synemptydefault \} $$
-$$ B([D_1, \ldots, D_n]) = e~|~D_i \exDeval e \wedge e \neq \synemptydefault $$
-
-\begin{center}
-\begin{mathpar}
-  \inferrule[NoJustifTrue]
-  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) = 0}
-  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synemptydefault}
-
-  \inferrule[DefaultOk]
-  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) = 1\\B([D_1, \ldots, D_n]) = \synvar{e}}
-  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synvar{e}}
-  
-  \inferrule[DefaultConflict]
-  {\synvar{b}\exevalstar\bot\\A([D_1, \ldots, D_n]) > 1}
-  {\{\nicefrac{\synvar{b}}{\synvar{e}},[\synvar{D_1}, \ldots, \synvar{D_n}]\}\exDeval\synerror}
-
-\end{mathpar}
-\end{center}
-
+If \synvar{v} is \synfalse{}, then we have to consider rules of lower priority
+\synvar{d_1}\synellipsis\synvar{d_n} that should be all evaluated (left to right),
+according to the sub-default evaluation context. Then, we consider all the 
+values yielded by the sub-default evaluation and define two functions over these 
+values. Let $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n})$ returns 
+the number of empty error terms \synemptydefault{} among the values. We then case analyze on this count:
+\begin{itemize}
+  \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) =n$, then 
+  none of the sub-defaults apply and we return \synemptydefault;
+  \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) =n - 1$,
+  then only only one of the sub-default apply and we return its corresponding value;
+  \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) < n - 1$,
+  then two or more sub-default apply and we raise a conflict error \synerror.
+\end{itemize}
 
 
 \begin{center}
 \begin{mathpar}
+  \inferrule[DefaultJustifFalseNoSub]
+  {}
+  {\synlangle \synfalse\synjust \synvar{e}\synmid \synemptydefault{}\synellipsis\synemptydefault{}\synrangle\exeval \synemptydefault{}}
 
+  \inferrule[DefaultJustifFalseOneSub]
+  {}
+  {\synlangle \synfalse\synjust \synvar{e}\synmid 
+  \synemptydefault\synellipsis\synemptydefault\syncomma\synvar{v}\syncomma\synemptydefault\synellipsis\synemptydefault\synrangle\exeval \synvar{v}}
 
-  \inferrule[Default]
-  {\synvar{D}\exDeval\synvar{e}}
-  {\synvar{D}\exeval\synvar{e}}
-  
-  \inferrule[ConflictError]
-  {e\exeval\synerror}
-  {C[e]\exeval\synerror}
-
-  \inferrule[EmptyError]
-  {e\exeval\synemptydefault}
-  {C[e]\exeval\synemptydefault}
+  \inferrule[DefaultJustifFalseSubConflict]
+  {\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) <n - 1}
+  {\synlangle \synfalse\synjust \synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_n}\synrangle\exeval \synerror{}}
 \end{mathpar}
 \end{center}
+
+Last, we need to define how our error terms propagate. Because the rules for 
+sub-default evaluation have to count the number of error terms in the list 
+of sub-defaults, we cannot always immediately propagate the error term in 
+all the evaluation contexts as it usually done. Rather, we rely on the 
+distinction between the $\lambda$-calculus evaluation contexts $\synvar{C_\lambda}$
+and the sub-default evaluation context. Hence the following rules for error 
+propagation.
+
+\begin{center}
+\begin{mathpar}
+   \inferrule[ContextEmptyError]
+  {\synvar{e}\exeval\synemptydefault}
+  {\synvar{C_\lambda}[\synvar{e}]\exeval\synemptydefault}
+
+\inferrule[ContextConflictError]
+  {\synvar{e}\exeval\synerror}
+  {\synvar{C_\lambda}[\synvar{e}]\exeval\synerror}
+\end{mathpar}
+\end{center}
+
 
 \end{document}
