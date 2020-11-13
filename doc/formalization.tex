@@ -27,14 +27,9 @@
 \newcommand{\syndate}{\synkeyword{date}}
 \newcommand{\synvec}{\synkeyword{vec~}}
 \newcommand{\synopt}{\synkeyword{opt~}}
-
-\newcommand{\syncase}{\synkeyword{case~}}
-\newcommand{\synof}{\synkeyword{~of~}}
-\newcommand{\synif}{\synkeyword{if~}}
-\newcommand{\synthen}{\synkeyword{~then~}}
-\newcommand{\synelse}{\synkeyword{~else~}}
-\newcommand{\synlet}{\synkeyword{let~}}
-\newcommand{\synin}{\synkeyword{~in~}}
+\newcommand{\synrule}{\synkeyword{rule~}}
+\newcommand{\syncall}{\synkeyword{call~}}
+\newcommand{\synscope}{\synkeyword{scope~}}
 \newcommand{\synequal}{\synpunct{~=~}}
 \newcommand{\synjust}{~\synpunct{:\raisebox{-0.9pt}{-}}~}
 \newcommand{\syntyped}{~\synpunct{:}~}
@@ -49,6 +44,8 @@
 \newcommand{\synor}{\synpunct{\vee}}
 \newcommand{\synlparen}{\synpunct{(}}
 \newcommand{\synrparen}{\synpunct{)}}
+\newcommand{\synlsquare}{\synpunct{[}}
+\newcommand{\synrsquare}{\synpunct{]}}
 \newcommand{\synlbracket}{\synpunct{\{}}
 \newcommand{\synrbracket}{\synpunct{\}}}
 \newcommand{\synlangle}{\synpunct{$\langle$}}
@@ -434,6 +431,34 @@ Based on these two characteristic, we propose a high-level \emph{scope language}
 semantically defined by its encoding in the default calculus.
 
 \subsection{Syntax}
+
+A scope $S$ is a legislative abstraction unit that can encompass multiple 
+articles. $S$ is comprised of multiple rules that define a scope variable $a$ 
+to a certain expression under a condition that characterize the base case or 
+the exception.
+
+$S$ can also call into another scope $S'$, as a function can call 
+into another. These calls are scattered in the legislative texts and have 
+to be identified by the programmer. Since $S$ can call $S'$ multiple times
+with different \enquote{parameters}, we have to distinguish between these
+sub-call and give them different names \synlparen\synvar{S'}\synarrow\synvar{s_1}\synrparen,
+ \synlparen\synvar{S'}\synarrow\synvar{s_2}\synrparen, etc.
+
+
+\begin{center}
+\begin{tabular}{lrrll}
+  Scope name&\synvar{S}&&&\\
+  Location&\synvar{\ell}&\syndef&\synvar{a}&scope variable\\
+        &&\synalt&\synlparen\synvar{S}\synarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare&sub-scope variable\\
+  Expression&\synvar{e}&\syndef&\synvar{\ell}&location\\
+  &&\synalt&$\cdots$&default calculus expressions\\
+  &&&&\\
+  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\synequal\synlangle\synvar{e}\synjust\synvar{e}\synrangle&variable definition\\
+  &&\synalt&\syncall\synlparen\synvar{S}\synarrow\synvar{s}\synrparen&sub-scope call\\
+  Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
+
+\end{tabular}
+\end{center}
 
 \printbibliography
 
