@@ -30,7 +30,10 @@
 \newcommand{\synopt}{\synkeyword{opt~}}
 \newcommand{\synrule}{\synkeyword{rule~}}
 \newcommand{\synlet}{\synkeyword{let~}}
-\newcommand{\synin}{\synkeyword{in~}}
+\newcommand{\synin}{\synkeyword{~in~}}
+\newcommand{\synif}{\synkeyword{if~}}
+\newcommand{\synthen}{\synkeyword{~then~}}
+\newcommand{\synelse}{\synkeyword{~else~}}
 \newcommand{\syncall}{\synkeyword{call~}}
 \newcommand{\synscope}{\synkeyword{scope~}}
 \newcommand{\synequal}{\synpunct{~=~}}
@@ -57,7 +60,8 @@
 \newcommand{\synmid}{\synpunct{~$|$~}}
 \newcommand{\synemptydefault}{\synvar{\varnothing}}
 \newcommand{\synerror}{\synvar{\circledast}}
-\newcommand{\synmerge}{\synkeyword{~++~}}
+\newcommand{\synmerge}{\synpunct{~$+\!+$~}}
+\newcommand{\synstar}{\synpunct{~$*$~}}
 \newcommand{\synvardef}{\synkeyword{definition~}}
 \newcommand{\synscopecall}{\synkeyword{scope\_call~}}
 \newcommand{\synlarrow}{~\synpunct{$\leftarrow$}~}
@@ -122,9 +126,9 @@
 \section{Introduction}
 
 Tax law defines how taxes should be computed, depending on various characteristic
-of the fiscal household. Government agencies around the world use computer 
+of a fiscal household. Government agencies around the world use computer 
 programs to compute the law, which are derived from the local tax law. Translating 
-tax law into an unambiguous program is tricky because the law is subject to 
+tax law into an unambiguous computer program is tricky because the law is subject to 
 interpretations and ambiguities. The goal of the Catala domain-specific language 
 is to provide a way to clearly express the interpretation chosen for the 
 computer program, and display it close to the law it is supposed to model.
@@ -146,11 +150,11 @@ of Catala.
 
 \section{Default calculus}
 
-We chose to present the core of Catala as a lambda-calculus augmented by a special 
-\enquote{default} expression. This special expression enables to deal with 
-the logical structure underlying tax law. This lambda-calculus has only unit and 
+We choose to present the core of Catala as a lambda-calculus augmented by a special 
+\enquote{default} expression. This special expression enables dealing with 
+the logical structure underlying tax law. Our lambda-calculus has only unit and 
 boolean values, but this base could be enriched with more complex values and traditional 
-lambda-calculus extensions (such as algebraic data types).
+lambda-calculus extensions (such as algebraic data types or $\Lambda$-polymorphism).
 
 \subsection{Syntax}
 \label{sec:defaultcalc:syntax}
@@ -170,20 +174,25 @@ lambda-calculus extensions (such as algebraic data types).
 \end{tabular}
 \end{center}
 
-To the syntax of the lambda calculus, we add a construction coming from 
+Compared to the regular lambda calculus, we add a construction coming from 
 default logic. Particularly, we focus on a subset of default logic called 
 categorical, prioritized default logic \cite{Brewka2000}. In this setting, a default is a logical 
 rule of the form $A \synjust B$ where $A$ is the justification of the rule and 
 $B$ is the consequence. The rule can only be applied if $A$ is consistent with 
-our current knowledge. If multiple rules $A \synjust B_1$ and $A \synjust B_2$
+the current knowledge $W$: from $A\wedge W$, one should not derive $\bot$.
+If multiple rules $A \synjust B_1$ and $A \synjust B_2$
 can be applied at the same time, then only one of them is applied through 
-an explicit order of the rules.
+an explicit ordering of the rules.
 
-To translate this form of logic inside our programming language, we set $A$ to 
+To incorporate this form of logic inside our programming language, we set $A$ to 
 be an expression that can be evaluated to \syntrue{} or \synfalse{}, and $B$
-the value that the default should evaluate to if $A$ is true. If $A$ is false,
+the expression that the default should reduce to if $A$ is true. If $A$ is false,
 then we look up for other rules of lesser priority to apply. This priority 
-is encoded trough a syntactic tree data structure\footnote{Thanks to Pierre-Évariste Dagand for this insight.}. 
+is encoded trough a syntactic tree data structure\footnote{Thanks to Pierre-Évariste Dagand for this insight.}.
+A node of the tree contains a default to consider first, and then a list of lower-priority 
+defaults that don't have a particular ordering between them. This structure is 
+sufficient to model the base case/exceptions structure or the law, and in particular 
+the fact that exceptions are not always prioritized in the legislative text.
 
 In the term \synlangle\synvar{e_{\text{just}}}\synjust
 \synvar{e_{\text{cons}}}\synmid $[\synvar{d}^*]$\synrangle, \synvar{e_{\text{just}}} 
@@ -194,11 +203,16 @@ evaluates to \synfalse{}.
 Of course, this evaluation scheme can fail if no more 
 rules can be applied, or if two or more rules of the same priority have their 
 justification evaluate to \syntrue{}. The error terms \synerror{} and \synemptydefault{}
-encode these failure cases.
+encode these failure cases. Note that if a Catala program correctly derived from a legislative 
+source evaluates to \synerror{} or \synemptydefault{}, this could mean a flaw in the 
+law itself. \synemptydefault{} means that the law did not specify what happens 
+in a given situation, while \synerror{} means that two or more rules specified in 
+the law conflict with each other on a given situation.
 
 \subsection{Typing}
 \label{sec:defaultcalc:typing}
 
+Our typing strategy is an extension of the simply-typed lambda calculus.
 The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}$} reads as
 \enquote{under context $\typctx{\Gamma}$, expression $\synvar{e}$ has type $\synvar{\tau}$}.
 \begin{center}
@@ -256,7 +270,9 @@ of the default should be typed.
   {
     \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
     \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}\\
-    \forall i\in[\![1;n]\!],\;\typctx{\Gamma}\typvdash\synvar{d_i}\typcolon{\tau}
+    \typctx{\Gamma}\typvdash\synvar{d_1}\typcolon{\tau}\\
+    \cdots\\
+    \typctx{\Gamma}\typvdash\synvar{d_n}\typcolon{\tau}
   }
   {\typctx{\Gamma}\typvdash\synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid 
   \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\synvar{\tau}}
@@ -269,8 +285,8 @@ that wraps the default from the outside. Using this scheme, all the expressions
 inside the tree structure of the default will depend on the same bound variable 
 \synvar{x}.
 
-However, this scheme is not adapted to the way Catala will expose defaults 
-to the user. Indeed, each legislative article will yield a rule that will be 
+However, this scheme is not adapted to the way Catala exposes defaults 
+to the user in its surface language. Indeed, each legislative article will yield a rule that will be 
 encoded into a \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression.
 Later, all these expressions will be collected and turned into the tree data 
 structure according to the priorities defined by the law. But if each 
@@ -287,8 +303,9 @@ under the default.
     \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\
     \synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid\synrangle
     \typcolon\synvar{\tau'}\\
-    \forall i\in[\![1;n]\!],\;
-    \typctx{\Gamma}\typvdash\synvar{d_i}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
+    \typctx{\Gamma}\typvdash\synvar{d_1}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}\\
+    \cdots\\
+    \typctx{\Gamma}\typvdash\synvar{d_n}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
   }
   {\typctx{\Gamma}\typvdash
   \synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
@@ -301,24 +318,25 @@ under the default.
 We give this default calculus small-step, structured operational semantics. The 
 one-step reduction judgment is of the form \fbox{\synvar{e}\exeval\synvar{e'}}.
 
-In our simple language, values are just booleans or functions and we use a evaluation contexts. 
-Evaluation contexts are contexts where the hole can only occur at some
-admissible positions that often described by a grammar.
+In our simple language, values are just booleans, functions or error terms. 
+We use a evaluation contexts to efficiently describe the evaluation order. 
+Evaluation contexts are expression with a hole indicating the sub-term 
+currently being reduced.
 \begin{center}
   \begin{tabular}{lrrll}
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
     Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
-       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default justification evaluation\\
-                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle&default consequence evaluation\\
+       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{d}^*]$\synrangle&default justification evaluation\\
+                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid $[\synvar{d}^*]$\synrangle&default consequence evaluation\\
                &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
-                    &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_{i-1}}
-                    \syncomma\synhole\syncomma\synvar{d_{i+1}}\synellipsis\synvar{d_n}\synrangle&sub-default evaluation
+                    &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid $[\synvar{v}^*]$%
+                    \syncomma\synhole\syncomma$[\synvar{d}^*]$\synrangle&sub-default evaluation
   \end{tabular}
 \end{center}
 
-Note that our language is call-by-value.
+We choose a call-by-value reduction strategy.
 First, we present the usual reduction rules for beta-reduction 
 (function application and default application) 
 and evaluation inside a context hole.
@@ -352,7 +370,9 @@ is already reduced to a variable \synvar{v}. By applying the beta-reduction
 rule $\beta_d$, we can further reduce to the case where \synvar{v} is a boolean.
 This is where we encode our default logic evaluation semantics. If \synvar{v} is 
 \syntrue{}, then this rule applies and we reduce to the consequence. We don't 
-even have to consider rules of lower priority lower in the tree.
+even have to consider rules of lower priority lower in the tree. This behavior 
+is similar to short-circuit reduction rules of boolean operators, that enable 
+a significant performance gain at execution.
 \begin{mathpar}
   \inferrule[DefaultJustifTrue]
   {}
@@ -396,7 +416,7 @@ of sub-defaults, we cannot always immediately propagate the error term in
 all the evaluation contexts as it usually done. Rather, we rely on the 
 distinction between the $\lambda$-calculus evaluation contexts $\synvar{C_\lambda}$
 and the sub-default evaluation context. Hence the following rules for error 
-propagation.
+propagation:
 
 \begin{mathpar}
    \inferrule[ContextEmptyError]
@@ -411,7 +431,7 @@ propagation.
 \section{Scope language}
 
 Our core default calculus provides a value language adapted to the drafting style 
-of tax law. Each article of law will provide one or more rules encoded as 
+of tax law. Each article of the law will provide one or more rules encoded as 
 defaults. But how to collect those defaults into a single expression that 
 will compute the result that we want? How to reuse existing rules in different 
 contexts?
@@ -462,7 +482,8 @@ sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_
   Expression&\synvar{e}&\syndef&\synvar{\ell}&location\\
   &&\synalt&$\cdots$&default calculus expressions\\
   &&&&\\
-  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust\synvar{e}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle
+  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust
+                         \synvar{e}\synmid$[\synvar{d}^*]$\synrangle
       &Location definition\\
   &&\synalt&\syncall\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen&sub-scope call\\
   Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
@@ -482,8 +503,7 @@ scope X:
 scope Y:
   rule (X<-x)[a] = < true :- 42 >
   call (X<-x)
-  rule c = < (X<-x)[b] == 1 :- false >
-  rule c = < (X<-x)[b] == 43 :- true >
+  rule c = < false :- EmptyError | X_x_b == 1 :- false,  X_x_b == 43 :- true > 
 \end{Verbatim}
 
 Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
@@ -496,17 +516,16 @@ the evaluation (line 7) of variable \Verb+b+ of the sub-scope \Verb+(X<-x)+.
 Line 6 shows an example of providing an \enquote{argument} to the  subscope call.
 The execution goes like this: at line 7 when calling the sub-scope,
 \Verb+(X<-x)[a]+ has two defaults, one coming from line 2, the other calling 
-from line 6. Because the caller has priority over the callee, the two defaults 
-should evaluate to \Verb+42+, and thus \Verb+(X<-x)[b]+ evaluates to \Verb+43+.
-This triggers the default of line 9 which evaluates \Verb+c+ to \Verb+true+. 
+from line 6. Because the caller has priority over the callee, the default from line 
+6 wins and \Verb+(X<-x)[a]+ evaluates to \Verb+42+. Consequently,
+\Verb+(X<-x)[b]+ evaluates to \Verb+43+.
+This triggers the second default in the list of line 8 which evaluates \Verb+c+ to \Verb+true+. 
 
-The goal of the next section is to provided an encoding of the scope language 
+The goal is to provide an encoding of the scope language 
 into the lambda calculus that is compatible with this intuitive description 
-of how scopes should evaluate.
-
-To get a high-level 
-picture of the translation, we show what the simple program will translate 
-to, using ML-like syntax with defaults:
+of how scopes should evaluate. To get a high-level 
+picture of the translation, we first show what the previous simple program will translate 
+to, using ML-like syntax for the target default calculus:
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
   let a : unit -> int = a ++ (fun () -> < true :- 0 >) in
@@ -516,13 +535,13 @@ let X (a: unit -> int) (b: unit -> int) : (int * int) =
   (a, b)
 
 let Y (c: unit -> bool) : bool = 
-  let X_x_a : unit -> int = fun () -> < false :- EmptyError > in 
-  let X_x_b : unit -> int = fun () -> < false :- EmptyError > in
-  let X_x_a : unit -> int = X_x_a ++ (fun () -> < true :- 42 >) in 
+  let X_x_a : unit -> int = fun () -> < true :- 42 > in
+  let X_x_b : unit -> int = fun () -> < false :- EmptyError > in 
   let (X_x_a, X_x_b) : int * int = X(X_x_a, X_x_b) in 
-  let c = c ++ fun () -> < X_x_b == 1 :- false > in 
-  let c = c ++ fun () -> < X_x_b == 43 :- true > in 
-  let c = () in 
+  let c : unit -> bool = c ++ fun () -> 
+    < false :- EmptyError | X_x_b == 1 :- false,  X_x_b == 43 :- true > 
+  in 
+  let c : bool = () in 
   c 
 \end{Verbatim}
 
@@ -538,12 +557,14 @@ so that their evaluation is delayed. After the defaults have been merged, we app
 Finally, \Verb+X+ returns the tuple of all its local variables (line 6).
 
 The translation of \Verb+Y+ exhibits the pattern for sub-scope calls.
-First, all the arguments of the sub-scope call are defined to a neutral expression 
-(line 9 and 10) which will be ignored by the default evaluation rules.
-Then, eventual re-definitions of the arguments of \Verb+X+ are merged to these 
-neutral defaults (line 11). The sub-scope call is translated to a regular 
-function call (line 12). The results of the call are then used in the definitions 
-of \Verb+c+ (lines 13-14), before \Verb+c+ is evaluated (line 15). 
+Lines 9 translates the assignment of the sub-scope argument \Verb+(X<-x)[a]+.
+Before calling \Verb+(X<-x)+ (line 11), the other argument \Verb+(X<-x)[b]+ is 
+initialized to a neutral default that will be ignored at execution since its 
+justification is \Verb+false+. The sub-scope call is translated to a regular 
+function call (line 11). The results of the call are then used in the two defaults  
+for \Verb+c+ (lines 13), which have been turned into a default tree taking into 
+account that no priority has been declared between the two defaults.
+ Finally, \Verb+c+ is evaluated (line 15). 
 
 \subsection{Formalization of the translation}
 
@@ -566,15 +587,16 @@ the translation from top to bottom, in order to keep the big picture in mind.
 We will assume the default calculus has been expanded with the usual ML 
 \synlet \synin construction, as well as tuples. Here is the top-level rule for 
 translating scopes.
-
 \begin{mathpar}
 \inferrule[T-Scope]{
   \synvar{P}\redsc\redempty\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
   \reduces \synvar{e} \redproduce \synvar{a_1}\redcolon\synvar{\tau_1}\redellipsis \synvar{a_m}\redcolon\synvar{\tau_m}\redcomma\redctx{\Delta'}
 }{
   \synvar{P}\redvdash\synscope\synvar{S}\syntyped\synvar{r_1}\synellipsis\synvar{r_n}\reduces\\
-  \synlet\synvar{S}\;(\synvar{a_1}\syntyped\synunitt\synarrow\synvar{\tau_1})\;\cdots\;(\synvar{a_m}\syntyped\synunitt\synarrow\synvar{\tau_m})\synequal
-  \synvar{e}[\synhole\mapsto\synlparen\synvar{a_1}\synellipsis\synvar{a_n}\synrparen]
+  \synlet\synvar{S}\;\synlparen\synvar{a_1}\syntyped\synunitt\synarrow\synvar{\tau_1}\synrparen\;\cdots\;
+  \synlparen\synvar{a_m}\syntyped\synunitt\synarrow\synvar{\tau_m}\synrparen\syntyped 
+  \synlparen\synvar{\tau_1}\synstar\cdots\synstar\synvar{\tau_m}\synrparen\synequal
+  \synvar{e}[\synhole\mapsto\synlparen\synvar{a_1}\synellipsis\synvar{a_m}\synrparen]
 }
 \end{mathpar}
 
@@ -582,12 +604,12 @@ This rule has a lot to unpack, but it is just the formal description of the
 translation scheme described earlier. To translate scope declaration \synvar{S}
 with associated rules  \synvar{r_1}\synellipsis\synvar{r_n}, we use a helper 
 judgment  \fbox{\synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
-\reduces \synvar{e} \redproduce \redctx{\Delta'}} which reads as \enquote{
+\reduces \synvar{e} \redproduce \redctx{\Delta'}} which reads as \enquote{%
 given a program \synvar{P} and a translation context \redctx{\Delta},
 the rules \synvar{r_1}\synellipsis\synvar{r_n} belonging to scope \synvar{S}
 translate to the expression \synvar{e}, producing a new typing context 
-\redctx{\Delta'}
-}. In the \TirName{T-Scope} rule, we isolate in the resulting \redctx{\Delta'} all the 
+\redctx{\Delta'}}.
+ In this \TirName{T-Scope} rule, we isolate in the resulting \redctx{\Delta'} all the 
 scope variables \synvar{a_1},\ldots,\synvar{a_m} from the sub-scope variables.
 Indeed, those variable will be the arguments and the return values of the function 
 corresponding to the scope \synvar{S}. The expression \synvar{e} that stands 
@@ -597,6 +619,70 @@ to be filled with the return value of the function, which is the tuple
 \synlparen\synvar{a_1}\synellipsis\synvar{a_n}\synrparen. Note that in accordance
 to the translation scheme and the need for a delayed evaluation of defaults, 
 the arguments of \synvar{S} have a thunked type.
+\begin{mathpar}
+\inferrule[T-Rules]{
+  \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}} \synvar{r_1}
+  \reduces \synvar{e_1} \redproduce\redctx{\Delta'}\\
+  \synvar{P}\redsc\redctx{\Delta'}\redturnstile{\synvar{S}} \synvar{r_2}\synellipsis\synvar{r_n}
+  \reduces \synvar{e_2} \redproduce\redctx{\Delta''}
+}{
+ \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
+  \reduces \synvar{e_1}[\synhole\mapsto \synvar{e_2}] \redproduce\redctx{\Delta''}
+}
+\end{mathpar}
+
+The translation of the sequence of rules consists of chaining the different 
+\synlet \synin expressions together with the same  hole (\synhole{}) substitution as the 
+previous rule. Now, we can define the translation for individual rules, starting 
+with the definitions of scope variables.
+\begin{mathpar}
+\inferrule[T-DefScopeVar]{
+  \synvar{a}\notin\redctx{\Delta}
+}{
+  \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
+  \synrule\synvar{a}\syntyped\synvar{\tau}\synequal 
+  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle
+  \reduces \\
+  \synlet a\syntyped\synvar{\tau}\synequal \synvar{a} \synmerge
+  \synlambda \synlparen \synunit\syntyped\synunitt\synrparen\syndot 
+  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle\synin\synhole
+   \redproduce\redctx{\Delta'}
+}
+\end{mathpar}
+
+The premise of \TirName{T-DefScopeVar}, $\synvar{a}\notin\redctx{\Delta}$, indicates 
+that our scope language allows each scope variable to be defined only once, with 
+one default tree. This single default tree can incorporate multiple prioritized definitions 
+of the same variable scattered around various legislative articles, but we 
+assume in our scope language that these scattered definitions have been 
+already collected. Therefore, the ordering of rules is very important in our 
+scope language, because it should be compatible with the dependency graph 
+of the scope locations. As the underlying default calculus is decidable and 
+does not allow fixpoint definitions, the dependency graph of the scope locations 
+should not be cyclic and therefore the topological ordering of its nodes
+should correspond to the order of the rules inside the scope declaration.
+
+Since scope variables are also arguments of the scope, \TirName{T-DefScopeVar}
+redefines \synvar{a} by merging the new default tree with the default expression 
+\synvar{a} of type \synunitt\synarrow\synvar{\tau} passed as an argument to \synvar{S}.
+The merging operator,\synmerge, has the following definition :
+\begin{align*}
+\synlet \synlparen\synmerge\synrparen\;&
+\synlparen\synvar{d_1}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\;
+  \synlparen\synvar{d_2}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\syntyped 
+  \synunitt\synarrow\synvar{\tau}
+  \synequal\\
+  &\synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot
+  \synlet \synvar{x}\syntyped\synvar{\tau}\synequal \synvar{d_1}\;\synunit\synin\\
+  &\synif\synvar{x}\synequal\synemptydefault\synthen \synvar{d_2}\;\synunit\synelse 
+  \synvar{x}
+\end{align*}
+
+\synmerge is asymetric in terms of priority: in \synvar{d_1}\synmerge\synvar{d_2},
+\synvar{d_1} will have the highest priority and it is only in the case where 
+none of the rules in \synvar{d_1} apply that \synvar{d_2} will be considered.
+In \TirName{T-DefScopeVar}, the left-hand-side of \synmerge is coherent with 
+our objective of giving priority to the caller. 
 
 
 
