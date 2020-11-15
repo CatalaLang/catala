@@ -113,12 +113,17 @@
 \newcommand{\redcolon}{\redctx{\;:\;}}
 \newcommand{\redempty}{\redctx{\varnothing}}
 \newcommand{\redproduce}{\;\redctx{\Rrightarrow}\;}
-\newcommand{\redellipsis}{\redctx{,\ldots,}}
+\newcommand{\redellipsis}{\redctx{,\ldots,~}}
+
+\newcommand{\redlparen}{\redctx{(}}
+\newcommand{\redrparen}{\redctx{)}}
+\newcommand{\redequal}{\redctx{~=~}}
+\newcommand{\redinit}{\redctx{\mathsf{init\_subvars}}}
 
 
 \title{Formalization of the Catala language}
 \date{November 2020}
-\author{Nicolas Chataing, Denis Merigoux}
+\author{Denis Merigoux, Nicolas Chataing}
 
 \begin{document}
 \maketitle
@@ -197,9 +202,9 @@ sufficient to model the base case/exceptions structure or the law, and in partic
 the fact that exceptions are not always prioritized in the legislative text.
 
 In the term \synlangle\synvar{e_{\text{just}}}\synjust
-\synvar{e_{\text{cons}}}\synmid $[\synvar{d}^*]$\synrangle, \synvar{e_{\text{just}}} 
+\synvar{e_{\text{cons}}}\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle, \synvar{e_{\text{just}}} 
 is the justification $A$, \synvar{e_{\text{cons}}} is the consequence $B$ and 
-$[\synvar{d}^*]$ is the list of rules to be considered if \synvar{e_{\text{just}}} 
+\synvar{e_1}\synellipsis\synvar{e_n} is the list of rules to be considered if \synvar{e_{\text{just}}} 
 evaluates to \synfalse{}. 
  
 Of course, this evaluation scheme can fail if no more 
@@ -508,6 +513,7 @@ sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_
 \end{center}
  
 \subsection{Running example}
+\label{sec:scope:example}
 
 Let's illustrate how the scope language plays out with a simple program 
 that calls a sub-scope:
@@ -546,20 +552,18 @@ picture of the translation, we first show what the previous simple program will 
 to, using ML-like syntax for the target default calculus:
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
-  let a : unit -> int = a ++ < fun () -> true :- fun () -> 0 | > in
+  let a : unit -> int = a ++ (fun () -> < true :- 0 | >) in
   let a : int = a () in  
-  let b : unit -> int = b ++ < fun () -> true :- fun () -> a + 1 | >) in 
+  let b : unit -> int = b ++ (fun () -> < true :- a + 1 | >) in 
   let b : int = b () in
   (a, b)
 
 let Y (c: unit -> bool) : bool = 
-  let X_x_a : unit -> int = < fun () -> true :- fun () -> 42 | > in
+  let X_x_a : unit -> int = fun () -> < true :- 42 | > in
   let X_x_b : unit -> int = fun () -> EmptyError in 
   let (X_x_a, X_x_b) : int * int = X(X_x_a, X_x_b) in 
-  let c : unit -> bool = c ++
-    < fun () -> false :- EmptyError | 
-      fun () -> X_x_b == 1 :- fun () -> false,  
-      fun () -> X_x_b == 43 :- fun () -> true > 
+  let c : unit -> bool = c ++ (fun () -> 
+    < false :- EmptyError | X_x_b == 1 :- false, X_x_b == 43 :- true >)
   in 
   let c : bool = c () in 
   c 
@@ -583,28 +587,36 @@ initialized to the neutral \synemptydefault{} that will be ignored at execution
 because \Verb+X+ provides more defaults for \Verb+b+.
 The sub-scope call is translated to a regular 
 function call (line 11). The results of the call are then used in the two defaults  
-for \Verb+c+ (lines 13-15), which have been turned into a default tree taking into 
+for \Verb+c+ (lines 13), which have been turned into a default tree taking into 
 account that no priority has been declared between the two defaults.
- Finally, \Verb+c+ is evaluated (line 17). 
+ Finally, \Verb+c+ is evaluated (line 15). 
 
 \subsection{Formalization of the translation}
 \label{sec:scope:formalization}
 
 
 The main judgment of reduction from scope language to default calculus is 
-\fbox{$\synvar{P}\redvdash\synvar{\sigma}\reduces\synvar{e}$}, which reduces 
-a scope declaration to a function in the default calculus. 
+\fbox{$\synvar{P}\redvdash\synvar{\sigma}\reduces\synvar{e}\redproduce\redctx{\Delta_\mathrm{own}}$}, which reduces 
+a scope declaration to a function in the default calculus, while providing the 
+list of its own variables.
 
 \begin{center}
   \begin{tabular}{lrrll}
     Translation context&\redctx{\Delta}&\syndef&\redempty&empty context\\
-    (unordered map)&&\synalt&\redctx{\Delta}\redcomma\synvar{a}\redcolon\synvar{\tau}&typed scope variable\\
-    &&\synalt&\redctx{\Delta}\redcomma\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synvar{\tau}&typed sub-scope variable\\
+    (unordered map)&&\synalt&\redctx{\Delta_\mathrm{own}}\redcomma\redctx{\Delta_\mathrm{sub}}&own and sub-scopes contexts\\
+    &\redctx{\Delta_\mathrm{own}}&\syndef&\redempty\synalt\redctx{\Delta_\mathrm{own}}\redcomma\synvar{a}\redcolon\synvar{\tau}&typed scope variable\\
+    &\redctx{\Delta_\mathrm{sub}}&\syndef&\redempty\synalt\redctx{\Delta_\mathrm{sub}}\redcomma\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synvar{\tau}&typed sub-scope variable\\
   \end{tabular}
 \end{center}
 
 The translation context \redctx{\Delta} is similar to the typing context \typctx{\Gamma} of 
-the default calculus, but it only takes into account the new scope-related variables. We will describe 
+the default calculus, but it only takes into account the new scope-related location. At any 
+point, \redctx{\Delta} will contain the scope locations defined (and usable in expressions) so far.
+\redctx{\Delta} is divided in \redctx{\Delta_\mathrm{own}} and \redctx{\Delta_\mathrm{sub}},
+which contain respectively the scope's own variables and the variables of its 
+sub-scopes.
+
+ We will describe 
 the translation from top to bottom, in order to keep the big picture in mind.
 We will assume the default calculus has been expanded with the usual ML 
 \synlet \synin construction, as well as tuples. Here is the top-level rule for 
@@ -612,13 +624,16 @@ translating scopes.
 \begin{mathpar}
 \inferrule[T-Scope]{
   \synvar{P}\redsc\redempty\redturnstile{\synvar{S}} \synvar{r_1}\synellipsis\synvar{r_n}
-  \reduces \synvar{e} \redproduce \synvar{a_1}\redcolon\synvar{\tau_1}\redellipsis \synvar{a_m}\redcolon\synvar{\tau_m}\redcomma\redctx{\Delta'}
+  \reduces \synvar{e} \redproduce 
+  \synvar{a_1}\redcolon\synvar{\tau_1}\redellipsis\synvar{a_m}\redcolon\synvar{\tau_m}\redcomma
+  \redctx{\Delta_\mathrm{sub}}
 }{
   \synvar{P}\redvdash\synscope\synvar{S}\syntyped\synvar{r_1}\synellipsis\synvar{r_n}\reduces\\
   \synlet\synvar{S}\;\synlparen\synvar{a_1}\syntyped\synunitt\synarrow\synvar{\tau_1}\synrparen\;\cdots\;
   \synlparen\synvar{a_m}\syntyped\synunitt\synarrow\synvar{\tau_m}\synrparen\syntyped 
   \synlparen\synvar{\tau_1}\synstar\cdots\synstar\synvar{\tau_m}\synrparen\synequal
-  \synvar{e}[\synhole\mapsto\synlparen\synvar{a_1}\synellipsis\synvar{a_m}\synrparen]
+  \synvar{e}[\synhole\mapsto\synlparen\synvar{a_1}\synellipsis\synvar{a_m}\synrparen]\redproduce\\
+  \synvar{a_1}\redcolon\synvar{\tau_1}\redellipsis\synvar{a_m}\redcolon\synvar{\tau_m}
 }
 \end{mathpar}
 
@@ -659,15 +674,17 @@ previous rule. Now, we can define the translation for individual rules, starting
 with the definitions of scope variables.
 \begin{mathpar}
 \inferrule[T-DefScopeVar]{
-  \synvar{a}\notin\redctx{\Delta}
+  \synvar{a}\notin\redctx{\Delta}\\
+  \redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\synvar{\tau}
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
   \synrule\synvar{a}\syntyped\synvar{\tau}\synequal 
-  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
   \reduces \\
-  \synlet a\syntyped\synvar{\tau}\synequal \synvar{a} \synmerge
+  \synlet a\syntyped\synvar{\tau}\synequal \synlparen\synvar{a} \synmerge
   \synlambda \synlparen \synunit\syntyped\synunitt\synrparen\syndot 
-  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle\synin\synhole
+  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synrparen\;\synunit\synin\synhole
    \redproduce\synvar{a}\redcolon\synvar{\tau}\redcomma\redctx{\Delta}
 }
 \end{mathpar}
@@ -682,7 +699,11 @@ scope language, because it should be compatible with the dependency graph
 of the scope locations. As the underlying default calculus is decidable and 
 does not allow fixpoint definitions, the dependency graph of the scope locations 
 should not be cyclic and therefore the topological ordering of its nodes
-should correspond to the order of the rules inside the scope declaration.
+should correspond to the order of the rules inside the scope declaration. This 
+dependency ordering is enforced by the premise
+\redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\synvar{\tau},
+which seeds the typing judgment of \sref{defaultcalc:typing} with \redctx{\Delta}
+(the scope locations defined so far).
 
 Since scope variables are also arguments of the scope, \TirName{T-DefScopeVar}
 redefines \synvar{a} by merging the new default tree with the default expression 
@@ -706,10 +727,130 @@ our objective of giving priority to the caller.
 
 Finally, the evaluation of the merged default tree is forced by applying \synunit,
 yielding a value of type \synvar{\tau} for \synvar{a} which will be available
-for use in the rest of the translated program.
+for use in the rest of the translated program. Now that we have presented the 
+translation scheme for rules defining scope variables, we can switch to the 
+translation of sub-scope variables definitions and calls. We will start by 
+the rules that define sub-scope variables, prior to calling the associated 
+sub-scope.
+\begin{mathpar}
+\inferrule[T-DefSubScopeVar]{
+  S\neq S'\\
+  \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\notin\redctx{\Delta}\\
+  \redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \typcolon\synvar{\tau}
+}{
+  \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
+  \synrule\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\syntyped\synvar{\tau}\synequal 
+  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \reduces \\
+  \synlet \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\syntyped\synunitt\synarrow\synvar{\tau}\synequal 
+  \synlambda \synlparen\synunit\syntyped\synunitt\synrparen\syndot 
+  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synin\synhole\redproduce\\\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}\redcomma\redctx{\Delta}
+}
+\end{mathpar}
 
+This rule is very similar to \TirName{T-DefScopeVar}, and actually simpler. It does not feature the 
+merge operator $\!\!\!\synmerge\!\!\!$, because sub-scope variables like 
+\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare{}
+are not part of the scope's argument. The premise $S\neq S'$ means that a scope 
+$S$ cannot have a recursive definition; it cannot call into itself and define 
+sub-scope variables of its own scope. Note that 
+\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}
+is added to \redctx{\Delta} in the final part of the judgment; \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare{}
+has been defined as a sub-scope argument but not as a value that can be used by the 
+scope yet, its type is \synunitt\synarrow\synvar{\tau} and not \synvar{\tau}.
 
+When all the arguments of 
+sub-scope \synvar{S'} have been defined using, \TirName{T-DefSubScopeVar}, 
+the sub-scope itself can be called.
+\begin{mathpar}
+\inferrule[T-SubScopeCall]{
+  S\neq S'\\
+  P(S') = \sigma'\\
+  P\redvdash\sigma'\reduces e'\redproduce 
+  \synvar{a'_1}\redcolon\synvar{\tau'_1}\redellipsis\synvar{a'_n}\redcolon\synvar{\tau'_n}\redcomma\redctx{\Delta'_\mathrm{sub}}\\
+  \redinit\redlparen\redctx{\Delta}\redsc 
+  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare
+  \redellipsis\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\redrparen
+  \redequal\synvar{e_\mathrm{init}}
+}{
+  \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}\syncall 
+  \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\reduces
+  \synvar{e_\mathrm{init}}[\synhole\mapsto\\
+  \synlet\synlparen \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\synellipsis
+  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\synrparen
+  \syntyped \synlparen \synvar{\tau'_1}\synstar\cdots\synstar\synvar{\tau'_n}\synrparen\synequal\\
+  \synvar{e'}\;\synlparen\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\synrparen
+  \cdots\synlparen\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\synrparen
+  \synin\synhole\;]\redproduce\\
+  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\redcolon\synvar{\tau'_1}\redellipsis
+  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\redcolon\synvar{\tau'_n}\redcomma 
+  \redctx{\Delta}
+}
+\end{mathpar}
 
+Again, this rule has a lot to unpack, but is meant as a generalization of the 
+translation scheme illustrated in \sref{scope:example}. Let us start with 
+the premises. As earlier, $S\neq S'$ means that scope declarations cannot be 
+recursive. Next, we fetch the declaration \synvar{\sigma'} of \synvar{S'} inside 
+the program $P$. \synvar{\sigma'} is reduced into the function expression \synvar{e'},
+whose arguments correspond to the scope variables of \synvar{S'}: 
+\synvar{a'_1}\synellipsis\synvar{a'_n}. Then, we need to define all the arguments 
+necessary to call \synvar{e'}. Some of these arguments have been defined earlier 
+in the translation, and they were added to \redctx{\Delta}. But some arguments 
+may not have been defined yet, and is its precisely the job of the \redinit{} 
+helper to produce the \synvar{e_\mathrm{init}} expression to define those 
+missing arguments with the \synemptydefault{} value.
+
+The conclusion of \TirName{T-SubScopeCall} defines the reduction of 
+\syncall\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen. After \synvar{e_\mathrm{init}},
+we translate the sub-scope call to the default calculus call of the corresponding expression \synvar{e'},
+which takes as arguments the defaults and returns the corresponding values after 
+evaluation. Finally, the new translation context produced is \redctx{\Delta}
+augmented with all the variables of sub-scope \synvar{S'}, who are available 
+for use in later definitions of the scope.
+
+The last item we need to define in order to complete the translation is \redinit{}.
+Its definition is quite simple, since it produces an expression defining to \synemptydefault{}
+all the variables from a list not present in \redctx{\Delta}.
+\begin{mathpar}
+\inferrule[T-InitSubVarsInDelta]{
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
+  \in\redctx{\Delta}\\
+  \redinit\redlparen\redctx{\Delta}\redsc
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_2}\synrsquare\redellipsis
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \redequal\synvar{e}
+}{
+  \redinit\redlparen\redctx{\Delta}\redsc
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redellipsis
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \redequal\synvar{e}
+}
+
+\inferrule[T-InitSubVarsNotInDelta]{
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
+  \notin\redctx{\Delta}\\
+  \redinit\redlparen\redctx{\Delta}\redsc
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_2}\synrsquare\redellipsis
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \redequal\synvar{e'}
+}{
+  \redinit\redlparen\redctx{\Delta}\redsc
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redellipsis
+  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \redequal\\
+  \synlet\synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare
+  \syntyped\synunitt\synarrow\synvar{\tau_1}\synequal
+  \synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot\synemptydefault\synin \synvar{e}
+}
+
+\inferrule[T-InitSubVarsEmpty]{}{
+  \redinit\redlparen\redctx{\Delta}\redrparen
+  \redequal\synhole
+}
+\end{mathpar}
 \printbibliography
 
 \end{document}
