@@ -704,6 +704,10 @@ none of the rules in \synvar{e_1} apply that \synvar{e_2} will be considered.
 In \TirName{T-DefScopeVar}, the left-hand-side of \synmerge is coherent with 
 our objective of giving priority to the caller.
 
+Finally, the evaluation of the merged default tree is forced by applying \synunit,
+yielding a value of type \synvar{\tau} for \synvar{a} which will be available
+for use in the rest of the translated program.
+
 
 
 \printbibliography
