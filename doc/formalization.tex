@@ -18,6 +18,8 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
 
+\newcommand{\sref}[1]{\S\ref{sec:#1}}
+
 %% Syntax
 \newcommand{\synvar}[1]{\ensuremath{#1}}
 \newcommand{\synkeyword}[1]{\textcolor{red!60!black}{\texttt{#1}}}
@@ -168,7 +170,7 @@ lambda-calculus extensions (such as algebraic data types or $\Lambda$-polymorphi
   &&\synalt&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
   &&\synalt&\synvar{d}&default term\\
   &&&&\\
-  Default&\synvar{d}&\syndef&\synlangle\synvar{e}\synjust\synvar{e}\synmid $[\synvar{d}^*]$\synrangle&default term\\
+  Default&\synvar{d}&\syndef&\synlangle\synvar{e}\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default term\\
   &&\synalt&\synerror&conflict error term\\
   &&\synalt&\synemptydefault&empty error term\\
 \end{tabular}
@@ -270,12 +272,12 @@ of the default should be typed.
   {
     \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
     \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}\\
-    \typctx{\Gamma}\typvdash\synvar{d_1}\typcolon{\tau}\\
+    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon{\tau}\\
     \cdots\\
-    \typctx{\Gamma}\typvdash\synvar{d_n}\typcolon{\tau}
+    \typctx{\Gamma}\typvdash\synvar{e_n}\typcolon{\tau}
   }
   {\typctx{\Gamma}\typvdash\synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid 
-  \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\synvar{\tau}}
+  \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\synvar{\tau}}
 \end{mathpar}
 
 The situation becomes more complex in the presence of functions. Indeed, want 
@@ -303,14 +305,14 @@ under the default.
     \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\
     \synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid\synrangle
     \typcolon\synvar{\tau'}\\
-    \typctx{\Gamma}\typvdash\synvar{d_1}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}\\
+    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}\\
     \cdots\\
-    \typctx{\Gamma}\typvdash\synvar{d_n}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
+    \typctx{\Gamma}\typvdash\synvar{e_n}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
   }
   {\typctx{\Gamma}\typvdash
   \synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
   \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid
-  \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\typcolon\tau\synarrow\tau'}
+  \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\tau\synarrow\tau'}
 \end{mathpar}
 
 \subsection{Evaluation}
@@ -328,11 +330,11 @@ currently being reduced.
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
     Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
-       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{d}^*]$\synrangle&default justification evaluation\\
-                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid $[\synvar{d}^*]$\synrangle&default consequence evaluation\\
+       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default justification evaluation\\
                &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
+                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid $[\synvar{e}^*]$\synrangle&default consequence evaluation\\
                     &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid $[\synvar{v}^*]$%
-                    \syncomma\synhole\syncomma$[\synvar{d}^*]$\synrangle&sub-default evaluation
+                    \syncomma\synhole\syncomma$[\synvar{e}^*]$\synrangle&sub-default evaluation
   \end{tabular}
 \end{center}
 
@@ -350,17 +352,13 @@ and evaluation inside a context hole.
     \exeval\synvar{e}[\synvar{x}\mapsto\synvar{v}]
  }
 
-   \inferrule[$\beta_d$]{
-     \synvar{d_1}\;\synvar{v}\exeval \synvar{d_1'}\\
-     \cdots\\
-     \synvar{d_n}\;\synvar{v}\exeval \synvar{d_n'}
-   }{
+   \inferrule[$\beta_d$]{}{
      \synlangle \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
      \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid 
-     \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\;\synvar{v}\exeval\\
+     \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\;\synvar{v}\exeval\\
       \synlangle \synvar{e_{\text{just}}}[\synvar{x}\mapsto\synvar{v}]\synjust
      \synvar{e_{\text{cons}}}[\synvar{x}\mapsto\synvar{v}]\synmid 
-     \synvar{d_1'}\synellipsis\synvar{d_n'}\synrangle
+     \synvar{e_1}\;\synvar{v}\synellipsis\synvar{e_n}\;\synvar{v}\synrangle
      }
 \end{mathpar}
 
@@ -374,13 +372,31 @@ even have to consider rules of lower priority lower in the tree. This behavior
 is similar to short-circuit reduction rules of boolean operators, that enable 
 a significant performance gain at execution.
 \begin{mathpar}
-  \inferrule[DefaultJustifTrue]
-  {}
-  {\synlangle \syntrue\synjust \synvar{e}\synmid \synvar{d_1}\synellipsis\synvar{d_n}\synrangle\exeval e}
+  \inferrule[DefaultJustifTrueNoError]
+  {v\neq\synemptydefault}
+  {\synlangle \syntrue\synjust \synvar{v}\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval v}
 \end{mathpar}
 
-If \synvar{v} is \synfalse{}, then we have to consider rules of lower priority
-\synvar{d_1}\synellipsis\synvar{d_n} that should be all evaluated (left to right),
+However, if the consequence of the first default evaluates to \synemptydefault,
+then we fall back on the rules of lower priority, as if the justification had 
+evaluated to \synfalse. This behavior is useful when the consequence of the 
+first default is itself a \enquote{high-priority} default tree. In this case,
+ \synvar{e_1}\synellipsis\synvar{e_n} acts a the \enquote{low-priority} default 
+ tree. The chaining
+behavior from the high-priority tree to the low-priority tree 
+defined by \TirName{DefaultJustifTrueError}, will be very useful in
+\sref{scope:formalization}.
+\begin{mathpar}
+  \inferrule[DefaultJustifTrueError]
+  {}
+  {
+    \synlangle \syntrue\synjust \synemptydefault\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval
+    \synlangle \synfalse\synjust \synemptydefault\synmid \synvar{e_1}\synellipsis\synvar{e_n} \synrangle
+  }
+\end{mathpar}
+
+If the consequence of the default is \synfalse{}, then we have to consider rules of lower priority
+\synvar{e_1}\synellipsis\synvar{e_n} that should be all evaluated (left to right),
 according to the sub-default evaluation context. Then, we consider all the 
 values yielded by the sub-default evaluation and define two functions over these 
 values. Let $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n})$ returns 
@@ -412,7 +428,7 @@ the number of empty error terms \synemptydefault{} among the values. We then cas
 
 Last, we need to define how our error terms propagate. Because the rules for 
 sub-default evaluation have to count the number of error terms in the list 
-of sub-defaults, we cannot always immediately propagate the error term in 
+of sub-defaults, we cannot always immediately propagate the error term \synemptydefault{} in 
 all the evaluation contexts as it usually done. Rather, we rely on the 
 distinction between the $\lambda$-calculus evaluation contexts $\synvar{C_\lambda}$
 and the sub-default evaluation context. Hence the following rules for error 
@@ -425,7 +441,7 @@ propagation:
 
 \inferrule[ContextConflictError]
   {\synvar{e}\exeval\synerror}
-  {\synvar{C_\lambda}[\synvar{e}]\exeval\synerror}
+  {\synvar{C}[\synvar{e}]\exeval\synerror}
 \end{mathpar}
 
 \section{Scope language}
@@ -483,7 +499,7 @@ sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_
   &&\synalt&$\cdots$&default calculus expressions\\
   &&&&\\
   Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust
-                         \synvar{e}\synmid$[\synvar{d}^*]$\synrangle
+                         \synvar{e}\synmid$[\synvar{e}^*]$\synrangle
       &Location definition\\
   &&\synalt&\syncall\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen&sub-scope call\\
   Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
@@ -497,13 +513,15 @@ Let's illustrate how the scope language plays out with a simple program
 that calls a sub-scope:
 \begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt]
 scope X:
-  rule a = < true :- 0 >
-  rule b = < true :- a + 1>
+  rule a = < true :- 0 | >
+  rule b = < true :- a + 1 | >
 
 scope Y:
-  rule (X<-x)[a] = < true :- 42 >
+  rule (X<-x)[a] = < true :- 42 | >
   call (X<-x)
-  rule c = < false :- EmptyError | X_x_b == 1 :- false,  X_x_b == 43 :- true > 
+  rule c = < false :- EmptyError | 
+    < X_x_b == 1 :- false | >,  < X_x_b == 43 :- true | > 
+  > 
 \end{Verbatim}
 
 Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
@@ -519,7 +537,7 @@ The execution goes like this: at line 7 when calling the sub-scope,
 from line 6. Because the caller has priority over the callee, the default from line 
 6 wins and \Verb+(X<-x)[a]+ evaluates to \Verb+42+. Consequently,
 \Verb+(X<-x)[b]+ evaluates to \Verb+43+.
-This triggers the second default in the list of line 8 which evaluates \Verb+c+ to \Verb+true+. 
+This triggers the second default in the list of line 9 which evaluates \Verb+c+ to \Verb+true+. 
 
 The goal is to provide an encoding of the scope language 
 into the lambda calculus that is compatible with this intuitive description 
@@ -528,20 +546,22 @@ picture of the translation, we first show what the previous simple program will 
 to, using ML-like syntax for the target default calculus:
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
-  let a : unit -> int = a ++ (fun () -> < true :- 0 >) in
+  let a : unit -> int = a ++ < fun () -> true :- fun () -> 0 | > in
   let a : int = a () in  
-  let b : unit -> int = b ++ (fun () -> < true :- a + 1>) in 
+  let b : unit -> int = b ++ < fun () -> true :- fun () -> a + 1 | >) in 
   let b : int = b () in
   (a, b)
 
 let Y (c: unit -> bool) : bool = 
-  let X_x_a : unit -> int = fun () -> < true :- 42 > in
-  let X_x_b : unit -> int = fun () -> < false :- EmptyError > in 
+  let X_x_a : unit -> int = < fun () -> true :- fun () -> 42 | > in
+  let X_x_b : unit -> int = fun () -> EmptyError in 
   let (X_x_a, X_x_b) : int * int = X(X_x_a, X_x_b) in 
-  let c : unit -> bool = c ++ fun () -> 
-    < false :- EmptyError | X_x_b == 1 :- false,  X_x_b == 43 :- true > 
+  let c : unit -> bool = c ++
+    < fun () -> false :- EmptyError | 
+      fun () -> X_x_b == 1 :- fun () -> false,  
+      fun () -> X_x_b == 43 :- fun () -> true > 
   in 
-  let c : bool = () in 
+  let c : bool = c () in 
   c 
 \end{Verbatim}
 
@@ -559,14 +579,16 @@ Finally, \Verb+X+ returns the tuple of all its local variables (line 6).
 The translation of \Verb+Y+ exhibits the pattern for sub-scope calls.
 Lines 9 translates the assignment of the sub-scope argument \Verb+(X<-x)[a]+.
 Before calling \Verb+(X<-x)+ (line 11), the other argument \Verb+(X<-x)[b]+ is 
-initialized to a neutral default that will be ignored at execution since its 
-justification is \Verb+false+. The sub-scope call is translated to a regular 
+initialized to the neutral \synemptydefault{} that will be ignored at execution 
+because \Verb+X+ provides more defaults for \Verb+b+.
+The sub-scope call is translated to a regular 
 function call (line 11). The results of the call are then used in the two defaults  
-for \Verb+c+ (lines 13), which have been turned into a default tree taking into 
+for \Verb+c+ (lines 13-15), which have been turned into a default tree taking into 
 account that no priority has been declared between the two defaults.
- Finally, \Verb+c+ is evaluated (line 15). 
+ Finally, \Verb+c+ is evaluated (line 17). 
 
 \subsection{Formalization of the translation}
+\label{sec:scope:formalization}
 
 
 The main judgment of reduction from scope language to default calculus is 
@@ -641,11 +663,11 @@ with the definitions of scope variables.
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
   \synrule\synvar{a}\syntyped\synvar{\tau}\synequal 
-  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle
+  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
   \reduces \\
   \synlet a\syntyped\synvar{\tau}\synequal \synvar{a} \synmerge
   \synlambda \synlparen \synunit\syntyped\synunitt\synrparen\syndot 
-  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{d_1}\synellipsis\synvar{d_n}\synrangle\synin\synhole
+  \synlangle\synvar{e_1}\synjust\synvar{e_2}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle\synin\synhole
    \redproduce\synvar{a}\redcolon\synvar{\tau}\redcomma\redctx{\Delta}
 }
 \end{mathpar}
@@ -668,21 +690,19 @@ redefines \synvar{a} by merging the new default tree with the default expression
 The merging operator,\synmerge, has the following definition :
 \begin{align*}
 \synlet \synlparen\synmerge\synrparen\;&
-\synlparen\synvar{d_1}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\;
-  \synlparen\synvar{d_2}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\syntyped 
+\synlparen\synvar{e_1}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\;
+  \synlparen\synvar{e_2}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\syntyped 
   \synunitt\synarrow\synvar{\tau}
   \synequal\\
-  &\synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot
-  \synlet \synvar{x}\syntyped\synvar{\tau}\synequal \synvar{d_1}\;\synunit\synin\\
-  &\synif\synvar{x}\synequal\synemptydefault\synthen \synvar{d_2}\;\synunit\synelse 
-  \synvar{x}
+  &\synlangle\synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot\syntrue\synjust
+  \synvar{e_1}\synmid\synvar{e_2}\synrangle
 \end{align*}
 
-\synmerge is asymetric in terms of priority: in \synvar{d_1}\synmerge\synvar{d_2},
-\synvar{d_1} will have the highest priority and it is only in the case where 
-none of the rules in \synvar{d_1} apply that \synvar{d_2} will be considered.
+\synmerge is asymetric in terms of priority: in \synvar{e_1}\synmerge\synvar{e_2},
+\synvar{e_1} will have the highest priority and it is only in the case where 
+none of the rules in \synvar{e_1} apply that \synvar{e_2} will be considered.
 In \TirName{T-DefScopeVar}, the left-hand-side of \synmerge is coherent with 
-our objective of giving priority to the caller. 
+our objective of giving priority to the caller.
 
 
 
