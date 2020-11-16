@@ -334,6 +334,8 @@ currently being reduced.
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
+                    &&\synalt&\synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}
+                    \synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default function\\
     Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
        contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default justification evaluation\\
                &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
