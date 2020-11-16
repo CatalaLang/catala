@@ -1,35 +1,37 @@
 module Catala.DefaultCalculus
 
-#set-options "--fuel 2 --ifuel 1 --z3rlimit 20"
-
-
 type ty =
   | TBool  : ty
+  | TUnit  : ty
   | TArrow : tin:ty -> tout:ty -> ty
 
 type var = int
 
-type exp =
-  | EVar   : v:var -> exp
-  | EApp   : fn:exp -> arg:exp -> exp
-  | EAbs   : v:var -> vty:ty -> body:exp -> exp
-  | ETrue  : exp
-  | EFalse : exp
-  | EIf    : test:exp -> btrue:exp -> bfalse:exp -> exp
-  | EDefault: just:exp -> cons:exp -> subdefaults:list exp -> exp
-  | EEmptyError : exp
-  | EConflictError : exp
+type lit =
+  | LEmptyError : lit
+  | LConflictError : lit
+  | LTrue  : lit
+  | LFalse : lit
+  | LUnit : lit
 
+type exp =
+  | EVar    : v:var -> exp
+  | EApp    : fn:exp -> arg:exp -> exp
+  | EAbs    : v:var -> vty:ty -> body:exp -> exp
+  | ELit    : l:lit -> exp
+  | EIf     : test:exp -> btrue:exp -> bfalse:exp -> exp
+  | EDefault: just:exp -> cons:exp -> subdefaults:list exp -> exp
+
+let c_err = ELit LConflictError
+
+let e_err = ELit LEmptyError
 
 val is_value : exp -> Tot bool
 let is_value e =
   match e with
   | EAbs _ _ _
-  | ETrue
-  | EFalse
-  | EEmptyError
-  | EConflictError
-  | EDefault (EAbs _ _ _) (EAbs _ _ _) _
+  | ELit _
+  | EDefault (EAbs _ _ _) _ _
     -> true
   | _             -> false
 
@@ -39,85 +41,155 @@ let rec map (#a: Type) (#b: Type) (l:list a) (f: ((x:a{x << l}) -> Tot b)) : Tot
   | [] -> []
   | a::tl -> f a::map tl f
 
-val subst : int -> exp -> e:exp -> Tot exp (decreases e)
+val subst : var -> exp -> e:exp -> Tot exp (decreases e)
 let rec subst x e e' =
   match e' with
   | EVar x' -> if x = x' then e else e'
   | EAbs x' t e1 ->
       EAbs x' t (if x = x' then e1 else (subst x e e1))
   | EApp e1 e2 -> EApp (subst x e e1) (subst x e e2)
-  | ETrue -> ETrue
-  | EFalse -> EFalse
+  | ELit l -> ELit l
   | EIf e1 e2 e3 -> EIf (subst x e e1) (subst x e e2) (subst x e e3)
   | EDefault just cond subs -> EDefault (subst x e just) (subst x e cond) (map subs (subst x e))
-  | EEmptyError -> EEmptyError
-  | EConflictError -> EConflictError
 
-let rec step (e: exp) : Tot (option exp) (decreases e) =
+type empty_count_result =
+  | AllEmpty
+  | OneNonEmpty of exp
+  | Conflict
+
+let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_result (decreases l) =
+  match l with
+  | [] -> acc
+  | hd::tl -> begin
+    match (hd, acc) with
+    | ELit (LEmptyError), AllEmpty -> empty_count AllEmpty tl
+    | ELit (LEmptyError), OneNonEmpty e -> empty_count (OneNonEmpty e) tl
+    | _, Conflict -> Conflict
+    | _, AllEmpty -> empty_count (OneNonEmpty hd) tl
+    | _ -> Conflict
+  end
+
+let rec step_app
+  (e: exp)
+  (e1: exp{e1 << e})
+  (e2: exp{e2 << e})
+    : Tot (option exp)  (decreases %[e; 0]) =
+  if is_value e1 then
+    if is_value e2 then
+      match e1 with
+      | ELit LConflictError -> Some c_err
+      | ELit LEmptyError -> Some e_err
+      | EAbs x t e' -> Some (subst x e2 e')
+      | EDefault (EAbs xjust tjust ejust') (EAbs xcons tcons econs') subs -> (* beta_d *)
+        Some (EDefault (subst xjust e2 ejust') (subst xcons e2 econs') (map subs (fun sub -> EApp sub e2)))
+      | _ -> None
+    else
+      match (step e2) with
+      | Some (ELit LConflictError) -> Some (ELit LConflictError)
+      | Some (ELit LEmptyError) -> Some (ELit LEmptyError)
+      | Some e2' -> Some (EApp e1 e2')
+      | None     -> None
+    else
+      match (step e1) with
+      | Some (ELit LConflictError) -> Some c_err
+      | Some (ELit LEmptyError) -> Some e_err
+      | Some e1' -> Some (EApp e1' e2)
+      | None     -> None
+
+and step_if
+  (e: exp)
+  (e1: exp{e1 << e})
+  (e2: exp{e2 << e})
+  (e3: exp{e3 << e})
+    : Tot (option exp)  (decreases %[e; 1])  =
+  if is_value e1 then
+    match e1 with
+    | ELit LConflictError -> Some c_err
+    | ELit LEmptyError -> Some e_err
+    | ELit LTrue   -> Some e2
+    | ELit LFalse  -> Some e3
+    | _       -> None
+  else
+    match (step e1) with
+    | Some (ELit LConflictError) -> Some c_err
+    | Some (ELit LEmptyError) -> Some e_err
+    | Some e1' -> Some (EIf e1' e2 e3)
+    | None     -> None
+
+and step_subdefaults_left_to_right
+  (e: exp)
+  (just:exp{just << e})
+  (cons:exp{cons << e})
+  (subs: list exp{subs << e})
+    : Tot (option exp) (decreases %[e; 2; subs])
+  =
+  match subs with
+  | [] -> Some (EDefault just cons [])
+  | hd::tl ->
+    if is_value hd then
+      match step_subdefaults_left_to_right e just cons tl with
+      | Some (ELit LConflictError) -> Some c_err
+      | Some (EDefault just cons tl') -> Some (EDefault just cons (hd::tl'))
+      | _ -> None
+    else
+      match step hd with
+      | Some (ELit LConflictError) -> Some c_err
+      | Some hd' -> Some (EDefault just cons (hd'::tl))
+      | _ -> None
+
+and step_subdefaults_just_false
+  (e: exp)
+  (just:exp{just << e})
+  (cons:exp{cons << e})
+  (subs: list exp{subs << e}) : Tot (option exp) (decreases %[e; 3]) =
+  if List.Tot.for_all (fun sub -> is_value sub) subs then
+    match empty_count AllEmpty subs with
+    | AllEmpty -> Some (ELit LEmptyError) (* DefaultJustifFalseNoSub *)
+    | OneNonEmpty e' -> Some e' (* DefaultJustifFalseOneSub *)
+    | Conflict -> Some (ELit LConflictError) (* DefaultJustifFalseSubConflict *)
+  else
+    match step_subdefaults_left_to_right e just cons subs with
+    | Some e' -> Some e'
+    | _ -> None
+
+and step_default
+  (e: exp)
+  (just:exp{just << e})
+  (cons:exp{cons << e})
+  (subs: list exp{subs << e}) : Tot (option exp)  (decreases %[e; 4]) =
+  if is_value just then
+    match just with
+    | ELit LConflictError -> Some c_err
+    | ELit LEmptyError -> Some e_err
+    | ELit _ | EAbs _ _ _ | EDefault (EAbs _ _ _) _ _ ->
+      if is_value cons then
+        match just, cons with
+        | EAbs _ _ _, EAbs _ _ _
+        |  EDefault (EAbs _ _ _) _ _,  EDefault (EAbs _ _ _) _ _ ->
+          None
+        | ELit LTrue, ELit LEmptyError -> Some (EDefault (ELit LFalse) cons subs) (* DefaultJustifTrueError *)
+        | ELit LTrue, _ (* DefaultJustifTrueNoError *) -> Some cons
+        | ELit LFalse, _ ->
+          step_subdefaults_just_false e just cons subs (* here we evaluate the subs from left to right *)
+        | _ -> None
+      else
+        match (step cons) with
+        | Some (ELit LConflictError) -> Some c_err
+        | Some cons' -> Some (EDefault just cons' subs)
+        | None -> None
+  else
+    match (step just) with
+    | Some just' -> Some (EDefault just' cons subs)
+    | Some (ELit LConflictError) -> Some c_err
+    | Some (ELit LEmptyError) -> Some e_err
+    | None -> None
+
+and step (e: exp) : Tot (option exp) (decreases %[e; 5]) =
   match e with
-  | EApp e1 e2 ->
-      if is_value e1 then
-        if is_value e2 then
-          match e1 with
-          | EConflictError -> Some EConflictError
-          | EEmptyError -> Some EEmptyError
-          | EAbs x t e' -> Some (subst x e2 e')
-          | _           -> None
-        else
-          match (step e2) with
-          | Some (EConflictError) -> Some EConflictError
-          | Some (EEmptyError) -> Some EEmptyError
-          | Some e2' -> Some (EApp e1 e2')
-          | None     -> None
-      else
-        (match (step e1) with
-        | Some (EConflictError) -> Some EConflictError
-        | Some (EEmptyError) -> Some EEmptyError
-        | Some e1' -> Some (EApp e1' e2)
-        | None     -> None)
-  | EIf e1 e2 e3 ->
-      if is_value e1 then
-        match e1 with
-        | EConflictError -> Some EConflictError
-        | EEmptyError -> Some EEmptyError
-        | ETrue   -> Some e2
-        | EFalse  -> Some e3
-        | _       -> None
-      else
-        (match (step e1) with
-        | Some (EConflictError) -> Some EConflictError
-        | Some (EEmptyError) -> Some EEmptyError
-        | Some e1' -> Some (EIf e1' e2 e3)
-        | None     -> None)
-  | EDefault just cons subs ->
-    if is_value just then
-      match just with
-      | EEmptyError -> Some EEmptyError
-      | EConflictError -> Some EConflictError
-      | ETrue | EFalse | EAbs _ _ _ | EDefault (EAbs _ _ _) (EAbs _ _ _) _ ->
-        if is_value cons then
-          match just, cons with
-          | EAbs _ _ _, EAbs _ _ _
-          |  EDefault (EAbs _ _ _) (EAbs _ _ _) _,  EDefault (EAbs _ _ _) (EAbs _ _ _) _ ->
-            None
-          | ETrue, EEmptyError -> Some (EDefault EFalse cons subs) (* DefaultJustifTrueError *)
-          | ETrue, _ (* DefaultJustifTrueNoError *) -> Some cons
-          | EFalse, subs ->
-             step_subdefaults subs (* here we evaluate the subs from left to right *)
-          | _ -> None
-        else (match (step cons) with
-             | Some cons' -> Some (EDefault just cons' subs)
-             | Some (EConflictError) -> Some EConflictError
-             | None -> None)
-    else (match (step just) with
-         | Some just' -> Some (EDefault just' cons subs)
-         | Some (EConflictError) -> Some EConflictError
-         | Some (EEmptyError) -> Some EEmptyError
-         | None -> None)
+  | EApp e1 e2 -> step_app e e1 e2
+  | EIf e1 e2 e3 -> step_if e e1 e2 e3
+  | EDefault just cons subs -> step_default e just cons subs
   | _ -> None
-
-and step_subdefaults (subs: list exp) : Tot (option exp) (decreases subs) =
-  None
 
 type env = var -> Tot (option ty)
 
@@ -139,12 +211,13 @@ let rec typing g e =
       (match typing g e1, typing g e2 with
       | Some (TArrow t11 t12), Some t2 -> if t11 = t2 then Some t12 else None
       | _                    , _       -> None)
-  | ETrue  -> Some TBool
-  | EFalse -> Some TBool
+  | ELit LTrue  -> Some TBool
+  | ELit LFalse -> Some TBool
   | EIf e1 e2 e3 ->
       (match typing g e1, typing g e2, typing g e3 with
       | Some TBool, Some t2, Some t3 -> if t2 = t3 then Some t2 else None
       | _         , _      , _       -> None)
+  | _ -> None (* TODO: type defaults *)
 
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
