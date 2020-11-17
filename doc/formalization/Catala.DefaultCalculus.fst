@@ -83,23 +83,25 @@ let rec step_app
   (e2: exp{e2 << e})
     : Tot (option exp)  (decreases %[e; 0]) =
   if is_value e1 then
-    if is_value e2 then
-      match e1 with
-      | ELit LConflictError -> Some c_err
-      | ELit LEmptyError -> Some e_err
-      | EAbs x t e' -> Some (subst x e2 e')
-      | EDefault (EAbs xjust tjust ejust') (EAbs xcons tcons econs') subs -> (* beta_d *)
-        Some (EDefault
-          (subst xjust e2 ejust')
-          (subst xcons e2 econs')
-          (map subs (fun sub -> EApp sub e2)))
-      | _ -> None
-    else
-      match step e2 with
-      | Some (ELit LConflictError) -> Some (ELit LConflictError)
-      | Some (ELit LEmptyError) -> Some (ELit LEmptyError)
-      | Some e2' -> Some (EApp e1 e2')
-      | None     -> None
+    match e1 with
+    | ELit LConflictError -> Some c_err
+    | ELit LEmptyError -> Some e_err
+    | _ ->
+      if is_value e2 then
+        match e1 with
+        | EAbs x t e' -> Some (subst x e2 e')
+        | EDefault (EAbs xjust tjust ejust') (EAbs xcons tcons econs') subs -> (* beta_d *)
+          Some (EDefault
+            (subst xjust e2 ejust')
+            (subst xcons e2 econs')
+            (map subs (fun sub -> EApp sub e2)))
+        | _ -> None
+      else
+        match step e2 with
+        | Some (ELit LConflictError) -> Some (ELit LConflictError)
+        | Some (ELit LEmptyError) -> Some (ELit LEmptyError)
+        | Some e2' -> Some (EApp e1 e2')
+        | None     -> None
     else
       match step e1 with
       | Some (ELit LConflictError) -> Some c_err
@@ -290,7 +292,11 @@ let rec unify (t1 t2: tyres) : option tyres =
   | TRAny, t2 -> Some t2
   | t1, TRAny -> Some t1
   | TRArrow t11 t12, TRArrow t21 t22 ->
-    if t11 = t21 then unify t12 t22 else None
+    if t11 = t21 then
+      match unify t12 t22 with
+      | None -> None
+      | Some t -> Some (TRArrow t11 t)
+    else None
   | _ -> None
 
 let rec unify_list (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e}) : Tot (option tyres) (decreases %[e; 0; subs]) =
@@ -302,7 +308,7 @@ let rec unify_list (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e}) : 
     | Some thd -> begin
       match unify thd acc with
       | None -> None
-      | Some tdh -> unify_list g e thd tl
+      | Some thd -> unify_list g e thd tl
     end
   end
 
@@ -321,7 +327,7 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   end
   | EApp e1 e2 -> begin
     match typing g e1, typing g e2 with
-    | Some TRAny, _ ->
+    | Some TRAny, Some t2 ->
       Some TRAny
     | Some (TRArrow t11 t12), Some t2 -> unify (ty_to_res t11) t2
     | _, _ -> None
@@ -353,6 +359,65 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   end
   | _ -> None
 
+let rec unify_list_stays_arrow
+  (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e})
+    : Lemma
+      (requires (match acc with TRArrow _ _ -> True | _ -> False))
+      (ensures (match unify_list g e acc subs with None | Some (TRArrow _ _) -> True | _ -> False))
+      (decreases subs)
+  =
+  match subs with
+  | [] -> ()
+  | hd::tl -> begin
+    match typing g hd with
+    | None -> ()
+    | Some thd -> begin
+      match unify thd acc with
+      | None -> ()
+      | Some thd ->
+        unify_list_stays_arrow g e thd tl
+    end
+  end
+
+let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
+    (requires (is_value e /\ (match typing g e with
+      | Some TRAny | Some TRBool -> True
+      | _ -> False
+    ))) (ensures (
+      match e with
+      | ELit LUnit -> False
+      | ELit _ -> True
+      | _ -> False
+    ))
+  =
+  match e with
+  | ELit _ -> ()
+  | EDefault (EAbs xjust tjust ejust) (EAbs xcons tcons econs) subs -> begin
+    match typing g e with
+    | Some TRAny
+    | Some TRBool ->
+      if tjust = tcons then begin
+        match
+          typing (extend g xjust tjust) ejust,
+          typing (extend g xcons tcons) econs
+        with
+        | Some tjust', Some tcons' -> begin
+          match unify tjust' tcons' with
+          | Some tjust' ->
+            let te = unify_list g e (TRArrow tjust tjust') subs in
+            assert(typing g e == te);
+            // Need to prove this with a recursive lemma, starting list
+            // unification with an arrow can only yield an arrow
+            unify_list_stays_arrow g e (TRArrow tjust tjust') subs
+          | None -> ()
+         end
+       | _ -> ()
+     end else ()
+     | _ -> ()
+   end
+   | _ -> ()
+
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
       (ensures (is_value e \/ (Some? (step e))))
@@ -364,11 +429,21 @@ let rec progress e =
   | EApp e1 e2 ->
     progress e1;
     begin match typing empty e1 with
-    | Some TRAny -> if is_value e1 then admit() else ()
+    | Some TRAny -> if is_value e1 then
+        match e1 with
+        | ELit (LEmptyError)
+        | ELit (LConflictError) -> ()
+        | EDefault just cons subs ->
+          if is_value e2 then ()
+          else progress e2
+      else ()
     | _ -> progress e2
     end
-  | EIf e1 e2 e3 -> admit(); progress e1; progress e2; progress e3
+  | EIf e1 e2 e3 ->
+    progress e1; progress e2; progress e3;
+    if is_value e1 then is_bool_value_cannot_be_default_abs empty e1 else ()
   | _ -> admit()
+#pop-options
 
 val appears_free_in : x:int -> e:exp -> Tot bool
 let rec appears_free_in x e =
