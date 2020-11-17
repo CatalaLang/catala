@@ -1,5 +1,7 @@
 module Catala.DefaultCalculus
 
+(*** Syntax *)
+
 type ty =
   | TBool  : ty
   | TUnit  : ty
@@ -21,6 +23,10 @@ type exp =
   | ELit    : l:lit -> exp
   | EIf     : test:exp -> btrue:exp -> bfalse:exp -> exp
   | EDefault: just:exp -> cons:exp -> subdefaults:list exp -> exp
+
+(*** Operational semantics *)
+
+(**** Helpers *)
 
 let c_err = ELit LConflictError
 
@@ -69,6 +75,8 @@ let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_re
     | _ -> Conflict
   end
 
+(**** Stepping judgment *)
+
 let rec step_app
   (e: exp)
   (e1: exp{e1 << e})
@@ -81,16 +89,19 @@ let rec step_app
       | ELit LEmptyError -> Some e_err
       | EAbs x t e' -> Some (subst x e2 e')
       | EDefault (EAbs xjust tjust ejust') (EAbs xcons tcons econs') subs -> (* beta_d *)
-        Some (EDefault (subst xjust e2 ejust') (subst xcons e2 econs') (map subs (fun sub -> EApp sub e2)))
+        Some (EDefault
+          (subst xjust e2 ejust')
+          (subst xcons e2 econs')
+          (map subs (fun sub -> EApp sub e2)))
       | _ -> None
     else
-      match (step e2) with
+      match step e2 with
       | Some (ELit LConflictError) -> Some (ELit LConflictError)
       | Some (ELit LEmptyError) -> Some (ELit LEmptyError)
       | Some e2' -> Some (EApp e1 e2')
       | None     -> None
     else
-      match (step e1) with
+      match step e1 with
       | Some (ELit LConflictError) -> Some c_err
       | Some (ELit LEmptyError) -> Some e_err
       | Some e1' -> Some (EApp e1' e2)
@@ -167,10 +178,12 @@ and step_default
         | EAbs _ _ _, EAbs _ _ _
         |  EDefault (EAbs _ _ _) _ _,  EDefault (EAbs _ _ _) _ _ ->
           None
-        | ELit LTrue, ELit LEmptyError -> Some (EDefault (ELit LFalse) cons subs) (* DefaultJustifTrueError *)
+        | ELit LTrue, ELit LEmptyError -> Some (EDefault (ELit LFalse) cons subs)
+          (* DefaultJustifTrueError *)
         | ELit LTrue, _ (* DefaultJustifTrueNoError *) -> Some cons
         | ELit LFalse, _ ->
-          step_subdefaults_just_false e just cons subs (* here we evaluate the subs from left to right *)
+          step_subdefaults_just_false e just cons subs
+          (* here we evaluate the subs from left to right *)
         | _ -> None
       else
         match (step cons) with
@@ -191,42 +204,171 @@ and step (e: exp) : Tot (option exp) (decreases %[e; 5]) =
   | EDefault just cons subs -> step_default e just cons subs
   | _ -> None
 
+(* Testing *)
+let _ =
+  let e0 = EApp (EAbs 0 TBool (EIf (EVar 0) (ELit LFalse) (ELit LTrue))) (ELit LTrue) in
+  let e1 = EIf (ELit LTrue) (ELit LFalse) (ELit LTrue) in
+  let e1' = step e0 in
+  assert_norm(e1' == Some e1);
+  let e2 = ELit LFalse in
+  let e2' = step e1 in
+  assert_norm(e2' == Some e2)
+
+(* Testing *)
+let _ =
+  let e0 = EDefault
+    (EAbs 0 TBool (EIf (EVar 0) (ELit LTrue) (ELit LFalse)))
+    (EAbs 1 TBool (ELit LTrue))
+    [ (EAbs 2 TBool (ELit LEmptyError));  (EAbs 3 TBool (ELit LFalse)) ] in
+  assert_norm (step e0 == None);
+  let e0 = EApp e0 (ELit LFalse) in
+  let e1 = EDefault
+    (EIf (ELit LFalse) (ELit LTrue) (ELit LFalse))
+    (ELit LTrue)
+    [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse));
+      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
+  in
+  let e1' = step e0 in (* beta_d *)
+  assert_norm(e1' == Some e1);
+  let e2 = EDefault
+    (ELit LFalse)
+    (ELit LTrue)
+    [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse));
+      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
+  in
+  let e2' = step e1 in (* IfFalse *)
+  assert_norm(e2' == Some e2);
+  let e3 = EDefault (ELit LFalse) (ELit LTrue)
+    [ (ELit LEmptyError);
+      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
+  in
+  let e3' = step e2 in (* App *)
+  assert_norm(e3' == Some e3);
+  let e4 = EDefault (ELit LFalse) (ELit LTrue)
+    [ (ELit LEmptyError);
+      (ELit LFalse) ]
+  in
+  let e4' = step e3 in (* App *)
+  assert_norm(e4' == Some e4);
+  let e5 = ELit LFalse in
+  let e5' = step e4 in
+  assert_norm(e5' == Some e5); (* DefaultJustifFalseOneSub *)
+  ()
+
+(*** Typing *)
+
 type env = var -> Tot (option ty)
 
 val empty : env
 let empty = fun _ -> None
 
-val extend : env -> int -> ty -> Tot env
+val extend : env -> var -> ty -> Tot env
 let extend g x t = fun x' -> if x = x' then Some t else g x'
 
-val typing : env -> exp -> Tot (option ty)
-let rec typing g e =
+let rec for_all_defaults (subs: list exp) (f: (sub:exp{sub << subs}) -> bool) : bool =
+  match subs with
+  | [] -> true
+  | hd::tl ->
+    if f hd then for_all_defaults tl f else false
+
+type tyres =
+  | TRBool  : tyres
+  | TRUnit  : tyres
+  | TRArrow : tin:ty -> tout:tyres -> tyres
+  | TRAny: tyres
+
+let rec ty_to_res (t: ty) : tyres = match t with
+  | TBool -> TRBool
+  | TUnit -> TRUnit
+  | TArrow tin tout -> TRArrow tin (ty_to_res tout)
+
+let rec unify (t1 t2: tyres) : option tyres =
+  match t1, t2 with
+  | TRBool, TRBool
+  | TRUnit, TRUnit -> Some t1
+  | TRAny, TRAny -> Some TRAny
+  | TRAny, t2 -> Some t2
+  | t1, TRAny -> Some t1
+  | TRArrow t11 t12, TRArrow t21 t22 ->
+    if t11 = t21 then unify t12 t22 else None
+  | _ -> None
+
+let rec unify_list (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e}) : Tot (option tyres) (decreases %[e; 0; subs]) =
+  match subs with
+  | [] -> Some acc
+  | hd::tl -> begin
+    match typing g hd with
+    | None -> None
+    | Some thd -> begin
+      match unify thd acc with
+      | None -> None
+      | Some tdh -> unify_list g e thd tl
+    end
+  end
+
+
+and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   match e with
-  | EVar x -> g x
-  | EAbs x t e1 ->
-      (match typing (extend g x t) e1 with
-      | Some t' -> Some (TArrow t t')
-      | None    -> None)
-  | EApp e1 e2 ->
-      (match typing g e1, typing g e2 with
-      | Some (TArrow t11 t12), Some t2 -> if t11 = t2 then Some t12 else None
-      | _                    , _       -> None)
-  | ELit LTrue  -> Some TBool
-  | ELit LFalse -> Some TBool
-  | EIf e1 e2 e3 ->
-      (match typing g e1, typing g e2, typing g e3 with
-      | Some TBool, Some t2, Some t3 -> if t2 = t3 then Some t2 else None
-      | _         , _      , _       -> None)
-  | _ -> None (* TODO: type defaults *)
+  | EVar x -> begin
+    match g x with
+    | None -> None
+    | Some t -> Some (ty_to_res t)
+  end
+  | EAbs x t e1 -> begin
+    match typing (extend g x t) e1 with
+    | Some t' -> Some (TRArrow t t')
+    | None -> None
+  end
+  | EApp e1 e2 -> begin
+    match typing g e1, typing g e2 with
+    | Some TRAny, _ ->
+      Some TRAny
+    | Some (TRArrow t11 t12), Some t2 -> unify (ty_to_res t11) t2
+    | _, _ -> None
+  end
+  | ELit LTrue  -> Some TRBool
+  | ELit LFalse -> Some TRBool
+  | EIf e1 e2 e3 -> begin
+    match typing g e1, typing g e2, typing g e3 with
+    | Some TRBool, Some t2, Some t3
+    | Some TRAny, Some t2, Some t3 -> unify t2 t3
+    | _, _, _ -> None
+  end
+  | EDefault (EAbs xjust tjust ejust) (EAbs xcons tcons econs) subs -> begin (* DefaultFun *)
+     if tjust = tcons then
+       match typing (extend g xjust tjust) ejust, typing (extend g xcons tcons) econs with
+       | Some tjust', Some tcons' -> begin
+         match unify tjust' tcons' with
+         | Some tjust' -> unify_list g e (TRArrow tjust tjust') subs
+         | None -> None
+       end
+       | _,_ -> None
+     else None
+  end
+  | EDefault tjust tcons subs -> begin (* DefaultBase *)
+    match typing g tjust, typing g tcons with
+    | Some TRBool, Some tcons
+    | Some TRAny, Some tcons -> unify_list g e tcons subs
+    | _, _ -> None
+  end
+  | _ -> None
 
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
       (ensures (is_value e \/ (Some? (step e))))
 let rec progress e =
   match e with
-  | EApp e1 e2 -> progress e1; progress e2
-  | EIf e1 e2 e3 -> progress e1; progress e2; progress e3
-  | _ -> ()
+  | EVar v -> ()
+  | ELit l -> ()
+  | EAbs v vty body -> ()
+  | EApp e1 e2 ->
+    progress e1;
+    begin match typing empty e1 with
+    | Some TRAny -> if is_value e1 then admit() else ()
+    | _ -> progress e2
+    end
+  | EIf e1 e2 e3 -> admit(); progress e1; progress e2; progress e3
+  | _ -> admit()
 
 val appears_free_in : x:int -> e:exp -> Tot bool
 let rec appears_free_in x e =
@@ -260,7 +402,7 @@ let typable_empty_closed x e = free_in_context x e empty
 
 type equal (g1:env) (g2:env) = forall (x:int). g1 x = g2 x
 
-logic type equalE (e:exp) (g1:env) (g2:env) =
+type equalE (e:exp) (g1:env) (g2:env) =
   forall (x:int). appears_free_in x e ==> g1 x = g2 x
 
 val context_invariance : e:exp -> g:env -> g':env -> Lemma
