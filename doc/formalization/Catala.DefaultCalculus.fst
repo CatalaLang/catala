@@ -421,21 +421,47 @@ let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
    end
    | _ -> ()
 
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
+let typing_conserved_by_list_reduction
+  (g: env)
+  (just cons: exp)
+  (subs: list exp)
+    : Lemma
+      (requires (
+        Cons? subs /\ ~ (EAbs? just /\ EAbs? cons) /\
+        Some? (typing g (EDefault just cons subs))
+      ))
+      (ensures (Some? (typing g (EDefault just cons (Cons?.tl subs)))))
+  =
+  match typing g just, typing g cons with
+  | Some TRBool, Some tcons
+  | Some TRAny, Some tcons ->
+    let Cons hd tl = subs in
+    let e = EDefault just cons subs in
+    let t_out_sub = unify_list g e tcons subs in
+    let thd = Some?.v (typing g hd) in
+    match unify thd tcons with
+    | None -> ()
+    | Some thd_tcons ->
+      assert(t_out_sub == unify_list g e thd_tcons tl);
+      let e_tl = EDefault just cons tl in
+      assume(tl << e_tl);
+      let t_out_tl = unify_list g e_tl tcons tl in
+      assume(Some? t_out_tl)
+  | _ -> ()
+#pop-options
+
 (**** Progress theorem *)
 
-#push-options "--fuel 3 --ifuel 3 --z3rlimit 50"
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
       (ensures (is_value e \/ (Some? (step e))))
-      (decreases %[e; 1])
+      (decreases %[e; 3])
 let rec progress e =
   match e with
-  | EVar v -> ()
-  | ELit l -> ()
-  | EAbs v vty body -> ()
   | EApp e1 e2 ->
-    progress e1;
-    begin match typing empty e1 with
+    progress e1; begin match typing empty e1 with
     | Some TRAny -> if is_value e1 then
         match e1 with
         | ELit (LEmptyError) | ELit (LConflictError) -> ()
@@ -445,26 +471,64 @@ let rec progress e =
     end
   | EIf e1 e2 e3 -> progress e1; progress e2; progress e3;
     if is_value e1 then is_bool_value_cannot_be_default_abs empty e1 else ()
-  | EDefault just cons subs -> if is_value e then () else begin
-    progress just;
-    if is_value just then begin
-      is_bool_value_cannot_be_default_abs empty just;
+  | EDefault just cons subs ->
+   if is_value e then () else progress_defaults e just cons subs
+  | _ -> ()
+and progress_defaults
+  (e: exp)
+  (just: exp{just << e})
+  (cons: exp{cons << e})
+  (subs: list exp{subs << e}) : Lemma
+    (requires (~ (is_value e) /\ e == EDefault just cons subs /\ Some? (typing empty e)))
+    (ensures (Some? (step_default e just cons subs)))
+    (decreases %[e; 2])
+  =
+  progress just;
+  if is_value just then begin
+    is_bool_value_cannot_be_default_abs empty just;
+    if is_value cons then begin
       match just, cons with
       | ELit LTrue, ELit LEmptyError -> ()
       | ELit LTrue, _ -> progress cons
-      | ELit LFalse, _ ->
-        let tcons = typing empty cons in
-        progress_defaults e subs (Some?.v tcons);
-        admit()
-    end else ()
-  end
-
-and progress_defaults (e: exp) (just cons: exp) (subs: list exp{subs << e}) (tcons: tyres) : Lemma
-    (requires (Some? (unify_list empty e tcons subs)))
-    (ensures (Some? (step_subdefaults_just_false e just cons sub))
+      | ELit LFalse, _ -> progress_defaults_just_false e just cons subs
+    end else progress cons
+  end else ()
+and progress_defaults_just_false
+  (e: exp)
+  (just: exp{just << e})
+  (cons: exp{cons << e})
+  (subs: list exp{subs << e}) : Lemma
+    (requires (
+      ~ (is_value e) /\ is_value cons /\ just == ELit LFalse /\
+      e == EDefault (ELit LFalse) cons subs /\ Some? (typing empty e)
+    ))
+    (ensures (Some? (step_subdefaults_just_false e just cons subs)))
+    (decreases %[e; 1])
+  =
+  if List.Tot.for_all (fun sub -> is_value sub) subs then () else
+  progress_defaults_left_to_right e just cons subs
+and progress_defaults_left_to_right
+  (e: exp)
+  (just: exp{just << e})
+  (cons: exp{cons << e})
+  (subs: list exp{subs << e}) : Lemma
+    (requires (
+      ~ (is_value e) /\ is_value cons /\ just == ELit LFalse /\
+      Some? (typing empty (EDefault just cons subs))
+    ))
+    (ensures (Some? (step_subdefaults_left_to_right e just cons subs)))
     (decreases %[e; 0; subs])
   =
-  ()
+  match subs with
+  | [] -> ()
+  | hd::tl ->
+    progress hd;
+    if is_value hd then begin
+      assert(Some?.v (typing empty just) == TRBool);
+      let tcons = Some?.v (typing empty cons) in
+      typing_conserved_by_list_reduction empty just cons subs;
+      progress_defaults_left_to_right e just cons tl
+    end else ()
 #pop-options
 
 val appears_free_in : x:int -> e:exp -> Tot bool
