@@ -359,6 +359,10 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   end
   | _ -> None
 
+(*** Progress *)
+
+(**** Progress lemmas *)
+
 let rec unify_list_stays_arrow
   (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e})
     : Lemma
@@ -417,10 +421,13 @@ let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
    end
    | _ -> ()
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
+(**** Progress theorem *)
+
+#push-options "--fuel 3 --ifuel 3 --z3rlimit 50"
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
       (ensures (is_value e \/ (Some? (step e))))
+      (decreases %[e; 1])
 let rec progress e =
   match e with
   | EVar v -> ()
@@ -431,18 +438,33 @@ let rec progress e =
     begin match typing empty e1 with
     | Some TRAny -> if is_value e1 then
         match e1 with
-        | ELit (LEmptyError)
-        | ELit (LConflictError) -> ()
-        | EDefault just cons subs ->
-          if is_value e2 then ()
-          else progress e2
+        | ELit (LEmptyError) | ELit (LConflictError) -> ()
+        | EDefault just cons subs -> if is_value e2 then () else progress e2
       else ()
     | _ -> progress e2
     end
-  | EIf e1 e2 e3 ->
-    progress e1; progress e2; progress e3;
+  | EIf e1 e2 e3 -> progress e1; progress e2; progress e3;
     if is_value e1 then is_bool_value_cannot_be_default_abs empty e1 else ()
-  | _ -> admit()
+  | EDefault just cons subs -> if is_value e then () else begin
+    progress just;
+    if is_value just then begin
+      is_bool_value_cannot_be_default_abs empty just;
+      match just, cons with
+      | ELit LTrue, ELit LEmptyError -> ()
+      | ELit LTrue, _ -> progress cons
+      | ELit LFalse, _ ->
+        let tcons = typing empty cons in
+        progress_defaults e subs (Some?.v tcons);
+        admit()
+    end else ()
+  end
+
+and progress_defaults (e: exp) (just cons: exp) (subs: list exp{subs << e}) (tcons: tyres) : Lemma
+    (requires (Some? (unify_list empty e tcons subs)))
+    (ensures (Some? (step_subdefaults_just_false e just cons sub))
+    (decreases %[e; 0; subs])
+  =
+  ()
 #pop-options
 
 val appears_free_in : x:int -> e:exp -> Tot bool
