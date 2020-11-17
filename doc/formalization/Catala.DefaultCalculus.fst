@@ -299,19 +299,26 @@ let rec unify (t1 t2: tyres) : option tyres =
     else None
   | _ -> None
 
-let rec unify_list (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e}) : Tot (option tyres) (decreases %[e; 0; subs]) =
+let rec unify_comm (t1 t2: tyres) : Lemma (unify t1 t2 == unify t2 t1) =
+  match t1, t2 with
+  | TRArrow t11 t12, TRArrow t21 t22 ->
+    unify_comm t12 t22
+  | _ -> ()
+
+let rec unify_list (g: env) (subs: list exp) : Tot (option tyres) (decreases %[subs]) =
   match subs with
-  | [] -> Some acc
+  | [] -> Some TRAny
   | hd::tl -> begin
-    match typing g hd with
+    let unif_tl = unify_list g tl in
+    match unif_tl with
     | None -> None
-    | Some thd -> begin
-      match unify thd acc with
+    | Some unif_tl -> begin
+      match typing g hd with
       | None -> None
-      | Some thd -> unify_list g e thd tl
+      | Some thd ->
+      unify thd unif_tl
     end
   end
-
 
 and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   match e with
@@ -345,7 +352,11 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
        match typing (extend g xjust tjust) ejust, typing (extend g xcons tcons) econs with
        | Some tjust', Some tcons' -> begin
          match unify tjust' tcons' with
-         | Some tjust' -> unify_list g e (TRArrow tjust tjust') subs
+         | Some tjust' -> begin
+           match unify_list g subs with
+           | None -> None
+           | Some unif_subs -> unify (TRArrow tjust tjust') unif_subs
+         end
          | None -> None
        end
        | _,_ -> None
@@ -354,7 +365,11 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
   | EDefault tjust tcons subs -> begin (* DefaultBase *)
     match typing g tjust, typing g tcons with
     | Some TRBool, Some tcons
-    | Some TRAny, Some tcons -> unify_list g e tcons subs
+    | Some TRAny, Some tcons -> begin
+      match unify_list g subs with
+      | None -> None
+      | Some unif_subs -> unify tcons unif_subs
+    end
     | _, _ -> None
   end
   | _ -> None
@@ -362,26 +377,6 @@ and typing (g: env) (e: exp) : Tot (option tyres) (decreases %[e; 1]) =
 (*** Progress *)
 
 (**** Progress lemmas *)
-
-let rec unify_list_stays_arrow
-  (g: env) (e: exp) (acc: tyres) (subs: list exp{subs << e})
-    : Lemma
-      (requires (match acc with TRArrow _ _ -> True | _ -> False))
-      (ensures (match unify_list g e acc subs with None | Some (TRArrow _ _) -> True | _ -> False))
-      (decreases subs)
-  =
-  match subs with
-  | [] -> ()
-  | hd::tl -> begin
-    match typing g hd with
-    | None -> ()
-    | Some thd -> begin
-      match unify thd acc with
-      | None -> ()
-      | Some thd ->
-        unify_list_stays_arrow g e thd tl
-    end
-  end
 
 let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
     (requires (is_value e /\ (match typing g e with
@@ -408,11 +403,8 @@ let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
         | Some tjust', Some tcons' -> begin
           match unify tjust' tcons' with
           | Some tjust' ->
-            let te = unify_list g e (TRArrow tjust tjust') subs in
-            assert(typing g e == te);
-            // Need to prove this with a recursive lemma, starting list
-            // unification with an arrow can only yield an arrow
-            unify_list_stays_arrow g e (TRArrow tjust tjust') subs
+            let te = unify_list g subs in
+            assert(typing g e == te)
           | None -> ()
          end
        | _ -> ()
@@ -421,34 +413,37 @@ let is_bool_value_cannot_be_default_abs (g: env) (e: exp) : Lemma
    end
    | _ -> ()
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
+let rec unify_compose_ok (x y z: tyres) : Lemma
+   (requires (Some? (unify y z) /\ Some? (unify x (Some?.v (unify y z)))))
+   (ensures (Some? (unify x z)))
+   =
+   match x, y, z with
+   | TRArrow x1 x2, TRArrow y1 y2, TRArrow z1 z2 -> unify_compose_ok x2 y2 z2
+   | _ -> ()
+
+#push-options "--fuel 3 --ifuel 2 --z3rlimit 20"
 let typing_conserved_by_list_reduction
   (g: env)
   (just cons: exp)
   (subs: list exp)
     : Lemma
       (requires (
-        Cons? subs /\ ~ (EAbs? just /\ EAbs? cons) /\
+        ~ (EAbs? just /\ EAbs? cons) /\
         Some? (typing g (EDefault just cons subs))
       ))
-      (ensures (Some? (typing g (EDefault just cons (Cons?.tl subs)))))
+      (ensures (Cons? subs ==> Some? (typing g (EDefault just cons (Cons?.tl subs)))))
   =
-  match typing g just, typing g cons with
-  | Some TRBool, Some tcons
-  | Some TRAny, Some tcons ->
-    let Cons hd tl = subs in
-    let e = EDefault just cons subs in
-    let t_out_sub = unify_list g e tcons subs in
-    let thd = Some?.v (typing g hd) in
-    match unify thd tcons with
-    | None -> ()
-    | Some thd_tcons ->
-      assert(t_out_sub == unify_list g e thd_tcons tl);
-      let e_tl = EDefault just cons tl in
-      assume(tl << e_tl);
-      let t_out_tl = unify_list g e_tl tcons tl in
-      assume(Some? t_out_tl)
-  | _ -> ()
+  match subs with
+  | [] -> ()
+  | hd1::tl ->
+    match typing g just, typing g cons with
+    | Some TRBool, Some tcons
+    | Some TRAny, Some tcons ->
+      let e = EDefault just cons subs in
+      let t_out_sub = unify_list g subs in
+      let thd1 = Some?.v (typing g hd1) in
+      unify_compose_ok tcons thd1 (Some?.v (unify_list g tl))
+    | _ -> ()
 #pop-options
 
 (**** Progress theorem *)
