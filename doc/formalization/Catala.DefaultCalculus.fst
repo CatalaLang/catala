@@ -533,64 +533,94 @@ and progress_defaults_left_to_right
     end else ()
 #pop-options
 
-val appears_free_in : x:int -> e:exp -> Tot bool
-let rec appears_free_in x e =
+let rec appears_free_in (x: var) (e: exp) : Tot bool =
   match e with
   | EVar y -> x = y
   | EApp e1 e2 -> appears_free_in x e1 || appears_free_in x e2
   | EAbs y _ e1 -> x <> y && appears_free_in x e1
   | EIf e1 e2 e3 ->
       appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
-  | ETrue
-  | EFalse -> false
+  | EDefault ejust econs subs ->
+      appears_free_in x ejust || appears_free_in x econs ||
+      appears_free_in_list x subs
+  | ELit _ ->  false
+and appears_free_in_list (x: var) (subs: list exp) : Tot bool =
+  match subs with
+  | [] -> false
+  | hd::tl -> appears_free_in x hd || appears_free_in_list x tl
 
-val free_in_context : x:int -> e:exp -> g:env -> Lemma
+let rec free_in_context (x:int) (e:exp) (g:env) : Lemma
       (requires (Some? (typing g e)))
       (ensures (appears_free_in x e ==> Some? (g x)))
-let rec free_in_context x e g =
+  =
   match e with
   | EVar _
-  | ETrue
-  | EFalse -> ()
+  | ELit _ -> ()
   | EAbs y t e1 -> free_in_context x e1 (extend g y t)
   | EApp e1 e2 -> free_in_context x e1 g; free_in_context x e2 g
   | EIf e1 e2 e3 -> free_in_context x e1 g;
                     free_in_context x e2 g; free_in_context x e3 g
+  | EDefault ejust econs subs ->
+    free_in_context x ejust g;
+    free_in_context x econs g;
+    free_in_context_list x subs g
+and free_in_context_list (x:int) (subs:list exp) (g:env) : Lemma
+      (requires (Some? (unify_list g subs)))
+      (ensures (appears_free_in_list x subs ==> Some? (g x)))
+  =
+  match subs with
+  | [] -> ()
+  | hd::tl ->
+    free_in_context x hd g;
+    free_in_context_list x tl g
 
-val typable_empty_closed : x:int -> e:exp -> Lemma
+let typable_empty_closed (x:var) (e:exp) : Lemma
       (requires (Some? (typing empty e)))
       (ensures (not(appears_free_in x e)))
       [SMTPat (appears_free_in x e)]
-let typable_empty_closed x e = free_in_context x e empty
+   = free_in_context x e empty
 
-type equal (g1:env) (g2:env) = forall (x:int). g1 x = g2 x
+type equal (g1:env) (g2:env) = forall (x:var). g1 x = g2 x
 
 type equalE (e:exp) (g1:env) (g2:env) =
-  forall (x:int). appears_free_in x e ==> g1 x = g2 x
+  forall (x:var). appears_free_in x e ==> g1 x = g2 x
 
-val context_invariance : e:exp -> g:env -> g':env -> Lemma
+type equalE_list (subs:list exp) (g1:env) (g2:env) =
+  forall (x:var). appears_free_in_list x subs ==> g1 x = g2 x
+
+let rec context_invariance (e:exp) (g:env) (g':env) : Lemma
   (requires (equalE e g g'))
   (ensures (typing g e == typing g' e))
-let rec context_invariance e g g' =
+  =
   match e with
   | EAbs x t e1 ->
      context_invariance e1 (extend g x t) (extend g' x t)
-
   | EApp e1 e2 ->
      context_invariance e1 g g';
      context_invariance e2 g g'
-
   | EIf e1 e2 e3 ->
      context_invariance e1 g g';
      context_invariance e2 g g';
      context_invariance e3 g g'
-
+  | EDefault econs ejust subs ->
+     context_invariance ejust g g';
+     context_invariance econs g g';
+     context_invariance_list subs g g'
   | _ -> ()
+and context_invariance_list (subs:list exp) (g:env) (g':env) : Lemma
+  (requires (equalE_list subs g g'))
+  (ensures (unify_list g subs == unify_list g' subs))
+  =
+  match subs with
+  | [] -> ()
+  | hd::tl ->
+    context_invariance hd g g';
+    context_invariance_list tl g g'
 
-val typing_extensional : g:env -> g':env -> e:exp -> Lemma
+let typing_extensional (g:env) (g':env) (e:exp) : Lemma
   (requires (equal g g'))
   (ensures (typing g e == typing g' e))
-let typing_extensional g g' e = context_invariance e g g'
+   = context_invariance e g g'
 
 val substitution_preserves_typing : x:int -> e:exp -> v:exp -> g:env -> Lemma
   (requires (Some? (typing empty v) /\
@@ -602,8 +632,7 @@ let rec substitution_preserves_typing x e v g =
   let Some t_x = typing empty v in
   let gx = extend g x t_x in
   match e with
-  | ETrue -> ()
-  | EFalse -> ()
+  | ELit _ -> ()
   | EVar y ->
      if x=y
      then context_invariance v empty g (* uses lemma typable_empty_closed *)
