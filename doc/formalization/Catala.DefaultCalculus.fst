@@ -317,7 +317,6 @@ let rec unify (t1 t2: tyres) : option tyres =
 
 let rec unify_comm (t1 t2: tyres)
     : Lemma (unify t1 t2 == unify t2 t1)
-    [SMTPat (unify t1 t2)]
   =
   match t1, t2 with
   | TRArrow t11 t12, TRArrow t21 t22 ->
@@ -332,10 +331,6 @@ let rec unify_assoc_left (t1 t2 t3: tyres) : Lemma
       unify t1 (Some?.v (unify t2 t3)) == unify (Some?.v (unify t1 t2)) t3
     ))
     (decreases t3)
-    [SMTPatOr [
-      [SMTPat (unify t1 (Some?.v (unify t2 t3)))];
-      [SMTPat (unify (Some?.v (unify t1 t2)) t3)]
-    ]]
   =
   match t1, t2, t3 with
   | TRArrow t11 t12, TRArrow t21 t22, TRArrow t31 t32 ->
@@ -350,10 +345,6 @@ let rec unify_assoc_right (t1 t2 t3: tyres) : Lemma
       unify t1 (Some?.v (unify t2 t3)) == unify (Some?.v (unify t1 t2)) t3
     ))
     (decreases t3)
-    [SMTPatOr [
-      [SMTPat (unify t1 (Some?.v (unify t2 t3)))];
-      [SMTPat (unify (Some?.v (unify t1 t2)) t3)]
-    ]]
   =
   match t1, t2, t3 with
   | TRArrow t11 t12, TRArrow t21 t22, TRArrow t31 t32 ->
@@ -711,25 +702,7 @@ let has_type (v: exp) (tau: ty) : Tot prop =
     | Some _ -> True
   end
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 100"
-let typing_sync_preserved_app (x:var) (tau: ty) (v:exp) (g:env) (e1: exp) (e2: exp) : Lemma
-  (requires (
-    has_type v tau /\  Some? (typing (extend g x tau) (EApp e1 e2)) /\
-    (typing_sync (typing g (subst x v e1)) (typing (extend g x tau) e1)) /\
-    (typing_sync (typing g (subst x v e2)) (typing (extend g x tau) e2))
-  ))
-  (ensures (
-    typing_sync (typing g (subst x v (EApp e1 e2))) (typing (extend g x tau) (EApp e1 e2))
-  ))
-  =
-  let gx = extend g x tau in
-  let tsubst_e1 = Some?.v (typing g (subst x v e1)) in
-  let text_e1 = Some?.v (typing gx e1) in
-  let tsubst_e2 = Some?.v (typing g (subst x v e2)) in
-  let text_e2 = Some?.v (typing gx e2) in
-  ()
-#pop-options
-
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 10"
 let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) : Lemma
   (requires (has_type v tau /\  Some? (typing (extend g x tau) e)))
   (ensures (
@@ -749,7 +722,23 @@ let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) 
   | EApp e1 e2 ->
      substitution_preserves_typing x tau e1 v g;
      substitution_preserves_typing x tau e2 v g;
-     typing_sync_preserved_app x tau v g e1 e2
+     let esubst_e1 = subst x v e1 in
+     let tsubst_e1 = Some?.v (typing g esubst_e1) in
+     let text_e1 = Some?.v (typing gx e1) in
+     let esubst_e2 = subst x v e2 in
+     let tsubst_e2 = Some?.v (typing g esubst_e2) in
+     let text_e2 = Some?.v (typing gx e2) in
+     let esubst_e = subst x v (EApp e1 e2) in
+     let tsubst_e = typing g esubst_e in
+     let text_e = typing gx (EApp e1 e2) in
+     assert(esubst_e == EApp esubst_e1 esubst_e2);
+     assert(typing_sync (Some tsubst_e1) (Some text_e1));
+     assert(TRArrow? text_e1 \/ TRAny? text_e1);
+     begin
+       match text_e1 with
+       | TRAny ->  assume(typing_sync tsubst_e text_e)
+       | TRArrow _ _ -> assume(typing_sync tsubst_e text_e)
+     end
   | EIf e1 e2 e3 ->
      substitution_preserves_typing x tau e1 v g;
      substitution_preserves_typing x tau e2 v g;
@@ -765,6 +754,7 @@ let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) 
         typing_extensional gxy gyx e1;
         substitution_preserves_typing x tau e1 v gy)
   | EDefault ejust econs subs -> admit()
+#pop-options
 
 (**** Preservation theorem *)
 
