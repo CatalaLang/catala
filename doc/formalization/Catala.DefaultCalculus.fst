@@ -268,6 +268,8 @@ let _ =
 
 (*** Typing *)
 
+(**** Typing helpers *)
+
 type env = var -> Tot (option ty)
 
 val empty : env
@@ -282,6 +284,7 @@ let rec for_all_defaults (subs: list exp) (f: (sub:exp{sub << subs}) -> bool) : 
   | hd::tl ->
     if f hd then for_all_defaults tl f else false
 
+/// We extend the types with `TRAny`, that stands for any type in the case of errors
 type tyres =
   | TRBool  : tyres
   | TRUnit  : tyres
@@ -292,6 +295,8 @@ let rec ty_to_res (t: ty) : tyres = match t with
   | TBool -> TRBool
   | TUnit -> TRUnit
   | TArrow tin tout -> TRArrow tin (ty_to_res tout)
+
+(**** Unification *)
 
 let rec unify (t1 t2: tyres) : option tyres =
   match t1, t2 with
@@ -308,11 +313,55 @@ let rec unify (t1 t2: tyres) : option tyres =
     else None
   | _ -> None
 
-let rec unify_comm (t1 t2: tyres) : Lemma (unify t1 t2 == unify t2 t1) =
+/// Unification is a commutative partial monoïd
+
+let rec unify_comm (t1 t2: tyres)
+    : Lemma (unify t1 t2 == unify t2 t1)
+    [SMTPat (unify t1 t2)]
+  =
   match t1, t2 with
   | TRArrow t11 t12, TRArrow t21 t22 ->
     unify_comm t12 t22
   | _ -> ()
+
+let rec unify_assoc_left (t1 t2 t3: tyres) : Lemma
+    (requires (Some? (unify t2 t3) /\ Some? (unify t1 (Some?.v (unify t2 t3)))))
+    (ensures (
+      Some? (unify t1 t2) /\
+      Some? (unify t1 (Some?.v (unify t2 t3))) /\
+      unify t1 (Some?.v (unify t2 t3)) == unify (Some?.v (unify t1 t2)) t3
+    ))
+    (decreases t3)
+    [SMTPatOr [
+      [SMTPat (unify t1 (Some?.v (unify t2 t3)))];
+      [SMTPat (unify (Some?.v (unify t1 t2)) t3)]
+    ]]
+  =
+  match t1, t2, t3 with
+  | TRArrow t11 t12, TRArrow t21 t22, TRArrow t31 t32 ->
+    unify_assoc_left t12 t22 t32
+  | _ -> ()
+
+let rec unify_assoc_right (t1 t2 t3: tyres) : Lemma
+    (requires (Some? (unify t1 t2) /\ Some? (unify (Some?.v (unify t1 t2)) t3)))
+    (ensures (
+      Some? (unify t2 t3) /\
+      Some? (unify (Some?.v (unify t1 t2)) t3) /\
+      unify t1 (Some?.v (unify t2 t3)) == unify (Some?.v (unify t1 t2)) t3
+    ))
+    (decreases t3)
+    [SMTPatOr [
+      [SMTPat (unify t1 (Some?.v (unify t2 t3)))];
+      [SMTPat (unify (Some?.v (unify t1 t2)) t3)]
+    ]]
+  =
+  match t1, t2, t3 with
+  | TRArrow t11 t12, TRArrow t21 t22, TRArrow t31 t32 ->
+    unify_assoc_right t12 t22 t32
+  | _ -> ()
+
+
+(**** Typing judgment *)
 
 let rec unify_list (g: env) (subs: list exp) : Tot (option tyres) (decreases %[subs]) =
   match subs with
@@ -622,37 +671,74 @@ let typing_extensional (g:env) (g':env) (e:exp) : Lemma
   (ensures (typing g e == typing g' e))
    = context_invariance e g g'
 
-val substitution_preserves_typing : x:int -> e:exp -> v:exp -> g:env -> Lemma
-  (requires (Some? (typing empty v) /\
-             Some? (typing (extend g x (Some?.v (typing empty v))) e)))
-  (ensures (Some? (typing empty v) /\
-            typing g (subst x v e) ==
-            typing (extend g x (Some?.v (typing empty v))) e))
-let rec substitution_preserves_typing x e v g =
+let typing_sync (t1 t2: option tyres) : Tot Type0 =
+  match t1, t2 with
+  | Some t1, Some t2 -> Some? (unify t1 t2)
+  | None, None -> True
+  | _ -> False
+
+let rec equal_means_sync_aux (t1 t2: tyres) : Lemma
+  (requires (t1 == t2))
+  (ensures (typing_sync (Some t1) (Some t2)))
+  =
+  match t1, t2 with
+  | TRArrow t11 t12, TRArrow t21 t22 ->
+    equal_means_sync_aux t12 t22
+  | _ -> ()
+
+let equal_means_sync (t1 t2: option tyres) : Lemma
+  (requires (t1 == t2))
+  (ensures (typing_sync t1 t2))
+  [SMTPat (typing_sync t1 t2)]
+  =
+  match t1, t2 with
+  | Some t1, Some t2 ->
+    equal_means_sync_aux t1 t2
+  | _ -> ()
+
+let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) : Lemma
+  (requires (
+    match typing empty v with
+    | None -> False
+    | Some ty_v_empty -> begin
+      match unify ty_v_empty (ty_to_res tau) with
+      | None -> False
+      | Some _ -> Some? (typing (extend g x tau) e)
+    end
+  ))
+  (ensures (
+    Some? (typing empty v) /\
+    typing_sync (typing g (subst x v e)) (typing (extend g x tau) e)
+  ))
+   =
   let Some t_x = typing empty v in
-  let gx = extend g x t_x in
+  let gx = extend g x tau in
   match e with
   | ELit _ -> ()
   | EVar y ->
-     if x=y
-     then context_invariance v empty g (* uses lemma typable_empty_closed *)
-     else context_invariance e gx g
+     if x=y then
+       context_invariance v empty g
+     else
+       context_invariance e gx g
   | EApp e1 e2 ->
-     substitution_preserves_typing x e1 v g;
-     substitution_preserves_typing x e2 v g
+     substitution_preserves_typing x tau e1 v g;
+     substitution_preserves_typing x tau e2 v g;
+     admit()
   | EIf e1 e2 e3 ->
-     substitution_preserves_typing x e1 v g;
-     substitution_preserves_typing x e2 v g;
-     substitution_preserves_typing x e3 v g
+     substitution_preserves_typing x tau e1 v g;
+     substitution_preserves_typing x tau e2 v g;
+     substitution_preserves_typing x tau e3 v g;
+     admit()
   | EAbs y t_y e1 ->
      let gxy = extend gx y t_y in
      let gy = extend g y t_y in
      if x=y
-     then typing_extensional gxy gy e1
+     then begin typing_extensional gxy gy e1; admit() end
      else
-       (let gyx = extend gy x t_x in
+       (let gyx = extend gy x tau in
         typing_extensional gxy gyx e1;
-        substitution_preserves_typing x e1 v gy)
+        substitution_preserves_typing x tau e1 v gy)
+  | EDefault ejust econs subs -> admit()
 
 val preservation : e:exp -> Lemma
   (requires (Some? (typing empty e) /\ Some? (step e) ))
