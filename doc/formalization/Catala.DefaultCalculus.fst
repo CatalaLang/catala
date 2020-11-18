@@ -90,10 +90,10 @@ let rec step_app
       if is_value e2 then
         match e1 with
         | EAbs x t e' -> Some (subst x e2 e')
-        | EDefault (EAbs xjust tjust ejust') (EAbs xcons tcons econs') subs -> (* beta_d *)
+        | EDefault (EAbs xjust tjust ejust') econs subs -> (* beta_d *)
           Some (EDefault
             (subst xjust e2 ejust')
-            (subst xcons e2 econs')
+            (EApp econs e2)
             (map subs (fun sub -> EApp sub e2)))
         | _ -> None
       else
@@ -170,28 +170,33 @@ and step_default
   (just:exp{just << e})
   (cons:exp{cons << e})
   (subs: list exp{subs << e}) : Tot (option exp)  (decreases %[e; 4]) =
-  if is_value just then
+  if is_value just then begin
     match just with
     | ELit LConflictError -> Some c_err
     | ELit LEmptyError -> Some e_err
-    | ELit _ | EAbs _ _ _ | EDefault (EAbs _ _ _) _ _ ->
-      if is_value cons then
-        match just, cons with
-        | EAbs _ _ _, EAbs _ _ _
-        |  EDefault (EAbs _ _ _) _ _,  EDefault (EAbs _ _ _) _ _ ->
-          None
-        | ELit LTrue, ELit LEmptyError -> Some (EDefault (ELit LFalse) cons subs)
-          (* DefaultJustifTrueError *)
-        | ELit LTrue, _ (* DefaultJustifTrueNoError *) -> Some cons
+    | ELit _ | EAbs _ _ _ | EDefault (EAbs _ _ _) _ _ -> begin
+      match just, cons with
+      | EAbs _ _ _, EAbs _ _ _
+      |  EDefault (EAbs _ _ _) _ _,  EDefault (EAbs _ _ _) _ _ ->
+        None
+      | ELit LTrue, ELit LEmptyError ->
+        Some (EDefault (ELit LFalse) cons subs)
+        (* DefaultJustifTrueError *)
+      | ELit LTrue, _ (* DefaultJustifTrueNoError *) ->
+        if is_value cons then
+          Some cons
+        else begin
+          match (step cons) with
+          | Some (ELit LConflictError) -> Some c_err
+          | Some cons' -> Some (EDefault just cons' subs)
+          | None -> None
+        end
         | ELit LFalse, _ ->
           step_subdefaults_just_false e just cons subs
           (* here we evaluate the subs from left to right *)
         | _ -> None
-      else
-        match (step cons) with
-        | Some (ELit LConflictError) -> Some c_err
-        | Some cons' -> Some (EDefault just cons' subs)
-        | None -> None
+      end
+    end
   else
     match (step just) with
     | Some just' -> Some (EDefault just' cons subs)
@@ -226,7 +231,7 @@ let _ =
   let e0 = EApp e0 (ELit LFalse) in
   let e1 = EDefault
     (EIf (ELit LFalse) (ELit LTrue) (ELit LFalse))
-    (ELit LTrue)
+    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse))
     [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse));
       (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
   in
@@ -234,19 +239,23 @@ let _ =
   assert_norm(e1' == Some e1);
   let e2 = EDefault
     (ELit LFalse)
-    (ELit LTrue)
+    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse))
     [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse));
       (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
   in
   let e2' = step e1 in (* IfFalse *)
   assert_norm(e2' == Some e2);
-  let e3 = EDefault (ELit LFalse) (ELit LTrue)
+  let e3 = EDefault
+    (ELit LFalse)
+    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse))
     [ (ELit LEmptyError);
       (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse)) ]
   in
   let e3' = step e2 in (* App *)
   assert_norm(e3' == Some e3);
-  let e4 = EDefault (ELit LFalse) (ELit LTrue)
+  let e4 = EDefault
+    (ELit LFalse)
+    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse))
     [ (ELit LEmptyError);
       (ELit LFalse) ]
   in
@@ -448,7 +457,7 @@ let typing_conserved_by_list_reduction
 
 (**** Progress theorem *)
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 20"
 val progress : e:exp -> Lemma
       (requires (Some? (typing empty e)))
       (ensures (is_value e \/ (Some? (step e))))
@@ -481,12 +490,10 @@ and progress_defaults
   progress just;
   if is_value just then begin
     is_bool_value_cannot_be_default_abs empty just;
-    if is_value cons then begin
-      match just, cons with
-      | ELit LTrue, ELit LEmptyError -> ()
-      | ELit LTrue, _ -> progress cons
-      | ELit LFalse, _ -> progress_defaults_just_false e just cons subs
-    end else progress cons
+    match just, cons with
+    | ELit LTrue, ELit LEmptyError -> ()
+    | ELit LTrue, _ -> progress cons
+    | ELit LFalse, _ -> progress_defaults_just_false e just cons subs
   end else ()
 and progress_defaults_just_false
   (e: exp)
@@ -494,7 +501,7 @@ and progress_defaults_just_false
   (cons: exp{cons << e})
   (subs: list exp{subs << e}) : Lemma
     (requires (
-      ~ (is_value e) /\ is_value cons /\ just == ELit LFalse /\
+      ~ (is_value e) /\ just == ELit LFalse /\
       e == EDefault (ELit LFalse) cons subs /\ Some? (typing empty e)
     ))
     (ensures (Some? (step_subdefaults_just_false e just cons subs)))
@@ -508,7 +515,7 @@ and progress_defaults_left_to_right
   (cons: exp{cons << e})
   (subs: list exp{subs << e}) : Lemma
     (requires (
-      ~ (is_value e) /\ is_value cons /\ just == ELit LFalse /\
+      ~ (is_value e) /\ just == ELit LFalse /\
       Some? (typing empty (EDefault just cons subs))
     ))
     (ensures (Some? (step_subdefaults_left_to_right e just cons subs)))

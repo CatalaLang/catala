@@ -361,10 +361,10 @@ and evaluation inside a context hole.
 
    \inferrule[$\beta_d$]{}{
      \synlangle \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
-     \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid 
-     \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\;\synvar{v}\exeval\\
+     \synvar{e_{\text{cons}}}\synmid 
+     \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\;\synvar{v}\exeval
       \synlangle \synvar{e_{\text{just}}}[\synvar{x}\mapsto\synvar{v}]\synjust
-     \synvar{e_{\text{cons}}}[\synvar{x}\mapsto\synvar{v}]\synmid 
+     \synvar{e_{\text{cons}}}\;\synvar{v}\synmid 
      \synvar{e_1}\;\synvar{v}\synellipsis\synvar{e_n}\;\synvar{v}\synrangle
      }
 \end{mathpar}
