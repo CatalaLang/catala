@@ -582,6 +582,10 @@ and progress_defaults_left_to_right
     end else ()
 #pop-options
 
+(*** Preservation *)
+
+(**** Preservation helpers *)
+
 let rec appears_free_in (x: var) (e: exp) : Tot bool =
   match e with
   | EVar y -> x = y
@@ -671,6 +675,8 @@ let typing_extensional (g:env) (g':env) (e:exp) : Lemma
   (ensures (typing g e == typing g' e))
    = context_invariance e g g'
 
+(**** Substitution preservation *)
+
 let typing_sync (t1 t2: option tyres) : Tot Type0 =
   match t1, t2 with
   | Some t1, Some t2 -> Some? (unify t1 t2)
@@ -696,16 +702,36 @@ let equal_means_sync (t1 t2: option tyres) : Lemma
     equal_means_sync_aux t1 t2
   | _ -> ()
 
-let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) : Lemma
-  (requires (
-    match typing empty v with
+let has_type (v: exp) (tau: ty) : Tot prop =
+  match typing empty v with
+  | None -> False
+  | Some ty_v_empty -> begin
+    match unify ty_v_empty (ty_to_res tau) with
     | None -> False
-    | Some ty_v_empty -> begin
-      match unify ty_v_empty (ty_to_res tau) with
-      | None -> False
-      | Some _ -> Some? (typing (extend g x tau) e)
-    end
+    | Some _ -> True
+  end
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 100"
+let typing_sync_preserved_app (x:var) (tau: ty) (v:exp) (g:env) (e1: exp) (e2: exp) : Lemma
+  (requires (
+    has_type v tau /\  Some? (typing (extend g x tau) (EApp e1 e2)) /\
+    (typing_sync (typing g (subst x v e1)) (typing (extend g x tau) e1)) /\
+    (typing_sync (typing g (subst x v e2)) (typing (extend g x tau) e2))
   ))
+  (ensures (
+    typing_sync (typing g (subst x v (EApp e1 e2))) (typing (extend g x tau) (EApp e1 e2))
+  ))
+  =
+  let gx = extend g x tau in
+  let tsubst_e1 = Some?.v (typing g (subst x v e1)) in
+  let text_e1 = Some?.v (typing gx e1) in
+  let tsubst_e2 = Some?.v (typing g (subst x v e2)) in
+  let text_e2 = Some?.v (typing gx e2) in
+  ()
+#pop-options
+
+let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) : Lemma
+  (requires (has_type v tau /\  Some? (typing (extend g x tau) e)))
   (ensures (
     Some? (typing empty v) /\
     typing_sync (typing g (subst x v e)) (typing (extend g x tau) e)
@@ -723,7 +749,7 @@ let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) 
   | EApp e1 e2 ->
      substitution_preserves_typing x tau e1 v g;
      substitution_preserves_typing x tau e2 v g;
-     admit()
+     typing_sync_preserved_app x tau v g e1 e2
   | EIf e1 e2 e3 ->
      substitution_preserves_typing x tau e1 v g;
      substitution_preserves_typing x tau e2 v g;
@@ -739,6 +765,8 @@ let rec substitution_preserves_typing (x:var) (tau: ty) (e:exp) (v:exp) (g:env) 
         typing_extensional gxy gyx e1;
         substitution_preserves_typing x tau e1 v gy)
   | EDefault ejust econs subs -> admit()
+
+(**** Preservation theorem *)
 
 val preservation : e:exp -> Lemma
   (requires (Some? (typing empty e) /\ Some? (step e) ))
