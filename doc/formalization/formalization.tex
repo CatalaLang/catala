@@ -307,16 +307,16 @@ under the default.
 \begin{mathpar}
   \inferrule[DefaultFun]
   {
-    \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\
-    \synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid\synrangle
-    \typcolon\synvar{\tau'}\\
-    \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}\\
+    \typctx{\Gamma}\typvdash
+    \synlangle\synvar{e_{\text{just}}}\;\synemptydefault\synjust\synvar{e_{\text{cons}}}\;\synemptydefault
+    \synmid\synrangle\typcolon\synvar{\tau'}\\
+    \typctx{\Gamma}\typvdash\synvar{e_1}\;\synemptydefault\typcolon\synvar{\tau'}\\
     \cdots\\
-    \typctx{\Gamma}\typvdash\synvar{e_n}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}
+    \typctx{\Gamma}\typvdash\synvar{e_n}\;\synemptydefault\typcolon\synvar{\tau'}
   }
   {\typctx{\Gamma}\typvdash
-  \synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
-  \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{cons}}}\synmid
+  \synlangle\synvar{e_{\text{just}}}\synjust
+  \synvar{e_{\text{cons}}}\synmid
   \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\tau\synarrow\tau'}
 \end{mathpar}
 
