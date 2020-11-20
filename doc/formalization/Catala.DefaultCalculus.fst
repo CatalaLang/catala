@@ -74,13 +74,6 @@ let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_re
 
 (**** Stepping judgment *)
 
-let rec map (#a: Type) (#b: Type) (l:list a) (f: ((x:a{x << l}) -> Tot b)) : Tot (list b)
-  =
-  match l with
-  | [] -> []
-  | a::tl -> f a::map tl f
-
-
 let rec step_app
   (e: exp)
   (e1: exp{e1 << e})
@@ -158,9 +151,9 @@ and step_subdefaults_just_false
   (subs: list exp{subs << e}) : Tot (option exp) (decreases %[e; 3]) =
   if List.Tot.for_all (fun sub -> is_value sub) subs then
     match empty_count AllEmpty subs with
-    | AllEmpty -> Some (ELit LEmptyError) (* DefaultJustifFalseNoSub *)
-    | OneNonEmpty e' -> Some e' (* DefaultJustifFalseOneSub *)
-    | Conflict -> Some (ELit LConflictError) (* DefaultJustifFalseSubConflict *)
+    | AllEmpty -> Some (ELit LEmptyError) (* D-DefaultFalseNoSub *)
+    | OneNonEmpty e' -> Some e' (* D-DefaultFalseOneSub *)
+    | Conflict -> Some (ELit LConflictError) (* D-DefaultFalseSubConflict *)
   else
     match step_subdefaults_left_to_right e just cons subs with
     | Some e' -> Some e'
@@ -181,8 +174,8 @@ and step_default
         None
       | ELit LTrue, ELit LEmptyError ->
         Some (EDefault (ELit LFalse) cons subs)
-        (* DefaultJustifTrueError *)
-      | ELit LTrue, _ (* DefaultJustifTrueNoError *) ->
+        (* D-DefaultTrueError *)
+      | ELit LTrue, _ (* D-DefaultTrueNoError *) ->
         if is_value cons then
           Some cons
         else begin
@@ -191,9 +184,7 @@ and step_default
           | Some cons' -> Some (EDefault just cons' subs)
           | None -> None
         end
-        | ELit LFalse, _ ->
-          step_subdefaults_just_false e just cons subs
-          (* here we evaluate the subs from left to right *)
+        | ELit LFalse, _ -> step_subdefaults_just_false e just cons subs
         | _ -> None
       end
     end
@@ -221,53 +212,6 @@ let _ =
   let e2' = step e1 in
   assert_norm(e2' == Some e2)
 
-(* Testing *)
-(*
-let _ =
-  let e0 = EDefault
-    (EAbs 0 TBool (EIf (EVar 0) (ELit LTrue) (ELit LFalse)))
-    (EAbs 1 TBool (ELit LTrue))
-    [ (EAbs 2 TBool (ELit LEmptyError));  (EAbs 3 TBool (ELit LFalse)) ] in
-  assert_norm (step e0 == None);
-  let e0 = EApp e0 (ELit LFalse) TBool in
-  let e1 = EDefault
-    (EIf (ELit LFalse) (ELit LTrue) (ELit LFalse))
-    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse) TBool)
-    [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse) TBool);
-      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse) TBool) ]
-  in
-  let e1' = step e0 in (* beta_d *)
-  assert_norm(e1' == Some e1);
-  let e2 = EDefault
-    (ELit LFalse)
-    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse) TBool)
-    [ (EApp (EAbs 2 TBool (ELit LEmptyError)) (ELit LFalse) TBool);
-      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse) TBool) ]
-  in
-  let e2' = step e1 in (* IfFalse *)
-  assert_norm(e2' == Some e2);
-  let e3 = EDefault
-    (ELit LFalse)
-    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse) TBool)
-    [ (ELit LEmptyError);
-      (EApp (EAbs 3 TBool (ELit LFalse)) (ELit LFalse) TBool) ]
-  in
-  let e3' = step e2 in (* App *)
-  assert_norm(e3' == Some e3);
-  let e4 = EDefault
-    (ELit LFalse)
-    (EApp (EAbs 1 TBool (ELit LTrue)) (ELit LFalse) TBool)
-    [ (ELit LEmptyError);
-      (ELit LFalse) ]
-  in
-  let e4' = step e3 in (* App *)
-  assert_norm(e4' == Some e4);
-  let e5 = ELit LFalse in
-  let e5' = step e4 in
-  assert_norm(e5' == Some e5); (* DefaultJustifFalseOneSub *)
-  ()
-*)
-
 (*** Typing *)
 
 (**** Typing helpers *)
@@ -281,11 +225,6 @@ val extend : env -> var -> ty -> Tot env
 let extend g x t = fun x' -> if x = x' then Some t else g x'
 
 (**** Typing judgment *)
-
-let rec size_tau (tau: ty) : nat =
-  match tau with
-  | TArrow t1 t2 -> 1 + size_tau t1 + size_tau t2
-  | _ -> 1
 
 let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   match e with
@@ -304,7 +243,7 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   | ELit LConflictError -> true
   | EIf e1 e2 e3 -> typing g e1 TBool && typing g e2 tau && typing g e3 tau
   | EDefault ejust econs subs ->
-    (* DefaultBase *)
+    (* T-Default *)
     typing g ejust TBool && typing g econs tau &&
     typing_list g subs tau
   | _ -> false
@@ -328,7 +267,6 @@ let is_bool_value_cannot_be_abs (g: env) (e: exp) : Lemma
     ))
   = ()
 
-#push-options "--fuel 3 --ifuel 2 --z3rlimit 20"
 let typing_conserved_by_list_reduction
   (g: env)
   (subs: list exp)
@@ -340,11 +278,10 @@ let typing_conserved_by_list_reduction
       (ensures (Cons? subs ==> (typing_list g (Cons?.tl subs) tau)))
   =
   ()
-#pop-options
 
 (**** Progress theorem *)
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 20"
+#push-options "--fuel 2 --ifuel 1"
 let rec progress (e:exp) (tau: ty) : Lemma
       (requires (typing empty e tau))
       (ensures (is_value e \/ (Some? (step e))))
@@ -419,6 +356,29 @@ and progress_defaults_left_to_right
 
 (**** Preservation helpers *)
 
+let rec empty_count_preserves_type (acc: empty_count_result) (subs: list exp) (g: env) (tau: ty)
+  : Lemma
+    (requires (typing_list g subs tau /\ (match acc with
+      | OneNonEmpty e' -> typing g e' tau
+      | _ -> True
+    )))
+    (ensures (match empty_count acc subs with
+      | OneNonEmpty e' -> typing g e' tau
+      | _ -> True
+    ))
+    (decreases subs)
+  =
+  match subs with
+  | [] -> ()
+  | hd::tl -> begin
+    match (hd, acc) with
+    | ELit (LEmptyError), AllEmpty -> empty_count_preserves_type AllEmpty tl g tau
+    | ELit (LEmptyError), OneNonEmpty e -> empty_count_preserves_type (OneNonEmpty e) tl g tau
+    | _, Conflict -> ()
+    | _, AllEmpty -> empty_count_preserves_type (OneNonEmpty hd) tl g tau
+    | _ -> ()
+  end
+
 let rec appears_free_in (x: var) (e: exp) : Tot bool =
   match e with
   | EVar y -> x = y
@@ -435,7 +395,7 @@ and appears_free_in_list (x: var) (subs: list exp) : Tot bool =
   | [] -> false
   | hd::tl -> appears_free_in x hd || appears_free_in_list x tl
 
-#push-options "--fuel 3 --ifuel 2"
+#push-options "--fuel 2 --ifuel 1"
 let rec free_in_context (x:var) (e:exp) (g:env) (tau: ty) : Lemma
       (requires (typing g e tau))
       (ensures (appears_free_in x e ==> Some? (g x)))
@@ -458,7 +418,7 @@ let rec free_in_context (x:var) (e:exp) (g:env) (tau: ty) : Lemma
     free_in_context x econs g tau;
     free_in_context_list x subs g tau
   end
-and free_in_context_list (x:int) (subs:list exp) (g:env) (tau: ty) : Lemma
+and free_in_context_list (x:var) (subs:list exp) (g:env) (tau: ty) : Lemma
       (requires (typing_list g subs tau))
       (ensures (appears_free_in_list x subs ==> Some? (g x)))
       (decreases %[subs])
@@ -476,6 +436,8 @@ let typable_empty_closed (x:var) (e:exp) (tau: ty) : Lemma
       [SMTPat (appears_free_in x e); SMTPat (typing empty e tau)]
    = free_in_context x e empty tau
 
+(**** Context invariance *)
+
 type equal (g1:env) (g2:env) = forall (x:var). g1 x = g2 x
 
 type equalE (e:exp) (g1:env) (g2:env) =
@@ -484,7 +446,7 @@ type equalE (e:exp) (g1:env) (g2:env) =
 type equalE_list (subs:list exp) (g1:env) (g2:env) =
   forall (x:var). appears_free_in_list x subs ==> g1 x = g2 x
 
-#push-options "--fuel 3 --ifuel 2"
+#push-options "--fuel 2 --ifuel 1"
 let rec context_invariance (e:exp) (g:env) (g':env) (tau: ty) : Lemma
   (requires (equalE e g g'))
   (ensures (typing g e tau <==> typing g' e tau))
@@ -525,7 +487,7 @@ and context_invariance_list (subs:list exp) (g:env) (g':env) (tau: ty) : Lemma
 let typing_extensional (g:env) (g':env) (e:exp) (tau: ty) : Lemma
   (requires (equal g g'))
   (ensures (typing g e tau <==> typing g' e tau))
-   = context_invariance e g g' tau
+  = context_invariance e g g' tau
 
 (**** Substitution preservation *)
 
@@ -584,29 +546,6 @@ and substitution_preserves_typing_list
 #pop-options
 
 (**** Preservation theorem *)
-
-let rec empty_count_preserves_type (acc: empty_count_result) (subs: list exp) (g: env) (tau: ty)
-  : Lemma
-    (requires (typing_list g subs tau /\ (match acc with
-      | OneNonEmpty e' -> typing g e' tau
-      | _ -> True
-    )))
-    (ensures (match empty_count acc subs with
-      | OneNonEmpty e' -> typing g e' tau
-      | _ -> True
-    ))
-    (decreases subs)
-  =
-  match subs with
-  | [] -> ()
-  | hd::tl -> begin
-    match (hd, acc) with
-    | ELit (LEmptyError), AllEmpty -> empty_count_preserves_type AllEmpty tl g tau
-    | ELit (LEmptyError), OneNonEmpty e -> empty_count_preserves_type (OneNonEmpty e) tl g tau
-    | _, Conflict -> ()
-    | _, AllEmpty -> empty_count_preserves_type (OneNonEmpty hd) tl g tau
-    | _ -> ()
-  end
 
 #push-options "--fuel 3 --ifuel 1 --z3rlimit 20"
 let rec preservation (e:exp) (tau: ty) : Lemma
