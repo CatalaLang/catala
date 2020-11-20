@@ -232,27 +232,27 @@ The typing judgment \fbox{$\typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\t
 
 We start by the usual rules of simply-typed lambda calculus.
 \begin{mathpar}
-  \inferrule[UnitLit]{}{ 
+  \inferrule[T-UnitLit]{}{ 
       \typctx{\Gamma}\typvdash\synunit\syntyped\synunitt
   }
 
-  \inferrule[TrueLit]{}{ 
+  \inferrule[T-TrueLit]{}{ 
       \typctx{\Gamma}\typvdash\syntrue\syntyped\synbool
   }
 
-  \inferrule[FalseLit]{}{ 
+  \inferrule[T-FalseLit]{}{ 
       \typctx{\Gamma}\typvdash\synfalse\syntyped\synbool
   }
 
-  \inferrule[Var]{}{
+  \inferrule[T-Var]{}{
       \typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\synvar{x}\syntyped\synvar{\tau}
   }
 
-  \inferrule[Abs]
+  \inferrule[T-Abs]
   {\typctx{\Gamma}\typcomma\synvar{x}\typcolon\synvar{\tau}\typvdash\synvar{e}\typcolon\synvar{\tau'}}
   {\typctx{\Gamma}\typvdash\synlambda\synlparen\synvar{x}\syntyped{\tau}\synrparen\syndot\synvar{e}\typcolon\synvar{\tau}\synarrow\synvar{\tau'}}
 
-  \inferrule[App]
+  \inferrule[T-App]
   {
     \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon\synvar{\tau_2}\synarrow\synvar{\tau_1}\\
     \typctx{\Gamma}\typvdash\synvar{e_2}\typcolon\synvar{\tau_2}
@@ -273,7 +273,7 @@ justification \synvar{e_{\text{just}}} is a boolean, while \synvar{e_{\text{cons
 can evaluate to any value. \TirName{DefaultBase} specifies how the tree structure 
 of the default should be typed.
 \begin{mathpar}
-  \inferrule[DefaultBase]
+  \inferrule[T-Default]
   {
     \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
     \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}\\
@@ -292,34 +292,6 @@ that wraps the default from the outside. Using this scheme, all the expressions
 inside the tree structure of the default will depend on the same bound variable 
 \synvar{x}.
 
-However, this scheme is not adapted to the way Catala exposes defaults 
-to the user in its surface language. Indeed, each legislative article will yield a rule that will be 
-encoded into a \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression.
-Later, all these expressions will be collected and turned into the tree data 
-structure according to the priorities defined by the law. But if each 
-\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}} expression depends on 
-a parameter, the source code will include bindings for free variables in each 
-of the default tree node. Rather than to hoist these bindings outside of the 
-default and perform $\alpha$-renaming, we prefer to explicitly allow bindings 
-inside the default tree nodes. Hence, we include a dedicated typing rule, 
-\TirName{DefaultFun}, as well as a later rule for performing $\beta$-reduction 
-under the default.
-\begin{mathpar}
-  \inferrule[DefaultFun]
-  {
-    \typctx{\Gamma}\typvdash
-    \synlangle\synvar{e_{\text{just}}}\;\synemptydefault\synjust\synvar{e_{\text{cons}}}\;\synemptydefault
-    \synmid\synrangle\typcolon\synvar{\tau'}\\
-    \typctx{\Gamma}\typvdash\synvar{e_1}\;\synemptydefault\typcolon\synvar{\tau'}\\
-    \cdots\\
-    \typctx{\Gamma}\typvdash\synvar{e_n}\;\synemptydefault\typcolon\synvar{\tau'}
-  }
-  {\typctx{\Gamma}\typvdash
-  \synlangle\synvar{e_{\text{just}}}\synjust
-  \synvar{e_{\text{cons}}}\synmid
-  \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\tau\synarrow\tau'}
-\end{mathpar}
-
 \subsection{Evaluation}
 
 We give this default calculus small-step, structured operational semantics. The 
@@ -334,8 +306,6 @@ currently being reduced.
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
-                    &&\synalt&\synlangle\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}
-                    \synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default function\\
     Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
        contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default justification evaluation\\
                &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
@@ -347,39 +317,31 @@ currently being reduced.
 
 We choose a call-by-value reduction strategy.
 First, we present the usual reduction rules for beta-reduction 
-(function application and default application) 
-and evaluation inside a context hole.
+and evaluation inside a context hole. Note that \TirName{D-Context} does not 
+deal with error terms, which will have a special treatment for error propagation 
+later.
 \begin{mathpar}
-   \inferrule[Context]
-  {\synvar{e}\exeval\synvar{e'}}
+   \inferrule[D-Context]
+  {\synvar{e}\exeval\synvar{e'}\\ e'\notin\{\synerror,\synemptydefault\}}
   {\synvar{C}[\synvar{e}]\exeval\synvar{C}[\synvar{e'}]}
 
- \inferrule[$\beta_v$]{}{
+ \inferrule[D-$\beta$]{}{
    (\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot{e})\;\synvar{v}
     \exeval\synvar{e}[\synvar{x}\mapsto\synvar{v}]
  }
-
-   \inferrule[$\beta_d$]{}{
-     \synlangle \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_{\text{just}}}\synjust
-     \synvar{e_{\text{cons}}}\synmid 
-     \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\;\synvar{v}\exeval
-      \synlangle \synvar{e_{\text{just}}}[\synvar{x}\mapsto\synvar{v}]\synjust
-     \synvar{e_{\text{cons}}}\;\synvar{v}\synmid 
-     \synvar{e_1}\;\synvar{v}\synellipsis\synvar{e_n}\;\synvar{v}\synrangle
-     }
 \end{mathpar}
 
 Now we have to describe how the default terms reduce. Thanks to a the 
-\TirName{Context} rule, we can suppose that the justification of the default 
+\TirName{D-Context} rule, we can suppose that the justification of the default 
 is already reduced to a variable \synvar{v}. By applying the beta-reduction 
-rule $\beta_d$, we can further reduce to the case where \synvar{v} is a boolean.
+rule \TirName{D-$\beta$}, we can further reduce to the case where \synvar{v} is a boolean.
 This is where we encode our default logic evaluation semantics. If \synvar{v} is 
 \syntrue{}, then this rule applies and we reduce to the consequence. We don't 
 even have to consider rules of lower priority lower in the tree. This behavior 
 is similar to short-circuit reduction rules of boolean operators, that enable 
 a significant performance gain at execution.
 \begin{mathpar}
-  \inferrule[DefaultJustifTrueNoError]
+  \inferrule[D-DefaultTrueNoError]
   {v\neq\synemptydefault}
   {\synlangle \syntrue\synjust \synvar{v}\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval v}
 \end{mathpar}
@@ -391,10 +353,10 @@ first default is itself a \enquote{high-priority} default tree. In this case,
  \synvar{e_1}\synellipsis\synvar{e_n} acts a the \enquote{low-priority} default 
  tree. The chaining
 behavior from the high-priority tree to the low-priority tree 
-defined by \TirName{DefaultJustifTrueError}, will be very useful in
+defined by \TirName{D-DefaultTrueError}, will be very useful in
 \sref{scope:formalization}.
 \begin{mathpar}
-  \inferrule[DefaultJustifTrueError]
+  \inferrule[D-DefaultTrueError]
   {}
   {
     \synlangle \syntrue\synjust \synemptydefault\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval
@@ -419,16 +381,16 @@ the number of empty error terms \synemptydefault{} among the values. We then cas
 
 
 \begin{mathpar}
-  \inferrule[DefaultJustifFalseNoSub]
+  \inferrule[D-DefaultFalseNoSub]
   {}
   {\synlangle \synfalse\synjust \synvar{e}\synmid \synemptydefault{}\synellipsis\synemptydefault{}\synrangle\exeval \synemptydefault{}}
 
-  \inferrule[DefaultJustifFalseOneSub]
+  \inferrule[D-DefaultFalseOneSub]
   {}
   {\synlangle \synfalse\synjust \synvar{e}\synmid 
   \synemptydefault\synellipsis\synemptydefault\syncomma\synvar{v}\syncomma\synemptydefault\synellipsis\synemptydefault\synrangle\exeval \synvar{v}}
 
-  \inferrule[DefaultJustifFalseSubConflict]
+  \inferrule[D-DefaultFalseSubConflict]
   {\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) <n - 1}
   {\synlangle \synfalse\synjust \synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_n}\synrangle\exeval \synerror{}}
 \end{mathpar}
@@ -442,11 +404,11 @@ and the sub-default evaluation context. Hence the following rules for error
 propagation:
 
 \begin{mathpar}
-   \inferrule[ContextEmptyError]
+   \inferrule[D-ContextEmptyError]
   {\synvar{e}\exeval\synemptydefault}
   {\synvar{C_\lambda}[\synvar{e}]\exeval\synemptydefault}
 
-\inferrule[ContextConflictError]
+\inferrule[D-ContextConflictError]
   {\synvar{e}\exeval\synerror}
   {\synvar{C}[\synvar{e}]\exeval\synerror}
 \end{mathpar}
@@ -493,22 +455,23 @@ $S$ can also call into another scope $S'$, as a function can call
 into another. These calls are scattered in the legislative texts and have 
 to be identified by the programmer. Since $S$ can call $S'$ multiple times
 with different \enquote{parameters}, we have to distinguish between these
-sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_1}\synrparen,
- \synlparen\synvar{S'}\synlarrow\synvar{s_2}\synrparen, etc. A program $P$ is 
+sub-call and give them different names $\synvar{S'}_1$,
+ $\synvar{S'}_2$, etc. A program $P$ is 
  a list of scope declarations $\sigma$.
 
 \begin{center}
 \begin{tabular}{lrrll}
   Scope name&\synvar{S}&&&\\
+  Scope call identifier&\synvar{n}&&&\\
   Location&\synvar{\ell}&\syndef&\synvar{a}&scope variable\\
-        &&\synalt&\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare&sub-scope variable\\
+        &&\synalt&$\synvar{S}_\synvar{n}$\synlsquare\synvar{a}\synrsquare&sub-scope call variable\\
   Expression&\synvar{e}&\syndef&\synvar{\ell}&location\\
   &&\synalt&$\cdots$&default calculus expressions\\
   &&&&\\
   Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust
                          \synvar{e}\synmid$[\synvar{e}^*]$\synrangle
       &Location definition\\
-  &&\synalt&\syncall\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen&sub-scope call\\
+  &&\synalt&\syncall$\synvar{S}_\synvar{n}$&sub-scope call\\
   Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
   Program&\synvar{P}&\syndef&$[\sigma^*]$&\\
 \end{tabular}
@@ -519,17 +482,15 @@ sub-call and give them different names \synlparen\synvar{S'}\synlarrow\synvar{s_
 
 Let's illustrate how the scope language plays out with a simple program 
 that calls a sub-scope:
-\begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt]
+\begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt, samepage=true]
 scope X:
   rule a = < true :- 0 | >
   rule b = < true :- a + 1 | >
 
 scope Y:
-  rule (X<-x)[a] = < true :- 42 | >
-  call (X<-x)
-  rule c = < false :- EmptyError | 
-    < X_x_b == 1 :- false | >,  < X_x_b == 43 :- true | > 
-  > 
+  rule X_1[a] = < true :- 42 | >
+  call X_1
+  rule c = < X_1[b] == 1 :- false | >,  < X_1[b] == 43 :- true | > 
 \end{Verbatim}
 
 Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
@@ -538,13 +499,13 @@ to \Verb+0+ and \Verb+b+ should evaluate to \Verb+1+.
 
 Now, consider scope \Verb+Y+. It defines a single variable \Verb+c+ with two defaults 
 lines 8 and 9, but the justifications for these two defaults use the result of 
-the evaluation (line 7) of variable \Verb+b+ of the sub-scope \Verb+(X<-x)+. 
-Line 6 shows an example of providing an \enquote{argument} to the  subscope call.
+the evaluation (line 7) of variable \Verb+b+ of the sub-scope \Verb+X_1+. 
+Line 6 shows an example of providing an \enquote{argument} to the subscope call.
 The execution goes like this: at line 7 when calling the sub-scope,
-\Verb+(X<-x)[a]+ has two defaults, one coming from line 2, the other calling 
+\Verb+X_1[a]+ has two defaults, one coming from line 2, the other calling 
 from line 6. Because the caller has priority over the callee, the default from line 
-6 wins and \Verb+(X<-x)[a]+ evaluates to \Verb+42+. Consequently,
-\Verb+(X<-x)[b]+ evaluates to \Verb+43+.
+6 wins and \Verb+X_1[a]+ evaluates to \Verb+42+. Consequently,
+\Verb+X_1[b]+ evaluates to \Verb+43+.
 This triggers the second default in the list of line 9 which evaluates \Verb+c+ to \Verb+true+. 
 
 The goal is to provide an encoding of the scope language 
@@ -552,7 +513,7 @@ into the lambda calculus that is compatible with this intuitive description
 of how scopes should evaluate. To get a high-level 
 picture of the translation, we first show what the previous simple program will translate 
 to, using ML-like syntax for the target default calculus:
-\begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt]
+\begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt, samepage=true]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
   let a : unit -> int = a ++ (fun () -> < true :- 0 | >) in
   let a : int = a () in  
@@ -561,11 +522,11 @@ let X (a: unit -> int) (b: unit -> int) : (int * int) =
   (a, b)
 
 let Y (c: unit -> bool) : bool = 
-  let X_x_a : unit -> int = fun () -> < true :- 42 | > in
-  let X_x_b : unit -> int = fun () -> EmptyError in 
-  let (X_x_a, X_x_b) : int * int = X(X_x_a, X_x_b) in 
+  let X_1[a] : unit -> int = fun () -> < true :- 42 | > in
+  let X_1[b] : unit -> int = fun () -> EmptyError in 
+  let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
   let c : unit -> bool = c ++ (fun () -> 
-    < false :- EmptyError | X_x_b == 1 :- false, X_x_b == 43 :- true >)
+    < X_1[b] == 1 :- false>, < X_1[b] == 43 :- true >)
   in 
   let c : bool = c () in 
   c 
@@ -583,8 +544,8 @@ so that their evaluation is delayed. After the defaults have been merged, we app
 Finally, \Verb+X+ returns the tuple of all its local variables (line 6).
 
 The translation of \Verb+Y+ exhibits the pattern for sub-scope calls.
-Lines 9 translates the assignment of the sub-scope argument \Verb+(X<-x)[a]+.
-Before calling \Verb+(X<-x)+ (line 11), the other argument \Verb+(X<-x)[b]+ is 
+Lines 9 translates the assignment of the sub-scope argument \Verb+X_1[a]+.
+Before calling \Verb+X_1+ (line 11), the other argument \Verb+X_1[b]+ is 
 initialized to the neutral \synemptydefault{} that will be ignored at execution 
 because \Verb+X+ provides more defaults for \Verb+b+.
 The sub-scope call is translated to a regular 
@@ -607,7 +568,8 @@ list of its own variables.
     Translation context&\redctx{\Delta}&\syndef&\redempty&empty context\\
     (unordered map)&&\synalt&\redctx{\Delta_\mathrm{own}}\redcomma\redctx{\Delta_\mathrm{sub}}&own and sub-scopes contexts\\
     &\redctx{\Delta_\mathrm{own}}&\syndef&\redempty\synalt\redctx{\Delta_\mathrm{own}}\redcomma\synvar{a}\redcolon\synvar{\tau}&typed scope variable\\
-    &\redctx{\Delta_\mathrm{sub}}&\syndef&\redempty\synalt\redctx{\Delta_\mathrm{sub}}\redcomma\synlparen\synvar{S}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synvar{\tau}&typed sub-scope variable\\
+    &\redctx{\Delta_\mathrm{sub}}&\syndef&\redempty\synalt\redctx{\Delta_\mathrm{sub}}\redcomma
+      $\synvar{S}_\synvar{n}$\synlsquare\synvar{a}\synrsquare\redcolon\synvar{\tau}&typed sub-scope variable\\
   \end{tabular}
 \end{center}
 
@@ -737,29 +699,30 @@ sub-scope.
 \begin{mathpar}
 \inferrule[T-DefSubScopeVar]{
   S\neq S'\\
-  \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\notin\redctx{\Delta}\\
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\notin\redctx{\Delta}\\
   \redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
   \typcolon\synvar{\tau}
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
-  \synrule\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\syntyped\synvar{\tau}\synequal 
+  \synrule\synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\syntyped\synvar{\tau}\synequal 
   \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
   \reduces \\
-  \synlet \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\syntyped\synunitt\synarrow\synvar{\tau}\synequal 
+  \synlet \synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\syntyped\synunitt\synarrow\synvar{\tau}\synequal 
   \synlambda \synlparen\synunit\syntyped\synunitt\synrparen\syndot 
   \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
-  \synin\synhole\redproduce\\\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}\redcomma\redctx{\Delta}
+  \synin\synhole\redproduce\\\synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}\redcomma\redctx{\Delta}
 }
 \end{mathpar}
 
 This rule is very similar to \TirName{T-DefScopeVar}, and actually simpler. It does not feature the 
 merge operator $\!\!\!\synmerge\!\!\!$, because sub-scope variables like 
-\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare{}
+$\synvar{S'}_\synvar{n}$\synlsquare\synvar{a}\synrsquare{}
 are not part of the scope's argument. The premise $S\neq S'$ means that a scope 
 $S$ cannot have a recursive definition; it cannot call into itself and define 
 sub-scope variables of its own scope. Note that 
-\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}
-is added to \redctx{\Delta} in the final part of the judgment; \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\synlsquare\synvar{a}\synrsquare{}
+$\synvar{S'}_\synvar{n}$\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}
+is added to \redctx{\Delta} in the final part of the judgment;
+ $\synvar{S'}_\synvar{n}$\synlsquare\synvar{a}\synrsquare{}
 has been defined as a sub-scope argument but not as a value that can be used by the 
 scope yet, its type is \synunitt\synarrow\synvar{\tau} and not \synvar{\tau}.
 
@@ -773,21 +736,21 @@ the sub-scope itself can be called.
   P\redvdash\sigma'\reduces e'\redproduce 
   \synvar{a'_1}\redcolon\synvar{\tau'_1}\redellipsis\synvar{a'_n}\redcolon\synvar{\tau'_n}\redcomma\redctx{\Delta'_\mathrm{sub}}\\
   \redinit\redlparen\redctx{\Delta}\redsc 
-  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare
-  \redellipsis\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\redrparen
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a'_1}\synrsquare
+  \redellipsis\synvar{S'}_\synvar{n}\synlsquare\synvar{a'_n}\synrsquare\redrparen
   \redequal\synvar{e_\mathrm{init}}
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}\syncall 
-  \synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen\reduces
-  \synvar{e_\mathrm{init}}[\synhole\mapsto\\
-  \synlet\synlparen \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\synellipsis
-  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\synrparen
+  \synvar{S'}_\synvar{n}\reduces
+  \synvar{e_\mathrm{init}}[\synhole\mapsto
+  \synlet\synlparen \synvar{S'}_\synvar{n}\synlsquare\synvar{a'_1}\synrsquare\synellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a'_n}\synrsquare\synrparen
   \syntyped \synlparen \synvar{\tau'_1}\synstar\cdots\synstar\synvar{\tau'_n}\synrparen\synequal\\
-  \synvar{e'}\;\synlparen\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\synrparen
-  \cdots\synlparen\synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\synrparen
-  \synin\synhole\;]\redproduce\\
-  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_1}\synrsquare\redcolon\synvar{\tau'_1}\redellipsis
-  \synlparen\synvar{S'}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a'_n}\synrsquare\redcolon\synvar{\tau'_n}\redcomma 
+  \synvar{e'}\;\synlparen\synvar{S'}_\synvar{n}\synlsquare\synvar{a'_1}\synrsquare\synrparen
+  \cdots\synlparen\synvar{S'}_\synvar{n}\synlsquare\synvar{a'_n}\synrsquare\synrparen
+  \synin\synhole\;]\redproduce
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a'_1}\synrsquare\redcolon\synvar{\tau'_1}\redellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a'_n}\synrsquare\redcolon\synvar{\tau'_n}\redcomma 
   \redctx{\Delta}
 }
 \end{mathpar}
@@ -806,7 +769,7 @@ helper to produce the \synvar{e_\mathrm{init}} expression to define those
 missing arguments with the \synemptydefault{} value.
 
 The conclusion of \TirName{T-SubScopeCall} defines the reduction of 
-\syncall\synlparen\synvar{S'}\synlarrow\synvar{s}\synrparen. After \synvar{e_\mathrm{init}},
+\syncall$\synvar{S'}_\synvar{n}$. After \synvar{e_\mathrm{init}},
 we translate the sub-scope call to the default calculus call of the corresponding expression \synvar{e'},
 which takes as arguments the defaults and returns the corresponding values after 
 evaluation. Finally, the new translation context produced is \redctx{\Delta}
@@ -818,32 +781,32 @@ Its definition is quite simple, since it produces an expression defining to \syn
 all the variables from a list not present in \redctx{\Delta}.
 \begin{mathpar}
 \inferrule[T-InitSubVarsInDelta]{
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
   \in\redctx{\Delta}\\
   \redinit\redlparen\redctx{\Delta}\redsc
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_2}\synrsquare\redellipsis
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_2}\synrsquare\redellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_n}\synrsquare\redrparen
   \redequal\synvar{e}
 }{
   \redinit\redlparen\redctx{\Delta}\redsc
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redellipsis
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_1}\synrsquare\redellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_n}\synrsquare\redrparen
   \redequal\synvar{e}
 }
 
 \inferrule[T-InitSubVarsNotInDelta]{
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_1}\synrsquare\redcolon\synvar{\tau_1}
   \notin\redctx{\Delta}\\
   \redinit\redlparen\redctx{\Delta}\redsc
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_2}\synrsquare\redellipsis
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_2}\synrsquare\redellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_n}\synrsquare\redrparen
   \redequal\synvar{e'}
 }{
   \redinit\redlparen\redctx{\Delta}\redsc
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare\redellipsis
-  \synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_n}\synrsquare\redrparen
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_1}\synrsquare\redellipsis
+  \synvar{S'}_\synvar{n}\synlsquare\synvar{a_n}\synrsquare\redrparen
   \redequal\\
-  \synlet\synlparen\synvar{S}\synarrow \synvar{s}\synrparen\synlsquare\synvar{a_1}\synrsquare
+  \synlet\synvar{S'}_\synvar{n}\synlsquare\synvar{a_1}\synrsquare
   \syntyped\synunitt\synarrow\synvar{\tau_1}\synequal
   \synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot\synemptydefault\synin \synvar{e}
 }
