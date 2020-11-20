@@ -8,3 +8,9 @@
 for_lawyers.pdf
 _minted*
 *.toc
+formalization.pdf
+*.run.xml
+*.bbl 
+*.bcf
+*.blg
+*~
