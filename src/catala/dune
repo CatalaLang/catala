@@ -3,7 +3,7 @@
 (library
  (public_name catala)
  (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info
-   ocamlgraph)
+   ocamlgraph bindlib unionFind)
  (preprocess
   (pps sedlex.ppx)))
 
