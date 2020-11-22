@@ -18,8 +18,9 @@ install-dependencies-ocaml:
 		menhirLib \
 		dune dune-build-info \
 		cmdliner obelisk \
-		re reason\
-		obelisk\
+		re reason \
+		obelisk \
+		unionfind \
 		ocamlgraph
 
 init-submodules:
