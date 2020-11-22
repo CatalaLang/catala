@@ -21,6 +21,7 @@ install-dependencies-ocaml:
 		re reason \
 		obelisk \
 		unionfind \
+		bindlib \
 		ocamlgraph
 
 init-submodules:
