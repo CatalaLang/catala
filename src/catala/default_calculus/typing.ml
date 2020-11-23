@@ -128,6 +128,11 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       let tcons = typecheck_expr_bottom_up env cons in
       List.iter (fun sub -> typecheck_expr_top_down env sub tcons) subs;
       tcons
+  | EIfThenElse (cond, et, ef) ->
+      typecheck_expr_top_down env cond (UnionFind.make (Pos.same_pos_as TBool cond));
+      let tt = typecheck_expr_bottom_up env et in
+      typecheck_expr_top_down env ef tt;
+      tt
 
 and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
@@ -182,6 +187,10 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as TBool just));
       typecheck_expr_top_down env cons tau;
       List.iter (fun sub -> typecheck_expr_top_down env sub tau) subs
+  | EIfThenElse (cond, et, ef) ->
+      typecheck_expr_top_down env cond (UnionFind.make (Pos.same_pos_as TBool cond));
+      typecheck_expr_top_down env et tau;
+      typecheck_expr_top_down env ef tau
 
 let infer_type (e : A.expr Pos.marked) : A.typ Pos.marked =
   let ty = typecheck_expr_bottom_up A.VarMap.empty e in

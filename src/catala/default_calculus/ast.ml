@@ -30,6 +30,7 @@ type expr =
   | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.binder * typ
   | EApp of expr Pos.marked * expr Pos.marked
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
+  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
 module Var = struct
   type t = expr Pos.marked Bindlib.var

@@ -86,3 +86,12 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             "Default justification has not been reduced to a boolean at evaluation (should not \
              happen if the term was well-typed"
             (Pos.get_position e) )
+  | EIfThenElse (cond, et, ef) -> (
+      match Pos.unmark (evaluate_expr cond) with
+      | ELit LTrue -> evaluate_expr et
+      | ELit LFalse -> evaluate_expr ef
+      | _ ->
+          Errors.raise_spanned_error
+            "expected a boolean literal for the result of this condition (should not happen if the \
+             term was well-typed)"
+            (Pos.get_position cond) )

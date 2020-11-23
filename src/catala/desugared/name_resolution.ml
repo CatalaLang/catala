@@ -20,7 +20,7 @@ module Errors = Utils.Errors
 
 type ident = string
 
-type typ = unit
+type typ = Dcalc.Ast.typ
 
 type def_context = { var_idmap : Ast.LocalVar.t Ast.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
@@ -38,7 +38,7 @@ type scope_context = {
 type context = {
   scope_idmap : Scopelang.Ast.ScopeName.t Ast.IdentMap.t;
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
-  var_typs : typ Scopelang.Ast.ScopeVarMap.t;
+  var_typs : typ Pos.marked Scopelang.Ast.ScopeVarMap.t;
 }
 
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
@@ -50,7 +50,7 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
     (Pos.get_position ident)
 
 (** Get the type associated to an uid *)
-let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ =
+let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.marked =
   Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs
 
 (** Process a subscope declaration *)
@@ -107,7 +107,7 @@ let process_type ((typ, typ_pos) : Surface.Ast.typ Pos.marked) : Dcalc.Ast.typ P
 let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
-  let _data_typ = process_type decl.scope_decl_context_item_typ in
+  let data_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
@@ -125,7 +125,7 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       {
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = assert false (* Scopelang.Ast.ScopeVarMap.add uid data_typ ctxt.var_typs *);
+        var_typs = Scopelang.Ast.ScopeVarMap.add uid data_typ ctxt.var_typs;
       }
 
 (** Process an item declaration *)
@@ -315,7 +315,7 @@ let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
     (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
     scope.var_idmap
 
-let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
+let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ Pos.marked =
   match def with
   | Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to

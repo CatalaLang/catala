@@ -53,11 +53,16 @@ module ScopeDefSet = Set.Make (ScopeDef)
 (* Scopes *)
 type binder = LocalVar.t
 
-type definition = unit
+type definition = Scopelang.Ast.expr Pos.marked
 
-let empty_def (_pos : Pos.t) (_typ : Dcalc.Ast.typ) : definition = assert false
+let empty_def (pos : Pos.t) : definition =
+  ( Scopelang.Ast.EDefault
+      ( (Scopelang.Ast.ELit Dcalc.Ast.LFalse, pos),
+        (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos),
+        [] ),
+    pos )
 
-type assertion = unit
+type assertion = Scopelang.Ast.expr Pos.marked
 
 type variation_typ = Increasing | Decreasing
 
