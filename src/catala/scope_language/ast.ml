@@ -13,3 +13,10 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Uid = Utils.Uid
+module ScopeName = Uid.Make (Uid.MarkedString)
+module ScopeNameSet = Set.Make (ScopeName)
+module ScopeMap = Map.Make (ScopeName)
+module SubScopeName = Uid.Make (Uid.MarkedString)
+module SubScopeNameSet = Set.Make (SubScopeName)
+module SubScopeMap = Map.Make (SubScopeName)

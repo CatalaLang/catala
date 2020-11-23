@@ -25,20 +25,21 @@ module Errors = Utils.Errors
     In the graph, x -> y if x is used in the definition of y. *)
 
 module Vertex = struct
-  type t = Var of Uid.Var.t | SubScope of Uid.SubScope.t
+  type t = Var of Ast.Var.t | SubScope of Scopelang.Ast.SubScopeName.t
 
-  let hash x = match x with Var x -> Uid.Var.hash x | SubScope x -> Uid.SubScope.hash x
+  let hash x =
+    match x with Var x -> Ast.Var.hash x | SubScope x -> Scopelang.Ast.SubScopeName.hash x
 
   let compare = compare
 
   let equal x y =
     match (x, y) with
-    | Var x, Var y -> Uid.Var.compare x y = 0
-    | SubScope x, SubScope y -> Uid.SubScope.compare x y = 0
+    | Var x, Var y -> Ast.Var.compare x y = 0
+    | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (x : t) : string =
-    match x with Var v -> Uid.Var.format_t v | SubScope v -> Uid.SubScope.format_t v
+    match x with Var v -> Ast.Var.format_t v | SubScope v -> Scopelang.Ast.SubScopeName.format_t v
 end
 
 (** On the edges, the label is the expression responsible for the use of the variable *)
@@ -68,15 +69,16 @@ let check_for_cycle (g : ScopeDependencies.t) : unit =
             (fun v ->
               let var_str, var_info =
                 match v with
-                | Vertex.Var v -> (Uid.Var.format_t v, Uid.Var.get_info v)
-                | Vertex.SubScope v -> (Uid.SubScope.format_t v, Uid.SubScope.get_info v)
+                | Vertex.Var v -> (Ast.Var.format_t v, Ast.Var.get_info v)
+                | Vertex.SubScope v ->
+                    (Scopelang.Ast.SubScopeName.format_t v, Scopelang.Ast.SubScopeName.get_info v)
               in
               let succs = ScopeDependencies.succ_e g v in
               let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
               let succ_str =
                 match succ with
-                | Vertex.Var v -> Uid.Var.format_t v
-                | Vertex.SubScope v -> Uid.SubScope.format_t v
+                | Vertex.Var v -> Ast.Var.format_t v
+                | Vertex.SubScope v -> Scopelang.Ast.SubScopeName.format_t v
               in
               [
                 (Some ("cycle variable " ^ var_str ^ ", declared:"), Pos.get_position var_info);
@@ -90,34 +92,35 @@ let build_scope_dependencies (scope : Ast.scope) (ctxt : Name_resolution.context
   let g = ScopeDependencies.empty in
   let scope_uid = scope.scope_uid in
   (* Add all the vertices to the graph *)
-  let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let g =
-    Uid.IdentMap.fold
-      (fun _ (v : Uid.Var.t) g -> ScopeDependencies.add_vertex g (Vertex.Var v))
+    Ast.IdentMap.fold
+      (fun _ (v : Ast.Var.t) g -> ScopeDependencies.add_vertex g (Vertex.Var v))
       scope_ctxt.var_idmap g
   in
   let g =
-    Uid.IdentMap.fold
-      (fun _ (v : Uid.SubScope.t) g -> ScopeDependencies.add_vertex g (Vertex.SubScope v))
+    Ast.IdentMap.fold
+      (fun _ (v : Scopelang.Ast.SubScopeName.t) g ->
+        ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope_ctxt.sub_scopes_idmap g
   in
   let g =
-    Uid.ScopeDefMap.fold
+    Ast.ScopeDefMap.fold
       (fun def_key _def g ->
         let fv = assert false (* Dcalc.Ast.term_fv def *) in
-        Uid.ScopeDefSet.fold
+        Ast.ScopeDefSet.fold
           (fun fv_def g ->
             match (def_key, fv_def) with
-            | Uid.ScopeDef.Var defined, Uid.ScopeDef.Var used ->
+            | Ast.ScopeDef.Var defined, Ast.ScopeDef.Var used ->
                 (* simple case *)
                 ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined)
-            | Uid.ScopeDef.SubScopeVar (defined, _), Uid.ScopeDef.Var used ->
+            | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used ->
                 (* here we are defining the input of a subscope using a var of the scope *)
                 ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.SubScope defined)
-            | Uid.ScopeDef.SubScopeVar (defined, _), Uid.ScopeDef.SubScopeVar (used, _) ->
+            | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* here we are defining the input of a scope with the output of another subscope *)
                 ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined)
-            | Uid.ScopeDef.Var defined, Uid.ScopeDef.SubScopeVar (used, _) ->
+            | Ast.ScopeDef.Var defined, Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* finally we define a scope var with the output of a subscope *)
                 ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.Var defined))
           fv g)

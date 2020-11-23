@@ -13,9 +13,42 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Uid = Utils.Uid
+module IdentMap = Map.Make (String)
+module Var = Uid.Make (Uid.MarkedString)
+module VarSet = Set.Make (Var)
+module VarMap = Map.Make (Var)
+module LocalVar = Uid.Make (Uid.MarkedString)
+module LocalVarSet = Set.Make (LocalVar)
+module LocalVarMap = Map.Make (LocalVar)
+
+(** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
+module ScopeDef = struct
+  type t =
+    | Var of Var.t
+    | SubScopeVar of Scopelang.Ast.SubScopeName.t * Var.t
+        (** In this case, the [Uid.Var.t] lives inside the context of the subscope's original
+            declaration *)
+
+  let compare x y =
+    match (x, y) with
+    | Var x, Var y | Var x, SubScopeVar (_, y) | SubScopeVar (_, x), Var y -> Var.compare x y
+    | SubScopeVar (_, x), SubScopeVar (_, y) -> Scopelang.Ast.SubScopeName.compare x y
+
+  let format_t x =
+    match x with
+    | Var v -> Var.format_t v
+    | SubScopeVar (s, v) ->
+        Printf.sprintf "%s.%s" (Scopelang.Ast.SubScopeName.format_t s) (Var.format_t v)
+
+  let hash x = match x with Var v -> Var.hash v | SubScopeVar (_, v) -> Var.hash v
+end
+
+module ScopeDefMap = Map.Make (ScopeDef)
+module ScopeDefSet = Set.Make (ScopeDef)
 
 (* Scopes *)
-type binder = Uid.LocalVar.t
+type binder = LocalVar.t
 
 type definition = unit
 
@@ -32,18 +65,18 @@ type meta_assertion =
   | VariesWith of unit * variation_typ Pos.marked option
 
 type scope = {
-  scope_uid : Uid.Scope.t;
-  scope_defs : definition Uid.ScopeDefMap.t;
+  scope_uid : Scopelang.Ast.ScopeName.t;
+  scope_defs : definition ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-let empty_scope (uid : Uid.Scope.t) : scope =
+let empty_scope (uid : Scopelang.Ast.ScopeName.t) : scope =
   {
     scope_uid = uid;
-    scope_defs = Uid.ScopeDefMap.empty;
+    scope_defs = ScopeDefMap.empty;
     scope_assertions = [];
     scope_meta_assertions = [];
   }
 
-type program = scope Uid.ScopeMap.t
+type program = scope Scopelang.Ast.ScopeMap.t

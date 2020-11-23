@@ -22,23 +22,23 @@ type ident = string
 
 type typ = unit
 
-type def_context = { var_idmap : Uid.LocalVar.t Uid.IdentMap.t }
+type def_context = { var_idmap : Ast.LocalVar.t Ast.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
     matching *)
 
 type scope_context = {
-  var_idmap : Uid.Var.t Uid.IdentMap.t;
-  sub_scopes_idmap : Uid.SubScope.t Uid.IdentMap.t;
-  sub_scopes : Uid.Scope.t Uid.SubScopeMap.t;
-  definitions : def_context Uid.ScopeDefMap.t;
+  var_idmap : Ast.Var.t Ast.IdentMap.t;
+  sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Ast.IdentMap.t;
+  sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
+  definitions : def_context Ast.ScopeDefMap.t;
       (** Contains the local variables in all the definitions *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
 type context = {
-  scope_idmap : Uid.Scope.t Uid.IdentMap.t;
-  scopes : scope_context Uid.ScopeMap.t;
-  var_typs : typ Uid.VarMap.t;
+  scope_idmap : Scopelang.Ast.ScopeName.t Ast.IdentMap.t;
+  scopes : scope_context Scopelang.Ast.ScopeMap.t;
+  var_typs : typ Ast.VarMap.t;
 }
 
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
@@ -50,36 +50,37 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
     (Pos.get_position ident)
 
 (** Get the type associated to an uid *)
-let get_var_typ (ctxt : context) (uid : Uid.Var.t) : typ = Uid.VarMap.find uid ctxt.var_typs
+let get_var_typ (ctxt : context) (uid : Ast.Var.t) : typ = Ast.VarMap.find uid ctxt.var_typs
 
 (** Process a subscope declaration *)
-let process_subscope_decl (scope : Uid.Scope.t) (ctxt : context)
+let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
-  let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
-  match Uid.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  match Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
       Errors.raise_multispanned_error "subscope name already used"
         [
-          (Some "first use", Pos.get_position (Uid.SubScope.get_info use));
+          (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
         ]
   | None ->
-      let sub_scope_uid = Uid.SubScope.fresh (name, name_pos) in
+      let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
       let original_subscope_uid =
-        match Uid.IdentMap.find_opt subscope ctxt.scope_idmap with
+        match Ast.IdentMap.find_opt subscope ctxt.scope_idmap with
         | None -> raise_unknown_identifier "for a scope" (subscope, s_pos)
         | Some id -> id
       in
       let scope_ctxt =
         {
           scope_ctxt with
-          sub_scopes_idmap = Uid.IdentMap.add name sub_scope_uid scope_ctxt.sub_scopes_idmap;
-          sub_scopes = Uid.SubScopeMap.add sub_scope_uid original_subscope_uid scope_ctxt.sub_scopes;
+          sub_scopes_idmap = Ast.IdentMap.add name sub_scope_uid scope_ctxt.sub_scopes_idmap;
+          sub_scopes =
+            Scopelang.Ast.SubScopeMap.add sub_scope_uid original_subscope_uid scope_ctxt.sub_scopes;
         }
       in
-      { ctxt with scopes = Uid.ScopeMap.add scope scope_ctxt ctxt.scopes }
+      { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes }
 
 let process_base_typ ((typ, typ_pos) : Surface.Ast.base_typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   match typ with
@@ -102,69 +103,72 @@ let process_type ((typ, typ_pos) : Surface.Ast.typ Pos.marked) : Dcalc.Ast.typ P
       (Dcalc.Ast.TArrow (process_base_typ arg_typ, process_base_typ return_typ), typ_pos)
 
 (** Process data declaration *)
-let process_data_decl (scope : Uid.Scope.t) (ctxt : context)
+let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
   let _data_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
-  let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
-  match Uid.IdentMap.find_opt name scope_ctxt.var_idmap with
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  match Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
       Errors.raise_multispanned_error "var name already used"
-        [ (Some "first use", Pos.get_position (Uid.Var.get_info use)); (Some "second use", pos) ]
+        [ (Some "first use", Pos.get_position (Ast.Var.get_info use)); (Some "second use", pos) ]
   | None ->
-      let uid = Uid.Var.fresh (name, pos) in
+      let uid = Ast.Var.fresh (name, pos) in
       let scope_ctxt =
-        { scope_ctxt with var_idmap = Uid.IdentMap.add name uid scope_ctxt.var_idmap }
+        { scope_ctxt with var_idmap = Ast.IdentMap.add name uid scope_ctxt.var_idmap }
       in
       {
         ctxt with
-        scopes = Uid.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = assert false (* Uid.VarMap.add uid data_typ ctxt.var_typs *);
+        scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
+        var_typs = assert false (* Ast.VarMap.add uid data_typ ctxt.var_typs *);
       }
 
 (** Process an item declaration *)
-let process_item_decl (scope : Uid.Scope.t) (ctxt : context)
+let process_item_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Surface.Ast.scope_decl_context_item) : context =
   match decl with
   | Surface.Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
   | Surface.Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Adds a binding to the context *)
-let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : Uid.ScopeDef.t)
-    (name : ident Pos.marked) : context =
-  let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  let def_ctx = Uid.ScopeDefMap.find def_uid scope_ctxt.definitions in
-  let local_var_uid = Uid.LocalVar.fresh name in
+let add_def_local_var (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
+    (def_uid : Ast.ScopeDef.t) (name : ident Pos.marked) : context =
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let def_ctx = Ast.ScopeDefMap.find def_uid scope_ctxt.definitions in
+  let local_var_uid = Ast.LocalVar.fresh name in
   let def_ctx =
-    { var_idmap = Uid.IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap }
+    { var_idmap = Ast.IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap }
   in
   let scope_ctxt =
-    { scope_ctxt with definitions = Uid.ScopeDefMap.add def_uid def_ctx scope_ctxt.definitions }
+    { scope_ctxt with definitions = Ast.ScopeDefMap.add def_uid def_ctx scope_ctxt.definitions }
   in
-  { ctxt with scopes = Uid.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
+  { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
 
 (** Process a scope declaration *)
 let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) : context =
   let name, pos = decl.scope_decl_name in
   (* Checks if the name is already used *)
-  match Uid.IdentMap.find_opt name ctxt.scope_idmap with
+  match Ast.IdentMap.find_opt name ctxt.scope_idmap with
   | Some use ->
       Errors.raise_multispanned_error "scope name already used"
-        [ (Some "first use", Pos.get_position (Uid.Scope.get_info use)); (Some "second use", pos) ]
+        [
+          (Some "first use", Pos.get_position (Scopelang.Ast.ScopeName.get_info use));
+          (Some "second use", pos);
+        ]
   | None ->
-      let scope_uid = Uid.Scope.fresh (name, pos) in
+      let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
       let ctxt =
         {
           ctxt with
-          scope_idmap = Uid.IdentMap.add name scope_uid ctxt.scope_idmap;
+          scope_idmap = Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
           scopes =
-            Uid.ScopeMap.add scope_uid
+            Scopelang.Ast.ScopeMap.add scope_uid
               {
-                var_idmap = Uid.IdentMap.empty;
-                sub_scopes_idmap = Uid.IdentMap.empty;
-                definitions = Uid.ScopeDefMap.empty;
-                sub_scopes = Uid.SubScopeMap.empty;
+                var_idmap = Ast.IdentMap.empty;
+                sub_scopes_idmap = Ast.IdentMap.empty;
+                definitions = Ast.ScopeDefMap.empty;
+                sub_scopes = Scopelang.Ast.SubScopeMap.empty;
               }
               ctxt.scopes;
         }
@@ -173,30 +177,30 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) : contex
         (fun ctxt item -> process_item_decl scope_uid ctxt (Pos.unmark item))
         ctxt decl.scope_decl_context
 
-let qident_to_scope_def (ctxt : context) (scope_uid : Uid.Scope.t)
-    (id : Surface.Ast.qident Pos.marked) : Uid.ScopeDef.t =
-  let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
+let qident_to_scope_def (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
+    (id : Surface.Ast.qident Pos.marked) : Ast.ScopeDef.t =
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Pos.unmark id with
   | [ x ] -> (
-      match Uid.IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
+      match Ast.IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
       | None -> raise_unknown_identifier "for a var of the scope" x
-      | Some id -> Uid.ScopeDef.Var id )
+      | Some id -> Ast.ScopeDef.Var id )
   | [ s; x ] -> (
       let sub_scope_uid =
-        match Uid.IdentMap.find_opt (Pos.unmark s) scope_ctxt.sub_scopes_idmap with
+        match Ast.IdentMap.find_opt (Pos.unmark s) scope_ctxt.sub_scopes_idmap with
         | None -> raise_unknown_identifier "for a subscope of this scope" s
         | Some id -> id
       in
-      let real_sub_scope_uid = Uid.SubScopeMap.find sub_scope_uid scope_ctxt.sub_scopes in
-      let sub_scope_ctx = Uid.ScopeMap.find real_sub_scope_uid ctxt.scopes in
-      match Uid.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
+      let real_sub_scope_uid = Scopelang.Ast.SubScopeMap.find sub_scope_uid scope_ctxt.sub_scopes in
+      let sub_scope_ctx = Scopelang.Ast.ScopeMap.find real_sub_scope_uid ctxt.scopes in
+      match Ast.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
       | None -> raise_unknown_identifier "for a var of this subscope" x
-      | Some id -> Uid.ScopeDef.SubScopeVar (sub_scope_uid, id) )
+      | Some id -> Ast.ScopeDef.SubScopeVar (sub_scope_uid, id) )
   | _ -> raise_unsupported_feature "wrong qident" (Pos.get_position id)
 
 let process_scope_use (ctxt : context) (use : Surface.Ast.scope_use) : context =
   let scope_uid =
-    match Uid.IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
+    match Ast.IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
     | None -> raise_unknown_identifier "for a scope" use.scope_use_name
     | Some id -> id
   in
@@ -204,24 +208,24 @@ let process_scope_use (ctxt : context) (use : Surface.Ast.scope_use) : context =
     (fun ctxt use_item ->
       match Pos.unmark use_item with
       | Surface.Ast.Definition def ->
-          let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
+          let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
           let def_uid = qident_to_scope_def ctxt scope_uid def.definition_name in
           let def_ctxt =
             {
               var_idmap =
                 ( match def.definition_parameter with
-                | None -> Uid.IdentMap.empty
-                | Some param -> Uid.IdentMap.singleton (Pos.unmark param) (Uid.LocalVar.fresh param)
+                | None -> Ast.IdentMap.empty
+                | Some param -> Ast.IdentMap.singleton (Pos.unmark param) (Ast.LocalVar.fresh param)
                 );
             }
           in
           let scope_ctxt =
             {
               scope_ctxt with
-              definitions = Uid.ScopeDefMap.add def_uid def_ctxt scope_ctxt.definitions;
+              definitions = Ast.ScopeDefMap.add def_uid def_ctxt scope_ctxt.definitions;
             }
           in
-          { ctxt with scopes = Uid.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
+          { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
       | _ -> raise_unsupported_feature "unsupported item" (Pos.get_position use_item))
     ctxt use.scope_use_items
 
@@ -268,7 +272,11 @@ let process_program_item (ctxt : context) (item : Surface.Ast.program_item)
 (** Derive the context from metadata, in two passes *)
 let form_context (prgm : Surface.Ast.program) : context =
   let empty_ctxt =
-    { scope_idmap = Uid.IdentMap.empty; scopes = Uid.ScopeMap.empty; var_typs = Uid.VarMap.empty }
+    {
+      scope_idmap = Ast.IdentMap.empty;
+      scopes = Scopelang.Ast.ScopeMap.empty;
+      var_typs = Ast.VarMap.empty;
+    }
   in
   let ctxt =
     List.fold_left
@@ -280,30 +288,30 @@ let form_context (prgm : Surface.Ast.program) : context =
     ctxt prgm.program_items
 
 (** Get the variable uid inside the scope given in argument *)
-let get_var_uid (scope_uid : Uid.Scope.t) (ctxt : context) ((x, pos) : ident Pos.marked) : Uid.Var.t
-    =
-  let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  match Uid.IdentMap.find_opt x scope.var_idmap with
+let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((x, pos) : ident Pos.marked) : Ast.Var.t =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  match Ast.IdentMap.find_opt x scope.var_idmap with
   | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
   | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid (scope_uid : Uid.Scope.t) (ctxt : context) ((y, pos) : ident Pos.marked) :
-    Uid.SubScope.t =
-  let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  match Uid.IdentMap.find_opt y scope.sub_scopes_idmap with
+let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((y, pos) : ident Pos.marked) : Scopelang.Ast.SubScopeName.t =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  match Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
   | Some sub_uid -> sub_uid
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
-let belongs_to (ctxt : context) (uid : Uid.Var.t) (scope_uid : Uid.Scope.t) : bool =
-  let scope = Uid.ScopeMap.find scope_uid ctxt.scopes in
-  Uid.IdentMap.exists (fun _ var_uid -> Uid.Var.compare uid var_uid = 0) scope.var_idmap
+let belongs_to (ctxt : context) (uid : Ast.Var.t) (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  Ast.IdentMap.exists (fun _ var_uid -> Ast.Var.compare uid var_uid = 0) scope.var_idmap
 
-let get_def_typ (ctxt : context) (def : Uid.ScopeDef.t) : typ =
+let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
   match def with
-  | Uid.ScopeDef.SubScopeVar (_, x)
+  | Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
      the original subscope *)
-  | Uid.ScopeDef.Var x ->
-      Uid.VarMap.find x ctxt.var_typs
+  | Ast.ScopeDef.Var x ->
+      Ast.VarMap.find x ctxt.var_typs

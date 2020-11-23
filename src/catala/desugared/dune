@@ -1,4 +1,4 @@
 (library
  (name desugared)
  (public_name catala.desugared)
- (libraries utils dcalc ocamlgraph surface))
+ (libraries utils dcalc scopelang ocamlgraph surface))

@@ -101,7 +101,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Desugared.Uid.IdentMap.find_opt name ctxt.scope_idmap with
+              match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
@@ -109,10 +109,10 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         in
         let prgm = Desugared.Desugaring.translate_program_to_scope ctxt program in
         let _scope =
-          match Desugared.Uid.ScopeMap.find_opt scope_uid prgm with
+          match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm with
           | Some scope -> scope
           | None ->
-              let scope_info = Desugared.Uid.Scope.get_info scope_uid in
+              let scope_info = Scopelang.Ast.ScopeName.get_info scope_uid in
               Errors.raise_spanned_error
                 (Printf.sprintf
                    "Scope %s does not define anything, and therefore cannot be executed"

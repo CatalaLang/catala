@@ -14,10 +14,10 @@
 
 (** Print a scope program *)
 let print_scope (scope : Ast.scope) : string =
-  let print_defs (defs : Ast.definition Uid.ScopeDefMap.t) : string =
-    defs |> Uid.ScopeDefMap.bindings
+  let print_defs (defs : Ast.definition Ast.ScopeDefMap.t) : string =
+    defs |> Ast.ScopeDefMap.bindings
     |> List.map (fun (uid, _term) ->
-           Printf.sprintf "%s:\n%s" (Uid.ScopeDef.format_t uid) (assert false))
+           Printf.sprintf "%s:\n%s" (Ast.ScopeDef.format_t uid) (assert false))
     |> String.concat ""
   in
   "___Variables Definition___\n" ^ print_defs scope.scope_defs ^ "___Subscope (Re)definition___\n"
@@ -25,8 +25,8 @@ let print_scope (scope : Ast.scope) : string =
 
 (** Print the whole program *)
 let print_program (prgm : Ast.program) : string =
-  prgm |> Uid.ScopeMap.bindings
+  prgm |> Scopelang.Ast.ScopeMap.bindings
   |> List.map (fun (uid, scope) ->
-         Printf.sprintf "Scope %s:\n%s" (Uid.Scope.format_t uid) (print_scope scope))
+         Printf.sprintf "Scope %s:\n%s" (Scopelang.Ast.ScopeName.format_t uid) (print_scope scope))
   |> String.concat "\n"
   |> Printf.sprintf "Scope program\n%s"

@@ -1,4 +1,4 @@
 (library
- (name scope)
- (public_name catala.scope)
+ (name scopelang)
+ (public_name catala.scopelang)
  (libraries utils dcalc))
