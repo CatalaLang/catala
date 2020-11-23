@@ -13,50 +13,29 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Orig = Utils.Uid
 
 module IdentMap : Map.S with type key = String.t
 
-module MarkedString : sig
-  type info = string Pos.marked
-
-  val format_info : 'a * 'b -> 'a
-end
-
-module type Id = sig
-  type t
-
-  type info
-
-  val fresh : info -> t
-
-  val get_info : t -> info
-
-  val compare : t -> t -> int
-
-  val format_t : t -> string
-
-  val hash : t -> int
-end
-
-module Scope : Id with type info = MarkedString.info
+module Scope : Orig.Id with type info = Orig.MarkedString.info
 
 module ScopeSet : Set.S with type elt = Scope.t
 
 module ScopeMap : Map.S with type key = Scope.t
 
-module Var : Id with type info = MarkedString.info
+module Var : Orig.Id with type info = Orig.MarkedString.info
 
 module VarSet : Set.S with type elt = Var.t
 
 module VarMap : Map.S with type key = Var.t
 
-module LocalVar : Id with type info = MarkedString.info
+module LocalVar : Orig.Id with type info = Orig.MarkedString.info
 
 module LocalVarSet : Set.S with type elt = LocalVar.t
 
 module LocalVarMap : Map.S with type key = LocalVar.t
 
-module SubScope : Id with type info = MarkedString.info
+module SubScope : Orig.Id with type info = Orig.MarkedString.info
 
 module SubScopeSet : Set.S with type elt = SubScope.t
 

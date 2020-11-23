@@ -12,55 +12,10 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+open Utils.Uid
 module Pos = Utils.Pos
+module Orig = Utils.Uid
 module IdentMap = Map.Make (String)
-
-module type Id = sig
-  type t
-
-  type info
-
-  val fresh : info -> t
-
-  val get_info : t -> info
-
-  val compare : t -> t -> int
-
-  val format_t : t -> string
-
-  val hash : t -> int
-end
-
-module Make (X : sig
-  type info
-
-  val format_info : info -> string
-end) : Id with type info = X.info = struct
-  type t = { id : int; info : X.info }
-
-  type info = X.info
-
-  let counter = ref 0
-
-  let fresh (info : X.info) : t =
-    incr counter;
-    { id = !counter; info }
-
-  let get_info (uid : t) : X.info = uid.info
-
-  let compare (x : t) (y : t) : int = compare x.id y.id
-
-  let format_t (x : t) : string = Printf.sprintf "%s" (X.format_info x.info)
-
-  let hash (x : t) : int = x.id
-end
-
-module MarkedString = struct
-  type info = string Pos.marked
-
-  let format_info (s, _) = s
-end
-
 module Scope = Make (MarkedString)
 module ScopeSet = Set.Make (Scope)
 module ScopeMap = Map.Make (Scope)
