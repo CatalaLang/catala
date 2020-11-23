@@ -1,6 +1,6 @@
 (library
  (public_name catala)
- (libraries catala.utils catala.surface catala.scope catala.literate
+ (libraries catala.utils catala.surface catala.desugared catala.literate
    catala.dcalc))
 
 (documentation

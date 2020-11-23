@@ -57,13 +57,13 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                 Errors.raise_multispanned_error
                   "There is a conflict between multiple rules for assigning a single value."
                   ( [
-                      ( Some "This rule is not triggered, so we consider rules of lower priority",
+                      ( Some "This rule is not triggered, so we consider rules of lower priority:",
                         Pos.get_position e );
                     ]
                   @ List.map
                       (fun sub ->
                         ( Some
-                            "This value is available because the justification of its rule is true",
+                            "This value is available because the justification of its rule is true:",
                           Pos.get_position sub ))
                       (List.filter (fun sub -> not (is_empty_error sub)) subs) ) )
         | _ ->

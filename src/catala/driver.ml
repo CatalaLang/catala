@@ -96,30 +96,30 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         close_out oc;
         0
     | Cli.Run ->
-        let ctxt = Scope.Name_resolution.form_context program in
+        let ctxt = Desugared.Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Scope.Uid.IdentMap.find_opt name ctxt.scope_idmap with
+              match Desugared.Uid.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
-        let prgm = Scope.Desugaring.translate_program_to_scope ctxt program in
+        let prgm = Desugared.Desugaring.translate_program_to_scope ctxt program in
         let _scope =
-          match Scope.Uid.ScopeMap.find_opt scope_uid prgm with
+          match Desugared.Uid.ScopeMap.find_opt scope_uid prgm with
           | Some scope -> scope
           | None ->
-              let scope_info = Scope.Uid.Scope.get_info scope_uid in
+              let scope_info = Desugared.Uid.Scope.get_info scope_uid in
               Errors.raise_spanned_error
                 (Printf.sprintf
                    "Scope %s does not define anything, and therefore cannot be executed"
                    (Utils.Pos.unmark scope_info))
                 (Utils.Pos.get_position scope_info)
         in
-        (* let exec_ctxt = Scope.Interpreter.execute_scope ctxt prgm scope in
+        (* let exec_ctxt = Desugared.Interpreter.execute_scope ctxt prgm scope in
            Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
            (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
            (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)
