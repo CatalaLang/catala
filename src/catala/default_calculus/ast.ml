@@ -34,9 +34,22 @@ type expr =
 module Var = struct
   type t = expr Pos.marked Bindlib.var
 
+  let make (s : string Pos.marked) =
+    Bindlib.new_var (fun x -> (EVar x, Pos.get_position s)) (Pos.unmark s)
+
   let compare x y = Bindlib.compare_vars x y
 end
 
 module VarMap = Map.Make (Var)
+
+let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
+
+let make_abs (x : Var.t) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t) (tau : typ)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, tau), pos)) (Bindlib.bind_var x e)
+
+let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e u
 
 type binder = (expr, expr Pos.marked) Bindlib.binder

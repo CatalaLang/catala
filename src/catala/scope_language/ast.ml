@@ -24,7 +24,9 @@ module ScopeVar = Uid.Make (Uid.MarkedString)
 module ScopeVarSet = Set.Make (ScopeVar)
 module ScopeVarMap = Map.Make (ScopeVar)
 
-type location = ScopeVar of ScopeVar.t | SubScopeVar of ScopeName.t * SubScopeName.t * ScopeVar.t
+type location =
+  | ScopeVar of ScopeVar.t Pos.marked
+  | SubScopeVar of ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
 
 type expr =
   | ELocation of location
@@ -34,7 +36,20 @@ type expr =
   | EApp of expr Pos.marked * expr Pos.marked
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
 
-type rule = Definition of location * Dcalc.Ast.typ * expr | Call of ScopeName.t * SubScopeName.t
+module Var = struct
+  type t = expr Pos.marked Bindlib.var
+
+  let make (s : string Pos.marked) =
+    Bindlib.new_var (fun x -> (EVar x, Pos.get_position s)) (Pos.unmark s)
+
+  let compare x y = Bindlib.compare_vars x y
+end
+
+module VarMap = Map.Make (Var)
+
+type rule =
+  | Definition of location * Dcalc.Ast.typ * expr Pos.marked
+  | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = { scope_decl_name : ScopeName.t; scope_decl_rules : rule list }
 
