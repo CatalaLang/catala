@@ -63,22 +63,32 @@ let rec ast_to_typ (ty : A.typ) : typ =
         ( UnionFind.make (Pos.map_under_mark ast_to_typ t1),
           UnionFind.make (Pos.map_under_mark ast_to_typ t2) )
 
-type env = { expr_vars : typ Pos.marked A.VarMap.t }
+let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
+  Pos.map_under_mark
+    (fun ty ->
+      match ty with
+      | TUnit -> A.TUnit
+      | TBool -> A.TBool
+      | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2)
+      | TAny -> A.TUnit)
+    (UnionFind.get (UnionFind.find ty))
+
+type env = typ Pos.marked A.VarMap.t
 
 let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.marked UnionFind.elem
     =
   match Pos.unmark e with
   | EVar v -> (
-      match A.VarMap.find_opt v env.expr_vars with
+      match A.VarMap.find_opt v env with
       | Some t -> UnionFind.make t
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"
             (Pos.get_position e) )
   | ELit (LTrue | LFalse) -> UnionFind.make (Pos.same_pos_as TBool e)
-  | ELit (LEmptyError | LConflictError) -> UnionFind.make (Pos.same_pos_as TAny e)
+  | ELit LEmptyError -> UnionFind.make (Pos.same_pos_as TAny e)
   | EAbs (pos_binder, binder, tau) ->
       let x, body = Bindlib.unbind binder in
-      let env = { expr_vars = A.VarMap.add x (ast_to_typ tau, pos_binder) env.expr_vars } in
+      let env = A.VarMap.add x (ast_to_typ tau, pos_binder) env in
       typecheck_expr_bottom_up env body
   | EApp (e1, e2) ->
       let t2 = typecheck_expr_bottom_up env e2 in
@@ -96,16 +106,16 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
   match Pos.unmark e with
   | EVar v -> (
-      match A.VarMap.find_opt v env.expr_vars with
+      match A.VarMap.find_opt v env with
       | Some tau' -> ignore (unify tau (UnionFind.make tau'))
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"
             (Pos.get_position e) )
   | ELit (LTrue | LFalse) -> unify tau (UnionFind.make (Pos.same_pos_as TBool e))
-  | ELit (LEmptyError | LConflictError) -> unify tau (UnionFind.make (Pos.same_pos_as TAny e))
+  | ELit LEmptyError -> unify tau (UnionFind.make (Pos.same_pos_as TAny e))
   | EAbs (pos_binder, binder, t_arg) ->
       let x, body = Bindlib.unbind binder in
-      let env = { expr_vars = A.VarMap.add x (ast_to_typ t_arg, pos_binder) env.expr_vars } in
+      let env = A.VarMap.add x (ast_to_typ t_arg, pos_binder) env in
       let t_out = typecheck_expr_bottom_up env body in
       let t_func =
         UnionFind.make
@@ -121,3 +131,10 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as TBool just));
       typecheck_expr_top_down env cons tau;
       List.iter (fun sub -> typecheck_expr_top_down env sub tau) subs
+
+let infer_type (e : A.expr Pos.marked) : A.typ Pos.marked =
+  let ty = typecheck_expr_bottom_up A.VarMap.empty e in
+  typ_to_ast ty
+
+let check_type (e : A.expr Pos.marked) (tau : A.typ Pos.marked) =
+  typecheck_expr_top_down A.VarMap.empty e (UnionFind.make (Pos.map_under_mark ast_to_typ tau))

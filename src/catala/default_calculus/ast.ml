@@ -16,17 +16,17 @@ module Pos = Utils.Pos
 
 type typ = TBool | TUnit | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LTrue | LFalse | LEmptyError | LConflictError
+type lit = LTrue | LFalse | LEmptyError
 
 type expr =
-  | EVar of expr Bindlib.var
+  | EVar of expr Pos.marked Bindlib.var
   | ELit of lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.binder * typ
+  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.binder * typ
   | EApp of expr Pos.marked * expr Pos.marked
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
 
 module Var = struct
-  type t = expr Bindlib.var
+  type t = expr Pos.marked Bindlib.var
 
   let compare x y = Bindlib.compare_vars x y
 end
