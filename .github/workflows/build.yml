@@ -63,4 +63,4 @@ jobs:
     - name: Make assets and documentation
       run: |
         eval $(opam env)
-        make all
+        make website-assets doc 
