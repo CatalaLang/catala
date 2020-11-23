@@ -12,6 +12,9 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module Cli = Utils.Cli
+module Errors = Utils.Errors
+
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
@@ -40,7 +43,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Parser_driver.parse_source_files [ source_file ] language in
+    let program = Surface.Parser_driver.parse_source_files [ source_file ] language in
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in
@@ -74,8 +77,8 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         let oc = open_out output_file in
         let weave_output =
           match backend with
-          | Cli.Latex -> Latex.ast_to_latex language
-          | Cli.Html -> Html.ast_to_html pygmentize_loc language
+          | Cli.Latex -> Literate.Latex.ast_to_latex language
+          | Cli.Html -> Literate.Html.ast_to_html pygmentize_loc language
           | _ -> assert false
         in
         Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
@@ -83,47 +86,43 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         if wrap_weaved_output then
           match backend with
           | Cli.Latex ->
-              Latex.wrap_latex program.Catala_ast.program_source_files pygmentize_loc language fmt
-                (fun fmt -> weave_output fmt program)
+              Literate.Latex.wrap_latex program.Surface.Ast.program_source_files pygmentize_loc
+                language fmt (fun fmt -> weave_output fmt program)
           | Cli.Html ->
-              Html.wrap_html program.Catala_ast.program_source_files pygmentize_loc language fmt
-                (fun fmt -> weave_output fmt program)
+              Literate.Html.wrap_html program.Surface.Ast.program_source_files pygmentize_loc
+                language fmt (fun fmt -> weave_output fmt program)
           | _ -> assert false
         else weave_output fmt program;
         close_out oc;
         0
     | Cli.Run ->
-        let ctxt = Name_resolution.form_context program in
+        let ctxt = Scope.Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Uid.IdentMap.find_opt name ctxt.scope_idmap with
+              match Scope.Uid.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
-        let prgm = Desugaring.translate_program_to_scope ctxt program in
-        let scope =
-          match Uid.ScopeMap.find_opt scope_uid prgm with
+        let prgm = Scope.Desugaring.translate_program_to_scope ctxt program in
+        let _scope =
+          match Scope.Uid.ScopeMap.find_opt scope_uid prgm with
           | Some scope -> scope
           | None ->
-              let scope_info = Uid.Scope.get_info scope_uid in
+              let scope_info = Scope.Uid.Scope.get_info scope_uid in
               Errors.raise_spanned_error
                 (Printf.sprintf
                    "Scope %s does not define anything, and therefore cannot be executed"
-                   (Pos.unmark scope_info))
-                (Pos.get_position scope_info)
+                   (Utils.Pos.unmark scope_info))
+                (Utils.Pos.get_position scope_info)
         in
-        let exec_ctxt = Scope_interpreter.execute_scope ctxt prgm scope in
-        Lambda_interpreter.ExecContext.iter
-          (fun context_key value ->
-            Cli.result_print
-              (Printf.sprintf "%s -> %s"
-                 (Lambda_interpreter.ExecContextKey.format_t context_key)
-                 (Format_lambda.print_term ((value, Pos.no_pos), TDummy))))
-          exec_ctxt;
+        (* let exec_ctxt = Scope.Interpreter.execute_scope ctxt prgm scope in
+           Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
+           (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
+           (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);

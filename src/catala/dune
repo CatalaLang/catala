@@ -1,11 +1,7 @@
-(include_subdirs unqualified)
-
 (library
  (public_name catala)
- (libraries ANSITerminal sedlex menhirLib re cmdliner dune-build-info
-   ocamlgraph bindlib unionFind)
- (preprocess
-  (pps sedlex.ppx)))
+ (libraries catala.utils catala.surface catala.scope catala.literate
+   catala.dcalc))
 
 (documentation
  (package catala))

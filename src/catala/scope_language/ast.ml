@@ -12,15 +12,16 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module Pos = Utils.Pos
+
 (* Scopes *)
 type binder = Uid.LocalVar.t
 
-type definition = Lambda_ast.term
+type definition = unit
 
-let empty_def (pos : Pos.t) (typ : Lambda_ast.typ) : definition =
-  ((EDefault Lambda_ast.empty_default_term, pos), typ)
+let empty_def (_pos : Pos.t) (_typ : Dcalc.Ast.typ) : definition = assert false
 
-type assertion = Lambda_ast.term
+type assertion = unit
 
 type variation_typ = Increasing | Decreasing
 
@@ -28,7 +29,7 @@ type reference_typ = Decree | Law
 
 type meta_assertion =
   | FixedBy of reference_typ Pos.marked
-  | VariesWith of Lambda_ast.term * variation_typ Pos.marked option
+  | VariesWith of unit * variation_typ Pos.marked option
 
 type scope = {
   scope_uid : Uid.Scope.t;

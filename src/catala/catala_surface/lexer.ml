@@ -14,6 +14,8 @@
 
 open Parser
 open Sedlexing
+module Pos = Utils.Pos
+module Errors = Utils.Errors
 module R = Re.Pcre
 
 let is_code : bool ref = ref false
@@ -384,8 +386,8 @@ let rec lex_law (lexbuf : lexbuf) : token =
       let name = get_component 1 in
       let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
       let pos = lexing_positions lexbuf in
-      if Filename.extension name = ".pdf" then LAW_INCLUDE (Catala_ast.PdfFile ((name, pos), pages))
-      else LAW_INCLUDE (Catala_ast.CatalaFile (name, pos))
+      if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
+      else LAW_INCLUDE (Ast.CatalaFile (name, pos))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in

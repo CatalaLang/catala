@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module Pos = Utils.Pos
+
 module IdentMap : Map.S with type key = String.t
 
 module MarkedString : sig

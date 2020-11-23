@@ -1,0 +1,4 @@
+(library
+ (name scope)
+ (public_name catala.scope)
+ (libraries utils dcalc ocamlgraph surface))

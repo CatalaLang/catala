@@ -2,6 +2,7 @@
 (name catala)
 (version 0.1.1)
 (generate_opam_files true)
+(formatting)
 
 (source (uri git+https://github.com/CatalaLang/catala.git))
 (homepage https://github.com/CatalaLang/catala)

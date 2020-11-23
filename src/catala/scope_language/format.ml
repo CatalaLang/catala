@@ -13,18 +13,18 @@
    the License. *)
 
 (** Print a scope program *)
-let print_scope (scope : Scope_ast.scope) : string =
-  let print_defs (defs : Scope_ast.definition Uid.ScopeDefMap.t) : string =
+let print_scope (scope : Ast.scope) : string =
+  let print_defs (defs : Ast.definition Uid.ScopeDefMap.t) : string =
     defs |> Uid.ScopeDefMap.bindings
-    |> List.map (fun (uid, term) ->
-           Printf.sprintf "%s:\n%s" (Uid.ScopeDef.format_t uid) (Format_lambda.print_term term))
+    |> List.map (fun (uid, _term) ->
+           Printf.sprintf "%s:\n%s" (Uid.ScopeDef.format_t uid) (assert false))
     |> String.concat ""
   in
   "___Variables Definition___\n" ^ print_defs scope.scope_defs ^ "___Subscope (Re)definition___\n"
   ^ "\n"
 
 (** Print the whole program *)
-let print_program (prgm : Scope_ast.program) : string =
+let print_program (prgm : Ast.program) : string =
   prgm |> Uid.ScopeMap.bindings
   |> List.map (fun (uid, scope) ->
          Printf.sprintf "Scope %s:\n%s" (Uid.Scope.format_t uid) (print_scope scope))

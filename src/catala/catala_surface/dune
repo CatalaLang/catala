@@ -1,3 +1,10 @@
+(library
+ (name surface)
+ (libraries utils menhirLib sedlex re)
+ (public_name catala.surface)
+ (preprocess
+  (pps sedlex.ppx)))
+
 (menhir
  (modules parser)
  (flags --table))

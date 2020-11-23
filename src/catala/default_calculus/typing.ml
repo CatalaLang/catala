@@ -15,7 +15,9 @@
 (** Typing for the default calculus. Because of the error terms, we perform type inference using the
     classical W algorithm with union-find unification. *)
 
-module A = Dcalculus_ast
+module Pos = Utils.Pos
+module Errors = Utils.Errors
+module A = Ast
 
 type typ =
   | TUnit

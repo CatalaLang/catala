@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module Pos = Utils.Pos
+
 type typ = TBool | TUnit | TArrow of typ Pos.marked * typ Pos.marked
 
 type lit = LTrue | LFalse | LEmptyError | LConflictError

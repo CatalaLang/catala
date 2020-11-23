@@ -15,9 +15,12 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking lexical scopes into
     account *)
 
+module Pos = Utils.Pos
+module Errors = Utils.Errors
+
 type ident = string
 
-type typ = Lambda_ast.typ
+type typ = unit
 
 type def_context = { var_idmap : Uid.LocalVar.t Uid.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
@@ -51,7 +54,7 @@ let get_var_typ (ctxt : context) (uid : Uid.Var.t) : typ = Uid.VarMap.find uid c
 
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : Uid.Scope.t) (ctxt : context)
-    (decl : Catala_ast.scope_decl_context_scope) : context =
+    (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
@@ -78,30 +81,31 @@ let process_subscope_decl (scope : Uid.Scope.t) (ctxt : context)
       in
       { ctxt with scopes = Uid.ScopeMap.add scope scope_ctxt ctxt.scopes }
 
-let process_base_typ ((typ, typ_pos) : Catala_ast.base_typ Pos.marked) : Lambda_ast.typ =
+let process_base_typ ((typ, typ_pos) : Surface.Ast.base_typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   match typ with
-  | Catala_ast.Condition -> Lambda_ast.TBool
-  | Catala_ast.Data (Catala_ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
-  | Catala_ast.Data (Catala_ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
-  | Catala_ast.Data (Catala_ast.Primitive prim) -> (
+  | Surface.Ast.Condition -> (Dcalc.Ast.TBool, typ_pos)
+  | Surface.Ast.Data (Surface.Ast.Collection _) ->
+      raise_unsupported_feature "collection type" typ_pos
+  | Surface.Ast.Data (Surface.Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
+  | Surface.Ast.Data (Surface.Ast.Primitive prim) -> (
       match prim with
-      | Catala_ast.Integer | Catala_ast.Decimal | Catala_ast.Money | Catala_ast.Date ->
-          Lambda_ast.TInt
-      | Catala_ast.Boolean -> Lambda_ast.TBool
-      | Catala_ast.Text -> raise_unsupported_feature "text type" typ_pos
-      | Catala_ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
+      | Surface.Ast.Integer | Surface.Ast.Decimal | Surface.Ast.Money | Surface.Ast.Date ->
+          assert false
+      | Surface.Ast.Boolean -> (Dcalc.Ast.TBool, typ_pos)
+      | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
+      | Surface.Ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
 
-let process_type ((typ, typ_pos) : Catala_ast.typ Pos.marked) : Lambda_ast.typ =
+let process_type ((typ, typ_pos) : Surface.Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   match typ with
-  | Catala_ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
-  | Catala_ast.Func { arg_typ; return_typ } ->
-      Lambda_ast.TArrow (process_base_typ arg_typ, process_base_typ return_typ)
+  | Surface.Ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
+  | Surface.Ast.Func { arg_typ; return_typ } ->
+      (Dcalc.Ast.TArrow (process_base_typ arg_typ, process_base_typ return_typ), typ_pos)
 
 (** Process data declaration *)
 let process_data_decl (scope : Uid.Scope.t) (ctxt : context)
-    (decl : Catala_ast.scope_decl_context_data) : context =
+    (decl : Surface.Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
-  let data_typ = process_type decl.scope_decl_context_item_typ in
+  let _data_typ = process_type decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = Uid.ScopeMap.find scope ctxt.scopes in
   match Uid.IdentMap.find_opt name scope_ctxt.var_idmap with
@@ -116,15 +120,15 @@ let process_data_decl (scope : Uid.Scope.t) (ctxt : context)
       {
         ctxt with
         scopes = Uid.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = Uid.VarMap.add uid data_typ ctxt.var_typs;
+        var_typs = assert false (* Uid.VarMap.add uid data_typ ctxt.var_typs *);
       }
 
 (** Process an item declaration *)
 let process_item_decl (scope : Uid.Scope.t) (ctxt : context)
-    (decl : Catala_ast.scope_decl_context_item) : context =
+    (decl : Surface.Ast.scope_decl_context_item) : context =
   match decl with
-  | Catala_ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
-  | Catala_ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
+  | Surface.Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
+  | Surface.Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Adds a binding to the context *)
 let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : Uid.ScopeDef.t)
@@ -141,7 +145,7 @@ let add_def_local_var (ctxt : context) (scope_uid : Uid.Scope.t) (def_uid : Uid.
   { ctxt with scopes = Uid.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
 
 (** Process a scope declaration *)
-let process_scope_decl (ctxt : context) (decl : Catala_ast.scope_decl) : context =
+let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) : context =
   let name, pos = decl.scope_decl_name in
   (* Checks if the name is already used *)
   match Uid.IdentMap.find_opt name ctxt.scope_idmap with
@@ -170,7 +174,7 @@ let process_scope_decl (ctxt : context) (decl : Catala_ast.scope_decl) : context
         ctxt decl.scope_decl_context
 
 let qident_to_scope_def (ctxt : context) (scope_uid : Uid.Scope.t)
-    (id : Catala_ast.qident Pos.marked) : Uid.ScopeDef.t =
+    (id : Surface.Ast.qident Pos.marked) : Uid.ScopeDef.t =
   let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
   match Pos.unmark id with
   | [ x ] -> (
@@ -190,7 +194,7 @@ let qident_to_scope_def (ctxt : context) (scope_uid : Uid.Scope.t)
       | Some id -> Uid.ScopeDef.SubScopeVar (sub_scope_uid, id) )
   | _ -> raise_unsupported_feature "wrong qident" (Pos.get_position id)
 
-let process_scope_use (ctxt : context) (use : Catala_ast.scope_use) : context =
+let process_scope_use (ctxt : context) (use : Surface.Ast.scope_use) : context =
   let scope_uid =
     match Uid.IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
     | None -> raise_unknown_identifier "for a scope" use.scope_use_name
@@ -199,7 +203,7 @@ let process_scope_use (ctxt : context) (use : Catala_ast.scope_use) : context =
   List.fold_left
     (fun ctxt use_item ->
       match Pos.unmark use_item with
-      | Catala_ast.Definition def ->
+      | Surface.Ast.Definition def ->
           let scope_ctxt = Uid.ScopeMap.find scope_uid ctxt.scopes in
           let def_uid = qident_to_scope_def ctxt scope_uid def.definition_name in
           let def_ctxt =
@@ -222,47 +226,47 @@ let process_scope_use (ctxt : context) (use : Catala_ast.scope_use) : context =
     ctxt use.scope_use_items
 
 (** Process a code item : for now it only handles scope decls *)
-let process_use_item (ctxt : context) (item : Catala_ast.code_item Pos.marked) : context =
+let process_use_item (ctxt : context) (item : Surface.Ast.code_item Pos.marked) : context =
   match Pos.unmark item with
   | ScopeDecl _ -> ctxt
   | ScopeUse use -> process_scope_use ctxt use
   | _ -> raise_unsupported_feature "item not supported" (Pos.get_position item)
 
 (** Process a code item : for now it only handles scope decls *)
-let process_decl_item (ctxt : context) (item : Catala_ast.code_item Pos.marked) : context =
+let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Pos.marked) : context =
   match Pos.unmark item with ScopeDecl decl -> process_scope_decl ctxt decl | _ -> ctxt
 
 (** Process a code block *)
-let process_code_block (ctxt : context) (block : Catala_ast.code_block)
-    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
+let process_code_block (ctxt : context) (block : Surface.Ast.code_block)
+    (process_item : context -> Surface.Ast.code_item Pos.marked -> context) : context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
 (** Process a program item *)
-let process_law_article_item (ctxt : context) (item : Catala_ast.law_article_item)
-    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
+let process_law_article_item (ctxt : context) (item : Surface.Ast.law_article_item)
+    (process_item : context -> Surface.Ast.code_item Pos.marked -> context) : context =
   match item with CodeBlock (block, _) -> process_code_block ctxt block process_item | _ -> ctxt
 
 (** Process a law structure *)
-let rec process_law_structure (ctxt : context) (s : Catala_ast.law_structure)
-    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
+let rec process_law_structure (ctxt : context) (s : Surface.Ast.law_structure)
+    (process_item : context -> Surface.Ast.code_item Pos.marked -> context) : context =
   match s with
-  | Catala_ast.LawHeading (_, children) ->
+  | Surface.Ast.LawHeading (_, children) ->
       List.fold_left (fun ctxt child -> process_law_structure ctxt child process_item) ctxt children
-  | Catala_ast.LawArticle (_, children) ->
+  | Surface.Ast.LawArticle (_, children) ->
       List.fold_left
         (fun ctxt child -> process_law_article_item ctxt child process_item)
         ctxt children
-  | Catala_ast.MetadataBlock (b, c) ->
-      process_law_article_item ctxt (Catala_ast.CodeBlock (b, c)) process_item
-  | Catala_ast.IntermediateText _ -> ctxt
+  | Surface.Ast.MetadataBlock (b, c) ->
+      process_law_article_item ctxt (Surface.Ast.CodeBlock (b, c)) process_item
+  | Surface.Ast.IntermediateText _ -> ctxt
 
 (** Process a program item *)
-let process_program_item (ctxt : context) (item : Catala_ast.program_item)
-    (process_item : context -> Catala_ast.code_item Pos.marked -> context) : context =
-  match item with Catala_ast.LawStructure s -> process_law_structure ctxt s process_item
+let process_program_item (ctxt : context) (item : Surface.Ast.program_item)
+    (process_item : context -> Surface.Ast.code_item Pos.marked -> context) : context =
+  match item with Surface.Ast.LawStructure s -> process_law_structure ctxt s process_item
 
 (** Derive the context from metadata, in two passes *)
-let form_context (prgm : Catala_ast.program) : context =
+let form_context (prgm : Surface.Ast.program) : context =
   let empty_ctxt =
     { scope_idmap = Uid.IdentMap.empty; scopes = Uid.ScopeMap.empty; var_typs = Uid.VarMap.empty }
   in
