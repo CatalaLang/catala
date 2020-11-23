@@ -27,7 +27,7 @@ type def_context = { var_idmap : Ast.LocalVar.t Ast.IdentMap.t }
     matching *)
 
 type scope_context = {
-  var_idmap : Ast.Var.t Ast.IdentMap.t;
+  var_idmap : Scopelang.Ast.ScopeVar.t Ast.IdentMap.t;
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Ast.IdentMap.t;
   sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   definitions : def_context Ast.ScopeDefMap.t;
@@ -38,7 +38,7 @@ type scope_context = {
 type context = {
   scope_idmap : Scopelang.Ast.ScopeName.t Ast.IdentMap.t;
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
-  var_typs : typ Ast.VarMap.t;
+  var_typs : typ Scopelang.Ast.ScopeVarMap.t;
 }
 
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
@@ -50,7 +50,8 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
     (Pos.get_position ident)
 
 (** Get the type associated to an uid *)
-let get_var_typ (ctxt : context) (uid : Ast.Var.t) : typ = Ast.VarMap.find uid ctxt.var_typs
+let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ =
+  Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs
 
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
@@ -112,16 +113,19 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
       Errors.raise_multispanned_error "var name already used"
-        [ (Some "first use", Pos.get_position (Ast.Var.get_info use)); (Some "second use", pos) ]
+        [
+          (Some "first use", Pos.get_position (Scopelang.Ast.ScopeVar.get_info use));
+          (Some "second use", pos);
+        ]
   | None ->
-      let uid = Ast.Var.fresh (name, pos) in
+      let uid = Scopelang.Ast.ScopeVar.fresh (name, pos) in
       let scope_ctxt =
         { scope_ctxt with var_idmap = Ast.IdentMap.add name uid scope_ctxt.var_idmap }
       in
       {
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = assert false (* Ast.VarMap.add uid data_typ ctxt.var_typs *);
+        var_typs = assert false (* Scopelang.Ast.ScopeVarMap.add uid data_typ ctxt.var_typs *);
       }
 
 (** Process an item declaration *)
@@ -275,7 +279,7 @@ let form_context (prgm : Surface.Ast.program) : context =
     {
       scope_idmap = Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
-      var_typs = Ast.VarMap.empty;
+      var_typs = Scopelang.Ast.ScopeVarMap.empty;
     }
   in
   let ctxt =
@@ -289,7 +293,7 @@ let form_context (prgm : Surface.Ast.program) : context =
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
-    ((x, pos) : ident Pos.marked) : Ast.Var.t =
+    ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Ast.IdentMap.find_opt x scope.var_idmap with
   | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
@@ -304,9 +308,12 @@ let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
   | Some sub_uid -> sub_uid
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
-let belongs_to (ctxt : context) (uid : Ast.Var.t) (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
+let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
+    (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  Ast.IdentMap.exists (fun _ var_uid -> Ast.Var.compare uid var_uid = 0) scope.var_idmap
+  Ast.IdentMap.exists
+    (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
+    scope.var_idmap
 
 let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
   match def with
@@ -314,4 +321,4 @@ let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
      the original subscope *)
   | Ast.ScopeDef.Var x ->
-      Ast.VarMap.find x ctxt.var_typs
+      Scopelang.Ast.ScopeVarMap.find x ctxt.var_typs

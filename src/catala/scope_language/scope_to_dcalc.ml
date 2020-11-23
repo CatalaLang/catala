@@ -14,29 +14,19 @@
 
 module Pos = Utils.Pos
 
-type typ =
-  | TBool
-  | TUnit
-  | TTuple of typ Pos.marked list
-  | TArrow of typ Pos.marked * typ Pos.marked
+type ctx = Ast.location list
 
-type lit = LTrue | LFalse | LEmptyError
+type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
 
-type expr =
-  | EVar of expr Pos.marked Bindlib.var
-  | ETuple of expr Pos.marked list
-  | ETupleAccess of expr Pos.marked * int
-  | ELit of lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.binder * typ
-  | EApp of expr Pos.marked * expr Pos.marked
-  | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
+let hole_var : Dcalc.Ast.Var.t = Bindlib.new_var (fun x -> (Dcalc.Ast.EVar x, Pos.no_pos)) "hole"
 
-module Var = struct
-  type t = expr Pos.marked Bindlib.var
+let translate_rules (_p : scope_ctx) (_ctx : ctx) (_rules : Ast.rule list) : Dcalc.Ast.expr * ctx =
+  assert false
 
-  let compare x y = Bindlib.compare_vars x y
-end
-
-module VarMap = Map.Make (Var)
-
-type binder = (expr, expr Pos.marked) Bindlib.binder
+let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.expr =
+  let ctx = [] in
+  let _defs, ctx = translate_rules p ctx sigma.scope_decl_rules in
+  let _scope_variables =
+    List.filter_map (fun l -> match l with Ast.ScopeVar v -> Some v | _ -> None) ctx
+  in
+  assert false

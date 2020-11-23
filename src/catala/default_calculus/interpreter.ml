@@ -16,58 +16,73 @@ module Pos = Utils.Pos
 module Errors = Utils.Errors
 module A = Ast
 
-let is_value (e : A.expr Pos.marked) : bool =
-  match Pos.unmark e with A.EAbs _ | ELit _ -> true | _ -> false
-
 let is_empty_error (e : A.expr Pos.marked) : bool =
   match Pos.unmark e with ELit LEmptyError -> true | _ -> false
 
 let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
-  if is_value e then e
-  else
-    match Pos.unmark e with
-    | EVar _ ->
-        Errors.raise_spanned_error
-          "Free variable found at evaluation (should not happen if term was well-typed"
-          (Pos.get_position e)
-    | EApp (e1, e2) -> (
-        let e1 = evaluate_expr e1 in
-        let e2 = evaluate_expr e2 in
-        match Pos.unmark e1 with
-        | EAbs (_, binder, _) -> evaluate_expr (Bindlib.subst binder e2)
-        | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-        | _ ->
-            Errors.raise_spanned_error
-              "Function has not been reduced to a lambda at evaluation (should not happen if the \
-               term was well-typed"
-              (Pos.get_position e) )
-    | EAbs _ | ELit _ -> assert false (* should not happen because the remaining cases are values *)
-    | EDefault (just, cons, subs) -> (
-        let just = evaluate_expr just in
-        match Pos.unmark just with
-        | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-        | ELit LTrue -> evaluate_expr cons
-        | ELit LFalse -> (
-            let subs = List.map evaluate_expr subs in
-            let empty_count = List.length (List.filter is_empty_error subs) in
-            match List.length subs - empty_count with
-            | 0 -> Pos.same_pos_as (A.ELit LEmptyError) e
-            | 1 -> List.find (fun sub -> not (is_empty_error sub)) subs
-            | _ ->
-                Errors.raise_multispanned_error
-                  "There is a conflict between multiple rules for assigning a single value."
-                  ( [
-                      ( Some "This rule is not triggered, so we consider rules of lower priority:",
-                        Pos.get_position e );
-                    ]
-                  @ List.map
-                      (fun sub ->
-                        ( Some
-                            "This value is available because the justification of its rule is true:",
-                          Pos.get_position sub ))
-                      (List.filter (fun sub -> not (is_empty_error sub)) subs) ) )
-        | _ ->
-            Errors.raise_spanned_error
-              "Default justification has not been reduced to a boolean at evaluation (should not \
-               happen if the term was well-typed"
-              (Pos.get_position e) )
+  match Pos.unmark e with
+  | EVar _ ->
+      Errors.raise_spanned_error
+        "free variable found at evaluation (should not happen if term was well-typed"
+        (Pos.get_position e)
+  | EApp (e1, e2) -> (
+      let e1 = evaluate_expr e1 in
+      let e2 = evaluate_expr e2 in
+      match Pos.unmark e1 with
+      | EAbs (_, binder, _) -> evaluate_expr (Bindlib.subst binder e2)
+      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
+      | _ ->
+          Errors.raise_spanned_error
+            "function has not been reduced to a lambda at evaluation (should not happen if the \
+             term was well-typed"
+            (Pos.get_position e) )
+  | EAbs _ | ELit _ -> e (* thse are values *)
+  | ETuple es -> Pos.same_pos_as (A.ETuple (List.map evaluate_expr es)) e
+  | ETupleAccess (e1, n) -> (
+      let e1 = evaluate_expr e1 in
+      match Pos.unmark e1 with
+      | ETuple es -> (
+          match List.nth_opt es n with
+          | Some e' -> e'
+          | None ->
+              Errors.raise_spanned_error
+                (Format.asprintf
+                   "the tuple has %d components but the %i-th element was requested (should not \
+                    happen if the term was well-type)"
+                   (List.length es) n)
+                (Pos.get_position e1) )
+      | _ ->
+          Errors.raise_spanned_error
+            (Format.asprintf
+               "the expression should be a tuple with %d components but is not (should not happen \
+                if the term was well-typed)"
+               n)
+            (Pos.get_position e1) )
+  | EDefault (just, cons, subs) -> (
+      let just = evaluate_expr just in
+      match Pos.unmark just with
+      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
+      | ELit LTrue -> evaluate_expr cons
+      | ELit LFalse -> (
+          let subs = List.map evaluate_expr subs in
+          let empty_count = List.length (List.filter is_empty_error subs) in
+          match List.length subs - empty_count with
+          | 0 -> Pos.same_pos_as (A.ELit LEmptyError) e
+          | 1 -> List.find (fun sub -> not (is_empty_error sub)) subs
+          | _ ->
+              Errors.raise_multispanned_error
+                "there is a conflict between multiple rules for assigning a single value."
+                ( [
+                    ( Some "This rule is not triggered, so we consider rules of lower priority:",
+                      Pos.get_position e );
+                  ]
+                @ List.map
+                    (fun sub ->
+                      ( Some "This value is available because the justification of its rule is true:",
+                        Pos.get_position sub ))
+                    (List.filter (fun sub -> not (is_empty_error sub)) subs) ) )
+      | _ ->
+          Errors.raise_spanned_error
+            "Default justification has not been reduced to a boolean at evaluation (should not \
+             happen if the term was well-typed"
+            (Pos.get_position e) )

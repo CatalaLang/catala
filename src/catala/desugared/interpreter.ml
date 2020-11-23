@@ -25,21 +25,25 @@ module Errors = Utils.Errors
     In the graph, x -> y if x is used in the definition of y. *)
 
 module Vertex = struct
-  type t = Var of Ast.Var.t | SubScope of Scopelang.Ast.SubScopeName.t
+  type t = Var of Scopelang.Ast.ScopeVar.t | SubScope of Scopelang.Ast.SubScopeName.t
 
   let hash x =
-    match x with Var x -> Ast.Var.hash x | SubScope x -> Scopelang.Ast.SubScopeName.hash x
+    match x with
+    | Var x -> Scopelang.Ast.ScopeVar.hash x
+    | SubScope x -> Scopelang.Ast.SubScopeName.hash x
 
   let compare = compare
 
   let equal x y =
     match (x, y) with
-    | Var x, Var y -> Ast.Var.compare x y = 0
+    | Var x, Var y -> Scopelang.Ast.ScopeVar.compare x y = 0
     | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (x : t) : string =
-    match x with Var v -> Ast.Var.format_t v | SubScope v -> Scopelang.Ast.SubScopeName.format_t v
+    match x with
+    | Var v -> Scopelang.Ast.ScopeVar.format_t v
+    | SubScope v -> Scopelang.Ast.SubScopeName.format_t v
 end
 
 (** On the edges, the label is the expression responsible for the use of the variable *)
@@ -69,7 +73,8 @@ let check_for_cycle (g : ScopeDependencies.t) : unit =
             (fun v ->
               let var_str, var_info =
                 match v with
-                | Vertex.Var v -> (Ast.Var.format_t v, Ast.Var.get_info v)
+                | Vertex.Var v ->
+                    (Scopelang.Ast.ScopeVar.format_t v, Scopelang.Ast.ScopeVar.get_info v)
                 | Vertex.SubScope v ->
                     (Scopelang.Ast.SubScopeName.format_t v, Scopelang.Ast.SubScopeName.get_info v)
               in
@@ -77,7 +82,7 @@ let check_for_cycle (g : ScopeDependencies.t) : unit =
               let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
               let succ_str =
                 match succ with
-                | Vertex.Var v -> Ast.Var.format_t v
+                | Vertex.Var v -> Scopelang.Ast.ScopeVar.format_t v
                 | Vertex.SubScope v -> Scopelang.Ast.SubScopeName.format_t v
               in
               [
@@ -95,7 +100,7 @@ let build_scope_dependencies (scope : Ast.scope) (ctxt : Name_resolution.context
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let g =
     Ast.IdentMap.fold
-      (fun _ (v : Ast.Var.t) g -> ScopeDependencies.add_vertex g (Vertex.Var v))
+      (fun _ (v : Scopelang.Ast.ScopeVar.t) g -> ScopeDependencies.add_vertex g (Vertex.Var v))
       scope_ctxt.var_idmap g
   in
   let g =
