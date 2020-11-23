@@ -101,7 +101,7 @@ let process_def (_precond : Dcalc.Ast.expr option) (scope_uid : Scopelang.Ast.Sc
       | Some def -> def
       | None ->
           let _typ = Name_resolution.get_def_typ ctxt def_key in
-          Ast.empty_def default_pos (assert false (* typ *))
+          Ast.empty_def default_pos
     in
     let x_def =
       assert false
