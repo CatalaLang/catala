@@ -73,7 +73,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                 (Ast.SubScopeMap.find (Pos.unmark s) ctx.subscope_vars)))
     | EIfThenElse (cond, et, ef) ->
         Dcalc.Ast.EIfThenElse (translate_expr ctx cond, translate_expr ctx et, translate_expr ctx ef)
-    )
+    | EOp op -> EOp op )
     e
 
 let translate_rule (_p : scope_ctx) (ctx : ctx) (rule : Ast.rule) :

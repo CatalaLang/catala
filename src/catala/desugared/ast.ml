@@ -15,9 +15,6 @@
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 module IdentMap = Map.Make (String)
-module LocalVar = Uid.Make (Uid.MarkedString)
-module LocalVarSet = Set.Make (LocalVar)
-module LocalVarMap = Map.Make (LocalVar)
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
@@ -51,7 +48,6 @@ module ScopeDefMap = Map.Make (ScopeDef)
 module ScopeDefSet = Set.Make (ScopeDef)
 
 (* Scopes *)
-type binder = LocalVar.t
 
 type definition = Scopelang.Ast.expr Pos.marked
 

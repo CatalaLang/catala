@@ -18,52 +18,134 @@ module Errors = Utils.Errors
 (** The optional argument subdef allows to choose between differents uids in case the expression is
     a redefinition of a subvariable *)
 
-(* let rec expr_to_lambda (scope : Scopelang.Ast.ScopeName.t) (def_key : Ast.ScopeDef.t option)
-   (ctxt : Name_resolution.context) ((expr, pos) : Surface.Ast.expression Pos.marked) :
-   Scopelang.Ast.expr Pos.marked = let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
-   let rec_helper = expr_to_lambda scope def_key ctxt in match expr with | IfThenElse (e_if, e_then,
-   e_else) -> (EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos) | Binop
-   (op, e1, e2) -> let op_term = Pos.same_pos_as (EOp (Binop (Pos.unmark op))) op in (EApp (op_term,
-   [ rec_helper e1; rec_helper e2 ]), pos) | Unop (op, e) -> let op_term = Pos.same_pos_as (EOp
-   (Unop (Pos.unmark op))) op in (EApp (op_term, [ rec_helper e ]), pos) | Literal l -> let
-   untyped_term = match l with | Number ((Int i, _), _) -> EInt i | Number ((Dec (i, f), _), _) ->
-   EDec (i, f) | Bool b -> EBool b | _ -> Name_resolution.raise_unsupported_feature "literal" pos in
-   (untyped_term, pos) | Ident x -> ( (* first we check whether this is a local var, then we resort
-   to scope-wide variables *) match def_key with | Some def_key -> ( let def_ctxt =
-   Ast.ScopeDefMap.find def_key scope_ctxt.definitions in match Ast.IdentMap.find_opt x
-   def_ctxt.var_idmap with | None -> ( match Ast.IdentMap.find_opt x scope_ctxt.var_idmap with |
-   Some uid -> (EVar (NoPrefix, uid), pos) | None -> Name_resolution.raise_unknown_identifier "for a
-   local or scope-wide variable" (x, pos) ) | Some uid -> (ELocalVar uid, pos) ) | None -> ( match
-   Ast.IdentMap.find_opt x scope_ctxt.var_idmap with | Some uid -> (EVar (NoPrefix, uid), pos) |
-   None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) ) ) |
-   Dotted (e, x) -> ( (* For now we only accept dotted identifiers of the type y.x where y is a
-   sub-scope *) match Pos.unmark e with | Ident y -> let subscope_uid : Scopelang.Ast.SubScopeName.t
-   = Name_resolution.get_subscope_uid scope ctxt (Pos.same_pos_as y e) in let subscope_real_uid :
-   Scopelang.Ast.ScopeName.t = Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes in
-   let subscope_var_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in (EVar
-   (SubScopePrefix subscope_uid, subscope_var_uid), pos) | _ ->
-   Name_resolution.raise_unsupported_feature "left hand side of a dotted expression should be an\n
-   identifier" pos ) | FunCall (f, arg) -> (EApp (rec_helper f, [ rec_helper arg ]), pos) | _ ->
-   Name_resolution.raise_unsupported_feature "unsupported expression" pos *)
+let translate_binop (op : Surface.Ast.binop) : Dcalc.Ast.binop =
+  match op with
+  | And -> And
+  | Or -> Or
+  | Add -> Add
+  | Sub -> Sub
+  | Mult -> Mult
+  | Div -> Div
+  | Lt -> Lt
+  | Lte -> Lte
+  | Gt -> Gt
+  | Gte -> Gte
+  | Eq -> Eq
+  | Neq -> Neq
+
+let translate_unop (op : Surface.Ast.unop) : Dcalc.Ast.unop =
+  match op with Not -> Not | Minus -> Minus
+
+let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (def_key : Ast.ScopeDef.t option)
+    (ctxt : Name_resolution.context) ((expr, pos) : Surface.Ast.expression Pos.marked) :
+    Scopelang.Ast.expr Pos.marked =
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
+  let rec_helper = translate_expr scope def_key ctxt in
+  match expr with
+  | IfThenElse (e_if, e_then, e_else) ->
+      (EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos)
+  | Binop (op, e1, e2) ->
+      let op_term =
+        Pos.same_pos_as (Scopelang.Ast.EOp (Dcalc.Ast.Binop (translate_binop (Pos.unmark op)))) op
+      in
+      (EApp (op_term, [ rec_helper e1; rec_helper e2 ]), pos)
+  | Unop (op, e) ->
+      let op_term =
+        Pos.same_pos_as (Scopelang.Ast.EOp (Dcalc.Ast.Unop (translate_unop (Pos.unmark op)))) op
+      in
+      (EApp (op_term, [ rec_helper e ]), pos)
+  | Literal l ->
+      let untyped_term =
+        match l with
+        | Number ((Int i, _), _) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
+        | Number ((Dec (_i, _f), _), _) -> Name_resolution.raise_unsupported_feature "decimal" pos
+        | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
+        | _ -> Name_resolution.raise_unsupported_feature "literal" pos
+      in
+      (untyped_term, pos)
+  | Ident x -> (
+      (* first we check whether this is a local var, then we resort to scope-wide variables *)
+      match def_key with
+      | Some def_key -> (
+          let def_ctxt = Ast.ScopeDefMap.find def_key scope_ctxt.definitions in
+          match Ast.IdentMap.find_opt x def_ctxt.var_idmap with
+          | None -> (
+              match Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
+              | Some uid -> (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
+              | None ->
+                  Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
+                    (x, pos) )
+          | Some uid -> (Scopelang.Ast.EVar uid, pos) )
+      | None -> (
+          match Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
+          | Some uid -> (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
+          | None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) )
+      )
+  | Dotted (e, x) -> (
+      (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
+      match Pos.unmark e with
+      | Ident y ->
+          let subscope_uid : Scopelang.Ast.SubScopeName.t =
+            Name_resolution.get_subscope_uid scope ctxt (Pos.same_pos_as y e)
+          in
+          let subscope_real_uid : Scopelang.Ast.ScopeName.t =
+            Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
+          in
+          let subscope_var_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in
+          ( Scopelang.Ast.ELocation
+              (SubScopeVar (assert false, (subscope_uid, pos), (subscope_var_uid, pos))),
+            pos )
+      | _ ->
+          Name_resolution.raise_unsupported_feature
+            "left hand side of a dotted expression should be an\n\n   identifier" pos )
+  | FunCall (f, arg) -> (EApp (rec_helper f, [ rec_helper arg ]), pos)
+  | _ -> Name_resolution.raise_unsupported_feature "unsupported expression" pos
 
 (* Translation from the parsed ast to the scope language *)
 
-(* let merge_conditions (precond : Dcalc.Ast.term option) (cond : Dcalc.Ast.term option)
-   (default_pos : Pos.t) : Dcalc.Ast.term = match (precond, cond) with | Some precond, Some cond ->
-   let op_term = ((EOp (Binop And), Pos.get_position (fst precond))) in ((EApp (op_term, [ precond;
-   cond ]), Pos.get_position (fst precond))) | Some cond, None | None, Some cond -> cond | None,
-   None -> ((EBool true, default_pos), TBool)
+let merge_conditions (precond : Scopelang.Ast.expr Pos.marked option)
+    (cond : Scopelang.Ast.expr Pos.marked option) (default_pos : Pos.t) :
+    Scopelang.Ast.expr Pos.marked =
+  match (precond, cond) with
+  | Some precond, Some cond ->
+      let op_term = (Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.And), Pos.get_position precond) in
+      (Scopelang.Ast.EApp (op_term, [ precond; cond ]), Pos.get_position precond)
+  | Some cond, None | None, Some cond -> cond
+  | None, None -> (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
-   let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t) (def_key
-   : Ast.ScopeDef.t) (def : Dcalc.Ast.default_term) (param_uid : Ast.LocalVar.t option) (precond :
-   Dcalc.Ast.term option) (just : Surface.Ast.expression Pos.marked option) (body :
-   Surface.Ast.expression Pos.marked) : Dcalc.Ast.default_term = let just = match just with | Some
-   cond -> Some (expr_to_lambda scope (Some def_key) ctxt cond) | None -> None in let condition =
-   merge_conditions precond just (Pos.get_position body) in let body = expr_to_lambda scope (Some
-   def_key) ctxt body in (* if there's a parameter, we have to wrap the justifiction and the body in
-   a func *) let condition, body = match param_uid with | None -> (condition, body) | Some param_uid
-   -> ( ((EFun ([ (param_uid) ], condition), Pos.get_position (fst condition))), ((EFun ([
-   (param_uid) ], body), Pos.get_position (fst body))) ) in Dcalc.Ast.add_default condition body def *)
+let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
+    (def_key : Ast.ScopeDef.t) (_ef : Scopelang.Ast.expr Pos.marked)
+    (param_uid : Scopelang.Ast.Var.t option) (precond : Scopelang.Ast.expr Pos.marked option)
+    (just : Surface.Ast.expression Pos.marked option) (body : Surface.Ast.expression Pos.marked) :
+    Scopelang.Ast.expr Pos.marked =
+  let just =
+    match just with
+    | Some cond -> Some (translate_expr scope (Some def_key) ctxt cond)
+    | None -> None
+  in
+  let condition = merge_conditions precond just (Pos.get_position body) in
+  let body = translate_expr scope (Some def_key) ctxt body in
+  (* if there's a parameter, we have to wrap the justifiction and the body in a func *)
+  let _condition, _body =
+    match param_uid with
+    | None -> (condition, body)
+    | Some param_uid ->
+        ( Bindlib.unbox
+            (Scopelang.Ast.make_abs
+               (Array.of_list [ param_uid ])
+               (Bindlib.box condition) (Pos.get_position condition)
+               [ assert false ]
+               (assert false)),
+          Bindlib.unbox
+            (Scopelang.Ast.make_abs
+               (Array.of_list [ param_uid ])
+               (Bindlib.box body) (Pos.get_position body)
+               [ assert false ]
+               (assert false)) )
+  in
+  assert false
+
+(* Dcalc.Ast.add_default condition body def *)
 
 (* Process a definition *)
 let process_def (_precond : Dcalc.Ast.expr option) (scope_uid : Scopelang.Ast.ScopeName.t)
@@ -72,7 +154,7 @@ let process_def (_precond : Dcalc.Ast.expr option) (scope_uid : Scopelang.Ast.Sc
   let scope : Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let default_pos = Pos.get_position def.definition_expr in
-  let _param_uid (def_uid : Ast.ScopeDef.t) : Ast.LocalVar.t option =
+  let _param_uid (def_uid : Ast.ScopeDef.t) : Scopelang.Ast.Var.t option =
     match def.definition_parameter with
     | None -> None
     | Some param ->

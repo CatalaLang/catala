@@ -49,9 +49,9 @@ module Var = struct
   let compare x y = Bindlib.compare_vars x y
 end
 
-type vars = expr Pos.marked Bindlib.mvar
-
 module VarMap = Map.Make (Var)
+
+type vars = expr Pos.marked Bindlib.mvar
 
 let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
 

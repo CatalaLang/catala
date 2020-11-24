@@ -282,8 +282,8 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Integer literal*)
       let units = parts 1 in
       let remove_commas = R.regexp "," in
-      let units = int_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) in
-      let cents = try int_of_string (parts 4) with Not_found -> 0 in
+      let units = Int64.of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) in
+      let cents = try Int64.of_string (parts 4) with Not_found -> Int64.zero in
       update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', '.', Star '0' .. '9' ->
@@ -291,7 +291,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
       update_acc lexbuf;
-      DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
+      DECIMAL_LITERAL (Int64.of_string (dec_parts 1), Int64.of_string (dec_parts 2))
   | "->" ->
       update_acc lexbuf;
       ARROW
@@ -357,7 +357,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | Plus '0' .. '9' ->
       (* Integer literal*)
       update_acc lexbuf;
-      INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
+      INT_LITERAL (Int64.of_string (Utf8.lexeme lexbuf))
   | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let rec lex_law (lexbuf : lexbuf) : token =

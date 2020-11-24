@@ -22,7 +22,7 @@ type ident = string
 
 type typ = Dcalc.Ast.typ
 
-type def_context = { var_idmap : Ast.LocalVar.t Ast.IdentMap.t }
+type def_context = { var_idmap : Scopelang.Ast.Var.t Ast.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
     matching *)
 
@@ -140,7 +140,7 @@ let add_def_local_var (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
     (def_uid : Ast.ScopeDef.t) (name : ident Pos.marked) : context =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let def_ctx = Ast.ScopeDefMap.find def_uid scope_ctxt.definitions in
-  let local_var_uid = Ast.LocalVar.fresh name in
+  let local_var_uid = Scopelang.Ast.Var.make name in
   let def_ctx =
     { var_idmap = Ast.IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap }
   in
@@ -219,8 +219,8 @@ let process_scope_use (ctxt : context) (use : Surface.Ast.scope_use) : context =
               var_idmap =
                 ( match def.definition_parameter with
                 | None -> Ast.IdentMap.empty
-                | Some param -> Ast.IdentMap.singleton (Pos.unmark param) (Ast.LocalVar.fresh param)
-                );
+                | Some param ->
+                    Ast.IdentMap.singleton (Pos.unmark param) (Scopelang.Ast.Var.make param) );
             }
           in
           let scope_ctxt =

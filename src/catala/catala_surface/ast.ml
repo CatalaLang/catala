@@ -69,13 +69,13 @@ type literal_date = {
   literal_date_year : int Pos.marked;
 }
 
-type literal_number = Int of int | Dec of int * int
+type literal_number = Int of Int64.t | Dec of Int64.t * Int64.t
 
 type literal_unit = Percent | Year | Month | Day
 
 type collection_op = Exists | Forall | Aggregate of aggregate_func
 
-type money_amount = { money_amount_units : int; money_amount_cents : int }
+type money_amount = { money_amount_units : Int64.t; money_amount_cents : Int64.t }
 
 type literal =
   | Number of literal_number Pos.marked * literal_unit Pos.marked option
