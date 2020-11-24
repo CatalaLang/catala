@@ -25,11 +25,19 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       Errors.raise_spanned_error
         "free variable found at evaluation (should not happen if term was well-typed"
         (Pos.get_position e)
-  | EApp (e1, e2) -> (
+  | EApp (e1, args) -> (
       let e1 = evaluate_expr e1 in
-      let e2 = evaluate_expr e2 in
+      let args = List.map evaluate_expr args in
+
       match Pos.unmark e1 with
-      | EAbs (_, binder, _) -> evaluate_expr (Bindlib.subst binder e2)
+      | EAbs (_, binder, _) ->
+          if Bindlib.mbinder_arity binder = List.length args then
+            evaluate_expr (Bindlib.msubst binder (Array.of_list args))
+          else
+            Errors.raise_spanned_error
+              (Format.asprintf "wrong function call, expected %d arguments, got %d"
+                 (Bindlib.mbinder_arity binder) (List.length args))
+              (Pos.get_position e)
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error

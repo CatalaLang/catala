@@ -27,8 +27,8 @@ type expr =
   | ETuple of expr Pos.marked list
   | ETupleAccess of expr Pos.marked * int
   | ELit of lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.binder * typ
-  | EApp of expr Pos.marked * expr Pos.marked
+  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * typ list
+  | EApp of expr Pos.marked * expr Pos.marked list
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
@@ -41,16 +41,18 @@ module Var = struct
   let compare x y = Bindlib.compare_vars x y
 end
 
+type vars = expr Pos.marked Bindlib.mvar
+
 module VarMap = Map.Make (Var)
 
 let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
 
-let make_abs (x : Var.t) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t) (tau : typ)
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t) (taus : typ list)
     (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, tau), pos)) (Bindlib.bind_var x e)
+  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
 
-let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e u
+let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
+    : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder

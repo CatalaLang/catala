@@ -32,8 +32,8 @@ type expr =
   | ELocation of location
   | EVar of expr Pos.marked Bindlib.var
   | ELit of Dcalc.Ast.lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.binder * Dcalc.Ast.typ
-  | EApp of expr Pos.marked * expr Pos.marked
+  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ list
+  | EApp of expr Pos.marked * expr Pos.marked list
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 

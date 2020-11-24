@@ -113,14 +113,29 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
           Errors.raise_spanned_error
             (Format.asprintf "exprected a tuple, got a %a" format_typ t1)
             (Pos.get_position e1) )
-  | EAbs (pos_binder, binder, tau) ->
-      let x, body = Bindlib.unbind binder in
-      let env = A.VarMap.add x (ast_to_typ tau, pos_binder) env in
-      typecheck_expr_bottom_up env body
-  | EApp (e1, e2) ->
-      let t2 = typecheck_expr_bottom_up env e2 in
-      let t_arg = UnionFind.make (Pos.same_pos_as TAny e) in
-      let t_app = UnionFind.make (Pos.same_pos_as (TArrow (t_arg, t2)) e) in
+  | EAbs (pos_binder, binder, taus) ->
+      let xs, body = Bindlib.unmbind binder in
+      if Array.length xs = List.length taus then
+        let xstaus = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
+        let env =
+          List.fold_left
+            (fun env (x, tau) -> A.VarMap.add x (ast_to_typ tau, pos_binder) env)
+            env xstaus
+        in
+        typecheck_expr_bottom_up env body
+      else
+        Errors.raise_spanned_error
+          (Format.asprintf "function has %d variables but was supplied %d types" (Array.length xs)
+             (List.length taus))
+          pos_binder
+  | EApp (e1, args) ->
+      let t_args = List.map (typecheck_expr_bottom_up env) args in
+      let t_ret = UnionFind.make (Pos.same_pos_as TAny e) in
+      let t_app =
+        List.fold_right
+          (fun t_arg acc -> UnionFind.make (Pos.same_pos_as (TArrow (t_arg, acc)) e))
+          t_args t_ret
+      in
       typecheck_expr_top_down env e1 t_app;
       t_app
   | EDefault (just, cons, subs) ->
@@ -169,19 +184,37 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
           Errors.raise_spanned_error
             (Format.asprintf "exprected a tuple , got %a" format_typ tau)
             (Pos.get_position e) )
-  | EAbs (pos_binder, binder, t_arg) ->
-      let x, body = Bindlib.unbind binder in
-      let env = A.VarMap.add x (ast_to_typ t_arg, pos_binder) env in
-      let t_out = typecheck_expr_bottom_up env body in
-      let t_func =
-        UnionFind.make
-          (Pos.same_pos_as (TArrow (UnionFind.make (ast_to_typ t_arg, pos_binder), t_out)) e)
-      in
-      unify t_func tau
-  | EApp (e1, e2) ->
-      let te2 = typecheck_expr_bottom_up env e2 in
+  | EAbs (pos_binder, binder, t_args) ->
+      let xs, body = Bindlib.unmbind binder in
+      if Array.length xs = List.length t_args then
+        let xstaus = List.map2 (fun x t_arg -> (x, t_arg)) (Array.to_list xs) t_args in
+        let env =
+          List.fold_left
+            (fun env (x, t_arg) -> A.VarMap.add x (ast_to_typ t_arg, pos_binder) env)
+            env xstaus
+        in
+        let t_out = typecheck_expr_bottom_up env body in
+        let t_func =
+          List.fold_right
+            (fun t_arg acc ->
+              UnionFind.make
+                (Pos.same_pos_as (TArrow (UnionFind.make (ast_to_typ t_arg, pos_binder), acc)) e))
+            t_args t_out
+        in
+        unify t_func tau
+      else
+        Errors.raise_spanned_error
+          (Format.asprintf "function has %d variables but was supplied %d types" (Array.length xs)
+             (List.length t_args))
+          pos_binder
+  | EApp (e1, args) ->
+      let t_args = List.map (typecheck_expr_bottom_up env) args in
       let te1 = typecheck_expr_bottom_up env e1 in
-      let t_func = UnionFind.make (Pos.same_pos_as (TArrow (te2, tau)) e) in
+      let t_func =
+        List.fold_right
+          (fun t_arg acc -> UnionFind.make (Pos.same_pos_as (TArrow (t_arg, acc)) e))
+          t_args tau
+      in
       unify te1 t_func
   | EDefault (just, cons, subs) ->
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as TBool just));
