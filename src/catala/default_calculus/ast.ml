@@ -17,10 +17,17 @@ module Pos = Utils.Pos
 type typ =
   | TBool
   | TUnit
+  | TInt
   | TTuple of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LTrue | LFalse | LEmptyError
+type lit = LBool of bool | LEmptyError | LInt of Int64.t
+
+type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+
+type unop = Not | Minus
+
+type operator = Binop of binop | Unop of unop
 
 type expr =
   | EVar of expr Pos.marked Bindlib.var
@@ -29,6 +36,7 @@ type expr =
   | ELit of lit
   | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * typ list
   | EApp of expr Pos.marked * expr Pos.marked list
+  | EOp of operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 

@@ -19,6 +19,42 @@ module A = Ast
 let is_empty_error (e : A.expr Pos.marked) : bool =
   match Pos.unmark e with ELit LEmptyError -> true | _ -> false
 
+let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
+    A.expr Pos.marked =
+  Pos.same_pos_as
+    ( match (Pos.unmark op, List.map Pos.unmark args) with
+    | A.Binop A.And, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 && b2))
+    | A.Binop A.Or, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 || b2))
+    | A.Binop A.Add, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.add i1 i2))
+    | A.Binop A.Sub, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.sub i1 i2))
+    | A.Binop A.Mult, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.mul i1 i2))
+    | A.Binop A.Div, [ ELit (LInt i1); ELit (LInt i2) ] ->
+        if i2 <> Int64.zero then A.ELit (LInt (Int64.div i1 i2))
+        else
+          Errors.raise_multispanned_error "division by zero at runtime"
+            [
+              (Some "The division operator:", Pos.get_position op);
+              (Some "The null denominator:", Pos.get_position (List.nth args 2));
+            ]
+    | A.Binop A.Lt, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
+    | A.Binop A.Lte, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
+    | A.Binop A.Gt, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
+    | A.Binop A.Gte, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 >= i2))
+    | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
+    | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))
+    | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing functions return false *)
+    | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))
+    | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
+    | A.Binop A.Neq, [ _; _ ] -> A.ELit (LBool true)
+    | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
+    | A.Unop A.Minus, [ ELit (LInt i) ] -> A.ELit (LInt (Int64.sub Int64.zero i))
+    | _ ->
+        Errors.raise_multispanned_error
+          "operator applied to the wrong arguments (should not happen if the term was well-typed)"
+          [ (Some "Operator:", Pos.get_position op) ]
+        @@ List.mapi (fun i arg -> Some ("Argument n°" ^ string_of_int i, Pos.get_position arg)) )
+    op
+
 let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
   match Pos.unmark e with
   | EVar _ ->
@@ -38,13 +74,14 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
               (Format.asprintf "wrong function call, expected %d arguments, got %d"
                  (Bindlib.mbinder_arity binder) (List.length args))
               (Pos.get_position e)
+      | EOp op -> evaluate_operator (Pos.same_pos_as op e1) args
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
             "function has not been reduced to a lambda at evaluation (should not happen if the \
              term was well-typed"
             (Pos.get_position e) )
-  | EAbs _ | ELit _ -> e (* thse are values *)
+  | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
   | ETuple es -> Pos.same_pos_as (A.ETuple (List.map evaluate_expr es)) e
   | ETupleAccess (e1, n) -> (
       let e1 = evaluate_expr e1 in
@@ -70,8 +107,8 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       let just = evaluate_expr just in
       match Pos.unmark just with
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-      | ELit LTrue -> evaluate_expr cons
-      | ELit LFalse -> (
+      | ELit (LBool true) -> evaluate_expr cons
+      | ELit (LBool false) -> (
           let subs = List.map evaluate_expr subs in
           let empty_count = List.length (List.filter is_empty_error subs) in
           match List.length subs - empty_count with
@@ -96,8 +133,8 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             (Pos.get_position e) )
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr cond) with
-      | ELit LTrue -> evaluate_expr et
-      | ELit LFalse -> evaluate_expr ef
+      | ELit (LBool true) -> evaluate_expr et
+      | ELit (LBool false) -> evaluate_expr ef
       | _ ->
           Errors.raise_spanned_error
             "expected a boolean literal for the result of this condition (should not happen if the \

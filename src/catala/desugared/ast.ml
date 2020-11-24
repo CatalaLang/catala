@@ -57,7 +57,7 @@ type definition = Scopelang.Ast.expr Pos.marked
 
 let empty_def (pos : Pos.t) : definition =
   ( Scopelang.Ast.EDefault
-      ( (Scopelang.Ast.ELit Dcalc.Ast.LFalse, pos),
+      ( (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos),
         (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos),
         [] ),
     pos )

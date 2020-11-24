@@ -21,6 +21,7 @@ module A = Ast
 
 type typ =
   | TUnit
+  | TInt
   | TBool
   | TArrow of typ Pos.marked UnionFind.elem * typ Pos.marked UnionFind.elem
   | TTuple of typ Pos.marked UnionFind.elem list
@@ -31,6 +32,7 @@ let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem)
   match Pos.unmark ty_repr with
   | TUnit -> Format.fprintf fmt "unit"
   | TBool -> Format.fprintf fmt "bool"
+  | TInt -> Format.fprintf fmt "int"
   | TAny -> Format.fprintf fmt "any"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
@@ -42,7 +44,7 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   match (t1_repr, t2_repr) with
-  | (TUnit, _), (TUnit, _) | (TBool, _), (TBool, _) -> ()
+  | (TUnit, _), (TUnit, _) | (TBool, _), (TBool, _) | (TInt, _), (TInt, _) -> ()
   | (TArrow (t11, t12), _), (TArrow (t21, t22), _) ->
       unify t11 t21;
       unify t12 t22
@@ -60,10 +62,25 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
           (Some (Format.asprintf "Type %a coming from expression:" format_typ t2), t2_pos);
         ]
 
+let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
+  let pos = Pos.get_position op in
+  let bt = UnionFind.make (TBool, pos) in
+  let it = UnionFind.make (TInt, pos) in
+  let any = UnionFind.make (TAny, pos) in
+  let arr x y = UnionFind.make (TArrow (x, y), pos) in
+  match Pos.unmark op with
+  | A.Binop (A.And | A.Or) -> arr bt (arr bt bt)
+  | A.Binop (A.Add | A.Sub | A.Mult | A.Div) -> arr it (arr it it)
+  | A.Binop (A.Lt | A.Lte | A.Gt | A.Gte) -> arr it (arr it bt)
+  | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
+  | A.Unop A.Minus -> arr it it
+  | A.Unop A.Not -> arr bt bt
+
 let rec ast_to_typ (ty : A.typ) : typ =
   match ty with
   | A.TUnit -> TUnit
   | A.TBool -> TBool
+  | A.TInt -> TInt
   | A.TArrow (t1, t2) ->
       TArrow
         ( UnionFind.make (Pos.map_under_mark ast_to_typ t1),
@@ -76,6 +93,7 @@ let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
       match ty with
       | TUnit -> A.TUnit
       | TBool -> A.TBool
+      | TInt -> A.TInt
       | TTuple ts -> A.TTuple (List.map typ_to_ast ts)
       | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2)
       | TAny -> A.TUnit)
@@ -92,7 +110,8 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"
             (Pos.get_position e) )
-  | ELit (LTrue | LFalse) -> UnionFind.make (Pos.same_pos_as TBool e)
+  | ELit (LBool _) -> UnionFind.make (Pos.same_pos_as TBool e)
+  | ELit (LInt _) -> UnionFind.make (Pos.same_pos_as TInt e)
   | ELit LEmptyError -> UnionFind.make (Pos.same_pos_as TAny e)
   | ETuple es ->
       let ts = List.map (typecheck_expr_bottom_up env) es in
@@ -138,6 +157,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       in
       typecheck_expr_top_down env e1 t_app;
       t_app
+  | EOp op -> op_type (Pos.same_pos_as op e)
   | EDefault (just, cons, subs) ->
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as TBool just));
       let tcons = typecheck_expr_bottom_up env cons in
@@ -158,7 +178,8 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"
             (Pos.get_position e) )
-  | ELit (LTrue | LFalse) -> unify tau (UnionFind.make (Pos.same_pos_as TBool e))
+  | ELit (LBool _) -> unify tau (UnionFind.make (Pos.same_pos_as TBool e))
+  | ELit (LInt _) -> unify tau (UnionFind.make (Pos.same_pos_as TInt e))
   | ELit LEmptyError -> unify tau (UnionFind.make (Pos.same_pos_as TAny e))
   | ETuple es -> (
       let tau' = UnionFind.get (UnionFind.find tau) in
@@ -216,6 +237,9 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
           t_args tau
       in
       unify te1 t_func
+  | EOp op ->
+      let op_typ = op_type (Pos.same_pos_as op e) in
+      unify op_typ tau
   | EDefault (just, cons, subs) ->
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as TBool just));
       typecheck_expr_top_down env cons tau;
