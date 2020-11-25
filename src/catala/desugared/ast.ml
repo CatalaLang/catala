@@ -55,16 +55,19 @@ module ScopeDefSet = Set.Make (ScopeDef)
 type rule = {
   just : Scopelang.Ast.expr Pos.marked;
   cons : Scopelang.Ast.expr Pos.marked;
-  parameter : Scopelang.Ast.Var.t option;
+  parameter : (Scopelang.Ast.Var.t * Dcalc.Ast.typ) option;
   parent_rule : RuleName.t option;
 }
 
-let empty_rule (pos : Pos.t) (have_parameter : bool) (parent_rule : RuleName.t option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ option) : rule =
   {
     just = (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
     cons = (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
-    parameter = (if have_parameter then Some (Scopelang.Ast.Var.make ("dummy", pos)) else None);
-    parent_rule;
+    parameter =
+      ( match have_parameter with
+      | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
+      | None -> None );
+    parent_rule = None;
   }
 
 type assertion = Scopelang.Ast.expr Pos.marked
@@ -106,7 +109,8 @@ let free_variables (def : rule RuleMap.t) : ScopeDefSet.t =
         ScopeDefSet.add
           ( match loc with
           | Scopelang.Ast.ScopeVar v -> ScopeDef.Var (Pos.unmark v)
-          | _ -> assert false (*TODO *) )
+          | Scopelang.Ast.SubScopeVar (_, sub_index, sub_var) ->
+              ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var) )
           acc)
       acc locs
   in

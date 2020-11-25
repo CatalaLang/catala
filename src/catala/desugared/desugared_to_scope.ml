@@ -13,11 +13,119 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Errors = Utils.Errors
 
-let translate_def (_def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked =
+type rule_tree = Leaf of Ast.rule | Node of Ast.rule * rule_tree list
+
+(* invariant: one rule in def does not have any parent rule *)
+(* invariant: there are no dandling pointer parents in the rules *)
+let rec def_map_to_tree (def : Ast.rule Ast.RuleMap.t) : rule_tree =
+  (* first we look to the only rule that does not have any parent *)
+  let has_no_parent _ (r : Ast.rule) = Option.is_none r.Ast.parent_rule in
+  let no_parent = Ast.RuleMap.filter has_no_parent def in
+  let no_parent_name, no_parent =
+    if Ast.RuleMap.cardinal no_parent = 1 then Ast.RuleMap.choose no_parent else assert false
+  in
+  let def = Ast.RuleMap.remove no_parent_name def in
+  (* we look for all the direct children of no_parent *)
+  let children, rest =
+    Ast.RuleMap.partition (fun _ r -> r.Ast.parent_rule = Some no_parent_name) def
+  in
+  if Ast.RuleMap.cardinal children = 0 then Leaf no_parent
+    (* it doesn't matter that [rest] contains more rules since each rule in [rest] is supposed to
+       have a parent rule containted in the original tree, so it will get treated at some point *)
+  else
+    let children_no_parent =
+      Ast.RuleMap.map (fun r -> { r with Ast.parent_rule = None }) children
+    in
+    let tree_children =
+      List.map
+        (fun (child_no_parent_name, child_no_parent) ->
+          def_map_to_tree (Ast.RuleMap.add child_no_parent_name child_no_parent rest))
+        (Ast.RuleMap.bindings children_no_parent)
+    in
+    Node (no_parent, tree_children)
+
+let rec rule_tree_to_expr (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
+    Scopelang.Ast.expr Pos.marked =
+  let rule, children = match tree with Leaf r -> (r, []) | Node (r, child) -> (r, child) in
+  (* because each rule has its own variable parameter and we want to convert the whole rule tree
+     into a function, we need to perform some alpha-renaming of all the expressions *)
+  let substitute_parameter (e : Scopelang.Ast.expr Pos.marked) : Scopelang.Ast.expr Pos.marked =
+    match (is_func, rule.parameter) with
+    | Some new_param, Some (old_param, _) ->
+        let binder = Bindlib.bind_var old_param (Bindlib.box e) in
+        Bindlib.subst (Bindlib.unbox binder) (Scopelang.Ast.EVar new_param, Pos.no_pos)
+    | None, None -> e
+    | _ -> assert false
+    (* should not happen *)
+  in
+  let just = substitute_parameter rule.Ast.just in
+  let cons = substitute_parameter rule.Ast.cons in
+  let children = List.map (rule_tree_to_expr is_func) children in
+  let default = (Scopelang.Ast.EDefault (just, cons, children), Pos.no_pos) in
+  match (is_func, rule.parameter) with
+  | None, None -> default
+  | Some new_param, Some (_, typ) ->
+      Bindlib.unbox
+        (Scopelang.Ast.make_abs
+           (Array.of_list [ new_param ])
+           (Bindlib.box default) Pos.no_pos [ typ ] Pos.no_pos)
+  | _ -> assert false
+
+(* should not happen *)
+
+let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
-  (* TODO *)
-  assert false
+  (* Because we can have multiple rules at the top-level and our syntax does not allow that, we
+     insert a dummy rule at the top *)
+  let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.parameter in
+  let all_rules_func = Ast.RuleMap.for_all is_func def in
+  let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
+  let is_def_func : Dcalc.Ast.typ option =
+    if all_rules_func then
+      let typ = (snd (Ast.RuleMap.choose def)).Ast.parameter in
+      match typ with
+      | Some (_, typ) ->
+          let is_typ _ r = snd (Option.get r.Ast.parameter) = typ in
+          if Ast.RuleMap.for_all is_typ def then Some typ
+          else
+            Errors.raise_multispanned_error
+              "the type of these parameters should be the same, but they \n           are different"
+              (List.map
+                 (fun (_, r) ->
+                   ( Some
+                       (Format.asprintf "The type of the parameter of this expression is %a"
+                          Dcalc.Print.format_typ (typ, Pos.no_pos)),
+                     Pos.get_position r.Ast.cons ))
+                 (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_typ n r)) def)))
+      | None -> assert false (* should not happen *)
+    else if all_rules_not_func then None
+    else
+      Errors.raise_multispanned_error
+        "some definitions of the same variable are functions while others aren't"
+        ( List.map
+            (fun (_, r) -> (Some "This definition is a function:", Pos.get_position r.Ast.cons))
+            (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
+        @ List.map
+            (fun (_, r) -> (Some "This definition is not a function:", Pos.get_position r.Ast.cons))
+            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)) )
+  in
+  let dummy_rule = Ast.empty_rule Pos.no_pos is_def_func in
+  let dummy_rule_name = Ast.RuleName.fresh ("dummy", Pos.no_pos) in
+  let def =
+    Ast.RuleMap.add dummy_rule_name dummy_rule
+      (Ast.RuleMap.map
+         (fun r ->
+           match r.Ast.parent_rule with
+           | Some _ -> r
+           | None -> { r with parent_rule = Some dummy_rule_name })
+         def)
+  in
+  let def_tree = def_map_to_tree def in
+  rule_tree_to_expr
+    (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func)
+    def_tree
 
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in

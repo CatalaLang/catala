@@ -126,7 +126,19 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
   {
     just;
     cons;
-    parameter = param_uid;
+    parameter =
+      (let def_key_typ = Name_resolution.get_def_typ ctxt def_key in
+       match (Pos.unmark def_key_typ, param_uid) with
+       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (param_uid, Pos.unmark t_in)
+       | Dcalc.Ast.TArrow _, None ->
+           Errors.raise_spanned_error
+             "this definition has a function type but the parameter is missing"
+             (Pos.get_position cons)
+       | _, Some _ ->
+           Errors.raise_spanned_error
+             "this definition has a parameter but its type is not a function"
+             (Pos.get_position cons)
+       | _ -> None);
     parent_rule =
       None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
   }
