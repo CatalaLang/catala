@@ -114,47 +114,28 @@ let merge_conditions (precond : Scopelang.Ast.expr Pos.marked option)
   | None, None -> (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Ast.ScopeDef.t) (_ef : Scopelang.Ast.expr Pos.marked)
-    (param_uid : Scopelang.Ast.Var.t option) (precond : Scopelang.Ast.expr Pos.marked option)
-    (just : Surface.Ast.expression Pos.marked option) (body : Surface.Ast.expression Pos.marked) :
-    Scopelang.Ast.expr Pos.marked =
+    (def_key : Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t option)
+    (precond : Scopelang.Ast.expr Pos.marked option)
+    (just : Surface.Ast.expression Pos.marked option) (cons : Surface.Ast.expression Pos.marked) :
+    Ast.rule =
   let just =
     match just with
-    | Some cond -> Some (translate_expr scope (Some def_key) ctxt cond)
+    | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
     | None -> None
   in
-  let condition = merge_conditions precond just (Pos.get_position body) in
-  let body = translate_expr scope (Some def_key) ctxt body in
+  let just = merge_conditions precond just (Pos.get_position cons) in
+  let cons = translate_expr scope (Some def_key) ctxt cons in
   (* if there's a parameter, we have to wrap the justifiction and the body in a func *)
-  let _condition, _body =
-    match param_uid with
-    | None -> (condition, body)
-    | Some param_uid ->
-        ( Bindlib.unbox
-            (Scopelang.Ast.make_abs
-               (Array.of_list [ param_uid ])
-               (Bindlib.box condition) (Pos.get_position condition)
-               [ assert false ]
-               (assert false)),
-          Bindlib.unbox
-            (Scopelang.Ast.make_abs
-               (Array.of_list [ param_uid ])
-               (Bindlib.box body) (Pos.get_position body)
-               [ assert false ]
-               (assert false)) )
-  in
-  assert false
-
-(* Dcalc.Ast.add_default condition body def *)
+  { just; cons; parameter = param_uid; priority = 0 }
 
 (* Process a definition *)
-let process_def (_precond : Dcalc.Ast.expr option) (scope_uid : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context) (prgm : Ast.program) (def : Surface.Ast.definition) :
-    Ast.program =
+let process_def (precond : Scopelang.Ast.expr Pos.marked option)
+    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context) (prgm : Ast.program)
+    (def : Surface.Ast.definition) : Ast.program =
   let scope : Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let default_pos = Pos.get_position def.definition_expr in
-  let _param_uid (def_uid : Ast.ScopeDef.t) : Scopelang.Ast.Var.t option =
+  let param_uid (def_uid : Ast.ScopeDef.t) : Scopelang.Ast.Var.t option =
     match def.definition_parameter with
     | None -> None
     | Some param ->
@@ -178,26 +159,24 @@ let process_def (_precond : Dcalc.Ast.expr option) (scope_uid : Scopelang.Ast.Sc
     | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
   in
   let scope_updated =
-    let _x_def =
+    let x_def =
       match Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
-      | None ->
-          let _typ = Name_resolution.get_def_typ ctxt def_key in
-          Ast.empty_def default_pos
+      | None -> [ Ast.empty_def default_pos (Option.is_some (param_uid def_key)) ]
     in
     let x_def =
-      assert false
-      (* Dcalc.Ast.map_untype (fun t -> match t with | EDefault default -> EDefault (process_default
-         ctxt scope_uid def_key default (param_uid def_key) precond def.definition_condition
-         def.definition_expr) | _ -> assert false (* should not happen *)) x_def *)
+      process_default ctxt scope_uid def_key (param_uid def_key) precond def.definition_condition
+        def.definition_expr
+      :: x_def
     in
     { scope with scope_defs = Ast.ScopeDefMap.add def_key x_def scope.scope_defs }
   in
   Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm
 
 (** Process a rule from the surface language *)
-let process_rule (precond : Dcalc.Ast.expr option) (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context) (prgm : Ast.program) (rule : Surface.Ast.rule) : Ast.program =
+let process_rule (precond : Scopelang.Ast.expr Pos.marked option)
+    (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context) (prgm : Ast.program)
+    (rule : Surface.Ast.rule) : Ast.program =
   let _consequence_expr =
     Surface.Ast.Literal (Surface.Ast.Bool (Pos.unmark rule.rule_consequence))
   in
@@ -206,12 +185,13 @@ let process_rule (precond : Dcalc.Ast.expr option) (scope : Scopelang.Ast.ScopeN
      Pos.get_position rule.rule_consequence); } in *)
   process_def precond scope ctxt prgm (assert false (* def *))
 
-let process_scope_use_item (cond : Dcalc.Ast.expr option) (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context) (prgm : Ast.program)
+let process_scope_use_item (precond : Surface.Ast.expression Pos.marked option)
+    (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context) (prgm : Ast.program)
     (item : Surface.Ast.scope_use_item Pos.marked) : Ast.program =
+  let precond = Option.map (translate_expr scope None ctxt) precond in
   match Pos.unmark item with
-  | Surface.Ast.Rule rule -> process_rule cond scope ctxt prgm rule
-  | Surface.Ast.Definition def -> process_def cond scope ctxt prgm def
+  | Surface.Ast.Rule rule -> process_rule precond scope ctxt prgm rule
+  | Surface.Ast.Definition def -> process_def precond scope ctxt prgm def
   | _ -> prgm
 
 let process_scope_use (ctxt : Name_resolution.context) (prgm : Ast.program)
@@ -234,16 +214,19 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Ast.program)
   List.fold_left (process_scope_use_item cond scope_uid ctxt) prgm use.scope_use_items
 
 (** Scopes processing *)
-let translate_program_to_scope (_ctxt : Name_resolution.context) (prgm : Surface.Ast.program) :
+let translate_program_to_scope (ctxt : Name_resolution.context) (prgm : Surface.Ast.program) :
     Ast.program =
   let empty_prgm = Scopelang.Ast.ScopeMap.empty in
   let processer_article_item (prgm : Ast.program) (item : Surface.Ast.law_article_item) :
       Ast.program =
     match item with
-    | CodeBlock (_block, _) ->
-        assert false
-        (* List.fold_left (fun prgm item -> match Pos.unmark item with ScopeUse use ->
-           process_scope_use ctxt prgm use | _ -> prgm) prgm block *)
+    | CodeBlock (block, _) ->
+        List.fold_left
+          (fun prgm item ->
+            match Pos.unmark item with
+            | Surface.Ast.ScopeUse use -> process_scope_use ctxt prgm use
+            | _ -> prgm)
+          prgm block
     | _ -> prgm
   in
   let rec processer_structure (prgm : Ast.program) (item : Surface.Ast.law_structure) : Ast.program

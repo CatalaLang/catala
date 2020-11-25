@@ -49,14 +49,20 @@ module ScopeDefSet = Set.Make (ScopeDef)
 
 (* Scopes *)
 
-type definition = Scopelang.Ast.expr Pos.marked
+type rule = {
+  just : Scopelang.Ast.expr Pos.marked;
+  cons : Scopelang.Ast.expr Pos.marked;
+  parameter : Scopelang.Ast.Var.t option;
+  priority : int;
+}
 
-let empty_def (pos : Pos.t) : definition =
-  ( Scopelang.Ast.EDefault
-      ( (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos),
-        (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos),
-        [] ),
-    pos )
+let empty_def (pos : Pos.t) (have_parameter : bool) : rule =
+  {
+    just = (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
+    cons = (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
+    parameter = (if have_parameter then Some (Scopelang.Ast.Var.make ("dummy", pos)) else None);
+    priority = 0;
+  }
 
 type assertion = Scopelang.Ast.expr Pos.marked
 
@@ -70,7 +76,7 @@ type meta_assertion =
 
 type scope = {
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs : definition ScopeDefMap.t;
+  scope_defs : rule list ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }

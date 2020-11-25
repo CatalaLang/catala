@@ -14,7 +14,7 @@
 
 (** Print a scope program *)
 let print_scope (scope : Ast.scope) : string =
-  let print_defs (defs : Ast.definition Ast.ScopeDefMap.t) : string =
+  let print_defs (defs : Ast.rule list Ast.ScopeDefMap.t) : string =
     defs |> Ast.ScopeDefMap.bindings
     |> List.map (fun (uid, _term) ->
            Printf.sprintf "%s:\n%s" (Ast.ScopeDef.format_t uid) (assert false))
