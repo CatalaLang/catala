@@ -63,4 +63,11 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
+let make_let_in (x : Var.t Pos.marked) (tau : typ) (e1 : expr Pos.marked)
+    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked =
+  ( EApp
+      ( Bindlib.unbox (make_abs (Array.of_list [ Pos.unmark x ]) e2 (Pos.get_position x) [ tau ] pos),
+        [ e1 ] ),
+    pos )
+
 type binder = (expr, expr Pos.marked) Bindlib.binder

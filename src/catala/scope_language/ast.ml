@@ -63,7 +63,7 @@ let rec locations_used (e : expr Pos.marked) : location list =
 module Var = struct
   type t = expr Pos.marked Bindlib.var
 
-  let make (s : string Pos.marked) =
+  let make (s : string Pos.marked) : t =
     Bindlib.new_var (fun x -> (EVar x, Pos.get_position s)) (Pos.unmark s)
 
   let compare x y = Bindlib.compare_vars x y

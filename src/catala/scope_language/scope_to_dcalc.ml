@@ -145,12 +145,30 @@ let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.ex
   let func_acc = Bindlib.unbox (Bindlib.bind_var hole_var func_acc) in
   Bindlib.subst func_acc (return_exp, pos_sigma)
 
-let translate_program (prgm : Ast.program) (_top_level_scope : Ast.ScopeName.t) :
+let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
     Dcalc.Ast.expr Pos.marked =
-  let _scope_ctx =
+  let scope_ctx =
     Ast.ScopeMap.map
-      (fun scope -> Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+      (fun scope -> Dcalc.Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
       prgm
   in
-  (* TODO: compute dependency order! *)
-  assert false
+  let scope_dependencies = Dependency.build_program_dep_graph prgm in
+  Dependency.check_for_cycle scope_dependencies;
+  let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
+  let top_level_scope = Ast.ScopeMap.find top_level_scope_name prgm in
+  let acc = translate_scope_decl scope_ctx top_level_scope in
+
+  (* the resulting expression is the list of definitions of all the scopes, ending with the
+     top-level scope. *)
+  List.fold_right
+    (fun scope_name (acc : Dcalc.Ast.expr Pos.marked) ->
+      if scope_name = top_level_scope_name then acc
+      else
+        let scope = Ast.ScopeMap.find scope_name prgm in
+        let scope_expr = translate_scope_decl scope_ctx scope in
+        (* here we perform type-checking, incidentally *)
+        let scope_typ = Dcalc.Typing.infer_type scope_expr in
+        Dcalc.Ast.make_let_in
+          (Ast.ScopeMap.find scope_name scope_ctx, Pos.get_position scope_typ)
+          (Pos.unmark scope_typ) scope_expr (Bindlib.box acc) Pos.no_pos)
+    scope_ordering acc
