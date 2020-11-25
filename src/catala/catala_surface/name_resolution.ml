@@ -91,7 +91,8 @@ let process_base_typ ((typ, typ_pos) : Ast.base_typ Pos.marked) : Dcalc.Ast.typ 
   | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
-      | Ast.Integer | Ast.Decimal | Ast.Money | Ast.Date -> assert false
+      | Ast.Integer -> (Dcalc.Ast.TInt, typ_pos)
+      | Ast.Decimal | Ast.Money | Ast.Date -> raise_unsupported_feature "value type" typ_pos
       | Ast.Boolean -> (Dcalc.Ast.TBool, typ_pos)
       | Ast.Text -> raise_unsupported_feature "text type" typ_pos
       | Ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )

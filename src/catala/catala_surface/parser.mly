@@ -129,7 +129,7 @@ struct_or_enum_inject:
   match data with
   | EnumContent data ->
   (EnumInject (c, data), $sloc)
-  | _ -> assert false
+  | _ -> assert false (* should not happen *)
 }
 
 primitive_expression:

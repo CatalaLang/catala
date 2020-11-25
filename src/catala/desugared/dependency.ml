@@ -61,6 +61,9 @@ module TopologicalTraversal = Graph.Topological.Make (ScopeDependencies)
 module SCC = Graph.Components.Make (ScopeDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
+let correct_computation_ordering (g : ScopeDependencies.t) : Vertex.t list =
+  List.rev (TopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])
+
 (** Outputs an error in case of cycles. *)
 let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of cardinality > 1 *)
@@ -106,13 +109,13 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   let g =
     Scopelang.Ast.SubScopeMap.fold
-      (fun _ (v : Scopelang.Ast.SubScopeName.t) g ->
+      (fun (v : Scopelang.Ast.SubScopeName.t) _ g ->
         ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope.scope_sub_scopes g
   in
   let g =
     Ast.ScopeDefMap.fold
-      (fun def_key def g ->
+      (fun def_key (def, _) g ->
         let fv = Ast.free_variables def in
         Ast.ScopeDefSet.fold
           (fun fv_def g ->

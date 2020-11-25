@@ -66,13 +66,18 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         let language : Cli.backend_lang = Cli.to_backend_lang language in
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
-             (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
+             ( match backend with
+             | Cli.Latex -> "LaTeX"
+             | Cli.Html -> "HTML"
+             | _ -> assert false (* should not happen *) ));
         let output_file =
           match output_file with
           | Some f -> f
           | None -> (
               Filename.remove_extension source_file
-              ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
+              ^
+              match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false
+              (* should not happen *) )
         in
         let oc = open_out output_file in
         let weave_output =
@@ -80,6 +85,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
           | Cli.Latex -> Literate.Latex.ast_to_latex language
           | Cli.Html -> Literate.Html.ast_to_html pygmentize_loc language
           | _ -> assert false
+          (* should not happen *)
         in
         Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
         let fmt = Format.formatter_of_out_channel oc in
@@ -91,7 +97,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
           | Cli.Html ->
               Literate.Html.wrap_html program.Surface.Ast.program_source_files pygmentize_loc
                 language fmt (fun fmt -> weave_output fmt program)
-          | _ -> assert false
+          | _ -> assert false (* should not happen *)
         else weave_output fmt program;
         close_out oc;
         0

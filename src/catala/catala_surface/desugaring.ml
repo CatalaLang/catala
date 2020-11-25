@@ -92,7 +92,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
           in
           let subscope_var_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in
           ( Scopelang.Ast.ELocation
-              (SubScopeVar (assert false, (subscope_uid, pos), (subscope_var_uid, pos))),
+              (SubScopeVar (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
             pos )
       | _ ->
           Name_resolution.raise_unsupported_feature
@@ -123,8 +123,13 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
   in
   let just = merge_conditions precond just (Pos.get_position cons) in
   let cons = translate_expr scope (Some def_key) ctxt cons in
-  (* if there's a parameter, we have to wrap the justifiction and the body in a func *)
-  { just; cons; parameter = param_uid; priority = 0 }
+  {
+    just;
+    cons;
+    parameter = param_uid;
+    parent_rule =
+      None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
+  }
 
 (* Process a definition *)
 let process_def (precond : Scopelang.Ast.expr Pos.marked option)
@@ -157,17 +162,27 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked option)
     | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
   in
   let scope_updated =
-    let x_def =
+    let x_def, x_type =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
-      | None -> [ Desugared.Ast.empty_def default_pos (Option.is_some (param_uid def_key)) ]
+      | None -> (Desugared.Ast.RuleMap.empty, Pos.unmark (Name_resolution.get_def_typ ctxt def_key))
+    in
+    let rule_name =
+      Desugared.Ast.RuleName.fresh
+        (Pos.map_under_mark
+           (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+           def.definition_name)
     in
     let x_def =
-      process_default ctxt scope_uid def_key (param_uid def_key) precond def.definition_condition
-        def.definition_expr
-      :: x_def
+      Desugared.Ast.RuleMap.add rule_name
+        (process_default ctxt scope_uid def_key (param_uid def_key) precond def.definition_condition
+           def.definition_expr)
+        x_def
     in
-    { scope with scope_defs = Desugared.Ast.ScopeDefMap.add def_key x_def scope.scope_defs }
+    {
+      scope with
+      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type) scope.scope_defs;
+    }
   in
   Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm
 

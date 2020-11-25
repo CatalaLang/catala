@@ -36,4 +36,4 @@ module type Id = sig
   val hash : t -> int
 end
 
-module Make (X : Info) : Id with type info = X.info
+module Make (X : Info) () : Id with type info = X.info

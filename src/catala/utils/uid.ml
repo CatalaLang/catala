@@ -38,7 +38,8 @@ module Make (X : sig
   type info
 
   val format_info : info -> string
-end) : Id with type info = X.info = struct
+end)
+() : Id with type info = X.info = struct
   type t = { id : int; info : X.info }
 
   type info = X.info
