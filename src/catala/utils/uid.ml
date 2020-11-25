@@ -29,7 +29,7 @@ module type Id = sig
 
   val compare : t -> t -> int
 
-  val format_t : t -> string
+  val format_t : Format.formatter -> t -> unit
 
   val hash : t -> int
 end
@@ -53,7 +53,8 @@ end) : Id with type info = X.info = struct
 
   let compare (x : t) (y : t) : int = compare x.id y.id
 
-  let format_t (x : t) : string = Printf.sprintf "%s" (X.format_info x.info)
+  let format_t (fmt : Format.formatter) (x : t) : unit =
+    Format.fprintf fmt "%s" (X.format_info x.info)
 
   let hash (x : t) : int = x.id
 end

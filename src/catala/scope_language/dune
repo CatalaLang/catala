@@ -2,3 +2,6 @@
  (name scopelang)
  (public_name catala.scopelang)
  (libraries utils dcalc))
+
+(documentation
+ (package catala))

@@ -199,11 +199,21 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
     (use : Ast.scope_use) : Desugared.Ast.program =
   let name = fst use.scope_use_name in
   let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  let scope_vars =
+    List.fold_left
+      (fun acc (_, var) -> Scopelang.Ast.ScopeVarSet.add var acc)
+      Scopelang.Ast.ScopeVarSet.empty
+      (Desugared.Ast.IdentMap.bindings scope_ctxt.var_idmap)
+  in
   (* Make sure the scope exists *)
   let prgm =
     match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm with
     | Some _ -> prgm
-    | None -> Scopelang.Ast.ScopeMap.add scope_uid (Desugared.Ast.empty_scope scope_uid) prgm
+    | None ->
+        Scopelang.Ast.ScopeMap.add scope_uid
+          (Desugared.Ast.empty_scope scope_uid scope_vars scope_ctxt.sub_scopes)
+          prgm
   in
   let precond = use.scope_use_condition in
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items

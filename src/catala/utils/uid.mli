@@ -31,7 +31,7 @@ module type Id = sig
 
   val compare : t -> t -> int
 
-  val format_t : t -> string
+  val format_t : Format.formatter -> t -> unit
 
   val hash : t -> int
 end

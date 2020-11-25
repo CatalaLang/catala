@@ -30,13 +30,12 @@ module ScopeDef = struct
         Scopelang.Ast.ScopeVar.compare x y
     | SubScopeVar (_, x), SubScopeVar (_, y) -> Scopelang.Ast.SubScopeName.compare x y
 
-  let format_t x =
+  let format_t fmt x =
     match x with
-    | Var v -> Scopelang.Ast.ScopeVar.format_t v
+    | Var v -> Scopelang.Ast.ScopeVar.format_t fmt v
     | SubScopeVar (s, v) ->
-        Printf.sprintf "%s.%s"
-          (Scopelang.Ast.SubScopeName.format_t s)
-          (Scopelang.Ast.ScopeVar.format_t v)
+        Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s
+          Scopelang.Ast.ScopeVar.format_t v
 
   let hash x =
     match x with
@@ -75,18 +74,40 @@ type meta_assertion =
   | VariesWith of unit * variation_typ Pos.marked option
 
 type scope = {
+  scope_vars : Scopelang.Ast.ScopeVarSet.t;
+  scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
   scope_defs : rule list ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-let empty_scope (uid : Scopelang.Ast.ScopeName.t) : scope =
+let empty_scope (scope_uid : Scopelang.Ast.ScopeName.t) (scope_vars : Scopelang.Ast.ScopeVarSet.t)
+    (scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t) : scope =
   {
-    scope_uid = uid;
+    scope_uid;
+    scope_vars;
+    scope_sub_scopes;
     scope_defs = ScopeDefMap.empty;
     scope_assertions = [];
     scope_meta_assertions = [];
   }
 
 type program = scope Scopelang.Ast.ScopeMap.t
+
+let free_variables (def : rule list) : ScopeDefSet.t =
+  let add_locs (acc : ScopeDefSet.t) (locs : Scopelang.Ast.location list) : ScopeDefSet.t =
+    List.fold_left
+      (fun acc loc ->
+        ScopeDefSet.add
+          ( match loc with
+          | Scopelang.Ast.ScopeVar v -> ScopeDef.Var (Pos.unmark v)
+          | _ -> assert false )
+          acc)
+      acc locs
+  in
+  List.fold_left
+    (fun acc rule ->
+      let locs = Scopelang.Ast.locations_used rule.just @ Scopelang.Ast.locations_used rule.cons in
+      add_locs acc locs)
+    ScopeDefSet.empty def

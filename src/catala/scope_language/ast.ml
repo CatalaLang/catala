@@ -38,6 +38,22 @@ type expr =
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
+let rec locations_used (e : expr Pos.marked) : location list =
+  match Pos.unmark e with
+  | ELocation l -> [ l ]
+  | EVar _ | ELit _ | EOp _ -> []
+  | EAbs (_, binder, _) ->
+      let _, body = Bindlib.unmbind binder in
+      locations_used body
+  | EApp (e1, args) ->
+      List.fold_left (fun acc arg -> locations_used arg @ acc) (locations_used e1) args
+  | EIfThenElse (e1, e2, e3) -> locations_used e1 @ locations_used e2 @ locations_used e3
+  | EDefault (just, cons, subs) ->
+      List.fold_left
+        (fun acc sub -> locations_used sub @ acc)
+        (locations_used just @ locations_used cons)
+        subs
+
 module Var = struct
   type t = expr Pos.marked Bindlib.var
 

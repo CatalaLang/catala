@@ -8,3 +8,6 @@
 (menhir
  (modules parser)
  (flags --table))
+
+(documentation
+ (package catala))
