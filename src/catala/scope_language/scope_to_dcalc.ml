@@ -125,6 +125,7 @@ let translate_rules (p : scope_ctx) (ctx : ctx) (rules : Ast.rule list) :
 
 let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.expr Pos.marked =
   let ctx = empty_ctx in
+  (* TODO: compute dependency order! *)
   let rules, ctx = translate_rules p ctx sigma.scope_decl_rules in
   let scope_variables = Ast.ScopeVarMap.bindings ctx.scope_vars in
   let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
@@ -144,3 +145,13 @@ let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.ex
   in
   let func_acc = Bindlib.unbox (Bindlib.bind_var hole_var func_acc) in
   Bindlib.subst func_acc (return_exp, pos_sigma)
+
+let translate_program (prgm : Ast.program) (_top_level_scope : Ast.ScopeName.t) :
+    Dcalc.Ast.expr Pos.marked =
+  let _scope_ctx =
+    Ast.ScopeMap.map
+      (fun scope -> Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+      prgm
+  in
+  (* TODO: compute dependency order! *)
+  assert false

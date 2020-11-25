@@ -92,43 +92,21 @@ let check_for_cycle (g : ScopeDependencies.t) : unit =
               ])
             scc))
 
-let build_scope_dependencies (scope : Ast.scope) (ctxt : Name_resolution.context) :
-    ScopeDependencies.t =
-  let g = ScopeDependencies.empty in
-  let scope_uid = scope.scope_uid in
-  (* Add all the vertices to the graph *)
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  let g =
-    Ast.IdentMap.fold
-      (fun _ (v : Scopelang.Ast.ScopeVar.t) g -> ScopeDependencies.add_vertex g (Vertex.Var v))
-      scope_ctxt.var_idmap g
-  in
-  let g =
-    Ast.IdentMap.fold
-      (fun _ (v : Scopelang.Ast.SubScopeName.t) g ->
-        ScopeDependencies.add_vertex g (Vertex.SubScope v))
-      scope_ctxt.sub_scopes_idmap g
-  in
-  let g =
-    Ast.ScopeDefMap.fold
-      (fun def_key _def g ->
-        let fv = assert false (* Dcalc.Ast.term_fv def *) in
-        Ast.ScopeDefSet.fold
-          (fun fv_def g ->
-            match (def_key, fv_def) with
-            | Ast.ScopeDef.Var defined, Ast.ScopeDef.Var used ->
-                (* simple case *)
-                ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined)
-            | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used ->
-                (* here we are defining the input of a subscope using a var of the scope *)
-                ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.SubScope defined)
-            | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.SubScopeVar (used, _) ->
-                (* here we are defining the input of a scope with the output of another subscope *)
-                ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined)
-            | Ast.ScopeDef.Var defined, Ast.ScopeDef.SubScopeVar (used, _) ->
-                (* finally we define a scope var with the output of a subscope *)
-                ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.Var defined))
-          fv g)
-      scope.scope_defs g
-  in
-  g
+(* let build_scope_dependencies (scope : Ast.scope) (ctxt : Name_resolution.context) :
+   ScopeDependencies.t = let g = ScopeDependencies.empty in let scope_uid = scope.scope_uid in (*
+   Add all the vertices to the graph *) let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid
+   ctxt.scopes in let g = Ast.IdentMap.fold (fun _ (v : Scopelang.Ast.ScopeVar.t) g ->
+   ScopeDependencies.add_vertex g (Vertex.Var v)) scope_ctxt.var_idmap g in let g =
+   Ast.IdentMap.fold (fun _ (v : Scopelang.Ast.SubScopeName.t) g -> ScopeDependencies.add_vertex g
+   (Vertex.SubScope v)) scope_ctxt.sub_scopes_idmap g in let g = Ast.ScopeDefMap.fold (fun def_key
+   _def g -> let fv = assert false (* Dcalc.Ast.term_fv def *) in Ast.ScopeDefSet.fold (fun fv_def g
+   -> match (def_key, fv_def) with | Ast.ScopeDef.Var defined, Ast.ScopeDef.Var used -> (* simple
+   case *) ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined) |
+   Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used -> (* here we are defining the input
+   of a subscope using a var of the scope *) ScopeDependencies.add_edge g (Vertex.Var used)
+   (Vertex.SubScope defined) | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.SubScopeVar
+   (used, _) -> (* here we are defining the input of a scope with the output of another subscope *)
+   ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined) | Ast.ScopeDef.Var
+   defined, Ast.ScopeDef.SubScopeVar (used, _) -> (* finally we define a scope var with the output
+   of a subscope *) ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.Var defined)) fv g)
+   scope.scope_defs g in g *)

@@ -96,7 +96,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         close_out oc;
         0
     | Cli.Run ->
-        let ctxt = Desugared.Name_resolution.form_context program in
+        let ctxt = Surface.Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
@@ -107,20 +107,10 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
-        let prgm = Desugared.Desugaring.translate_program_to_scope ctxt program in
-        let _scope =
-          match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm with
-          | Some scope -> scope
-          | None ->
-              let scope_info = Scopelang.Ast.ScopeName.get_info scope_uid in
-              Errors.raise_spanned_error
-                (Printf.sprintf
-                   "Scope %s does not define anything, and therefore cannot be executed"
-                   (Utils.Pos.unmark scope_info))
-                (Utils.Pos.get_position scope_info)
-        in
-        (* let exec_ctxt = Desugared.Interpreter.execute_scope ctxt prgm scope in
-           Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
+        let prgm = Surface.Desugaring.desugar_program ctxt program in
+        let prgm = Desugared.Desugared_to_scope.translate_program prgm in
+        let _prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        (* Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
            (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
            (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)
         0
