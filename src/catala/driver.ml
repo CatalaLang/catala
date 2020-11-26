@@ -120,6 +120,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" Dcalc.Print.format_expr prgm);
         let typ = Dcalc.Typing.infer_type prgm in
         Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ typ);
         let results = Dcalc.Interpreter.interpret_program prgm in

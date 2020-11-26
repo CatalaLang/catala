@@ -16,14 +16,18 @@ module Pos = Utils.Pos
 module Errors = Utils.Errors
 module Cli = Utils.Cli
 
+type scopes_ctx = Ast.ScopeVar.t list Ast.ScopeMap.t
+
 type ctx = {
+  scopes_parameters : scopes_ctx;
   scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t;
   subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-let empty_ctx =
+let empty_ctx (scopes_ctx : scopes_ctx) =
   {
+    scopes_parameters = scopes_ctx;
     scope_vars = Ast.ScopeVarMap.empty;
     subscope_vars = Ast.SubScopeMap.empty;
     local_vars = Ast.VarMap.empty;
@@ -108,8 +112,6 @@ let rec translate_rule (p : scope_ctx) (ctx : ctx) (rule : Ast.rule) (rest : Ast
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
       let a_var = Dcalc.Ast.Var.make a_name in
-      let _silent1 = Dcalc.Ast.Var.make ("_", Pos.get_position e) in
-      let _silent2 = Dcalc.Ast.Var.make ("_", Pos.get_position e) in
       let apply_thunked =
         Bindlib.box_apply2
           (fun e u -> (Dcalc.Ast.EApp (e, u), var_def_pos))
@@ -138,8 +140,47 @@ let rec translate_rule (p : scope_ctx) (ctx : ctx) (rule : Ast.rule) (rest : Ast
       let merged_expr = merge_defaults a_expr new_e in
       let out_e = Dcalc.Ast.make_app intermediate_e [ merged_expr ] (Pos.get_position e) in
       (out_e, new_ctx)
-  | Definition ((SubScopeVar _, _), _tau, _e) ->
-      Errors.raise_error "translation of subscope vars definitions unimplemented"
+  | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
+      let a_name =
+        Pos.map_under_mark
+          (fun str -> str ^ "_" ^ Pos.unmark (Ast.SubScopeName.get_info (Pos.unmark subs_index)))
+          (Ast.ScopeVar.get_info (Pos.unmark subs_var))
+      in
+      let a_var = Dcalc.Ast.Var.make a_name in
+      let apply_thunked =
+        Bindlib.box_apply2
+          (fun e u -> (Dcalc.Ast.EApp (e, u), var_def_pos))
+          (Bindlib.box_var a_var)
+          (Bindlib.box_list [ Bindlib.box (Dcalc.Ast.ELit LUnit, var_def_pos) ])
+      in
+      let new_ctx =
+        {
+          ctx with
+          subscope_vars =
+            Ast.SubScopeMap.update (Pos.unmark subs_index)
+              (fun map ->
+                match map with
+                | Some map ->
+                    Some (Ast.ScopeVarMap.add (Pos.unmark subs_var) (a_var, Pos.unmark tau) map)
+                | None ->
+                    Some (Ast.ScopeVarMap.singleton (Pos.unmark subs_var) (a_var, Pos.unmark tau)))
+              ctx.subscope_vars;
+        }
+      in
+      let next_e, new_ctx = translate_rules p new_ctx rest pos_sigma in
+      let next_e =
+        Dcalc.Ast.make_let_in (a_var, var_def_pos) tau apply_thunked next_e var_def_pos
+      in
+      let intermediate_e =
+        Dcalc.Ast.make_abs
+          (Array.of_list [ a_var ])
+          next_e var_def_pos
+          [ (Dcalc.Ast.TArrow ((TUnit, var_def_pos), tau), var_def_pos) ]
+          (Pos.get_position e)
+      in
+      let new_e = translate_expr ctx e in
+      let out_e = Dcalc.Ast.make_app intermediate_e [ new_e ] (Pos.get_position e) in
+      (out_e, new_ctx)
   | Call _ -> Errors.raise_error "translation of subscope calls unimplemented"
 
 and translate_rules (p : scope_ctx) (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
@@ -156,20 +197,22 @@ and translate_rules (p : scope_ctx) (ctx : ctx) (rules : Ast.rule list) (pos_sig
       (return_exp, ctx)
   | hd :: tl -> translate_rule p ctx hd tl pos_sigma
 
-let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) :
-    Dcalc.Ast.expr Pos.marked Bindlib.box =
-  let ctx = empty_ctx in
+let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) (sctx : scopes_ctx) :
+    Dcalc.Ast.expr Pos.marked Bindlib.box * scopes_ctx =
+  let ctx = empty_ctx ctx in
   let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
   let rules, ctx = translate_rules p ctx sigma.scope_decl_rules pos_sigma in
   let scope_variables = Ast.ScopeVarMap.bindings ctx.scope_vars in
-  Dcalc.Ast.make_abs
-    (Array.of_list ((List.map (fun (_, (x, _)) -> x)) scope_variables))
-    rules pos_sigma
-    (List.map
-       (fun (_, (_, tau)) ->
-         (Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
-       scope_variables)
-    pos_sigma
+  let scope_parameters : Ast.ScopeVar.t list = (List.map (fun (x, (_, _)) -> x)) scope_variables in
+  ( Dcalc.Ast.make_abs
+      (Array.of_list ((List.map (fun (_, (x, _)) -> x)) scope_variables))
+      rules pos_sigma
+      (List.map
+         (fun (_, (_, tau)) ->
+           (Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
+         scope_variables)
+      pos_sigma,
+    Ast.ScopeMap.add sigma.scope_decl_name scope_parameters sctx )
 
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
     Dcalc.Ast.expr Pos.marked =
