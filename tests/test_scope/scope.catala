@@ -3,7 +3,7 @@
 /*
 new scope A:
   param a type int
-  param b type dec
+  param b type int
   param c type bool
 
 scope A:

@@ -123,14 +123,18 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
           | 1 -> List.find (fun sub -> not (is_empty_error sub)) subs
           | _ ->
               Errors.raise_multispanned_error
-                "there is a conflict between multiple rules for assigning a single value."
-                ( [
-                    ( Some "This rule is not triggered, so we consider rules of lower priority:",
-                      Pos.get_position e );
-                  ]
+                "There is a conflict between multiple rules for assigning the same variable."
+                ( ( if Pos.get_position e = Pos.no_pos then []
+                  else
+                    [
+                      ( Some "This rule is not triggered, so we consider rules of lower priority:",
+                        Pos.get_position e );
+                    ] )
                 @ List.map
                     (fun sub ->
-                      ( Some "This value is available because the justification of its rule is true:",
+                      ( Some
+                          "This value is available because the justification of its definition is \
+                           true:",
                         Pos.get_position sub ))
                     (List.filter (fun sub -> not (is_empty_error sub)) subs) ) )
       | _ ->
@@ -144,7 +148,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       | ELit (LBool false) -> evaluate_expr ef
       | _ ->
           Errors.raise_spanned_error
-            "expected a boolean literal for the result of this condition (should not happen if the \
+            "Expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond) )
 
