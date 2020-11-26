@@ -114,6 +114,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
             (Pos.get_position e) )
   | ELit (LBool _) -> UnionFind.make (Pos.same_pos_as TBool e)
   | ELit (LInt _) -> UnionFind.make (Pos.same_pos_as TInt e)
+  | ELit LUnit -> UnionFind.make (Pos.same_pos_as TUnit e)
   | ELit LEmptyError -> UnionFind.make (Pos.same_pos_as TAny e)
   | ETuple es ->
       let ts = List.map (typecheck_expr_bottom_up env) es in
@@ -182,6 +183,7 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
             (Pos.get_position e) )
   | ELit (LBool _) -> unify tau (UnionFind.make (Pos.same_pos_as TBool e))
   | ELit (LInt _) -> unify tau (UnionFind.make (Pos.same_pos_as TInt e))
+  | ELit LUnit -> unify tau (UnionFind.make (Pos.same_pos_as TUnit e))
   | ELit LEmptyError -> unify tau (UnionFind.make (Pos.same_pos_as TAny e))
   | ETuple es -> (
       let tau' = UnionFind.get (UnionFind.find tau) in

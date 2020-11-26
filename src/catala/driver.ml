@@ -102,6 +102,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         close_out oc;
         0
     | Cli.Run ->
+        Cli.debug_print "Name resolution...";
         let ctxt = Surface.Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
@@ -113,9 +114,13 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
+        Cli.debug_print "Desugaring...";
         let prgm = Surface.Desugaring.desugar_program ctxt program in
+        Cli.debug_print "Collecting rules...";
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
-        let _prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        Cli.debug_print "Translating to default calculus...";
+        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        Cli.result_print (Format.asprintf "Resulting program:@\n%a" Dcalc.Print.format_expr prgm);
         (* Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
            (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
            (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)

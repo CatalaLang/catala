@@ -21,7 +21,7 @@ type typ =
   | TTuple of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Int64.t
+type lit = LBool of bool | LEmptyError | LInt of Int64.t | LUnit
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
@@ -63,11 +63,11 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in (x : Var.t Pos.marked) (tau : typ Pos.marked) (e1 : expr Pos.marked)
-    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked =
-  ( EApp
-      ( Bindlib.unbox (make_abs (Array.of_list [ Pos.unmark x ]) e2 (Pos.get_position x) [ tau ] pos),
-        [ e1 ] ),
-    pos )
+let make_let_in (x : Var.t Pos.marked) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun e u -> (EApp (e, u), pos))
+    (make_abs (Array.of_list [ Pos.unmark x ]) e2 (Pos.get_position x) [ tau ] pos)
+    (Bindlib.box_list [ e1 ])
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
