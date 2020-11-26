@@ -38,7 +38,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
       if backend = "Makefile" then Cli.Makefile
       else if backend = "LaTeX" then Cli.Latex
       else if backend = "HTML" then Cli.Html
-      else if backend = "run" then Cli.Run
+      else if backend = "Interpret" then Cli.Run
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -121,6 +121,8 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
         Cli.result_print (Format.asprintf "Resulting program:@\n%a" Dcalc.Print.format_expr prgm);
+        let typ = Dcalc.Typing.infer_type prgm in
+        Cli.result_print (Format.asprintf "Inferred_type:@\n%a" Dcalc.Print.format_typ typ);
         (* Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
            (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
            (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)

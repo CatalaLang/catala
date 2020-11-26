@@ -15,7 +15,14 @@
 module Pos = Utils.Pos
 open Ast
 
+let typ_needs_parens (e : typ Pos.marked) : bool =
+  match Pos.unmark e with TArrow _ -> true | _ -> false
+
 let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
+    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
+    else Format.fprintf fmt "%a" format_typ t
+  in
   match Pos.unmark typ with
   | TUnit -> Format.fprintf fmt "unit"
   | TBool -> Format.fprintf fmt "bool"
@@ -24,7 +31,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ") format_typ)
         ts
-  | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ t1 format_typ t2
+  | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ_with_parens t1 format_typ t2
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with

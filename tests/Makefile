@@ -2,7 +2,7 @@
 # Preamble
 ############################################
 
-CATALA=dune exec --no-print-director ../src/catala.exe -- run
+CATALA=dune exec --no-print-director ../src/catala.exe -- Interpret
 
 tests: $(wildcard */*.catala)
 
