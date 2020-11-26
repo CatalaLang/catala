@@ -120,12 +120,19 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
-        Cli.result_print (Format.asprintf "Resulting program:@\n%a" Dcalc.Print.format_expr prgm);
         let typ = Dcalc.Typing.infer_type prgm in
-        Cli.result_print (Format.asprintf "Inferred_type:@\n%a" Dcalc.Print.format_typ typ);
-        (* Lambda_interpreter.ExecContext.iter (fun context_key value -> Cli.result_print
-           (Printf.sprintf "%s -> %s" (Lambda_interpreter.ExecContextKey.format_t context_key)
-           (Format_lambda.print_term ((value, Pos.no_pos), TDummy)))) exec_ctxt; *)
+        Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ typ);
+        let results = Dcalc.Interpreter.interpret_program prgm in
+        let results =
+          List.sort
+            (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
+            results
+        in
+        List.iter
+          (fun (var, result) ->
+            Cli.result_print
+              (Format.asprintf "%s -> %a" (Bindlib.name_of var) Dcalc.Print.format_expr result))
+          results;
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);

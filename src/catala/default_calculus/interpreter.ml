@@ -107,7 +107,14 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       let just = evaluate_expr just in
       match Pos.unmark just with
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-      | ELit (LBool true) -> evaluate_expr cons
+      | ELit (LBool true) -> (
+          match evaluate_expr cons with
+          | ELit LEmptyError, pos ->
+              evaluate_expr
+                (Pos.same_pos_as
+                   (Ast.EDefault ((ELit (LBool false), pos), (Ast.ELit LEmptyError, pos), subs))
+                   e)
+          | e' -> e' )
       | ELit (LBool false) -> (
           let subs = List.map evaluate_expr subs in
           let empty_count = List.length (List.filter is_empty_error subs) in
@@ -140,3 +147,28 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             "expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond) )
+
+let empty_thunked_term : Ast.expr Pos.marked =
+  let silent = Ast.Var.make ("silent", Pos.no_pos) in
+  Bindlib.unbox
+    (Ast.make_abs
+       (Array.of_list [ silent ])
+       (Bindlib.box (Ast.ELit Ast.LEmptyError, Pos.no_pos))
+       Pos.no_pos [ (Ast.TUnit, Pos.no_pos) ] Pos.no_pos)
+
+let interpret_program (e : Ast.expr Pos.marked) : (Ast.Var.t * Ast.expr Pos.marked) list =
+  match Pos.unmark e with
+  | Ast.EAbs (_, binder, taus) -> (
+      let application_term = List.map (fun _ -> empty_thunked_term) taus in
+      let to_interpret = (Ast.EApp (e, application_term), Pos.no_pos) in
+      match Pos.unmark (evaluate_expr to_interpret) with
+      | Ast.ETuple args ->
+          let vars, _ = Bindlib.unmbind binder in
+          List.map2 (fun arg var -> (var, arg)) args (Array.to_list vars)
+      | _ ->
+          Errors.raise_spanned_error "The interpretation of a program should always yield a tuple"
+            (Pos.get_position e) )
+  | _ ->
+      Errors.raise_spanned_error
+        "The interpreter can only interpret terms starting with functions having thunked arguments"
+        (Pos.get_position e)
