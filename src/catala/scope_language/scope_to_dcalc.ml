@@ -79,7 +79,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
 let translate_rule (_p : scope_ctx) (ctx : ctx) (rule : Ast.rule) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   match rule with
-  | Definition (ScopeVar a, tau, e) ->
+  | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
       let a_var = Dcalc.Ast.Var.make a_name in
       let next_e =
@@ -93,7 +93,9 @@ let translate_rule (_p : scope_ctx) (ctx : ctx) (rule : Ast.rule) :
         Dcalc.Ast.make_abs
           (Array.of_list [ silent1 ])
           (Bindlib.box (translate_expr ctx e))
-          (Pos.get_position e) [ Dcalc.Ast.TUnit ] (Pos.get_position e)
+          (Pos.get_position e)
+          [ (Dcalc.Ast.TUnit, var_def_pos) ]
+          var_def_pos
       in
       let a_expr = Dcalc.Ast.make_var a_var in
       let merged_expr = Dcalc.Ast.make_app merge_operator_expr [ a_expr ] (Pos.get_position e) in
@@ -101,14 +103,19 @@ let translate_rule (_p : scope_ctx) (ctx : ctx) (rule : Ast.rule) :
       let merged_thunked =
         Dcalc.Ast.make_abs
           (Array.of_list [ silent2 ])
-          merged_expr (Pos.get_position e) [ Dcalc.Ast.TUnit ] (Pos.get_position e)
+          merged_expr (Pos.get_position e)
+          [ (Dcalc.Ast.TUnit, var_def_pos) ]
+          var_def_pos
       in
       let final_e = Dcalc.Ast.make_app merged_thunked [ next_e ] (Pos.get_position e) in
       let new_ctx =
-        { ctx with scope_vars = Ast.ScopeVarMap.add (Pos.unmark a) (a_var, tau) ctx.scope_vars }
+        {
+          ctx with
+          scope_vars = Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau) ctx.scope_vars;
+        }
       in
       (final_e, new_ctx)
-  | Definition (SubScopeVar _, _tau, _e) ->
+  | Definition ((SubScopeVar _, _), _tau, _e) ->
       Errors.raise_error "translation of subscope vars definitions unimplemented"
   | Call _ -> Errors.raise_error "translation of subscope calls unimplemented"
 
@@ -138,7 +145,8 @@ let translate_scope_decl (p : scope_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.ex
       (Array.of_list ((List.map (fun (_, (x, _)) -> x)) scope_variables))
       func_acc pos_sigma
       (List.map
-         (fun (_, (_, tau)) -> Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)))
+         (fun (_, (_, tau)) ->
+           (Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
          scope_variables)
       pos_sigma
   in
@@ -157,7 +165,6 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let top_level_scope = Ast.ScopeMap.find top_level_scope_name prgm in
   let acc = translate_scope_decl scope_ctx top_level_scope in
-
   (* the resulting expression is the list of definitions of all the scopes, ending with the
      top-level scope. *)
   List.fold_right
@@ -170,5 +177,5 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
         let scope_typ = Dcalc.Typing.infer_type scope_expr in
         Dcalc.Ast.make_let_in
           (Ast.ScopeMap.find scope_name scope_ctx, Pos.get_position scope_typ)
-          (Pos.unmark scope_typ) scope_expr (Bindlib.box acc) Pos.no_pos)
+          scope_typ scope_expr (Bindlib.box acc) Pos.no_pos)
     scope_ordering acc

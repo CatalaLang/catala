@@ -129,7 +129,7 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     parameter =
       (let def_key_typ = Name_resolution.get_def_typ ctxt def_key in
        match (Pos.unmark def_key_typ, param_uid) with
-       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (param_uid, Pos.unmark t_in)
+       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (param_uid, t_in)
        | Dcalc.Ast.TArrow _, None ->
            Errors.raise_spanned_error
              "this definition has a function type but the parameter is missing"
@@ -177,7 +177,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked option)
     let x_def, x_type =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
-      | None -> (Desugared.Ast.RuleMap.empty, Pos.unmark (Name_resolution.get_def_typ ctxt def_key))
+      | None -> (Desugared.Ast.RuleMap.empty, Name_resolution.get_def_typ ctxt def_key)
     in
     let rule_name =
       Desugared.Ast.RuleName.fresh

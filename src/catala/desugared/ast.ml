@@ -55,11 +55,11 @@ module ScopeDefSet = Set.Make (ScopeDef)
 type rule = {
   just : Scopelang.Ast.expr Pos.marked;
   cons : Scopelang.Ast.expr Pos.marked;
-  parameter : (Scopelang.Ast.Var.t * Dcalc.Ast.typ) option;
+  parameter : (Scopelang.Ast.Var.t * Dcalc.Ast.typ Pos.marked) option;
   parent_rule : RuleName.t option;
 }
 
-let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ Pos.marked option) : rule =
   {
     just = (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
     cons = (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
@@ -84,7 +84,7 @@ type scope = {
   scope_vars : Scopelang.Ast.ScopeVarSet.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs : (rule RuleMap.t * Dcalc.Ast.typ) ScopeDefMap.t;
+  scope_defs : (rule RuleMap.t * Dcalc.Ast.typ Pos.marked) ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }

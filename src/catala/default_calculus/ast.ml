@@ -34,7 +34,7 @@ type expr =
   | ETuple of expr Pos.marked list
   | ETupleAccess of expr Pos.marked * int
   | ELit of lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * typ list
+  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
@@ -55,15 +55,15 @@ type vars = expr Pos.marked Bindlib.mvar
 
 let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
 
-let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t) (taus : typ list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
+    (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in (x : Var.t Pos.marked) (tau : typ) (e1 : expr Pos.marked)
+let make_let_in (x : Var.t Pos.marked) (tau : typ Pos.marked) (e1 : expr Pos.marked)
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked =
   ( EApp
       ( Bindlib.unbox (make_abs (Array.of_list [ Pos.unmark x ]) e2 (Pos.get_position x) [ tau ] pos),

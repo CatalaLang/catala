@@ -54,6 +54,8 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
       let t_union = UnionFind.union t1 t2 in
       ignore (UnionFind.set t_union t_repr)
   | (_, t1_pos), (_, t2_pos) ->
+      (* TODO: if we get weird error messages, then it means that we should use the persistent
+         version of the union-find data structure. *)
       Errors.raise_multispanned_error
         (Format.asprintf "Error during typechecking, type mismatch: cannot unify %a and %a"
            format_typ t1 format_typ t2)
@@ -138,7 +140,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
         let xstaus = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
         let env =
           List.fold_left
-            (fun env (x, tau) -> A.VarMap.add x (ast_to_typ tau, pos_binder) env)
+            (fun env (x, tau) -> A.VarMap.add x (ast_to_typ (Pos.unmark tau), pos_binder) env)
             env xstaus
         in
         typecheck_expr_bottom_up env body
@@ -211,7 +213,7 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
         let xstaus = List.map2 (fun x t_arg -> (x, t_arg)) (Array.to_list xs) t_args in
         let env =
           List.fold_left
-            (fun env (x, t_arg) -> A.VarMap.add x (ast_to_typ t_arg, pos_binder) env)
+            (fun env (x, t_arg) -> A.VarMap.add x (ast_to_typ (Pos.unmark t_arg), pos_binder) env)
             env xstaus
         in
         let t_out = typecheck_expr_bottom_up env body in
@@ -219,7 +221,9 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
           List.fold_right
             (fun t_arg acc ->
               UnionFind.make
-                (Pos.same_pos_as (TArrow (UnionFind.make (ast_to_typ t_arg, pos_binder), acc)) e))
+                (Pos.same_pos_as
+                   (TArrow (UnionFind.make (ast_to_typ (Pos.unmark t_arg), pos_binder), acc))
+                   e))
             t_args t_out
         in
         unify t_func tau

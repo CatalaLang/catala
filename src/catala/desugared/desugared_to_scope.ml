@@ -82,7 +82,7 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
   let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.parameter in
   let all_rules_func = Ast.RuleMap.for_all is_func def in
   let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
-  let is_def_func : Dcalc.Ast.typ option =
+  let is_def_func : Dcalc.Ast.typ Pos.marked option =
     if all_rules_func then
       let typ = (snd (Ast.RuleMap.choose def)).Ast.parameter in
       match typ with
@@ -96,7 +96,7 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
                  (fun (_, r) ->
                    ( Some
                        (Format.asprintf "The type of the parameter of this expression is %a"
-                          Dcalc.Print.format_typ (typ, Pos.no_pos)),
+                          Dcalc.Print.format_typ typ),
                      Pos.get_position r.Ast.cons ))
                  (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_typ n r)) def)))
       | None -> assert false (* should not happen *)
@@ -143,8 +143,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                let expr_def = translate_def var_def in
                [
                  Scopelang.Ast.Definition
-                   ( Scopelang.Ast.ScopeVar
-                       (var, Pos.get_position (Scopelang.Ast.ScopeVar.get_info var)),
+                   ( ( Scopelang.Ast.ScopeVar
+                         (var, Pos.get_position (Scopelang.Ast.ScopeVar.get_info var)),
+                       Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) ),
                      var_typ,
                      expr_def );
                ]
@@ -168,10 +169,11 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                            Pos.get_position (Scopelang.Ast.ScopeVar.get_info sub_scope_var)
                          in
                          Scopelang.Ast.Definition
-                           ( Scopelang.Ast.SubScopeVar
-                               ( subscop_real_name,
-                                 (sub_scope_index, var_pos),
-                                 (sub_scope_var, var_pos) ),
+                           ( ( Scopelang.Ast.SubScopeVar
+                                 ( subscop_real_name,
+                                   (sub_scope_index, var_pos),
+                                   (sub_scope_var, var_pos) ),
+                               var_pos ),
                              def_typ,
                              expr_def ))
                    (Ast.ScopeDefMap.filter

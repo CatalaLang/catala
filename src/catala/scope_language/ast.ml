@@ -38,7 +38,8 @@ type expr =
   | ELocation of location
   | EVar of expr Pos.marked Bindlib.var
   | ELit of Dcalc.Ast.lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ list
+  | EAbs of
+      Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
@@ -74,7 +75,7 @@ type vars = expr Pos.marked Bindlib.mvar
 let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
-    (taus : Dcalc.Ast.typ list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (taus : Dcalc.Ast.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
@@ -84,7 +85,7 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 module VarMap = Map.Make (Var)
 
 type rule =
-  | Definition of location * Dcalc.Ast.typ * expr Pos.marked
+  | Definition of location Pos.marked * Dcalc.Ast.typ Pos.marked * expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = { scope_decl_name : ScopeName.t; scope_decl_rules : rule list }
