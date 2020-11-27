@@ -71,7 +71,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   if List.length sccs < ScopeDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     Errors.raise_multispanned_error
-      (Format.asprintf "cyclic dependency detected between variables of scope %a !"
+      (Format.asprintf "Cyclic dependency detected between variables of scope %a !"
          Scopelang.Ast.ScopeName.format_t scope.scope_uid)
       (List.flatten
          (List.map
@@ -93,8 +93,8 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
                 | Vertex.SubScope v -> Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
               in
               [
-                (Some ("cycle variable " ^ var_str ^ ", declared:"), Pos.get_position var_info);
-                ( Some ("used here in the definition of another cycle variable " ^ succ_str ^ ":"),
+                (Some ("Cycle variable " ^ var_str ^ ", declared:"), Pos.get_position var_info);
+                ( Some ("Used here in the definition of another cycle variable " ^ succ_str ^ ":"),
                   edge_pos );
               ])
             scc))
@@ -130,10 +130,17 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                         forbidden in Catala"
                        Scopelang.Ast.ScopeVar.format_t defined)
                     fv_def_pos
-                else ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined)
+                else
+                  let edge =
+                    ScopeDependencies.E.create (Vertex.Var used) fv_def_pos (Vertex.Var defined)
+                  in
+                  ScopeDependencies.add_edge_e g edge
             | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used ->
                 (* here we are defining the input of a subscope using a var of the scope *)
-                ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.SubScope defined)
+                let edge =
+                  ScopeDependencies.E.create (Vertex.Var used) fv_def_pos (Vertex.SubScope defined)
+                in
+                ScopeDependencies.add_edge_e g edge
             | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* here we are defining the input of a scope with the output of another subscope *)
                 if used = defined then
@@ -144,10 +151,18 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                         forbidden in Catala"
                        Scopelang.Ast.SubScopeName.format_t defined)
                     fv_def_pos
-                else ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined)
+                else
+                  let edge =
+                    ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
+                      (Vertex.SubScope defined)
+                  in
+                  ScopeDependencies.add_edge_e g edge
             | Ast.ScopeDef.Var defined, Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* finally we define a scope var with the output of a subscope *)
-                ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.Var defined))
+                let edge =
+                  ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos (Vertex.Var defined)
+                in
+                ScopeDependencies.add_edge_e g edge)
           fv g)
       scope.scope_defs g
   in

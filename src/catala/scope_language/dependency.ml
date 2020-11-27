@@ -55,17 +55,22 @@ let build_program_dep_graph (prgm : Ast.program) : Dependencies.t =
           (fun acc r ->
             match r with
             | Ast.Definition _ -> acc
-            | Ast.Call (subscope, _) ->
+            | Ast.Call (subscope, subindex) ->
                 if subscope = scope_name then
                   Errors.raise_spanned_error
                     "The scope %a is calling into itself as a subscope, which is forbidden since \
                      Catala does not provide recursion"
                     (Pos.get_position (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
-                else Ast.ScopeNameSet.add subscope acc)
-          Ast.ScopeNameSet.empty scope.Ast.scope_decl_rules
+                else
+                  Ast.ScopeMap.add subscope
+                    (Pos.get_position (Ast.SubScopeName.get_info subindex))
+                    acc)
+          Ast.ScopeMap.empty scope.Ast.scope_decl_rules
       in
-      Ast.ScopeNameSet.fold
-        (fun subscope g -> Dependencies.add_edge g subscope scope_name)
+      Ast.ScopeMap.fold
+        (fun subscope pos g ->
+          let edge = Dependencies.E.create subscope pos scope_name in
+          Dependencies.add_edge_e g edge)
         subscopes g)
     prgm g
 
@@ -74,7 +79,7 @@ let check_for_cycle (g : Dependencies.t) : unit =
   let sccs = SCC.scc_list g in
   if List.length sccs < Dependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
-    Errors.raise_multispanned_error "cyclic dependency detected between scopes!"
+    Errors.raise_multispanned_error "Cyclic dependency detected between scopes!"
       (List.flatten
          (List.map
             (fun v ->
@@ -85,8 +90,8 @@ let check_for_cycle (g : Dependencies.t) : unit =
               let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
               let succ_str = Format.asprintf "%a" Ast.ScopeName.format_t succ in
               [
-                (Some ("cycle variable " ^ var_str ^ ", declared:"), Pos.get_position var_info);
-                ( Some ("used here in the definition of another cycle variable " ^ succ_str ^ ":"),
+                (Some ("Cycle variable " ^ var_str ^ ", declared:"), Pos.get_position var_info);
+                ( Some ("Used here in the definition of another cycle variable " ^ succ_str ^ ":"),
                   edge_pos );
               ])
             scc))
