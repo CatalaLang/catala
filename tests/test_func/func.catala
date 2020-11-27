@@ -6,6 +6,10 @@ new scope S:
   param x type int
   param b type bool
 
+new scope R:
+  param s scope S
+  param r type int
+
 scope S:
   def f of x1 [ (x1 >= x1) ] := x1 + x1
   def f of x2 [ not b ] := x2 * x2
@@ -13,4 +17,8 @@ scope S:
   def b := false
 
   def x := f of 3
+
+scope R:
+  def s.f of x := x + x * x 
+  def r := s.f of 5
 */

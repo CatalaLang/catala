@@ -24,7 +24,8 @@ interpret_with_scope_and_compare =\
 test_bool/test_bool.catala:
 	$(call interpret_with_scope_and_compare,nv,TestBool)
 test_func/func.catala:
-	$(call interpret_with_scope,nv,S)
+	$(call interpret_with_scope_and_compare,nv,S)
+	$(call interpret_with_scope_and_compare,nv,R)
 test_scope/scope.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
 test_scope/sub_scope.catala:
