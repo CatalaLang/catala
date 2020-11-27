@@ -217,16 +217,7 @@ let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
       | Ast.Definition def ->
           let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
           let def_uid = qident_to_scope_def ctxt scope_uid def.definition_name in
-          let def_ctxt =
-            {
-              var_idmap =
-                ( match def.definition_parameter with
-                | None -> Desugared.Ast.IdentMap.empty
-                | Some param ->
-                    Desugared.Ast.IdentMap.singleton (Pos.unmark param)
-                      (Scopelang.Ast.Var.make param) );
-            }
-          in
+          let def_ctxt = { var_idmap = Desugared.Ast.IdentMap.empty } in
           let scope_ctxt =
             {
               scope_ctxt with

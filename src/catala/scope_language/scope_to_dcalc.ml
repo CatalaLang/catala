@@ -56,6 +56,7 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Pos.marked Bindlib.box
     =
+  (* Cli.debug_print (Format.asprintf "Translating: %a" Print.format_expr e); *)
   Bindlib.box_apply
     (fun (x : Dcalc.Ast.expr) -> Pos.same_pos_as x e)
     ( match Pos.unmark e with

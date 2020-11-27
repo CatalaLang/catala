@@ -53,16 +53,16 @@ module ScopeDefSet = Set.Make (ScopeDef)
 (* Scopes *)
 
 type rule = {
-  just : Scopelang.Ast.expr Pos.marked;
-  cons : Scopelang.Ast.expr Pos.marked;
+  just : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
   parameter : (Scopelang.Ast.Var.t * Dcalc.Ast.typ Pos.marked) option;
   parent_rule : RuleName.t option;
 }
 
 let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ Pos.marked option) : rule =
   {
-    just = (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
-    cons = (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
+    just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
+    cons = Bindlib.box (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
     parameter =
       ( match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
@@ -117,6 +117,9 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
   in
   RuleMap.fold
     (fun _ rule acc ->
-      let locs = Scopelang.Ast.locations_used rule.just @ Scopelang.Ast.locations_used rule.cons in
+      let locs =
+        Scopelang.Ast.locations_used (Bindlib.unbox rule.just)
+        @ Scopelang.Ast.locations_used (Bindlib.unbox rule.cons)
+      in
       add_locs acc locs)
     def ScopeDefMap.empty

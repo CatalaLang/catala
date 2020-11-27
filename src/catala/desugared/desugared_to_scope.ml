@@ -14,6 +14,7 @@
 
 module Pos = Utils.Pos
 module Errors = Utils.Errors
+module Cli = Utils.Cli
 
 type rule_tree = Leaf of Ast.rule | Node of Ast.rule * rule_tree list
 
@@ -46,31 +47,37 @@ let rec def_map_to_tree (def : Ast.rule Ast.RuleMap.t) : rule_tree =
     in
     Node (no_parent, tree_children)
 
-let rec rule_tree_to_expr (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
-    Scopelang.Ast.expr Pos.marked =
+let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t option)
+    (tree : rule_tree) : Scopelang.Ast.expr Pos.marked Bindlib.box =
   let rule, children = match tree with Leaf r -> (r, []) | Node (r, child) -> (r, child) in
   (* because each rule has its own variable parameter and we want to convert the whole rule tree
      into a function, we need to perform some alpha-renaming of all the expressions *)
-  let substitute_parameter (e : Scopelang.Ast.expr Pos.marked) : Scopelang.Ast.expr Pos.marked =
+  let substitute_parameter (e : Scopelang.Ast.expr Pos.marked Bindlib.box) :
+      Scopelang.Ast.expr Pos.marked Bindlib.box =
     match (is_func, rule.parameter) with
     | Some new_param, Some (old_param, _) ->
-        let binder = Bindlib.bind_var old_param (Bindlib.box e) in
-        Bindlib.subst (Bindlib.unbox binder) (Scopelang.Ast.EVar new_param, Pos.no_pos)
+        let binder = Bindlib.bind_var old_param e in
+        Bindlib.box_apply2
+          (fun binder new_param -> Bindlib.subst binder new_param)
+          binder (Bindlib.box_var new_param)
     | None, None -> e
     | _ -> assert false
     (* should not happen *)
   in
   let just = substitute_parameter rule.Ast.just in
   let cons = substitute_parameter rule.Ast.cons in
-  let children = List.map (rule_tree_to_expr is_func) children in
-  let default = (Scopelang.Ast.EDefault (just, cons, children), Pos.no_pos) in
+  let children = Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false is_func) children) in
+  let default =
+    Bindlib.box_apply3
+      (fun just cons children -> (Scopelang.Ast.EDefault (just, cons, children), Pos.no_pos))
+      just cons children
+  in
   match (is_func, rule.parameter) with
   | None, None -> default
   | Some new_param, Some (_, typ) ->
-      Bindlib.unbox
-        (Scopelang.Ast.make_abs
-           (Array.of_list [ new_param ])
-           (Bindlib.box default) Pos.no_pos [ typ ] Pos.no_pos)
+      if toplevel then
+        Scopelang.Ast.make_abs (Array.of_list [ new_param ]) default Pos.no_pos [ typ ] Pos.no_pos
+      else default
   | _ -> assert false
 
 (* should not happen *)
@@ -97,7 +104,7 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
                    ( Some
                        (Format.asprintf "The type of the parameter of this expression is %a"
                           Dcalc.Print.format_typ typ),
-                     Pos.get_position r.Ast.cons ))
+                     Pos.get_position (Bindlib.unbox r.Ast.cons) ))
                  (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_typ n r)) def)))
       | None -> assert false (* should not happen *)
     else if all_rules_not_func then None
@@ -105,10 +112,13 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
       Errors.raise_multispanned_error
         "some definitions of the same variable are functions while others aren't"
         ( List.map
-            (fun (_, r) -> (Some "This definition is a function:", Pos.get_position r.Ast.cons))
+            (fun (_, r) ->
+              (Some "This definition is a function:", Pos.get_position (Bindlib.unbox r.Ast.cons)))
             (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
         @ List.map
-            (fun (_, r) -> (Some "This definition is not a function:", Pos.get_position r.Ast.cons))
+            (fun (_, r) ->
+              ( Some "This definition is not a function:",
+                Pos.get_position (Bindlib.unbox r.Ast.cons) ))
             (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)) )
   in
   let dummy_rule = Ast.empty_rule Pos.no_pos is_def_func in
@@ -123,9 +133,10 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
          def)
   in
   let def_tree = def_map_to_tree def in
-  rule_tree_to_expr
-    (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func)
-    def_tree
+  Bindlib.unbox
+    (rule_tree_to_expr ~toplevel:true
+       (Option.map (fun _ -> Scopelang.Ast.Var.make ("ρ", Pos.no_pos)) is_def_func)
+       def_tree)
 
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in

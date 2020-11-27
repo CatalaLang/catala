@@ -7,8 +7,8 @@ new scope S:
   param b type bool
 
 scope S:
-  def f of x [ (x >= x) ] := x + x
-  def f of x [ not b ] := x * x
+  def f of x1 [ (x1 >= x1) ] := x1 + x1
+  def f of x2 [ not b ] := x2 * x2
 
   def b := false
 

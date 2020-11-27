@@ -14,6 +14,7 @@
 
 module Pos = Utils.Pos
 module Errors = Utils.Errors
+module Cli = Utils.Cli
 
 (** The optional argument subdef allows to choose between differents uids in case the expression is
     a redefinition of a subvariable *)
@@ -37,22 +38,26 @@ let translate_unop (op : Ast.unop) : Dcalc.Ast.unop = match op with Not -> Not |
 
 let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t option) (ctxt : Name_resolution.context)
-    ((expr, pos) : Ast.expression Pos.marked) : Scopelang.Ast.expr Pos.marked =
+    ((expr, pos) : Ast.expression Pos.marked) : Scopelang.Ast.expr Pos.marked Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope def_key ctxt in
   match expr with
   | IfThenElse (e_if, e_then, e_else) ->
-      (EIfThenElse (rec_helper e_if, rec_helper e_then, rec_helper e_else), pos)
+      Bindlib.box_apply3
+        (fun e_if e_then e_else -> (Scopelang.Ast.EIfThenElse (e_if, e_then, e_else), pos))
+        (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
   | Binop (op, e1, e2) ->
       let op_term =
         Pos.same_pos_as (Scopelang.Ast.EOp (Dcalc.Ast.Binop (translate_binop (Pos.unmark op)))) op
       in
-      (EApp (op_term, [ rec_helper e1; rec_helper e2 ]), pos)
+      Bindlib.box_apply2
+        (fun e1 e2 -> (Scopelang.Ast.EApp (op_term, [ e1; e2 ]), pos))
+        (rec_helper e1) (rec_helper e2)
   | Unop (op, e) ->
       let op_term =
         Pos.same_pos_as (Scopelang.Ast.EOp (Dcalc.Ast.Unop (translate_unop (Pos.unmark op)))) op
       in
-      (EApp (op_term, [ rec_helper e ]), pos)
+      Bindlib.box_apply (fun e -> (Scopelang.Ast.EApp (op_term, [ e ]), pos)) (rec_helper e)
   | Literal l ->
       let untyped_term =
         match l with
@@ -61,7 +66,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | _ -> Name_resolution.raise_unsupported_feature "literal" pos
       in
-      (untyped_term, pos)
+      Bindlib.box (untyped_term, pos)
   | Ident x -> (
       (* first we check whether this is a local var, then we resort to scope-wide variables *)
       match def_key with
@@ -70,14 +75,15 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
           match Desugared.Ast.IdentMap.find_opt x def_ctxt.var_idmap with
           | None -> (
               match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
-              | Some uid -> (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
+              | Some uid -> Bindlib.box (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
               | None ->
                   Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
                     (x, pos) )
-          | Some uid -> (Scopelang.Ast.EVar uid, pos) )
+          | Some uid -> Bindlib.box_var uid
+          (* the whole box thing is to accomodate for this case *) )
       | None -> (
           match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
-          | Some uid -> (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
+          | Some uid -> Bindlib.box (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
           | None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) )
       )
   | Dotted (e, x) -> (
@@ -91,31 +97,41 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
             Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
           in
           let subscope_var_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in
-          ( Scopelang.Ast.ELocation
-              (SubScopeVar (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
-            pos )
+          Bindlib.box
+            ( Scopelang.Ast.ELocation
+                (SubScopeVar (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
+              pos )
       | _ ->
           Name_resolution.raise_unsupported_feature
             "left hand side of a dotted expression should be an\n\n   identifier" pos )
-  | FunCall (f, arg) -> (EApp (rec_helper f, [ rec_helper arg ]), pos)
+  | FunCall (f, arg) ->
+      Bindlib.box_apply2
+        (fun f arg -> (Scopelang.Ast.EApp (f, [ arg ]), pos))
+        (rec_helper f) (rec_helper arg)
   | _ -> Name_resolution.raise_unsupported_feature "unsupported expression" pos
 
 (* Translation from the parsed ast to the scope language *)
 
-let merge_conditions (precond : Scopelang.Ast.expr Pos.marked option)
-    (cond : Scopelang.Ast.expr Pos.marked option) (default_pos : Pos.t) :
-    Scopelang.Ast.expr Pos.marked =
+let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (cond : Scopelang.Ast.expr Pos.marked Bindlib.box option) (default_pos : Pos.t) :
+    Scopelang.Ast.expr Pos.marked Bindlib.box =
   match (precond, cond) with
   | Some precond, Some cond ->
-      let op_term = (Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.And), Pos.get_position precond) in
-      (Scopelang.Ast.EApp (op_term, [ precond; cond ]), Pos.get_position precond)
+      let op_term =
+        (Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.And), Pos.get_position (Bindlib.unbox precond))
+      in
+      Bindlib.box_apply2
+        (fun precond cond ->
+          (Scopelang.Ast.EApp (op_term, [ precond; cond ]), Pos.get_position precond))
+        precond cond
   | Some cond, None | None, Some cond -> cond
-  | None, None -> (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
+  | None, None -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t option)
-    (precond : Scopelang.Ast.expr Pos.marked option) (just : Ast.expression Pos.marked option)
-    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
+    (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
+    Desugared.Ast.rule =
   let just =
     match just with
     | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
@@ -133,30 +149,55 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
        | Dcalc.Ast.TArrow _, None ->
            Errors.raise_spanned_error
              "this definition has a function type but the parameter is missing"
-             (Pos.get_position cons)
+             (Pos.get_position (Bindlib.unbox cons))
        | _, Some _ ->
            Errors.raise_spanned_error
              "this definition has a parameter but its type is not a function"
-             (Pos.get_position cons)
+             (Pos.get_position (Bindlib.unbox cons))
        | _ -> None);
     parent_rule =
       None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
   }
 
+let add_var_to_def_idmap (ctxt : Name_resolution.context) (scope_uid : Scopelang.Ast.ScopeName.t)
+    (def_key : Desugared.Ast.ScopeDef.t) (name : string Pos.marked) (var : Scopelang.Ast.Var.t) :
+    Name_resolution.context =
+  {
+    ctxt with
+    scopes =
+      Scopelang.Ast.ScopeMap.update scope_uid
+        (fun scope_ctxt ->
+          match scope_ctxt with
+          | Some scope_ctxt ->
+              Some
+                {
+                  scope_ctxt with
+                  Name_resolution.definitions =
+                    Desugared.Ast.ScopeDefMap.update def_key
+                      (fun def_ctxt ->
+                        match def_ctxt with
+                        | None -> assert false (* should not happen *)
+                        | Some (def_ctxt : Name_resolution.def_context) ->
+                            Some
+                              {
+                                Name_resolution.var_idmap =
+                                  Desugared.Ast.IdentMap.add (Pos.unmark name) var
+                                    def_ctxt.Name_resolution.var_idmap;
+                              })
+                      scope_ctxt.Name_resolution.definitions;
+                }
+          | None -> assert false
+          (* should not happen *))
+        ctxt.scopes;
+  }
+
 (* Process a definition *)
-let process_def (precond : Scopelang.Ast.expr Pos.marked option)
+let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (def : Ast.definition) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let default_pos = Pos.get_position def.definition_expr in
-  let param_uid (def_uid : Desugared.Ast.ScopeDef.t) : Scopelang.Ast.Var.t option =
-    match def.definition_parameter with
-    | None -> None
-    | Some param ->
-        let def_ctxt = Desugared.Ast.ScopeDefMap.find def_uid scope_ctxt.definitions in
-        Some (Desugared.Ast.IdentMap.find (Pos.unmark param) def_ctxt.var_idmap)
-  in
   let def_key =
     match Pos.unmark def.definition_name with
     | [ x ] ->
@@ -173,6 +214,14 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked option)
         Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
     | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
   in
+  (* We add to the name resolution context the name of the parameter variable *)
+  let param_uid, new_ctxt =
+    match def.definition_parameter with
+    | None -> (None, ctxt)
+    | Some param ->
+        let param_var = Scopelang.Ast.Var.make param in
+        (Some param_var, add_var_to_def_idmap ctxt scope_uid def_key param param_var)
+  in
   let scope_updated =
     let x_def, x_type =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
@@ -187,7 +236,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked option)
     in
     let x_def =
       Desugared.Ast.RuleMap.add rule_name
-        (process_default ctxt scope_uid def_key (param_uid def_key) precond def.definition_condition
+        (process_default new_ctxt scope_uid def_key param_uid precond def.definition_condition
            def.definition_expr)
         x_def
     in
@@ -199,7 +248,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked option)
   Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm
 
 (** Process a rule from the surface language *)
-let process_rule (precond : Scopelang.Ast.expr Pos.marked option)
+let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
   let consequence_expr = Ast.Literal (Ast.Bool (Pos.unmark rule.rule_consequence)) in
