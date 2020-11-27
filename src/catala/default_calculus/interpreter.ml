@@ -133,9 +133,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                         Pos.get_position e );
                     ] )
                 @ List.map
-                    (fun (_, sub) ->
-                      ( Some "This value is available because this justification is true:",
-                        Pos.get_position sub ))
+                    (fun (_, sub) -> (Some "This justification is true:", Pos.get_position sub))
                     (List.filter
                        (fun (sub, _) -> not (is_empty_error sub))
                        (List.map2 (fun x y -> (x, y)) subs subs_orig)) ) )
