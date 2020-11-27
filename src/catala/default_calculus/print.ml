@@ -29,9 +29,9 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TInt -> Format.fprintf fmt "int"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
-        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ") format_typ)
+        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
         ts
-  | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ_with_parens t1 format_typ t2
+  | TArrow (t1, t2) -> Format.fprintf fmt "%a →@ %a" format_typ_with_parens t1 format_typ t2
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
