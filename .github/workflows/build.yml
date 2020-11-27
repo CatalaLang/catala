@@ -54,7 +54,6 @@ jobs:
       run: |
         eval $(opam env)
         make build
-
     - name: Run tests
       run: |
         eval $(opam env)
@@ -68,4 +67,4 @@ jobs:
     - name: Make assets and documentation
       run: |
         eval $(opam env)
-        make all
+        make website-assets doc 

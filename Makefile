@@ -18,8 +18,10 @@ install-dependencies-ocaml:
 		menhirLib \
 		dune dune-build-info \
 		cmdliner obelisk \
-		re reason\
-		obelisk\
+		re reason \
+		obelisk \
+		unionfind \
+		bindlib \
 		ocamlgraph
 
 init-submodules:
@@ -139,7 +141,7 @@ tests: build .FORCE
 grammar.html: src/catala/catala_surface/parser.mly
 	obelisk html -o $@ $<
 
-catala.html: src/catala/cli.ml
+catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 

@@ -12,6 +12,9 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+module Cli = Utils.Cli
+module Errors = Utils.Errors
+
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
@@ -35,12 +38,12 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
       if backend = "Makefile" then Cli.Makefile
       else if backend = "LaTeX" then Cli.Latex
       else if backend = "HTML" then Cli.Html
-      else if backend = "run" then Cli.Run
+      else if backend = "Interpret" then Cli.Run
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Parser_driver.parse_source_files [ source_file ] language in
+    let program = Surface.Parser_driver.parse_source_files [ source_file ] language in
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in
@@ -63,67 +66,74 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         let language : Cli.backend_lang = Cli.to_backend_lang language in
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
-             (match backend with Cli.Latex -> "LaTeX" | Cli.Html -> "HTML" | _ -> assert false));
+             ( match backend with
+             | Cli.Latex -> "LaTeX"
+             | Cli.Html -> "HTML"
+             | _ -> assert false (* should not happen *) ));
         let output_file =
           match output_file with
           | Some f -> f
           | None -> (
               Filename.remove_extension source_file
-              ^ match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false )
+              ^
+              match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false
+              (* should not happen *) )
         in
         let oc = open_out output_file in
         let weave_output =
           match backend with
-          | Cli.Latex -> Latex.ast_to_latex language
-          | Cli.Html -> Html.ast_to_html pygmentize_loc language
+          | Cli.Latex -> Literate.Latex.ast_to_latex language
+          | Cli.Html -> Literate.Html.ast_to_html pygmentize_loc language
           | _ -> assert false
+          (* should not happen *)
         in
         Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
         let fmt = Format.formatter_of_out_channel oc in
         if wrap_weaved_output then
           match backend with
           | Cli.Latex ->
-              Latex.wrap_latex program.Catala_ast.program_source_files pygmentize_loc language fmt
-                (fun fmt -> weave_output fmt program)
+              Literate.Latex.wrap_latex program.Surface.Ast.program_source_files pygmentize_loc
+                language fmt (fun fmt -> weave_output fmt program)
           | Cli.Html ->
-              Html.wrap_html program.Catala_ast.program_source_files pygmentize_loc language fmt
-                (fun fmt -> weave_output fmt program)
-          | _ -> assert false
+              Literate.Html.wrap_html program.Surface.Ast.program_source_files pygmentize_loc
+                language fmt (fun fmt -> weave_output fmt program)
+          | _ -> assert false (* should not happen *)
         else weave_output fmt program;
         close_out oc;
         0
     | Cli.Run ->
-        let ctxt = Name_resolution.form_context program in
+        Cli.debug_print "Name resolution...";
+        let ctxt = Surface.Name_resolution.form_context program in
         let scope_uid =
           match ex_scope with
           | None -> Errors.raise_error "No scope was provided for execution."
           | Some name -> (
-              match Uid.IdentMap.find_opt name ctxt.scope_idmap with
+              match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope %s inside the program." name)
               | Some uid -> uid )
         in
-        let prgm = Desugaring.translate_program_to_scope ctxt program in
-        let scope =
-          match Uid.ScopeMap.find_opt scope_uid prgm with
-          | Some scope -> scope
-          | None ->
-              let scope_info = Uid.Scope.get_info scope_uid in
-              Errors.raise_spanned_error
-                (Printf.sprintf
-                   "Scope %s does not define anything, and therefore cannot be executed"
-                   (Pos.unmark scope_info))
-                (Pos.get_position scope_info)
+        Cli.debug_print "Desugaring...";
+        let prgm = Surface.Desugaring.desugar_program ctxt program in
+        Cli.debug_print "Collecting rules...";
+        let prgm = Desugared.Desugared_to_scope.translate_program prgm in
+        Cli.debug_print "Translating to default calculus...";
+        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" Dcalc.Print.format_expr prgm);
+        let typ = Dcalc.Typing.infer_type prgm in
+        Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ typ);
+        let results = Dcalc.Interpreter.interpret_program prgm in
+        let results =
+          List.sort
+            (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
+            results
         in
-        let exec_ctxt = Scope_interpreter.execute_scope ctxt prgm scope in
-        Lambda_interpreter.ExecContext.iter
-          (fun context_key value ->
+        List.iter
+          (fun (var, result) ->
             Cli.result_print
-              (Printf.sprintf "%s -> %s"
-                 (Lambda_interpreter.ExecContextKey.format_t context_key)
-                 (Format_lambda.print_term ((value, Pos.no_pos), TDummy))))
-          exec_ctxt;
+              (Format.asprintf "%s -> %a" (Bindlib.name_of var) Dcalc.Print.format_expr result))
+          results;
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);

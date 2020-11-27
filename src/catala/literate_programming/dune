@@ -1,0 +1,4 @@
+(library
+ (name literate)
+ (public_name catala.literate)
+ (libraries re utils surface))

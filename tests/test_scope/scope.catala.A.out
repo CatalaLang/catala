@@ -1,19 +1,13 @@
-[ERROR] Default logic conflict, multiple justifications are true but are not related by a precedence
-[ERROR]
-[ERROR] The conflict concerns this variable b
-[ERROR]  --> test_scope/scope.catala
-[ERROR]   |
-[ERROR] 6 |   param b type dec
-[ERROR]   |         ^
-[ERROR]
+[ERROR] There is a conflict between multiple rules for assigning the same variable.
+[ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/scope.catala
-[ERROR]    |
+[ERROR]    | 
 [ERROR] 13 |   def b [ not c ] := 1337
 [ERROR]    |           ^^^^^
-[ERROR]
+[ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/scope.catala
-[ERROR]    |
+[ERROR]    | 
 [ERROR] 14 |   def b [ not c ] := 0
 [ERROR]    |           ^^^^^

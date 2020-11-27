@@ -17,7 +17,9 @@
 *)
 
 %{
-  open Catala_ast
+  open Ast
+
+  module Errors = Utils.Errors
 
   type struct_or_enum_inject_content =
   | StructContent of (ident Pos.marked * expression Pos.marked) list
@@ -28,14 +30,14 @@
 %token EOF
 %token<string * string option * string option> LAW_ARTICLE
 %token<string * int> LAW_HEADING
-%token<Catala_ast.law_include> LAW_INCLUDE
+%token<Ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
-%token<int> INT_LITERAL
+%token<Int64.t> INT_LITERAL
 %token TRUE FALSE
-%token<int * int> DECIMAL_LITERAL
-%token<int * int> MONEY_AMOUNT
+%token<Int64.t * Int64.t> DECIMAL_LITERAL
+%token<Int64.t * Int64.t> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
@@ -53,7 +55,7 @@
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE
 
-%type <Catala_ast.source_file_or_master> source_file_or_master
+%type <Ast.source_file_or_master> source_file_or_master
 
 %start source_file_or_master
 
@@ -127,7 +129,7 @@ struct_or_enum_inject:
   match data with
   | EnumContent data ->
   (EnumInject (c, data), $sloc)
-  | _ -> assert false
+  | _ -> assert false (* should not happen *)
 }
 
 primitive_expression:
@@ -152,7 +154,7 @@ unit_literal:
 | YEAR { (Year, $sloc)}
 
 date_int:
-| d = INT_LITERAL { (d, $sloc) }
+| d = INT_LITERAL { (Int64.to_int d, $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {

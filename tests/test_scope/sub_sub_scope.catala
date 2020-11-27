@@ -6,7 +6,8 @@ new scope A:
   param u type bool
 
 new scope B:
-  param a scope A
+  param a1 scope A
+  param a2 scope A
   param y type int
 
 new scope C:
@@ -19,9 +20,9 @@ scope A:
  def u := true
 
 scope B:
-  def a.x [ a.u ] := 1
-  def y [ a.x = 1 ] := 1
-  def y [ a.x + 1 = 2 ] := 1
+  def a2.x [ a1.u ] := 1
+  def y [ a2.x = 1 ] := 1
+  def y [ a2.x + 1 = 2 ] := 1
 
 scope C:
   def a.x := 2
