@@ -52,10 +52,7 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
           Pos.no_pos ))
       caller callee
   in
-  let silent = Dcalc.Ast.Var.make ("_", Pos.no_pos) in
-  Dcalc.Ast.make_abs
-    (Array.of_list [ silent ])
-    body Pos.no_pos [ (Dcalc.Ast.TUnit, Pos.no_pos) ] Pos.no_pos
+  body
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Pos.marked Bindlib.box
     =
@@ -121,12 +118,6 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
       let a_var = Dcalc.Ast.Var.make a_name in
-      let apply_thunked =
-        Bindlib.box_apply2
-          (fun e u -> (Dcalc.Ast.EApp (e, u), var_def_pos))
-          (Bindlib.box_var a_var)
-          (Bindlib.box_list [ Bindlib.box (Dcalc.Ast.ELit LUnit, var_def_pos) ])
-      in
       let new_ctx =
         {
           ctx with
@@ -134,21 +125,13 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
         }
       in
       let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
-      let next_e =
-        Dcalc.Ast.make_let_in (a_var, var_def_pos) tau apply_thunked next_e (Pos.get_position a)
-      in
-      let intermediate_e =
-        Dcalc.Ast.make_abs
-          (Array.of_list [ a_var ])
-          next_e (Pos.get_position a)
-          [ (Dcalc.Ast.TArrow ((TUnit, var_def_pos), tau), var_def_pos) ]
-          (Pos.get_position e)
-      in
       let new_e = translate_expr ctx e in
       let a_expr = Dcalc.Ast.make_var a_var in
       let merged_expr = merge_defaults a_expr new_e in
-      let out_e = Dcalc.Ast.make_app intermediate_e [ merged_expr ] (Pos.get_position e) in
-      (out_e, new_ctx)
+      let next_e =
+        Dcalc.Ast.make_let_in (a_var, var_def_pos) tau merged_expr next_e (Pos.get_position a)
+      in
+      (next_e, new_ctx)
   | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
       let a_name =
         Pos.map_under_mark

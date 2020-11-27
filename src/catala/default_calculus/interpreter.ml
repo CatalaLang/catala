@@ -161,7 +161,7 @@ let empty_thunked_term : Ast.expr Pos.marked =
        Pos.no_pos [ (Ast.TUnit, Pos.no_pos) ] Pos.no_pos)
 
 let interpret_program (e : Ast.expr Pos.marked) : (Ast.Var.t * Ast.expr Pos.marked) list =
-  match Pos.unmark e with
+  match Pos.unmark (evaluate_expr e) with
   | Ast.EAbs (_, binder, taus) -> (
       let application_term = List.map (fun _ -> empty_thunked_term) taus in
       let to_interpret = (Ast.EApp (e, application_term), Pos.no_pos) in

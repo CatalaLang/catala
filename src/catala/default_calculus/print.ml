@@ -115,6 +115,6 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       if List.length subs = 0 then
         Format.fprintf fmt "@[⟨%a ⊢ %a⟩@]" format_expr just format_expr cons
       else
-        Format.fprintf fmt "@[⟨%a ⊢ %a | %a⟩@]" format_expr just format_expr cons
+        Format.fprintf fmt "@[<hov 2>⟨%a ⊢ %a |@ %a⟩@]" format_expr just format_expr cons
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
           subs
