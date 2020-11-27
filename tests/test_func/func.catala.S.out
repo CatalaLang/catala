@@ -3,11 +3,11 @@
 [ERROR] This value is available because the justification of its definition is true:
 [ERROR]   --> test_func/func.catala
 [ERROR]    | 
-[ERROR] 14 |   def f of x1 [ (x1 >= x1) ] := x1 + x1
-[ERROR]    |                  ^^^^^^^^
+[ERROR] 14 |   def f of x [ (x >= x) ] := x + x
+[ERROR]    |                 ^^^^^^
 [ERROR] 
 [ERROR] This value is available because the justification of its definition is true:
 [ERROR]   --> test_func/func.catala
 [ERROR]    | 
-[ERROR] 15 |   def f of x2 [ not b ] := x2 * x2
-[ERROR]    |                 ^^^^^
+[ERROR] 15 |   def f of x [ not b ] := x * x
+[ERROR]    |                ^^^^^

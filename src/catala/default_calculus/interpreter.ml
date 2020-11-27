@@ -134,9 +134,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                     ] )
                 @ List.map
                     (fun (_, sub) ->
-                      ( Some
-                          "This value is available because the justification of its definition is \
-                           true:",
+                      ( Some "This value is available because this justification is true:",
                         Pos.get_position sub ))
                     (List.filter
                        (fun (sub, _) -> not (is_empty_error sub))
