@@ -55,7 +55,13 @@ let build_program_dep_graph (prgm : Ast.program) : Dependencies.t =
           (fun acc r ->
             match r with
             | Ast.Definition _ -> acc
-            | Ast.Call (subscope, _) -> Ast.ScopeNameSet.add subscope acc)
+            | Ast.Call (subscope, _) ->
+                if subscope = scope_name then
+                  Errors.raise_spanned_error
+                    "The scope %a is calling into itself as a subscope, which is forbidden since \
+                     Catala does not provide recursion"
+                    (Pos.get_position (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+                else Ast.ScopeNameSet.add subscope acc)
           Ast.ScopeNameSet.empty scope.Ast.scope_decl_rules
       in
       Ast.ScopeNameSet.fold

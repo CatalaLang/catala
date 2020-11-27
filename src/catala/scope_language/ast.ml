@@ -45,9 +45,9 @@ type expr =
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
-let rec locations_used (e : expr Pos.marked) : location list =
+let rec locations_used (e : expr Pos.marked) : location Pos.marked list =
   match Pos.unmark e with
-  | ELocation l -> [ l ]
+  | ELocation l -> [ (l, Pos.get_position e) ]
   | EVar _ | ELit _ | EOp _ -> []
   | EAbs (_, binder, _) ->
       let _, body = Bindlib.unmbind binder in
@@ -88,6 +88,10 @@ type rule =
   | Definition of location Pos.marked * Dcalc.Ast.typ Pos.marked * expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
-type scope_decl = { scope_decl_name : ScopeName.t; scope_decl_rules : rule list }
+type scope_decl = {
+  scope_decl_name : ScopeName.t;
+  scope_sig : Dcalc.Ast.typ Pos.marked ScopeVarMap.t;
+  scope_decl_rules : rule list;
+}
 
 type program = scope_decl ScopeMap.t

@@ -39,7 +39,7 @@ let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem)
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ") format_typ)
         ts
-  | TArrow (t1, t2) -> Format.fprintf fmt "%a -> %a" format_typ t1 format_typ t2
+  | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ t1 format_typ t2
 
 let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFind.elem) : unit =
   (* Cli.debug_print (Format.asprintf "Unifying %a and %a" format_typ t1 format_typ t2); *)

@@ -63,7 +63,7 @@ let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ -> true | _ -> false
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
+  Format.fprintf fmt "%s" (Bindlib.name_of v)
 
 let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =

@@ -190,7 +190,18 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                sub_scope_vars_redefs @ [ Scopelang.Ast.Call (sub_scope, sub_scope_index) ])
          scope_ordering)
   in
-  { Scopelang.Ast.scope_decl_name = scope.scope_uid; Scopelang.Ast.scope_decl_rules }
+  let scope_sig =
+    Scopelang.Ast.ScopeVarSet.fold
+      (fun var acc ->
+        let _, typ = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+        Scopelang.Ast.ScopeVarMap.add var typ acc)
+      scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
+  in
+  {
+    Scopelang.Ast.scope_decl_name = scope.scope_uid;
+    Scopelang.Ast.scope_decl_rules;
+    Scopelang.Ast.scope_sig;
+  }
 
 let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   Scopelang.Ast.ScopeMap.map translate_scope pgrm

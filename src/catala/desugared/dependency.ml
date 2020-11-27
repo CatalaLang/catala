@@ -117,18 +117,34 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
     Ast.ScopeDefMap.fold
       (fun def_key (def, _) g ->
         let fv = Ast.free_variables def in
-        Ast.ScopeDefSet.fold
-          (fun fv_def g ->
+        Ast.ScopeDefMap.fold
+          (fun fv_def fv_def_pos g ->
             match (def_key, fv_def) with
             | Ast.ScopeDef.Var defined, Ast.ScopeDef.Var used ->
                 (* simple case *)
-                ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined)
+                if used = defined then
+                  (* variable definitions cannot be recursive *)
+                  Errors.raise_spanned_error
+                    (Format.asprintf
+                       "The variable %a is used in one of its definitions, but recursion is \
+                        forbidden in Catala"
+                       Scopelang.Ast.ScopeVar.format_t defined)
+                    fv_def_pos
+                else ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.Var defined)
             | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used ->
                 (* here we are defining the input of a subscope using a var of the scope *)
                 ScopeDependencies.add_edge g (Vertex.Var used) (Vertex.SubScope defined)
             | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* here we are defining the input of a scope with the output of another subscope *)
-                ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined)
+                if used = defined then
+                  (* subscopes are not recursive functions *)
+                  Errors.raise_spanned_error
+                    (Format.asprintf
+                       "The subscope %a is used when defining one of its inputs, but recursion is \
+                        forbidden in Catala"
+                       Scopelang.Ast.SubScopeName.format_t defined)
+                    fv_def_pos
+                else ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.SubScope defined)
             | Ast.ScopeDef.Var defined, Ast.ScopeDef.SubScopeVar (used, _) ->
                 (* finally we define a scope var with the output of a subscope *)
                 ScopeDependencies.add_edge g (Vertex.SubScope used) (Vertex.Var defined))

@@ -153,7 +153,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             (Pos.get_position cond) )
 
 let empty_thunked_term : Ast.expr Pos.marked =
-  let silent = Ast.Var.make ("silent", Pos.no_pos) in
+  let silent = Ast.Var.make ("_", Pos.no_pos) in
   Bindlib.unbox
     (Ast.make_abs
        (Array.of_list [ silent ])
