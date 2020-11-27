@@ -79,7 +79,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
               | None ->
                   Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
                     (x, pos) )
-          | Some uid -> Bindlib.box_var uid
+          | Some uid -> Scopelang.Ast.make_var (uid, pos)
           (* the whole box thing is to accomodate for this case *) )
       | None -> (
           match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
@@ -128,7 +128,7 @@ let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option
   | None, None -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t option)
+    (def_key : Desugared.Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
     Desugared.Ast.rule =
@@ -145,7 +145,7 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     parameter =
       (let def_key_typ = Name_resolution.get_def_typ ctxt def_key in
        match (Pos.unmark def_key_typ, param_uid) with
-       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (param_uid, t_in)
+       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
        | Dcalc.Ast.TArrow _, None ->
            Errors.raise_spanned_error
              "this definition has a function type but the parameter is missing"
@@ -220,7 +220,8 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     | None -> (None, ctxt)
     | Some param ->
         let param_var = Scopelang.Ast.Var.make param in
-        (Some param_var, add_var_to_def_idmap ctxt scope_uid def_key param param_var)
+        ( Some (Pos.same_pos_as param_var param),
+          add_var_to_def_idmap ctxt scope_uid def_key param param_var )
   in
   let scope_updated =
     let x_def, x_type =

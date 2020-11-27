@@ -69,7 +69,8 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
   let children = Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false is_func) children) in
   let default =
     Bindlib.box_apply3
-      (fun just cons children -> (Scopelang.Ast.EDefault (just, cons, children), Pos.no_pos))
+      (fun just cons children ->
+        (Scopelang.Ast.EDefault (just, cons, children), Pos.get_position just))
       just cons children
   in
   match (is_func, rule.parameter) with

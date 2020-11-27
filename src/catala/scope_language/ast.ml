@@ -36,10 +36,9 @@ type location =
 
 type expr =
   | ELocation of location
-  | EVar of expr Pos.marked Bindlib.var
+  | EVar of expr Bindlib.var Pos.marked
   | ELit of Dcalc.Ast.lit
-  | EAbs of
-      Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
+  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
@@ -62,17 +61,20 @@ let rec locations_used (e : expr Pos.marked) : location Pos.marked list =
         subs
 
 module Var = struct
-  type t = expr Pos.marked Bindlib.var
+  type t = expr Bindlib.var
 
   let make (s : string Pos.marked) : t =
-    Bindlib.new_var (fun x -> (EVar x, Pos.get_position s)) (Pos.unmark s)
+    Bindlib.new_var
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
+      (Pos.unmark s)
 
   let compare x y = Bindlib.compare_vars x y
 end
 
-type vars = expr Pos.marked Bindlib.mvar
+type vars = expr Bindlib.mvar
 
-let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
+let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
     (taus : Dcalc.Ast.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =

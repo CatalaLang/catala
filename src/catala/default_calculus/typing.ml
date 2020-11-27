@@ -111,7 +111,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
   let out =
     match Pos.unmark e with
     | EVar v -> (
-        match A.VarMap.find_opt v env with
+        match A.VarMap.find_opt (Pos.unmark v) env with
         | Some t -> UnionFind.make t
         | None ->
             Errors.raise_spanned_error "Variable not found in the current context"
@@ -189,7 +189,7 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
   (* Cli.debug_print (Format.asprintf "Down: %a | %a" Print.format_expr e format_typ tau); *)
   match Pos.unmark e with
   | EVar v -> (
-      match A.VarMap.find_opt v env with
+      match A.VarMap.find_opt (Pos.unmark v) env with
       | Some tau' -> ignore (unify tau (UnionFind.make tau'))
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"

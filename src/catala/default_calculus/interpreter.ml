@@ -14,6 +14,7 @@
 
 module Pos = Utils.Pos
 module Errors = Utils.Errors
+module Cli = Utils.Cli
 module A = Ast
 
 let is_empty_error (e : A.expr Pos.marked) : bool =
@@ -68,7 +69,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       match Pos.unmark e1 with
       | EAbs (_, binder, _) ->
           if Bindlib.mbinder_arity binder = List.length args then
-            evaluate_expr (Bindlib.msubst binder (Array.of_list args))
+            evaluate_expr (Bindlib.msubst binder (Array.of_list (List.map Pos.unmark args)))
           else
             Errors.raise_spanned_error
               (Format.asprintf "wrong function call, expected %d arguments, got %d"
@@ -116,6 +117,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                    e)
           | e' -> e' )
       | ELit (LBool false) -> (
+          let subs_orig = subs in
           let subs = List.map evaluate_expr subs in
           let empty_count = List.length (List.filter is_empty_error subs) in
           match List.length subs - empty_count with
@@ -131,12 +133,14 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                         Pos.get_position e );
                     ] )
                 @ List.map
-                    (fun sub ->
+                    (fun (_, sub) ->
                       ( Some
                           "This value is available because the justification of its definition is \
                            true:",
                         Pos.get_position sub ))
-                    (List.filter (fun sub -> not (is_empty_error sub)) subs) ) )
+                    (List.filter
+                       (fun (sub, _) -> not (is_empty_error sub))
+                       (List.map2 (fun x y -> (x, y)) subs subs_orig)) ) )
       | _ ->
           Errors.raise_spanned_error
             "Default justification has not been reduced to a boolean at evaluation (should not \

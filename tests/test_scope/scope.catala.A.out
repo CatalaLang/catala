@@ -4,10 +4,10 @@
 [ERROR]   --> test_scope/scope.catala
 [ERROR]    | 
 [ERROR] 13 |   def b [ not c ] := 1337
-[ERROR]    |                      ^^^^
+[ERROR]    |           ^^^^^
 [ERROR] 
 [ERROR] This value is available because the justification of its definition is true:
 [ERROR]   --> test_scope/scope.catala
 [ERROR]    | 
 [ERROR] 14 |   def b [ not c ] := 0
-[ERROR]    |                      ^
+[ERROR]    |           ^^^^^

@@ -72,7 +72,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
     else Format.fprintf fmt "%a" format_expr e
   in
   match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var v
+  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ETuple es ->
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",") format_expr)

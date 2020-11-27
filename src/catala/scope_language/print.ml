@@ -35,7 +35,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   in
   match Pos.unmark e with
   | ELocation l -> Format.fprintf fmt "%a" format_location l
-  | EVar v -> Format.fprintf fmt "%a" format_var v
+  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ELit l -> Format.fprintf fmt "%a" Dcalc.Print.format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in

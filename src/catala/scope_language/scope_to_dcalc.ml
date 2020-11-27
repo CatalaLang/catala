@@ -60,7 +60,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
   Bindlib.box_apply
     (fun (x : Dcalc.Ast.expr) -> Pos.same_pos_as x e)
     ( match Pos.unmark e with
-    | EVar v -> Bindlib.box_apply Pos.unmark (Bindlib.box_var (Ast.VarMap.find v ctx.local_vars))
+    | EVar v -> Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.local_vars)
     | ELit l -> Bindlib.box (Dcalc.Ast.ELit l)
     | EApp (e1, args) ->
         Bindlib.box_apply2
@@ -69,7 +69,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (Bindlib.box_list (List.map (translate_expr ctx) args))
     | EAbs (pos_binder, binder, typ) ->
         let xs, body = Bindlib.unmbind binder in
-        let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, pos_binder)) xs in
+        let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, Pos.no_pos)) xs in
         let both_xs = Array.map2 (fun x new_x -> (x, new_x)) xs new_xs in
         let body =
           translate_expr
@@ -90,15 +90,13 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (translate_expr ctx just) (translate_expr ctx cons)
           (Bindlib.box_list (List.map (translate_expr ctx) subs))
     | ELocation (ScopeVar a) ->
-        Bindlib.box_apply Pos.unmark
-          (Bindlib.box_var (fst (Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars)))
+        Bindlib.box_var (fst (Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars))
     | ELocation (SubScopeVar (_, s, a)) -> (
         try
-          Bindlib.box_apply Pos.unmark
-            (Bindlib.box_var
-               (fst
-                  (Ast.ScopeVarMap.find (Pos.unmark a)
-                     (Ast.SubScopeMap.find (Pos.unmark s) ctx.subscope_vars))))
+          Bindlib.box_var
+            (fst
+               (Ast.ScopeVarMap.find (Pos.unmark a)
+                  (Ast.SubScopeMap.find (Pos.unmark s) ctx.subscope_vars)))
         with Not_found ->
           Errors.raise_spanned_error
             (Format.asprintf
@@ -127,11 +125,9 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
       in
       let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
       let new_e = translate_expr ctx e in
-      let a_expr = Dcalc.Ast.make_var a_var in
+      let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr = merge_defaults a_expr new_e in
-      let next_e =
-        Dcalc.Ast.make_let_in (a_var, var_def_pos) tau merged_expr next_e (Pos.get_position a)
-      in
+      let next_e = Dcalc.Ast.make_let_in a_var tau merged_expr next_e in
       (next_e, new_ctx)
   | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
       let a_name =
@@ -139,7 +135,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (fun str -> str ^ "." ^ Pos.unmark (Ast.ScopeVar.get_info (Pos.unmark subs_var)))
           (Ast.SubScopeName.get_info (Pos.unmark subs_index))
       in
-      let a_var = Dcalc.Ast.Var.make a_name in
+      let a_var = (Dcalc.Ast.Var.make a_name, var_def_pos) in
       let new_ctx =
         {
           ctx with
@@ -148,16 +144,21 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               (fun map ->
                 match map with
                 | Some map ->
-                    Some (Ast.ScopeVarMap.add (Pos.unmark subs_var) (a_var, Pos.unmark tau) map)
+                    Some
+                      (Ast.ScopeVarMap.add (Pos.unmark subs_var)
+                         (Pos.unmark a_var, Pos.unmark tau)
+                         map)
                 | None ->
-                    Some (Ast.ScopeVarMap.singleton (Pos.unmark subs_var) (a_var, Pos.unmark tau)))
+                    Some
+                      (Ast.ScopeVarMap.singleton (Pos.unmark subs_var)
+                         (Pos.unmark a_var, Pos.unmark tau)))
               ctx.subscope_vars;
         }
       in
       let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
       let intermediate_e =
         Dcalc.Ast.make_abs
-          (Array.of_list [ a_var ])
+          (Array.of_list [ Pos.unmark a_var ])
           next_e var_def_pos
           [ (Dcalc.Ast.TArrow ((TUnit, var_def_pos), tau), var_def_pos) ]
           (Pos.get_position e)
@@ -189,7 +190,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               Bindlib.box Dcalc.Interpreter.empty_thunked_term
             else
               let a_var, _ = Ast.ScopeVarMap.find subvar subscope_vars_defined in
-              Bindlib.box_var a_var)
+              Dcalc.Ast.make_var (a_var, Pos.get_position (Ast.SubScopeName.get_info subindex)))
           all_subscope_vars
       in
       let all_subscope_vars_dcalc =
@@ -218,7 +219,9 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
       let call_expr =
         Bindlib.box_apply2
           (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
-          (Bindlib.box_var scope_dcalc_var) (Bindlib.box_list subscope_args)
+          (Dcalc.Ast.make_var
+             (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex)))
+          (Bindlib.box_list subscope_args)
       in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
       let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
@@ -228,17 +231,16 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
             let result_access =
               Bindlib.box_apply
                 (fun r -> (Dcalc.Ast.ETupleAccess (r, i), pos_sigma))
-                (Bindlib.box_var result_tuple_var)
+                (Dcalc.Ast.make_var (result_tuple_var, pos_sigma))
             in
-            ( Dcalc.Ast.make_let_in (dvar, pos_sigma) (tau, pos_sigma) result_access acc pos_sigma,
-              i - 1 ))
+            (Dcalc.Ast.make_let_in dvar (tau, pos_sigma) result_access acc, i - 1))
           all_subscope_vars_dcalc
           (next_e, List.length all_subscope_vars_dcalc - 1)
       in
-      ( Dcalc.Ast.make_let_in (result_tuple_var, pos_sigma)
+      ( Dcalc.Ast.make_let_in result_tuple_var
           ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
             pos_sigma )
-          call_expr results_bindings pos_sigma,
+          call_expr results_bindings,
         new_ctx )
 
 and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
@@ -250,7 +252,9 @@ and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
         Bindlib.box_apply
           (fun args -> (Dcalc.Ast.ETuple args, pos_sigma))
           (Bindlib.box_list
-             (List.map (fun (_, (dcalc_var, _)) -> Bindlib.box_var dcalc_var) scope_variables))
+             (List.map
+                (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
+                scope_variables))
       in
       (return_exp, ctx)
   | hd :: tl -> translate_rule ctx hd tl pos_sigma
@@ -302,7 +306,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
   in
   (* the final expression on which we build on is the variable of the top-level scope that we are
      returning *)
-  let acc = Bindlib.box_var (snd (Ast.ScopeMap.find top_level_scope_name sctx)) in
+  let acc = Dcalc.Ast.make_var (snd (Ast.ScopeMap.find top_level_scope_name sctx), Pos.no_pos) in
   (* the resulting expression is the list of definitions of all the scopes, ending with the
      top-level scope. *)
   Bindlib.unbox
@@ -314,7 +318,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
            let scope_expr = translate_scope_decl sctx scope in
            let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in
            let scope_typ = build_scope_typ_from_sig scope_sig pos_scope in
-           Dcalc.Ast.make_let_in (dvar, pos_scope) scope_typ scope_expr acc pos_scope)
+           Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc)
          scope_ordering acc
      in
      acc)

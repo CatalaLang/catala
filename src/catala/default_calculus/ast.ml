@@ -30,30 +30,33 @@ type unop = Not | Minus
 type operator = Binop of binop | Unop of unop
 
 type expr =
-  | EVar of expr Pos.marked Bindlib.var
+  | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list
   | ETupleAccess of expr Pos.marked * int
   | ELit of lit
-  | EAbs of Pos.t * (expr Pos.marked, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
 module Var = struct
-  type t = expr Pos.marked Bindlib.var
+  type t = expr Bindlib.var
 
-  let make (s : string Pos.marked) =
-    Bindlib.new_var (fun x -> (EVar x, Pos.get_position s)) (Pos.unmark s)
+  let make (s : string Pos.marked) : t =
+    Bindlib.new_var
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
+      (Pos.unmark s)
 
   let compare x y = Bindlib.compare_vars x y
 end
 
 module VarMap = Map.Make (Var)
 
-type vars = expr Pos.marked Bindlib.mvar
+type vars = expr Bindlib.mvar
 
-let make_var (x : Var.t) : expr Pos.marked Bindlib.box = Bindlib.box_var x
+let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
     (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
@@ -63,11 +66,16 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in (x : Var.t Pos.marked) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), pos))
-    (make_abs (Array.of_list [ Pos.unmark x ]) e2 (Pos.get_position x) [ tau ] pos)
+    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
+    (make_abs
+       (Array.of_list [ x ])
+       e2
+       (Pos.get_position (Bindlib.unbox e2))
+       [ tau ]
+       (Pos.get_position (Bindlib.unbox e2)))
     (Bindlib.box_list [ e1 ])
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
