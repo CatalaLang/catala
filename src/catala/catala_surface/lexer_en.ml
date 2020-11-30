@@ -332,9 +332,8 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       INT_LITERAL (Int64.of_string (Utf8.lexeme lexbuf))
   | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
-let rec lex_law_en (lexbuf : lexbuf) : token =
+let lex_law_en (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
-  | '\n' -> lex_law_en lexbuf
   | "/*" ->
       L.is_code := true;
       L.code_string_acc := "";
@@ -387,7 +386,7 @@ let rec lex_law_en (lexbuf : lexbuf) : token =
       done;
 
       LAW_ARTICLE (title, None, None)
-  | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
 
 let lexer_en lexbuf = if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf
