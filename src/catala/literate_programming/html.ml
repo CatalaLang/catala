@@ -23,7 +23,11 @@ module P = Printf
 module R = Re.Pcre
 module C = Cli
 
-let pre_html (s : string) = s
+let pre_html (s : string) =
+  let s = String.trim s in
+  let doublenewline = R.regexp "\n\n" in
+  let s = R.substitute ~rex:doublenewline ~subst:(fun _ -> "<br/>\n") s in
+  s
 
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
   Errors.raise_error
@@ -126,7 +130,9 @@ type program_state = InsideArticle | OutsideArticle
 let law_article_item_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (i : A.law_article_item) : unit =
   match i with
-  | A.LawText t -> Format.fprintf fmt "<p class='law-text'>%s</p>" (pre_html t)
+  | A.LawText t ->
+      let t = pre_html t in
+      if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
   | A.CodeBlock (_, c) ->
       let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
       let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
@@ -175,7 +181,9 @@ let rec law_structure_to_html (custom_pygments : string option) (language : C.ba
       Format.fprintf fmt "\n</div>"
   | A.MetadataBlock (b, c) ->
       law_article_item_to_html custom_pygments language fmt (A.CodeBlock (b, c))
-  | A.IntermediateText t -> Format.fprintf fmt "<p class='law-text'>%s</p>" (pre_html t)
+  | A.IntermediateText t ->
+      let t = pre_html t in
+      if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
 
 let program_item_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (i : A.program_item) : unit =

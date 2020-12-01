@@ -494,13 +494,13 @@ code:
 | code = list(code_item) { (code, $sloc) }
 
 metadata_block:
-| BEGIN_CODE code_and_pos = code text = END_CODE END_METADATA {
+| BEGIN_CODE option(law_text) code_and_pos = code text = END_CODE option(law_text) END_METADATA {
   let (code, pos) = code_and_pos in
   (code, (text, pos))
 }
 
 law_article_item:
-| text = LAW_TEXT { LawText text }
+| text = law_text { LawText text }
 | BEGIN_CODE code_and_pos = code text = END_CODE  {
   let (code, pos) = code_and_pos in
   CodeBlock (code, (text, pos))
@@ -530,7 +530,11 @@ law_articles_items:
 | { [] }
 
 law_text:
-| text = LAW_TEXT { LawStructure (IntermediateText text) }
+| text = LAW_TEXT { String.trim text }
+
+law_intermediate_text:
+| text = law_text { LawStructure (IntermediateText text) }
+
 
 source_file_article:
 | article = law_article items = law_articles_items  {
@@ -541,7 +545,7 @@ source_file_item:
 | heading = law_heading {
   LawStructure (LawHeading (heading, []))
 }
-| BEGIN_METADATA code = metadata_block {
+| BEGIN_METADATA option(law_text) code = metadata_block {
   let (code, source_repr) = code in
   LawStructure (MetadataBlock (code, source_repr))
 }
@@ -550,13 +554,13 @@ source_file_after_text:
 | i = source_file_article f = source_file_after_text { 
   i::f 
 }
-| i = source_file_item l = list(law_text) f = source_file_after_text { 
+| i = source_file_item l = list(law_intermediate_text) f = source_file_after_text { 
   i::l@f 
 }
 | EOF { [] }
 
 source_file:
-| l = list(law_text) f = source_file_after_text { l@f }
+| l = list(law_intermediate_text) f = source_file_after_text { l@f }
 
 master_file_include:
 | includ = LAW_INCLUDE {
@@ -566,11 +570,11 @@ master_file_include:
 }
 
 master_file_includes:
-| i = master_file_include is = master_file_includes { i::is }
+| i = master_file_include option(law_text) is = master_file_includes { i::is }
 | EOF { [] }
 
 source_file_or_master:
-| MASTER_FILE is = master_file_includes { MasterFile is }
+| MASTER_FILE option(law_text) is = master_file_includes { MasterFile is }
 | f = source_file { 
   (* 
     now here the heading structure is completely flat because of the 
