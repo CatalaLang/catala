@@ -103,23 +103,24 @@ let empty_scope (scope_uid : Scopelang.Ast.ScopeName.t) (scope_vars : Scopelang.
 type program = scope Scopelang.Ast.ScopeMap.t
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
-  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.location Pos.marked list) :
+  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.LocationSet.t) :
       Pos.t ScopeDefMap.t =
-    List.fold_left
-      (fun acc (loc, loc_pos) ->
+    Scopelang.Ast.LocationSet.fold
+      (fun (loc, loc_pos) acc ->
         ScopeDefMap.add
           ( match loc with
           | Scopelang.Ast.ScopeVar v -> ScopeDef.Var (Pos.unmark v)
           | Scopelang.Ast.SubScopeVar (_, sub_index, sub_var) ->
               ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var) )
           loc_pos acc)
-      acc locs
+      locs acc
   in
   RuleMap.fold
     (fun _ rule acc ->
       let locs =
-        Scopelang.Ast.locations_used (Bindlib.unbox rule.just)
-        @ Scopelang.Ast.locations_used (Bindlib.unbox rule.cons)
+        Scopelang.Ast.LocationSet.union
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.just))
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.cons))
       in
       add_locs acc locs)
     def ScopeDefMap.empty

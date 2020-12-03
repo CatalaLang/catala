@@ -62,6 +62,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     ( match Pos.unmark e with
     | EVar v -> Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.local_vars)
     | ELit l -> Bindlib.box (Dcalc.Ast.ELit l)
+    | EStruct (_, _) -> assert false
+    | EStructAccess (_, _, _) -> assert false
+    | EEnumInj (_, _, _) -> assert false
+    | EMatch (_, _, _) -> assert false
     | EApp (e1, args) ->
         Bindlib.box_apply2
           (fun e u -> Dcalc.Ast.EApp (e, u))

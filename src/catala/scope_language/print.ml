@@ -37,6 +37,10 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | ELocation l -> Format.fprintf fmt "%a" format_location l
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ELit l -> Format.fprintf fmt "%a" Dcalc.Print.format_lit (Pos.same_pos_as l e)
+  | EStruct (_, _) -> assert false
+  | EStructAccess (_, _, _) -> assert false
+  | EEnumInj (_, _, _) -> assert false
+  | EMatch (_, _, _) -> assert false
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in

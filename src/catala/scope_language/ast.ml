@@ -30,13 +30,47 @@ module ScopeVar = Uid.Make (Uid.MarkedString) ()
 module ScopeVarSet = Set.Make (ScopeVar)
 module ScopeVarMap = Map.Make (ScopeVar)
 
+module StructName = Uid.Make (Uid.MarkedString) ()
+
+module StructMap = Map.Make (StructName)
+
+module StructFieldName = Uid.Make (Uid.MarkedString) ()
+
+module StructFieldMap = Map.Make (StructFieldName)
+
+module EnumName = Uid.Make (Uid.MarkedString) ()
+
+module EnumMap = Map.Make (EnumName)
+
+module EnumConstructor = Uid.Make (Uid.MarkedString) ()
+
+module EnumConstructorMap = Map.Make (EnumConstructor)
+
 type location =
   | ScopeVar of ScopeVar.t Pos.marked
   | SubScopeVar of ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
 
+module LocationSet = Set.Make (struct
+  type t = location Pos.marked
+
+  let compare x y =
+    match (Pos.unmark x, Pos.unmark y) with
+    | ScopeVar (vx, _), ScopeVar (vy, _) -> ScopeVar.compare vx vy
+    | SubScopeVar (_, (xsubindex, _), (xsubvar, _)), SubScopeVar (_, (ysubindex, _), (ysubvar, _))
+      ->
+        let c = SubScopeName.compare xsubindex ysubindex in
+        if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+    | ScopeVar _, SubScopeVar _ -> -1
+    | SubScopeVar _, ScopeVar _ -> 1
+end)
+
 type expr =
   | ELocation of location
   | EVar of expr Bindlib.var Pos.marked
+  | EStruct of StructName.t * expr Pos.marked StructFieldMap.t
+  | EStructAccess of expr Pos.marked * StructFieldName.t * StructName.t
+  | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
+  | EMatch of expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
@@ -44,20 +78,34 @@ type expr =
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
-let rec locations_used (e : expr Pos.marked) : location Pos.marked list =
+let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   match Pos.unmark e with
-  | ELocation l -> [ (l, Pos.get_position e) ]
-  | EVar _ | ELit _ | EOp _ -> []
+  | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
+  | EVar _ | ELit _ | EOp _ -> LocationSet.empty
   | EAbs (_, binder, _) ->
       let _, body = Bindlib.unmbind binder in
       locations_used body
+  | EStruct (_, es) ->
+      StructFieldMap.fold
+        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+        es LocationSet.empty
+  | EStructAccess (e1, _, _) -> locations_used e1
+  | EEnumInj (e1, _, _) -> locations_used e1
+  | EMatch (e1, _, es) ->
+      EnumConstructorMap.fold
+        (fun _ e' acc -> LocationSet.union acc (locations_used e'))
+        es (locations_used e1)
   | EApp (e1, args) ->
-      List.fold_left (fun acc arg -> locations_used arg @ acc) (locations_used e1) args
-  | EIfThenElse (e1, e2, e3) -> locations_used e1 @ locations_used e2 @ locations_used e3
+      List.fold_left
+        (fun acc arg -> LocationSet.union (locations_used arg) acc)
+        (locations_used e1) args
+  | EIfThenElse (e1, e2, e3) ->
+      LocationSet.union (locations_used e1)
+        (LocationSet.union (locations_used e2) (locations_used e3))
   | EDefault (just, cons, subs) ->
       List.fold_left
-        (fun acc sub -> locations_used sub @ acc)
-        (locations_used just @ locations_used cons)
+        (fun acc sub -> LocationSet.union (locations_used sub) acc)
+        (LocationSet.union (locations_used just) (locations_used cons))
         subs
 
 module Var = struct
