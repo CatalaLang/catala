@@ -19,6 +19,7 @@ type typ =
   | TUnit
   | TInt
   | TTuple of typ Pos.marked list
+  | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
 type lit = LBool of bool | LEmptyError | LInt of Int64.t | LUnit
@@ -33,6 +34,8 @@ type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list
   | ETupleAccess of expr Pos.marked * int
+  | EInj of expr Pos.marked * int * typ Pos.marked list
+  | EMatch of expr Pos.marked * expr Pos.marked list
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list

@@ -104,6 +104,28 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                 if the term was well-typed)"
                n)
             (Pos.get_position e1) )
+  | EInj (e1, n, ts) ->
+      let e1' = evaluate_expr e1 in
+      Pos.same_pos_as (A.EInj (e1', n, ts)) e
+  | EMatch (e1, es) -> (
+      let e1 = evaluate_expr e1 in
+      match Pos.unmark e1 with
+      | A.EInj (e1, n, _) ->
+          let es_n =
+            match List.nth_opt es n with
+            | Some es_n -> es_n
+            | None ->
+                Errors.raise_spanned_error
+                  "sum type index error (should not happend if the term was well-typed)"
+                  (Pos.get_position e)
+          in
+          let new_e = Pos.same_pos_as (A.EApp (es_n, [ e1 ])) e in
+          evaluate_expr new_e
+      | _ ->
+          Errors.raise_spanned_error
+            "Expected a term having a sum type as an argument to a match (should not happend if \
+             the term was well-typed"
+            (Pos.get_position e1) )
   | EDefault (just, cons, subs) -> (
       let just = evaluate_expr just in
       match Pos.unmark just with

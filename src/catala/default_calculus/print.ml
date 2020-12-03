@@ -31,6 +31,10 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
         ts
+  | TEnum ts ->
+      Format.fprintf fmt "(%a)"
+        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " +@ ") format_typ)
+        ts
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
 
@@ -78,6 +82,14 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",") format_expr)
         es
   | ETupleAccess (e1, n) -> Format.fprintf fmt "%a.%d" format_expr e1 n
+  | EInj (e, n, ts) ->
+      Format.fprintf fmt "inj[%a].%d %a"
+        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
+        ts n format_expr e
+  | EMatch (e, es) ->
+      Format.fprintf fmt "@[<hov 2>match %a with %a@]" format_expr e
+        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " |@ ") format_expr)
+        es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
