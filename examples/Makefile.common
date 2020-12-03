@@ -28,6 +28,13 @@ endif
 # Targets
 ##########################################
 
+%.run: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+	$(CATALA) Makefile $<
+	$(CATALA) \
+		Interpret \
+		-s $(SCOPE) \
+		$<
+
 %.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
 	$(CATALA) Makefile $<
 	$(CATALA) \

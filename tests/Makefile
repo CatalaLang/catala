@@ -23,10 +23,18 @@ interpret_with_scope_and_compare =\
 
 test_bool/test_bool.catala:
 	$(call interpret_with_scope_and_compare,nv,TestBool)
+
+test_func/recursive.catala:
+	$(call interpret_with_scope_and_compare,nv,RecursiveFunc)
 test_func/func.catala:
 	$(call interpret_with_scope_and_compare,nv,S)
 	$(call interpret_with_scope_and_compare,nv,R)
+
+test_scope/cyclic_scopes.catala:
+	$(call interpret_with_scope_and_compare,nv,A)
 test_scope/scope.catala:
+	$(call interpret_with_scope_and_compare,nv,A)
+test_scope/cycle_in_scope.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
 test_scope/sub_scope.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
@@ -35,3 +43,9 @@ test_scope/sub_sub_scope.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
 	$(call interpret_with_scope_and_compare,nv,B)
 	$(call interpret_with_scope_and_compare,nv,C)
+test_scope/grand_parent_caller.catala:
+	$(call interpret_with_scope_and_compare,nv,A)
+	$(call interpret_with_scope_and_compare,nv,B)
+	$(call interpret_with_scope_and_compare,nv,C)
+test_scope/sub_vars_in_sub_var.catala:
+	$(call interpret_with_scope_and_compare,nv,A)

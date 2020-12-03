@@ -1,0 +1,15 @@
+@ Article @
+
+/* 
+new scope A :
+  param x type int 
+  param y type int 
+  param z type int 
+
+scope A:
+  def y [x < 0] := - x
+  def y [x >= 0] := x
+  def z [y >= 1] := 10 / y
+  def z [y < 1] := y
+  def x := z
+*/

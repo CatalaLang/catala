@@ -1,24 +1,30 @@
+@ Article @
+
 /*
 new scope A:
   param x type int
 
 new scope B:
   param a scope A
-  param y type int
+  param y1 type int
+  param y2 type int
 
 new scope C:
   param b scope B
-  param z type int
+  param z1 type int
+  param z2 type int
 
 
 scope A:
   def x := 0
 
 scope B:
-  def a.x := y
-  def y := 1
+  def a.x := y1
+  def y1 := 1
+  def y2 := a.x
 
 scope C:
-  def b.y := z
-  def z = 2
+  def b.y1 := z1
+  def z1 := 2
+  def z2 := b.y2
 */

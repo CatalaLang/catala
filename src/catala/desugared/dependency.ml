@@ -71,7 +71,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   if List.length sccs < ScopeDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     Errors.raise_multispanned_error
-      (Format.asprintf "Cyclic dependency detected between variables of scope %a !"
+      (Format.asprintf "Cyclic dependency detected between variables of scope %a!"
          Scopelang.Ast.ScopeName.format_t scope.scope_uid)
       (List.flatten
          (List.map
