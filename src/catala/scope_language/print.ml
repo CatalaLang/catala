@@ -37,10 +37,26 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | ELocation l -> Format.fprintf fmt "%a" format_location l
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ELit l -> Format.fprintf fmt "%a" Dcalc.Print.format_lit (Pos.same_pos_as l e)
-  | EStruct (_, _) -> assert false
-  | EStructAccess (_, _, _) -> assert false
-  | EEnumInj (_, _, _) -> assert false
-  | EMatch (_, _, _) -> assert false
+  | EStruct (name, fields) ->
+      Format.fprintf fmt "@[%a @[<hov 2>{@ %a@ }@]@]" Ast.StructName.format_t name
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+           (fun fmt (field_name, field_expr) ->
+             Format.fprintf fmt "%a = %a" Ast.StructFieldName.format_t field_name format_expr
+               field_expr))
+        (Ast.StructFieldMap.bindings fields)
+  | EStructAccess (e1, field, _) ->
+      Format.fprintf fmt "%a.%a" format_expr e1 Ast.StructFieldName.format_t field
+  | EEnumInj (e1, cons, _) ->
+      Format.fprintf fmt "%a@ %a" Ast.EnumConstructor.format_t cons format_expr e1
+  | EMatch (e1, _, cases) ->
+      Format.fprintf fmt "@[<hov 2>@[match@ %a@ with@]@ %a@]" format_expr e1
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+           (fun fmt (cons_name, case_expr) ->
+             Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" Ast.EnumConstructor.format_t cons_name
+               format_expr case_expr))
+        (Ast.EnumConstructorMap.bindings cases)
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
