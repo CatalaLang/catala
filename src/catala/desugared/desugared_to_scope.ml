@@ -90,7 +90,7 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
   let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.parameter in
   let all_rules_func = Ast.RuleMap.for_all is_func def in
   let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
-  let is_def_func : Dcalc.Ast.typ Pos.marked option =
+  let is_def_func : Scopelang.Ast.typ Pos.marked option =
     if all_rules_func then
       let typ = (snd (Ast.RuleMap.choose def)).Ast.parameter in
       match typ with
@@ -99,12 +99,12 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
           if Ast.RuleMap.for_all is_typ def then Some typ
           else
             Errors.raise_multispanned_error
-              "the type of these parameters should be the same, but they \n           are different"
+              "the type of these parameters should be the same, but they are different"
               (List.map
                  (fun (_, r) ->
                    ( Some
                        (Format.asprintf "The type of the parameter of this expression is %a"
-                          Dcalc.Print.format_typ typ),
+                          Scopelang.Print.format_typ typ),
                      Pos.get_position (Bindlib.unbox r.Ast.cons) ))
                  (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_typ n r)) def)))
       | None -> assert false (* should not happen *)

@@ -64,6 +64,14 @@ module LocationSet = Set.Make (struct
     | SubScopeVar _, ScopeVar _ -> 1
 end)
 
+type typ =
+  | TBool
+  | TUnit
+  | TInt
+  | TStruct of StructName.t
+  | TEnum of EnumName.t
+  | TArrow of typ Pos.marked * typ Pos.marked
+
 type expr =
   | ELocation of location
   | EVar of expr Bindlib.var Pos.marked
@@ -72,7 +80,7 @@ type expr =
   | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
   | EMatch of expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
+  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
@@ -125,7 +133,7 @@ let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
-    (taus : Dcalc.Ast.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+    (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
@@ -135,18 +143,18 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 module VarMap = Map.Make (Var)
 
 type rule =
-  | Definition of location Pos.marked * Dcalc.Ast.typ Pos.marked * expr Pos.marked
+  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : Dcalc.Ast.typ Pos.marked ScopeVarMap.t;
+  scope_sig : typ Pos.marked ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 
-type struct_ctx = (StructFieldName.t * Dcalc.Ast.typ Pos.marked) list StructMap.t
+type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
-type enum_ctx = (EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list EnumMap.t
+type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type program = {
   program_scopes : scope_decl ScopeMap.t;

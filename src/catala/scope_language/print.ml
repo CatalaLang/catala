@@ -28,6 +28,23 @@ let format_location (fmt : Format.formatter) (l : location) : unit =
       Format.fprintf fmt "%a.%a" SubScopeName.format_t (Pos.unmark subindex) ScopeVar.format_t
         (Pos.unmark subvar)
 
+let typ_needs_parens (e : typ Pos.marked) : bool =
+  match Pos.unmark e with TArrow _ -> true | _ -> false
+
+let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
+    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
+    else Format.fprintf fmt "%a" format_typ t
+  in
+  match Pos.unmark typ with
+  | TUnit -> Format.fprintf fmt "unit"
+  | TBool -> Format.fprintf fmt "bool"
+  | TInt -> Format.fprintf fmt "int"
+  | TStruct s -> Format.fprintf fmt "%a" Ast.StructName.format_t s
+  | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
+  | TArrow (t1, t2) ->
+      Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
+
 let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
@@ -66,7 +83,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
            (fun fmt (x, tau, arg) ->
              Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
-               Dcalc.Print.format_typ tau format_expr arg))
+               format_typ tau format_expr arg))
         xs_tau_arg format_expr body
   | EAbs (_, binder, taus) ->
       let xs, body = Bindlib.unmbind binder in
@@ -74,8 +91,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       Format.fprintf fmt "@[<hov 2>λ@ %a@ →@ %a@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
-           (fun fmt (x, tau) ->
-             Format.fprintf fmt "@[(%a:@ %a)@]" format_var x Dcalc.Print.format_typ tau))
+           (fun fmt (x, tau) -> Format.fprintf fmt "@[(%a:@ %a)@]" format_var x format_typ tau))
         xs_tau format_expr body
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop

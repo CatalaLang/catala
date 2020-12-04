@@ -42,6 +42,21 @@ type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
 
 let hole_var : Dcalc.Ast.Var.t = Dcalc.Ast.Var.make ("·", Pos.no_pos)
 
+let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
+  Pos.same_pos_as
+    ( match Pos.unmark t with
+    | Ast.TUnit -> Dcalc.Ast.TUnit
+    | Ast.TBool -> Dcalc.Ast.TBool
+    | Ast.TInt -> Dcalc.Ast.TInt
+    | Ast.TArrow (t1, t2) -> Dcalc.Ast.TArrow (translate_typ ctx t1, translate_typ ctx t2)
+    | Ast.TStruct s_uid ->
+        let s_fields = Ast.StructMap.find s_uid ctx.structs in
+        Dcalc.Ast.TTuple (List.map (fun (_, t) -> translate_typ ctx t) s_fields)
+    | Ast.TEnum e_uid ->
+        let e_cases = Ast.EnumMap.find e_uid ctx.enums in
+        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases) )
+    t
+
 let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
     (callee : Dcalc.Ast.expr Pos.marked Bindlib.box) : Dcalc.Ast.expr Pos.marked Bindlib.box =
   let caller =
@@ -123,7 +138,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply
-          (fun e1 -> Dcalc.Ast.EInj (e1, constructor_index, List.map snd enum_sig))
+          (fun e1 ->
+            Dcalc.Ast.EInj
+              (e1, constructor_index, List.map (fun (_, t) -> translate_typ ctx t) enum_sig))
           e1
     | EMatch (e1, enum_name, cases) ->
         let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
@@ -179,7 +196,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
             body
         in
         let binder = Bindlib.bind_mvar new_xs body in
-        Bindlib.box_apply (fun b -> Dcalc.Ast.EAbs (pos_binder, b, typ)) binder
+        Bindlib.box_apply
+          (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
+          binder
     | EDefault (just, cons, subs) ->
         Bindlib.box_apply3
           (fun j c s -> Dcalc.Ast.EDefault (j, c, s))
@@ -213,6 +232,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
       let a_var = Dcalc.Ast.Var.make a_name in
+      let tau = translate_typ ctx tau in
       let new_ctx =
         {
           ctx with
@@ -232,6 +252,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (Ast.SubScopeName.get_info (Pos.unmark subs_index))
       in
       let a_var = (Dcalc.Ast.Var.make a_name, var_def_pos) in
+      let tau = translate_typ ctx tau in
       let new_ctx =
         {
           ctx with
@@ -390,18 +411,20 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle scope_dependencies;
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
+  let struct_ctx = prgm.program_structs in
+  let enum_ctx = prgm.program_enums in
   let sctx : scope_sigs_ctx =
     Ast.ScopeMap.map
       (fun scope ->
         let scope_dvar = Dcalc.Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name) in
         ( List.map
-            (fun (scope_var, tau) -> (scope_var, Pos.unmark tau))
+            (fun (scope_var, tau) ->
+              let tau = translate_typ (empty_ctx struct_ctx enum_ctx Ast.ScopeMap.empty) tau in
+              (scope_var, Pos.unmark tau))
             (Ast.ScopeVarMap.bindings scope.scope_sig),
           scope_dvar ))
       prgm.program_scopes
   in
-  let struct_ctx = prgm.program_structs in
-  let enum_ctx = prgm.program_enums in
   (* the final expression on which we build on is the variable of the top-level scope that we are
      returning *)
   let acc = Dcalc.Ast.make_var (snd (Ast.ScopeMap.find top_level_scope_name sctx), Pos.no_pos) in

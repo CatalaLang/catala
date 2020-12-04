@@ -20,7 +20,7 @@ module Errors = Utils.Errors
 
 type ident = string
 
-type typ = Dcalc.Ast.typ
+type typ = Scopelang.Ast.typ
 
 type def_context = { var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
@@ -95,30 +95,41 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       in
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes }
 
-let process_base_typ ((typ, typ_pos) : Ast.base_typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
+let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
+    Scopelang.Ast.typ Pos.marked =
   match typ with
-  | Ast.Condition -> (Dcalc.Ast.TBool, typ_pos)
+  | Ast.Condition -> (Scopelang.Ast.TBool, typ_pos)
   | Ast.Data (Ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
   | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
-      | Ast.Integer -> (Dcalc.Ast.TInt, typ_pos)
+      | Ast.Integer -> (Scopelang.Ast.TInt, typ_pos)
       | Ast.Decimal | Ast.Money | Ast.Date -> raise_unsupported_feature "value type" typ_pos
-      | Ast.Boolean -> (Dcalc.Ast.TBool, typ_pos)
+      | Ast.Boolean -> (Scopelang.Ast.TBool, typ_pos)
       | Ast.Text -> raise_unsupported_feature "text type" typ_pos
-      | Ast.Named _ -> raise_unsupported_feature "struct or enum types" typ_pos )
+      | Ast.Named ident -> (
+          match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
+          | Some s_uid -> (Scopelang.Ast.TStruct s_uid, typ_pos)
+          | None -> (
+              match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
+              | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
+              | None ->
+                  Errors.raise_spanned_error
+                    "Unknown type, not a struct or enum previously declared" typ_pos ) ) )
 
-let process_type ((typ, typ_pos) : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
+let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
+    Scopelang.Ast.typ Pos.marked =
   match typ with
-  | Ast.Base base_typ -> process_base_typ (base_typ, typ_pos)
+  | Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Ast.Func { arg_typ; return_typ } ->
-      (Dcalc.Ast.TArrow (process_base_typ arg_typ, process_base_typ return_typ), typ_pos)
+      ( Scopelang.Ast.TArrow (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
+        typ_pos )
 
 (** Process data declaration *)
 let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
-  let data_typ = process_type decl.scope_decl_context_item_typ in
+  let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
@@ -203,17 +214,14 @@ let qident_to_scope_def (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
       match Desugared.Ast.IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
       | None -> raise_unknown_identifier "for a var of the scope" x
       | Some id -> Desugared.Ast.ScopeDef.Var id )
-  | [ s; x ] -> (
-      let sub_scope_uid =
-        match Desugared.Ast.IdentMap.find_opt (Pos.unmark s) scope_ctxt.sub_scopes_idmap with
-        | None -> raise_unknown_identifier "for a subscope of this scope" s
-        | Some id -> id
-      in
+  | [ s; x ] when Desugared.Ast.IdentMap.mem (Pos.unmark s) scope_ctxt.sub_scopes_idmap -> (
+      let sub_scope_uid = Desugared.Ast.IdentMap.find (Pos.unmark s) scope_ctxt.sub_scopes_idmap in
       let real_sub_scope_uid = Scopelang.Ast.SubScopeMap.find sub_scope_uid scope_ctxt.sub_scopes in
       let sub_scope_ctx = Scopelang.Ast.ScopeMap.find real_sub_scope_uid ctxt.scopes in
       match Desugared.Ast.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
       | None -> raise_unknown_identifier "for a var of this subscope" x
       | Some id -> Desugared.Ast.ScopeDef.SubScopeVar (sub_scope_uid, id) )
+  | [ s; _ ] -> raise_unsupported_feature "not a subscope" (Pos.get_position s)
   | _ -> raise_unsupported_feature "wrong qident" (Pos.get_position id)
 
 let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
@@ -241,9 +249,8 @@ let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
 
 let process_use_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
   match Pos.unmark item with
-  | ScopeDecl _ -> ctxt
+  | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
   | ScopeUse use -> process_scope_use ctxt use
-  | _ -> raise_unsupported_feature "item not supported" (Pos.get_position item)
 
 let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
   let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
@@ -279,11 +286,11 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
               | None ->
                   Some
                     (Scopelang.Ast.StructFieldMap.singleton f_uid
-                       (process_type fdecl.Ast.struct_decl_field_typ))
+                       (process_type ctxt fdecl.Ast.struct_decl_field_typ))
               | Some fields ->
                   Some
                     (Scopelang.Ast.StructFieldMap.add f_uid
-                       (process_type fdecl.Ast.struct_decl_field_typ)
+                       (process_type ctxt fdecl.Ast.struct_decl_field_typ)
                        fields))
             ctxt.structs;
       })
@@ -321,8 +328,8 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
             (fun cases ->
               let typ =
                 match cdecl.Ast.enum_decl_case_typ with
-                | None -> (Dcalc.Ast.TUnit, cdecl_pos)
-                | Some typ -> process_type typ
+                | None -> (Scopelang.Ast.TUnit, cdecl_pos)
+                | Some typ -> process_type ctxt typ
               in
               match cases with
               | None -> Some (Scopelang.Ast.EnumConstructorMap.singleton c_uid typ)

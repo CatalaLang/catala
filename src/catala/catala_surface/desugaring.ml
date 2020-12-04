@@ -145,8 +145,8 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     parameter =
       (let def_key_typ = Name_resolution.get_def_typ ctxt def_key in
        match (Pos.unmark def_key_typ, param_uid) with
-       | Dcalc.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
-       | Dcalc.Ast.TArrow _, None ->
+       | Scopelang.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
+       | Scopelang.Ast.TArrow _, None ->
            Errors.raise_spanned_error
              "this definition has a function type but the parameter is missing"
              (Pos.get_position (Bindlib.unbox cons))
