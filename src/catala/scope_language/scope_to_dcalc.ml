@@ -18,15 +18,23 @@ module Cli = Utils.Cli
 
 type scope_sigs_ctx = ((Ast.ScopeVar.t * Dcalc.Ast.typ) list * Dcalc.Ast.Var.t) Ast.ScopeMap.t
 
+type struct_ctx = (Ast.StructFieldName.t * Dcalc.Ast.typ Pos.marked) list Ast.StructMap.t
+
+type enum_ctx = (Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list Ast.EnumMap.t
+
 type ctx = {
+  structs : struct_ctx;
+  enums : enum_ctx;
   scopes_parameters : scope_sigs_ctx;
   scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t;
   subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-let empty_ctx (scopes_ctx : scope_sigs_ctx) =
+let empty_ctx (struct_ctx : struct_ctx) (enum_ctx : enum_ctx) (scopes_ctx : scope_sigs_ctx) =
   {
+    structs = struct_ctx;
+    enums = enum_ctx;
     scopes_parameters = scopes_ctx;
     scope_vars = Ast.ScopeVarMap.empty;
     subscope_vars = Ast.SubScopeMap.empty;
@@ -62,10 +70,98 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     ( match Pos.unmark e with
     | EVar v -> Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.local_vars)
     | ELit l -> Bindlib.box (Dcalc.Ast.ELit l)
-    | EStruct (_, _) -> assert false
-    | EStructAccess (_, _, _) -> assert false
-    | EEnumInj (_, _, _) -> assert false
-    | EMatch (_, _, _) -> assert false
+    | EStruct (struct_name, e_fields) ->
+        let struct_sig = Ast.StructMap.find struct_name ctx.structs in
+        let d_fields, remaining_e_fields =
+          List.fold_right
+            (fun (field_name, _) (d_fields, e_fields) ->
+              let field_e =
+                Option.value
+                  ~default:
+                    (Errors.raise_spanned_error
+                       (Format.asprintf "The field %a does not belong to the structure %a"
+                          Ast.StructFieldName.format_t field_name Ast.StructName.format_t
+                          struct_name)
+                       (Pos.get_position e))
+                  (Ast.StructFieldMap.find_opt field_name e_fields)
+              in
+              let field_d = translate_expr ctx field_e in
+              (field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields))
+            struct_sig ([], e_fields)
+        in
+        if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
+          Errors.raise_spanned_error
+            (Format.asprintf "Missing fields for structure %a: %a" Ast.StructName.format_t
+               struct_name
+               (Format.pp_print_list
+                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+                  (fun fmt (field_name, _) ->
+                    Format.fprintf fmt "%a" Ast.StructFieldName.format_t field_name))
+               (Ast.StructFieldMap.bindings remaining_e_fields))
+            (Pos.get_position e)
+        else
+          Bindlib.box_apply (fun d_fields -> Dcalc.Ast.ETuple d_fields) (Bindlib.box_list d_fields)
+    | EStructAccess (e1, field_name, struct_name) ->
+        let struct_sig = Ast.StructMap.find struct_name ctx.structs in
+        let _, field_index =
+          Option.value
+            ~default:
+              (Errors.raise_spanned_error
+                 (Format.asprintf "The field %a does not belong to the structure %a"
+                    Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+                 (Pos.get_position e))
+            (List.assoc_opt field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig))
+        in
+        let e1 = translate_expr ctx e1 in
+        Bindlib.box_apply (fun e1 -> Dcalc.Ast.ETupleAccess (e1, field_index)) e1
+    | EEnumInj (e1, constructor, enum_name) ->
+        let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
+        let _, constructor_index =
+          Option.value
+            ~default:
+              (Errors.raise_spanned_error
+                 (Format.asprintf "The constructor %a does not belong to the enum %a"
+                    Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+                 (Pos.get_position e))
+            (List.assoc_opt constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig))
+        in
+        let e1 = translate_expr ctx e1 in
+        Bindlib.box_apply
+          (fun e1 -> Dcalc.Ast.EInj (e1, constructor_index, List.map snd enum_sig))
+          e1
+    | EMatch (e1, enum_name, cases) ->
+        let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
+        let d_cases, remaining_e_cases =
+          List.fold_right
+            (fun (constructor, _) (d_cases, e_cases) ->
+              let case_e =
+                Option.value
+                  ~default:
+                    (Errors.raise_spanned_error
+                       (Format.asprintf "The constructor %a does not belong to the enum %a"
+                          Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+                       (Pos.get_position e))
+                  (Ast.EnumConstructorMap.find_opt constructor e_cases)
+              in
+              let case_d = translate_expr ctx case_e in
+              (case_d :: d_cases, Ast.EnumConstructorMap.remove constructor e_cases))
+            enum_sig ([], cases)
+        in
+        if Ast.EnumConstructorMap.cardinal remaining_e_cases > 0 then
+          Errors.raise_spanned_error
+            (Format.asprintf "Patter matching is incomplete for enum %a: missing cases %a"
+               Ast.EnumName.format_t enum_name
+               (Format.pp_print_list
+                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+                  (fun fmt (case_name, _) ->
+                    Format.fprintf fmt "%a" Ast.EnumConstructor.format_t case_name))
+               (Ast.EnumConstructorMap.bindings remaining_e_cases))
+            (Pos.get_position e)
+        else
+          let e1 = translate_expr ctx e1 in
+          Bindlib.box_apply2
+            (fun d_fields e1 -> Dcalc.Ast.EMatch (e1, d_fields))
+            (Bindlib.box_list d_cases) e1
     | EApp (e1, args) ->
         Bindlib.box_apply2
           (fun e u -> Dcalc.Ast.EApp (e, u))
@@ -263,9 +359,9 @@ and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
       (return_exp, ctx)
   | hd :: tl -> translate_rule ctx hd tl pos_sigma
 
-let translate_scope_decl (sctx : scope_sigs_ctx) (sigma : Ast.scope_decl) :
-    Dcalc.Ast.expr Pos.marked Bindlib.box =
-  let ctx = empty_ctx sctx in
+let translate_scope_decl (struct_ctx : struct_ctx) (enum_ctx : enum_ctx) (sctx : scope_sigs_ctx)
+    (sigma : Ast.scope_decl) : Dcalc.Ast.expr Pos.marked Bindlib.box =
+  let ctx = empty_ctx struct_ctx enum_ctx sctx in
   let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
   let rules, ctx = translate_rules ctx sigma.scope_decl_rules pos_sigma in
   let scope_variables, _ = Ast.ScopeMap.find sigma.scope_decl_name sctx in
@@ -308,6 +404,8 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
           scope_dvar ))
       prgm
   in
+  let struct_ctx = assert false in
+  let enum_ctx = assert false in
   (* the final expression on which we build on is the variable of the top-level scope that we are
      returning *)
   let acc = Dcalc.Ast.make_var (snd (Ast.ScopeMap.find top_level_scope_name sctx), Pos.no_pos) in
@@ -319,7 +417,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
          (fun scope_name (acc : Dcalc.Ast.expr Pos.marked Bindlib.box) ->
            let scope = Ast.ScopeMap.find scope_name prgm in
            let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
-           let scope_expr = translate_scope_decl sctx scope in
+           let scope_expr = translate_scope_decl struct_ctx enum_ctx sctx scope in
            let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in
            let scope_typ = build_scope_typ_from_sig scope_sig pos_scope in
            Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc)
