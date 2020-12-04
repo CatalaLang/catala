@@ -86,18 +86,18 @@ let retrieve_loc_text (pos : t) : string =
         if line_no = sline && line_no = eline then
           Cli.print_with_style error_indicator_style "%*s"
             (get_end_column pos - 1)
-            (String.make (get_end_column pos - get_start_column pos) '^')
+            (String.make (max (get_end_column pos - get_start_column pos) 0) '^')
         else if line_no = sline && line_no <> eline then
           Cli.print_with_style error_indicator_style "%*s"
             (String.length line - 1)
-            (String.make (String.length line - get_start_column pos) '^')
+            (String.make (max (String.length line - get_start_column pos) 0) '^')
         else if line_no <> sline && line_no <> eline then
           Cli.print_with_style error_indicator_style "%*s%s" line_indent ""
-            (String.make (String.length line - line_indent) '^')
+            (String.make (max (String.length line - line_indent) 0) '^')
         else if line_no <> sline && line_no = eline then
           Cli.print_with_style error_indicator_style "%*s%*s" line_indent ""
             (get_end_column pos - 1 - line_indent)
-            (String.make (get_end_column pos - line_indent) '^')
+            (String.make (max (get_end_column pos - line_indent) 0) '^')
         else assert false (* should not happen *)
       else ""
     in
