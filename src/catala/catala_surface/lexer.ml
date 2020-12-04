@@ -206,7 +206,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "type" ->
       update_acc lexbuf;
       CONTENT
-  | "structure" ->
+  | "struct" ->
       update_acc lexbuf;
       STRUCT
   | "option" ->

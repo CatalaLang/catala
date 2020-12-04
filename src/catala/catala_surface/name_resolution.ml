@@ -239,16 +239,105 @@ let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
       | _ -> raise_unsupported_feature "unsupported item" (Pos.get_position use_item))
     ctxt use.scope_use_items
 
-(** Process a code item : for now it only handles scope decls *)
 let process_use_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
   match Pos.unmark item with
   | ScopeDecl _ -> ctxt
   | ScopeUse use -> process_scope_use ctxt use
   | _ -> raise_unsupported_feature "item not supported" (Pos.get_position item)
 
+let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
+  let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
+  let ctxt =
+    {
+      ctxt with
+      struct_idmap =
+        Desugared.Ast.IdentMap.add (Pos.unmark sdecl.struct_decl_name) s_uid ctxt.struct_idmap;
+    }
+  in
+  List.fold_left
+    (fun ctxt (fdecl, _) ->
+      let f_uid = Scopelang.Ast.StructFieldName.fresh fdecl.Ast.struct_decl_field_name in
+      let ctxt =
+        {
+          ctxt with
+          field_idmap =
+            Desugared.Ast.IdentMap.update
+              (Pos.unmark fdecl.Ast.struct_decl_field_name)
+              (fun uids ->
+                match uids with
+                | None -> Some (Scopelang.Ast.StructMap.singleton s_uid f_uid)
+                | Some uids -> Some (Scopelang.Ast.StructMap.add s_uid f_uid uids))
+              ctxt.field_idmap;
+        }
+      in
+      {
+        ctxt with
+        structs =
+          Scopelang.Ast.StructMap.update s_uid
+            (fun fields ->
+              match fields with
+              | None ->
+                  Some
+                    (Scopelang.Ast.StructFieldMap.singleton f_uid
+                       (process_type fdecl.Ast.struct_decl_field_typ))
+              | Some fields ->
+                  Some
+                    (Scopelang.Ast.StructFieldMap.add f_uid
+                       (process_type fdecl.Ast.struct_decl_field_typ)
+                       fields))
+            ctxt.structs;
+      })
+    ctxt sdecl.struct_decl_fields
+
+let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
+  let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
+  let ctxt =
+    {
+      ctxt with
+      enum_idmap =
+        Desugared.Ast.IdentMap.add (Pos.unmark edecl.enum_decl_name) e_uid ctxt.enum_idmap;
+    }
+  in
+  List.fold_left
+    (fun ctxt (cdecl, cdecl_pos) ->
+      let c_uid = Scopelang.Ast.EnumConstructor.fresh cdecl.Ast.enum_decl_case_name in
+      let ctxt =
+        {
+          ctxt with
+          constructor_idmap =
+            Desugared.Ast.IdentMap.update
+              (Pos.unmark cdecl.Ast.enum_decl_case_name)
+              (fun uids ->
+                match uids with
+                | None -> Some (Scopelang.Ast.EnumMap.singleton e_uid c_uid)
+                | Some uids -> Some (Scopelang.Ast.EnumMap.add e_uid c_uid uids))
+              ctxt.constructor_idmap;
+        }
+      in
+      {
+        ctxt with
+        enums =
+          Scopelang.Ast.EnumMap.update e_uid
+            (fun cases ->
+              let typ =
+                match cdecl.Ast.enum_decl_case_typ with
+                | None -> (Dcalc.Ast.TUnit, cdecl_pos)
+                | Some typ -> process_type typ
+              in
+              match cases with
+              | None -> Some (Scopelang.Ast.EnumConstructorMap.singleton c_uid typ)
+              | Some fields -> Some (Scopelang.Ast.EnumConstructorMap.add c_uid typ fields))
+            ctxt.enums;
+      })
+    ctxt edecl.enum_decl_cases
+
 (** Process a code item : for now it only handles scope decls *)
 let process_decl_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
-  match Pos.unmark item with ScopeDecl decl -> process_scope_decl ctxt decl | _ -> ctxt
+  match Pos.unmark item with
+  | ScopeDecl decl -> process_scope_decl ctxt decl
+  | StructDecl sdecl -> process_struct_decl ctxt sdecl
+  | EnumDecl edecl -> process_enum_decl ctxt edecl
+  | ScopeUse _ -> ctxt
 
 (** Process a code block *)
 let process_code_block (ctxt : context) (block : Ast.code_block)

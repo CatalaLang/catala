@@ -1,0 +1,16 @@
+@Article@
+
+/*
+new struct S:
+  data x type int
+  data y type int 
+
+new scope A:
+  param s type S 
+  param z type int 
+
+scope A:
+  def s.x := 1
+  def s.y := 2
+  def z := s.x + s.y
+*/

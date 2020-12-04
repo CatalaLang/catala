@@ -49,3 +49,6 @@ test_scope/grand_parent_caller.catala:
 	$(call interpret_with_scope_and_compare,nv,C)
 test_scope/sub_vars_in_sub_var.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
+
+test_struct/simple.catala:
+	$(call interpret_with_scope,nv,A)
