@@ -216,4 +216,8 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   }
 
 let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
-  Scopelang.Ast.ScopeMap.map translate_scope pgrm
+  {
+    Scopelang.Ast.program_scopes = Scopelang.Ast.ScopeMap.map translate_scope pgrm.program_scopes;
+    Scopelang.Ast.program_structs = pgrm.program_structs;
+    Scopelang.Ast.program_enums = pgrm.program_enums;
+  }

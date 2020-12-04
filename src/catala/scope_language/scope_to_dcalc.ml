@@ -18,20 +18,17 @@ module Cli = Utils.Cli
 
 type scope_sigs_ctx = ((Ast.ScopeVar.t * Dcalc.Ast.typ) list * Dcalc.Ast.Var.t) Ast.ScopeMap.t
 
-type struct_ctx = (Ast.StructFieldName.t * Dcalc.Ast.typ Pos.marked) list Ast.StructMap.t
-
-type enum_ctx = (Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list Ast.EnumMap.t
-
 type ctx = {
-  structs : struct_ctx;
-  enums : enum_ctx;
+  structs : Ast.struct_ctx;
+  enums : Ast.enum_ctx;
   scopes_parameters : scope_sigs_ctx;
   scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t;
   subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-let empty_ctx (struct_ctx : struct_ctx) (enum_ctx : enum_ctx) (scopes_ctx : scope_sigs_ctx) =
+let empty_ctx (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx) (scopes_ctx : scope_sigs_ctx)
+    =
   {
     structs = struct_ctx;
     enums = enum_ctx;
@@ -64,7 +61,6 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Pos.marked Bindlib.box
     =
-  (* Cli.debug_print (Format.asprintf "Translating: %a" Print.format_expr e); *)
   Bindlib.box_apply
     (fun (x : Dcalc.Ast.expr) -> Pos.same_pos_as x e)
     ( match Pos.unmark e with
@@ -359,8 +355,8 @@ and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
       (return_exp, ctx)
   | hd :: tl -> translate_rule ctx hd tl pos_sigma
 
-let translate_scope_decl (struct_ctx : struct_ctx) (enum_ctx : enum_ctx) (sctx : scope_sigs_ctx)
-    (sigma : Ast.scope_decl) : Dcalc.Ast.expr Pos.marked Bindlib.box =
+let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
+    (sctx : scope_sigs_ctx) (sigma : Ast.scope_decl) : Dcalc.Ast.expr Pos.marked Bindlib.box =
   let ctx = empty_ctx struct_ctx enum_ctx sctx in
   let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
   let rules, ctx = translate_rules ctx sigma.scope_decl_rules pos_sigma in
@@ -402,10 +398,10 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
             (fun (scope_var, tau) -> (scope_var, Pos.unmark tau))
             (Ast.ScopeVarMap.bindings scope.scope_sig),
           scope_dvar ))
-      prgm
+      prgm.program_scopes
   in
-  let struct_ctx = assert false in
-  let enum_ctx = assert false in
+  let struct_ctx = prgm.program_structs in
+  let enum_ctx = prgm.program_enums in
   (* the final expression on which we build on is the variable of the top-level scope that we are
      returning *)
   let acc = Dcalc.Ast.make_var (snd (Ast.ScopeMap.find top_level_scope_name sctx), Pos.no_pos) in
@@ -415,7 +411,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
     (let acc =
        List.fold_right
          (fun scope_name (acc : Dcalc.Ast.expr Pos.marked Bindlib.box) ->
-           let scope = Ast.ScopeMap.find scope_name prgm in
+           let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
            let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
            let scope_expr = translate_scope_decl struct_ctx enum_ctx sctx scope in
            let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in

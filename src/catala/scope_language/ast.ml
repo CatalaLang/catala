@@ -144,4 +144,12 @@ type scope_decl = {
   scope_decl_rules : rule list;
 }
 
-type program = scope_decl ScopeMap.t
+type struct_ctx = (StructFieldName.t * Dcalc.Ast.typ Pos.marked) list StructMap.t
+
+type enum_ctx = (EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list EnumMap.t
+
+type program = {
+  program_scopes : scope_decl ScopeMap.t;
+  program_enums : enum_ctx;
+  program_structs : struct_ctx;
+}

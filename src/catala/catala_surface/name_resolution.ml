@@ -35,9 +35,20 @@ type scope_context = {
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
+type struct_context = typ Pos.marked Scopelang.Ast.StructFieldMap.t
+
+type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
+
 type context = {
   scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
+  structs : struct_context Scopelang.Ast.StructMap.t;
+  struct_idmap : Scopelang.Ast.StructName.t Desugared.Ast.IdentMap.t;
+  field_idmap : Scopelang.Ast.StructFieldName.t Scopelang.Ast.StructMap.t Desugared.Ast.IdentMap.t;
+  enums : enum_context Scopelang.Ast.EnumMap.t;
+  enum_idmap : Scopelang.Ast.EnumName.t Desugared.Ast.IdentMap.t;
+  constructor_idmap :
+    Scopelang.Ast.EnumConstructor.t Scopelang.Ast.EnumMap.t Desugared.Ast.IdentMap.t;
   var_typs : typ Pos.marked Scopelang.Ast.ScopeVarMap.t;
 }
 
@@ -274,6 +285,12 @@ let form_context (prgm : Ast.program) : context =
       scope_idmap = Desugared.Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
       var_typs = Scopelang.Ast.ScopeVarMap.empty;
+      structs = Scopelang.Ast.StructMap.empty;
+      struct_idmap = Desugared.Ast.IdentMap.empty;
+      field_idmap = Desugared.Ast.IdentMap.empty;
+      enums = Scopelang.Ast.EnumMap.empty;
+      enum_idmap = Desugared.Ast.IdentMap.empty;
+      constructor_idmap = Desugared.Ast.IdentMap.empty;
     }
   in
   let ctxt =

@@ -47,7 +47,7 @@ module SCC = Graph.Components.Make (Dependencies)
 
 let build_program_dep_graph (prgm : Ast.program) : Dependencies.t =
   let g = Dependencies.empty in
-  let g = Ast.ScopeMap.fold (fun v _ g -> Dependencies.add_vertex g v) prgm g in
+  let g = Ast.ScopeMap.fold (fun v _ g -> Dependencies.add_vertex g v) prgm.program_scopes g in
   Ast.ScopeMap.fold
     (fun scope_name scope g ->
       let subscopes =
@@ -72,7 +72,7 @@ let build_program_dep_graph (prgm : Ast.program) : Dependencies.t =
           let edge = Dependencies.E.create subscope pos scope_name in
           Dependencies.add_edge_e g edge)
         subscopes g)
-    prgm g
+    prgm.program_scopes g
 
 let check_for_cycle (g : Dependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of cardinality > 1 *)

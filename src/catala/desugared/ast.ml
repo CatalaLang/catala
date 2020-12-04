@@ -100,7 +100,11 @@ let empty_scope (scope_uid : Scopelang.Ast.ScopeName.t) (scope_vars : Scopelang.
     scope_meta_assertions = [];
   }
 
-type program = scope Scopelang.Ast.ScopeMap.t
+type program = {
+  program_scopes : scope Scopelang.Ast.ScopeMap.t;
+  program_enums : Scopelang.Ast.enum_ctx;
+  program_structs : Scopelang.Ast.struct_ctx;
+}
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.LocationSet.t) :

@@ -195,7 +195,7 @@ let add_var_to_def_idmap (ctxt : Name_resolution.context) (scope_uid : Scopelang
 let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (def : Ast.definition) : Desugared.Ast.program =
-  let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm in
+  let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let default_pos = Pos.get_position def.definition_expr in
   let def_key =
@@ -246,7 +246,10 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type) scope.scope_defs;
     }
   in
-  Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm
+  {
+    prgm with
+    program_scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm.program_scopes;
+  }
 
 (** Process a rule from the surface language *)
 let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
@@ -285,19 +288,33 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
   in
   (* Make sure the scope exists *)
   let prgm =
-    match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm with
+    match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm.program_scopes with
     | Some _ -> prgm
     | None ->
-        Scopelang.Ast.ScopeMap.add scope_uid
-          (Desugared.Ast.empty_scope scope_uid scope_vars scope_ctxt.sub_scopes)
-          prgm
+        {
+          prgm with
+          program_scopes =
+            Scopelang.Ast.ScopeMap.add scope_uid
+              (Desugared.Ast.empty_scope scope_uid scope_vars scope_ctxt.sub_scopes)
+              prgm.program_scopes;
+        }
   in
   let precond = use.scope_use_condition in
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
 
 (** Scopes processing *)
 let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desugared.Ast.program =
-  let empty_prgm = Scopelang.Ast.ScopeMap.empty in
+  let empty_prgm =
+    {
+      Desugared.Ast.program_structs =
+        Scopelang.Ast.StructMap.map Scopelang.Ast.StructFieldMap.bindings
+          ctxt.Name_resolution.structs;
+      Desugared.Ast.program_enums =
+        Scopelang.Ast.EnumMap.map Scopelang.Ast.EnumConstructorMap.bindings
+          ctxt.Name_resolution.enums;
+      Desugared.Ast.program_scopes = Scopelang.Ast.ScopeMap.empty;
+    }
+  in
   let processer_article_item (prgm : Desugared.Ast.program) (item : Ast.law_article_item) :
       Desugared.Ast.program =
     match item with
