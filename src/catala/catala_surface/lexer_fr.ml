@@ -303,6 +303,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | ')' ->
       L.update_acc lexbuf;
       RPAREN
+  | '{' ->
+      L.update_acc lexbuf;
+      LBRACKET
+  | '}' ->
+      L.update_acc lexbuf;
+      RBRACKET
   | '+' ->
       L.update_acc lexbuf;
       PLUS

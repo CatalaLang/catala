@@ -2,7 +2,9 @@
 # Preamble
 ############################################
 
-CATALA=dune exec --no-print-director ../src/catala.exe -- Interpret
+CATALA_OPTS?=
+
+CATALA=dune exec --no-print-director ../src/catala.exe -- Interpret $(CATALA_OPTS)
 
 tests: $(wildcard */*.catala)
 

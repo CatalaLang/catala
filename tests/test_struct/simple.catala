@@ -10,7 +10,9 @@ new scope A:
   param z type int 
 
 scope A:
-  def s.x := 1
-  def s.y := 2
+  def s := S {
+    -- x : 1 
+    -- y : 2
+  }
   def z := s.x + s.y
 */

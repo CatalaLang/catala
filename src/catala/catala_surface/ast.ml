@@ -109,6 +109,7 @@ and expression =
   | Literal of literal
   | EnumInject of constructor Pos.marked * expression Pos.marked option
   | EnumProject of expression Pos.marked * constructor Pos.marked
+  | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | Ident of ident
   | Dotted of expression Pos.marked * ident Pos.marked
   (* Dotted is for both struct field projection and sub-scope variables *)

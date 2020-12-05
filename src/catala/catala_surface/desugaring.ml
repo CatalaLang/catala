@@ -36,6 +36,8 @@ let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
 
 let translate_unop (op : Ast.unop) : Dcalc.Ast.unop = match op with Not -> Not | Minus -> Minus
 
+module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
+
 let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t option) (ctxt : Name_resolution.context)
     ((expr, pos) : Ast.expression Pos.marked) : Scopelang.Ast.expr Pos.marked Bindlib.box =
@@ -87,9 +89,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
           | None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) )
       )
   | Dotted (e, x) -> (
-      (* For now we only accept dotted identifiers of the type y.x where y is a sub-scope *)
       match Pos.unmark e with
-      | Ident y ->
+      | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
+          (* In this case, y.x is a subscope variable *)
           let subscope_uid : Scopelang.Ast.SubScopeName.t =
             Name_resolution.get_subscope_uid scope ctxt (Pos.same_pos_as y e)
           in
@@ -102,13 +104,60 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                 (SubScopeVar (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
               pos )
       | _ ->
-          Name_resolution.raise_unsupported_feature
-            "left hand side of a dotted expression should be an\n\n   identifier" pos )
+          (* In this case e.x is the struct field x access of expression e *)
+          let e = translate_expr scope def_key ctxt e in
+          let x_possible_structs =
+            try Desugared.Ast.IdentMap.find (Pos.unmark x) ctxt.field_idmap
+            with Not_found ->
+              Errors.raise_spanned_error "This identifier should refer to a struct field"
+                (Pos.get_position x)
+          in
+          if Scopelang.Ast.StructMap.cardinal x_possible_structs > 1 then
+            Errors.raise_spanned_error
+              (Format.asprintf
+                 "This struct field name is ambiguous, it can belong to %a. Desambiguate it by \
+                  prefixing it with the struct name."
+                 (Format.pp_print_list
+                    ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                    (fun fmt (s_name, _) ->
+                      Format.fprintf fmt "%a" Scopelang.Ast.StructName.format_t s_name))
+                 (Scopelang.Ast.StructMap.bindings x_possible_structs))
+              (Pos.get_position x)
+          else
+            let s_uid, f_uid = Scopelang.Ast.StructMap.choose x_possible_structs in
+            Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, s_uid), pos)) e )
   | FunCall (f, arg) ->
       Bindlib.box_apply2
         (fun f arg -> (Scopelang.Ast.EApp (f, [ arg ]), pos))
         (rec_helper f) (rec_helper arg)
-  | _ -> Name_resolution.raise_unsupported_feature "unsupported expression" pos
+  | StructLit (s_name, fields) ->
+      let s_uid =
+        try Desugared.Ast.IdentMap.find (Pos.unmark s_name) ctxt.struct_idmap
+        with Not_found ->
+          Errors.raise_spanned_error "This identifier should refer to a struct name"
+            (Pos.get_position s_name)
+      in
+      let s_fields =
+        List.fold_left
+          (fun s_fields (f_name, f_e) ->
+            let f_uid =
+              try
+                Scopelang.Ast.StructMap.find s_uid
+                  (Desugared.Ast.IdentMap.find (Pos.unmark f_name) ctxt.field_idmap)
+              with Not_found ->
+                Errors.raise_spanned_error
+                  (Format.asprintf "This identifier should refer to a field of struct %s"
+                     (Pos.unmark s_name))
+                  (Pos.get_position f_name)
+            in
+            let f_e = translate_expr scope def_key ctxt f_e in
+            Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
+          Scopelang.Ast.StructFieldMap.empty fields
+      in
+      Bindlib.box_apply
+        (fun s_fields -> (Scopelang.Ast.EStruct (s_uid, s_fields), pos))
+        (LiftStructFieldMap.lift_box s_fields)
+  | _ -> Name_resolution.raise_unsupported_feature "desugaring not implemented" pos
 
 (* Translation from the parsed ast to the scope language *)
 

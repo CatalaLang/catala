@@ -53,7 +53,7 @@
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
-%token UNDER_CONDITION CONSEQUENCE
+%token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -120,7 +120,7 @@ enum_inject_content:
 
 struct_or_enum_inject_content:
 | e = option(enum_inject_content) { EnumContent e }
-| CONTENT LPAREN ALT fields = separated_nonempty_list(ALT, struct_content_field) RPAREN {
+| LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET {
   StructContent fields
 }
 
@@ -129,7 +129,7 @@ struct_or_enum_inject:
   match data with
   | EnumContent data ->
   (EnumInject (c, data), $sloc)
-  | _ -> assert false (* should not happen *)
+  | StructContent fields -> (StructLit (c, fields), $sloc)
 }
 
 primitive_expression:

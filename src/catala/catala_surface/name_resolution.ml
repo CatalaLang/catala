@@ -53,7 +53,7 @@ type context = {
 }
 
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
-  Errors.raise_spanned_error (Printf.sprintf "unsupported feature: %s" msg) pos
+  Errors.raise_spanned_error (Printf.sprintf "Unsupported feature: %s" msg) pos
 
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
   Errors.raise_spanned_error
@@ -72,7 +72,7 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
-      Errors.raise_multispanned_error "subscope name already used"
+      Errors.raise_multispanned_error "Subscope name already used"
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
@@ -221,8 +221,12 @@ let qident_to_scope_def (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
       match Desugared.Ast.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
       | None -> raise_unknown_identifier "for a var of this subscope" x
       | Some id -> Desugared.Ast.ScopeDef.SubScopeVar (sub_scope_uid, id) )
-  | [ s; _ ] -> raise_unsupported_feature "not a subscope" (Pos.get_position s)
-  | _ -> raise_unsupported_feature "wrong qident" (Pos.get_position id)
+  | [ s; _ ] ->
+      Errors.raise_spanned_error "This identifier should refer to a subscope, but does not"
+        (Pos.get_position s)
+  | _ ->
+      Errors.raise_spanned_error "Only scope vars or subscope vars can be defined"
+        (Pos.get_position id)
 
 let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
   let scope_uid =
@@ -413,6 +417,10 @@ let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
   | Some sub_uid -> sub_uid
+
+let is_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y : ident) : bool =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)

@@ -38,6 +38,8 @@ let token_list_language_agnostic : (string * token) list =
     ("=", EQUAL);
     ("(", LPAREN);
     (")", RPAREN);
+    ("{", LBRACKET);
+    ("}", RBRACKET);
     ("+", PLUS);
     ("-", MINUS);
     ("*", MULT);
@@ -322,6 +324,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | ')' ->
       update_acc lexbuf;
       RPAREN
+  | '{' ->
+      update_acc lexbuf;
+      LBRACKET
+  | '}' ->
+      update_acc lexbuf;
+      RBRACKET
   | '+' ->
       update_acc lexbuf;
       PLUS

@@ -87,14 +87,12 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           List.fold_right
             (fun (field_name, _) (d_fields, e_fields) ->
               let field_e =
-                Option.value
-                  ~default:
-                    (Errors.raise_spanned_error
-                       (Format.asprintf "The field %a does not belong to the structure %a"
-                          Ast.StructFieldName.format_t field_name Ast.StructName.format_t
-                          struct_name)
-                       (Pos.get_position e))
-                  (Ast.StructFieldMap.find_opt field_name e_fields)
+                try Ast.StructFieldMap.find field_name e_fields
+                with Not_found ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "The field %a does not belong to the structure %a"
+                       Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+                    (Pos.get_position e)
               in
               let field_d = translate_expr ctx field_e in
               (field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields))
@@ -115,26 +113,24 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     | EStructAccess (e1, field_name, struct_name) ->
         let struct_sig = Ast.StructMap.find struct_name ctx.structs in
         let _, field_index =
-          Option.value
-            ~default:
-              (Errors.raise_spanned_error
-                 (Format.asprintf "The field %a does not belong to the structure %a"
-                    Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
-                 (Pos.get_position e))
-            (List.assoc_opt field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig))
+          try List.assoc field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig)
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "The field %a does not belong to the structure %a"
+                 Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+              (Pos.get_position e)
         in
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply (fun e1 -> Dcalc.Ast.ETupleAccess (e1, field_index)) e1
     | EEnumInj (e1, constructor, enum_name) ->
         let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
         let _, constructor_index =
-          Option.value
-            ~default:
-              (Errors.raise_spanned_error
-                 (Format.asprintf "The constructor %a does not belong to the enum %a"
-                    Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
-                 (Pos.get_position e))
-            (List.assoc_opt constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig))
+          try List.assoc constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig)
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "The constructor %a does not belong to the enum %a"
+                 Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+              (Pos.get_position e)
         in
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply
