@@ -95,6 +95,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                     (Pos.get_position e)
               in
               let field_d = translate_expr ctx field_e in
+              let field_d =
+                Bindlib.box_apply
+                  (fun field_d -> (field_d, Some (Ast.StructFieldName.get_info field_name)))
+                  field_d
+              in
               (field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields))
             struct_sig ([], e_fields)
         in
@@ -121,7 +126,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
               (Pos.get_position e)
         in
         let e1 = translate_expr ctx e1 in
-        Bindlib.box_apply (fun e1 -> Dcalc.Ast.ETupleAccess (e1, field_index)) e1
+        Bindlib.box_apply
+          (fun e1 ->
+            Dcalc.Ast.ETupleAccess (e1, field_index, Some (Ast.StructFieldName.get_info field_name)))
+          e1
     | EEnumInj (e1, constructor, enum_name) ->
         let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
         let _, constructor_index =
@@ -136,7 +144,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         Bindlib.box_apply
           (fun e1 ->
             Dcalc.Ast.EInj
-              (e1, constructor_index, List.map (fun (_, t) -> translate_typ ctx t) enum_sig))
+              ( e1,
+                constructor_index,
+                Ast.EnumConstructor.get_info constructor,
+                List.map (fun (_, t) -> translate_typ ctx t) enum_sig ))
           e1
     | EMatch (e1, enum_name, cases) ->
         let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
@@ -144,15 +155,19 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           List.fold_right
             (fun (constructor, _) (d_cases, e_cases) ->
               let case_e =
-                Option.value
-                  ~default:
-                    (Errors.raise_spanned_error
-                       (Format.asprintf "The constructor %a does not belong to the enum %a"
-                          Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
-                       (Pos.get_position e))
-                  (Ast.EnumConstructorMap.find_opt constructor e_cases)
+                try Ast.EnumConstructorMap.find constructor e_cases
+                with Not_found ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "The constructor %a does not belong to the enum %a"
+                       Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+                    (Pos.get_position e)
               in
               let case_d = translate_expr ctx case_e in
+              let case_d =
+                Bindlib.box_apply
+                  (fun case_d -> (case_d, Ast.EnumConstructor.get_info constructor))
+                  case_d
+              in
               (case_d :: d_cases, Ast.EnumConstructorMap.remove constructor e_cases))
             enum_sig ([], cases)
         in
@@ -343,7 +358,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (fun (_, tau, dvar) (acc, i) ->
             let result_access =
               Bindlib.box_apply
-                (fun r -> (Dcalc.Ast.ETupleAccess (r, i), pos_sigma))
+                (fun r -> (Dcalc.Ast.ETupleAccess (r, i, None), pos_sigma))
                 (Dcalc.Ast.make_var (result_tuple_var, pos_sigma))
             in
             (Dcalc.Ast.make_let_in dvar (tau, pos_sigma) result_access acc, i - 1))
@@ -363,7 +378,7 @@ and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
       let scope_variables = Ast.ScopeVarMap.bindings ctx.scope_vars in
       let return_exp =
         Bindlib.box_apply
-          (fun args -> (Dcalc.Ast.ETuple args, pos_sigma))
+          (fun args -> (Dcalc.Ast.ETuple (List.map (fun arg -> (arg, None)) args), pos_sigma))
           (Bindlib.box_list
              (List.map
                 (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))

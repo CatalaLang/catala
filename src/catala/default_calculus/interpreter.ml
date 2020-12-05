@@ -83,13 +83,13 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
              term was well-typed"
             (Pos.get_position e) )
   | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
-  | ETuple es -> Pos.same_pos_as (A.ETuple (List.map evaluate_expr es)) e
-  | ETupleAccess (e1, n) -> (
+  | ETuple es -> Pos.same_pos_as (A.ETuple (List.map (fun (e', i) -> (evaluate_expr e', i)) es)) e
+  | ETupleAccess (e1, n, _) -> (
       let e1 = evaluate_expr e1 in
       match Pos.unmark e1 with
       | ETuple es -> (
           match List.nth_opt es n with
-          | Some e' -> e'
+          | Some (e', _) -> e'
           | None ->
               Errors.raise_spanned_error
                 (Format.asprintf
@@ -104,14 +104,14 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                 if the term was well-typed)"
                n)
             (Pos.get_position e1) )
-  | EInj (e1, n, ts) ->
+  | EInj (e1, n, i, ts) ->
       let e1' = evaluate_expr e1 in
-      Pos.same_pos_as (A.EInj (e1', n, ts)) e
+      Pos.same_pos_as (A.EInj (e1', n, i, ts)) e
   | EMatch (e1, es) -> (
       let e1 = evaluate_expr e1 in
       match Pos.unmark e1 with
-      | A.EInj (e1, n, _) ->
-          let es_n =
+      | A.EInj (e1, n, _, _) ->
+          let es_n, _ =
             match List.nth_opt es n with
             | Some es_n -> es_n
             | None ->
@@ -190,7 +190,7 @@ let interpret_program (e : Ast.expr Pos.marked) : (Ast.Var.t * Ast.expr Pos.mark
       match Pos.unmark (evaluate_expr to_interpret) with
       | Ast.ETuple args ->
           let vars, _ = Bindlib.unmbind binder in
-          List.map2 (fun arg var -> (var, arg)) args (Array.to_list vars)
+          List.map2 (fun (arg, _) var -> (var, arg)) args (Array.to_list vars)
       | _ ->
           Errors.raise_spanned_error "The interpretation of a program should always yield a tuple"
             (Pos.get_position e) )

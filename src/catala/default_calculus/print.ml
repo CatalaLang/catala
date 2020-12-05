@@ -79,16 +79,26 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ETuple es ->
       Format.fprintf fmt "(%a)"
-        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",") format_expr)
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+           (fun fmt (e, struct_field) ->
+             match struct_field with
+             | Some struct_field ->
+                 Format.fprintf fmt "@[<hov 2>\"%a\":@ %a@]" Uid.MarkedString.format_info
+                   struct_field format_expr e
+             | None -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
-  | ETupleAccess (e1, n) -> Format.fprintf fmt "%a.%d" format_expr e1 n
-  | EInj (e, n, ts) ->
-      Format.fprintf fmt "inj[%a].%d %a"
-        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
-        ts n format_expr e
+  | ETupleAccess (e1, n, i) -> (
+      match i with
+      | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
+      | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )
+  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a %a" Uid.MarkedString.format_info i format_expr e
   | EMatch (e, es) ->
       Format.fprintf fmt "@[<hov 2>match %a with %a@]" format_expr e
-        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " |@ ") format_expr)
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt " |@ ")
+           (fun fmt (e, c) ->
+             Format.fprintf fmt "%a %a" Uid.MarkedString.format_info c format_expr e))
         es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->

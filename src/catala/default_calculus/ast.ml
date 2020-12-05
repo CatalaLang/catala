@@ -13,6 +13,7 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Uid = Utils.Uid
 
 type typ =
   | TBool
@@ -32,10 +33,14 @@ type operator = Binop of binop | Unop of unop
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list
-  | ETupleAccess of expr Pos.marked * int
-  | EInj of expr Pos.marked * int * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list
+  | ETuple of (expr Pos.marked * Uid.MarkedString.info option) list
+      (** The [MarkedString.info] is the former struct field name*)
+  | ETupleAccess of expr Pos.marked * int * Uid.MarkedString.info option
+      (** The [MarkedString.info] is the former struct field name*)
+  | EInj of expr Pos.marked * int * Uid.MarkedString.info * typ Pos.marked list
+      (** The [MarkedString.info] is the former enum case name *)
+  | EMatch of expr Pos.marked * (expr Pos.marked * Uid.MarkedString.info) list
+      (** The [MarkedString.info] is the former enum case name *)
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list

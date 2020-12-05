@@ -127,9 +127,9 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
   | ELit LUnit -> UnionFind.make (Pos.same_pos_as TUnit e)
   | ELit LEmptyError -> UnionFind.make (Pos.same_pos_as TAny e)
   | ETuple es ->
-      let ts = List.map (typecheck_expr_bottom_up env) es in
+      let ts = List.map (fun (e, _) -> typecheck_expr_bottom_up env e) es in
       UnionFind.make (Pos.same_pos_as (TTuple ts) e)
-  | ETupleAccess (e1, n) -> (
+  | ETupleAccess (e1, n, _) -> (
       let t1 = typecheck_expr_bottom_up env e1 in
       match Pos.unmark (UnionFind.get (UnionFind.find t1)) with
       | TTuple ts -> (
@@ -145,7 +145,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
           Errors.raise_spanned_error
             (Format.asprintf "Expected a tuple, got a %a" format_typ t1)
             (Pos.get_position e1) )
-  | EInj (e1, n, ts) ->
+  | EInj (e1, n, _, ts) ->
       let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
       let ts_n =
         match List.nth_opt ts n with
@@ -160,12 +160,12 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       typecheck_expr_top_down env e1 ts_n;
       UnionFind.make (Pos.same_pos_as (TEnum ts) e)
   | EMatch (e1, es) ->
-      let enum_cases = List.map (fun e' -> UnionFind.make (Pos.same_pos_as TAny e')) es in
+      let enum_cases = List.map (fun (e', _) -> UnionFind.make (Pos.same_pos_as TAny e')) es in
       let t_e1 = UnionFind.make (Pos.same_pos_as (TEnum enum_cases) e1) in
       typecheck_expr_top_down env e1 t_e1;
       let t_ret = UnionFind.make (Pos.same_pos_as TAny e) in
       List.iteri
-        (fun i es' ->
+        (fun i (es', _) ->
           let enum_t = List.nth enum_cases i in
           let t_es' = UnionFind.make (Pos.same_pos_as (TArrow (enum_t, t_ret)) es') in
           typecheck_expr_top_down env es' t_es')
@@ -229,12 +229,12 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
   | ETuple es -> (
       let tau' = UnionFind.get (UnionFind.find tau) in
       match Pos.unmark tau' with
-      | TTuple ts -> List.iter2 (typecheck_expr_top_down env) es ts
+      | TTuple ts -> List.iter2 (fun (e, _) t -> typecheck_expr_top_down env e t) es ts
       | _ ->
           Errors.raise_spanned_error
             (Format.asprintf "exprected %a, got a tuple" format_typ tau)
             (Pos.get_position e) )
-  | ETupleAccess (e1, n) -> (
+  | ETupleAccess (e1, n, _) -> (
       let t1 = typecheck_expr_bottom_up env e1 in
       match Pos.unmark (UnionFind.get (UnionFind.find t1)) with
       | TTuple t1s -> (
@@ -250,7 +250,7 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
           Errors.raise_spanned_error
             (Format.asprintf "exprected a tuple , got %a" format_typ tau)
             (Pos.get_position e) )
-  | EInj (e1, n, ts) ->
+  | EInj (e1, n, _, ts) ->
       let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
       let ts_n =
         match List.nth_opt ts n with
@@ -265,12 +265,12 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       typecheck_expr_top_down env e1 ts_n;
       unify (UnionFind.make (Pos.same_pos_as (TEnum ts) e)) tau
   | EMatch (e1, es) ->
-      let enum_cases = List.map (fun e' -> UnionFind.make (Pos.same_pos_as TAny e')) es in
+      let enum_cases = List.map (fun (e', _) -> UnionFind.make (Pos.same_pos_as TAny e')) es in
       let t_e1 = UnionFind.make (Pos.same_pos_as (TEnum enum_cases) e1) in
       typecheck_expr_top_down env e1 t_e1;
       let t_ret = UnionFind.make (Pos.same_pos_as TAny e) in
       List.iteri
-        (fun i es' ->
+        (fun i (es', _) ->
           let enum_t = List.nth enum_cases i in
           let t_es' = UnionFind.make (Pos.same_pos_as (TArrow (enum_t, t_ret)) es') in
           typecheck_expr_top_down env es' t_es')

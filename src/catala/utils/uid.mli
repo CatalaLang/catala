@@ -15,7 +15,7 @@
 module type Info = sig
   type info
 
-  val format_info : info -> string
+  val format_info : Format.formatter -> info -> unit
 end
 
 module MarkedString : Info with type info = string Pos.marked
