@@ -222,31 +222,28 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                               (Pos.get_position constructor) ) )
                     | None -> Scopelang.Ast.EnumMap.choose possible_c_uids
                   in
-                  let ctxt, param_var =
+                  let ctxt, (param_var, param_pos) =
                     match binding with
-                    | None -> (ctxt, None)
+                    | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
                     | Some param ->
                         let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
-                        (ctxt, Some (param_var, Pos.get_position param))
+                        (ctxt, (param_var, Pos.get_position param))
                   in
                   let case_body = translate_expr scope def_key ctxt case.Ast.match_case_expr in
+                  let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
                   let case_expr =
-                    match param_var with
-                    | None -> case_body
-                    | Some (param_var, param_pos) ->
-                        let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
-                        Bindlib.box_apply2
-                          (fun e_binder case_body ->
-                            Pos.same_pos_as
-                              (Scopelang.Ast.EAbs
-                                 ( param_pos,
-                                   e_binder,
-                                   [
-                                     Scopelang.Ast.EnumConstructorMap.find c_uid
-                                       (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
-                                   ] ))
-                              case_body)
-                          e_binder case_body
+                    Bindlib.box_apply2
+                      (fun e_binder case_body ->
+                        Pos.same_pos_as
+                          (Scopelang.Ast.EAbs
+                             ( param_pos,
+                               e_binder,
+                               [
+                                 Scopelang.Ast.EnumConstructorMap.find c_uid
+                                   (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
+                               ] ))
+                          case_body)
+                      e_binder case_body
                   in
                   (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid)
             | _ :: _, _ ->

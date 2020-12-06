@@ -116,7 +116,7 @@ struct_content_field:
 }
 
 enum_inject_content:
-| CONTENT e = small_expression { e }
+| OF e = small_expression { e }
 
 struct_or_enum_inject_content:
 | e = option(enum_inject_content) { EnumContent e }
@@ -127,8 +127,7 @@ struct_or_enum_inject_content:
 struct_or_enum_inject:
 | c = constructor data = struct_or_enum_inject_content {
   match data with
-  | EnumContent data ->
-  (EnumInject (c, data), $sloc)
+  | EnumContent data -> (EnumInject (c, data), $sloc)
   | StructContent fields -> (StructLit (c, fields), $sloc)
 }
 
