@@ -116,7 +116,7 @@ struct_content_field:
 }
 
 enum_inject_content:
-| OF e = small_expression { e }
+| CONTENT e = small_expression { e }
 
 struct_or_enum_inject_content:
 | e = option(enum_inject_content) { EnumContent e }

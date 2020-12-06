@@ -2,20 +2,20 @@
 
 /*
 new struct S:
-  data x type int
-  data y type bool
+  data x content int
+  data y content bool
 
 new struct T:
-  data a type S
-  data b type S 
+  data a content S
+  data b content S 
 
 new scope A:
-  param t type T 
+  param t content T 
 
 new scope B:
-  param t type T 
+  param t content T 
   param a scope A 
-  param out type int
+  param out content int
 
 scope A:
   def t := T {

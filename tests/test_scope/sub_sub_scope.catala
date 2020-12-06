@@ -2,18 +2,18 @@
 
 /*
 new scope A:
-  param x type int
-  param u type bool
+  param x content int
+  param u content bool
 
 new scope B:
   param a1 scope A
   param a2 scope A
-  param y type int
+  param y content int
 
 new scope C:
   param a scope A
   param b scope B
-  param z type int
+  param z content int
 
 scope A:
  def x := 0

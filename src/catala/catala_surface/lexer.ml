@@ -78,7 +78,7 @@ let token_list : (string * token) list =
     ("if", IF);
     ("then", THEN);
     ("else", ELSE);
-    ("type", CONTENT);
+    ("content", CONTENT);
     ("struct", STRUCT);
     ("option", OPTIONAL);
     ("assert", ASSERTION);
@@ -205,7 +205,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "condition" ->
       update_acc lexbuf;
       CONDITION
-  | "type" ->
+  | "content" ->
       update_acc lexbuf;
       CONTENT
   | "struct" ->

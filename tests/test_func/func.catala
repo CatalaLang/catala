@@ -2,13 +2,13 @@
 
 /*
 new scope S:
-  param f type int fun of int
-  param b type bool
-  param out type int
+  param f content int fun of int
+  param b content bool
+  param out content int
 
 new scope R:
   param s scope S
-  param r type int
+  param r content int
 
 scope S:
   def f of x [ (x >= x) ] := x + x

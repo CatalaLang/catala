@@ -100,7 +100,7 @@
         'name' : 'keyword.control.catala_nv'
       }
       {
-        'match' : '\\b(scope|fun\\s+of|new|includes|set|type|option|struct|enum|param|rule|condition|data|ok|assert|def)\\b'
+        'match' : '\\b(scope|fun\\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def)\\b'
         'name' : 'keyword.other.catala_nv'
       }
       {

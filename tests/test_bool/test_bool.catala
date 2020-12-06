@@ -2,8 +2,8 @@
 
 /*
 new scope TestBool :
-  param foo type bool
-  param bar type int
+  param foo content bool
+  param bar content int
 
 scope TestBool :
   def bar := 1

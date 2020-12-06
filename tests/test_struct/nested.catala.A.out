@@ -2,5 +2,5 @@
 [ERROR] 
 [ERROR]  --> test_struct/nested.catala
 [ERROR]   | 
-[ERROR] 5 |   data x type S 
+[ERROR] 5 |   data x content S 
 [ERROR]   |               ^

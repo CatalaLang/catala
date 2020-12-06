@@ -2,17 +2,17 @@
 
 /*
 new scope A:
-  param x type int
+  param x content int
 
 new scope B:
   param a scope A
-  param y1 type int
-  param y2 type int
+  param y1 content int
+  param y2 content int
 
 new scope C:
   param b scope B
-  param z1 type int
-  param z2 type int
+  param z1 content int
+  param z2 content int
 
 
 scope A:

@@ -2,13 +2,13 @@
 
 /*
 new scope A:
-  param a type int
-  param b type bool
-  param a_base type int
+  param a content int
+  param b content bool
+  param a_base content int
 
 new scope B:
-  param a type int
-  param b type bool
+  param a content int
+  param b content bool
   param scopeA scope A
   param scopeAbis scope A
 

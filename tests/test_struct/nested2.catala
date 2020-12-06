@@ -2,10 +2,10 @@
 
 /*
 new struct S:
-  data x type E 
-  data y type int
+  data x content E 
+  data y content int
 
 new enum E:
-  -- Case1 type bool
-  -- Case2 type S
+  -- Case1 content bool
+  -- Case2 content S
 */

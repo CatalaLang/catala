@@ -2,9 +2,9 @@
 
 /* 
 new scope A :
-  param x type int 
-  param y type int 
-  param z type int 
+  param x content int 
+  param y content int 
+  param z content int 
 
 scope A:
   def y [x < 0] := - x

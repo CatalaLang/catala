@@ -2,8 +2,8 @@
 
 /*
 new scope A:
-  param x type bool 
-  param y type int
+  param x content bool 
+  param y content int
 
 new scope B:
   param a scope A 

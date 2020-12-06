@@ -2,12 +2,12 @@
 
 /*
 new struct S:
-  data x type int
-  data y type int 
+  data x content int
+  data y content int 
 
 new scope A:
-  param s type S 
-  param z type int 
+  param s content S 
+  param z content int 
 
 scope A:
   def s := S {

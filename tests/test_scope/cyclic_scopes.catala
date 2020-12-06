@@ -3,11 +3,11 @@
 /* 
 new scope A:
   param b scope B
-  param x type int 
+  param x content int 
 
 new scope B:
   param a scope A
-  param y type int
+  param y content int
 
 scope A:
   def x := b.y

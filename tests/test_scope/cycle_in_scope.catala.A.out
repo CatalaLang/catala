@@ -3,7 +3,7 @@
 [ERROR] Cycle variable z, declared:
 [ERROR]  --> test_scope/cycle_in_scope.catala
 [ERROR]   | 
-[ERROR] 7 |   param z type int 
+[ERROR] 7 |   param z content int 
 [ERROR]   |         ^
 [ERROR] 
 [ERROR] Used here in the definition of another cycle variable x:
@@ -15,7 +15,7 @@
 [ERROR] Cycle variable y, declared:
 [ERROR]  --> test_scope/cycle_in_scope.catala
 [ERROR]   | 
-[ERROR] 6 |   param y type int 
+[ERROR] 6 |   param y content int 
 [ERROR]   |         ^
 [ERROR] 
 [ERROR] Used here in the definition of another cycle variable z:
@@ -27,7 +27,7 @@
 [ERROR] Cycle variable x, declared:
 [ERROR]  --> test_scope/cycle_in_scope.catala
 [ERROR]   | 
-[ERROR] 5 |   param x type int 
+[ERROR] 5 |   param x content int 
 [ERROR]   |         ^
 [ERROR] 
 [ERROR] Used here in the definition of another cycle variable y:

@@ -161,7 +161,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(scope|fun\s+of|new|includes|set|type|option|struct|enum|param|rule|condition|data|ok|assert|def)\b</string>
+          <string>\b(scope|fun\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def)\b</string>
           <key>name</key>
           <string>keyword.other.catala_nv</string>
         </dict>
