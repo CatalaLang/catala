@@ -58,3 +58,6 @@ test_struct/nested.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
 test_struct/nested2.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
+test_struct/nested3.catala:
+	$(call interpret_with_scope_and_compare,nv,A)
+	$(call interpret_with_scope_and_compare,nv,B)
