@@ -420,7 +420,8 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
     Dcalc.Ast.expr Pos.marked =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
-  Dependency.check_for_cycle scope_dependencies;
+  Dependency.check_for_cycle_in_scope scope_dependencies;
+  Dependency.check_type_cycles prgm.program_structs prgm.program_enums;
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let struct_ctx = prgm.program_structs in
   let enum_ctx = prgm.program_enums in

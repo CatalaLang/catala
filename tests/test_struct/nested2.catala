@@ -1,0 +1,11 @@
+@Article@
+
+/*
+new struct S:
+  data x type E 
+  data y type int
+
+new enum E:
+  -- Case1 type bool
+  -- Case2 type S
+*/

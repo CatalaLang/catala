@@ -54,3 +54,7 @@ test_scope/sub_vars_in_sub_var.catala:
 
 test_struct/simple.catala:
 	$(call interpret_with_scope_and_compare,nv,A)
+test_struct/nested.catala:
+	$(call interpret_with_scope_and_compare,nv,A)
+test_struct/nested2.catala:
+	$(call interpret_with_scope_and_compare,nv,A)

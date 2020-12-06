@@ -1,0 +1,12 @@
+@Article@
+
+/*
+new struct S:
+  data x type S 
+
+new scope A:
+  param y type S
+
+scope A:
+  def y := S { -- x: 1 }
+*/
