@@ -181,7 +181,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "varies" ->
       update_acc lexbuf;
       VARIES
-  | "with" ->
+  | "withv" ->
       update_acc lexbuf;
       WITH_V
   | "match" ->

@@ -22,7 +22,6 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type def_context = { var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t }
 (** Inside a definition, local variables can be introduced by functions arguments or pattern
     matching *)
 
@@ -30,8 +29,6 @@ type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
   sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
-  definitions : def_context Desugared.Ast.ScopeDefMap.t;
-      (** Contains the local variables in all the definitions *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
@@ -40,6 +37,7 @@ type struct_context = typ Pos.marked Scopelang.Ast.StructFieldMap.t
 type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
 
 type context = {
+  local_var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t;
   scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
   scopes : scope_context Scopelang.Ast.ScopeMap.t;
   structs : struct_context Scopelang.Ast.StructMap.t;
@@ -158,21 +156,16 @@ let process_item_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
 
 (** Adds a binding to the context *)
-let add_def_local_var (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
-    (def_uid : Desugared.Ast.ScopeDef.t) (name : ident Pos.marked) : context =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  let def_ctx = Desugared.Ast.ScopeDefMap.find def_uid scope_ctxt.definitions in
+let add_def_local_var (ctxt : context) (name : ident Pos.marked) : context * Scopelang.Ast.Var.t =
   let local_var_uid = Scopelang.Ast.Var.make name in
-  let def_ctx =
-    { var_idmap = Desugared.Ast.IdentMap.add (Pos.unmark name) local_var_uid def_ctx.var_idmap }
-  in
-  let scope_ctxt =
+  let ctxt =
     {
-      scope_ctxt with
-      definitions = Desugared.Ast.ScopeDefMap.add def_uid def_ctx scope_ctxt.definitions;
+      ctxt with
+      local_var_idmap =
+        Desugared.Ast.IdentMap.add (Pos.unmark name) local_var_uid ctxt.local_var_idmap;
     }
   in
-  { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
+  (ctxt, local_var_uid)
 
 (** Process a scope declaration *)
 let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
@@ -196,7 +189,6 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
               {
                 var_idmap = Desugared.Ast.IdentMap.empty;
                 sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
-                definitions = Desugared.Ast.ScopeDefMap.empty;
                 sub_scopes = Scopelang.Ast.SubScopeMap.empty;
               }
               ctxt.scopes;
@@ -227,34 +219,6 @@ let qident_to_scope_def (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
   | _ ->
       Errors.raise_spanned_error "Only scope vars or subscope vars can be defined"
         (Pos.get_position id)
-
-let process_scope_use (ctxt : context) (use : Ast.scope_use) : context =
-  let scope_uid =
-    match Desugared.Ast.IdentMap.find_opt (Pos.unmark use.scope_use_name) ctxt.scope_idmap with
-    | None -> raise_unknown_identifier "for a scope" use.scope_use_name
-    | Some id -> id
-  in
-  List.fold_left
-    (fun ctxt use_item ->
-      match Pos.unmark use_item with
-      | Ast.Definition def ->
-          let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-          let def_uid = qident_to_scope_def ctxt scope_uid def.definition_name in
-          let def_ctxt = { var_idmap = Desugared.Ast.IdentMap.empty } in
-          let scope_ctxt =
-            {
-              scope_ctxt with
-              definitions = Desugared.Ast.ScopeDefMap.add def_uid def_ctxt scope_ctxt.definitions;
-            }
-          in
-          { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_ctxt ctxt.scopes }
-      | _ -> raise_unsupported_feature "unsupported item" (Pos.get_position use_item))
-    ctxt use.scope_use_items
-
-let process_use_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
-  match Pos.unmark item with
-  | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
-  | ScopeUse use -> process_scope_use ctxt use
 
 let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
   let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
@@ -382,6 +346,7 @@ let process_program_item (ctxt : context) (item : Ast.program_item)
 let form_context (prgm : Ast.program) : context =
   let empty_ctxt =
     {
+      local_var_idmap = Desugared.Ast.IdentMap.empty;
       scope_idmap = Desugared.Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
       var_typs = Scopelang.Ast.ScopeVarMap.empty;
@@ -398,9 +363,7 @@ let form_context (prgm : Ast.program) : context =
       (fun ctxt item -> process_program_item ctxt item process_decl_item)
       empty_ctxt prgm.program_items
   in
-  List.fold_left
-    (fun ctxt item -> process_program_item ctxt item process_use_item)
-    ctxt prgm.program_items
+  ctxt
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)

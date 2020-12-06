@@ -37,6 +37,7 @@ let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
 let translate_unop (op : Ast.unop) : Dcalc.Ast.unop = match op with Not -> Not | Minus -> Minus
 
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
+module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
 
 let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t option) (ctxt : Name_resolution.context)
@@ -71,22 +72,15 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
       (* first we check whether this is a local var, then we resort to scope-wide variables *)
-      match def_key with
-      | Some def_key -> (
-          let def_ctxt = Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.definitions in
-          match Desugared.Ast.IdentMap.find_opt x def_ctxt.var_idmap with
-          | None -> (
-              match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
-              | Some uid -> Bindlib.box (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
-              | None ->
-                  Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
-                    (x, pos) )
-          | Some uid -> Scopelang.Ast.make_var (uid, pos)
-          (* the whole box thing is to accomodate for this case *) )
+      match Desugared.Ast.IdentMap.find_opt x ctxt.local_var_idmap with
       | None -> (
           match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
           | Some uid -> Bindlib.box (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
-          | None -> Name_resolution.raise_unknown_identifier "for a scope-wide variable" (x, pos) )
+          | None ->
+              Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
+                (x, pos) )
+      | Some uid ->
+          Scopelang.Ast.make_var (uid, pos) (* the whole box thing is to accomodate for this case *)
       )
   | Dotted (e, x) -> (
       match Pos.unmark e with
@@ -157,7 +151,118 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       Bindlib.box_apply
         (fun s_fields -> (Scopelang.Ast.EStruct (s_uid, s_fields), pos))
         (LiftStructFieldMap.lift_box s_fields)
-  | _ -> Name_resolution.raise_unsupported_feature "desugaring not implemented" pos
+  | EnumInject (constructor, payload) ->
+      let possible_c_uids =
+        try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
+        with Not_found ->
+          Errors.raise_spanned_error
+            "The name of this constructor has not been defined before, maybe it is a typo?"
+            (Pos.get_position constructor)
+      in
+      if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
+        Errors.raise_spanned_error
+          (Format.asprintf
+             "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing \
+              it with the enum name."
+             (Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                (fun fmt (s_name, _) ->
+                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+          (Pos.get_position constructor)
+      else
+        let e_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
+        let payload = Option.map (translate_expr scope def_key ctxt) payload in
+        Bindlib.box_apply
+          (fun payload ->
+            ( Scopelang.Ast.EEnumInj
+                ( ( match payload with
+                  | Some e' -> e'
+                  | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor) ),
+                  c_uid,
+                  e_uid ),
+              pos ))
+          (Bindlib.box_opt payload)
+  | MatchWith (e1, (cases, _cases_pos)) ->
+      let e1 = translate_expr scope def_key ctxt e1 in
+      let cases_d, e_uid =
+        List.fold_left
+          (fun (cases_d, e_uid) (case, pos_case) ->
+            match Pos.unmark case.Ast.match_case_pattern with
+            | [ constructor ], binding ->
+                let possible_c_uids =
+                  try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
+                  with Not_found ->
+                    Errors.raise_spanned_error
+                      "The name of this constructor has not been defined before, maybe it is a \
+                       typo?"
+                      (Pos.get_position constructor)
+                in
+                if e_uid = None && Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
+                  Errors.raise_spanned_error
+                    (Format.asprintf
+                       "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by \
+                        prefixing it with the enum name."
+                       (Format.pp_print_list
+                          ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                          (fun fmt (s_name, _) ->
+                            Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+                       (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+                    (Pos.get_position constructor)
+                else
+                  let e_uid, c_uid =
+                    match e_uid with
+                    | Some e_uid -> (
+                        ( e_uid,
+                          try Scopelang.Ast.EnumMap.find e_uid possible_c_uids
+                          with Not_found ->
+                            Errors.raise_spanned_error
+                              (Format.asprintf "This constructor is not part of the %a enumeration"
+                                 Scopelang.Ast.EnumName.format_t e_uid)
+                              (Pos.get_position constructor) ) )
+                    | None -> Scopelang.Ast.EnumMap.choose possible_c_uids
+                  in
+                  let ctxt, param_var =
+                    match binding with
+                    | None -> (ctxt, None)
+                    | Some param ->
+                        let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
+                        (ctxt, Some (param_var, Pos.get_position param))
+                  in
+                  let case_body = translate_expr scope def_key ctxt case.Ast.match_case_expr in
+                  let case_expr =
+                    match param_var with
+                    | None -> case_body
+                    | Some (param_var, param_pos) ->
+                        let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
+                        Bindlib.box_apply2
+                          (fun e_binder case_body ->
+                            Pos.same_pos_as
+                              (Scopelang.Ast.EAbs
+                                 ( param_pos,
+                                   e_binder,
+                                   [
+                                     Scopelang.Ast.EnumConstructorMap.find c_uid
+                                       (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
+                                   ] ))
+                              case_body)
+                          e_binder case_body
+                  in
+                  (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid)
+            | _ :: _, _ ->
+                Errors.raise_spanned_error
+                  "The deep pattern matching syntactic sugar is not yet supported" pos_case
+            | [], _ -> assert false
+            (* should not happen *))
+          (Scopelang.Ast.EnumConstructorMap.empty, None)
+          cases
+      in
+      Bindlib.box_apply2
+        (fun e1 cases_d -> (Scopelang.Ast.EMatch (e1, Option.get e_uid, cases_d), pos))
+        e1
+        (LiftEnumConstructorMap.lift_box cases_d)
+  | _ ->
+      Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
 
 (* Translation from the parsed ast to the scope language *)
 
@@ -208,38 +313,6 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
       None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
   }
 
-let add_var_to_def_idmap (ctxt : Name_resolution.context) (scope_uid : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t) (name : string Pos.marked) (var : Scopelang.Ast.Var.t) :
-    Name_resolution.context =
-  {
-    ctxt with
-    scopes =
-      Scopelang.Ast.ScopeMap.update scope_uid
-        (fun scope_ctxt ->
-          match scope_ctxt with
-          | Some scope_ctxt ->
-              Some
-                {
-                  scope_ctxt with
-                  Name_resolution.definitions =
-                    Desugared.Ast.ScopeDefMap.update def_key
-                      (fun def_ctxt ->
-                        match def_ctxt with
-                        | None -> assert false (* should not happen *)
-                        | Some (def_ctxt : Name_resolution.def_context) ->
-                            Some
-                              {
-                                Name_resolution.var_idmap =
-                                  Desugared.Ast.IdentMap.add (Pos.unmark name) var
-                                    def_ctxt.Name_resolution.var_idmap;
-                              })
-                      scope_ctxt.Name_resolution.definitions;
-                }
-          | None -> assert false
-          (* should not happen *))
-        ctxt.scopes;
-  }
-
 (* Process a definition *)
 let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
@@ -268,9 +341,8 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     match def.definition_parameter with
     | None -> (None, ctxt)
     | Some param ->
-        let param_var = Scopelang.Ast.Var.make param in
-        ( Some (Pos.same_pos_as param_var param),
-          add_var_to_def_idmap ctxt scope_uid def_key param param_var )
+        let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
+        (Some (Pos.same_pos_as param_var param), ctxt)
   in
   let scope_updated =
     let x_def, x_type =

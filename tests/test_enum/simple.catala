@@ -1,0 +1,17 @@
+@Article@
+
+/*
+new enum E:
+  -- Case1 type int
+  -- Case2
+
+new scope A:
+  param x type E
+  param y type int 
+
+scope A:
+  def x := Case1 of 2
+  def y := match x with 
+    -- Case1 of i : 42
+    -- Case2 : 43
+*/

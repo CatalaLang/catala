@@ -90,11 +90,6 @@ type match_case = {
 
 and match_cases = match_case Pos.marked list
 
-and struct_inject = {
-  struct_inject_name : constructor Pos.marked;
-  struct_inject_fields : (ident Pos.marked * expression Pos.marked) list;
-}
-
 and expression =
   | MatchWith of expression Pos.marked * match_cases Pos.marked
   | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
@@ -112,8 +107,8 @@ and expression =
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | Ident of ident
   | Dotted of expression Pos.marked * ident Pos.marked
-  (* Dotted is for both struct field projection and sub-scope variables *)
-  | StructInject of struct_inject
+
+(* Dotted is for both struct field projection and sub-scope variables *)
 
 type rule = {
   rule_parameter : ident Pos.marked option;
