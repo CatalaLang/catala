@@ -144,6 +144,14 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                      (Pos.unmark s_name))
                   (Pos.get_position f_name)
             in
+            ( match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
+            | None -> ()
+            | Some e_field ->
+                Errors.raise_multispanned_error
+                  (Format.asprintf "The field %a has been defined twice:"
+                     Scopelang.Ast.StructFieldName.format_t f_uid)
+                  [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]
+            );
             let f_e = translate_expr scope def_key ctxt f_e in
             Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
           Scopelang.Ast.StructFieldMap.empty fields
@@ -222,6 +230,16 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                               (Pos.get_position constructor) ) )
                     | None -> Scopelang.Ast.EnumMap.choose possible_c_uids
                   in
+                  ( match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+                  | None -> ()
+                  | Some e_case ->
+                      Errors.raise_multispanned_error
+                        (Format.asprintf "The constructor %a has been matched twice:"
+                           Scopelang.Ast.EnumConstructor.format_t c_uid)
+                        [
+                          (None, Pos.get_position case.match_case_expr);
+                          (None, Pos.get_position (Bindlib.unbox e_case));
+                        ] );
                   let ctxt, (param_var, param_pos) =
                     match binding with
                     | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
@@ -397,25 +415,12 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
     (use : Ast.scope_use) : Desugared.Ast.program =
   let name = fst use.scope_use_name in
   let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  let scope_vars =
-    List.fold_left
-      (fun acc (_, var) -> Scopelang.Ast.ScopeVarSet.add var acc)
-      Scopelang.Ast.ScopeVarSet.empty
-      (Desugared.Ast.IdentMap.bindings scope_ctxt.var_idmap)
-  in
   (* Make sure the scope exists *)
   let prgm =
     match Scopelang.Ast.ScopeMap.find_opt scope_uid prgm.program_scopes with
     | Some _ -> prgm
-    | None ->
-        {
-          prgm with
-          program_scopes =
-            Scopelang.Ast.ScopeMap.add scope_uid
-              (Desugared.Ast.empty_scope scope_uid scope_vars scope_ctxt.sub_scopes)
-              prgm.program_scopes;
-        }
+    | None -> assert false
+    (* should not happen *)
   in
   let precond = use.scope_use_condition in
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
@@ -430,7 +435,28 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
       Desugared.Ast.program_enums =
         Scopelang.Ast.EnumMap.map Scopelang.Ast.EnumConstructorMap.bindings
           ctxt.Name_resolution.enums;
-      Desugared.Ast.program_scopes = Scopelang.Ast.ScopeMap.empty;
+      Desugared.Ast.program_scopes =
+        Scopelang.Ast.ScopeMap.mapi
+          (fun s_uid s_context ->
+            {
+              Desugared.Ast.scope_vars =
+                Desugared.Ast.IdentMap.fold
+                  (fun _ v acc -> Scopelang.Ast.ScopeVarSet.add v acc)
+                  s_context.Name_resolution.var_idmap Scopelang.Ast.ScopeVarSet.empty;
+              Desugared.Ast.scope_sub_scopes = s_context.Name_resolution.sub_scopes;
+              Desugared.Ast.scope_defs =
+                Desugared.Ast.IdentMap.fold
+                  (fun _ v acc ->
+                    Desugared.Ast.ScopeDefMap.add (Desugared.Ast.ScopeDef.Var v)
+                      ( Desugared.Ast.RuleMap.empty,
+                        Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs )
+                      acc)
+                  s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty;
+              Desugared.Ast.scope_assertions = [];
+              Desugared.Ast.scope_meta_assertions = [];
+              Desugared.Ast.scope_uid = s_uid;
+            })
+          ctxt.Name_resolution.scopes;
     }
   in
   let processer_article_item (prgm : Desugared.Ast.program) (item : Ast.law_article_item) :

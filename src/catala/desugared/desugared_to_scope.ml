@@ -83,7 +83,8 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
 
 (* should not happen *)
 
-let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked =
+let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
+    (typ : Scopelang.Ast.typ Pos.marked) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
   (* Because we can have multiple rules at the top-level and our syntax does not allow that, we
      insert a dummy rule at the top *)
@@ -91,23 +92,15 @@ let translate_def (def : Ast.rule Ast.RuleMap.t) : Scopelang.Ast.expr Pos.marked
   let all_rules_func = Ast.RuleMap.for_all is_func def in
   let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
   let is_def_func : Scopelang.Ast.typ Pos.marked option =
-    if all_rules_func then
-      let typ = (snd (Ast.RuleMap.choose def)).Ast.parameter in
-      match typ with
-      | Some (_, typ) ->
-          let is_typ _ r = snd (Option.get r.Ast.parameter) = typ in
-          if Ast.RuleMap.for_all is_typ def then Some typ
-          else
-            Errors.raise_multispanned_error
-              "the type of these parameters should be the same, but they are different"
-              (List.map
-                 (fun (_, r) ->
-                   ( Some
-                       (Format.asprintf "The type of the parameter of this expression is %a"
-                          Scopelang.Print.format_typ typ),
-                     Pos.get_position (Bindlib.unbox r.Ast.cons) ))
-                 (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_typ n r)) def)))
-      | None -> assert false (* should not happen *)
+    if all_rules_func && Ast.RuleMap.cardinal def > 0 then
+      match Pos.unmark typ with
+      | Scopelang.Ast.TArrow (t_param, _) -> Some t_param
+      | _ ->
+          Errors.raise_spanned_error
+            (Format.asprintf
+               "The definitions of %a are function but its type, %a, is not a function type"
+               Ast.ScopeDef.format_t def_info Scopelang.Print.format_typ typ)
+            (Pos.get_position typ)
     else if all_rules_not_func then None
     else
       Errors.raise_multispanned_error
@@ -149,10 +142,14 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
          (fun vertex ->
            match vertex with
            | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) ->
+               (* Cli.debug_print (Format.asprintf "Finding %a in %a"
+                  Scopelang.Ast.ScopeVar.format_t var (Format.pp_print_list ~pp_sep:(fun fmt () ->
+                  Format.fprintf fmt ", ") (fun fmt (d, _) -> Format.fprintf fmt "%a"
+                  Ast.ScopeDef.format_t d)) (Ast.ScopeDefMap.bindings scope.scope_defs)); *)
                let var_def, var_typ =
                  Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs
                in
-               let expr_def = translate_def var_def in
+               let expr_def = translate_def (Ast.ScopeDef.Var var) var_def var_typ in
                [
                  Scopelang.Ast.Definition
                    ( ( Scopelang.Ast.ScopeVar
@@ -173,7 +170,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                      match def_key with
                      | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
                      | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
-                         let expr_def = translate_def def in
+                         let expr_def = translate_def def_key def def_typ in
                          let subscop_real_name =
                            Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                          in

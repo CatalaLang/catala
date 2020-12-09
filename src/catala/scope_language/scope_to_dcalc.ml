@@ -158,7 +158,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                 try Ast.EnumConstructorMap.find constructor e_cases
                 with Not_found ->
                   Errors.raise_spanned_error
-                    (Format.asprintf "The constructor %a does not belong to the enum %a"
+                    (Format.asprintf
+                       "The constructor %a of enum %a is missing from this pattern matching"
                        Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
                     (Pos.get_position e)
               in

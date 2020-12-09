@@ -121,6 +121,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
           in
           let new_e = Pos.same_pos_as (A.EApp (es_n, [ e1 ])) e in
           evaluate_expr new_e
+      | A.ELit A.LEmptyError -> Pos.same_pos_as (A.ELit A.LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
             "Expected a term having a sum type as an argument to a match (should not happend if \

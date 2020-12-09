@@ -89,17 +89,6 @@ type scope = {
   scope_meta_assertions : meta_assertion list;
 }
 
-let empty_scope (scope_uid : Scopelang.Ast.ScopeName.t) (scope_vars : Scopelang.Ast.ScopeVarSet.t)
-    (scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t) : scope =
-  {
-    scope_uid;
-    scope_vars;
-    scope_sub_scopes;
-    scope_defs = ScopeDefMap.empty;
-    scope_assertions = [];
-    scope_meta_assertions = [];
-  }
-
 type program = {
   program_scopes : scope Scopelang.Ast.ScopeMap.t;
   program_enums : Scopelang.Ast.enum_ctx;
