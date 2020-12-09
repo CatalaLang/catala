@@ -35,7 +35,7 @@ let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem)
   | TUnit -> Format.fprintf fmt "unit"
   | TBool -> Format.fprintf fmt "bool"
   | TInt -> Format.fprintf fmt "int"
-  | TAny -> Format.fprintf fmt "α"
+  | TAny -> Format.fprintf fmt "any type"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " * ") format_typ)
@@ -231,9 +231,15 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       let tau' = UnionFind.get (UnionFind.find tau) in
       match Pos.unmark tau' with
       | TTuple ts -> List.iter2 (fun (e, _) t -> typecheck_expr_top_down env e t) es ts
+      | TAny ->
+          unify tau
+            (UnionFind.make
+               (Pos.same_pos_as
+                  (TTuple (List.map (fun (arg, _) -> typecheck_expr_bottom_up env arg) es))
+                  e))
       | _ ->
           Errors.raise_spanned_error
-            (Format.asprintf "exprected %a, got a tuple" format_typ tau)
+            (Format.asprintf "expected %a, got a tuple" format_typ tau)
             (Pos.get_position e) )
   | ETupleAccess (e1, n, _) -> (
       let t1 = typecheck_expr_bottom_up env e1 in
@@ -247,9 +253,15 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
                    "expression should have a tuple type with at least %d elements but only has %d" n
                    (List.length t1s))
                 (Pos.get_position e1) )
+      | TAny ->
+          (* Include total number of cases in ETupleAccess to continue typechecking at this point *)
+          Errors.raise_spanned_error
+            "The precise type of this expression cannot be inferred.\n\
+             Please raise an issue one https://github.com/CatalaLang/catala/issues"
+            (Pos.get_position e1)
       | _ ->
           Errors.raise_spanned_error
-            (Format.asprintf "exprected a tuple , got %a" format_typ tau)
+            (Format.asprintf "expected a tuple , got %a" format_typ tau)
             (Pos.get_position e) )
   | EInj (e1, n, _, ts) ->
       let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
