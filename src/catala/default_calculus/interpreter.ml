@@ -26,11 +26,11 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     ( match (Pos.unmark op, List.map Pos.unmark args) with
     | A.Binop A.And, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 && b2))
     | A.Binop A.Or, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 || b2))
-    | A.Binop (A.Add KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.add i1 i2))
-    | A.Binop (A.Sub KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.sub i1 i2))
-    | A.Binop (A.Mult KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Int64.mul i1 i2))
+    | A.Binop (A.Add KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Z.add i1 i2))
+    | A.Binop (A.Sub KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Z.sub i1 i2))
+    | A.Binop (A.Mult KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Z.mul i1 i2))
     | A.Binop (A.Div KInt), [ ELit (LInt i1); ELit (LInt i2) ] ->
-        if i2 <> Int64.zero then A.ELit (LInt (Int64.div i1 i2))
+        if i2 <> Z.zero then A.ELit (LInt (Z.div i1 i2))
         else
           Errors.raise_multispanned_error "division by zero at runtime"
             [
@@ -64,7 +64,7 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
     | A.Binop A.Neq, [ _; _ ] -> A.ELit (LBool true)
     | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
-    | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Int64.sub Int64.zero i))
+    | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Z.sub Z.zero i))
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.ErrorOnEmpty, [ e' ] ->

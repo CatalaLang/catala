@@ -265,8 +265,8 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* Integer literal*)
       let units = parts 1 in
       let remove_spaces = R.regexp " " in
-      let units = Int64.of_string (R.substitute ~rex:remove_spaces ~subst:(fun _ -> "") units) in
-      let cents = try Int64.of_string (parts 4) with Not_found -> Int64.zero in
+      let units = Z.of_string (R.substitute ~rex:remove_spaces ~subst:(fun _ -> "") units) in
+      let cents = try Z.of_string (parts 4) with Not_found -> Z.zero in
       L.update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', ',', Star '0' .. '9' ->
@@ -274,7 +274,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
       L.update_acc lexbuf;
-      DECIMAL_LITERAL (Int64.of_string (dec_parts 1), Int64.of_string (dec_parts 2))
+      DECIMAL_LITERAL (Z.of_string (dec_parts 1), Z.of_string (dec_parts 2))
   | "->" ->
       L.update_acc lexbuf;
       ARROW
@@ -394,7 +394,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | Plus '0' .. '9' ->
       (* Integer literal*)
       L.update_acc lexbuf;
-      INT_LITERAL (Int64.of_string (Utf8.lexeme lexbuf))
+      INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
   | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
 let lex_law_fr (lexbuf : lexbuf) : token =

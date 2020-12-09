@@ -21,6 +21,9 @@ let debug_flag = ref false
 (* Styles the terminal output *)
 let style_flag = ref true
 
+(* Max number of digits to show for decimal results *)
+let max_prec_digits = ref 20
+
 open Cmdliner
 
 let file =
@@ -53,6 +56,13 @@ let language =
     & info [ "l"; "language" ] ~docv:"LANG"
         ~doc:"Input language among: en, fr, non-verbose (default non-verbose)")
 
+let max_prec_digits_opt =
+  Arg.(
+    value
+    & opt (some int) None
+    & info [ "p"; "max_digits_printed" ] ~docv:"LANG"
+        ~doc:"Maximum number of significant digits printed for decimal results (default 20)")
+
 let ex_scope =
   Arg.(
     value & opt (some string) None & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be executed")
@@ -76,13 +86,13 @@ let pygmentize_loc =
   Arg.(
     value
     & opt (some string) None
-    & info [ "pygmentize"; "p" ] ~docv:"PYGMENTIZE"
+    & info [ "pygmentize" ] ~docv:"PYGMENTIZE"
         ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
 
 let catala_t f =
   Term.(
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ pygmentize_loc $ backend $ language
-    $ ex_scope $ output)
+    $ max_prec_digits_opt $ ex_scope $ output)
 
 let info =
   let doc =

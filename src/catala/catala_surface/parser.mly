@@ -34,10 +34,10 @@
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
-%token<Int64.t> INT_LITERAL
+%token<Z.t> INT_LITERAL
 %token TRUE FALSE
-%token<Int64.t * Int64.t> DECIMAL_LITERAL
-%token<Int64.t * Int64.t> MONEY_AMOUNT
+%token<Z.t * Z.t> DECIMAL_LITERAL
+%token<Z.t * Z.t> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
@@ -158,7 +158,7 @@ unit_literal:
 | YEAR { (Year, $sloc)}
 
 date_int:
-| d = INT_LITERAL { (Int64.to_int d, $sloc) }
+| d = INT_LITERAL { (Z.to_int d, $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {

@@ -23,7 +23,7 @@ type typ =
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Int64.t | LRat of Q.t | LMoney of Z.t | LUnit
+type lit = LBool of bool | LEmptyError | LInt of Z.t | LRat of Q.t | LMoney of Z.t | LUnit
 
 type op_kind = KInt | KRat | KMoney
 

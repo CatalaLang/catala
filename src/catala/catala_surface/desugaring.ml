@@ -70,9 +70,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         match l with
         | Number ((Int i, _), _) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
         | Number ((Dec (i, f), _), _) ->
+            let digits_f = int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
-                 Q.(of_int64 i + (of_int64 f / of_float (10.0 ** ceil (log10 (Int64.to_float f))))))
+                 Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | _ -> Name_resolution.raise_unsupported_feature "literal" pos
       in
