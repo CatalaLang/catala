@@ -68,13 +68,26 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
   | Literal l ->
       let untyped_term =
         match l with
-        | Number ((Int i, _), _) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
-        | Number ((Dec (i, f), _), _) ->
+        | Number ((Int i, _), None) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
+        | Number ((Int i, _), Some (Percent, _)) ->
+            Scopelang.Ast.ELit (Dcalc.Ast.LRat (Q.div (Q.of_bigint i) (Q.of_int 100)))
+        | Number ((Dec (i, f), _), None) ->
             let digits_f = int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
                  Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
+        | Number ((Dec (i, f), _), Some (Percent, _)) ->
+            let digits_f =
+              int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) + 2
+              (* because of % *)
+            in
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LRat
+                 Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
+        | MoneyAmount i ->
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
         | _ -> Name_resolution.raise_unsupported_feature "literal" pos
       in
       Bindlib.box (untyped_term, pos)

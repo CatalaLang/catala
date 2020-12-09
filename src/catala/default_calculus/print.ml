@@ -83,21 +83,23 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         else "" )
   | LMoney e -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
 
+let format_op_kind (fmt : Format.formatter) (k : op_kind) =
+  Format.fprintf fmt "%s" (match k with KInt -> "" | KRat -> "." | KMoney -> "$")
+
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
-  Format.fprintf fmt "%s"
-    ( match Pos.unmark op with
-    | Add _ -> "+"
-    | Sub _ -> "-"
-    | Mult _ -> "*"
-    | Div _ -> "/"
-    | And -> "&&"
-    | Or -> "||"
-    | Eq -> "=="
-    | Neq -> "!="
-    | Lt _ -> "<"
-    | Lte _ -> "<="
-    | Gt _ -> ">"
-    | Gte _ -> ">=" )
+  match Pos.unmark op with
+  | Add k -> Format.fprintf fmt "+%a" format_op_kind k
+  | Sub k -> Format.fprintf fmt "-%a" format_op_kind k
+  | Mult k -> Format.fprintf fmt "*%a" format_op_kind k
+  | Div k -> Format.fprintf fmt "/%a" format_op_kind k
+  | And -> Format.fprintf fmt "%s" "&&"
+  | Or -> Format.fprintf fmt "%s" "||"
+  | Eq -> Format.fprintf fmt "%s" "=="
+  | Neq -> Format.fprintf fmt "%s" "!="
+  | Lt _ -> Format.fprintf fmt "%s" "<"
+  | Lte _ -> Format.fprintf fmt "%s" "<="
+  | Gt _ -> Format.fprintf fmt "%s" ">"
+  | Gte _ -> Format.fprintf fmt "%s" ">="
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"

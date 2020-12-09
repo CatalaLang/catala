@@ -84,7 +84,9 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.And | A.Or) -> arr bt (arr bt bt)
   | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) -> arr it (arr it it)
   | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) -> arr rt (arr rt rt)
-  | A.Binop (A.Add KMoney | A.Sub KMoney | A.Mult KMoney | A.Div KMoney) -> arr mt (arr mt mt)
+  | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)
+  | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
+  | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
   | A.Binop (A.Lt KInt | A.Lte KInt | A.Gt KInt | A.Gte KInt) -> arr it (arr it bt)
   | A.Binop (A.Lt KRat | A.Lte KRat | A.Gt KRat | A.Gte KRat) -> arr rt (arr rt bt)
   | A.Binop (A.Lt KMoney | A.Lte KMoney | A.Gt KMoney | A.Gte KMoney) -> arr mt (arr mt bt)
@@ -184,7 +186,8 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
         let xstaus = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
         let env =
           List.fold_left
-            (fun env (x, tau) -> A.VarMap.add x (ast_to_typ (Pos.unmark tau), pos_binder) env)
+            (fun env (x, tau) ->
+              A.VarMap.add x (ast_to_typ (Pos.unmark tau), Pos.get_position tau) env)
             env xstaus
         in
         List.fold_right

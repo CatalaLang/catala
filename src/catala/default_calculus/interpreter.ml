@@ -48,6 +48,26 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
               (Some "The division operator:", Pos.get_position op);
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
             ]
+    | A.Binop (A.Add KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
+        A.ELit (LMoney (Z.add i1 i2))
+    | A.Binop (A.Sub KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
+        A.ELit (LMoney (Z.sub i1 i2))
+    | A.Binop (A.Mult KMoney), [ ELit (LMoney i1); ELit (LRat i2) ] ->
+        let rat_result = Q.mul (Q.of_bigint i1) i2 in
+        let res, remainder = Z.div_rem (Q.num rat_result) (Q.den rat_result) in
+        (* we perform nearest rounding when multiplying an amount of money by a decimal !*)
+        let out =
+          if Z.(of_int 2 * remainder >= Q.den rat_result) then Z.add res (Z.of_int 1) else res
+        in
+        A.ELit (LMoney out)
+    | A.Binop (A.Div KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
+        if i2 <> Z.zero then A.ELit (LRat (Q.div (Q.of_bigint i1) (Q.of_bigint i2)))
+        else
+          Errors.raise_multispanned_error "division by zero at runtime"
+            [
+              (Some "The division operator:", Pos.get_position op);
+              (Some "The null denominator:", Pos.get_position (List.nth args 2));
+            ]
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
