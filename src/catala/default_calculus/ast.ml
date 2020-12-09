@@ -27,7 +27,7 @@ type lit = LBool of bool | LEmptyError | LInt of Int64.t | LUnit
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 
-type unop = Not | Minus
+type unop = Not | Minus | ErrorOnEmpty
 
 type operator = Binop of binop | Unop of unop
 

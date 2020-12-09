@@ -1,0 +1,13 @@
+@Article@
+
+/*
+new scope A:
+  param x content int
+  param y content int
+
+scope A:
+  def y := 1
+  def x [y = 2] := 1
+  def x [y = 3] := 1
+  def x [y = 4] := 1
+*/

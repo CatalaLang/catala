@@ -85,6 +85,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
   | A.Unop A.Minus -> arr it it
   | A.Unop A.Not -> arr bt bt
+  | A.Unop A.ErrorOnEmpty -> arr any any
 
 let rec ast_to_typ (ty : A.typ) : typ =
   match ty with

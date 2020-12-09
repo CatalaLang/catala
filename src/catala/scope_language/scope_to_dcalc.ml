@@ -253,6 +253,15 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
       in
       let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
       let new_e = translate_expr ctx e in
+      let new_e =
+        Bindlib.box_apply
+          (fun new_e ->
+            ( Dcalc.Ast.EApp
+                ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
+                  [ new_e ] ),
+              Pos.get_position new_e ))
+          new_e
+      in
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr = merge_defaults a_expr new_e in
       let next_e = Dcalc.Ast.make_let_in a_var tau merged_expr next_e in

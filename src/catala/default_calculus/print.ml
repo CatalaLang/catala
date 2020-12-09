@@ -62,7 +62,8 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
     | Gte -> ">=" )
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
-  Format.fprintf fmt "%s" (match Pos.unmark op with Minus -> "-" | Not -> "~")
+  Format.fprintf fmt "%s"
+    (match Pos.unmark op with Minus -> "-" | Not -> "~" | ErrorOnEmpty -> "error_on_empty")
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ -> true | _ -> false

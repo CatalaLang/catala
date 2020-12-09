@@ -24,8 +24,10 @@ let code_string_acc : string ref = ref ""
 
 let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
-let raise_lexer_error (loc : Pos.t) (token : string) (msg : string) =
-  Errors.raise_spanned_error (Printf.sprintf "Parsing error on token \"%s\": %s" token msg) loc
+let raise_lexer_error (loc : Pos.t) (token : string) =
+  Errors.raise_spanned_error
+    (Printf.sprintf "Parsing error after token \"%s\": what comes after is unknown" token)
+    loc
 
 let token_list_language_agnostic : (string * token) list =
   [
@@ -105,6 +107,8 @@ let token_list : (string * token) list =
   @ token_list_language_agnostic
 
 let rec lex_code (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | white_space ->
       (* Whitespaces *)
@@ -366,9 +370,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Integer literal*)
       update_acc lexbuf;
       INT_LITERAL (Int64.of_string (Utf8.lexeme lexbuf))
-  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error prev_pos prev_lexeme
 
 let lex_law (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | "/*" ->
       is_code := true;
@@ -423,6 +429,6 @@ let lex_law (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, None, None)
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> raise_lexer_error prev_pos prev_lexeme
 
 let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf

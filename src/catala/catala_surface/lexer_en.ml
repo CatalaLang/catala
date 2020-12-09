@@ -75,6 +75,8 @@ let token_list_en : (string * token) list =
   @ L.token_list_language_agnostic
 
 let rec lex_code_en (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | white_space ->
       (* Whitespaces *)
@@ -336,9 +338,11 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       (* Integer literal*)
       L.update_acc lexbuf;
       INT_LITERAL (Int64.of_string (Utf8.lexeme lexbuf))
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
 let lex_law_en (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | "/*" ->
       L.is_code := true;
@@ -393,6 +397,6 @@ let lex_law_en (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, None, None)
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
 let lexer_en lexbuf = if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf

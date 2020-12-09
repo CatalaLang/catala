@@ -47,8 +47,17 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
     | A.Binop A.Neq, [ _; _ ] -> A.ELit (LBool true)
+    | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.Minus, [ ELit (LInt i) ] -> A.ELit (LInt (Int64.sub Int64.zero i))
+    | A.Unop A.ErrorOnEmpty, [ e' ] ->
+        if e' = A.ELit LEmptyError then
+          Errors.raise_spanned_error
+            "This variable evaluated to an empty term (no rule that defined it applied in this \
+             situation)"
+            (Pos.get_position op)
+        else e'
+    | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError
     | _ ->
         Errors.raise_multispanned_error
           "operator applied to the wrong arguments (should not happen if the term was well-typed)"
