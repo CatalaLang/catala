@@ -18,10 +18,11 @@ install-dependencies-ocaml:
 		menhirLib \
 		dune dune-build-info \
 		cmdliner obelisk \
-		re reason \
+		re \
 		obelisk \
 		unionfind \
 		bindlib \
+		zarith \
 		ocamlgraph
 
 init-submodules:

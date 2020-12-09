@@ -42,11 +42,16 @@
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS
-%token EXISTS IN SUCH THAT NOW LESSER GREATER
+%token LESSER GREATER LESSER_EQUAL GREATER_EQUAL
+%token LESSER_DEC GREATER_DEC LESSER_EQUAL_DEC GREATER_EQUAL_DEC
+%token LESSER_MONEY GREATER_MONEY LESSER_EQUAL_MONEY GREATER_EQUAL_MONEY
+%token EXISTS IN SUCH THAT NOW 
 %token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
-%token CARDINAL LESSER_EQUAL GREATER_EQUAL
-%token ASSERTION FIXED BY YEAR
-%token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
+%token CARDINAL ASSERTION FIXED BY YEAR
+%token PLUS MINUS MULT DIV
+%token PLUSDEC MINUSDEC MULTDEC DIVDEC
+%token PLUSMONEY MINUSMONEY MULTMONEY DIVMONEY
+%token MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
 %token NOT BOOLEAN PERCENT ARROW
 %token SCOPE FILLED NOT_EQUAL DEFINITION
@@ -177,10 +182,18 @@ literal:
 | FALSE { (Bool false, $sloc) }
 
 compare_op:
-| LESSER { (Lt, $sloc) }
-| LESSER_EQUAL { (Lte, $sloc) }
-| GREATER { (Gt, $sloc) }
-| GREATER_EQUAL { (Gte, $sloc) }
+| LESSER { (Lt KInt, $sloc) }
+| LESSER_EQUAL { (Lte KInt, $sloc) }
+| GREATER { (Gt KInt, $sloc) }
+| GREATER_EQUAL { (Gte KInt, $sloc) }
+| LESSER_DEC { (Lt KDec, $sloc) }
+| LESSER_EQUAL_DEC { (Lte KDec, $sloc) }
+| GREATER_DEC { (Gt KDec, $sloc) }
+| GREATER_EQUAL_DEC { (Gte KDec, $sloc) }
+| LESSER_MONEY { (Lt KMoney, $sloc) }
+| LESSER_EQUAL_MONEY { (Lte KMoney, $sloc) }
+| GREATER_MONEY { (Gt KMoney, $sloc) }
+| GREATER_EQUAL_MONEY { (Gte KMoney, $sloc) }
 | EQUAL { (Eq, $sloc) }
 | NOT_EQUAL { (Neq, $sloc) }
 
@@ -208,8 +221,12 @@ base_expression:
 }
 
 mult_op:
-| MULT { (Mult, $sloc) }
-| DIV { (Div, $sloc) }
+| MULT { (Mult KInt, $sloc) }
+| DIV { (Div KInt, $sloc) }
+| MULTDEC { (Mult KDec, $sloc) }
+| DIVDEC { (Div KDec, $sloc) }
+| MULTMONEY { (Mult KMoney, $sloc) }
+| DIVMONEY { (Div KMoney, $sloc) }
 
 mult_expression:
 | e =  base_expression { e }
@@ -218,11 +235,17 @@ mult_expression:
 }
 
 sum_op:
-| PLUS { (Add, $sloc) }
-| MINUS { (Sub, $sloc) }
+| PLUSMONEY { (Add KMoney, $sloc) }
+| MINUSMONEY { (Sub KMoney, $sloc) }
+| PLUSDEC { (Add KDec, $sloc) }
+| MINUSDEC { (Sub KDec, $sloc) }
+| PLUS { (Add KInt, $sloc) }
+| MINUS { (Sub KInt, $sloc) }
 
 sum_unop:
-| MINUS { (Minus, $sloc) }
+| MINUS { (Minus KInt, $sloc) }
+| MINUSDEC { (Minus KDec, $sloc) }
+| MINUSMONEY { (Minus KMoney, $sloc) }
 
 sum_expression:
 | e = mult_expression { e }

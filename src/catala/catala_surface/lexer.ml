@@ -301,9 +301,54 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "->" ->
       update_acc lexbuf;
       ARROW
-  | '.' ->
+  | "<=", 0x24 ->
       update_acc lexbuf;
-      DOT
+      LESSER_EQUAL_MONEY
+  | '<', 0x24 ->
+      update_acc lexbuf;
+      LESSER_MONEY
+  | ">=", 0x24 ->
+      update_acc lexbuf;
+      GREATER_EQUAL_MONEY
+  | '>', 0x24 ->
+      update_acc lexbuf;
+      GREATER_MONEY
+  | '+', 0x24 ->
+      update_acc lexbuf;
+      PLUSMONEY
+  | '-', 0x24 ->
+      update_acc lexbuf;
+      MINUSMONEY
+  | '*', 0x24 ->
+      update_acc lexbuf;
+      MULTMONEY
+  | '/', 0x24 ->
+      update_acc lexbuf;
+      DIVMONEY
+  | "<=." ->
+      update_acc lexbuf;
+      LESSER_EQUAL_DEC
+  | "<." ->
+      update_acc lexbuf;
+      LESSER_DEC
+  | ">=." ->
+      update_acc lexbuf;
+      GREATER_EQUAL_DEC
+  | ">." ->
+      update_acc lexbuf;
+      GREATER_DEC
+  | "+." ->
+      update_acc lexbuf;
+      PLUSDEC
+  | "-." ->
+      update_acc lexbuf;
+      MINUSDEC
+  | "*." ->
+      update_acc lexbuf;
+      MULTDEC
+  | "/." ->
+      update_acc lexbuf;
+      DIVDEC
   | "<=" ->
       update_acc lexbuf;
       LESSER_EQUAL
@@ -316,12 +361,27 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '>' ->
       update_acc lexbuf;
       GREATER
+  | '+' ->
+      update_acc lexbuf;
+      PLUS
+  | '-' ->
+      update_acc lexbuf;
+      MINUS
+  | '*' ->
+      update_acc lexbuf;
+      MULT
+  | '/' ->
+      update_acc lexbuf;
+      DIV
   | "!=" ->
       update_acc lexbuf;
       NOT_EQUAL
   | '=' ->
       update_acc lexbuf;
       EQUAL
+  | '%' ->
+      update_acc lexbuf;
+      PERCENT
   | '(' ->
       update_acc lexbuf;
       LPAREN
@@ -334,21 +394,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '}' ->
       update_acc lexbuf;
       RBRACKET
-  | '+' ->
-      update_acc lexbuf;
-      PLUS
-  | '-' ->
-      update_acc lexbuf;
-      MINUS
-  | '*' ->
-      update_acc lexbuf;
-      MULT
-  | '%' ->
-      update_acc lexbuf;
-      PERCENT
-  | '/' ->
-      update_acc lexbuf;
-      DIV
   | '|' ->
       update_acc lexbuf;
       VERTICAL
@@ -358,6 +403,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "--" ->
       update_acc lexbuf;
       ALT
+  | '.' ->
+      update_acc lexbuf;
+      DOT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       (* Name of constructor *)
       update_acc lexbuf;

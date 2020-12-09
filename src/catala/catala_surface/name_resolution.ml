@@ -96,15 +96,16 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
 let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
     Scopelang.Ast.typ Pos.marked =
   match typ with
-  | Ast.Condition -> (Scopelang.Ast.TBool, typ_pos)
+  | Ast.Condition -> (Scopelang.Ast.TLit TBool, typ_pos)
   | Ast.Data (Ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
   | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
-      | Ast.Integer -> (Scopelang.Ast.TInt, typ_pos)
-      | Ast.Decimal -> (Scopelang.Ast.TRat, typ_pos)
-      | Ast.Money | Ast.Date -> raise_unsupported_feature "value type" typ_pos
-      | Ast.Boolean -> (Scopelang.Ast.TBool, typ_pos)
+      | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)
+      | Ast.Decimal -> (Scopelang.Ast.TLit TRat, typ_pos)
+      | Ast.Money -> (Scopelang.Ast.TLit TMoney, typ_pos)
+      | Ast.Date -> raise_unsupported_feature "date type" typ_pos
+      | Ast.Boolean -> (Scopelang.Ast.TLit TBool, typ_pos)
       | Ast.Text -> raise_unsupported_feature "text type" typ_pos
       | Ast.Named ident -> (
           match Desugared.Ast.IdentMap.find_opt ident ctxt.struct_idmap with
@@ -297,7 +298,7 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
             (fun cases ->
               let typ =
                 match cdecl.Ast.enum_decl_case_typ with
-                | None -> (Scopelang.Ast.TUnit, cdecl_pos)
+                | None -> (Scopelang.Ast.TLit TUnit, cdecl_pos)
                 | Some typ -> process_type ctxt typ
               in
               match cases with

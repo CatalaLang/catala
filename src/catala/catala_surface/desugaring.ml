@@ -19,22 +19,26 @@ module Cli = Utils.Cli
 (** The optional argument subdef allows to choose between differents uids in case the expression is
     a redefinition of a subvariable *)
 
+let translate_op_kind (k : Ast.op_kind) : Dcalc.Ast.op_kind =
+  match k with KInt -> KInt | KDec -> KRat | KMoney -> KMoney
+
 let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
   match op with
   | And -> And
   | Or -> Or
-  | Add -> Add
-  | Sub -> Sub
-  | Mult -> Mult
-  | Div -> Div
-  | Lt -> Lt
-  | Lte -> Lte
-  | Gt -> Gt
-  | Gte -> Gte
+  | Add l -> Add (translate_op_kind l)
+  | Sub l -> Sub (translate_op_kind l)
+  | Mult l -> Mult (translate_op_kind l)
+  | Div l -> Div (translate_op_kind l)
+  | Lt l -> Lt (translate_op_kind l)
+  | Lte l -> Lte (translate_op_kind l)
+  | Gt l -> Gt (translate_op_kind l)
+  | Gte l -> Gte (translate_op_kind l)
   | Eq -> Eq
   | Neq -> Neq
 
-let translate_unop (op : Ast.unop) : Dcalc.Ast.unop = match op with Not -> Not | Minus -> Minus
+let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
+  match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
 
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
 module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
@@ -66,17 +70,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         match l with
         | Number ((Int i, _), _) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
         | Number ((Dec (i, f), _), _) ->
-            let out =
-              Scopelang.Ast.ELit
-                (Dcalc.Ast.LRat
-                   Q.(
-                     of_int64 i + (of_int64 f / of_float (10.0 ** ceil (log10 (Int64.to_float f))))))
-            in
-            Cli.debug_print
-              (Format.asprintf "%d.%d -> %a (%s)" (Int64.to_int i) (Int64.to_int f)
-                 Scopelang.Print.format_expr (out, Pos.no_pos)
-                 (Q.to_string (Q.of_float (ceil (log10 (Int64.to_float f))))));
-            out
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LRat
+                 Q.(of_int64 i + (of_int64 f / of_float (10.0 ** ceil (log10 (Int64.to_float f))))))
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | _ -> Name_resolution.raise_unsupported_feature "literal" pos
       in

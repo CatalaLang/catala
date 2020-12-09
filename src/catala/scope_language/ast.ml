@@ -65,10 +65,7 @@ module LocationSet = Set.Make (struct
 end)
 
 type typ =
-  | TBool
-  | TUnit
-  | TInt
-  | TRat
+  | TLit of Dcalc.Ast.typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked

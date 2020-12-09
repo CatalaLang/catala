@@ -45,10 +45,7 @@ let hole_var : Dcalc.Ast.Var.t = Dcalc.Ast.Var.make ("·", Pos.no_pos)
 let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   Pos.same_pos_as
     ( match Pos.unmark t with
-    | Ast.TUnit -> Dcalc.Ast.TUnit
-    | Ast.TBool -> Dcalc.Ast.TBool
-    | Ast.TInt -> Dcalc.Ast.TInt
-    | Ast.TRat -> Dcalc.Ast.TRat
+    | Ast.TLit l -> Dcalc.Ast.TLit l
     | Ast.TArrow (t1, t2) -> Dcalc.Ast.TArrow (translate_typ ctx t1, translate_typ ctx t2)
     | Ast.TStruct s_uid ->
         let s_fields = Ast.StructMap.find s_uid ctx.structs in
@@ -299,7 +296,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
         Dcalc.Ast.make_abs
           (Array.of_list [ Pos.unmark a_var ])
           next_e var_def_pos
-          [ (Dcalc.Ast.TArrow ((TUnit, var_def_pos), tau), var_def_pos) ]
+          [ (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos) ]
           (Pos.get_position e)
       in
       let new_e = translate_expr ctx e in
@@ -308,7 +305,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
         Dcalc.Ast.make_abs
           (Array.of_list [ silent_var ])
           new_e var_def_pos
-          [ (Dcalc.Ast.TUnit, var_def_pos) ]
+          [ (Dcalc.Ast.TLit TUnit, var_def_pos) ]
           var_def_pos
       in
       let out_e = Dcalc.Ast.make_app intermediate_e [ thunked_new_e ] (Pos.get_position e) in
@@ -416,7 +413,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     rules pos_sigma
     (List.map
        (fun (_, tau, _) ->
-         (Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
+         (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
        scope_variables)
     pos_sigma
 
@@ -425,7 +422,7 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
   let result_typ = (Dcalc.Ast.TTuple (List.map (fun (_, tau) -> (tau, pos)) scope_sig), pos) in
   List.fold_right
     (fun (_, arg_t) acc ->
-      (Dcalc.Ast.TArrow ((Dcalc.Ast.TArrow ((TUnit, pos), (arg_t, pos)), pos), acc), pos))
+      (Dcalc.Ast.TArrow ((Dcalc.Ast.TArrow ((TLit TUnit, pos), (arg_t, pos)), pos), acc), pos))
     scope_sig result_typ
 
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :

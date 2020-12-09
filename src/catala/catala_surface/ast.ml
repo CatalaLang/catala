@@ -55,9 +55,23 @@ type enum_decl = {
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
-type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+type op_kind = KInt | KDec | KMoney
 
-type unop = Not | Minus
+type binop =
+  | And
+  | Or
+  | Add of op_kind
+  | Sub of op_kind
+  | Mult of op_kind
+  | Div of op_kind
+  | Lt of op_kind
+  | Lte of op_kind
+  | Gt of op_kind
+  | Gte of op_kind
+  | Eq
+  | Neq
+
+type unop = Not | Minus of op_kind
 
 type builtin_expression = Cardinal | Now
 

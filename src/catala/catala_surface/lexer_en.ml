@@ -269,9 +269,54 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "->" ->
       L.update_acc lexbuf;
       ARROW
-  | '.' ->
+  | "<=", 0x24 ->
       L.update_acc lexbuf;
-      DOT
+      LESSER_EQUAL_MONEY
+  | '<', 0x24 ->
+      L.update_acc lexbuf;
+      LESSER_MONEY
+  | ">=", 0x24 ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_MONEY
+  | '>', 0x24 ->
+      L.update_acc lexbuf;
+      GREATER_MONEY
+  | '+', 0x24 ->
+      L.update_acc lexbuf;
+      PLUSMONEY
+  | '-', 0x24 ->
+      L.update_acc lexbuf;
+      MINUSMONEY
+  | '*', 0x24 ->
+      L.update_acc lexbuf;
+      MULTMONEY
+  | '/', 0x24 ->
+      L.update_acc lexbuf;
+      DIVMONEY
+  | "<=." ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_DEC
+  | "<." ->
+      L.update_acc lexbuf;
+      LESSER_DEC
+  | ">=." ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DEC
+  | ">." ->
+      L.update_acc lexbuf;
+      GREATER_DEC
+  | "+." ->
+      L.update_acc lexbuf;
+      PLUSDEC
+  | "-." ->
+      L.update_acc lexbuf;
+      MINUSDEC
+  | "*." ->
+      L.update_acc lexbuf;
+      MULTDEC
+  | "/." ->
+      L.update_acc lexbuf;
+      DIVDEC
   | "<=" ->
       L.update_acc lexbuf;
       LESSER_EQUAL
@@ -284,12 +329,27 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | '>' ->
       L.update_acc lexbuf;
       GREATER
+  | '+' ->
+      L.update_acc lexbuf;
+      PLUS
+  | '-' ->
+      L.update_acc lexbuf;
+      MINUS
+  | '*' ->
+      L.update_acc lexbuf;
+      MULT
+  | '/' ->
+      L.update_acc lexbuf;
+      DIV
   | "!=" ->
       L.update_acc lexbuf;
       NOT_EQUAL
   | '=' ->
       L.update_acc lexbuf;
       EQUAL
+  | '%' ->
+      L.update_acc lexbuf;
+      PERCENT
   | '(' ->
       L.update_acc lexbuf;
       LPAREN
@@ -302,21 +362,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | '}' ->
       L.update_acc lexbuf;
       RBRACKET
-  | '+' ->
-      L.update_acc lexbuf;
-      PLUS
-  | '-' ->
-      L.update_acc lexbuf;
-      MINUS
-  | '*' ->
-      L.update_acc lexbuf;
-      MULT
-  | '%' ->
-      L.update_acc lexbuf;
-      PERCENT
-  | '/' ->
-      L.update_acc lexbuf;
-      DIV
   | '|' ->
       L.update_acc lexbuf;
       VERTICAL
@@ -326,6 +371,9 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "--" ->
       L.update_acc lexbuf;
       ALT
+  | '.' ->
+      L.update_acc lexbuf;
+      DOT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;

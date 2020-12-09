@@ -24,10 +24,11 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
     else Format.fprintf fmt "%a" format_typ t
   in
   match Pos.unmark typ with
-  | TUnit -> Format.fprintf fmt "unit"
-  | TBool -> Format.fprintf fmt "bool"
-  | TInt -> Format.fprintf fmt "int"
-  | TRat -> Format.fprintf fmt "dec"
+  | TLit TUnit -> Format.fprintf fmt "unit"
+  | TLit TBool -> Format.fprintf fmt "bool"
+  | TLit TInt -> Format.fprintf fmt "int"
+  | TLit TRat -> Format.fprintf fmt "dec"
+  | TLit TMoney -> Format.fprintf fmt "money"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
@@ -46,26 +47,27 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LEmptyError -> Format.fprintf fmt "∅"
   | LUnit -> Format.fprintf fmt "()"
   | LRat i -> Format.fprintf fmt "%f" (Q.to_float i)
+  | LMoney e -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
 
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   Format.fprintf fmt "%s"
     ( match Pos.unmark op with
-    | Add -> "+"
-    | Sub -> "-"
-    | Mult -> "*"
-    | Div -> "/"
+    | Add _ -> "+"
+    | Sub _ -> "-"
+    | Mult _ -> "*"
+    | Div _ -> "/"
     | And -> "&&"
     | Or -> "||"
     | Eq -> "=="
     | Neq -> "!="
-    | Lt -> "<"
-    | Lte -> "<="
-    | Gt -> ">"
-    | Gte -> ">=" )
+    | Lt _ -> "<"
+    | Lte _ -> "<="
+    | Gt _ -> ">"
+    | Gte _ -> ">=" )
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
-    (match Pos.unmark op with Minus -> "-" | Not -> "~" | ErrorOnEmpty -> "error_on_empty")
+    (match Pos.unmark op with Minus _ -> "-" | Not -> "~" | ErrorOnEmpty -> "error_on_empty")
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ -> true | _ -> false

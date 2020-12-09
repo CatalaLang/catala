@@ -15,20 +15,33 @@
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney
+
 type typ =
-  | TBool
-  | TUnit
-  | TInt
-  | TRat
+  | TLit of typ_lit
   | TTuple of typ Pos.marked list
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Int64.t | LRat of Q.t | LUnit
+type lit = LBool of bool | LEmptyError | LInt of Int64.t | LRat of Q.t | LMoney of Z.t | LUnit
 
-type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+type op_kind = KInt | KRat | KMoney
 
-type unop = Not | Minus | ErrorOnEmpty
+type binop =
+  | And
+  | Or
+  | Add of op_kind
+  | Sub of op_kind
+  | Mult of op_kind
+  | Div of op_kind
+  | Lt of op_kind
+  | Lte of op_kind
+  | Gt of op_kind
+  | Gte of op_kind
+  | Eq
+  | Neq
+
+type unop = Not | Minus of op_kind | ErrorOnEmpty
 
 type operator = Binop of binop | Unop of unop
 
