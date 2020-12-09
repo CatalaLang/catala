@@ -48,6 +48,7 @@ let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.m
     | Ast.TUnit -> Dcalc.Ast.TUnit
     | Ast.TBool -> Dcalc.Ast.TBool
     | Ast.TInt -> Dcalc.Ast.TInt
+    | Ast.TRat -> Dcalc.Ast.TRat
     | Ast.TArrow (t1, t2) -> Dcalc.Ast.TArrow (translate_typ ctx t1, translate_typ ctx t2)
     | Ast.TStruct s_uid ->
         let s_fields = Ast.StructMap.find s_uid ctx.structs in

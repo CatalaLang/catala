@@ -102,7 +102,8 @@ let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked)
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
       | Ast.Integer -> (Scopelang.Ast.TInt, typ_pos)
-      | Ast.Decimal | Ast.Money | Ast.Date -> raise_unsupported_feature "value type" typ_pos
+      | Ast.Decimal -> (Scopelang.Ast.TRat, typ_pos)
+      | Ast.Money | Ast.Date -> raise_unsupported_feature "value type" typ_pos
       | Ast.Boolean -> (Scopelang.Ast.TBool, typ_pos)
       | Ast.Text -> raise_unsupported_feature "text type" typ_pos
       | Ast.Named ident -> (

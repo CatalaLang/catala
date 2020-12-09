@@ -27,6 +27,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TUnit -> Format.fprintf fmt "unit"
   | TBool -> Format.fprintf fmt "bool"
   | TInt -> Format.fprintf fmt "int"
+  | TRat -> Format.fprintf fmt "dec"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
@@ -44,6 +45,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LInt i -> Format.fprintf fmt "%s" (Int64.to_string i)
   | LEmptyError -> Format.fprintf fmt "∅"
   | LUnit -> Format.fprintf fmt "()"
+  | LRat i -> Format.fprintf fmt "%f" (Q.to_float i)
 
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   Format.fprintf fmt "%s"

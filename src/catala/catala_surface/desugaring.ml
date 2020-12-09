@@ -65,7 +65,18 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       let untyped_term =
         match l with
         | Number ((Int i, _), _) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
-        | Number ((Dec (_i, _f), _), _) -> Name_resolution.raise_unsupported_feature "decimal" pos
+        | Number ((Dec (i, f), _), _) ->
+            let out =
+              Scopelang.Ast.ELit
+                (Dcalc.Ast.LRat
+                   Q.(
+                     of_int64 i + (of_int64 f / of_float (10.0 ** ceil (log10 (Int64.to_float f))))))
+            in
+            Cli.debug_print
+              (Format.asprintf "%d.%d -> %a (%s)" (Int64.to_int i) (Int64.to_int f)
+                 Scopelang.Print.format_expr (out, Pos.no_pos)
+                 (Q.to_string (Q.of_float (ceil (log10 (Int64.to_float f))))));
+            out
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | _ -> Name_resolution.raise_unsupported_feature "literal" pos
       in

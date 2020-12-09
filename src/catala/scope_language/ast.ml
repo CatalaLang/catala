@@ -68,6 +68,7 @@ type typ =
   | TBool
   | TUnit
   | TInt
+  | TRat
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked

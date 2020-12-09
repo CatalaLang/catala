@@ -19,11 +19,12 @@ type typ =
   | TBool
   | TUnit
   | TInt
+  | TRat
   | TTuple of typ Pos.marked list
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Int64.t | LUnit
+type lit = LBool of bool | LEmptyError | LInt of Int64.t | LRat of Q.t | LUnit
 
 type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
 

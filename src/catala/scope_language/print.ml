@@ -40,6 +40,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TUnit -> Format.fprintf fmt "unit"
   | TBool -> Format.fprintf fmt "bool"
   | TInt -> Format.fprintf fmt "int"
+  | TRat -> Format.fprintf fmt "dec"
   | TStruct s -> Format.fprintf fmt "%a" Ast.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
   | TArrow (t1, t2) ->

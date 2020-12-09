@@ -37,11 +37,27 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
               (Some "The division operator:", Pos.get_position op);
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
             ]
+    | A.Binop A.Add, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat (Q.add i1 i2))
+    | A.Binop A.Sub, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat (Q.sub i1 i2))
+    | A.Binop A.Mult, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat (Q.mul i1 i2))
+    | A.Binop A.Div, [ ELit (LRat i1); ELit (LRat i2) ] ->
+        if i2 <> Q.zero then A.ELit (LRat (Q.div i1 i2))
+        else
+          Errors.raise_multispanned_error "division by zero at runtime"
+            [
+              (Some "The division operator:", Pos.get_position op);
+              (Some "The null denominator:", Pos.get_position (List.nth args 2));
+            ]
     | A.Binop A.Lt, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
     | A.Binop A.Lte, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
     | A.Binop A.Gt, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
     | A.Binop A.Gte, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 >= i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
+    | A.Binop A.Lt, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 < i2))
+    | A.Binop A.Lte, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <= i2))
+    | A.Binop A.Gt, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 > i2))
+    | A.Binop A.Gte, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 >= i2))
+    | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 = i2))
     | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))
     | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing functions return false *)
     | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))

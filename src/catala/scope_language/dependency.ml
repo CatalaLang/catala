@@ -149,7 +149,7 @@ let rec get_structs_or_enums_in_type (t : Ast.typ Pos.marked) : TVertexSet.t =
   | Ast.TEnum e -> TVertexSet.singleton (TVertex.Enum e)
   | Ast.TArrow (t1, t2) ->
       TVertexSet.union (get_structs_or_enums_in_type t1) (get_structs_or_enums_in_type t2)
-  | Ast.TBool | Ast.TUnit | Ast.TInt -> TVertexSet.empty
+  | Ast.TBool | Ast.TUnit | Ast.TInt | Ast.TRat -> TVertexSet.empty
 
 let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : TDependencies.t =
   let g = TDependencies.empty in
