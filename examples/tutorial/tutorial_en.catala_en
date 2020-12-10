@@ -164,7 +164,7 @@ declaration structure TwoBrackets:
 
 declaration scope TwoBracketsTaxComputation :
   context brackets content TwoBrackets
-  context tax_formula content money depends on amount
+  context tax_formula content money depends on money
 */
 @@End metadata@@
 

@@ -145,8 +145,8 @@ déclaration structure MajorationsAllocationsFamiliales :
   donnée montant_versé contenu argent
 
 déclaration structure ComplémentDégressif :
-  condition droits_ouverts dépend de montant
-  donnée dépassement contenu argent dépend de montant
+  condition droits_ouverts dépend de argent
+  donnée dépassement contenu argent dépend de argent
   donnée pour_allocation_forfaitaire contenu argent
   donnée pour_allocations_familiales_et_majorations contenu argent
   donnée montant_versé contenu argent
