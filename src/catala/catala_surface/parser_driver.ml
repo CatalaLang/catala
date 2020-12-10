@@ -61,10 +61,11 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
     (Printf.sprintf "Syntax error at token %s\n%s"
        (Cli.print_with_style syntax_hints_style "\"%s\"" token)
        msg)
-    ( ( match last_good_loc with
-      | None -> []
-      | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ] )
-    @ [ (Some "Error token:", error_loc) ] )
+    ( (Some "Error token:", error_loc)
+    ::
+    ( match last_good_loc with
+    | None -> []
+    | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ] ) )
 
 let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
     (last_input_needed : 'semantic_value I.env option) : 'a =

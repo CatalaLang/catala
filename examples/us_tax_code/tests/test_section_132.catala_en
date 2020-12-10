@@ -1,0 +1,60 @@
+@Test@
+
+/*
+declaration scope TestSection132_1:
+  context section_132 scope QualifiedEmployeeDiscount 
+  context qualified_employee_discount content money
+  context employee_discount content money
+  context gross_profit_percentage content decimal
+
+scope TestSection132_1:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.aggregate_cost equals $900
+  definition section_132.discount_type equals Property
+  definition employee_discount equals 
+    section_132.employee_discount
+  definition gross_profit_percentage equals 
+    section_132.gross_profit_percentage
+  definition qualified_employee_discount equals 
+    section_132.qualified_employee_discount
+*/
+
+/*
+declaration scope TestSection132_2:
+  context section_132 scope QualifiedEmployeeDiscount 
+  context qualified_employee_discount content money
+  context employee_discount content money
+  context gross_profit_percentage content decimal
+
+scope TestSection132_2:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.aggregate_cost equals $1200
+  definition section_132.discount_type equals Property
+  definition employee_discount equals 
+    section_132.employee_discount
+  definition gross_profit_percentage equals 
+    section_132.gross_profit_percentage
+  definition qualified_employee_discount equals 
+    section_132.qualified_employee_discount
+*/
+
+/*
+declaration scope TestSection132_3:
+  context section_132 scope QualifiedEmployeeDiscount 
+  context qualified_employee_discount content money
+  context employee_discount content money
+  context gross_profit_percentage content decimal
+
+scope TestSection132_3:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.discount_type equals Services
+  definition employee_discount equals 
+    section_132.employee_discount
+  definition gross_profit_percentage equals 
+    section_132.gross_profit_percentage
+  definition qualified_employee_discount equals 
+    section_132.qualified_employee_discount
+*/

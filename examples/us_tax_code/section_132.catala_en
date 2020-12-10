@@ -15,6 +15,16 @@ declaration scope QualifiedEmployeeDiscount:
   context employee_discount content money
   context aggregate_cost content money
   context discount_type content DiscountType
+  context is_property content boolean
+  context is_services content boolean
+
+scope QualifiedEmployeeDiscount:
+  definition is_property equals match discount_type with pattern 
+    -- Property: true 
+    -- Services: false
+  definition is_services equals match discount_type with pattern
+    -- Property: false 
+    -- Services: true
 */
 @@End metadata@@
 
@@ -30,11 +40,11 @@ the property is being offered by the employer to customers, or
 /*
 scope QualifiedEmployeeDiscount :
   definition qualified_employee_discount
-    under condition discount_type with pattern Property consequence
+    under condition is_property consequence
   equals
-    if employee_discount >
-      customer_price * gross_profit_percentage
-    then customer_price * gross_profit_percentage
+    if employee_discount >$
+      customer_price *$ gross_profit_percentage
+    then customer_price *$ gross_profit_percentage
     else employee_discount
 */
 (B) in the case of services, 20 percent of the price at which the services are 
@@ -42,11 +52,11 @@ being offered by the employer to customers.
 /*
 scope QualifiedEmployeeDiscount :
 definition qualified_employee_discount
-  under condition discount_type with pattern Services consequence
+  under condition is_services consequence
 equals
-  if employee_discount >
-    customer_price * 20%
-  then customer_price * 20%
+  if employee_discount >$
+    customer_price *$ 20%
+  then customer_price *$ 20%
   else employee_discount
 */
 @@(2) Gross profit percentage@@++
@@ -60,11 +70,11 @@ to customers over the aggregate cost of such property to the employer, is of
 (ii) the aggregate sale price of such property.
 /*
 scope QualifiedEmployeeDiscount
-  under condition discount_type with pattern Property :
-  assertion customer_price >= aggregate_cost
+  under condition is_property :
+  assertion customer_price >=$ aggregate_cost
 
   definition gross_profit_percentage equals
-    (customer_price - aggregate_cost) / customer_price
+    (customer_price -$ aggregate_cost) /$ customer_price
 */
 @(B) Determination of gross profit percentage@
 Gross profit percentage shall be determined on the basis of—
@@ -91,7 +101,7 @@ scope QualifiedEmployeeDiscount:
   assertion customer_price >= employee_price
 
   definition employee_discount equals
-    employee_price - customer_price
+    customer_price -$ employee_price
 */
 @(4) Qualified property or services@
 The term “qualified property or services” means any property (other than real 

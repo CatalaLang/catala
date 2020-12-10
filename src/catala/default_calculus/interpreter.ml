@@ -84,6 +84,10 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop (A.Lte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <= i2))
     | A.Binop (A.Gt KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 > i2))
     | A.Binop (A.Gte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 >= i2))
+    | A.Binop (A.Lt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 < i2))
+    | A.Binop (A.Lte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 <= i2))
+    | A.Binop (A.Gt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 > i2))
+    | A.Binop (A.Gte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 >= i2))
     | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
         A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
@@ -131,7 +135,9 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
           "Operator applied to the wrong arguments\n(should nothappen if the term was well-typed)"
           ( [ (Some "Operator:", Pos.get_position op) ]
           @ List.mapi
-              (fun i arg -> (Some ("Argument n°" ^ string_of_int (i + 1)), Pos.get_position arg))
+              (fun i arg ->
+                ( Some (Format.asprintf "Argument n°%d, value %a" (i + 1) Print.format_expr arg),
+                  Pos.get_position arg ))
               args ) )
     op
 
@@ -144,7 +150,6 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
   | EApp (e1, args) -> (
       let e1 = evaluate_expr e1 in
       let args = List.map evaluate_expr args in
-
       match Pos.unmark e1 with
       | EAbs (_, binder, _) ->
           if Bindlib.mbinder_arity binder = List.length args then
@@ -154,7 +159,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
               (Format.asprintf "wrong function call, expected %d arguments, got %d"
                  (Bindlib.mbinder_arity binder) (List.length args))
               (Pos.get_position e)
-      | EOp op -> evaluate_operator (Pos.same_pos_as op e1) args
+      | EOp op -> Pos.same_pos_as (Pos.unmark (evaluate_operator (Pos.same_pos_as op e1) args)) e
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error

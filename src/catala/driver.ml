@@ -133,7 +133,8 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         List.iter
           (fun (var, result) ->
             Cli.result_print
-              (Format.asprintf "%s -> %a" (Bindlib.name_of var) Dcalc.Print.format_expr result))
+              (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var) Dcalc.Print.format_expr
+                 result))
           results;
         0
   with Errors.StructuredError (msg, pos) ->
