@@ -25,7 +25,7 @@ type typ =
 
 type date = ODate.Unix.t
 
-type duration = ODate.Unix.d
+type duration = Z.t
 
 type lit =
   | LBool of bool

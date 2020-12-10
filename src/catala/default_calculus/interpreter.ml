@@ -69,13 +69,13 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
             ]
     | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration (ODuration.( + ) i1 i2))
+        A.ELit (LDuration (Z.( + ) i1 i2))
     | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration (ODuration.( - ) i1 i2))
+        A.ELit (LDuration (Z.( - ) i1 i2))
     | A.Binop (A.Sub KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LDuration (ODate.Unix.between i1 i2))
+        A.ELit (LDuration (Z.of_int (ODuration.To.day (ODate.Unix.between i2 i1))))
     | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
-        A.ELit (LDate (ODate.Unix.move i1 i2))
+        A.ELit (LDate (ODate.Unix.advance_by_days i1 (Z.to_int i2)))
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
@@ -85,17 +85,13 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop (A.Gt KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 > i2))
     | A.Binop (A.Gte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 >= i2))
     | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (ODuration.is_positive diff))
+        A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (ODuration.is_positive diff || ODuration.is_instantenous diff))
+        A.ELit (LBool (i1 <= i2))
     | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (ODuration.is_negative diff))
+        A.ELit (LBool (i1 > i2))
     | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (ODuration.is_negative diff || ODuration.is_instantenous diff))
+        A.ELit (LBool (i1 >= i2))
     | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 < 0))
     | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
@@ -104,18 +100,14 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
         A.ELit (LBool (ODate.Unix.compare i1 i2 > 0))
     | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 >= 0))
-    | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (ODuration.is_instantenous diff))
+    | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 = 0))
     | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 = i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))
     | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing functions return false *)
-    | A.Binop A.Neq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        let diff = ODuration.( - ) i2 i1 in
-        A.ELit (LBool (not (ODuration.is_instantenous diff)))
+    | A.Binop A.Neq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 <> 0))
     | A.Binop A.Neq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <> i2))

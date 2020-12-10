@@ -10,6 +10,6 @@ new scope A:
 scope A:
   def x := |01/01/2019|
   def y := |30/09/2002|
-  def z := x -@ y >=^ 16 year
-  def z2 := x -@ y <^ 20 year
+  def z := y +@ (x -@ y) = x
+  def z2 := x -@ y = 16 year +^ 3 month +^ 7 day
 */

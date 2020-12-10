@@ -91,11 +91,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LDate d ->
       Format.fprintf fmt "%s"
         (ODate.Unix.To.string (Option.get (ODate.Unix.To.generate_printer "%Y-%m-%d")) d)
-  | LDuration d ->
-      Format.fprintf fmt "%s"
-        (ODuration.To.string
-           (Option.get (ODuration.To.generate_printer "[%Y] years or [%M] months of [%D] days"))
-           d)
+  | LDuration d -> Format.fprintf fmt "%a days" Z.pp_print d
 
 let format_op_kind (fmt : Format.formatter) (k : op_kind) =
   Format.fprintf fmt "%s"

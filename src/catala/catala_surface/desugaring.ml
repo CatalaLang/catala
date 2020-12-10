@@ -93,42 +93,11 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         | MoneyAmount i ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
-        | Number ((Int i, i_pos), Some (Year, _)) ->
-            Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration
-                 (ODuration.make ~forward:true
-                    ~year:
-                      ( try Z.to_int i
-                        with Failure _ ->
-                          Errors.raise_spanned_error
-                            "This duration is too big to fit in Catala's duration computation \
-                             engine"
-                            i_pos )
-                    ()))
-        | Number ((Int i, i_pos), Some (Month, _)) ->
-            Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration
-                 (ODuration.make ~forward:true
-                    ~month:
-                      ( try Z.to_int i
-                        with Failure _ ->
-                          Errors.raise_spanned_error
-                            "This duration is too big to fit in Catala's duration computation \
-                             engine"
-                            i_pos )
-                    ()))
-        | Number ((Int i, i_pos), Some (Day, _)) ->
-            Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration
-                 (ODuration.make ~forward:true
-                    ~day:
-                      ( try Z.to_int i
-                        with Failure _ ->
-                          Errors.raise_spanned_error
-                            "This duration is too big to fit in Catala's duration computation \
-                             engine"
-                            i_pos )
-                    ()))
+        | Number ((Int i, _), Some (Year, _)) ->
+            Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.(of_int 365 * i))
+        | Number ((Int i, _), Some (Month, _)) ->
+            Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.(of_int 30 * i))
+        | Number ((Int i, _), Some (Day, _)) -> Scopelang.Ast.ELit (Dcalc.Ast.LDuration i)
         | Number ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
             Errors.raise_spanned_error
               "Impossible to specify decimal amounts of days, months or years" pos
