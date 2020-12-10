@@ -70,6 +70,8 @@ let token_list_fr : (string * token) list =
     ("non", NOT);
     ("nombre", CARDINAL);
     ("an", YEAR);
+    ("mois", MONTH);
+    ("jour", DAY);
     ("vrai", TRUE);
     ("faux", FALSE);
   ]
@@ -257,6 +259,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "an" ->
       L.update_acc lexbuf;
       YEAR
+  | "mois" ->
+      L.update_acc lexbuf;
+      MONTH
+  | "jour" ->
+      L.update_acc lexbuf;
+      DAY
   | ( '0' .. '9',
       Star ('0' .. '9' | white_space),
       Opt (',', Rep ('0' .. '9', 0 .. 2)),

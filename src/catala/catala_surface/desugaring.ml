@@ -93,9 +93,45 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         | MoneyAmount i ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
-        | Number ((Int _, _), Some ((Year | Month | Day), _))
+        | Number ((Int i, i_pos), Some (Year, _)) ->
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration
+                 (ODuration.make ~forward:true
+                    ~year:
+                      ( try Z.to_int i
+                        with Failure _ ->
+                          Errors.raise_spanned_error
+                            "This duration is too big to fit in Catala's duration computation \
+                             engine"
+                            i_pos )
+                    ()))
+        | Number ((Int i, i_pos), Some (Month, _)) ->
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration
+                 (ODuration.make ~forward:true
+                    ~month:
+                      ( try Z.to_int i
+                        with Failure _ ->
+                          Errors.raise_spanned_error
+                            "This duration is too big to fit in Catala's duration computation \
+                             engine"
+                            i_pos )
+                    ()))
+        | Number ((Int i, i_pos), Some (Day, _)) ->
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration
+                 (ODuration.make ~forward:true
+                    ~day:
+                      ( try Z.to_int i
+                        with Failure _ ->
+                          Errors.raise_spanned_error
+                            "This duration is too big to fit in Catala's duration computation \
+                             engine"
+                            i_pos )
+                    ()))
         | Number ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-            Name_resolution.raise_unsupported_feature "literal" pos
+            Errors.raise_spanned_error
+              "Impossible to specify decimal amounts of days, months or years" pos
         | Date date -> (
             let date =
               ODate.Unix.make

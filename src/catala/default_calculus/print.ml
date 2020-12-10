@@ -111,10 +111,10 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Or -> Format.fprintf fmt "%s" "||"
   | Eq -> Format.fprintf fmt "%s" "=="
   | Neq -> Format.fprintf fmt "%s" "!="
-  | Lt _ -> Format.fprintf fmt "%s" "<"
-  | Lte _ -> Format.fprintf fmt "%s" "<="
-  | Gt _ -> Format.fprintf fmt "%s" ">"
-  | Gte _ -> Format.fprintf fmt "%s" ">="
+  | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
+  | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
+  | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
+  | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"

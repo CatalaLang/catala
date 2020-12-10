@@ -102,6 +102,8 @@ let token_list : (string * token) list =
     ("not", NOT);
     ("number", CARDINAL);
     ("year", YEAR);
+    ("month", MONTH);
+    ("day", DAY);
     ("true", TRUE);
     ("false", FALSE);
   ]
@@ -283,6 +285,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "year" ->
       update_acc lexbuf;
       YEAR
+  | "month" ->
+      update_acc lexbuf;
+      MONTH
+  | "day" ->
+      update_acc lexbuf;
+      DAY
   | 0x24, Star white_space, '0' .. '9', Star ('0' .. '9' | ','), Opt ('.', Rep ('0' .. '9', 0 .. 2))
     ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
