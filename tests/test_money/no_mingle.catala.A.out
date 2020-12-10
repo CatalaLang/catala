@@ -1,6 +1,6 @@
-[ERROR] Error during typechecking, types dec and money are incompatible
+[ERROR] Error during typechecking, types decimal and money are incompatible
 [ERROR] 
-[ERROR] Type dec coming from expression:
+[ERROR] Type decimal coming from expression:
 [ERROR]   --> test_money/no_mingle.catala
 [ERROR]    | 
 [ERROR] 12 |   def z := (x *$ y)
@@ -11,3 +11,27 @@
 [ERROR]   | 
 [ERROR] 4 | new scope A:
 [ERROR]   |           ^
+[ERROR] 
+[ERROR] Type decimal → money coming from expression:
+[ERROR]   --> test_money/no_mingle.catala
+[ERROR]    | 
+[ERROR] 12 |   def z := (x *$ y)
+[ERROR]    |               ^^
+[ERROR] 
+[ERROR] Type money → any type coming from expression:
+[ERROR]   --> test_money/no_mingle.catala
+[ERROR]    | 
+[ERROR] 12 |   def z := (x *$ y)
+[ERROR]    |             ^^^^^^
+[ERROR] 
+[ERROR] Type money → decimal → money coming from expression:
+[ERROR]   --> test_money/no_mingle.catala
+[ERROR]    | 
+[ERROR] 12 |   def z := (x *$ y)
+[ERROR]    |               ^^
+[ERROR] 
+[ERROR] Type money → money → any type coming from expression:
+[ERROR]   --> test_money/no_mingle.catala
+[ERROR]    | 
+[ERROR] 12 |   def z := (x *$ y)
+[ERROR]    |             ^^^^^^
