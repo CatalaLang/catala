@@ -157,7 +157,7 @@ Current proposal : "amount".
 The base data type for representing amounts of money.
 
 ```
-data foo content amount
+data foo content money
 ```
 
 ## TEXT

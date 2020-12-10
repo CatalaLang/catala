@@ -240,12 +240,12 @@ code : context {
   }
 
    : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\\$|%|year|month|day)
+     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\$|%|year|month|day)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(integer|boolean|date|amount|text|decimal|number|sum|now)\b
+    regex \= \b(integer|boolean|date|money|text|decimal|number|sum|now)\b
     styles [] = .primitive;
   }
 

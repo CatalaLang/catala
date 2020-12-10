@@ -36,15 +36,15 @@ total dont sont retranchées les charges énumérées à l'article 156.
 
 /*
 déclaration structure RevenuNetGlobal:
-donnée revenus_fonciers contenu montant
-donnée bénéfices_industriels_commerciaux contenu montant
-donnée rémunérations_dirigeants contenu montant
-donnée bénéfices_agricoles contenu montant
-donnée traitements_salaires contenu montant
-donnée bénéfices_non_commerciaux contenu montant
-donnée revenus_capitaux_mobiliers contenu montant
-donnée plus_values contenu montant
-donnée total contenu montant
+donnée revenus_fonciers contenu argent
+donnée bénéfices_industriels_commerciaux contenu argent
+donnée rémunérations_dirigeants contenu argent
+donnée bénéfices_agricoles contenu argent
+donnée traitements_salaires contenu argent
+donnée bénéfices_non_commerciaux contenu argent
+donnée revenus_capitaux_mobiliers contenu argent
+donnée plus_values contenu argent
+donnée total contenu argent
 
 déclaration champ d'application CalculImpotSurLeRevenu :
   contexte revenu_net_global contenu RevenuNetGlobal

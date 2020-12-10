@@ -22,7 +22,7 @@
 [ERROR]   --> test_scope/cycle_in_scope.catala
 [ERROR]    | 
 [ERROR] 13 |   def z [y < 1] := y
-[ERROR]    |                    ^
+[ERROR]    |          ^
 [ERROR] 
 [ERROR] Cycle variable x, declared:
 [ERROR]  --> test_scope/cycle_in_scope.catala
@@ -34,4 +34,4 @@
 [ERROR]   --> test_scope/cycle_in_scope.catala
 [ERROR]    | 
 [ERROR] 11 |   def y [x >= 0] := x
-[ERROR]    |                     ^
+[ERROR]    |          ^

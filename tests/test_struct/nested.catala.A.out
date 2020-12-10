@@ -3,4 +3,4 @@
 [ERROR]  --> test_struct/nested.catala
 [ERROR]   | 
 [ERROR] 5 |   data x content S 
-[ERROR]   |               ^
+[ERROR]   |                  ^

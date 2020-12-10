@@ -46,11 +46,11 @@ individual and the income tax computation:
 @@Begin metadata@@
 /*
 declaration structure Individual:
-  data income content amount
+  data income content money
 
 declaration structure Article1:
   data fixed_percentage content decimal
-  data income_tax content amount
+  data income_tax content money
 */
 @@End metadata@@
 
@@ -158,13 +158,13 @@ computation:
 @@Begin metadata@@
 /*
 declaration structure TwoBrackets:
-  data breakpoint content amount
+  data breakpoint content money
   data rate1 content decimal
   data rate2 content decimal
 
 declaration scope TwoBracketsTaxComputation :
   context brackets content TwoBrackets
-  context tax_formula content amount depends on amount
+  context tax_formula content money depends on amount
 */
 @@End metadata@@
 

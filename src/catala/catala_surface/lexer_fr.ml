@@ -33,7 +33,7 @@ let token_list_fr : (string * token) list =
     ("collection", COLLECTION);
     ("énumération", ENUM);
     ("entier", INTEGER);
-    ("montant", MONEY);
+    ("argent", MONEY);
     ("texte", TEXT);
     ("decimal", DECIMAL);
     ("date", DATE);
@@ -124,7 +124,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "entier" ->
       L.update_acc lexbuf;
       INTEGER
-  | "montant" ->
+  | "argent" ->
       L.update_acc lexbuf;
       MONEY
   | "texte" ->

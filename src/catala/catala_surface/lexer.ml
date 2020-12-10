@@ -65,7 +65,7 @@ let token_list : (string * token) list =
     ("set", COLLECTION);
     ("enum", ENUM);
     ("int", INTEGER);
-    ("amount", MONEY);
+    ("money", MONEY);
     ("text", TEXT);
     ("decimal", DECIMAL);
     ("date", DATE);
@@ -155,7 +155,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "int" ->
       update_acc lexbuf;
       INTEGER
-  | "amount" ->
+  | "money" ->
       update_acc lexbuf;
       MONEY
   | "text" ->

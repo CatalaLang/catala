@@ -120,11 +120,11 @@
         'name' : 'punctuation.catala_en'
       }
       {
-        'match' : '(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\$|%|year|month|day)'
+        'match' : '(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\$|%|year|month|day)'
         'name' : 'keyword.operator.catala_en'
       }
       {
-        'match' : '\\b(integer|boolean|date|amount|text|decimal|number|sum|now)\\b'
+        'match' : '\\b(integer|boolean|date|money|text|decimal|number|sum|now)\\b'
         'name' : 'support.type.catala_en'
       }
       {

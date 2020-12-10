@@ -87,7 +87,7 @@ While all the code sections are equivalent in terms of execution, you can mark s
 /*
 declaration structure FooBar:
   data foo content boolean
-  data bar content amount
+  data bar content money
 
 <your structure/enumeration/scope declarations goes here>
 */

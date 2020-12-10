@@ -191,13 +191,13 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+|\-|\*|/|\!|not|or|and|=|&gt;|&lt;|\\$|%|year|month|day)</string>
+          <string>(\-\&gt;|\+|\-|\*|/|\!|not|or|and|=|&gt;|&lt;|\$|%|year|month|day)</string>
           <key>name</key>
           <string>keyword.operator.catala_en</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(integer|boolean|date|amount|text|decimal|number|sum|now)\b</string>
+          <string>\b(integer|boolean|date|money|text|decimal|number|sum|now)\b</string>
           <key>name</key>
           <string>support.type.catala_en</string>
         </dict>

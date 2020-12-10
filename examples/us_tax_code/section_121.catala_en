@@ -13,14 +13,14 @@ declaration structure Property:
 
 declaration structure SaleOrExchange:
     data property content Property
-    data gain content amount
+    data gain content money
     data date_of_sale_or_exchange content date
 
 declaration scope Section121:
     context taxpayer content Person
     context applicable condition
-    context maximum_gain_excluded content amount
-    context gain_considered_for_exclusion content amount
+    context maximum_gain_excluded content money
+    context gain_considered_for_exclusion content money
     context sale_or_exchange content SaleOrExchange 
     context included_in_gross_income condition 
     context ownage_considered_for_gain_inclusion condition 

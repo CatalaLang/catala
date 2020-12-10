@@ -25,9 +25,9 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   in
   match Pos.unmark typ with
   | TLit TUnit -> Format.fprintf fmt "unit"
-  | TLit TBool -> Format.fprintf fmt "bool"
-  | TLit TInt -> Format.fprintf fmt "int"
-  | TLit TRat -> Format.fprintf fmt "dec"
+  | TLit TBool -> Format.fprintf fmt "boolean"
+  | TLit TInt -> Format.fprintf fmt "integer"
+  | TLit TRat -> Format.fprintf fmt "decimal"
   | TLit TMoney -> Format.fprintf fmt "money"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"

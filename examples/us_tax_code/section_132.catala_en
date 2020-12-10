@@ -8,12 +8,12 @@ declaration enumeration DiscountType:
   -- Services
 
 declaration scope QualifiedEmployeeDiscount:
-  context customer_price content amount
-  context employee_price content amount
+  context customer_price content money
+  context employee_price content money
   context gross_profit_percentage content decimal
-  context qualified_employee_discount content amount
-  context employee_discount content amount
-  context aggregate_cost content amount
+  context qualified_employee_discount content money
+  context employee_discount content money
+  context aggregate_cost content money
   context discount_type content DiscountType
 */
 @@End metadata@@

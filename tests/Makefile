@@ -6,7 +6,9 @@ CATALA_OPTS?=
 
 CATALA=dune exec --no-buffer --no-print-director ../src/catala.exe -- Interpret $(CATALA_OPTS)
 
-tests: $(wildcard */*.out)
+pass_tests: $(wildcard */*.out)
+
+reset_tests: $(subst .out,.in,$(wildcard */*.out))
 
 # Forces all the tests to be redone
 .FORCE:
