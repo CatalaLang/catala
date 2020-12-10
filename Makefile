@@ -110,20 +110,20 @@ US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
 
 literate_allocations_familiales: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
 literate_code_general_impots: pygments build
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.tex
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.html
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
 literate_us_tax_code: pygments build
-	$(MAKE) -C $(US_TAX_CODE_DIR) $@.tex
-	$(MAKE) -C $(US_TAX_CODE_DIR) $@.html
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
 literate_tutorial_en: pygments build
-	$(MAKE) -C $(TUTORIAL_DIR) $@.tex
-	$(MAKE) -C $(TUTORIAL_DIR) $@.html
+	$(MAKE) -C $(TUTORIAL_DIR) tutorial_en.tex
+	$(MAKE) -C $(TUTORIAL_DIR) tutorial_en.html
 
 literate_examples: literate_allocations_familiales literate_code_general_impots \
 	literate_us_tax_code literate_tutorial_en
