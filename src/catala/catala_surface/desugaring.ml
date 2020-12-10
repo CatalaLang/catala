@@ -450,6 +450,34 @@ let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   in
   process_def precond scope ctxt prgm def
 
+(** Process an assertion from the surface language *)
+let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+    (prgm : Desugared.Ast.program) (ass : Ast.assertion) : Desugared.Ast.program =
+  let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
+  let ass =
+    translate_expr scope_uid None ctxt
+      ( match ass.Ast.assertion_condition with
+      | None -> ass.Ast.assertion_content
+      | Some cond ->
+          ( Ast.IfThenElse
+              (cond, ass.Ast.assertion_content, Pos.same_pos_as (Ast.Literal (Ast.Bool true)) cond),
+            Pos.get_position cond ) )
+  in
+  let ass =
+    match precond with
+    | Some precond ->
+        Bindlib.box_apply2
+          (fun precond ass ->
+            ( Scopelang.Ast.EIfThenElse
+                (precond, ass, Pos.same_pos_as (Scopelang.Ast.ELit (Dcalc.Ast.LBool true)) precond),
+              Pos.get_position precond ))
+          precond ass
+    | None -> ass
+  in
+  let new_scope = { scope with scope_assertions = ass :: scope.scope_assertions } in
+  { prgm with program_scopes = Scopelang.Ast.ScopeMap.add scope_uid new_scope prgm.program_scopes }
+
 let process_scope_use_item (precond : Ast.expression Pos.marked option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (item : Ast.scope_use_item Pos.marked) : Desugared.Ast.program =
@@ -457,6 +485,7 @@ let process_scope_use_item (precond : Ast.expression Pos.marked option)
   match Pos.unmark item with
   | Ast.Rule rule -> process_rule precond scope ctxt prgm rule
   | Ast.Definition def -> process_def precond scope ctxt prgm def
+  | Ast.Assertion ass -> process_assert precond scope ctxt prgm ass
   | _ -> prgm
 
 let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.program)

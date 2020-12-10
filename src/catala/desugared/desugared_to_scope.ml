@@ -142,10 +142,6 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
          (fun vertex ->
            match vertex with
            | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) ->
-               (* Cli.debug_print (Format.asprintf "Finding %a in %a"
-                  Scopelang.Ast.ScopeVar.format_t var (Format.pp_print_list ~pp_sep:(fun fmt () ->
-                  Format.fprintf fmt ", ") (fun fmt (d, _) -> Format.fprintf fmt "%a"
-                  Ast.ScopeDef.format_t d)) (Ast.ScopeDefMap.bindings scope.scope_defs)); *)
                let var_def, var_typ =
                  Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs
                in
@@ -198,6 +194,11 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                in
                sub_scope_vars_redefs @ [ Scopelang.Ast.Call (sub_scope, sub_scope_index) ])
          scope_ordering)
+  in
+  (* Then, after having computed all the scopes variables, we add the assertions *)
+  let scope_decl_rules =
+    scope_decl_rules
+    @ List.map (fun e -> Scopelang.Ast.Assertion (Bindlib.unbox e)) scope.Ast.scope_assertions
   in
   let scope_sig =
     Scopelang.Ast.ScopeVarSet.fold

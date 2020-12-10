@@ -109,23 +109,24 @@ CODE_GENERAL_IMPOTS_DIR=$(EXAMPLES_DIR)/code_general_impots
 US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
 
-allocations_familiales: pygments build
+literate_allocations_familiales: pygments build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
-code_general_impots: pygments build
+literate_code_general_impots: pygments build
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.tex
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.html
 
-us_tax_code: pygments build
+literate_us_tax_code: pygments build
 	$(MAKE) -C $(US_TAX_CODE_DIR) $@.tex
 	$(MAKE) -C $(US_TAX_CODE_DIR) $@.html
 
-tutorial_en: pygments build
+literate_tutorial_en: pygments build
 	$(MAKE) -C $(TUTORIAL_DIR) $@.tex
 	$(MAKE) -C $(TUTORIAL_DIR) $@.html
 
-all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
+literate_examples: literate_allocations_familiales literate_code_general_impots \
+	literate_us_tax_code literate_tutorial_en
 
 ##########################################
 # Execute test suite
@@ -133,8 +134,13 @@ all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
 
 .FORCE:
 
-tests: build .FORCE
-	$(MAKE) -C tests
+test_suite: .FORCE
+	@$(MAKE) --no-print-directory -C tests
+
+test_examples: .FORCE 
+	@$(MAKE) --no-print-directory -C examples test_examples
+
+tests: test_suite test_examples
 
 ##########################################
 # Website assets
@@ -147,13 +153,13 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc all_examples grammar.html catala.html
+website-assets: doc literate_examples grammar.html catala.html
 
 ##########################################
 # Misceallenous
 ##########################################
 
-all: install-dependencies build doc tests all_examples website-assets
+all: install-dependencies build doc tests literate_examples website-assets
 
 clean:
 	dune clean
@@ -168,6 +174,6 @@ inspect:
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all all_examples english allocations_familiales pygments \
+.PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build format install-dependencies install-dependencies-ocaml \
 	catala.html

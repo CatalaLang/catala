@@ -130,6 +130,9 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
             (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
             results
         in
+        Cli.result_print
+          (Format.asprintf "Computation successful!%s"
+             (if List.length results > 0 then " Results:" else ""));
         List.iter
           (fun (var, result) ->
             Cli.result_print

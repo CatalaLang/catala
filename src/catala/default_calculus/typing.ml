@@ -239,6 +239,9 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       let tt = typecheck_expr_bottom_up env et in
       typecheck_expr_top_down env ef tt;
       tt
+  | EAssert e' ->
+      typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
+      UnionFind.make (Pos.same_pos_as (TLit TUnit) e')
 
 and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
@@ -364,6 +367,9 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       typecheck_expr_top_down env cond (UnionFind.make (Pos.same_pos_as (TLit TBool) cond));
       typecheck_expr_top_down env et tau;
       typecheck_expr_top_down env ef tau
+  | EAssert e' ->
+      typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
+      unify tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e'))
 
 let infer_type (e : A.expr Pos.marked) : A.typ Pos.marked =
   let ty = typecheck_expr_bottom_up A.VarMap.empty e in

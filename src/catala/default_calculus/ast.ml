@@ -75,6 +75,7 @@ type expr =
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
+  | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked

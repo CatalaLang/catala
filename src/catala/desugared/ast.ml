@@ -70,7 +70,7 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
     parent_rule = None;
   }
 
-type assertion = Scopelang.Ast.expr Pos.marked
+type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
 
 type variation_typ = Increasing | Decreasing
 

@@ -227,10 +227,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         with Not_found ->
           Errors.raise_spanned_error
             (Format.asprintf
-               "The variable %a.%a cannot be used here, as subscope %a's results will not have \
-                been computed yet"
-               Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
-               Ast.SubScopeName.format_t (Pos.unmark s))
+               "The variable %a.%a cannot be used here,\n\
+                as subscope %a's results will not have been computed yet" Ast.SubScopeName.format_t
+               (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a) Ast.SubScopeName.format_t
+               (Pos.unmark s))
             (Pos.get_position e) )
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
@@ -380,6 +380,15 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
             pos_sigma )
           call_expr results_bindings,
         new_ctx )
+  | Assertion e ->
+      let next_e, new_ctx = translate_rules ctx rest pos_sigma in
+      let new_e = translate_expr ctx e in
+      ( Dcalc.Ast.make_let_in
+          (Dcalc.Ast.Var.make ("_", Pos.no_pos))
+          (Dcalc.Ast.TLit TUnit, Pos.no_pos)
+          (Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e)
+          next_e,
+        new_ctx )
 
 and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
@@ -412,7 +421,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
       scope_variables
   in
   Dcalc.Ast.make_abs
-    (Array.of_list ((List.map (fun (_, _, x) -> x)) scope_variables))
+    (Array.of_list (List.map (fun (_, _, x) -> x) scope_variables))
     rules pos_sigma
     (List.map
        (fun (_, tau, _) ->

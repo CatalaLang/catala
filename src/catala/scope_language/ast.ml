@@ -142,6 +142,7 @@ module VarMap = Map.Make (Var)
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
 type scope_decl = {

@@ -107,6 +107,7 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 = 0))
+    | A.Binop A.Eq, [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 = i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))
@@ -114,6 +115,7 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop A.Neq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 <> 0))
+    | A.Binop A.Neq, [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <> i2))
     | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
@@ -258,6 +260,15 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             "Expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond) )
+  | EAssert e' -> (
+      match Pos.unmark (evaluate_expr e') with
+      | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
+      | ELit (LBool false) -> Errors.raise_spanned_error "Assertion failed" (Pos.get_position e')
+      | _ ->
+          Errors.raise_spanned_error
+            "Expected a boolean literal for the result of this assertion (should not happen if the \
+             term was well-typed)"
+            (Pos.get_position e') )
 
 let empty_thunked_term : Ast.expr Pos.marked =
   let silent = Ast.Var.make ("_", Pos.no_pos) in

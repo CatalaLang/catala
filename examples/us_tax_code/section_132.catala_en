@@ -58,6 +58,12 @@ equals
     customer_price *$ 20%
   then customer_price *$ 20%
   else employee_discount
+
+scope QualifiedEmployeeDiscount under condition is_services:
+    # When selling a service, one does not need the aggregate cost.
+    # We provide a default value here so that the computations run smooth.
+    definition aggregate_cost equals $0
+    definition gross_profit_percentage equals 0%
 */
 @@(2) Gross profit percentage@@++
 
@@ -69,8 +75,7 @@ to customers over the aggregate cost of such property to the employer, is of
 
 (ii) the aggregate sale price of such property.
 /*
-scope QualifiedEmployeeDiscount
-  under condition is_property :
+scope QualifiedEmployeeDiscount under condition is_property:
   assertion customer_price >=$ aggregate_cost
 
   definition gross_profit_percentage equals
@@ -98,7 +103,7 @@ an employee for use by such employee, is less than
 employer to customers.
 /*
 scope QualifiedEmployeeDiscount:
-  assertion customer_price >= employee_price
+  assertion customer_price >=$ employee_price
 
   definition employee_discount equals
     customer_price -$ employee_price

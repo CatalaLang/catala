@@ -1,2 +1,3 @@
-[RESULT] a -> 42
-[RESULT] b -> true
+[RESULT] Computation successful! Results:
+[RESULT] a = 42
+[RESULT] b = true

@@ -7,7 +7,7 @@ LATEXMK=latexmk
 PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
 PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
 
-CATALA=dune exec --no-print-director ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
+CATALA=dune exec --no-print-director ../../src/catala.exe -- $(CATALA_OPTS) --language=$(CATALA_LANG)
 
 LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
 
@@ -29,14 +29,14 @@ endif
 ##########################################
 
 %.run: %.catala_$(CATALA_LANG) $(CATALA_EXE)
-	$(CATALA) Makefile $<
-	$(CATALA) \
+	@$(CATALA) Makefile $<
+	@$(CATALA) \
 		Interpret \
 		-s $(SCOPE) \
 		$<
 
 %.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
-	$(CATALA) Makefile $<
+	@$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
 		--pygmentize=$(PYGMENTIZE) \
@@ -44,7 +44,7 @@ endif
 		$<
 
 %.html: %.catala_$(CATALA_LANG) $(CATALA_EXE)
-	$(CATALA) Makefile $<
+	@$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
 	--pygmentize=$(PYGMENTIZE) \
