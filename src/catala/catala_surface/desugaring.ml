@@ -20,7 +20,12 @@ module Cli = Utils.Cli
     a redefinition of a subvariable *)
 
 let translate_op_kind (k : Ast.op_kind) : Dcalc.Ast.op_kind =
-  match k with KInt -> KInt | KDec -> KRat | KMoney -> KMoney
+  match k with
+  | KInt -> KInt
+  | KDec -> KRat
+  | KMoney -> KMoney
+  | KDate -> KDate
+  | KDuration -> KDuration
 
 let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
   match op with
@@ -88,7 +93,24 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         | MoneyAmount i ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
-        | _ -> Name_resolution.raise_unsupported_feature "literal" pos
+        | Number ((Int _, _), Some ((Year | Month | Day), _))
+        | Number ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
+            Name_resolution.raise_unsupported_feature "literal" pos
+        | Date date -> (
+            let date =
+              ODate.Unix.make
+                ~year:(Pos.unmark date.literal_date_year)
+                ~day:(Pos.unmark date.literal_date_day)
+                ~month:
+                  ( try ODate.Month.of_int (Pos.unmark date.literal_date_month)
+                    with Failure _ ->
+                      Errors.raise_spanned_error "Invalid month (should be between 1 and 12)"
+                        (Pos.get_position date.literal_date_month) )
+                ()
+            in
+            match ODate.Unix.some_if_valid date with
+            | Some date -> Scopelang.Ast.ELit (Dcalc.Ast.LDate date)
+            | None -> Errors.raise_spanned_error "Invalid date" pos )
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (

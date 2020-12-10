@@ -15,7 +15,7 @@
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
   | TLit of typ_lit
@@ -23,9 +23,26 @@ type typ =
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Z.t | LRat of Q.t | LMoney of Z.t | LUnit
+type date = ODate.Unix.t
 
-type op_kind = KInt | KRat | KMoney
+type duration = ODate.Unix.d
+
+type lit =
+  | LBool of bool
+  | LEmptyError
+  | LInt of Z.t
+  | LRat of Q.t
+  | LMoney of Z.t
+  | LUnit
+  | LDate of date
+  | LDuration of duration
+
+type op_kind =
+  | KInt
+  | KRat
+  | KMoney
+  | KDate
+  | KDuration  (** All ops don't have a Kdate and KDuration *)
 
 type binop =
   | And

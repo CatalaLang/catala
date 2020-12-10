@@ -37,11 +37,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
     else Format.fprintf fmt "%a" format_typ t
   in
   match Pos.unmark typ with
-  | TLit TUnit -> Format.fprintf fmt "unit"
-  | TLit TBool -> Format.fprintf fmt "boolean"
-  | TLit TInt -> Format.fprintf fmt "integer"
-  | TLit TRat -> Format.fprintf fmt "decimal"
-  | TLit TMoney -> Format.fprintf fmt "money"
+  | TLit l -> Dcalc.Print.format_tlit fmt l
   | TStruct s -> Format.fprintf fmt "%a" Ast.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
   | TArrow (t1, t2) ->

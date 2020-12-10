@@ -45,15 +45,18 @@
 %token LESSER GREATER LESSER_EQUAL GREATER_EQUAL
 %token LESSER_DEC GREATER_DEC LESSER_EQUAL_DEC GREATER_EQUAL_DEC
 %token LESSER_MONEY GREATER_MONEY LESSER_EQUAL_MONEY GREATER_EQUAL_MONEY
+%token LESSER_DATE GREATER_DATE LESSER_EQUAL_DATE GREATER_EQUAL_DATE
+%token LESSER_DURATION GREATER_DURATION LESSER_EQUAL_DURATION GREATER_EQUAL_DURATION
 %token EXISTS IN SUCH THAT NOW 
 %token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
 %token CARDINAL ASSERTION FIXED BY YEAR
 %token PLUS MINUS MULT DIV
 %token PLUSDEC MINUSDEC MULTDEC DIVDEC
 %token PLUSMONEY MINUSMONEY MULTMONEY DIVMONEY
+%token MINUSDATE PLUSDATE PLUSDURATION MINUSDURATION
 %token MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
-%token NOT BOOLEAN PERCENT ARROW
+%token NOT BOOLEAN PERCENT ARROW DURATION
 %token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT ENUM ELSE DATE SUM
@@ -70,6 +73,7 @@ typ_base:
 | INTEGER { (Integer, $sloc) }
 | BOOLEAN { (Boolean, $sloc) }
 | MONEY { (Money, $sloc) }
+| DURATION { (Duration, $sloc) }
 | TEXT { (Text, $sloc) }
 | DECIMAL { (Decimal, $sloc) }
 | DATE { (Date, $sloc) }
@@ -194,6 +198,14 @@ compare_op:
 | LESSER_EQUAL_MONEY { (Lte KMoney, $sloc) }
 | GREATER_MONEY { (Gt KMoney, $sloc) }
 | GREATER_EQUAL_MONEY { (Gte KMoney, $sloc) }
+| LESSER_DATE { (Lt KDate, $sloc) }
+| LESSER_EQUAL_DATE { (Lte KDate, $sloc) }
+| GREATER_DATE { (Gt KDate, $sloc) }
+| GREATER_EQUAL_DATE { (Gte KDate, $sloc) }
+| LESSER_DURATION { (Lt KDuration, $sloc) }
+| LESSER_EQUAL_DURATION { (Lte KDuration, $sloc) }
+| GREATER_DURATION { (Gt KDuration, $sloc) }
+| GREATER_EQUAL_DURATION { (Gte KDuration, $sloc) }
 | EQUAL { (Eq, $sloc) }
 | NOT_EQUAL { (Neq, $sloc) }
 
@@ -235,6 +247,10 @@ mult_expression:
 }
 
 sum_op:
+| PLUSDURATION { (Add KDuration, $sloc) }
+| MINUSDURATION { (Sub KDuration, $sloc) }
+| PLUSDATE { (Add KDate, $sloc) }
+| MINUSDATE { (Sub KDate, $sloc) }
 | PLUSMONEY { (Add KMoney, $sloc) }
 | MINUSMONEY { (Sub KMoney, $sloc) }
 | PLUSDEC { (Add KDec, $sloc) }
@@ -246,6 +262,7 @@ sum_unop:
 | MINUS { (Minus KInt, $sloc) }
 | MINUSDEC { (Minus KDec, $sloc) }
 | MINUSMONEY { (Minus KMoney, $sloc) }
+| MINUSDURATION { (Minus KDuration, $sloc) }
 
 sum_expression:
 | e = mult_expression { e }

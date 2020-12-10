@@ -20,7 +20,15 @@ type ident = string
 
 type qident = ident Pos.marked list
 
-type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
+type primitive_typ =
+  | Integer
+  | Decimal
+  | Boolean
+  | Money
+  | Duration
+  | Text
+  | Date
+  | Named of constructor
 
 type base_typ_data =
   | Primitive of primitive_typ
@@ -55,7 +63,7 @@ type enum_decl = {
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
-type op_kind = KInt | KDec | KMoney
+type op_kind = KInt | KDec | KMoney | KDate | KDuration
 
 type binop =
   | And

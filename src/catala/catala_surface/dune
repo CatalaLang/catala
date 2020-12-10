@@ -1,6 +1,6 @@
 (library
  (name surface)
- (libraries utils menhirLib sedlex re desugared scopelang zarith)
+ (libraries utils menhirLib sedlex re desugared scopelang zarith odate)
  (public_name catala.surface)
  (preprocess
   (pps sedlex.ppx)))

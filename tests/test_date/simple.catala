@@ -1,0 +1,13 @@
+@Article@
+
+/*
+new scope A:
+  param x content date
+  param y content date 
+  param z content duration
+
+scope A:
+  def x := |01/01/2019|
+  def y := |30/09/2002|
+  def z := x -@ y
+*/

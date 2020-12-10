@@ -68,6 +68,14 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
               (Some "The division operator:", Pos.get_position op);
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
             ]
+    | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        A.ELit (LDuration (ODuration.( + ) i1 i2))
+    | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        A.ELit (LDuration (ODuration.( - ) i1 i2))
+    | A.Binop (A.Sub KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LDuration (ODate.Unix.between i1 i2))
+    | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
+        A.ELit (LDate (ODate.Unix.move i1 i2))
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
@@ -76,10 +84,41 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop (A.Lte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <= i2))
     | A.Binop (A.Gt KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 > i2))
     | A.Binop (A.Gte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 >= i2))
+    | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (ODuration.is_positive diff))
+    | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (ODuration.is_positive diff || ODuration.is_instantenous diff))
+    | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (ODuration.is_negative diff))
+    | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (ODuration.is_negative diff || ODuration.is_instantenous diff))
+    | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 < 0))
+    | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 <= 0))
+    | A.Binop (A.Gt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 > 0))
+    | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 >= 0))
+    | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (ODuration.is_instantenous diff))
+    | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 = 0))
     | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 = i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))
     | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing functions return false *)
+    | A.Binop A.Neq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        let diff = ODuration.( - ) i2 i1 in
+        A.ELit (LBool (not (ODuration.is_instantenous diff)))
+    | A.Binop A.Neq, [ ELit (LDate i1); ELit (LDate i2) ] ->
+        A.ELit (LBool (ODate.Unix.compare i1 i2 <> 0))
+    | A.Binop A.Neq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 <> i2))
     | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
     | A.Binop A.Neq, [ _; _ ] -> A.ELit (LBool true)
@@ -97,9 +136,11 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError
     | _ ->
         Errors.raise_multispanned_error
-          "operator applied to the wrong arguments (should not happen if the term was well-typed)"
-          [ (Some "Operator:", Pos.get_position op) ]
-        @@ List.mapi (fun i arg -> Some ("Argument n°" ^ string_of_int i, Pos.get_position arg)) )
+          "Operator applied to the wrong arguments\n(should nothappen if the term was well-typed)"
+          ( [ (Some "Operator:", Pos.get_position op) ]
+          @ List.mapi
+              (fun i arg -> (Some ("Argument n°" ^ string_of_int (i + 1)), Pos.get_position arg))
+              args ) )
     op
 
 let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =

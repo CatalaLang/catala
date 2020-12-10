@@ -18,17 +18,23 @@ open Ast
 let typ_needs_parens (e : typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ -> true | _ -> false
 
+let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
+  match l with
+  | TUnit -> Format.fprintf fmt "unit"
+  | TBool -> Format.fprintf fmt "boolean"
+  | TInt -> Format.fprintf fmt "integer"
+  | TRat -> Format.fprintf fmt "decimal"
+  | TMoney -> Format.fprintf fmt "money"
+  | TDuration -> Format.fprintf fmt "duration"
+  | TDate -> Format.fprintf fmt "date"
+
 let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
   match Pos.unmark typ with
-  | TLit TUnit -> Format.fprintf fmt "unit"
-  | TLit TBool -> Format.fprintf fmt "boolean"
-  | TLit TInt -> Format.fprintf fmt "integer"
-  | TLit TRat -> Format.fprintf fmt "decimal"
-  | TLit TMoney -> Format.fprintf fmt "money"
+  | TLit l -> Format.fprintf fmt "%a" format_tlit l
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " *@ ") format_typ)
@@ -82,9 +88,18 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         ( if List.length !digits - leading_zeroes !digits = !Utils.Cli.max_prec_digits then "…"
         else "" )
   | LMoney e -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
+  | LDate d ->
+      Format.fprintf fmt "%s"
+        (ODate.Unix.To.string (Option.get (ODate.Unix.To.generate_printer "%Y-%m-%d")) d)
+  | LDuration d ->
+      Format.fprintf fmt "%s"
+        (ODuration.To.string
+           (Option.get (ODuration.To.generate_printer "[%Y] years or [%M] months of [%D] days"))
+           d)
 
 let format_op_kind (fmt : Format.formatter) (k : op_kind) =
-  Format.fprintf fmt "%s" (match k with KInt -> "" | KRat -> "." | KMoney -> "$")
+  Format.fprintf fmt "%s"
+    (match k with KInt -> "" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   match Pos.unmark op with

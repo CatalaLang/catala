@@ -104,7 +104,8 @@ let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked)
       | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)
       | Ast.Decimal -> (Scopelang.Ast.TLit TRat, typ_pos)
       | Ast.Money -> (Scopelang.Ast.TLit TMoney, typ_pos)
-      | Ast.Date -> raise_unsupported_feature "date type" typ_pos
+      | Ast.Duration -> (Scopelang.Ast.TLit TDuration, typ_pos)
+      | Ast.Date -> (Scopelang.Ast.TLit TDate, typ_pos)
       | Ast.Boolean -> (Scopelang.Ast.TLit TBool, typ_pos)
       | Ast.Text -> raise_unsupported_feature "text type" typ_pos
       | Ast.Named ident -> (

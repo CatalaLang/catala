@@ -37,6 +37,7 @@ let token_list_en : (string * token) list =
     ("text", TEXT);
     ("decimal", DECIMAL);
     ("date", DATE);
+    ("duration", DURATION);
     ("boolean", BOOLEAN);
     ("sum", SUM);
     ("fulfilled", FILLED);
@@ -135,6 +136,9 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "date" ->
       L.update_acc lexbuf;
       DATE
+  | "duration" ->
+      L.update_acc lexbuf;
+      DURATION
   | "boolean" ->
       L.update_acc lexbuf;
       BOOLEAN
@@ -269,6 +273,42 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "->" ->
       L.update_acc lexbuf;
       ARROW
+  | "<=@" ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_DATE
+  | "<@" ->
+      L.update_acc lexbuf;
+      LESSER_DATE
+  | ">=@" ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DATE
+  | ">@" ->
+      L.update_acc lexbuf;
+      GREATER_DATE
+  | "-@" ->
+      L.update_acc lexbuf;
+      MINUSDATE
+  | "+@" ->
+      L.update_acc lexbuf;
+      PLUSDATE
+  | "<=^" ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_DURATION
+  | "<^" ->
+      L.update_acc lexbuf;
+      LESSER_DURATION
+  | ">=^" ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DURATION
+  | ">^" ->
+      L.update_acc lexbuf;
+      GREATER_DURATION
+  | "+^" ->
+      L.update_acc lexbuf;
+      PLUSDURATION
+  | "-^" ->
+      L.update_acc lexbuf;
+      MINUSDURATION
   | "<=", 0x24 ->
       L.update_acc lexbuf;
       LESSER_EQUAL_MONEY

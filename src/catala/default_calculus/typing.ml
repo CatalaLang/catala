@@ -30,11 +30,7 @@ type typ =
 let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem) : unit =
   let ty_repr = UnionFind.get (UnionFind.find ty) in
   match Pos.unmark ty_repr with
-  | TLit TUnit -> Format.fprintf fmt "unit"
-  | TLit TBool -> Format.fprintf fmt "bool"
-  | TLit TInt -> Format.fprintf fmt "int"
-  | TLit TRat -> Format.fprintf fmt "dec"
-  | TLit TMoney -> Format.fprintf fmt "money"
+  | TLit l -> Format.fprintf fmt "%a" Print.format_tlit l
   | TAny -> Format.fprintf fmt "any type"
   | TTuple ts ->
       Format.fprintf fmt "(%a)"
@@ -52,9 +48,17 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   match (t1_repr, t2_repr) with
   | (TLit tl1, _), (TLit tl2, _) when tl1 = tl2 -> ()
-  | (TArrow (t11, t12), _), (TArrow (t21, t22), _) ->
-      unify t11 t21;
-      unify t12 t22
+  | (TArrow (t11, t12), t1_pos), (TArrow (t21, t22), t2_pos) -> (
+      try
+        unify t11 t21;
+        unify t12 t22
+      with Errors.StructuredError (msg, err_pos) ->
+        Errors.raise_multispanned_error msg
+          ( err_pos
+          @ [
+              (Some (Format.asprintf "Type %a coming from expression:" format_typ t1), t1_pos);
+              (Some (Format.asprintf "Type %a coming from expression:" format_typ t2), t2_pos);
+            ] ) )
   | (TTuple ts1, _), (TTuple ts2, _) -> List.iter2 unify ts1 ts2
   | (TEnum ts1, _), (TEnum ts2, _) -> List.iter2 unify ts1 ts2
   | (TAny, _), (TAny, _) -> ignore (UnionFind.union t1 t2)
@@ -78,6 +82,8 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let it = UnionFind.make (TLit TInt, pos) in
   let rt = UnionFind.make (TLit TRat, pos) in
   let mt = UnionFind.make (TLit TMoney, pos) in
+  let dut = UnionFind.make (TLit TDuration, pos) in
+  let dat = UnionFind.make (TLit TDate, pos) in
   let any = UnionFind.make (TAny, pos) in
   let arr x y = UnionFind.make (TArrow (x, y), pos) in
   match Pos.unmark op with
@@ -85,17 +91,26 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) -> arr it (arr it it)
   | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) -> arr rt (arr rt rt)
   | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)
+  | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
+  | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
+  | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
   | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
   | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
   | A.Binop (A.Lt KInt | A.Lte KInt | A.Gt KInt | A.Gte KInt) -> arr it (arr it bt)
   | A.Binop (A.Lt KRat | A.Lte KRat | A.Gt KRat | A.Gte KRat) -> arr rt (arr rt bt)
   | A.Binop (A.Lt KMoney | A.Lte KMoney | A.Gt KMoney | A.Gte KMoney) -> arr mt (arr mt bt)
+  | A.Binop (A.Lt KDate | A.Lte KDate | A.Gt KDate | A.Gte KDate) -> arr dat (arr dat bt)
+  | A.Binop (A.Lt KDuration | A.Lte KDuration | A.Gt KDuration | A.Gte KDuration) ->
+      arr dut (arr dut bt)
   | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
   | A.Unop (A.Minus KInt) -> arr it it
   | A.Unop (A.Minus KRat) -> arr rt rt
   | A.Unop (A.Minus KMoney) -> arr mt mt
+  | A.Unop (A.Minus KDuration) -> arr dut dut
   | A.Unop A.Not -> arr bt bt
   | A.Unop A.ErrorOnEmpty -> arr any any
+  | Binop (Mult (KDate | KDuration)) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
+      Errors.raise_spanned_error "This operator is not available!" pos
 
 let rec ast_to_typ (ty : A.typ) : typ =
   match ty with
@@ -133,6 +148,8 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
   | ELit (LInt _) -> UnionFind.make (Pos.same_pos_as (TLit TInt) e)
   | ELit (LRat _) -> UnionFind.make (Pos.same_pos_as (TLit TRat) e)
   | ELit (LMoney _) -> UnionFind.make (Pos.same_pos_as (TLit TMoney) e)
+  | ELit (LDate _) -> UnionFind.make (Pos.same_pos_as (TLit TDate) e)
+  | ELit (LDuration _) -> UnionFind.make (Pos.same_pos_as (TLit TDuration) e)
   | ELit LUnit -> UnionFind.make (Pos.same_pos_as (TLit TUnit) e)
   | ELit LEmptyError -> UnionFind.make (Pos.same_pos_as TAny e)
   | ETuple es ->
@@ -236,6 +253,8 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
   | ELit (LInt _) -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TInt) e))
   | ELit (LRat _) -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TRat) e))
   | ELit (LMoney _) -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TMoney) e))
+  | ELit (LDate _) -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TDate) e))
+  | ELit (LDuration _) -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TDuration) e))
   | ELit LUnit -> unify tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e))
   | ELit LEmptyError -> unify tau (UnionFind.make (Pos.same_pos_as TAny e))
   | ETuple es -> (

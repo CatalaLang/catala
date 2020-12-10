@@ -23,7 +23,8 @@ install-dependencies-ocaml:
 		unionfind \
 		bindlib \
 		zarith \
-		ocamlgraph
+		ocamlgraph \
+		odate
 
 init-submodules:
 	git submodule update --init
