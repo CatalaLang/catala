@@ -1,12 +1,32 @@
-test_us_tax_code:
-	@SCOPE="TestSection132_1" $(MAKE) --no-print-directory -C us_tax_code tests/master_section_132.run \
-	> /dev/null || { echo "[FAIL us_tax_code/section_132.catala_en (1/3)]"; exit 1; }
-	@echo "[PASS us_tax_code/section_132.catala_en (1/3)]"
-	@SCOPE="TestSection132_2" $(MAKE) --no-print-directory -C us_tax_code tests/master_section_132.run \
-	> /dev/null || { echo "[FAIL us_tax_code/section_132.catala_en (1/3)]"; exit 1; }
-	@echo "[PASS us_tax_code/section_132.catala_en (2/3)]"
-	@SCOPE="TestSection132_3" $(MAKE) --no-print-directory -C us_tax_code tests/master_section_132.run \
-	> /dev/null || { echo "[FAIL us_tax_code/section_132.catala_en (1/3)]"; exit 1; }
-	@echo "[PASS us_tax_code/section_132.catala_en (3/3)]"
+################################
+# Running legislation unit tests
+################################
 
-test_examples: test_us_tax_code
+
+# Usage `make <name_of_example_folder>.<name_of_test_file>.<name_of_test_scope>`
+# This Makefile rule assumes the following directory structure:
+# foo_example
+#     tests/
+#	      foo_test_file1.catala
+#         foo_test_file2.catala	  
+#         ...
+#     foo_implem.catala
+#     ...
+%.run: .FORCE
+	@SCOPE="$(word 3,$(subst ., ,$*))" $(MAKE) --no-print-directory -C \
+		$(word 1,$(subst ., ,$*)) tests/$(word 2,$(subst ., ,$*)).run \
+	> /dev/null || { echo "[FAIL $@]"; exit 1; }
+	@echo "[PASS $@]"
+
+TEST_FILES=$(wildcard */tests/*.catala*)
+
+TEST_FILES_SCOPES=$(foreach TEST_FILE,$(TEST_FILES),\
+	$(foreach TEST_SCOPE,\
+		$(shell grep -Po "declaration scope [^:]*" $(TEST_FILE) | cut -d " " -f 3), \
+		$(word 1,$(subst /, ,$(TEST_FILE))).$(word 3,$(subst /, ,$(TEST_FILE))).$(TEST_SCOPE).run \
+	) \
+)
+
+test_examples: $(TEST_FILES_SCOPES)
+
+.FORCE:

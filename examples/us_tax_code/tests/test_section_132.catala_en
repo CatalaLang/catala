@@ -1,5 +1,7 @@
 @Test@
 
+@@Include: ../section_132.catala_en@@
+
 /*
 declaration scope TestSection132_1:
   context section_132 scope QualifiedEmployeeDiscount 
