@@ -154,52 +154,85 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Lexer.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
-let rec parse_source_files (source_files : string list) (language : Cli.frontend_lang) : Ast.program
-    =
-  match source_files with
-  | [] -> { program_items = []; program_source_files = [] }
-  | source_file :: rest -> (
-      Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
-      let input = try open_in source_file with Sys_error msg -> Errors.raise_error msg in
-      let lexbuf = Sedlexing.Utf8.from_channel input in
-      Sedlexing.set_filename lexbuf source_file;
-      Parse_utils.current_file := source_file;
-      let lexer_lang =
-        match language with
-        | `Fr -> Lexer_fr.lexer_fr
-        | `En -> Lexer_en.lexer_en
-        | `NonVerbose -> Lexer.lexer
+let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) : Ast.program =
+  Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
+  let input = try open_in source_file with Sys_error msg -> Errors.raise_error msg in
+  let lexbuf = Sedlexing.Utf8.from_channel input in
+  Sedlexing.set_filename lexbuf source_file;
+  Parse_utils.current_file := source_file;
+  let lexer_lang =
+    match language with
+    | `Fr -> Lexer_fr.lexer_fr
+    | `En -> Lexer_en.lexer_en
+    | `NonVerbose -> Lexer.lexer
+  in
+  let token_list_lang =
+    match language with
+    | `Fr -> Lexer_fr.token_list_fr
+    | `En -> Lexer_en.token_list_en
+    | `NonVerbose -> Lexer.token_list
+  in
+  let commands_or_includes =
+    sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master lexbuf
+  in
+  close_in input;
+  match commands_or_includes with
+  | Ast.SourceFile commands ->
+      let program = expand_includes source_file commands language in
+      {
+        program_items = program.Ast.program_items;
+        program_source_files = source_file :: program.Ast.program_source_files;
+      }
+  | Ast.MasterFile includes ->
+      let current_source_file_dirname = Filename.dirname source_file in
+      let includes =
+        List.map
+          (fun includ ->
+            (if current_source_file_dirname = "./" then "" else current_source_file_dirname ^ "/")
+            ^ Pos.unmark includ)
+          includes
       in
-      let token_list_lang =
-        match language with
-        | `Fr -> Lexer_fr.token_list_fr
-        | `En -> Lexer_en.token_list_en
-        | `NonVerbose -> Lexer.token_list
+      let new_program =
+        List.fold_left
+          (fun acc includ_file ->
+            let includ_program = parse_source_file includ_file language in
+            {
+              Ast.program_source_files =
+                acc.Ast.program_source_files @ includ_program.program_source_files;
+              Ast.program_items = acc.Ast.program_items @ includ_program.program_items;
+            })
+          { Ast.program_source_files = []; Ast.program_items = [] }
+          includes
       in
-      let commands_or_includes =
-        sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master
-          lexbuf
-      in
-      close_in input;
-      match commands_or_includes with
-      | Ast.SourceFile commands ->
-          let rest_program = parse_source_files rest language in
+      { new_program with program_source_files = source_file :: new_program.program_source_files }
+
+and expand_includes (source_file : string) (commands : Ast.program_item list)
+    (language : Cli.frontend_lang) : Ast.program =
+  List.fold_left
+    (fun acc command ->
+      match command with
+      | Ast.LawStructure (LawInclude (Ast.CatalaFile sub_source)) ->
+          let source_dir = Filename.dirname source_file in
+          let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
+          let includ_program = parse_source_file sub_source language in
           {
-            program_items = commands @ rest_program.Ast.program_items;
-            program_source_files = source_file :: rest_program.Ast.program_source_files;
+            Ast.program_source_files =
+              acc.Ast.program_source_files @ includ_program.program_source_files;
+            Ast.program_items = acc.Ast.program_items @ includ_program.program_items;
           }
-      | Ast.MasterFile includes ->
-          let current_source_file_dirname = Filename.dirname source_file in
-          let includes =
-            List.map
-              (fun includ ->
-                ( if current_source_file_dirname = "./" then ""
-                else current_source_file_dirname ^ "/" )
-                ^ Pos.unmark includ)
-              includes
+      | Ast.LawStructure (Ast.LawHeading (heading, commands')) ->
+          let { Ast.program_items = commands'; Ast.program_source_files = new_sources } =
+            expand_includes source_file (List.map (fun x -> Ast.LawStructure x) commands') language
           in
-          let new_program = parse_source_files (includes @ rest) language in
           {
-            new_program with
-            program_source_files = source_file :: new_program.program_source_files;
-          } )
+            Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
+            Ast.program_items =
+              acc.Ast.program_items
+              @ [
+                  Ast.LawStructure
+                    (Ast.LawHeading (heading, List.map (fun (Ast.LawStructure x) -> x) commands'));
+                ];
+          }
+      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [ i ] })
+    { Ast.program_source_files = []; Ast.program_items = [] }
+    commands

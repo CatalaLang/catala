@@ -150,7 +150,6 @@ let law_article_item_to_html (custom_pygments : string option) (language : C.bac
       Format.fprintf fmt "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
         (pygmentize_code (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c) language custom_pygments)
-  | A.LawInclude _ -> ()
 
 let rec law_structure_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (i : A.law_structure) : unit =
@@ -164,6 +163,7 @@ let rec law_structure_to_html (custom_pygments : string option) (language : C.ba
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
         (law_structure_to_html custom_pygments language)
         fmt children
+  | A.LawInclude _ -> ()
   | A.LawArticle (a, children) ->
       Format.fprintf fmt
         "<div class='article-container'>\n\n<div class='article-title'><a href='%s'>%s</a></div>\n"

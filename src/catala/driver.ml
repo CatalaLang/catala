@@ -46,7 +46,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Surface.Parser_driver.parse_source_files [ source_file ] language in
+    let program = Surface.Parser_driver.parse_source_file source_file language in
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in

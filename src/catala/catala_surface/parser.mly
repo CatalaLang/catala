@@ -546,9 +546,6 @@ law_article_item:
   let (code, pos) = code_and_pos in
   CodeBlock (code, (text, pos))
 }
-| includ = LAW_INCLUDE {
-  LawInclude includ
-}
 
 law_article:
 | title = LAW_ARTICLE {
@@ -589,6 +586,9 @@ source_file_item:
 | BEGIN_METADATA option(law_text) code = metadata_block {
   let (code, source_repr) = code in
   LawStructure (MetadataBlock (code, source_repr))
+}
+| includ = LAW_INCLUDE {
+  LawStructure (LawInclude includ)
 }
 
 source_file_after_text:
@@ -632,7 +632,7 @@ source_file_or_master:
       | [] -> assert false (* there should be at least one rest element *)
       | rest_head::rest_tail -> 
         begin match first_item with 
-        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _) -> 
+        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _ | LawInclude _) -> 
           (* if an article or an include is just before a new heading or a new article, 
              then we don't merge it with what comes next *)
           first_item::rest_head::rest_tail

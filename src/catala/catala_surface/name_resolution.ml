@@ -338,7 +338,7 @@ let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
         (fun ctxt child -> process_law_article_item ctxt child process_item)
         ctxt children
   | Ast.MetadataBlock (b, c) -> process_law_article_item ctxt (Ast.CodeBlock (b, c)) process_item
-  | Ast.IntermediateText _ -> ctxt
+  | Ast.IntermediateText _ | Ast.LawInclude _ -> ctxt
 
 (** Process a program item *)
 let process_program_item (ctxt : context) (item : Ast.program_item)

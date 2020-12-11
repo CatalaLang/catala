@@ -556,7 +556,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
     | LawArticle (_, children) ->
         List.fold_left (fun prgm child -> processer_article_item prgm child) prgm children
     | MetadataBlock (b, c) -> processer_article_item prgm (CodeBlock (b, c))
-    | IntermediateText _ -> prgm
+    | IntermediateText _ | LawInclude _ -> prgm
   in
 
   let processer_item (prgm : Desugared.Ast.program) (item : Ast.program_item) :

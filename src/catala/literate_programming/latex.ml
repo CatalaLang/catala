@@ -135,15 +135,6 @@ let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatte
         (Pos.get_start_line (Pos.get_position c))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
-  | A.LawInclude (A.PdfFile ((file, _), page)) ->
-      let label = file ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p in
-      Format.fprintf fmt
-        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
-         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
-        label
-        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
-        file label
-  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
 
 let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_structure) : unit =
@@ -160,6 +151,15 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
         (law_structure_to_latex language) fmt children
+  | A.LawInclude (A.PdfFile ((file, _), page)) ->
+      let label = file ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p in
+      Format.fprintf fmt
+        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
+         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+        label
+        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
+        file label
+  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawArticle (article, children) ->
       Format.fprintf fmt "\\paragraph{%s}\n\n" (pre_latexify (Pos.unmark article.law_article_name));
       Format.pp_print_list
