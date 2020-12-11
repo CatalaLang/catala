@@ -238,7 +238,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
     | EOp op -> Bindlib.box (Dcalc.Ast.EOp op) )
 
-let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos_sigma : Pos.t) :
+let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
+    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
@@ -251,7 +252,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           scope_vars = Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau) ctx.scope_vars;
         }
       in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let new_e = translate_expr ctx e in
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr = merge_defaults a_expr new_e in
@@ -260,6 +261,18 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (fun merged_expr ->
             ( Dcalc.Ast.EApp
                 ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
+                  [ merged_expr ] ),
+              Pos.get_position merged_expr ))
+          merged_expr
+      in
+      let merged_expr =
+        Bindlib.box_apply
+          (fun merged_expr ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
+                    Pos.get_position a_name ),
                   [ merged_expr ] ),
               Pos.get_position merged_expr ))
           merged_expr
@@ -293,7 +306,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               ctx.subscope_vars;
         }
       in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let intermediate_e =
         Dcalc.Ast.make_abs
           (Array.of_list [ Pos.unmark a_var ])
@@ -302,6 +315,18 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (Pos.get_position e)
       in
       let new_e = translate_expr ctx e in
+      let new_e =
+        Bindlib.box_apply
+          (fun new_e ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
+                    Pos.get_position a_name ),
+                  [ new_e ] ),
+              Pos.get_position new_e ))
+          new_e
+      in
       let silent_var = Dcalc.Ast.Var.make ("_", Pos.no_pos) in
       let thunked_new_e =
         Dcalc.Ast.make_abs
@@ -354,15 +379,34 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               ctx.subscope_vars;
         }
       in
+      let subscope_func =
+        Dcalc.Ast.make_var (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex))
+      in
+      let subscope_func =
+        Bindlib.box_apply
+          (fun subscope_func ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.BeginCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position subscope_func ),
+                  [ subscope_func ] ),
+              Pos.get_position subscope_func ))
+          subscope_func
+      in
       let call_expr =
         Bindlib.box_apply2
           (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
-          (Dcalc.Ast.make_var
-             (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex)))
-          (Bindlib.box_list subscope_args)
+          subscope_func (Bindlib.box_list subscope_args)
       in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let results_bindings, _ =
         List.fold_right
           (fun (_, tau, dvar) (acc, i) ->
@@ -375,13 +419,31 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           all_subscope_vars_dcalc
           (next_e, List.length all_subscope_vars_dcalc - 1)
       in
-      ( Dcalc.Ast.make_let_in result_tuple_var
-          ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
-            pos_sigma )
-          call_expr results_bindings,
-        new_ctx )
+      let results_bindings =
+        Bindlib.box_apply
+          (fun results_bindings ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.EndCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position results_bindings ),
+                  [ results_bindings ] ),
+              Pos.get_position results_bindings ))
+          results_bindings
+      in
+      let result_tuple_typ =
+        ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
+          pos_sigma )
+      in
+      (Dcalc.Ast.make_let_in result_tuple_var result_tuple_typ call_expr results_bindings, new_ctx)
   | Assertion e ->
-      let next_e, new_ctx = translate_rules ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules ctx rest (sigma_name, pos_sigma) in
       let new_e = translate_expr ctx e in
       ( Dcalc.Ast.make_let_in
           (Dcalc.Ast.Var.make ("_", Pos.no_pos))
@@ -390,7 +452,8 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           next_e,
         new_ctx )
 
-and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
+and translate_rules (ctx : ctx) (rules : Ast.rule list)
+    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   match rules with
   | [] ->
@@ -404,14 +467,14 @@ and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
                 scope_variables))
       in
       (return_exp, ctx)
-  | hd :: tl -> translate_rule ctx hd tl pos_sigma
+  | hd :: tl -> translate_rule ctx hd tl (sigma_name, pos_sigma)
 
 let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     (sctx : scope_sigs_ctx) (scope_name : Ast.ScopeName.t) (sigma : Ast.scope_decl) :
     Dcalc.Ast.expr Pos.marked Bindlib.box =
   let ctx = empty_ctx struct_ctx enum_ctx sctx scope_name in
-  let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
-  let rules, ctx = translate_rules ctx sigma.scope_decl_rules pos_sigma in
+  let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
+  let rules, ctx = translate_rules ctx sigma.scope_decl_rules sigma_info in
   let scope_variables, _ = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables =
     List.map
@@ -420,6 +483,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
         (x, tau, dcalc_x))
       scope_variables
   in
+  let pos_sigma = Pos.get_position sigma_info in
   Dcalc.Ast.make_abs
     (Array.of_list (List.map (fun (_, _, x) -> x) scope_variables))
     rules pos_sigma

@@ -58,7 +58,13 @@ type binop =
   | Eq
   | Neq
 
-type unop = Not | Minus of op_kind | ErrorOnEmpty
+type log_entry = VarDef | BeginCall | EndCall
+
+type unop =
+  | Not
+  | Minus of op_kind
+  | ErrorOnEmpty
+  | Log of log_entry * Utils.Uid.MarkedString.info list
 
 type operator = Binop of binop | Unop of unop
 

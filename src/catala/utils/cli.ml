@@ -24,6 +24,8 @@ let style_flag = ref true
 (* Max number of digits to show for decimal results *)
 let max_prec_digits = ref 20
 
+let trace_flag = ref false
+
 open Cmdliner
 
 let file =
@@ -35,6 +37,9 @@ let file =
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
 let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling from terminal output")
+
+let trace_opt =
+  Arg.(value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the intepreter's computation")
 
 let wrap_weaved_output =
   Arg.(
@@ -92,7 +97,7 @@ let pygmentize_loc =
 let catala_t f =
   Term.(
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ pygmentize_loc $ backend $ language
-    $ max_prec_digits_opt $ ex_scope $ output)
+    $ max_prec_digits_opt $ trace_opt $ ex_scope $ output)
 
 let info =
   let doc =
@@ -106,11 +111,12 @@ let info =
          from legislative texts.";
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
+      `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
       `S Manpage.s_examples;
       `P "Typical usage:";
       `Pre "catala LaTeX file.catala";
       `S Manpage.s_bugs;
-      `P "Please file bug reports at https://gitlab.inria.fr/verifisc/catala/issues";
+      `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
   let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
@@ -139,6 +145,9 @@ let warning_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.yello
 
 (** Prints [\[RESULT\]] in green on the terminal standard output *)
 let result_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
+
+(** Prints [\[LOG\]] in red on the terminal error output *)
+let log_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[LOG] "
 
 (**{2 Printers}*)
 
@@ -184,5 +193,10 @@ let warning_print (s : string) =
 
 let result_print (s : string) =
   Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> result_marker ()));
+  flush stdout;
+  flush stdout
+
+let log_print (s : string) =
+  Printf.printf "%s\n" (add_prefix_to_each_line s (fun _ -> log_marker ()));
   flush stdout;
   flush stdout

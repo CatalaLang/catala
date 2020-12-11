@@ -112,12 +112,28 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
 
+let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
+  Format.fprintf fmt "%s"
+    ( match entry with
+    | VarDef -> "Defining variable"
+    | BeginCall -> "Calling subscope"
+    | EndCall -> "Returned from subscope" )
+
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
-    (match Pos.unmark op with Minus _ -> "-" | Not -> "~" | ErrorOnEmpty -> "error_empty")
+    ( match Pos.unmark op with
+    | Minus _ -> "-"
+    | Not -> "~"
+    | ErrorOnEmpty -> "error_empty"
+    | Log (entry, infos) ->
+        Format.asprintf "log@[<hov 2>[%a|%a]@]" format_log_entry entry
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+             (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+          infos )
 
 let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with EAbs _ -> true | _ -> false
+  match Pos.unmark e with EAbs _ | EApp _ -> true | _ -> false
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s" (Bindlib.name_of v)

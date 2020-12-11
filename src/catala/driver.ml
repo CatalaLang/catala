@@ -18,10 +18,12 @@ module Errors = Utils.Errors
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
-    (max_prec_digits : int option) (ex_scope : string option) (output_file : string option) : int =
+    (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
+    (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
+    Cli.trace_flag := trace;
     Cli.debug_print "Reading files...";
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
     let language =

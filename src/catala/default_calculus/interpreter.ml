@@ -131,6 +131,25 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
              situation)"
             (Pos.get_position op)
         else e'
+    | A.Unop (A.Log (entry, infos)), [ e' ] ->
+        if !Cli.trace_flag then
+          match entry with
+          | VarDef ->
+              Cli.log_print
+                (Format.asprintf "%a %a = %a" Print.format_log_entry entry
+                   (Format.pp_print_list
+                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+                   infos Print.format_expr (e', Pos.no_pos))
+          | _ ->
+              Cli.log_print
+                (Format.asprintf "%a %a" Print.format_log_entry entry
+                   (Format.pp_print_list
+                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+                   infos)
+        else ();
+        e'
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError
     | _ ->
         Errors.raise_multispanned_error
