@@ -8,7 +8,7 @@
 (homepage https://github.com/CatalaLang/catala)
 (bug_reports https://github.com/CatalaLang/catala/issues)
 (authors "Denis Merigoux")
-(maintainers "denis.merigoux@inria.fr")
+(maintainers "contact@catala-lang.org")
 (license Apache2)
 
 
@@ -24,13 +24,16 @@
    (sedlex (>= 2.1))
    (menhir (>= 20200211))
    (menhirLib (>= 20200211))
+   (unionfind (>= 20200320))
+   (bindlib (>= 5.0.1))
    (dune-build-info (>= 2.0.1))
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
+   (zarith (>= 1.10))
    (dune (and :build ))
    (ocamlgraph (>= 1.8.8))
+   (odate (>= 0.6))
  )
 )
-
 
 (using menhir 2.1)

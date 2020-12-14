@@ -1,10 +1,14 @@
 # Catala test suite
 
-This folder contains Catala source files designed to test the features of the language.
+This folder contains Catala source files designed to test the features of the 
+language.
 
-It uses `make` to launch tests and compare the test terminal output with an expected output.
+It uses `make pass_tests` to launch tests and compare the test terminal output
+with an expected output.
 
-When you create a new test, please register it in the `Makefile` following the other examples. Expected outputs are stored using the convention `<name_of_test>.catala.<name_of_scope>.out` in the corresponding test folder.
+When you create a new test, please register it in the `Makefile` following the 
+other examples. Expected outputs are stored using the convention 
+`<name_of_test>.catala.<name_of_scope>.out` in the corresponding test folder.
 
 For both workflows: use `CATALA_OPTS="..." make ...` to pass in Catala compiler
 options when debugging.
@@ -34,3 +38,8 @@ options when debugging.
 5. Re-reun `make` to check that everything passes.
 6. That's it, you've fixed the Catala test suite to adapt for changes in the 
    language.
+
+If a compiler change causes a lot of regressions (error message formatting changes
+for instance), you can mass-reset the expected the outputs with `make reset_tests`.
+**Caution**: use at your own risk, regressions should be fixed one by one in 
+general.
