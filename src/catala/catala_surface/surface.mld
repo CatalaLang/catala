@@ -8,6 +8,9 @@ The module describing the abstract syntax tree is:
 
 {!modules: Surface.Ast}
 
+This representation can also be weaved into literate programming outputs 
+using the {{:literate.html} literate programming modules}.
+
 {1 Lexing }
 
 Relevant modules:

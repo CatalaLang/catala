@@ -81,6 +81,8 @@ type typ =
   | TEnum of EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked
 
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
 type expr =
   | ELocation of location
   | EVar of expr Bindlib.var Pos.marked

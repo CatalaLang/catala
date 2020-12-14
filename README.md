@@ -71,7 +71,12 @@ See [the dedicated readme](doc/formalization/README.md).
 
 ### Compiler documentation
 
-See [the dedicated readme](src/README.md).
+The compiler documentation is auto-generated from its source code using 
+`dune` and `odoc`. Use 
+    
+    make doc
+
+to generate the documentation, then open the `doc/odoc.html` file in any browser.
 
 ## License
 

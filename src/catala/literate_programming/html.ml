@@ -23,17 +23,24 @@ module P = Printf
 module R = Re.Pcre
 module C = Cli
 
+(** {1 Helpers} *)
+
+(** Converts double lines into HTML newlines. *)
 let pre_html (s : string) =
   let s = String.trim s in
   let doublenewline = R.regexp "\n\n" in
   let s = R.substitute ~rex:doublenewline ~subst:(fun _ -> "<br/>\n") s in
   s
 
+(** Raise an error if pygments cannot be found *)
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
   Errors.raise_error
     (Printf.sprintf "Weaving to HTML failed: pygmentize command \"%s\" returned with error code %d"
        command error_code)
 
+(** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
+
+    Prints an HTML complete page structure around the [wrapped] content. *)
 let wrap_html (source_files : string list) (custom_pygments : string option)
     (language : Cli.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) :
     unit =
@@ -91,6 +98,7 @@ let wrap_html (source_files : string list) (custom_pygments : string option)
           source_files));
   wrapped fmt
 
+(** Performs syntax highlighting on a piece of code by using Pygments and the special Catala lexer. *)
 let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
     (custom_pygments : string option) : string =
   C.debug_print (Printf.sprintf "Pygmenting the code chunk %s" (Pos.to_string (Pos.get_position c)));
@@ -125,7 +133,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
   close_in oc;
   output
 
-type program_state = InsideArticle | OutsideArticle
+(** {1 Weaving} *)
 
 let law_article_item_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (i : A.law_article_item) : unit =
@@ -188,6 +196,8 @@ let rec law_structure_to_html (custom_pygments : string option) (language : C.ba
 let program_item_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (i : A.program_item) : unit =
   match i with A.LawStructure s -> law_structure_to_html custom_pygments language fmt s
+
+(** {1 API} *)
 
 let ast_to_html (custom_pygments : string option) (language : C.backend_lang)
     (fmt : Format.formatter) (program : A.program) : unit =

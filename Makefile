@@ -44,10 +44,11 @@ build:
 	$(MAKE) format
 	dune build
 
-doc: build
+doc: 
 	dune build @doc
+	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
-install: build
+install:
 	dune build @install
 
 ##########################################
@@ -175,5 +176,5 @@ inspect:
 # Special targets
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
-	install build format install-dependencies install-dependencies-ocaml \
-	catala.html
+	install build doc format install-dependencies install-dependencies-ocaml \
+	catala.html 

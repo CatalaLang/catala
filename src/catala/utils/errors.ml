@@ -14,7 +14,12 @@
 
 (** Error formatting and helper functions *)
 
+(** {1 Error exception and printing} *)
+
 exception StructuredError of (string * (string option * Pos.t) list)
+(** The payload of the expression is a main error message, with a list of secondary positions
+    related to the error, each carrying an optional secondary message to describe what is pointed by
+    the position. *)
 
 let print_structured_error (msg : string) (pos : (string option * Pos.t) list) : string =
   Printf.sprintf "%s%s%s" msg
@@ -26,6 +31,8 @@ let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
               (match msg with None -> "" | Some msg -> msg ^ "\n")
               (Pos.retrieve_loc_text pos))
           pos))
+
+(** {1 Error exception and printing} *)
 
 let raise_spanned_error (msg : string) ?(span_msg : string option) (span : Pos.t) : 'a =
   raise (StructuredError (msg, [ (span_msg, span) ]))

@@ -22,6 +22,9 @@ module A = Surface.Ast
 module R = Re.Pcre
 module C = Cli
 
+(** {1 Helpers} *)
+
+(** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) =
   let percent = R.regexp "%" in
   let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
@@ -33,6 +36,9 @@ let pre_latexify (s : string) =
   let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
   s
 
+(** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
+
+    Prints an LaTeX complete documùent structure around the [wrapped] content. *)
 let wrap_latex (source_files : string list) (custom_pygments : string option)
     (language : C.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) =
   Format.fprintf fmt
@@ -107,6 +113,7 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
   wrapped fmt;
   Format.fprintf fmt "\n\n\\end{document}"
 
+(** Replaces math operators by their nice unicode counterparts *)
 let math_syms_replace (c : string) : string =
   let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
   let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|/") in
@@ -121,6 +128,8 @@ let math_syms_replace (c : string) : string =
     | s -> s
   in
   R.substitute ~rex:syms ~subst:syms2cmd c
+
+(** {1 Weaving} *)
 
 let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_article_item) : unit =
@@ -186,6 +195,8 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
 let program_item_to_latex (language : C.backend_lang) (fmt : Format.formatter) (i : A.program_item)
     : unit =
   match i with A.LawStructure law_s -> law_structure_to_latex language fmt law_s
+
+(** {1 API} *)
 
 let ast_to_latex (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) : unit =
   Format.pp_print_list

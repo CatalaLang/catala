@@ -20,6 +20,10 @@ module Errors = Utils.Errors
 module A = Ast
 module Cli = Utils.Cli
 
+(** {1 Types and unification} *)
+
+(** We do not reuse {!type: Dcalc.Ast.typ} because we have to include a new [TAny] variant. Indeed,
+    error terms can have any type and this has to be captured by the type sytem. *)
 type typ =
   | TLit of A.typ_lit
   | TArrow of typ Pos.marked UnionFind.elem * typ Pos.marked UnionFind.elem
@@ -42,6 +46,7 @@ let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem)
         ts
   | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ t1 format_typ t2
 
+(** Raises an error if unification cannot be performed *)
 let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFind.elem) : unit =
   (* Cli.debug_print (Format.asprintf "Unifying %a and %a" format_typ t1 format_typ t2); *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
@@ -76,6 +81,9 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
           (Some (Format.asprintf "Type %a coming from expression:" format_typ t2), t2_pos);
         ]
 
+(** Operators have a single type, instead of being polymorphic with constraints. This allows us to
+    have a simpler type system, while we argue the syntactic burden of operator annotations helps
+    the programmer visualize the type flow in the code. *)
 let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let pos = Pos.get_position op in
   let bt = UnionFind.make (TLit TBool, pos) in
@@ -134,8 +142,11 @@ let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
       | TAny -> A.TLit A.TUnit)
     (UnionFind.get (UnionFind.find ty))
 
+(** {1 Double-directed typing} *)
+
 type env = typ Pos.marked A.VarMap.t
 
+(** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.marked UnionFind.elem
     =
   match Pos.unmark e with
@@ -244,6 +255,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
       UnionFind.make (Pos.same_pos_as (TLit TUnit) e')
 
+(** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
   match Pos.unmark e with
@@ -372,9 +384,13 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
       unify tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e'))
 
+(** {1 API} *)
+
+(* Infer the type of an expression *)
 let infer_type (e : A.expr Pos.marked) : A.typ Pos.marked =
   let ty = typecheck_expr_bottom_up A.VarMap.empty e in
   typ_to_ast ty
 
+(** Typechecks an expression given an expected type *)
 let check_type (e : A.expr Pos.marked) (tau : A.typ Pos.marked) =
   typecheck_expr_top_down A.VarMap.empty e (UnionFind.make (Pos.map_under_mark ast_to_typ tau))

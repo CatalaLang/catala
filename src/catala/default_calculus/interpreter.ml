@@ -12,13 +12,29 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Reference interpreter for the default calculus *)
+
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 module Cli = Utils.Cli
 module A = Ast
 
+(** {1 Helpers} *)
+
 let is_empty_error (e : A.expr Pos.marked) : bool =
   match Pos.unmark e with ELit LEmptyError -> true | _ -> false
+
+let empty_thunked_term : Ast.expr Pos.marked =
+  let silent = Ast.Var.make ("_", Pos.no_pos) in
+  Bindlib.unbox
+    (Ast.make_abs
+       (Array.of_list [ silent ])
+       (Bindlib.box (Ast.ELit Ast.LEmptyError, Pos.no_pos))
+       Pos.no_pos
+       [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
+       Pos.no_pos)
+
+(** {1 Evaluation} *)
 
 let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
     A.expr Pos.marked =
@@ -289,16 +305,10 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
              term was well-typed)"
             (Pos.get_position e') )
 
-let empty_thunked_term : Ast.expr Pos.marked =
-  let silent = Ast.Var.make ("_", Pos.no_pos) in
-  Bindlib.unbox
-    (Ast.make_abs
-       (Array.of_list [ silent ])
-       (Bindlib.box (Ast.ELit Ast.LEmptyError, Pos.no_pos))
-       Pos.no_pos
-       [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
-       Pos.no_pos)
+(** {1 API} *)
 
+(** Interpret a program. This function expects an expression typed as a function whose argument are
+    all thunked. The function is executed by providing for each argument a thunked empty default. *)
 let interpret_program (e : Ast.expr Pos.marked) : (Ast.Var.t * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr e) with
   | Ast.EAbs (_, binder, taus) -> (

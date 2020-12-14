@@ -2,3 +2,7 @@
  (name utils)
  (public_name catala.utils)
  (libraries cmdliner dune-build-info ANSITerminal))
+
+(documentation
+ (package catala)
+ (mld_files utils))

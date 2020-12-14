@@ -15,6 +15,10 @@
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 
+(** Abstract syntax tree for the default calculus *)
+
+(** {1 Abstract syntax tree} *)
+
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
@@ -68,6 +72,8 @@ type unop =
 
 type operator = Binop of binop | Unop of unop
 
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
 type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of (expr Pos.marked * Uid.MarkedString.info option) list
@@ -85,6 +91,8 @@ type expr =
   | EOp of operator
   | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+
+(** {1 Variable helpers} *)
 
 module Var = struct
   type t = expr Bindlib.var

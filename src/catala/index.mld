@@ -61,6 +61,13 @@ More documentation can be found on each intermediate representations here.
 {li {{: dcalc.html} The default calculus}}
 }
 
+The main compilation chain is defined in:
+
+{!modules: Catala.Driver}
+
 Last, two more modules contain additional features for the compiler:
 
-{!modules: Utils Literate }
+{ul
+{li {{: literate.html} Literate programming}}
+{li {{: utils.html} Compiler utilities}}
+}

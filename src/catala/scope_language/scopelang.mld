@@ -1,6 +1,6 @@
 {0 The scope language }
 
-This representation is the second in the compilation chain 
+This representation is the third in the compilation chain 
 (see {{: index.html#architecture} Architecture}). Its main difference 
 with the previous {{: desugared.html} desugared representation} is that inside
 a scope, the definitions are ordered according to their computational 
@@ -12,6 +12,10 @@ The module describing the abstract syntax tree is:
 {!modules: Scopelang.Ast}
 
 Printing helpers can be found in {!module: Scopelang.Print}.
+
+This intermediate representation corresponds to the scope language 
+presented in the {{: https://github.com/CatalaLang/catala/raw/master/doc/formalization/formalization.pdf}
+Catala formalization}.
 
 {1 Translation to the default calculus}
 
