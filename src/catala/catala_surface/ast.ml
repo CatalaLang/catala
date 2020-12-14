@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree built by the Catala parser *)
+
 module Pos = Utils.Pos
 
 type constructor = string

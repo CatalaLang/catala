@@ -1,0 +1,73 @@
+{0 Catala surface representation }
+
+This representation is the first in the compilation chain 
+(see {{: index.html#architecture} Architecture}). Its purpose is to 
+host the output of the Catala parser, before any transformations have been made.
+
+The module describing the abstract syntax tree is:
+
+{!modules: Surface.Ast}
+
+{1 Lexing }
+
+Relevant modules:
+
+{!modules: Surface.Lexer Surface.Lexer_fr Surface.Lexer_en}
+
+The lexing in the Catala compiler is done using 
+{{: https://github.com/ocaml-community/sedlex} sedlex}, the modern OCaml lexer 
+that offers full support for UTF-8. This support enables users of non-English 
+languages to use their favorite diacritics and symbols in their code.
+
+While the parser of Catala is unique, three different lexers can be used to 
+produce the parser tokens.
+
+{ul 
+{li {!module: Surface.Lexer} corresponds to a concise and programming-language-like
+    syntax for Catala. Examples of this syntax can be found in the test suite 
+    of the compiler.}
+{li {!module: Surface.Lexer_en} is the adaptation of {!module: Surface.Lexer} 
+    with verbose English keywords matching legal concepts.}
+{li {!module: Surface.Lexer_fr} is the adaptation of {!module: Surface.Lexer} 
+    with verbose French keywords matching legal concepts.}
+}
+
+{1 Parsing }
+
+Relevant modules:
+
+{!modules: Surface.Parser Surface.Parser_driver Surface.Parser_errors} 
+
+The Catala compiler uses {{: http://cambium.inria.fr/~fpottier/menhir/} Menhir}
+to perform its parsing. 
+
+{!module: Surface.Parser} is the main file where the parser tokens and the 
+grammar is declared. It is automatically translated into its parsing automata 
+equivalent by Menhir.
+
+In order to provide decent syntax error messages, the Catala compiler uses the 
+novel error handling provided by Menhir and detailed in Section 11 of the 
+{{: http://cambium.inria.fr/~fpottier/menhir/manual.pdf} Menhir manual}. 
+
+A [parser.messages] source file has been manually annotated with custom 
+error message for every potential erroneous state of the parser, and Menhir 
+automatically generated the {!module: Surface.Parser_errors} module containing 
+the function linking the erroneous parser states to the custom error message.
+
+To wrap it up, {!module: Surface.Parser_driver} glues all the parsing and 
+lexing together to perform the translation from source code to abstract syntax 
+tree, with meaningful error messages.
+
+{1 Name resolution and translation }
+
+Relevant modules:
+
+{!modules: Surface.Name_resolution Surface.Desugaring}
+
+The desugaring consists of translating {!module: Surface.Ast} to 
+{!module: Desugared.Ast}. The translation is implemented in 
+{!module: Surface.Desugaring}, but it relies on a helper module to perform the 
+name resolution: {!module: Surface.Name_resolution}. Indeed, in
+{!module: Surface.Ast}, the variables identifiers are just [string], whereas in 
+{!module: Desugared.Ast} they have been turned into well-categorized types 
+with an unique identifier like {!type: Scopelang.Ast.ScopeName.t}.

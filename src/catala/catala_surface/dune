@@ -10,4 +10,5 @@
  (flags --table))
 
 (documentation
- (package catala))
+ (package catala)
+ (mld_files surface))

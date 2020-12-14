@@ -18,49 +18,105 @@
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 
+(** {1 Name resolution context} *)
+
 type ident = string
 
 type typ = Scopelang.Ast.typ
 
-(** Inside a definition, local variables can be introduced by functions arguments or pattern
-    matching *)
-
 type scope_context = {
-  var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;
+  var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
+      (** Sub-scopes variables *)
   sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
+      (** To what scope sub-scopes refer to? *)
 }
 (** Inside a scope, we distinguish between the variables and the subscopes. *)
 
 type struct_context = typ Pos.marked Scopelang.Ast.StructFieldMap.t
+(** Types of the fields of a struct *)
 
 type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
+(** Types of the payloads of the cases of an enum *)
 
 type context = {
   local_var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t;
-  scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
-  scopes : scope_context Scopelang.Ast.ScopeMap.t;
-  structs : struct_context Scopelang.Ast.StructMap.t;
+      (** Inside a definition, local variables can be introduced by functions arguments or pattern
+          matching *)
+  scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;  (** The names of the scopes *)
   struct_idmap : Scopelang.Ast.StructName.t Desugared.Ast.IdentMap.t;
+      (** The names of the structs *)
   field_idmap : Scopelang.Ast.StructFieldName.t Scopelang.Ast.StructMap.t Desugared.Ast.IdentMap.t;
-  enums : enum_context Scopelang.Ast.EnumMap.t;
-  enum_idmap : Scopelang.Ast.EnumName.t Desugared.Ast.IdentMap.t;
+      (** The names of the struct fields. Names of fields can be shared between different structs *)
+  enum_idmap : Scopelang.Ast.EnumName.t Desugared.Ast.IdentMap.t;  (** The names of the enums *)
   constructor_idmap :
     Scopelang.Ast.EnumConstructor.t Scopelang.Ast.EnumMap.t Desugared.Ast.IdentMap.t;
+      (** The names of the enum constructors. Constructor names can be shared between different
+          enums *)
+  scopes : scope_context Scopelang.Ast.ScopeMap.t;  (** For each scope, its context *)
+  structs : struct_context Scopelang.Ast.StructMap.t;  (** For each struct, its context *)
+  enums : enum_context Scopelang.Ast.EnumMap.t;  (** For each enum, its context *)
   var_typs : typ Pos.marked Scopelang.Ast.ScopeVarMap.t;
+      (** The types of each scope variable declared *)
 }
+(** Main context used throughout {!module: Surface.Desugaring} *)
 
+(** {1 Helpers} *)
+
+(** Temporary function raising an error message saying that a feature is not supported yet *)
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
   Errors.raise_spanned_error (Printf.sprintf "Unsupported feature: %s" msg) pos
 
+(** Function to call whenever an identifier used somewhere has not been declared in the program
+    previously *)
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
   Errors.raise_spanned_error
     (Printf.sprintf "%s: unknown identifier %s" (Pos.unmark ident) msg)
     (Pos.get_position ident)
 
-(** Get the type associated to an uid *)
+(** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.marked =
   Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs
+
+(** Get the variable uid inside the scope given in argument *)
+let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
+  | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
+  | Some uid -> uid
+
+(** Get the subscope uid inside the scope given in argument *)
+let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((y, pos) : ident Pos.marked) : Scopelang.Ast.SubScopeName.t =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
+  | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
+  | Some sub_uid -> sub_uid
+
+(** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the subscopes of [scope_uid]. *)
+let is_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y : ident) : bool =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
+
+(** Checks if the var_uid belongs to the scope scope_uid *)
+let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
+    (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
+  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
+  Desugared.Ast.IdentMap.exists
+    (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
+    scope.var_idmap
+
+(** Retrieves the type of a scope definition from the context *)
+let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ Pos.marked =
+  match def with
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
+     the original subscope *)
+  | Desugared.Ast.ScopeDef.Var x ->
+      Scopelang.Ast.ScopeVarMap.find x ctxt.var_typs
+
+(** {1 Declarations pass} *)
 
 (** Process a subscope declaration *)
 let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
@@ -93,6 +149,7 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       in
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes }
 
+(** Process a basic type (all types except function types) *)
 let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
     Scopelang.Ast.typ Pos.marked =
   match typ with
@@ -118,6 +175,7 @@ let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked)
                   Errors.raise_spanned_error
                     "Unknown type, not a struct or enum previously declared" typ_pos ) ) )
 
+(** Process a type (function or not) *)
 let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
     Scopelang.Ast.typ Pos.marked =
   match typ with
@@ -201,28 +259,7 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
         (fun ctxt item -> process_item_decl scope_uid ctxt (Pos.unmark item))
         ctxt decl.scope_decl_context
 
-let qident_to_scope_def (ctxt : context) (scope_uid : Scopelang.Ast.ScopeName.t)
-    (id : Ast.qident Pos.marked) : Desugared.Ast.ScopeDef.t =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  match Pos.unmark id with
-  | [ x ] -> (
-      match Desugared.Ast.IdentMap.find_opt (Pos.unmark x) scope_ctxt.var_idmap with
-      | None -> raise_unknown_identifier "for a var of the scope" x
-      | Some id -> Desugared.Ast.ScopeDef.Var id )
-  | [ s; x ] when Desugared.Ast.IdentMap.mem (Pos.unmark s) scope_ctxt.sub_scopes_idmap -> (
-      let sub_scope_uid = Desugared.Ast.IdentMap.find (Pos.unmark s) scope_ctxt.sub_scopes_idmap in
-      let real_sub_scope_uid = Scopelang.Ast.SubScopeMap.find sub_scope_uid scope_ctxt.sub_scopes in
-      let sub_scope_ctx = Scopelang.Ast.ScopeMap.find real_sub_scope_uid ctxt.scopes in
-      match Desugared.Ast.IdentMap.find_opt (Pos.unmark x) sub_scope_ctx.var_idmap with
-      | None -> raise_unknown_identifier "for a var of this subscope" x
-      | Some id -> Desugared.Ast.ScopeDef.SubScopeVar (sub_scope_uid, id) )
-  | [ s; _ ] ->
-      Errors.raise_spanned_error "This identifier should refer to a subscope, but does not"
-        (Pos.get_position s)
-  | _ ->
-      Errors.raise_spanned_error "Only scope vars or subscope vars can be defined"
-        (Pos.get_position id)
-
+(** Process a struct declaration *)
 let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
   let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
   let ctxt =
@@ -267,6 +304,7 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
       })
     ctxt sdecl.struct_decl_fields
 
+(** Process an enum declaration *)
 let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
   let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
   let ctxt =
@@ -309,7 +347,7 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
       })
     ctxt edecl.enum_decl_cases
 
-(** Process a code item : for now it only handles scope decls *)
+(** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
   match Pos.unmark item with
   | ScopeDecl decl -> process_scope_decl ctxt decl
@@ -322,12 +360,12 @@ let process_code_block (ctxt : context) (block : Ast.code_block)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
-(** Process a program item *)
+(** Process a law article item, only considering the code blocks *)
 let process_law_article_item (ctxt : context) (item : Ast.law_article_item)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match item with CodeBlock (block, _) -> process_code_block ctxt block process_item | _ -> ctxt
 
-(** Process a law structure *)
+(** Process a law structure, only considering the code blocks *)
 let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match s with
@@ -340,12 +378,14 @@ let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
   | Ast.MetadataBlock (b, c) -> process_law_article_item ctxt (Ast.CodeBlock (b, c)) process_item
   | Ast.IntermediateText _ | Ast.LawInclude _ -> ctxt
 
-(** Process a program item *)
+(** Process a program item, only considering the code blocks *)
 let process_program_item (ctxt : context) (item : Ast.program_item)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match item with Ast.LawStructure s -> process_law_structure ctxt s process_item
 
-(** Derive the context from metadata, in two passes *)
+(** {1 API} *)
+
+(** Derive the context from metadata, in one pass over the declarations *)
 let form_context (prgm : Ast.program) : context =
   let empty_ctxt =
     {
@@ -367,39 +407,3 @@ let form_context (prgm : Ast.program) : context =
       empty_ctxt prgm.program_items
   in
   ctxt
-
-(** Get the variable uid inside the scope given in argument *)
-let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
-    ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
-  | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
-  | Some uid -> uid
-
-(** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
-    ((y, pos) : ident Pos.marked) : Scopelang.Ast.SubScopeName.t =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
-  | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
-  | Some sub_uid -> sub_uid
-
-let is_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y : ident) : bool =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
-
-(** Checks if the var_uid belongs to the scope scope_uid *)
-let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
-    (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
-  let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  Desugared.Ast.IdentMap.exists
-    (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
-    scope.var_idmap
-
-let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ Pos.marked =
-  match def with
-  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
-  (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
-     the original subscope *)
-  | Desugared.Ast.ScopeDef.Var x ->
-      Scopelang.Ast.ScopeVarMap.find x ctxt.var_typs

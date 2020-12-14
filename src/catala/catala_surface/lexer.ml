@@ -12,23 +12,34 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Concise syntax with English abbreviated keywords. *)
+
 open Parser
 open Sedlexing
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 module R = Re.Pcre
 
+(** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
+    code or law. *)
 let is_code : bool ref = ref false
 
+(** Mutable string reference that accumulates the string representation of the body of code being
+    lexed. This string representation is used in the literate programming backends to faithfully
+    capture the spacing pattern of the original program *)
 let code_string_acc : string ref = ref ""
 
+(** Updates {!val:code_string_acc} with the current lexeme *)
 let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
 
+(** Error-generating helper *)
 let raise_lexer_error (loc : Pos.t) (token : string) =
   Errors.raise_spanned_error
     (Printf.sprintf "Parsing error after token \"%s\": what comes after is unknown" token)
     loc
 
+(** Associative list matching each punctuation string part of the Catala syntax with its {!module:
+    Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 let token_list_language_agnostic : (string * token) list =
   [
     ("->", ARROW);
@@ -51,6 +62,8 @@ let token_list_language_agnostic : (string * token) list =
     ("--", ALT);
   ]
 
+(** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the input
+    language. *)
 let token_list : (string * token) list =
   [
     ("scope", SCOPE);
@@ -109,6 +122,7 @@ let token_list : (string * token) list =
   ]
   @ token_list_language_agnostic
 
+(** Main lexing function used in a code block *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
@@ -468,6 +482,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
   | _ -> raise_lexer_error prev_pos prev_lexeme
 
+(** Main lexing function used outside code blocks *)
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
@@ -527,4 +542,6 @@ let lex_law (lexbuf : lexbuf) : token =
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> raise_lexer_error prev_pos prev_lexeme
 
+(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
+    is_code}. *)
 let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf

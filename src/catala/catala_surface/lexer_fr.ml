@@ -19,6 +19,8 @@ module Errors = Utils.Errors
 module L = Lexer
 module R = Re.Pcre
 
+(** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
+    French. *)
 let token_list_fr : (string * token) list =
   [
     ("champ d'application", SCOPE);
@@ -77,6 +79,7 @@ let token_list_fr : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+(** Main lexing function used in code blocks *)
 let rec lex_code_fr (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
@@ -445,6 +448,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
   | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
+(** Main lexing function used outside code blocks *)
 let lex_law_fr (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
@@ -519,5 +523,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
+(** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
+    {!val: Surface.Lexer.is_code}. *)
 let lexer_fr (lexbuf : lexbuf) : token =
   if !L.is_code then lex_code_fr lexbuf else lex_law_fr lexbuf

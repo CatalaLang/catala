@@ -1,0 +1,66 @@
+{0 The Catala compiler}
+
+{1 Architecture}
+
+The architecture of the Catala compiler is inspired by 
+{{: https://compcert.org/} CompCert} or the {{: https://nanopass.org/} Nanopass}
+framework, and is structured around many intermediate representations connected 
+by successive translations passes.
+
+Here is the recap picture of the different intermediate representations of the 
+Catala compiler (made with an {{: https://textik.com/#c1c1fecda5209492} ASCII diagram tool}):
+
+{v 
+                                     +---------------+   
+                                     |               |   
+                                     |  Surface AST  |   
+                                     |               |   
+                                     +---------------+   
+                                             |           
+         * Separate code from legislation    |           
+         * Remove syntactic sugars           |           
+                                             v           
+                                     +---------------+   
+                                     |               |   
+                                     | Desugared AST |   
+                                     |               |   
+                                     +---------------+   
+                                             |           
+ * Build rule trees for each definition      |           
+ * Order variable computations inside scope  |           
+                                             v           
+                                  +--------------------+ 
+                                  |                    | 
+                                  | Scope language AST | 
+                                  |                    | 
+                                  +--------------------+ 
+                                             |           
+        * Convert scopes into functions      |           
+        * Thunking of subscope arguments     |           
+                                             |           
+                                             v           
+                                 +----------------------+
+                                 |                      |
+                                 | Default calculus AST |
+                                 |                      |
+                                 +----------------------+ v}
+
+{1 List of top-level modules }
+
+Each of those intermediate representation is bundled into its own `dune` bundle 
+module. Click on the items below if you want to dive straight into the signatures.
+
+{!modules: Surface Desugared Scopelang Dcalc }
+
+More documentation can be found on each intermediate representations here.
+
+{ul 
+{li {{: surface.html} The surface representation}}
+{li {{: desugared.html} The desugared representation}}
+{li {{: scopelang.html} The scope language }}
+{li {{: dcalc.html} The default calculus}}
+}
+
+Last, two more modules contain additional features for the compiler:
+
+{!modules: Utils Literate }

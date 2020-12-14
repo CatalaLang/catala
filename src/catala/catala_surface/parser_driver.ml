@@ -12,20 +12,27 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Wrapping module around parser and lexer that offers the {!val: parse_source_file} API *)
+
 open Sedlexing
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 module Cli = Utils.Cli
 module I = Parser.MenhirInterpreter
 
+(** {1 Internal functions} *)
+
+(** Returns the state number from the Menhir environment *)
 let state (env : 'semantic_value I.env) : int =
   match Lazy.force (I.stack env) with
   | MenhirLib.General.Nil -> 0
   | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
-(** Computes the levenshtein distance between two strings *)
+(** Three-way minimum *)
 let minimum a b c = min a (min b c)
 
+(** Computes the levenshtein distance between two strings, used to provide error messages
+    suggestions *)
 let levenshtein_distance (s : string) (t : string) : int =
   let m = String.length s and n = String.length t in
   (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the first i characters of
@@ -53,8 +60,14 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
+(** Style with which to display syntax hints in the terminal output *)
 let syntax_hints_style = [ ANSITerminal.yellow ]
 
+(** Usage: [raise_parser_error error_loc last_good_loc token msg]
+
+    Raises an error message featuring the [error_loc] position where the parser has failed, the
+    [token] on which the parser has failed, and the error message [msg]. If available, displays
+    [last_good_loc] the location of the last token correctly parsed. *)
 let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token : string)
     (msg : string) : 'a =
   Errors.raise_multispanned_error
@@ -67,6 +80,13 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
     | None -> []
     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ] ) )
 
+(** Usage: [fail lexbuf env token_list last_input_needed]
+
+    Raises an error with meaningful hints about what the parsing error was. [lexbuf] is the lexing
+    buffer state at the failure point, [env] is the Menhir environment and [last_input_needed] is
+    the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
+    by things like {!val: Surface.Lexer.token_list_language_agnostic} and is used to provide
+    suggestions of the tokens acceptable at the failure point *)
 let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
     (last_input_needed : 'semantic_value I.env option) : 'a =
   let wrong_token = Utf8.lexeme lexbuf in
@@ -98,7 +118,6 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
         if levx = levy then String.length x - String.length y else levx - levy)
       acceptable_tokens
   in
-
   let similar_token_msg =
     if List.length similar_acceptable_tokens = 0 then None
     else
@@ -126,6 +145,7 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
   in
   raise_parser_error (lexing_positions lexbuf) last_positions (Utf8.lexeme lexbuf) msg
 
+(** Main parsing loop *)
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
     (token_list : (string * Parser.token) list) (lexbuf : lexbuf)
     (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint) :
@@ -144,6 +164,8 @@ let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.posit
       (* Cannot happen as we stop at syntax error immediatly *)
       assert false
 
+(** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type difference for
+    [lexbuf]. *)
 let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string * Parser.token) list)
     (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
     Ast.source_file_or_master =
@@ -154,6 +176,9 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Lexer.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
 
+(** {1 API} *)
+
+(** Parses a single source file *)
 let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) : Ast.program =
   Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
   let input = try open_in source_file with Sys_error msg -> Errors.raise_error msg in
@@ -206,6 +231,7 @@ let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) 
       in
       { new_program with program_source_files = source_file :: new_program.program_source_files }
 
+(** Expands the include directives in a parsing result, thus parsing new source files *)
 and expand_includes (source_file : string) (commands : Ast.program_item list)
     (language : Cli.frontend_lang) : Ast.program =
   List.fold_left

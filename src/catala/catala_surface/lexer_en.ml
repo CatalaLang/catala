@@ -19,6 +19,8 @@ module Errors = Utils.Errors
 module L = Lexer
 module R = Re.Pcre
 
+(** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
+    English. *)
 let token_list_en : (string * token) list =
   [
     ("scope", SCOPE);
@@ -77,6 +79,7 @@ let token_list_en : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+(** Main lexing function used in code blocks *)
 let rec lex_code_en (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
@@ -436,6 +439,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
       INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
   | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
+(** Main lexing function used outside code blocks *)
 let lex_law_en (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in

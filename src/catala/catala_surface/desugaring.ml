@@ -12,12 +12,16 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Translation from {!module: Surface.Ast} to {!module: Desugaring.Ast}.
+
+    - Removes syntactic sugars
+    - Separate code from legislation *)
+
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 module Cli = Utils.Cli
 
-(** The optional argument subdef allows to choose between differents uids in case the expression is
-    a redefinition of a subvariable *)
+(** {1 Translating expressions} *)
 
 let translate_op_kind (k : Ast.op_kind) : Dcalc.Ast.op_kind =
   match k with
@@ -45,14 +49,22 @@ let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
 let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
   match op with Not -> Not | Minus l -> Minus (translate_op_kind l)
 
+(** The two modules below help performing operations on map with the {!type: Bindlib.box}. Indeed,
+    Catala uses the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library to represent bound
+    variables in the AST. In this translation, bound variables are used to represent function
+    parameters or pattern macthing bindings. *)
+
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
 module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
 
-let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t option) (ctxt : Name_resolution.context)
+(** Usage: [translate_expr scope ctxt expr]
+
+    Translates [expr] into its desugared equivalent. [scope] is used to disambiguate the scope and
+    subscopes variables than occur in the expresion *)
+let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     ((expr, pos) : Ast.expression Pos.marked) : Scopelang.Ast.expr Pos.marked Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
-  let rec_helper = translate_expr scope def_key ctxt in
+  let rec_helper = translate_expr scope ctxt in
   match expr with
   | IfThenElse (e_if, e_then, e_else) ->
       Bindlib.box_apply3
@@ -147,7 +159,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
               pos )
       | _ ->
           (* In this case e.x is the struct field x access of expression e *)
-          let e = translate_expr scope def_key ctxt e in
+          let e = translate_expr scope ctxt e in
           let x_possible_structs =
             try Desugared.Ast.IdentMap.find (Pos.unmark x) ctxt.field_idmap
             with Not_found ->
@@ -200,7 +212,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                      Scopelang.Ast.StructFieldName.format_t f_uid)
                   [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]
             );
-            let f_e = translate_expr scope def_key ctxt f_e in
+            let f_e = translate_expr scope ctxt f_e in
             Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
           Scopelang.Ast.StructFieldMap.empty fields
       in
@@ -228,7 +240,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
           (Pos.get_position constructor)
       else
         let e_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
-        let payload = Option.map (translate_expr scope def_key ctxt) payload in
+        let payload = Option.map (translate_expr scope ctxt) payload in
         Bindlib.box_apply
           (fun payload ->
             ( Scopelang.Ast.EEnumInj
@@ -240,7 +252,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
               pos ))
           (Bindlib.box_opt payload)
   | MatchWith (e1, (cases, _cases_pos)) ->
-      let e1 = translate_expr scope def_key ctxt e1 in
+      let e1 = translate_expr scope ctxt e1 in
       let cases_d, e_uid =
         List.fold_left
           (fun (cases_d, e_uid) (case, pos_case) ->
@@ -295,7 +307,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                         let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
                         (ctxt, (param_var, Pos.get_position param))
                   in
-                  let case_body = translate_expr scope def_key ctxt case.Ast.match_case_expr in
+                  let case_body = translate_expr scope ctxt case.Ast.match_case_expr in
                   let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
                   let case_expr =
                     Bindlib.box_apply2
@@ -327,8 +339,11 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
   | _ ->
       Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
 
-(* Translation from the parsed ast to the scope language *)
+(** {1 Translating scope definitions} *)
 
+(** A scope use can be annotated with a pervasive precondition, in which case this precondition has
+    to be appended to the justifications of each definition in the subscope use. This is what this
+    function does. *)
 let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (cond : Scopelang.Ast.expr Pos.marked Bindlib.box option) (default_pos : Pos.t) :
     Scopelang.Ast.expr Pos.marked Bindlib.box =
@@ -344,18 +359,15 @@ let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option
   | Some cond, None | None, Some cond -> cond
   | None, None -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
+(** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
     (def_key : Desugared.Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
     Desugared.Ast.rule =
-  let just =
-    match just with
-    | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
-    | None -> None
-  in
+  let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
   let just = merge_conditions precond just (Pos.get_position cons) in
-  let cons = translate_expr scope (Some def_key) ctxt cons in
+  let cons = translate_expr scope ctxt cons in
   {
     just;
     cons;
@@ -376,7 +388,7 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
       None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
   }
 
-(* Process a definition *)
+(** Wrapper around {!val: process_default} that performs some name disambiguation *)
 let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (def : Ast.definition) : Desugared.Ast.program =
@@ -435,7 +447,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     program_scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm.program_scopes;
   }
 
-(** Process a rule from the surface language *)
+(** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
@@ -450,13 +462,13 @@ let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   in
   process_def precond scope ctxt prgm def
 
-(** Process an assertion from the surface language *)
+(** Translates assertions *)
 let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (ass : Ast.assertion) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let ass =
-    translate_expr scope_uid None ctxt
+    translate_expr scope_uid ctxt
       ( match ass.Ast.assertion_condition with
       | None -> ass.Ast.assertion_content
       | Some cond ->
@@ -478,16 +490,20 @@ let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   let new_scope = { scope with scope_assertions = ass :: scope.scope_assertions } in
   { prgm with program_scopes = Scopelang.Ast.ScopeMap.add scope_uid new_scope prgm.program_scopes }
 
+(** Translates a surface definition, rule or assertion *)
 let process_scope_use_item (precond : Ast.expression Pos.marked option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (item : Ast.scope_use_item Pos.marked) : Desugared.Ast.program =
-  let precond = Option.map (translate_expr scope None ctxt) precond in
+  let precond = Option.map (translate_expr scope ctxt) precond in
   match Pos.unmark item with
   | Ast.Rule rule -> process_rule precond scope ctxt prgm rule
   | Ast.Definition def -> process_def precond scope ctxt prgm def
   | Ast.Assertion ass -> process_assert precond scope ctxt prgm ass
   | _ -> prgm
 
+(** {1 Translating top-level items} *)
+
+(** Translates a surface scope use, which is a bunch of definitions *)
 let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.program)
     (use : Ast.scope_use) : Desugared.Ast.program =
   let name = fst use.scope_use_name in
@@ -502,7 +518,7 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
   let precond = use.scope_use_condition in
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
 
-(** Scopes processing *)
+(** Main function of this module *)
 let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desugared.Ast.program =
   let empty_prgm =
     {
