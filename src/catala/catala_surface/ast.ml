@@ -17,8 +17,10 @@
 module Pos = Utils.Pos
 
 type constructor = string
+(** Constructors are CamlCase *)
 
 type ident = string
+(** Idents are snake_case *)
 
 type qident = ident Pos.marked list
 
@@ -65,7 +67,12 @@ type enum_decl = {
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
-type op_kind = KInt | KDec | KMoney | KDate | KDuration
+type op_kind =
+  | KInt  (** No suffix *)
+  | KDec  (** Suffix: [.] *)
+  | KMoney  (** Suffix: [$] *)
+  | KDate  (** Suffix: [@] *)
+  | KDuration  (** Suffix: [^] *)
 
 type binop =
   | And
@@ -131,8 +138,7 @@ and expression =
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | Ident of ident
   | Dotted of expression Pos.marked * ident Pos.marked
-
-(* Dotted is for both struct field projection and sub-scope variables *)
+      (** Dotted is for both struct field projection and sub-scope variables *)
 
 type rule = {
   rule_parameter : ident Pos.marked option;

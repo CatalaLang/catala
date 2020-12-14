@@ -12,13 +12,18 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree of the desugared representation *)
+
 module Pos = Utils.Pos
 module Uid = Utils.Uid
-module IdentMap = Map.Make (String)
 
-module RuleName = Uid.Make (Uid.MarkedString) ()
+(** {1 Names, Maps and Keys} *)
 
-module RuleMap = Map.Make (RuleName)
+module IdentMap : Map.S with type key = String.t = Map.Make (String)
+
+module RuleName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
@@ -47,10 +52,11 @@ module ScopeDef = struct
     | SubScopeVar (_, v) -> Scopelang.Ast.ScopeVar.hash v
 end
 
-module ScopeDefMap = Map.Make (ScopeDef)
-module ScopeDefSet = Set.Make (ScopeDef)
+module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
 
-(* Scopes *)
+module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
+
+(** {1 AST} *)
 
 type rule = {
   just : Scopelang.Ast.expr Pos.marked Bindlib.box;
@@ -94,6 +100,8 @@ type program = {
   program_enums : Scopelang.Ast.enum_ctx;
   program_structs : Scopelang.Ast.struct_ctx;
 }
+
+(** {1 Helpers} *)
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.LocationSet.t) :

@@ -65,7 +65,8 @@ Relevant modules:
 {!modules: Surface.Name_resolution Surface.Desugaring}
 
 The desugaring consists of translating {!module: Surface.Ast} to 
-{!module: Desugared.Ast}. The translation is implemented in 
+{!module: Desugared.Ast} of the {{: desugared.html} desugared representation}.
+The translation is implemented in 
 {!module: Surface.Desugaring}, but it relies on a helper module to perform the 
 name resolution: {!module: Surface.Name_resolution}. Indeed, in
 {!module: Surface.Ast}, the variables identifiers are just [string], whereas in 

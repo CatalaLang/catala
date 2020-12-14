@@ -12,45 +12,54 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree of the scope language *)
+
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 
-module ScopeName = Uid.Make (Uid.MarkedString) ()
+(** {1 Identifiers} *)
 
-module ScopeNameSet = Set.Make (ScopeName)
-module ScopeMap = Map.Make (ScopeName)
+module ScopeName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
 
-module SubScopeName = Uid.Make (Uid.MarkedString) ()
+module ScopeNameSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
 
-module SubScopeNameSet = Set.Make (SubScopeName)
-module SubScopeMap = Map.Make (SubScopeName)
+module ScopeMap : Map.S with type key = ScopeName.t = Map.Make (ScopeName)
 
-module ScopeVar = Uid.Make (Uid.MarkedString) ()
+module SubScopeName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
 
-module ScopeVarSet = Set.Make (ScopeVar)
-module ScopeVarMap = Map.Make (ScopeVar)
+module SubScopeNameSet : Set.S with type elt = SubScopeName.t = Set.Make (SubScopeName)
 
-module StructName = Uid.Make (Uid.MarkedString) ()
+module SubScopeMap : Map.S with type key = SubScopeName.t = Map.Make (SubScopeName)
 
-module StructMap = Map.Make (StructName)
+module ScopeVar : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
 
-module StructFieldName = Uid.Make (Uid.MarkedString) ()
+module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
 
-module StructFieldMap = Map.Make (StructFieldName)
+module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 
-module EnumName = Uid.Make (Uid.MarkedString) ()
+module StructName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
 
-module EnumMap = Map.Make (EnumName)
+module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
 
-module EnumConstructor = Uid.Make (Uid.MarkedString) ()
+module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
 
-module EnumConstructorMap = Map.Make (EnumConstructor)
+module StructFieldMap : Map.S with type key = StructFieldName.t = Map.Make (StructFieldName)
+
+module EnumName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
+
+module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module EnumConstructorMap : Map.S with type key = EnumConstructor.t = Map.Make (EnumConstructor)
 
 type location =
   | ScopeVar of ScopeVar.t Pos.marked
   | SubScopeVar of ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
 
-module LocationSet = Set.Make (struct
+module LocationSet : Set.S with type elt = location Pos.marked = Set.Make (struct
   type t = location Pos.marked
 
   let compare x y =
@@ -63,6 +72,8 @@ module LocationSet = Set.Make (struct
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
 end)
+
+(** {1 Abstract syntax tree} *)
 
 type typ =
   | TLit of Dcalc.Ast.typ_lit
@@ -114,6 +125,29 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
         (LocationSet.union (locations_used just) (locations_used cons))
         subs
 
+type rule =
+  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Assertion of expr Pos.marked
+  | Call of ScopeName.t * SubScopeName.t
+
+type scope_decl = {
+  scope_decl_name : ScopeName.t;
+  scope_sig : typ Pos.marked ScopeVarMap.t;
+  scope_decl_rules : rule list;
+}
+
+type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
+
+type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+
+type program = {
+  program_scopes : scope_decl ScopeMap.t;
+  program_enums : enum_ctx;
+  program_structs : struct_ctx;
+}
+
+(** {1 Variable helpers} *)
+
 module Var = struct
   type t = expr Bindlib.var
 
@@ -139,24 +173,3 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
 module VarMap = Map.Make (Var)
-
-type rule =
-  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
-  | Assertion of expr Pos.marked
-  | Call of ScopeName.t * SubScopeName.t
-
-type scope_decl = {
-  scope_decl_name : ScopeName.t;
-  scope_sig : typ Pos.marked ScopeVarMap.t;
-  scope_decl_rules : rule list;
-}
-
-type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
-
-type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
-
-type program = {
-  program_scopes : scope_decl ScopeMap.t;
-  program_enums : enum_ctx;
-  program_structs : struct_ctx;
-}

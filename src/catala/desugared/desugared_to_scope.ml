@@ -12,14 +12,22 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
+
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 module Cli = Utils.Cli
 
+(** {1 Rule tree construction} *)
+
 type rule_tree = Leaf of Ast.rule | Node of Ast.rule * rule_tree list
 
-(* invariant: one rule in def does not have any parent rule *)
-(* invariant: there are no dandling pointer parents in the rules *)
+(** Transforms a flat list of rules into a tree, taking into account the priorities declared between
+    rules
+
+    {e Invariant:} only one rule does not have any parent rule
+
+    {e Invariant:} there are no dandling pointer parents in the rules *)
 let rec def_map_to_tree (def : Ast.rule Ast.RuleMap.t) : rule_tree =
   (* first we look to the only rule that does not have any parent *)
   let has_no_parent _ (r : Ast.rule) = Option.is_none r.Ast.parent_rule in
@@ -47,6 +55,9 @@ let rec def_map_to_tree (def : Ast.rule Ast.RuleMap.t) : rule_tree =
     in
     Node (no_parent, tree_children)
 
+(** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault} expression in the
+    scope language. The [~toplevel] parameter is used to know when to place the toplevel binding in
+    the case of functions. *)
 let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t option)
     (tree : rule_tree) : Scopelang.Ast.expr Pos.marked Bindlib.box =
   let rule, children = match tree with Leaf r -> (r, []) | Node (r, child) -> (r, child) in
@@ -79,10 +90,12 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
       if toplevel then
         Scopelang.Ast.make_abs (Array.of_list [ new_param ]) default Pos.no_pos [ typ ] Pos.no_pos
       else default
-  | _ -> assert false
+  | _ -> (* should not happen *) assert false
 
-(* should not happen *)
+(** {1 AST translation} *)
 
+(** Translates a definition inside a scope, the resulting expression should be an {!constructor:
+    Dcalc.Ast.EDefault} *)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (typ : Scopelang.Ast.typ Pos.marked) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
@@ -132,6 +145,7 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
        (Option.map (fun _ -> Scopelang.Ast.Var.make ("ρ", Pos.no_pos)) is_def_func)
        def_tree)
 
+(** Translates a scope *)
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_dependencies = Dependency.build_scope_dependencies scope in
   Dependency.check_for_cycle scope scope_dependencies;
@@ -212,6 +226,8 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
     Scopelang.Ast.scope_decl_rules;
     Scopelang.Ast.scope_sig;
   }
+
+(** {1 API} *)
 
 let translate_program (pgrm : Ast.program) : Scopelang.Ast.program =
   {
