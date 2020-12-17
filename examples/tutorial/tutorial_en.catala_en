@@ -3,38 +3,50 @@
 Welcome to this tutorial, whose objective is to guide you through the features 
 of the Catala language and trach you how to annotate a legislative text using 
 the language. This document is addressed primarily to developers or people that 
-have a programming background. It will use terms and jargon that might be 
-unintelligible for lawyers in general.
+have a programming background, though tech-savvy lawyers will probably figure 
+things out.
 
 @@Literate programming@@+
 
 To begin writing a Catala program, you must start from the text of the 
 legislative source that will justify the code that you will write. Concretely, 
 that means copy-pasting the text of the law into a Catala source file and 
-formatting it according so that Catala can understand it.
+formatting it according so that Catala can understand it. Catala source files 
+have the ".catala_en" extension. If you were to write a Catala program for a 
+French law, you would use the ".catala_fr" extension.
 
 You can write any kind of plain text in Catala, and it will be printed as is 
-in PDF or HTML output. Keep in mind however that one line in the source file 
-corresponds to a paragraph in the output. Catala allows you to declare section 
-or subsection headers as it is done here, but the fundamental division unit is 
-the article. Let's analyse a fictional example that defines an income tax.
+in PDF or HTML output. You can split your text into short lines, those 
+will appear as a single paragraph in the output. If you want to create a 
+new paragrah, you have to leave a blank line in the source. 
+
+Catala allows you to declare section or subsection headers as it is done
+here, with the "at" symbol repeated twice. You can define heading of lower 
+importance by adding increasing numbers of "+" after the title of the heading. 
+
+The fundamental division unit is the article, introduced by a single "at".
+Let's analyse a fictional example that defines an income tax.
 
 @Article 1@
 The income tax for an individual is defined as a fixed percentage of the 
 individual's income over a year.
+
 /*
-# This is a placeholder comment, the code for that article should go here
+# Welcome to the code mode of Catala. This is a comment, because the line is 
+# prefixed by #.
+# We will soon learn what to write here in order to translate the meaning 
+# of the article into Catala code.
 */
 
-We will now proceed to encode the algorithmic content of this article using 
-the Catala language. To do that, we will intertwine short snippets of code 
-between the sentences of the legislative text. Each snippet of code should 
-be as short as possible and as close as possible to the actual sentence that 
-justifies the code.
+To do that, we will intertwine short snippets of code between the sentences of 
+the legislative text. Each snippet of code should be as short as possible and 
+as close as possible to the actual sentence that justifies the code. This style 
+is called litterate programming, a programming paradigm invented by the famous 
+computer scientist Donald Knuth in the 70s.
 
 @@Defining a fictional income tax@@+
 
-The content of article 1 uses a lot of implicit context : there exists an 
+The content of article 1 uses a lot of implicit context: there exists an 
 individual with an income, as well as an income tax that the individual has 
 to pay each year. Even if this implicit context is not verbatim in the law, 
 we have to explicit it for programming purposes. Concretely, we need a 
@@ -42,23 +54,28 @@ we have to explicit it for programming purposes. Concretely, we need a
 inside the law.
 
 Let's start our metadata section by declaring the type information for the 
-individual and the income tax computation:
-@@Begin metadata@@
-/*
-declaration structure Individual:
-  data income content money
+individual:
 
-declaration structure Article1:
-  data fixed_percentage content decimal
-  data income_tax content money
+@@Begin metadata@@
+/* 
+declaration structure Individual:
+  # The name of the structure "Individual", must start with an
+  # uppercase letter: this is the CamlCase convention.
+  data income content money
+  # In this line, "income" is the name of the structure field and 
+  # "money" is the type of what is stored in that field.
+  # Available types include: integer, decimal, money, date, duration, 
+  # and any other structure or enumeration that you declare
+  data age content integer
+  # "income" and "age" start by a lowercase letter, they follow the 
+  # snake_case convention
 */
 @@End metadata@@
 
-Each of this declaration is a structure, containing one or more data fields. 
-Structures are useful to group together data that goes together. Usually, you 
+This structre contains two data fields, "income" and "age". Structures are 
+useful to group together data that goes together. Usually, you 
 get one structure per concrete object on which the law applies (like the 
-individual), but also one structure for each article that defines quantities 
-(like the article 1). It is up to you to decide how to group the data together, 
+individual). It is up to you to decide how to group the data together, 
 but you should aim to optimize code readability.
 
 Sometimes, the law gives an enumeration of different situations. These 
@@ -66,30 +83,40 @@ enumerations are modeled in Catala using an enumeration type, like:
 @@Begin metadata@@
 /*
 declaration enumeration TaxCredit:
+# The name "TaxCredit" is also written in CamlCase 
 -- NoTaxCredit
--- ChildrenTaxCredit content integer # the integer corresponds
-                                    # to the number of children
+# This line says that "TaxCredit" can be a "NoTaxCredit" situation
+-- ChildrenTaxCredit content integer 
+# This line says that alternatively, "TaxCredit" can be a 
+# "ChildrenTaxCredit" situation. This situation carries a content
+# of type integer corresponding to the number of children concerned 
+# by the tax credit. This means that if you're in the "ChildrenTaxCredit"
+# situation, you will also have access to this number of children  
 */
 @@End metadata@@
 
+In computer science terms, such an enumeration is called a "sum type" or simply 
+an enum. The combination of structures and enumerations allow the Catala 
+programmer to declare all possible shapes of data, as they are equivalent to 
+the powerful notion of "algebraic datatypes". 
+
 We've defined and typed the data that the program will manipulate. Now we have 
 to define the logical context in which these data will evolve. This is done in 
-Catala using "scopes". Scopes also have to be declared in metadata, so here we 
-go:
+Catala using "scopes". Scopes are close to functions in terms of traditional 
+programming. Scopes also have to be declared in metadata, so here we go:
 
 @@Begin metadata@@
 /*
 declaration scope IncomeTaxComputation:
+  # Scope names use CamlCase
   context individual content Individual
-  context article1 content Article1
+  # This line declares a context element of the scope, which is aking to 
+  # a function parameter in computer science term. This is the piece of 
+  # data on which the scope will operate
+  context fixed_percentage content decimal
+  context income_tax content money
 */
 @@End metadata@@
-
-This scope declaration says that whenever we're in the scope 
-"IncomeTaxComputation", then we have access to two elements in context, 
-namely the individual's data and the data defined by article 1. We will be 
-able to refer to the lowercase variables in our code, either to use them or to 
-define them or one of their part.
 
 We now have everything to annotate the contents of article 1, which is copied 
 over below.
@@ -99,21 +126,37 @@ The income tax for an individual is defined as a fixed percentage of the
 individual's income over a year.
 /*
 scope IncomeTaxComputation:
-  definition article1.income_tax equals
-    invidual.income * article1.fixed_percentage
+  definition income_tax equals
+    invidual.income *$ fixed_percentage
 */
 
 In the code, we are defining inside our scope the amount of the income tax 
 according to the formula described in the article. When defining formulaes, 
-you have access to all the usual arithmetic operators. But what is the value 
-of that fixed percentage? Often, precise values are defined elsewhere in the
+you have access to all the usual arithmetic operators: addition "+", 
+substraction "-", multiplication "*" and division (slash). 
+
+However, in the Catala code, you can see that we use "*$" to multiply the 
+individual income by the fixed percentage. The $ suffix indicates that we 
+are performing a multiplication on an amount of money. Indeed, in Catala, 
+you have to keep track of what you are dealing with: is it money ? Is it 
+an integer? Using just "+" or "*" can be ambiguous in terms of rounding, 
+since money is usually rounded at the cent. So to disambiguate, we suffix these 
+operations with something that indicates the type of what we manipulate. 
+The suffixes are "$" for money "." for decimals, "at" (like in email adresses) 
+for dates and the hat symbol for durations. If you forget the suffix, the Catala type 
+checker will display an error message that will help you put it where it 
+belongs. 
+
+But inside article 1, one question remains unknown: what is the value of  
+of the fixed percentage? Often, precise values are defined elsewhere in the
 legislative source. Here, let's suppose we have:
 
 @Article 2@
 The fixed percentage mentionned at article 1 is equal to 20 %.
 /*
 scope IncomeTaxComputation:
-  definition article1.fixed_percentage equals 20 %
+  definition fixed_percentage equals 20 %
+  # Writing 20% is just an abbreviation for 0.20
 */
 
 You can see here that Catala allows definitions to be scattered throughout 
@@ -128,19 +171,20 @@ suppose the third article says:
 @Article 3@ If the individual is in charge of 2 or more children, then the fixed 
 percentage mentionned at article 1 is equal to 15 %.
 /*
-# How to redefine article1.fixed_percentage?
+# How to redefine fixed_percentage?
 */
 
 This article actually gives another definition for the fixed percentage, which
- was already defined in article 2. However, article 3 defines the percentage 
- conditionnally to the individual having more than 2 children. Catala allows 
- you precisely to redefine a variable under a condition:
+was already defined in article 2. However, article 3 defines the percentage 
+conditionnally to the individual having more than 2 children. Catala allows 
+you precisely to redefine a variable under a condition:
 
 /*
 scope IncomeTaxComputation:
-  definition article1.fixed_percentage under condition
-    individual.number_of_children >= 2
+  definition fixed_percentage under condition
+    number_of_children >= 2
   consequence equals 15 %
+  # Writing 15% is just an abbreviation for 0.15
 */
 
 When the Catala program will execute, the right definition will be dynamically
@@ -176,10 +220,10 @@ of income in each bracket multiplied by the rate of each bracket.
 /*
 scope TwoBracketsTaxComputation :
   definition tax of income equals
-    if income <= breakpoint then
-      income * rate1
+    if income <=$ breakpoint then
+      income *$ rate1
     else (
-      breakpoint * rate1 + (income - breakpoint) * rate2
+      breakpoint *$ rate1 +$ (income -$ breakpoint) *$ rate2
     )
 */
 
@@ -191,46 +235,28 @@ want to use it in our main tax computation scope.
 @Article 5@ For individuals whose income is greater than $100,000, the income 
 tax of article 1 is computed with a two-brackets system.
 /*
-declaration scope IncomeTaxComputation:
-  # The scope inclusion has to be added in the scope declaration
+declaration scope NewIncomeTaxComputation:
   context two_brackets_for_rich scope TwoBracketsTaxComputation
+  # This line says that we add the item two_brackets_for_rich to the context.
+  # However, the "scope" keyword tells that this item is not a piece of data 
+  # but rather a subscope that we can use to compute things.
+  context individual content Individual
+  context income_tax content money
 
 scope IncomeTaxComputation :
-
-  definition article1.income_tax under condition
-    individual.income >= $100,000
+  definition income_tax under condition
+    individual.income >=$ $100,000
   consequence equals
     two_brackets_for_rich.tax of individual.income
 */
-
-Scope inclusion also comes with a syntactic sugar for quickly and conditionnaly
-connecting context quantities :
-
-@@Begin metadata@@
-/*
-declaration scope ExemptedOfTax:
-  context article1 content Article1
-*/
-@@End metadata@@
 
 @Article 6@
 Individuals earning less than $10,000 are exempted of the income tax mentionned 
 at article 1.
 /*
-scope ExemptedOfTax :
-  definition article1.income_tax equals $0
-
-declaration scope IncomeTaxComputation:
-  # The scope inclusion has to be added in the scope declaration
-  context tax_exempt scope ExemptedOfTax
-
-scope IncomeTaxComputation:
-  definition  article1.income_tax under condition
+scope NewIncomeTaxComputation:
+  definition income_tax under condition
     individual.income <= $10,000
-  consequence equals
-    tax_exempt.article1.income_tax
+  consequence equals $0
 */
 
-This snippet of code actually brings the definition of article1.income_tax of 
-ExemptedOfTax into the IncomeTaxComputation scope, prefixing it with the 
-"income under $10,000" condition.

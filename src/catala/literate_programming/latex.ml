@@ -141,7 +141,7 @@ let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatte
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c))
+        (Pos.get_start_line (Pos.get_position c) - 1)
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
 
@@ -186,7 +186,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
          \\end{minted}\n\
          \\end{tcolorbox}"
         metadata_title metadata_title
-        (Pos.get_start_line (Pos.get_position c))
+        (Pos.get_start_line (Pos.get_position c) - 1)
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))

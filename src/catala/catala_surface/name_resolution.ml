@@ -71,7 +71,7 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
     previously *)
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
   Errors.raise_spanned_error
-    (Printf.sprintf "%s: unknown identifier %s" (Pos.unmark ident) msg)
+    (Printf.sprintf "\"%s\": unknown identifier %s" (Pos.unmark ident) msg)
     (Pos.get_position ident)
 
 (** Gets the type associated to an uid *)

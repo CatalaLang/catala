@@ -137,8 +137,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
           match Desugared.Ast.IdentMap.find_opt x scope_ctxt.var_idmap with
           | Some uid -> Bindlib.box (Scopelang.Ast.ELocation (ScopeVar (uid, pos)), pos)
           | None ->
-              Name_resolution.raise_unknown_identifier "for a\n   local or scope-wide variable"
-                (x, pos) )
+              Name_resolution.raise_unknown_identifier "for a local or scope-wide variable" (x, pos)
+          )
       | Some uid ->
           Scopelang.Ast.make_var (uid, pos) (* the whole box thing is to accomodate for this case *)
       )
