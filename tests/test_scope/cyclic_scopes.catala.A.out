@@ -1,4 +1,4 @@
-[ERROR] B: unknown identifier for a scope
+[ERROR] "B": unknown identifier for a scope
 [ERROR] 
 [ERROR]  --> test_scope/cyclic_scopes.catala
 [ERROR]   | 
