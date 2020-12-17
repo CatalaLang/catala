@@ -66,9 +66,9 @@ declaration structure Individual:
   # "money" is the type of what is stored in that field.
   # Available types include: integer, decimal, money, date, duration, 
   # and any other structure or enumeration that you declare
-  data age content integer
-  # "income" and "age" start by a lowercase letter, they follow the 
-  # snake_case convention
+  data number_of_children content integer
+  # "income" and "number_of_children" start by a lowercase letter, 
+  # they follow the snake_case convention
 */
 @@End metadata@@
 
@@ -127,7 +127,7 @@ individual's income over a year.
 /*
 scope IncomeTaxComputation:
   definition income_tax equals
-    invidual.income *$ fixed_percentage
+    individual.income *$ fixed_percentage
 */
 
 In the code, we are defining inside our scope the amount of the income tax 
@@ -163,7 +163,7 @@ You can see here that Catala allows definitions to be scattered throughout
 the annotation of the legislative text, so that each
 definition is as close as possible to its location in the text.
 
-@@Conditional definitions@@
+@@Conditional definitions@@+
 
 So far so good, but now the legislative text introduces some trickyness. Let us 
 suppose the third article says:
@@ -182,7 +182,7 @@ you precisely to redefine a variable under a condition:
 /*
 scope IncomeTaxComputation:
   definition fixed_percentage under condition
-    number_of_children >= 2
+    individual.number_of_children >= 2
   consequence equals 15 %
   # Writing 15% is just an abbreviation for 0.15
 */
@@ -194,7 +194,7 @@ However, if it is not the case, Catala will let you define a precedence on the
 conditions, which has to be justified by the law.
 
 
-@@Functions@@
+@@Functions@@+
 
 Catala lets you define functions anywhere in your data. Here's what it looks 
 like in the metadata definition when we want to define a two-brackets tax 
@@ -219,35 +219,39 @@ of income in each bracket multiplied by the rate of each bracket.
 
 /*
 scope TwoBracketsTaxComputation :
-  definition tax of income equals
-    if income <=$ breakpoint then
-      income *$ rate1
+  definition tax_formula of income equals
+    if income <=$ brackets.breakpoint then
+      income *$ brackets.rate1
     else (
-      breakpoint *$ rate1 +$ (income -$ breakpoint) *$ rate2
+      brackets.breakpoint *$ brackets.rate1 +$ 
+      (income -$ brackets.breakpoint) *$ brackets.rate2
     )
 */
 
-@@Scope inclusion@@
+@@Scope inclusion@@+
 
 Now that we've defined our helper scope for computing a two-brackets tax, we 
 want to use it in our main tax computation scope.
 
 @Article 5@ For individuals whose income is greater than $100,000, the income 
-tax of article 1 is computed with a two-brackets system.
+tax of article 1 is 40% of the income above $100,000. Below $100,000, the 
+income tax is 20% of the income.
 /*
 declaration scope NewIncomeTaxComputation:
-  context two_brackets_for_rich scope TwoBracketsTaxComputation
+  context two_brackets scope TwoBracketsTaxComputation
   # This line says that we add the item two_brackets_for_rich to the context.
   # However, the "scope" keyword tells that this item is not a piece of data 
   # but rather a subscope that we can use to compute things.
   context individual content Individual
   context income_tax content money
 
-scope IncomeTaxComputation :
-  definition income_tax under condition
-    individual.income >=$ $100,000
-  consequence equals
-    two_brackets_for_rich.tax of individual.income
+scope NewIncomeTaxComputation :
+  definition two_brackets.brackets equals TwoBrackets {
+    -- breakpoint: $100,000
+    -- rate1: 20%
+    -- rate2: 40%
+  }
+  definition income_tax equals two_brackets.tax_formula of individual.income 
 */
 
 @Article 6@
@@ -256,7 +260,60 @@ at article 1.
 /*
 scope NewIncomeTaxComputation:
   definition income_tax under condition
-    individual.income <= $10,000
+    individual.income <=$ $10,000
   consequence equals $0
+*/
+
+That's it! We've defined a two-brackets tax computation simply by annotating 
+legislative article by snippets of Catala code. However, attentive readers 
+may have caught something weird in articles 5 and 6. What happens when the 
+income of the individual is between $10,000 and $100,000 ? 
+
+The law leaves it unspecified ; our dummy articles are clearly badly drafted. 
+But Catala can help you find this sort of errors via simple testing or 
+even formal verification. Let's start with the testing.
+
+@@Testing Catala programs@@+
+
+Testing Catala programs can be done directly into Catala. Indeed, writing test
+cases for each Catala scope that you define is a good practice called 
+"unit testing" in the software engineering community. A test case is defined 
+as another scope:
+
+@Testing NewIncomeTaxComputation@
+/*
+declaration scope Test1:
+  context tax_computation scope NewIncomeTaxComputation
+
+scope Test1:
+  definition
+    tax_computation.individual 
+    # We define the argument to the subscope
+  equals
+    # The four lines below define a whole structure by giving a value to 
+    # each of its fields
+    Individual {
+      -- income: $230,000
+      -- number_of_children: 0
+    }
+    
+  # Next, we retrieve the income tax value compute it by the subscope and 
+  # assert that it is equal to the expected value :
+  # ($230,000-$100,00)*40%+$100,000*20% = $72,000
+  assertion tax_computation.income_tax = $72,000
+*/
+
+This test should pass. Let us now consider a failing test case:
+/*
+declaration scope Test2:
+  context tax_computation scope NewIncomeTaxComputation
+
+scope Test2:
+  definition tax_computation.individual equals Individual {
+    -- income: $4,000
+    -- number_of_children: 0
+  }
+
+  assertion tax_computation.income_tax = $0
 */
 

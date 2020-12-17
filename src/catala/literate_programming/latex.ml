@@ -63,7 +63,6 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
      \\newunicodechar{→}{$\\rightarrow$}\n\
      \\newunicodechar{≠}{$\\neq$}\n\n\
      \\fvset{\n\
-     commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
      frame=lines,\n\
      framesep=3mm,\n\

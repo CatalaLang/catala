@@ -298,7 +298,16 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
   | EAssert e' -> (
       match Pos.unmark (evaluate_expr e') with
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
-      | ELit (LBool false) -> Errors.raise_spanned_error "Assertion failed" (Pos.get_position e')
+      | ELit (LBool false) -> (
+          match Pos.unmark e' with
+          | EApp ((Ast.EOp (Binop op), pos_op), [ e1; e2 ]) ->
+              Errors.raise_spanned_error
+                (Format.asprintf "Assertion failed: %a %a %a" Print.format_expr e1
+                   Print.format_binop (op, pos_op) Print.format_expr e2)
+                (Pos.get_position e')
+          | _ ->
+              Errors.raise_spanned_error (Format.asprintf "Assertion failed") (Pos.get_position e')
+          )
       | _ ->
           Errors.raise_spanned_error
             "Expected a boolean literal for the result of this assertion (should not happen if the \
