@@ -320,10 +320,14 @@ scope Test2:
 This test case should compute a $0 income tax because of Article 6. But instead,
 execution will yield an error saying that there is a conflict between rules. 
 
+@@Defining exceptions to rules@@+
+
 Indeed, the definition of the income tax in article 6 conflicts with the 
 definition of income tax in article 5. But actually, article 6 is just an 
 exception of article 5. In the law, it is implicit that if article 6 is 
 applicable, then it takes precedence over article 5.
+
+@Fixing the computation@
 
 This implicit precedence has to be explicitely declared in Catala. Here is a
 fixed version of the NewIncomeTaxComputation scope:
@@ -341,9 +345,13 @@ scope NewIncomeTaxComputationFixed :
     -- rate2: 40%
   }
 
+  # To define an exception to a rule, you have to first label the rule that 
+  # you want to attach to exception to. You can put any snake_case identifier
+  # for the label
   label article_5 
   definition income_tax equals two_brackets.tax_formula of individual.income 
 
+  # Then, you can declare the exception by referring back to the label
   exception article_5
   definition income_tax under condition 
     individual.income <=$ $10,000
@@ -361,6 +369,16 @@ scope Test3:
     -- income: $4,000
     -- number_of_children: 0
   }
-
   assertion tax_computation.income_tax = $0
 */
+
+@@Conclusion@@+
+
+This tutorial present the basic concepts and syntax of the Catala language 
+features. It is then up to you tu use them to annotate legislative texts 
+with their algorithmic translation.
+
+There is no single way to write Catala programs, as the program style should be 
+adapted to the legislation it annotates. However, Catala is a functional 
+language at heart, so following standard functional programming design patterns 
+should help achieve concise and readable code.
