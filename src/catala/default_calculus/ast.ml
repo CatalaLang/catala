@@ -89,7 +89,7 @@ type expr =
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
-  | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
 (** {1 Variable helpers} *)

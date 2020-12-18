@@ -106,10 +106,10 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
         e1 format_expr e2 format_expr e3
   | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
-  | EDefault (just, cons, subs) ->
-      if List.length subs = 0 then
+  | EDefault (excepts, just, cons) ->
+      if List.length excepts = 0 then
         Format.fprintf fmt "@[⟨%a ⊢ %a⟩@]" format_expr just format_expr cons
       else
-        Format.fprintf fmt "@[<hov 2>⟨%a ⊢ %a |@ %a⟩@]" format_expr just format_expr cons
+        Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a ⊢ %a⟩@]"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
-          subs
+          excepts format_expr just format_expr cons

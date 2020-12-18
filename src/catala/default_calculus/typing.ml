@@ -241,10 +241,10 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
       typecheck_expr_top_down env e1 t_app;
       t_ret
   | EOp op -> op_type (Pos.same_pos_as op e)
-  | EDefault (just, cons, subs) ->
+  | EDefault (excepts, just, cons) ->
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as (TLit TBool) just));
       let tcons = typecheck_expr_bottom_up env cons in
-      List.iter (fun sub -> typecheck_expr_top_down env sub tcons) subs;
+      List.iter (fun except -> typecheck_expr_top_down env except tcons) excepts;
       tcons
   | EIfThenElse (cond, et, ef) ->
       typecheck_expr_top_down env cond (UnionFind.make (Pos.same_pos_as (TLit TBool) cond));
@@ -372,10 +372,10 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
   | EOp op ->
       let op_typ = op_type (Pos.same_pos_as op e) in
       unify op_typ tau
-  | EDefault (just, cons, subs) ->
+  | EDefault (excepts, just, cons) ->
       typecheck_expr_top_down env just (UnionFind.make (Pos.same_pos_as (TLit TBool) just));
       typecheck_expr_top_down env cons tau;
-      List.iter (fun sub -> typecheck_expr_top_down env sub tau) subs
+      List.iter (fun except -> typecheck_expr_top_down env except tau) excepts
   | EIfThenElse (cond, et, ef) ->
       typecheck_expr_top_down env cond (UnionFind.make (Pos.same_pos_as (TLit TBool) cond));
       typecheck_expr_top_down env et tau;

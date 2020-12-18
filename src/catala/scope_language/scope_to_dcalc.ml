@@ -68,7 +68,7 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
     Bindlib.box_apply2
       (fun caller callee ->
         ( Dcalc.Ast.EDefault
-            ((Dcalc.Ast.ELit (Dcalc.Ast.LBool true), Pos.no_pos), caller, [ callee ]),
+            ([ caller ], (Dcalc.Ast.ELit (Dcalc.Ast.LBool true), Pos.no_pos), callee),
           Pos.no_pos ))
       caller callee
   in
@@ -211,11 +211,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         Bindlib.box_apply
           (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
           binder
-    | EDefault (just, cons, subs) ->
+    | EDefault (excepts, just, cons) ->
         Bindlib.box_apply3
-          (fun j c s -> Dcalc.Ast.EDefault (j, c, s))
+          (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
+          (Bindlib.box_list (List.map (translate_expr ctx) excepts))
           (translate_expr ctx just) (translate_expr ctx cons)
-          (Bindlib.box_list (List.map (translate_expr ctx) subs))
     | ELocation (ScopeVar a) ->
         Bindlib.box_var (fst (Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars))
     | ELocation (SubScopeVar (_, s, a)) -> (

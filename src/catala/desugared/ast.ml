@@ -25,6 +25,8 @@ module RuleName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.
 
 module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
 
+module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
+
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
   type t =
@@ -38,6 +40,11 @@ module ScopeDef = struct
     | Var x, Var y | Var x, SubScopeVar (_, y) | SubScopeVar (_, x), Var y ->
         Scopelang.Ast.ScopeVar.compare x y
     | SubScopeVar (_, x), SubScopeVar (_, y) -> Scopelang.Ast.ScopeVar.compare x y
+
+  let get_position x =
+    match x with
+    | Var x -> Pos.get_position (Scopelang.Ast.ScopeVar.get_info x)
+    | SubScopeVar (x, _) -> Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
 
   let format_t fmt x =
     match x with
@@ -62,7 +69,7 @@ type rule = {
   just : Scopelang.Ast.expr Pos.marked Bindlib.box;
   cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
   parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  parent_rule : RuleName.t option;
+  exception_to_rule : RuleName.t option;
 }
 
 let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
@@ -73,7 +80,7 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
       ( match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None );
-    parent_rule = None;
+    exception_to_rule = None;
   }
 
 type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box

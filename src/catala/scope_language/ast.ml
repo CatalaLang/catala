@@ -94,7 +94,7 @@ type expr =
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
 let rec locations_used (e : expr Pos.marked) : LocationSet.t =
@@ -121,11 +121,11 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   | EIfThenElse (e1, e2, e3) ->
       LocationSet.union (locations_used e1)
         (LocationSet.union (locations_used e2) (locations_used e3))
-  | EDefault (just, cons, subs) ->
+  | EDefault (excepts, just, cons) ->
       List.fold_left
-        (fun acc sub -> LocationSet.union (locations_used sub) acc)
+        (fun acc except -> LocationSet.union (locations_used except) acc)
         (LocationSet.union (locations_used just) (locations_used cons))
-        subs
+        excepts
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked

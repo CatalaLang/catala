@@ -248,44 +248,31 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             "Expected a term having a sum type as an argument to a match (should not happend if \
              the term was well-typed"
             (Pos.get_position e1) )
-  | EDefault (just, cons, subs) -> (
-      let just = evaluate_expr just in
-      match Pos.unmark just with
-      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-      | ELit (LBool true) -> (
-          match evaluate_expr cons with
-          | ELit LEmptyError, pos ->
-              evaluate_expr
-                (Pos.same_pos_as
-                   (Ast.EDefault ((ELit (LBool false), pos), (Ast.ELit LEmptyError, pos), subs))
-                   e)
-          | e' -> e' )
-      | ELit (LBool false) -> (
-          let subs_orig = subs in
-          let subs = List.map evaluate_expr subs in
-          let empty_count = List.length (List.filter is_empty_error subs) in
-          match List.length subs - empty_count with
-          | 0 -> Pos.same_pos_as (A.ELit LEmptyError) e
-          | 1 -> List.find (fun sub -> not (is_empty_error sub)) subs
+  | EDefault (exceptions, just, cons) -> (
+      let exceptions_orig = exceptions in
+      let exceptions = List.map evaluate_expr exceptions in
+      let empty_count = List.length (List.filter is_empty_error exceptions) in
+      match List.length exceptions - empty_count with
+      | 0 -> (
+          let just = evaluate_expr just in
+          match Pos.unmark just with
+          | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
+          | ELit (LBool true) -> evaluate_expr cons
+          | ELit (LBool false) -> Pos.same_pos_as (A.ELit LEmptyError) e
           | _ ->
-              Errors.raise_multispanned_error
-                "There is a conflict between multiple rules for assigning the same variable."
-                ( ( if Pos.get_position e = Pos.no_pos then []
-                  else
-                    [
-                      ( Some "This rule is not triggered, so we consider rules of lower priority:",
-                        Pos.get_position e );
-                    ] )
-                @ List.map
-                    (fun (_, sub) -> (Some "This justification is true:", Pos.get_position sub))
-                    (List.filter
-                       (fun (sub, _) -> not (is_empty_error sub))
-                       (List.map2 (fun x y -> (x, y)) subs subs_orig)) ) )
+              Errors.raise_spanned_error
+                "Default justification has not been reduced to a boolean at evaluation (should not \
+                 happen if the term was well-typed"
+                (Pos.get_position e) )
+      | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
       | _ ->
-          Errors.raise_spanned_error
-            "Default justification has not been reduced to a boolean at evaluation (should not \
-             happen if the term was well-typed"
-            (Pos.get_position e) )
+          Errors.raise_multispanned_error
+            "There is a conflict between multiple exceptions for assigning the same variable."
+            (List.map
+               (fun (_, except) -> (Some "This justification is true:", Pos.get_position except))
+               (List.filter
+                  (fun (sub, _) -> not (is_empty_error sub))
+                  (List.map2 (fun x y -> (x, y)) exceptions exceptions_orig))) )
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr cond) with
       | ELit (LBool true) -> evaluate_expr et
