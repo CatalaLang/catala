@@ -175,7 +175,7 @@ lambda-calculus extensions (such as algebraic data types or $\Lambda$-polymorphi
   &&\synalt&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\synalt\synvar{e}\;\synvar{e}&$\lambda$-calculus\\
   &&\synalt&\synvar{d}&default term\\
   &&&&\\
-  Default&\synvar{d}&\syndef&\synlangle\synvar{e}\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default term\\
+  Default&\synvar{d}&\syndef&\synlangle $[\synvar{e}^*] \synmid\synvar{e}\synjust\synvar{e}$\synrangle&default term\\
   &&\synalt&\synerror&conflict error term\\
   &&\synalt&\synemptydefault&empty error term\\
 \end{tabular}
@@ -183,7 +183,8 @@ lambda-calculus extensions (such as algebraic data types or $\Lambda$-polymorphi
 
 Compared to the regular lambda calculus, we add a construction coming from 
 default logic. Particularly, we focus on a subset of default logic called 
-categorical, prioritized default logic \cite{Brewka2000}. In this setting, a default is a logical 
+categorical, prioritized default logic \cite{Brewka2000}. 
+In this setting, a default is a logical 
 rule of the form $A \synjust B$ where $A$ is the justification of the rule and 
 $B$ is the consequence. The rule can only be applied if $A$ is consistent with 
 the current knowledge $W$: from $A\wedge W$, one should not derive $\bot$.
@@ -196,19 +197,18 @@ be an expression that can be evaluated to \syntrue{} or \synfalse{}, and $B$
 the expression that the default should reduce to if $A$ is true. If $A$ is false,
 then we look up for other rules of lesser priority to apply. This priority 
 is encoded trough a syntactic tree data structure\footnote{Thanks to Pierre-Évariste Dagand for this insight.}.
-A node of the tree contains a default to consider first, and then a list of lower-priority 
-defaults that don't have a particular ordering between them. This structure is 
+A node of the tree contains a base case to consider, but first a list of higher-priority 
+exceptions that don't have a particular ordering between them. This structure is 
 sufficient to model the base case/exceptions structure or the law, and in particular 
 the fact that exceptions are not always prioritized in the legislative text.
 
-In the term \synlangle\synvar{e_{\text{just}}}\synjust
-\synvar{e_{\text{cons}}}\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle, \synvar{e_{\text{just}}} 
+In the term \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_{\text{just}}}\synjust
+\synvar{e_{\text{cons}}} \synrangle, \synvar{e_{\text{just}}} 
 is the justification $A$, \synvar{e_{\text{cons}}} is the consequence $B$ and 
-\synvar{e_1}\synellipsis\synvar{e_n} is the list of rules to be considered if \synvar{e_{\text{just}}} 
-evaluates to \synfalse{}. 
+\synvar{e_1}\synellipsis\synvar{e_n} are the list of exceptions to be considered first.
  
 Of course, this evaluation scheme can fail if no more 
-rules can be applied, or if two or more rules of the same priority have their 
+rules can be applied, or if two or more exceptions of the same priority have their 
 justification evaluate to \syntrue{}. The error terms \synerror{} and \synemptydefault{}
 encode these failure cases. Note that if a Catala program correctly derived from a legislative 
 source evaluates to \synerror{} or \synemptydefault{}, this could mean a flaw in the 
@@ -275,14 +275,15 @@ of the default should be typed.
 \begin{mathpar}
   \inferrule[T-Default]
   {
-    \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
-    \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}\\
     \typctx{\Gamma}\typvdash\synvar{e_1}\typcolon{\tau}\\
     \cdots\\
-    \typctx{\Gamma}\typvdash\synvar{e_n}\typcolon{\tau}
+    \typctx{\Gamma}\typvdash\synvar{e_n}\typcolon{\tau}\\
+    \typctx{\Gamma}\typvdash\synvar{e_{\text{just}}}\typcolon\synbool\\
+    \typctx{\Gamma}\typvdash\synvar{e_{\text{cons}}}\typcolon\synvar{\tau}
   }
-  {\typctx{\Gamma}\typvdash\synlangle\synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synmid 
-  \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\synvar{\tau}}
+  {\typctx{\Gamma}\typvdash\synlangle
+  \synvar{e_1}\synellipsis\synvar{e_n}\synmid 
+  \synvar{e_{\text{just}}}\synjust\synvar{e_{\text{cons}}}\synrangle\typcolon\synvar{\tau}}
 \end{mathpar}
 
 The situation becomes more complex in the presence of functions. Indeed, want 
@@ -307,11 +308,11 @@ currently being reduced.
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
     Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
-       contexts&&\synalt&\synlangle\synhole\synjust\synvar{e}\synmid $[\synvar{e}^*]$\synrangle&default justification evaluation\\
+       contexts&&\synalt&\synlangle$[\synvar{v}^*]$\syncomma\synhole\syncomma$[\synvar{e}^*]$\synmid
+       \synvar{e}\synjust\synvar{e}\synrangle&default exceptions evaluation\\
                &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
-                    &&\synalt&\synlangle\syntrue\synjust\synhole\synmid $[\synvar{e}^*]$\synrangle&default consequence evaluation\\
-                    &&\synalt&\synlangle\synfalse\synjust\synvar{e}\synmid $[\synvar{v}^*]$%
-                    \syncomma\synhole\syncomma$[\synvar{e}^*]$\synrangle&sub-default evaluation
+               &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\synhole\synjust\synvar{e}\synrangle&default justification evaluation\\
+                    &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\syntrue\synjust\synhole \synrangle&default consequence evaluation\\
   \end{tabular}
 \end{center}
 
@@ -331,69 +332,54 @@ later.
  }
 \end{mathpar}
 
-Now we have to describe how the default terms reduce. Thanks to a the 
-\TirName{D-Context} rule, we can suppose that the justification of the default 
-is already reduced to a variable \synvar{v}. By applying the beta-reduction 
-rule \TirName{D-$\beta$}, we can further reduce to the case where \synvar{v} is a boolean.
-This is where we encode our default logic evaluation semantics. If \synvar{v} is 
-\syntrue{}, then this rule applies and we reduce to the consequence. We don't 
-even have to consider rules of lower priority lower in the tree. This behavior 
-is similar to short-circuit reduction rules of boolean operators, that enable 
-a significant performance gain at execution.
-\begin{mathpar}
-  \inferrule[D-DefaultTrueNoError]
-  {v\neq\synemptydefault}
-  {\synlangle \syntrue\synjust \synvar{v}\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval v}
-\end{mathpar}
-
-However, if the consequence of the first default evaluates to \synemptydefault,
-then we fall back on the rules of lower priority, as if the justification had 
-evaluated to \synfalse. This behavior is useful when the consequence of the 
-first default is itself a \enquote{high-priority} default tree. In this case,
- \synvar{e_1}\synellipsis\synvar{e_n} acts a the \enquote{low-priority} default 
- tree. The chaining
-behavior from the high-priority tree to the low-priority tree 
-defined by \TirName{D-DefaultTrueError}, will be very useful in
-\sref{scope:formalization}.
-\begin{mathpar}
-  \inferrule[D-DefaultTrueError]
-  {}
-  {
-    \synlangle \syntrue\synjust \synemptydefault\synmid \synvar{e_1}\synellipsis\synvar{e_n}\synrangle\exeval
-    \synlangle \synfalse\synjust \synemptydefault\synmid \synvar{e_1}\synellipsis\synvar{e_n} \synrangle
-  }
-\end{mathpar}
-
-If the consequence of the default is \synfalse{}, then we have to consider rules of lower priority
-\synvar{e_1}\synellipsis\synvar{e_n} that should be all evaluated (left to right),
+Now we have to describe how the default terms reduce. First, we consider 
+the list of exceptions to the default,
+\synvar{e_1}\synellipsis\synvar{e_n}, that should be all evaluated (left to right),
 according to the sub-default evaluation context. Then, we consider all the 
-values yielded by the sub-default evaluation and define two functions over these 
+values yielded by the exception evaluation and define two functions over these 
 values. Let $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n})$ returns 
-the number of empty error terms \synemptydefault{} among the values. We then case analyze on this count:
+the number of empty error terms \synemptydefault{} among the exception values.
+ We then case analyze on this count:
 \begin{itemize}
   \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) =n$, then 
-  none of the sub-defaults apply and we return \synemptydefault;
+  none of the exceptions apply and we evaluate the base case;
   \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) =n - 1$,
-  then only only one of the sub-default apply and we return its corresponding value;
+  then only only one of the exceptions apply and we return its corresponding value;
   \item if $\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) < n - 1$,
-  then two or more sub-default apply and we raise a conflict error \synerror.
+  then two or more exceptions apply and we raise a conflict error \synerror.
 \end{itemize}
 
 
 \begin{mathpar}
-  \inferrule[D-DefaultFalseNoSub]
+  \inferrule[D-DefaultFalseNoExceptions]
   {}
-  {\synlangle \synfalse\synjust \synvar{e}\synmid \synemptydefault{}\synellipsis\synemptydefault{}\synrangle\exeval \synemptydefault{}}
+  {\synlangle \synemptydefault{}\synellipsis\synemptydefault{}\synmid\synfalse\synjust \synvar{e} \synrangle\exeval \synemptydefault{}}
 
-  \inferrule[D-DefaultFalseOneSub]
+  \inferrule[D-DefaultTrueNoExceptions]
   {}
-  {\synlangle \synfalse\synjust \synvar{e}\synmid 
-  \synemptydefault\synellipsis\synemptydefault\syncomma\synvar{v}\syncomma\synemptydefault\synellipsis\synemptydefault\synrangle\exeval \synvar{v}}
+  {\synlangle \synvar{e_1}\synellipsis\synvar{e_n}\synmid\syntrue\synjust \synvar{v}\synrangle\exeval v}
 
-  \inferrule[D-DefaultFalseSubConflict]
+
+  \inferrule[D-DefaultOneException]
+  {}
+  {\synlangle \synemptydefault\synellipsis\synemptydefault\syncomma\synvar{v}\syncomma\synemptydefault\synellipsis\synemptydefault
+  \synmid  \synvar{e_1}\synjust \synvar{e_2}
+  \synrangle\exeval \synvar{v}}
+
+  \inferrule[D-DefaultExceptionsConflict]
   {\exeemptysubdefaults(\synvar{v_1}\synellipsis\synvar{v_n}) <n - 1}
-  {\synlangle \synfalse\synjust \synvar{e}\synmid \synvar{v_1}\synellipsis\synvar{v_n}\synrangle\exeval \synerror{}}
+  {\synlangle \synvar{v_1}\synellipsis\synvar{v_n}\synmid 
+  \synvar{e_1}\synjust \synvar{e_2}\synrangle\exeval \synerror{}}
 \end{mathpar}
+
+When none of the exceptions apply, we can suppose that the justification of the default 
+is already reduced to a variable \synvar{v}, which should be a boolean by virtue of 
+typing. If \synvar{v} is 
+\syntrue{}, then this rule applies and we reduce to the consequence. If it is 
+\synfalse{}, then the base case does not apply either and we throw an empty 
+default error.
+
+
 
 Last, we need to define how our error terms propagate. Because the rules for 
 sub-default evaluation have to count the number of error terms in the list 
@@ -468,8 +454,9 @@ sub-call and give them different names $\synvar{S'}_1$,
   Expression&\synvar{e}&\syndef&\synvar{\ell}&location\\
   &&\synalt&$\cdots$&default calculus expressions\\
   &&&&\\
-  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle\synvar{e}\synjust
-                         \synvar{e}\synmid$[\synvar{e}^*]$\synrangle
+  Rule&\synvar{r}&\syndef&\synrule\synvar{\ell}\syntyped\synvar{\tau}\synequal\synlangle
+                        $[\synvar{e}^*]$\synmid\synvar{e}\synjust
+                         \synvar{e}\synrangle
       &Location definition\\
   &&\synalt&\syncall$\synvar{S}_\synvar{n}$&sub-scope call\\
   Scope declaration&\synvar{\sigma}&\syndef&\synscope\synvar{S}\syntyped $[\synvar{r}^*]$&\\
@@ -484,13 +471,13 @@ Let's illustrate how the scope language plays out with a simple program
 that calls a sub-scope:
 \begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt, samepage=true]
 scope X:
-  rule a = < true :- 0 | >
-  rule b = < true :- a + 1 | >
+  rule a = < true :- 0 >
+  rule b = < true :- a + 1 >
 
 scope Y:
-  rule X_1[a] = < true :- 42 | >
+  rule X_1[a] = < true :- 42 >
   call X_1
-  rule c = < X_1[b] == 1 :- false | >,  < X_1[b] == 43 :- true | > 
+  rule c = < X_1[b] != 43 :- false | X_1[b] == 43 :- true > 
 \end{Verbatim}
 
 Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
@@ -498,7 +485,7 @@ a single default whose justification is \Verb+true+. Hence, \Verb+a+ should eval
 to \Verb+0+ and \Verb+b+ should evaluate to \Verb+1+.
 
 Now, consider scope \Verb+Y+. It defines a single variable \Verb+c+ with two defaults 
-lines 8 and 9, but the justifications for these two defaults use the result of 
+line 8, but the justifications for these two defaults use the result of 
 the evaluation (line 7) of variable \Verb+b+ of the sub-scope \Verb+X_1+. 
 Line 6 shows an example of providing an \enquote{argument} to the subscope call.
 The execution goes like this: at line 7 when calling the sub-scope,
@@ -506,7 +493,9 @@ The execution goes like this: at line 7 when calling the sub-scope,
 from line 6. Because the caller has priority over the callee, the default from line 
 6 wins and \Verb+X_1[a]+ evaluates to \Verb+42+. Consequently,
 \Verb+X_1[b]+ evaluates to \Verb+43+.
-This triggers the second default in the list of line 9 which evaluates \Verb+c+ to \Verb+true+. 
+This triggers the second default in the list of line 8: the exception 
+evaluates first, but does not apply. Then, the base case applies,
+and evaluates \Verb+c+ to \Verb+true+. 
 
 The goal is to provide an encoding of the scope language 
 into the lambda calculus that is compatible with this intuitive description 
@@ -515,9 +504,9 @@ picture of the translation, we first show what the previous simple program will 
 to, using ML-like syntax for the target default calculus:
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt, samepage=true]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
-  let a : unit -> int = a ++ (fun () -> < true :- 0 | >) in
+  let a : unit -> int = < a | true :- fun () -> < true :- 0 >> in
   let a : int = a () in  
-  let b : unit -> int = b ++ (fun () -> < true :- a + 1 | >) in 
+  let b : unit -> int = < b | true :- fun () -> < true :- a + 1 >> in 
   let b : int = b () in
   (a, b)
 
@@ -525,12 +514,16 @@ let Y (c: unit -> bool) : bool =
   let X_1[a] : unit -> int = fun () -> < true :- 42 | > in
   let X_1[b] : unit -> int = fun () -> EmptyError in 
   let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
-  let c : unit -> bool = c ++ (fun () -> 
-    < X_1[b] == 1 :- false>, < X_1[b] == 43 :- true >)
+  let c : unit -> bool = 
+    < c | true :- fun () -> 
+      < X_1[b] != 43 :- false | X_1[b] == 43 :- true >
+    >
   in 
   let c : bool = c () in 
   c 
 \end{Verbatim}
+
+% TODO: fix text below here
 
 We start unravelling this translation with the scope \Verb+X+. \Verb+X+ has 
 been turned into a function whose arguments are all the local variables of the 
