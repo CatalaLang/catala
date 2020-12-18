@@ -20,13 +20,20 @@
 
 TEST_FILES=$(wildcard */tests/*.catala*)
 
-TEST_FILES_SCOPES=$(foreach TEST_FILE,$(TEST_FILES),\
+TEST_FILES_SCOPES_EN=$(foreach TEST_FILE,$(TEST_FILES),\
 	$(foreach TEST_SCOPE,\
 		$(shell grep -Po "declaration scope [^:]*" $(TEST_FILE) | cut -d " " -f 3), \
 		$(word 1,$(subst /, ,$(TEST_FILE))).$(word 1,$(subst ., ,$(word 3,$(subst /, ,$(TEST_FILE))))).$(TEST_SCOPE).run \
 	) \
 )
 
-test_examples: $(TEST_FILES_SCOPES)
+TEST_FILES_SCOPES_FR=$(foreach TEST_FILE,$(TEST_FILES),\
+	$(foreach TEST_SCOPE,\
+		$(shell grep -Po "déclaration champ d'application [^:]*" $(TEST_FILE) | cut -d " " -f 3), \
+		$(word 1,$(subst /, ,$(TEST_FILE))).$(word 1,$(subst ., ,$(word 3,$(subst /, ,$(TEST_FILE))))).$(TEST_SCOPE).run \
+	) \
+)
+
+test_examples: $(TEST_FILES_SCOPES_EN) $(TEST_FILES_SCOPES_FR)
 
 .FORCE:
