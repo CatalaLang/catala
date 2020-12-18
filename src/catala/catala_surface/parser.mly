@@ -62,6 +62,7 @@
 %token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
+%token LABEL EXCEPTION
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -371,11 +372,16 @@ rule_consequence:
 }
 
 rule:
-| name_and_param = rule_expr cond = option(condition_consequence)
+| label = option(label) 
+  except = option(exception_to)
+  RULE
+  name_and_param = rule_expr cond = option(condition_consequence)
    consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
     let cons : bool Pos.marked = consequence in
     ({
+      rule_label = label;
+      rule_exception_to = except;
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
@@ -386,10 +392,21 @@ rule:
 definition_parameters:
 | OF i = ident { i }
 
+label:
+| LABEL i = ident { i }
+
+exception_to:
+| EXCEPTION i = ident { i }
+
 definition:
-| name = qident param = option(definition_parameters)
+| label = option(label) 
+  except = option(exception_to)
+  DEFINITION
+  name = qident param = option(definition_parameters)
   cond = option(condition_consequence) DEFINED_AS e = expression {
     ({
+      definition_label = label;
+      definition_exception_to = except;
       definition_name = name;
       definition_parameter = param;
       definition_condition = cond;
@@ -417,10 +434,10 @@ assertion:
 }
 
 scope_item:
-| RULE r = rule {
+| r = rule {
    let (r, _) = r in (Rule r, $sloc)
 }
-| DEFINITION d = definition {
+| d = definition {
   let (d, _) = d in (Definition d, $sloc)
  }
 | ASSERTION contents = assertion {

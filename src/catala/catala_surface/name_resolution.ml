@@ -26,6 +26,7 @@ type typ = Scopelang.Ast.typ
 
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
+  label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
   sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
@@ -249,6 +250,7 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
             Scopelang.Ast.ScopeMap.add scope_uid
               {
                 var_idmap = Desugared.Ast.IdentMap.empty;
+                label_idmap = Desugared.Ast.IdentMap.empty;
                 sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
                 sub_scopes = Scopelang.Ast.SubScopeMap.empty;
               }
@@ -383,6 +385,87 @@ let process_program_item (ctxt : context) (item : Ast.program_item)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match item with Ast.LawStructure s -> process_law_structure ctxt s process_item
 
+(** {1 Scope uses pass} *)
+
+let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.rule) : context =
+  match r.Ast.rule_label with
+  | None -> ctxt
+  | Some label ->
+      let rule_name =
+        Desugared.Ast.RuleName.fresh
+          (Pos.map_under_mark
+             (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+             r.rule_name)
+      in
+      {
+        ctxt with
+        scopes =
+          Scopelang.Ast.ScopeMap.update s_name
+            (fun s_ctxt ->
+              match s_ctxt with
+              | None -> assert false (* should not happen *)
+              | Some s_ctxt ->
+                  Some
+                    {
+                      s_ctxt with
+                      label_idmap =
+                        Desugared.Ast.IdentMap.add (Pos.unmark label) rule_name s_ctxt.label_idmap;
+                    })
+            ctxt.scopes;
+      }
+
+let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
+    context =
+  match d.Ast.definition_label with
+  | None -> ctxt
+  | Some label ->
+      let definition_name =
+        Desugared.Ast.RuleName.fresh
+          (Pos.map_under_mark
+             (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+             d.definition_name)
+      in
+      {
+        ctxt with
+        scopes =
+          Scopelang.Ast.ScopeMap.update s_name
+            (fun s_ctxt ->
+              match s_ctxt with
+              | None -> assert false (* should not happen *)
+              | Some s_ctxt ->
+                  Some
+                    {
+                      s_ctxt with
+                      label_idmap =
+                        Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
+                          s_ctxt.label_idmap;
+                    })
+            ctxt.scopes;
+      }
+
+let process_scope_use_item (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    (sitem : Ast.scope_use_item Pos.marked) : context =
+  match Pos.unmark sitem with
+  | Rule r -> process_rule ctxt s_name r
+  | Definition d -> process_definition ctxt s_name d
+  | _ -> ctxt
+
+let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
+  let s_name =
+    try Desugared.Ast.IdentMap.find (Pos.unmark suse.Ast.scope_use_name) ctxt.scope_idmap
+    with Not_found ->
+      Errors.raise_spanned_error
+        (Format.asprintf "\"%s\": this scope has not been declared anywhere, is it a typo?"
+           (Pos.unmark suse.Ast.scope_use_name))
+        (Pos.get_position suse.Ast.scope_use_name)
+  in
+  List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items
+
+let process_use_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
+  match Pos.unmark item with
+  | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
+  | ScopeUse suse -> process_scope_use ctxt suse
+
 (** {1 API} *)
 
 (** Derive the context from metadata, in one pass over the declarations *)
@@ -405,5 +488,10 @@ let form_context (prgm : Ast.program) : context =
     List.fold_left
       (fun ctxt item -> process_program_item ctxt item process_decl_item)
       empty_ctxt prgm.program_items
+  in
+  let ctxt =
+    List.fold_left
+      (fun ctxt item -> process_program_item ctxt item process_use_item)
+      ctxt prgm.program_items
   in
   ctxt

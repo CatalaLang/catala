@@ -63,7 +63,10 @@ endif
 
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
-	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) $(SRC:.catala_$(CATALA_LANG)=.d) _minted-$(SRC:.catala_$(CATALA_LANG)=)
+	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \
+		$(SRC:.catala_$(CATALA_LANG)=.d) \
+		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
+		$(SRC:.catala_$(CATALA_LANG)=.html)
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

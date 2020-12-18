@@ -158,6 +158,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* 0xE9 is é *)
       L.update_acc lexbuf;
       DEFINITION
+  | 0xE9, "tiquette" ->
+      L.update_acc lexbuf;
+      LABEL
+  | "exception" ->
+      L.update_acc lexbuf;
+      EXCEPTION
   | 0xE9, "gal ", 0x00E0 ->
       (* 0xE9 is é *)
       L.update_acc lexbuf;

@@ -361,18 +361,19 @@ let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option
 
 (** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t) (param_uid : Scopelang.Ast.Var.t Pos.marked option)
+    (def_key : Desugared.Ast.ScopeDef.t Pos.marked)
+    (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
-    Desugared.Ast.rule =
+    (parent_rule : Desugared.Ast.RuleName.t option) (just : Ast.expression Pos.marked option)
+    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
   let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
-  let just = merge_conditions precond just (Pos.get_position cons) in
+  let just = merge_conditions precond just (Pos.get_position def_key) in
   let cons = translate_expr scope ctxt cons in
   {
     just;
     cons;
     parameter =
-      (let def_key_typ = Name_resolution.get_def_typ ctxt def_key in
+      (let def_key_typ = Name_resolution.get_def_typ ctxt (Pos.unmark def_key) in
        match (Pos.unmark def_key_typ, param_uid) with
        | Scopelang.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
        | Scopelang.Ast.TArrow _, None ->
@@ -384,8 +385,7 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
              "this definition has a parameter but its type is not a function"
              (Pos.get_position (Bindlib.unbox cons))
        | _ -> None);
-    parent_rule =
-      None (* for now we don't have a priority mechanism in the syntax but it will happen soon *);
+    parent_rule;
   }
 
 (** Wrapper around {!val: process_default} that performs some name disambiguation *)
@@ -426,15 +426,29 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | None -> (Desugared.Ast.RuleMap.empty, Name_resolution.get_def_typ ctxt def_key)
     in
     let rule_name =
-      Desugared.Ast.RuleName.fresh
-        (Pos.map_under_mark
-           (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-           def.definition_name)
+      match def.Ast.definition_label with
+      | None -> None
+      | Some label -> Some (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
+    in
+    let rule_name =
+      match rule_name with
+      | Some x -> x
+      | None ->
+          Desugared.Ast.RuleName.fresh
+            (Pos.map_under_mark
+               (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+               def.definition_name)
+    in
+    let parent_rule =
+      match def.Ast.definition_exception_to with
+      | None -> None
+      | Some label -> Some (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
     in
     let x_def =
       Desugared.Ast.RuleMap.add rule_name
-        (process_default new_ctxt scope_uid def_key param_uid precond def.definition_condition
-           def.definition_expr)
+        (process_default new_ctxt scope_uid
+           (def_key, Pos.get_position def.definition_name)
+           param_uid precond parent_rule def.definition_condition def.definition_expr)
         x_def
     in
     {
@@ -454,6 +468,8 @@ let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   let consequence_expr = Ast.Literal (Ast.Bool (Pos.unmark rule.rule_consequence)) in
   let def =
     {
+      Ast.definition_label = rule.rule_label;
+      Ast.definition_exception_to = rule.rule_exception_to;
       Ast.definition_name = rule.rule_name;
       Ast.definition_parameter = rule.rule_parameter;
       Ast.definition_condition = rule.rule_condition;

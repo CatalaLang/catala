@@ -87,6 +87,8 @@ let token_list : (string * token) list =
     ("sum", SUM);
     ("ok", FILLED);
     ("def", DEFINITION);
+    ("label", LABEL);
+    ("exception", EXCEPTION);
     ("equals", DEFINED_AS);
     ("match", MATCH);
     ("with", WITH);
@@ -199,6 +201,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "def" ->
       update_acc lexbuf;
       DEFINITION
+  | "label" ->
+      update_acc lexbuf;
+      LABEL
+  | "exception" ->
+      update_acc lexbuf;
+      EXCEPTION
   | ":=" ->
       update_acc lexbuf;
       DEFINED_AS

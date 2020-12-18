@@ -213,7 +213,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(scope|fun\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def)\b
+    regex \=  \b(scope|fun\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def|label|exception)\b
     styles [] = .keyword_rule ;
   }
 

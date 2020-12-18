@@ -26,7 +26,7 @@ class CatalaNvLexer(RegexLexer):
             (u'(param)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)',
              bygroups(Keyword.Declaration, Text, Name.Variable)),
             (u'\\b(match|with|fixed|by|decreasing|increasing|varies|with\\s+param|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else)\\b', bygroups(Keyword.Reserved)),
-            (u'\\b(scope|fun\\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def)\\b',
+            (u'\\b(scope|fun\\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def|label|exception)\\b',
              bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(true|false)\\b', bygroups(Keyword.Constant)),
