@@ -41,8 +41,8 @@ format:
 	dune build @fmt --auto-promote | true
 
 build:
-	$(MAKE) -C src/catala/catala_surface parser_errors.ml
-	$(MAKE) format
+	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
+	@$(MAKE) --no-print-directory format
 	dune build
 
 doc: 
@@ -171,7 +171,7 @@ clean:
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
-	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading
+	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_fr,md,fst,mld --grading
 
 ##########################################
 # Special targets
