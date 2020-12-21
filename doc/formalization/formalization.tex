@@ -504,48 +504,39 @@ picture of the translation, we first show what the previous simple program will 
 to, using ML-like syntax for the target default calculus:
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt, samepage=true]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
-  let a : unit -> int = < a | true :- fun () -> < true :- 0 >> in
-  let a : int = a () in  
-  let b : unit -> int = < b | true :- fun () -> < true :- a + 1 >> in 
-  let b : int = b () in
+  let a : int = < a () | < true :- 0 >> in
+  let b : int = < b () | < true :- a + 1 >> in 
   (a, b)
 
 let Y (c: unit -> bool) : bool = 
-  let X_1[a] : unit -> int = fun () -> < true :- 42 | > in
+  let X_1[a] : unit -> int = fun () -> < true :- 42 > in
   let X_1[b] : unit -> int = fun () -> EmptyError in 
   let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
-  let c : unit -> bool = 
-    < c | true :- fun () -> 
-      < X_1[b] != 43 :- false | X_1[b] == 43 :- true >
-    >
-  in 
-  let c : bool = c () in 
+  let c : bool = < c () | < X_1[b] != 43 :- false | X_1[b] == 43 :- true >> in 
   c 
 \end{Verbatim}
 
-% TODO: fix text below here
 
 We start unravelling this translation with the scope \Verb+X+. \Verb+X+ has 
 been turned into a function whose arguments are all the local variables of the 
 scope. However, the arguments have type \Verb+unit -> <type>+. Indeed, we want the 
-arguments of \Verb+X+ (line 1 ) to be the default expression supplied by the caller of
-\Verb+X+, which will later be merged with a higher priority (operator \Verb|++|) to the default 
-expression defining the local variables of \Verb+X+ (lines 2 and 4). But since defaults are not 
-values in our default calculus, we have to thunk them in the arguments of \Verb|X| 
-so that their evaluation is delayed. After the defaults have been merged, we apply 
-\Verb+()+ to the thunk (lines 3 and 5) to force evaluation and get back the value.
-Finally, \Verb+X+ returns the tuple of all its local variables (line 6).
+arguments of \Verb+X+ (line 1) to be the default expression supplied by the caller of
+\Verb+X+, which are considered as exceptions to the base 
+expression defining the local variables of \Verb+X+ (lines 2 and 3). 
+After the merging of scope-local and 
+scope-arguments defaults, we apply 
+\Verb+()+ to the thunk to force evaluation and get back the value.
+Finally, \Verb+X+ returns the tuple of all its local variables (line 4).
 
 The translation of \Verb+Y+ exhibits the pattern for sub-scope calls.
-Lines 9 translates the assignment of the sub-scope argument \Verb+X_1[a]+.
-Before calling \Verb+X_1+ (line 11), the other argument \Verb+X_1[b]+ is 
+Lines 7 translates the assignment of the sub-scope argument \Verb+X_1[a]+.
+Before calling \Verb+X_1+ (line 8), the other argument \Verb+X_1[b]+ is 
 initialized to the neutral \synemptydefault{} that will be ignored at execution 
 because \Verb+X+ provides more defaults for \Verb+b+.
 The sub-scope call is translated to a regular 
-function call (line 11). The results of the call are then used in the two defaults  
-for \Verb+c+ (lines 13), which have been turned into a default tree taking into 
-account that no priority has been declared between the two defaults.
- Finally, \Verb+c+ is evaluated (line 15). 
+function call (line 9). The results of the call are then used in the two defaults  
+for \Verb+c+ (line 10), which have been turned into a default tree taking into 
+account the possible input for \Verb+c+.
 
 \subsection{Formalization of the translation}
 \label{sec:scope:formalization}
@@ -632,17 +623,21 @@ with the definitions of scope variables.
 \begin{mathpar}
 \inferrule[T-DefScopeVar]{
   \synvar{a}\notin\redctx{\Delta}\\
-  \redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle\typcolon\synvar{\tau}
+  \redctx{\Delta}\typvdash
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle\typcolon\synvar{\tau}
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
   \synrule\synvar{a}\syntyped\synvar{\tau}\synequal 
-  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid 
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle
   \reduces \\
-  \synlet a\syntyped\synvar{\tau}\synequal \synlparen\synvar{a} \synmerge
-  \synlambda \synlparen \synunit\syntyped\synunitt\synrparen\syndot 
-  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
-  \synrparen\;\synunit\synin\synhole
-   \redproduce\synvar{a}\redcolon\synvar{\tau}\redcomma\redctx{\Delta}
+  \synlet a\syntyped\synvar{\tau}\synequal
+  \synlangle a\;\synunit\synmid
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid 
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle
+  \synrangle\synin\synhole
+  \redproduce\synvar{a}\redcolon\synvar{\tau}\redcomma\redctx{\Delta}
 }
 \end{mathpar}
 
@@ -665,26 +660,12 @@ which seeds the typing judgment of \sref{defaultcalc:typing} with \redctx{\Delta
 Since scope variables are also arguments of the scope, \TirName{T-DefScopeVar}
 redefines \synvar{a} by merging the new default tree with the default expression 
 \synvar{a} of type \synunitt\synarrow\synvar{\tau} passed as an argument to \synvar{S}.
-The merging operator,\synmerge, has the following definition :
-\begin{align*}
-\synlet \synlparen\synmerge\synrparen\;&
-\synlparen\synvar{e_1}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\;
-  \synlparen\synvar{e_2}\syntyped\synunitt\synarrow\synvar{\tau}\synrparen\syntyped 
-  \synunitt\synarrow\synvar{\tau}
-  \synequal\\
-  &\synlangle\synlambda\synlparen\synunit\syntyped\synunitt\synrparen\syndot\syntrue\synjust
-  \synvar{e_1}\synmid\synvar{e_2}\synrangle
-\end{align*}
+This merging is done by defining the incoming argument as an exception to the 
+scope-local expression. This translation scheme ensures that the caller always 
+has priority over the callee. The evaluation of the incoming arguments is forced by applying \synunit,
+yielding a value of type \synvar{\tau} for \synvar{a}.
 
-\synmerge is asymetric in terms of priority: in \synvar{e_1}\synmerge\synvar{e_2},
-\synvar{e_1} will have the highest priority and it is only in the case where 
-none of the rules in \synvar{e_1} apply that \synvar{e_2} will be considered.
-In \TirName{T-DefScopeVar}, the left-hand-side of \synmerge is coherent with 
-our objective of giving priority to the caller.
-
-Finally, the evaluation of the merged default tree is forced by applying \synunit,
-yielding a value of type \synvar{\tau} for \synvar{a} which will be available
-for use in the rest of the translated program. Now that we have presented the 
+ow that we have presented the 
 translation scheme for rules defining scope variables, we can switch to the 
 translation of sub-scope variables definitions and calls. We will start by 
 the rules that define sub-scope variables, prior to calling the associated 
@@ -693,16 +674,19 @@ sub-scope.
 \inferrule[T-DefSubScopeVar]{
   S\neq S'\\
   \synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\notin\redctx{\Delta}\\
-  \redctx{\Delta}\typvdash\synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \redctx{\Delta}\typvdash\synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle
   \typcolon\synvar{\tau}
 }{
   \synvar{P}\redsc\redctx{\Delta}\redturnstile{\synvar{S}}
   \synrule\synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\syntyped\synvar{\tau}\synequal 
-  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid 
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle
   \reduces \\
   \synlet \synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\syntyped\synunitt\synarrow\synvar{\tau}\synequal 
   \synlambda \synlparen\synunit\syntyped\synunitt\synrparen\syndot 
-  \synlangle\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synmid\synvar{e_1}\synellipsis\synvar{e_n}\synrangle
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid 
+  \synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle
   \synin\synhole\redproduce\\\synvar{S'}_\synvar{n}\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}\redcomma\redctx{\Delta}
 }
 \end{mathpar}
