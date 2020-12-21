@@ -24,6 +24,7 @@ install-dependencies-ocaml:
 		bindlib \
 		zarith \
 		ocamlgraph \
+		js_of_ocaml-compiler \
 		odate
 
 init-submodules:
