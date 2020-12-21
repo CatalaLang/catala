@@ -4,4 +4,5 @@
  (libraries utils dcalc ocamlgraph))
 
 (documentation
- (package catala))
+ (package catala)
+ (mld_files scopelang))

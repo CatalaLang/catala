@@ -13,32 +13,86 @@
    the License. *)
 
 module Pos = Utils.Pos
+module Uid = Utils.Uid
+
+(** Abstract syntax tree for the default calculus *)
+
+(** {1 Abstract syntax tree} *)
+
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
-  | TBool
-  | TUnit
-  | TInt
+  | TLit of typ_lit
   | TTuple of typ Pos.marked list
+  | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
 
-type lit = LBool of bool | LEmptyError | LInt of Int64.t | LUnit
+type date = ODate.Unix.t
 
-type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+type duration = Z.t
 
-type unop = Not | Minus
+type lit =
+  | LBool of bool
+  | LEmptyError
+  | LInt of Z.t
+  | LRat of Q.t
+  | LMoney of Z.t
+  | LUnit
+  | LDate of date
+  | LDuration of duration
+
+type op_kind =
+  | KInt
+  | KRat
+  | KMoney
+  | KDate
+  | KDuration  (** All ops don't have a Kdate and KDuration *)
+
+type binop =
+  | And
+  | Or
+  | Add of op_kind
+  | Sub of op_kind
+  | Mult of op_kind
+  | Div of op_kind
+  | Lt of op_kind
+  | Lte of op_kind
+  | Gt of op_kind
+  | Gte of op_kind
+  | Eq
+  | Neq
+
+type log_entry = VarDef | BeginCall | EndCall
+
+type unop =
+  | Not
+  | Minus of op_kind
+  | ErrorOnEmpty
+  | Log of log_entry * Utils.Uid.MarkedString.info list
 
 type operator = Binop of binop | Unop of unop
 
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
 type expr =
   | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list
-  | ETupleAccess of expr Pos.marked * int
+  | ETuple of (expr Pos.marked * Uid.MarkedString.info option) list
+      (** The [MarkedString.info] is the former struct field name*)
+  | ETupleAccess of expr Pos.marked * int * Uid.MarkedString.info option
+      (** The [MarkedString.info] is the former struct field name*)
+  | EInj of expr Pos.marked * int * Uid.MarkedString.info * typ Pos.marked list
+      (** The [MarkedString.info] is the former enum case name *)
+  | EMatch of expr Pos.marked * (expr Pos.marked * Uid.MarkedString.info) list
+      (** The [MarkedString.info] is the former enum case name *)
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
+  | EAssert of expr Pos.marked
   | EOp of operator
-  | EDefault of expr Pos.marked * expr Pos.marked * expr Pos.marked list
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+
+(** {1 Variable helpers} *)
 
 module Var = struct
   type t = expr Bindlib.var

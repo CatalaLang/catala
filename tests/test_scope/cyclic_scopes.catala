@@ -1,0 +1,17 @@
+@ Article @
+
+/* 
+new scope A:
+  param b scope B
+  param x content int 
+
+new scope B:
+  param a scope A
+  param y content int
+
+scope A:
+  def x := b.y
+
+scope B:
+  def y := a.x
+*/

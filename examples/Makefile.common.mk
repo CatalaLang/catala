@@ -7,15 +7,11 @@ LATEXMK=latexmk
 PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
 PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
 
-CATALA=dune exec --no-print-director ../../src/catala.exe -- --debug --language=$(CATALA_LANG)
+CATALA=dune exec --no-print-director ../../src/catala.exe -- $(CATALA_OPTS) --language=$(CATALA_LANG)
 
 LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
 
 CATALA_EXE=../../_build/default/src/catala.exe
-LEGIFRANCE_CATALA_EXE=../../_build/default/src/legifrance_catala.exe
-
-CLIENT_ID?=$(shell cat ../../legifrance_oauth_id.txt)
-CLIENT_SECRET?=$(shell cat ../../legifrance_oauth_secret.txt)
 
 ifeq ($(CATALA_LANG),fr)
 	PYGMENTIZE=$(PYGMENTIZE_FR)
@@ -28,8 +24,15 @@ endif
 # Targets
 ##########################################
 
+%.run: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+	@$(CATALA) Makefile $<
+	@$(CATALA) \
+		Interpret \
+		-s $(SCOPE) \
+		$<
+
 %.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
-	$(CATALA) Makefile $<
+	@$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
 		--pygmentize=$(PYGMENTIZE) \
@@ -37,15 +40,12 @@ endif
 		$<
 
 %.html: %.catala_$(CATALA_LANG) $(CATALA_EXE)
-	$(CATALA) Makefile $<
+	@$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
 	--pygmentize=$(PYGMENTIZE) \
 	HTML \
 	$<
-
-%.expired: %.catala_$(CATALA_LANG) $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
-	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)
 
 %.pdf: %.tex
 	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
@@ -56,7 +56,10 @@ endif
 
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
-	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) $(SRC:.catala_$(CATALA_LANG)=.d) _minted-$(SRC:.catala_$(CATALA_LANG)=)
+	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \
+		$(SRC:.catala_$(CATALA_LANG)=.d) \
+		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
+		$(SRC:.catala_$(CATALA_LANG)=.html)
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

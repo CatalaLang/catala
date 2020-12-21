@@ -19,14 +19,21 @@ module Cli = Utils.Cli
 type scope_sigs_ctx = ((Ast.ScopeVar.t * Dcalc.Ast.typ) list * Dcalc.Ast.Var.t) Ast.ScopeMap.t
 
 type ctx = {
+  structs : Ast.struct_ctx;
+  enums : Ast.enum_ctx;
+  scope_name : Ast.ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
   scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t;
   subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-let empty_ctx (scopes_ctx : scope_sigs_ctx) =
+let empty_ctx (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx) (scopes_ctx : scope_sigs_ctx)
+    (scope_name : Ast.ScopeName.t) =
   {
+    structs = struct_ctx;
+    enums = enum_ctx;
+    scope_name;
     scopes_parameters = scopes_ctx;
     scope_vars = Ast.ScopeVarMap.empty;
     subscope_vars = Ast.SubScopeMap.empty;
@@ -36,6 +43,19 @@ let empty_ctx (scopes_ctx : scope_sigs_ctx) =
 type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
 
 let hole_var : Dcalc.Ast.Var.t = Dcalc.Ast.Var.make ("·", Pos.no_pos)
+
+let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
+  Pos.same_pos_as
+    ( match Pos.unmark t with
+    | Ast.TLit l -> Dcalc.Ast.TLit l
+    | Ast.TArrow (t1, t2) -> Dcalc.Ast.TArrow (translate_typ ctx t1, translate_typ ctx t2)
+    | Ast.TStruct s_uid ->
+        let s_fields = Ast.StructMap.find s_uid ctx.structs in
+        Dcalc.Ast.TTuple (List.map (fun (_, t) -> translate_typ ctx t) s_fields)
+    | Ast.TEnum e_uid ->
+        let e_cases = Ast.EnumMap.find e_uid ctx.enums in
+        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases) )
+    t
 
 let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
     (callee : Dcalc.Ast.expr Pos.marked Bindlib.box) : Dcalc.Ast.expr Pos.marked Bindlib.box =
@@ -48,7 +68,7 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
     Bindlib.box_apply2
       (fun caller callee ->
         ( Dcalc.Ast.EDefault
-            ((Dcalc.Ast.ELit (Dcalc.Ast.LBool true), Pos.no_pos), caller, [ callee ]),
+            ([ caller ], (Dcalc.Ast.ELit (Dcalc.Ast.LBool true), Pos.no_pos), callee),
           Pos.no_pos ))
       caller callee
   in
@@ -56,12 +76,117 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Pos.marked Bindlib.box
     =
-  (* Cli.debug_print (Format.asprintf "Translating: %a" Print.format_expr e); *)
   Bindlib.box_apply
     (fun (x : Dcalc.Ast.expr) -> Pos.same_pos_as x e)
     ( match Pos.unmark e with
     | EVar v -> Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.local_vars)
     | ELit l -> Bindlib.box (Dcalc.Ast.ELit l)
+    | EStruct (struct_name, e_fields) ->
+        let struct_sig = Ast.StructMap.find struct_name ctx.structs in
+        let d_fields, remaining_e_fields =
+          List.fold_right
+            (fun (field_name, _) (d_fields, e_fields) ->
+              let field_e =
+                try Ast.StructFieldMap.find field_name e_fields
+                with Not_found ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "The field %a does not belong to the structure %a"
+                       Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+                    (Pos.get_position e)
+              in
+              let field_d = translate_expr ctx field_e in
+              let field_d =
+                Bindlib.box_apply
+                  (fun field_d -> (field_d, Some (Ast.StructFieldName.get_info field_name)))
+                  field_d
+              in
+              (field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields))
+            struct_sig ([], e_fields)
+        in
+        if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
+          Errors.raise_spanned_error
+            (Format.asprintf "Missing fields for structure %a: %a" Ast.StructName.format_t
+               struct_name
+               (Format.pp_print_list
+                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+                  (fun fmt (field_name, _) ->
+                    Format.fprintf fmt "%a" Ast.StructFieldName.format_t field_name))
+               (Ast.StructFieldMap.bindings remaining_e_fields))
+            (Pos.get_position e)
+        else
+          Bindlib.box_apply (fun d_fields -> Dcalc.Ast.ETuple d_fields) (Bindlib.box_list d_fields)
+    | EStructAccess (e1, field_name, struct_name) ->
+        let struct_sig = Ast.StructMap.find struct_name ctx.structs in
+        let _, field_index =
+          try List.assoc field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig)
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "The field %a does not belong to the structure %a"
+                 Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+              (Pos.get_position e)
+        in
+        let e1 = translate_expr ctx e1 in
+        Bindlib.box_apply
+          (fun e1 ->
+            Dcalc.Ast.ETupleAccess (e1, field_index, Some (Ast.StructFieldName.get_info field_name)))
+          e1
+    | EEnumInj (e1, constructor, enum_name) ->
+        let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
+        let _, constructor_index =
+          try List.assoc constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig)
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "The constructor %a does not belong to the enum %a"
+                 Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+              (Pos.get_position e)
+        in
+        let e1 = translate_expr ctx e1 in
+        Bindlib.box_apply
+          (fun e1 ->
+            Dcalc.Ast.EInj
+              ( e1,
+                constructor_index,
+                Ast.EnumConstructor.get_info constructor,
+                List.map (fun (_, t) -> translate_typ ctx t) enum_sig ))
+          e1
+    | EMatch (e1, enum_name, cases) ->
+        let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
+        let d_cases, remaining_e_cases =
+          List.fold_right
+            (fun (constructor, _) (d_cases, e_cases) ->
+              let case_e =
+                try Ast.EnumConstructorMap.find constructor e_cases
+                with Not_found ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf
+                       "The constructor %a of enum %a is missing from this pattern matching"
+                       Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
+                    (Pos.get_position e)
+              in
+              let case_d = translate_expr ctx case_e in
+              let case_d =
+                Bindlib.box_apply
+                  (fun case_d -> (case_d, Ast.EnumConstructor.get_info constructor))
+                  case_d
+              in
+              (case_d :: d_cases, Ast.EnumConstructorMap.remove constructor e_cases))
+            enum_sig ([], cases)
+        in
+        if Ast.EnumConstructorMap.cardinal remaining_e_cases > 0 then
+          Errors.raise_spanned_error
+            (Format.asprintf "Patter matching is incomplete for enum %a: missing cases %a"
+               Ast.EnumName.format_t enum_name
+               (Format.pp_print_list
+                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+                  (fun fmt (case_name, _) ->
+                    Format.fprintf fmt "%a" Ast.EnumConstructor.format_t case_name))
+               (Ast.EnumConstructorMap.bindings remaining_e_cases))
+            (Pos.get_position e)
+        else
+          let e1 = translate_expr ctx e1 in
+          Bindlib.box_apply2
+            (fun d_fields e1 -> Dcalc.Ast.EMatch (e1, d_fields))
+            (Bindlib.box_list d_cases) e1
     | EApp (e1, args) ->
         Bindlib.box_apply2
           (fun e u -> Dcalc.Ast.EApp (e, u))
@@ -83,12 +208,14 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
             body
         in
         let binder = Bindlib.bind_mvar new_xs body in
-        Bindlib.box_apply (fun b -> Dcalc.Ast.EAbs (pos_binder, b, typ)) binder
-    | EDefault (just, cons, subs) ->
+        Bindlib.box_apply
+          (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
+          binder
+    | EDefault (excepts, just, cons) ->
         Bindlib.box_apply3
-          (fun j c s -> Dcalc.Ast.EDefault (j, c, s))
+          (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
+          (Bindlib.box_list (List.map (translate_expr ctx) excepts))
           (translate_expr ctx just) (translate_expr ctx cons)
-          (Bindlib.box_list (List.map (translate_expr ctx) subs))
     | ELocation (ScopeVar a) ->
         Bindlib.box_var (fst (Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars))
     | ELocation (SubScopeVar (_, s, a)) -> (
@@ -100,10 +227,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         with Not_found ->
           Errors.raise_spanned_error
             (Format.asprintf
-               "The variable %a.%a cannot be used here, as subscope %a's results will not have \
-                been computed yet"
-               Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
-               Ast.SubScopeName.format_t (Pos.unmark s))
+               "The variable %a.%a cannot be used here,\n\
+                as subscope %a's results will not have been computed yet" Ast.SubScopeName.format_t
+               (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a) Ast.SubScopeName.format_t
+               (Pos.unmark s))
             (Pos.get_position e) )
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
@@ -111,22 +238,45 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
     | EOp op -> Bindlib.box (Dcalc.Ast.EOp op) )
 
-let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos_sigma : Pos.t) :
+let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
+    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
       let a_var = Dcalc.Ast.Var.make a_name in
+      let tau = translate_typ ctx tau in
       let new_ctx =
         {
           ctx with
           scope_vars = Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau) ctx.scope_vars;
         }
       in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let new_e = translate_expr ctx e in
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr = merge_defaults a_expr new_e in
+      let merged_expr =
+        Bindlib.box_apply
+          (fun merged_expr ->
+            ( Dcalc.Ast.EApp
+                ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
+                  [ merged_expr ] ),
+              Pos.get_position merged_expr ))
+          merged_expr
+      in
+      let merged_expr =
+        Bindlib.box_apply
+          (fun merged_expr ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
+                    Pos.get_position a_name ),
+                  [ merged_expr ] ),
+              Pos.get_position merged_expr ))
+          merged_expr
+      in
       let next_e = Dcalc.Ast.make_let_in a_var tau merged_expr next_e in
       (next_e, new_ctx)
   | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
@@ -136,6 +286,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
           (Ast.SubScopeName.get_info (Pos.unmark subs_index))
       in
       let a_var = (Dcalc.Ast.Var.make a_name, var_def_pos) in
+      let tau = translate_typ ctx tau in
       let new_ctx =
         {
           ctx with
@@ -155,21 +306,33 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               ctx.subscope_vars;
         }
       in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let intermediate_e =
         Dcalc.Ast.make_abs
           (Array.of_list [ Pos.unmark a_var ])
           next_e var_def_pos
-          [ (Dcalc.Ast.TArrow ((TUnit, var_def_pos), tau), var_def_pos) ]
+          [ (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos) ]
           (Pos.get_position e)
       in
       let new_e = translate_expr ctx e in
+      let new_e =
+        Bindlib.box_apply
+          (fun new_e ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
+                    Pos.get_position a_name ),
+                  [ new_e ] ),
+              Pos.get_position new_e ))
+          new_e
+      in
       let silent_var = Dcalc.Ast.Var.make ("_", Pos.no_pos) in
       let thunked_new_e =
         Dcalc.Ast.make_abs
           (Array.of_list [ silent_var ])
           new_e var_def_pos
-          [ (Dcalc.Ast.TUnit, var_def_pos) ]
+          [ (Dcalc.Ast.TLit TUnit, var_def_pos) ]
           var_def_pos
       in
       let out_e = Dcalc.Ast.make_app intermediate_e [ thunked_new_e ] (Pos.get_position e) in
@@ -216,54 +379,102 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list) (pos
               ctx.subscope_vars;
         }
       in
+      let subscope_func =
+        Dcalc.Ast.make_var (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex))
+      in
+      let subscope_func =
+        Bindlib.box_apply
+          (fun subscope_func ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.BeginCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position subscope_func ),
+                  [ subscope_func ] ),
+              Pos.get_position subscope_func ))
+          subscope_func
+      in
       let call_expr =
         Bindlib.box_apply2
           (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
-          (Dcalc.Ast.make_var
-             (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex)))
-          (Bindlib.box_list subscope_args)
+          subscope_func (Bindlib.box_list subscope_args)
       in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
-      let next_e, new_ctx = translate_rules new_ctx rest pos_sigma in
+      let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let results_bindings, _ =
         List.fold_right
           (fun (_, tau, dvar) (acc, i) ->
             let result_access =
               Bindlib.box_apply
-                (fun r -> (Dcalc.Ast.ETupleAccess (r, i), pos_sigma))
+                (fun r -> (Dcalc.Ast.ETupleAccess (r, i, None), pos_sigma))
                 (Dcalc.Ast.make_var (result_tuple_var, pos_sigma))
             in
             (Dcalc.Ast.make_let_in dvar (tau, pos_sigma) result_access acc, i - 1))
           all_subscope_vars_dcalc
           (next_e, List.length all_subscope_vars_dcalc - 1)
       in
-      ( Dcalc.Ast.make_let_in result_tuple_var
-          ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
-            pos_sigma )
-          call_expr results_bindings,
+      let results_bindings =
+        Bindlib.box_apply
+          (fun results_bindings ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.EndCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position results_bindings ),
+                  [ results_bindings ] ),
+              Pos.get_position results_bindings ))
+          results_bindings
+      in
+      let result_tuple_typ =
+        ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
+          pos_sigma )
+      in
+      (Dcalc.Ast.make_let_in result_tuple_var result_tuple_typ call_expr results_bindings, new_ctx)
+  | Assertion e ->
+      let next_e, new_ctx = translate_rules ctx rest (sigma_name, pos_sigma) in
+      let new_e = translate_expr ctx e in
+      ( Dcalc.Ast.make_let_in
+          (Dcalc.Ast.Var.make ("_", Pos.no_pos))
+          (Dcalc.Ast.TLit TUnit, Pos.no_pos)
+          (Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e)
+          next_e,
         new_ctx )
 
-and translate_rules (ctx : ctx) (rules : Ast.rule list) (pos_sigma : Pos.t) :
+and translate_rules (ctx : ctx) (rules : Ast.rule list)
+    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
     Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   match rules with
   | [] ->
       let scope_variables = Ast.ScopeVarMap.bindings ctx.scope_vars in
       let return_exp =
         Bindlib.box_apply
-          (fun args -> (Dcalc.Ast.ETuple args, pos_sigma))
+          (fun args -> (Dcalc.Ast.ETuple (List.map (fun arg -> (arg, None)) args), pos_sigma))
           (Bindlib.box_list
              (List.map
                 (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
                 scope_variables))
       in
       (return_exp, ctx)
-  | hd :: tl -> translate_rule ctx hd tl pos_sigma
+  | hd :: tl -> translate_rule ctx hd tl (sigma_name, pos_sigma)
 
-let translate_scope_decl (sctx : scope_sigs_ctx) (sigma : Ast.scope_decl) :
+let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
+    (sctx : scope_sigs_ctx) (scope_name : Ast.ScopeName.t) (sigma : Ast.scope_decl) :
     Dcalc.Ast.expr Pos.marked Bindlib.box =
-  let ctx = empty_ctx sctx in
-  let pos_sigma = Pos.get_position (Ast.ScopeName.get_info sigma.scope_decl_name) in
-  let rules, ctx = translate_rules ctx sigma.scope_decl_rules pos_sigma in
+  let ctx = empty_ctx struct_ctx enum_ctx sctx scope_name in
+  let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
+  let rules, ctx = translate_rules ctx sigma.scope_decl_rules sigma_info in
   let scope_variables, _ = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables =
     List.map
@@ -272,12 +483,13 @@ let translate_scope_decl (sctx : scope_sigs_ctx) (sigma : Ast.scope_decl) :
         (x, tau, dcalc_x))
       scope_variables
   in
+  let pos_sigma = Pos.get_position sigma_info in
   Dcalc.Ast.make_abs
-    (Array.of_list ((List.map (fun (_, _, x) -> x)) scope_variables))
+    (Array.of_list (List.map (fun (_, _, x) -> x) scope_variables))
     rules pos_sigma
     (List.map
        (fun (_, tau, _) ->
-         (Dcalc.Ast.TArrow ((Dcalc.Ast.TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
+         (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
        scope_variables)
     pos_sigma
 
@@ -286,23 +498,30 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
   let result_typ = (Dcalc.Ast.TTuple (List.map (fun (_, tau) -> (tau, pos)) scope_sig), pos) in
   List.fold_right
     (fun (_, arg_t) acc ->
-      (Dcalc.Ast.TArrow ((Dcalc.Ast.TArrow ((TUnit, pos), (arg_t, pos)), pos), acc), pos))
+      (Dcalc.Ast.TArrow ((Dcalc.Ast.TArrow ((TLit TUnit, pos), (arg_t, pos)), pos), acc), pos))
     scope_sig result_typ
 
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
     Dcalc.Ast.expr Pos.marked =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
-  Dependency.check_for_cycle scope_dependencies;
+  Dependency.check_for_cycle_in_scope scope_dependencies;
+  Dependency.check_type_cycles prgm.program_structs prgm.program_enums;
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
+  let struct_ctx = prgm.program_structs in
+  let enum_ctx = prgm.program_enums in
   let sctx : scope_sigs_ctx =
-    Ast.ScopeMap.map
-      (fun scope ->
+    Ast.ScopeMap.mapi
+      (fun scope_name scope ->
         let scope_dvar = Dcalc.Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name) in
         ( List.map
-            (fun (scope_var, tau) -> (scope_var, Pos.unmark tau))
+            (fun (scope_var, tau) ->
+              let tau =
+                translate_typ (empty_ctx struct_ctx enum_ctx Ast.ScopeMap.empty scope_name) tau
+              in
+              (scope_var, Pos.unmark tau))
             (Ast.ScopeVarMap.bindings scope.scope_sig),
           scope_dvar ))
-      prgm
+      prgm.program_scopes
   in
   (* the final expression on which we build on is the variable of the top-level scope that we are
      returning *)
@@ -313,9 +532,9 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
     (let acc =
        List.fold_right
          (fun scope_name (acc : Dcalc.Ast.expr Pos.marked Bindlib.box) ->
-           let scope = Ast.ScopeMap.find scope_name prgm in
+           let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
            let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
-           let scope_expr = translate_scope_decl sctx scope in
+           let scope_expr = translate_scope_decl struct_ctx enum_ctx sctx scope_name scope in
            let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in
            let scope_typ = build_scope_typ_from_sig scope_sig pos_scope in
            Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc)

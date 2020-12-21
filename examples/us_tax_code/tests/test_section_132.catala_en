@@ -1,0 +1,42 @@
+@@Include: ../section_132.catala_en@@
+
+@Test@
+/*
+declaration scope TestSection132_1:
+  context section_132 scope QualifiedEmployeeDiscount 
+
+scope TestSection132_1:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.aggregate_cost equals $900
+  definition section_132.discount_type equals Property
+  assertion section_132.employee_discount = $500
+  assertion section_132.gross_profit_percentage = 0.4
+  assertion section_132.qualified_employee_discount = $500
+*/
+
+/*
+declaration scope TestSection132_2:
+  context section_132 scope QualifiedEmployeeDiscount 
+
+scope TestSection132_2:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.aggregate_cost equals $1200
+  definition section_132.discount_type equals Property
+  assertion section_132.employee_discount = $500
+  assertion section_132.gross_profit_percentage = 0.2
+  assertion section_132.qualified_employee_discount = $300.00
+*/
+
+/*
+declaration scope TestSection132_3:
+  context section_132 scope QualifiedEmployeeDiscount 
+
+scope TestSection132_3:
+  definition section_132.customer_price equals $1500
+  definition section_132.employee_price equals $1000
+  definition section_132.discount_type equals Services
+  assertion section_132.employee_discount = $500
+  assertion section_132.qualified_employee_discount = $300
+*/

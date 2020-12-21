@@ -18,11 +18,14 @@ module Errors = Utils.Errors
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
     (pygmentize_loc : string option) (backend : string) (language : string option)
-    (ex_scope : string option) (output_file : string option) : int =
+    (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
+    (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
+    Cli.trace_flag := trace;
     Cli.debug_print "Reading files...";
+    (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
     let language =
       match language with
       | Some l ->
@@ -43,7 +46,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Surface.Parser_driver.parse_source_files [ source_file ] language in
+    let program = Surface.Parser_driver.parse_source_file source_file language in
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in
@@ -129,10 +132,14 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
             (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
             results
         in
+        Cli.result_print
+          (Format.asprintf "Computation successful!%s"
+             (if List.length results > 0 then " Results:" else ""));
         List.iter
           (fun (var, result) ->
             Cli.result_print
-              (Format.asprintf "%s -> %a" (Bindlib.name_of var) Dcalc.Print.format_expr result))
+              (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var) Dcalc.Print.format_expr
+                 result))
           results;
         0
   with Errors.StructuredError (msg, pos) ->

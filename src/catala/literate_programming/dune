@@ -2,3 +2,7 @@
  (name literate)
  (public_name catala.literate)
  (libraries re utils surface))
+
+(documentation
+ (package catala)
+ (mld_files literate))

@@ -1,0 +1,18 @@
+@Article@
+
+/*
+new struct S:
+  data x content int
+  data y content int 
+
+new scope A:
+  param s content S 
+  param z content int 
+
+scope A:
+  def s := S {
+    -- x : 1 
+    -- y : 2
+  }
+  def z := s.x + s.y
+*/

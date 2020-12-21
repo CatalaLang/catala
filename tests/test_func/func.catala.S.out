@@ -1,4 +1,4 @@
-[ERROR] There is a conflict between multiple rules for assigning the same variable.
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_func/func.catala

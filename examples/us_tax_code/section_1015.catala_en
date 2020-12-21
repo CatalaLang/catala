@@ -13,23 +13,23 @@ declaration structure Acquisition:
   data no_sale_or_exchange_before content boolean
 
 declaration structure Value:
-  data fair_market content amount depends on date
-  data last_acquisition content amount
-  data net_appreciation content amount
+  data fair_market content money depends on date
+  data last_acquisition content money
+  data net_appreciation content money
 
 declaration structure Transferor:
-  data basis content amount
-  data basis_known content optional amount
+  data basis content money
+  data basis_known content optional money
   data acquisition content Acquisition
-  data gain_or_loss content amount depends on date
+  data gain_or_loss content money depends on date
 
 declaration scope BasisOfGift:
   context acquisition content Acquisition
-  context basis_subsection_a content amount
-  context basis content amount
-  context basis_bonus_after_1976 content amount
+  context basis_subsection_a content money
+  context basis content money
+  context basis_bonus_after_1976 content money
   context transferor content Transferor
-  context gift_tax_paid content amount
+  context gift_tax_paid content money
 */
 @@End metadata@@
 

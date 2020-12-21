@@ -1,0 +1,13 @@
+@Article@
+
+/*
+new scope A:
+  param x content dec 
+  param y content dec 
+  param z content dec
+
+scope A:
+  def x := 84.648665
+  def y := 4.368297
+  def z := x /. y 
+*/

@@ -1,0 +1,15 @@
+@Article@
+
+/*
+new scope A:
+  param x content date
+  param y content date 
+  param z content bool
+  param z2 content bool
+
+scope A:
+  def x := |01/01/2019|
+  def y := |30/09/2002|
+  def z := y +@ (x -@ y) = x
+  def z2 := x -@ y = 16 year +^ 3 month +^ 7 day
+*/

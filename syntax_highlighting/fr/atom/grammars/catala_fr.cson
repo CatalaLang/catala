@@ -100,7 +100,7 @@
         'name' : 'keyword.control.catala_fr'
       }
       {
-        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\\s+condition|condition|donnée|conséquence|rempli|égal\\s+à|assertion|définition)\\b'
+        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\\s+condition|condition|donnée|conséquence|rempli|égal\\s+à|assertion|définition|étiquette|exception)\\b'
         'name' : 'keyword.other.catala_fr'
       }
       {
@@ -124,7 +124,7 @@
         'name' : 'keyword.operator.catala_fr'
       }
       {
-        'match' : '\\b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\\b'
+        'match' : '\\b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\\b'
         'name' : 'support.type.catala_fr'
       }
       {

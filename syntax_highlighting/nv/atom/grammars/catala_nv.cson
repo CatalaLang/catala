@@ -100,7 +100,7 @@
         'name' : 'keyword.control.catala_nv'
       }
       {
-        'match' : '\\b(scope|fun\\s+of|new|includes|set|type|option|struct|enume|param|rule|condition|data|ok|assert|def)\\b'
+        'match' : '\\b(scope|fun\\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def|label|exception)\\b'
         'name' : 'keyword.other.catala_nv'
       }
       {
@@ -120,11 +120,11 @@
         'name' : 'punctuation.catala_nv'
       }
       {
-        'match' : '(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\\\$|%|year|month|day)'
+        'match' : '(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\$|%|year|month|day)'
         'name' : 'keyword.operator.catala_nv'
       }
       {
-        'match' : '\\b(int|bool|date|amount|text|decimal|number|sum|now)\\b'
+        'match' : '\\b(int|bool|date|money|text|decimal|number|sum|now)\\b'
         'name' : 'support.type.catala_nv'
       }
       {

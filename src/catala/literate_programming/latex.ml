@@ -22,6 +22,9 @@ module A = Surface.Ast
 module R = Re.Pcre
 module C = Cli
 
+(** {1 Helpers} *)
+
+(** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) =
   let percent = R.regexp "%" in
   let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
@@ -33,6 +36,9 @@ let pre_latexify (s : string) =
   let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
   s
 
+(** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
+
+    Prints an LaTeX complete documùent structure around the [wrapped] content. *)
 let wrap_latex (source_files : string list) (custom_pygments : string option)
     (language : C.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) =
   Format.fprintf fmt
@@ -57,7 +63,6 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
      \\newunicodechar{→}{$\\rightarrow$}\n\
      \\newunicodechar{≠}{$\\neq$}\n\n\
      \\fvset{\n\
-     commandchars=\\\\\\{\\},\n\
      numbers=left,\n\
      frame=lines,\n\
      framesep=3mm,\n\
@@ -107,6 +112,7 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
   wrapped fmt;
   Format.fprintf fmt "\n\n\\end{document}"
 
+(** Replaces math operators by their nice unicode counterparts *)
 let math_syms_replace (c : string) : string =
   let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
   let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|/") in
@@ -122,6 +128,8 @@ let math_syms_replace (c : string) : string =
   in
   R.substitute ~rex:syms ~subst:syms2cmd c
 
+(** {1 Weaving} *)
+
 let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_article_item) : unit =
   match i with
@@ -132,18 +140,9 @@ let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatte
          /*%s*/\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c))
+        (Pos.get_start_line (Pos.get_position c) - 1)
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
-  | A.LawInclude (A.PdfFile ((file, _), page)) ->
-      let label = file ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p in
-      Format.fprintf fmt
-        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
-         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
-        label
-        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
-        file label
-  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
 
 let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_structure) : unit =
@@ -160,6 +159,15 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
         (law_structure_to_latex language) fmt children
+  | A.LawInclude (A.PdfFile ((file, _), page)) ->
+      let label = file ^ match page with None -> "" | Some p -> Format.sprintf "_page_%d," p in
+      Format.fprintf fmt
+        "\\begin{center}\\textit{Annexe incluse, retranscrite page \\pageref{%s}}\\end{center} \
+         \\begin{figure}[p]\\begin{center}\\includegraphics[%swidth=\\textwidth]{%s}\\label{%s}\\end{center}\\end{figure}"
+        label
+        (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
+        file label
+  | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawArticle (article, children) ->
       Format.fprintf fmt "\\paragraph{%s}\n\n" (pre_latexify (Pos.unmark article.law_article_name));
       Format.pp_print_list
@@ -177,7 +185,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
          \\end{minted}\n\
          \\end{tcolorbox}"
         metadata_title metadata_title
-        (Pos.get_start_line (Pos.get_position c))
+        (Pos.get_start_line (Pos.get_position c) - 1)
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
@@ -186,6 +194,8 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
 let program_item_to_latex (language : C.backend_lang) (fmt : Format.formatter) (i : A.program_item)
     : unit =
   match i with A.LawStructure law_s -> law_structure_to_latex language fmt law_s
+
+(** {1 API} *)
 
 let ast_to_latex (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) : unit =
   Format.pp_print_list

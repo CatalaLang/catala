@@ -12,15 +12,27 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree built by the Catala parser *)
+
 module Pos = Utils.Pos
 
 type constructor = string
+(** Constructors are CamlCase *)
 
 type ident = string
+(** Idents are snake_case *)
 
 type qident = ident Pos.marked list
 
-type primitive_typ = Integer | Decimal | Boolean | Money | Text | Date | Named of constructor
+type primitive_typ =
+  | Integer
+  | Decimal
+  | Boolean
+  | Money
+  | Duration
+  | Text
+  | Date
+  | Named of constructor
 
 type base_typ_data =
   | Primitive of primitive_typ
@@ -55,9 +67,28 @@ type enum_decl = {
 
 type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
 
-type binop = And | Or | Add | Sub | Mult | Div | Lt | Lte | Gt | Gte | Eq | Neq
+type op_kind =
+  | KInt  (** No suffix *)
+  | KDec  (** Suffix: [.] *)
+  | KMoney  (** Suffix: [$] *)
+  | KDate  (** Suffix: [@] *)
+  | KDuration  (** Suffix: [^] *)
 
-type unop = Not | Minus
+type binop =
+  | And
+  | Or
+  | Add of op_kind
+  | Sub of op_kind
+  | Mult of op_kind
+  | Div of op_kind
+  | Lt of op_kind
+  | Lte of op_kind
+  | Gt of op_kind
+  | Gte of op_kind
+  | Eq
+  | Neq
+
+type unop = Not | Minus of op_kind
 
 type builtin_expression = Cardinal | Now
 
@@ -69,13 +100,13 @@ type literal_date = {
   literal_date_year : int Pos.marked;
 }
 
-type literal_number = Int of Int64.t | Dec of Int64.t * Int64.t
+type literal_number = Int of Z.t | Dec of Z.t * Z.t
 
 type literal_unit = Percent | Year | Month | Day
 
 type collection_op = Exists | Forall | Aggregate of aggregate_func
 
-type money_amount = { money_amount_units : Int64.t; money_amount_cents : Int64.t }
+type money_amount = { money_amount_units : Z.t; money_amount_cents : Z.t }
 
 type literal =
   | Number of literal_number Pos.marked * literal_unit Pos.marked option
@@ -89,11 +120,6 @@ type match_case = {
 }
 
 and match_cases = match_case Pos.marked list
-
-and struct_inject = {
-  struct_inject_name : constructor Pos.marked;
-  struct_inject_fields : (ident Pos.marked * expression Pos.marked) list;
-}
 
 and expression =
   | MatchWith of expression Pos.marked * match_cases Pos.marked
@@ -109,12 +135,14 @@ and expression =
   | Literal of literal
   | EnumInject of constructor Pos.marked * expression Pos.marked option
   | EnumProject of expression Pos.marked * constructor Pos.marked
+  | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | Ident of ident
   | Dotted of expression Pos.marked * ident Pos.marked
-  (* Dotted is for both struct field projection and sub-scope variables *)
-  | StructInject of struct_inject
+      (** Dotted is for both struct field projection and sub-scope variables *)
 
 type rule = {
+  rule_label : ident Pos.marked option;
+  rule_exception_to : ident Pos.marked option;
   rule_parameter : ident Pos.marked option;
   rule_condition : expression Pos.marked option;
   rule_name : qident Pos.marked;
@@ -122,6 +150,8 @@ type rule = {
 }
 
 type definition = {
+  definition_label : ident Pos.marked option;
+  definition_exception_to : ident Pos.marked option;
   definition_name : qident Pos.marked;
   definition_parameter : ident Pos.marked option;
   definition_condition : expression Pos.marked option;
@@ -191,14 +221,12 @@ type law_include =
   | CatalaFile of string Pos.marked
   | LegislativeText of string Pos.marked
 
-type law_article_item =
-  | LawText of string
-  | CodeBlock of code_block * source_repr
-  | LawInclude of law_include
+type law_article_item = LawText of string | CodeBlock of code_block * source_repr
 
 type law_heading = { law_heading_name : string; law_heading_precedence : int }
 
 type law_structure =
+  | LawInclude of law_include
   | LawHeading of law_heading * law_structure list
   | LawArticle of law_article * law_article_item list
   | MetadataBlock of code_block * source_repr

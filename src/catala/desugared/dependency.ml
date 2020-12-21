@@ -12,18 +12,21 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/} OCamlgraph} *)
+
 module Pos = Utils.Pos
 module Errors = Utils.Errors
 
-(** The vertices of the scope dependency graph are either :
+(** {1 Graph declaration} *)
+
+(** Vertices: scope variables or subscopes.
+
+    The vertices of the scope dependency graph are either :
 
     - the variables of the scope ;
     - the subscopes of the scope.
 
-    Indeed, during interpretation, subscopes are executed atomically.
-
-    In the graph, x -> y if x is used in the definition of y. *)
-
+    Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
   type t = Var of Scopelang.Ast.ScopeVar.t | SubScope of Scopelang.Ast.SubScopeName.t
 
@@ -46,7 +49,8 @@ module Vertex = struct
     | SubScope v -> Scopelang.Ast.SubScopeName.format_t fmt v
 end
 
-(** On the edges, the label is the expression responsible for the use of the variable *)
+(** On the edges, the label is the position of the expression responsible for the use of the
+    variable. In the graph, [x -> y] if [x] is used in the definition of [y].*)
 module Edge = struct
   type t = Pos.t
 
@@ -56,11 +60,18 @@ module Edge = struct
 end
 
 module ScopeDependencies = Graph.Persistent.Digraph.ConcreteBidirectionalLabeled (Vertex) (Edge)
+(** Module of the graph, provided by OCamlGraph *)
+
 module TopologicalTraversal = Graph.Topological.Make (ScopeDependencies)
+(** Module of the topological traversal of the graph, provided by OCamlGraph *)
 
 module SCC = Graph.Components.Make (ScopeDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
+(** {1 Graph computations} *)
+
+(** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
+    computation *)
 let correct_computation_ordering (g : ScopeDependencies.t) : Vertex.t list =
   List.rev (TopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])
 
@@ -71,7 +82,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   if List.length sccs < ScopeDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     Errors.raise_multispanned_error
-      (Format.asprintf "Cyclic dependency detected between variables of scope %a !"
+      (Format.asprintf "Cyclic dependency detected between variables of scope %a!"
          Scopelang.Ast.ScopeName.format_t scope.scope_uid)
       (List.flatten
          (List.map
@@ -99,6 +110,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
               ])
             scc))
 
+(** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   let g = ScopeDependencies.empty in
   (* Add all the vertices to the graph *)

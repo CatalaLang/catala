@@ -34,26 +34,35 @@
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
-%token<Int64.t> INT_LITERAL
+%token<Z.t> INT_LITERAL
 %token TRUE FALSE
-%token<Int64.t * Int64.t> DECIMAL_LITERAL
-%token<Int64.t * Int64.t> MONEY_AMOUNT
+%token<Z.t * Z.t> DECIMAL_LITERAL
+%token<Z.t * Z.t> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS
-%token EXISTS IN SUCH THAT NOW LESSER GREATER
+%token LESSER GREATER LESSER_EQUAL GREATER_EQUAL
+%token LESSER_DEC GREATER_DEC LESSER_EQUAL_DEC GREATER_EQUAL_DEC
+%token LESSER_MONEY GREATER_MONEY LESSER_EQUAL_MONEY GREATER_EQUAL_MONEY
+%token LESSER_DATE GREATER_DATE LESSER_EQUAL_DATE GREATER_EQUAL_DATE
+%token LESSER_DURATION GREATER_DURATION LESSER_EQUAL_DURATION GREATER_EQUAL_DURATION
+%token EXISTS IN SUCH THAT NOW 
 %token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
-%token CARDINAL LESSER_EQUAL GREATER_EQUAL
-%token ASSERTION FIXED BY YEAR
-%token PLUS MINUS MULT DIV MATCH WITH VARIES WITH_V
+%token CARDINAL ASSERTION FIXED BY YEAR MONTH DAY
+%token PLUS MINUS MULT DIV
+%token PLUSDEC MINUSDEC MULTDEC DIVDEC
+%token PLUSMONEY MINUSMONEY MULTMONEY DIVMONEY
+%token MINUSDATE PLUSDATE PLUSDURATION MINUSDURATION
+%token MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
-%token NOT BOOLEAN PERCENT ARROW
+%token NOT BOOLEAN PERCENT ARROW DURATION
 %token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
-%token UNDER_CONDITION CONSEQUENCE
+%token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
+%token LABEL EXCEPTION
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -65,6 +74,7 @@ typ_base:
 | INTEGER { (Integer, $sloc) }
 | BOOLEAN { (Boolean, $sloc) }
 | MONEY { (Money, $sloc) }
+| DURATION { (Duration, $sloc) }
 | TEXT { (Text, $sloc) }
 | DECIMAL { (Decimal, $sloc) }
 | DATE { (Date, $sloc) }
@@ -120,16 +130,15 @@ enum_inject_content:
 
 struct_or_enum_inject_content:
 | e = option(enum_inject_content) { EnumContent e }
-| CONTENT LPAREN ALT fields = separated_nonempty_list(ALT, struct_content_field) RPAREN {
+| LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET {
   StructContent fields
 }
 
 struct_or_enum_inject:
 | c = constructor data = struct_or_enum_inject_content {
   match data with
-  | EnumContent data ->
-  (EnumInject (c, data), $sloc)
-  | _ -> assert false (* should not happen *)
+  | EnumContent data -> (EnumInject (c, data), $sloc)
+  | StructContent fields -> (StructLit (c, fields), $sloc)
 }
 
 primitive_expression:
@@ -152,9 +161,11 @@ num_literal:
 unit_literal:
 | PERCENT { (Percent, $sloc) }
 | YEAR { (Year, $sloc)}
+| MONTH { (Month, $sloc) }
+| DAY { (Day, $sloc) }
 
 date_int:
-| d = INT_LITERAL { (Int64.to_int d, $sloc) }
+| d = INT_LITERAL { (Z.to_int d, $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {
@@ -178,10 +189,26 @@ literal:
 | FALSE { (Bool false, $sloc) }
 
 compare_op:
-| LESSER { (Lt, $sloc) }
-| LESSER_EQUAL { (Lte, $sloc) }
-| GREATER { (Gt, $sloc) }
-| GREATER_EQUAL { (Gte, $sloc) }
+| LESSER { (Lt KInt, $sloc) }
+| LESSER_EQUAL { (Lte KInt, $sloc) }
+| GREATER { (Gt KInt, $sloc) }
+| GREATER_EQUAL { (Gte KInt, $sloc) }
+| LESSER_DEC { (Lt KDec, $sloc) }
+| LESSER_EQUAL_DEC { (Lte KDec, $sloc) }
+| GREATER_DEC { (Gt KDec, $sloc) }
+| GREATER_EQUAL_DEC { (Gte KDec, $sloc) }
+| LESSER_MONEY { (Lt KMoney, $sloc) }
+| LESSER_EQUAL_MONEY { (Lte KMoney, $sloc) }
+| GREATER_MONEY { (Gt KMoney, $sloc) }
+| GREATER_EQUAL_MONEY { (Gte KMoney, $sloc) }
+| LESSER_DATE { (Lt KDate, $sloc) }
+| LESSER_EQUAL_DATE { (Lte KDate, $sloc) }
+| GREATER_DATE { (Gt KDate, $sloc) }
+| GREATER_EQUAL_DATE { (Gte KDate, $sloc) }
+| LESSER_DURATION { (Lt KDuration, $sloc) }
+| LESSER_EQUAL_DURATION { (Lte KDuration, $sloc) }
+| GREATER_DURATION { (Gt KDuration, $sloc) }
+| GREATER_EQUAL_DURATION { (Gte KDuration, $sloc) }
 | EQUAL { (Eq, $sloc) }
 | NOT_EQUAL { (Neq, $sloc) }
 
@@ -209,8 +236,12 @@ base_expression:
 }
 
 mult_op:
-| MULT { (Mult, $sloc) }
-| DIV { (Div, $sloc) }
+| MULT { (Mult KInt, $sloc) }
+| DIV { (Div KInt, $sloc) }
+| MULTDEC { (Mult KDec, $sloc) }
+| DIVDEC { (Div KDec, $sloc) }
+| MULTMONEY { (Mult KMoney, $sloc) }
+| DIVMONEY { (Div KMoney, $sloc) }
 
 mult_expression:
 | e =  base_expression { e }
@@ -219,11 +250,22 @@ mult_expression:
 }
 
 sum_op:
-| PLUS { (Add, $sloc) }
-| MINUS { (Sub, $sloc) }
+| PLUSDURATION { (Add KDuration, $sloc) }
+| MINUSDURATION { (Sub KDuration, $sloc) }
+| PLUSDATE { (Add KDate, $sloc) }
+| MINUSDATE { (Sub KDate, $sloc) }
+| PLUSMONEY { (Add KMoney, $sloc) }
+| MINUSMONEY { (Sub KMoney, $sloc) }
+| PLUSDEC { (Add KDec, $sloc) }
+| MINUSDEC { (Sub KDec, $sloc) }
+| PLUS { (Add KInt, $sloc) }
+| MINUS { (Sub KInt, $sloc) }
 
 sum_unop:
-| MINUS { (Minus, $sloc) }
+| MINUS { (Minus KInt, $sloc) }
+| MINUSDEC { (Minus KDec, $sloc) }
+| MINUSMONEY { (Minus KMoney, $sloc) }
+| MINUSDURATION { (Minus KDuration, $sloc) }
 
 sum_expression:
 | e = mult_expression { e }
@@ -330,11 +372,16 @@ rule_consequence:
 }
 
 rule:
-| name_and_param = rule_expr cond = option(condition_consequence)
+| label = option(label) 
+  except = option(exception_to)
+  RULE
+  name_and_param = rule_expr cond = option(condition_consequence)
    consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
     let cons : bool Pos.marked = consequence in
     ({
+      rule_label = label;
+      rule_exception_to = except;
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
@@ -345,10 +392,21 @@ rule:
 definition_parameters:
 | OF i = ident { i }
 
+label:
+| LABEL i = ident { i }
+
+exception_to:
+| EXCEPTION i = ident { i }
+
 definition:
-| name = qident param = option(definition_parameters)
+| label = option(label) 
+  except = option(exception_to)
+  DEFINITION
+  name = qident param = option(definition_parameters)
   cond = option(condition_consequence) DEFINED_AS e = expression {
     ({
+      definition_label = label;
+      definition_exception_to = except;
       definition_name = name;
       definition_parameter = param;
       definition_condition = cond;
@@ -376,10 +434,10 @@ assertion:
 }
 
 scope_item:
-| RULE r = rule {
+| r = rule {
    let (r, _) = r in (Rule r, $sloc)
 }
-| DEFINITION d = definition {
+| d = definition {
   let (d, _) = d in (Definition d, $sloc)
  }
 | ASSERTION contents = assertion {
@@ -505,9 +563,6 @@ law_article_item:
   let (code, pos) = code_and_pos in
   CodeBlock (code, (text, pos))
 }
-| includ = LAW_INCLUDE {
-  LawInclude includ
-}
 
 law_article:
 | title = LAW_ARTICLE {
@@ -548,6 +603,9 @@ source_file_item:
 | BEGIN_METADATA option(law_text) code = metadata_block {
   let (code, source_repr) = code in
   LawStructure (MetadataBlock (code, source_repr))
+}
+| includ = LAW_INCLUDE {
+  LawStructure (LawInclude includ)
 }
 
 source_file_after_text:
@@ -591,7 +649,7 @@ source_file_or_master:
       | [] -> assert false (* there should be at least one rest element *)
       | rest_head::rest_tail -> 
         begin match first_item with 
-        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _) -> 
+        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _ | LawInclude _) -> 
           (* if an article or an include is just before a new heading or a new article, 
              then we don't merge it with what comes next *)
           first_item::rest_head::rest_tail

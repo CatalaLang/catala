@@ -12,13 +12,20 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree of the desugared representation *)
+
 module Pos = Utils.Pos
 module Uid = Utils.Uid
-module IdentMap = Map.Make (String)
 
-module RuleName = Uid.Make (Uid.MarkedString) ()
+(** {1 Names, Maps and Keys} *)
 
-module RuleMap = Map.Make (RuleName)
+module IdentMap : Map.S with type key = String.t = Map.Make (String)
+
+module RuleName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
+
+module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
@@ -34,6 +41,11 @@ module ScopeDef = struct
         Scopelang.Ast.ScopeVar.compare x y
     | SubScopeVar (_, x), SubScopeVar (_, y) -> Scopelang.Ast.ScopeVar.compare x y
 
+  let get_position x =
+    match x with
+    | Var x -> Pos.get_position (Scopelang.Ast.ScopeVar.get_info x)
+    | SubScopeVar (x, _) -> Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
+
   let format_t fmt x =
     match x with
     | Var v -> Scopelang.Ast.ScopeVar.format_t fmt v
@@ -47,19 +59,20 @@ module ScopeDef = struct
     | SubScopeVar (_, v) -> Scopelang.Ast.ScopeVar.hash v
 end
 
-module ScopeDefMap = Map.Make (ScopeDef)
-module ScopeDefSet = Set.Make (ScopeDef)
+module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
 
-(* Scopes *)
+module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
+
+(** {1 AST} *)
 
 type rule = {
   just : Scopelang.Ast.expr Pos.marked Bindlib.box;
   cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  parameter : (Scopelang.Ast.Var.t * Dcalc.Ast.typ Pos.marked) option;
-  parent_rule : RuleName.t option;
+  parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
+  exception_to_rule : RuleName.t option;
 }
 
-let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ Pos.marked option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
   {
     just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
     cons = Bindlib.box (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
@@ -67,10 +80,10 @@ let empty_rule (pos : Pos.t) (have_parameter : Dcalc.Ast.typ Pos.marked option) 
       ( match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None );
-    parent_rule = None;
+    exception_to_rule = None;
   }
 
-type assertion = Scopelang.Ast.expr Pos.marked
+type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
 
 type variation_typ = Increasing | Decreasing
 
@@ -84,42 +97,38 @@ type scope = {
   scope_vars : Scopelang.Ast.ScopeVarSet.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs : (rule RuleMap.t * Dcalc.Ast.typ Pos.marked) ScopeDefMap.t;
+  scope_defs : (rule RuleMap.t * Scopelang.Ast.typ Pos.marked) ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-let empty_scope (scope_uid : Scopelang.Ast.ScopeName.t) (scope_vars : Scopelang.Ast.ScopeVarSet.t)
-    (scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t) : scope =
-  {
-    scope_uid;
-    scope_vars;
-    scope_sub_scopes;
-    scope_defs = ScopeDefMap.empty;
-    scope_assertions = [];
-    scope_meta_assertions = [];
-  }
+type program = {
+  program_scopes : scope Scopelang.Ast.ScopeMap.t;
+  program_enums : Scopelang.Ast.enum_ctx;
+  program_structs : Scopelang.Ast.struct_ctx;
+}
 
-type program = scope Scopelang.Ast.ScopeMap.t
+(** {1 Helpers} *)
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
-  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.location Pos.marked list) :
+  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.LocationSet.t) :
       Pos.t ScopeDefMap.t =
-    List.fold_left
-      (fun acc (loc, loc_pos) ->
+    Scopelang.Ast.LocationSet.fold
+      (fun (loc, loc_pos) acc ->
         ScopeDefMap.add
           ( match loc with
           | Scopelang.Ast.ScopeVar v -> ScopeDef.Var (Pos.unmark v)
           | Scopelang.Ast.SubScopeVar (_, sub_index, sub_var) ->
               ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var) )
           loc_pos acc)
-      acc locs
+      locs acc
   in
   RuleMap.fold
     (fun _ rule acc ->
       let locs =
-        Scopelang.Ast.locations_used (Bindlib.unbox rule.just)
-        @ Scopelang.Ast.locations_used (Bindlib.unbox rule.cons)
+        Scopelang.Ast.LocationSet.union
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.just))
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.cons))
       in
       add_locs acc locs)
     def ScopeDefMap.empty

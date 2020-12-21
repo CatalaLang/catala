@@ -161,7 +161,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition)\b</string>
+          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b</string>
           <key>name</key>
           <string>keyword.other.catala_fr</string>
         </dict>
@@ -197,7 +197,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b</string>
+          <string>\b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b</string>
           <key>name</key>
           <string>support.type.catala_fr</string>
         </dict>

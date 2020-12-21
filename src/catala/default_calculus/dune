@@ -1,7 +1,7 @@
 (library
  (name dcalc)
  (public_name catala.dcalc)
- (libraries bindlib unionFind utils))
+ (libraries bindlib unionFind utils zarith odate))
 
 (documentation
  (package catala))

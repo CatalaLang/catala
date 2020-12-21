@@ -12,14 +12,21 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Global identifiers factories using a generative functor *)
+
+(** The information carried in global identifiers *)
 module type Info = sig
   type info
 
-  val format_info : info -> string
+  val format_info : Format.formatter -> info -> unit
 end
 
 module MarkedString : Info with type info = string Pos.marked
+(** The only kind of information carried in Catala identifiers is the original string of the
+    identifier annotated with the position where it is declared or used. *)
 
+(** Identifiers have abstract types, but are comparable so they can be used as keys in maps or sets.
+    Their underlying information can be retrieved at any time. *)
 module type Id = sig
   type t
 
@@ -36,4 +43,7 @@ module type Id = sig
   val hash : t -> int
 end
 
+(** This is the generative functor that ensures that two modules resulting from two different calls
+    to [Make] will be viewed as different types [t] by the OCaml typechecker. Prevents mixing up
+    different sorts of identifiers. *)
 module Make (X : Info) () : Id with type info = X.info
