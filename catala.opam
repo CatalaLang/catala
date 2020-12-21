@@ -17,7 +17,7 @@ depends: [
   "sedlex" {>= "2.1"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
-  "unionfind" {>= "20200320"}
+  "unionFind" {>= "20200320"}
   "bindlib" {>= "5.0.1"}
   "dune-build-info" {>= "2.0.1"}
   "cmdliner" {>= "1.0.4"}
