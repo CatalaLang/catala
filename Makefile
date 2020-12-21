@@ -9,7 +9,7 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-install-dependencies-ocaml:
+dependencies-ocaml:
 	opam install \
 		ocamlformat \
 		ANSITerminal \
@@ -22,7 +22,7 @@ install-dependencies-ocaml:
 		obelisk \
 		unionfind \
 		bindlib \
-		zarith \
+		zarith zarith_stubs_js \
 		ocamlgraph \
 		js_of_ocaml-compiler \
 		odate
@@ -30,7 +30,7 @@ install-dependencies-ocaml:
 init-submodules:
 	git submodule update --init
 
-install-dependencies: install-dependencies-ocaml init-submodules
+dependencies: dependencies-ocaml init-submodules
 
 
 ##########################################
@@ -161,7 +161,7 @@ website-assets: doc literate_examples grammar.html catala.html
 # Misceallenous
 ##########################################
 
-all: install-dependencies build doc tests literate_examples website-assets
+all: dependencies build doc tests literate_examples website-assets
 
 clean:
 	dune clean
@@ -177,5 +177,5 @@ inspect:
 # Special targets
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
-	install build doc format install-dependencies install-dependencies-ocaml \
+	install build doc format dependencies dependencies-ocaml \
 	catala.html 

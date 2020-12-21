@@ -1,4 +1,5 @@
 (lang dune 2.2)
+
 (name catala)
 (version 0.2.0)
 (generate_opam_files true)
@@ -30,6 +31,7 @@
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
    (zarith (>= 1.10))
+   (zarith_stubs_js (>= 0.14.0))
    (dune (and :build ))
    (ocamlgraph (>= 1.8.8))
    (odate (>= 0.6))

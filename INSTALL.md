@@ -18,7 +18,7 @@ the hint and enter `opam switch create 4.09.1`.
 Next, install all the OCaml packages that Catala depend on, as well as some 
 git submodules, with
 
-    make install-dependencies
+    make dependencies
 
 This should ensure everything is set up for developping on the Catala compiler!
 
