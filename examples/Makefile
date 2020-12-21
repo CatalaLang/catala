@@ -1,7 +1,17 @@
+BLACK        := $(shell tput -Txterm setaf 0)
+RED          := $(shell tput -Txterm setaf 1)
+GREEN        := $(shell tput -Txterm setaf 2)
+YELLOW       := $(shell tput -Txterm setaf 3)
+LIGHTPURPLE  := $(shell tput -Txterm setaf 4)
+PURPLE       := $(shell tput -Txterm setaf 5)
+BLUE         := $(shell tput -Txterm setaf 6)
+WHITE        := $(shell tput -Txterm setaf 7)
+
+RESET := $(shell tput -Txterm sgr0)
+
 ################################
 # Running legislation unit tests
 ################################
-
 
 # Usage `make <name_of_example_folder>.<name_of_test_file>.<name_of_test_scope>`
 # This Makefile rule assumes the following directory structure:
@@ -15,8 +25,8 @@
 %.run: .FORCE
 	@SCOPE="$(word 3,$(subst ., ,$*))" $(MAKE) --no-print-directory -C \
 		$(word 1,$(subst ., ,$*)) tests/$(word 2,$(subst ., ,$*)).run \
-	> /dev/null || { echo "[FAIL $@]"; exit 1; }
-	@echo "[PASS $@]"
+	> /dev/null || { echo "[${RED}FAIL${RESET} ${PURPLE}$@${RESET}]"; exit 1; }
+	@echo "${GREEN}PASS${RESET} ${PURPLE}$@${RESET}"
 
 TEST_FILES?=$(wildcard */tests/*.catala*)
 

@@ -2,6 +2,17 @@
 # Preamble
 ############################################
 
+BLACK        := $(shell tput -Txterm setaf 0)
+RED          := $(shell tput -Txterm setaf 1)
+GREEN        := $(shell tput -Txterm setaf 2)
+YELLOW       := $(shell tput -Txterm setaf 3)
+LIGHTPURPLE  := $(shell tput -Txterm setaf 4)
+PURPLE       := $(shell tput -Txterm setaf 5)
+BLUE         := $(shell tput -Txterm setaf 6)
+WHITE        := $(shell tput -Txterm setaf 7)
+
+RESET := $(shell tput -Txterm sgr0)
+
 CATALA_OPTS?=
 
 CATALA=dune exec --no-buffer --no-print-director ../src/catala.exe -- Interpret $(CATALA_OPTS)
@@ -23,8 +34,8 @@ reset_tests: $(subst .out,.in,$(wildcard */*.out))
 # <test_dir>/<test_name>.catala.<scope_name>.out
 %.out: .FORCE
 	@$(CATALA) --unstyled $(word 1,$(subst ., ,$*)).catala -s $(word 3,$(subst ., ,$*))  2>&1 | \
-		colordiff -u -b $@ - || { echo "[FAIL $*]"; exit 1; }
-	@echo "[PASS $*]"
+		colordiff -u -b $@ - || { echo "${RED}FAIL${RESET} ${PURPLE}$*${RESET}"; exit 1; }
+	@echo "${GREEN}PASS${RESET} ${PURPLE}$*${RESET}"
 
 # Usage: make <test_dir>/<test_name>.catala.<scope_name>.in
 # This rule runs the test <test_dir>/<test_name>.catala, prints its output and 
