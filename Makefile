@@ -136,10 +136,10 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 .FORCE:
 
 test_suite: .FORCE
-	@$(MAKE) --no-print-directory -C tests
+	@$(MAKE) --no-print-directory -C tests pass_tests
 
 test_examples: .FORCE 
-	@$(MAKE) --no-print-directory -C examples test_examples
+	@$(MAKE) --no-print-directory -C examples tests
 
 tests: test_suite test_examples
 

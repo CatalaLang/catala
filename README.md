@@ -47,9 +47,14 @@ The Catala language is the only programming language to our knowledge that
 embeds default logic as a first-class feature, which is why it is the only 
 language perfectly adapted to literate legislative programming.
 
-## Installation
+## Building and installation
 
 See [the dedicated readme](INSTALL.md).
+
+## Usage
+
+Use `catala --help` to get more information about the command line 
+options available.
 
 ## Examples
 
@@ -86,12 +91,7 @@ The library is released under the [Apache license (version 2)](LICENSE.txt).
 
 Catala is a research project from Inria, the French National
 Research Institute for Computer Science. The compiler is yet 
-unstable and lacks some of its features. Currently, here is the list
-of existing features:
-
-* Literate programming output to HTML or LaTeX
-* Typechecker and interpreter for most of the language
-
+unstable and lacks some of its features. 
 
 ## Pierre Catala
 

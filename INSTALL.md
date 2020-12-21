@@ -75,10 +75,6 @@ You will need the `man2html` executable to generate the HTML versions of the man
 pages, as well as the `rsync` executable to transfer files (preferred to `cp`)
 because it also works with a remote server.
 
-## Usage
-
-Use `catala --help` to get more information about the command line options available.
-
 ## Syntax highlighting
 
 The Catala language also comes with syntax highlighting to

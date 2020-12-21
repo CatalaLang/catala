@@ -12,10 +12,6 @@ CATALA=dune exec --no-print-director ../../src/catala.exe -- $(CATALA_OPTS) --la
 LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
 
 CATALA_EXE=../../_build/default/src/catala.exe
-LEGIFRANCE_CATALA_EXE=../../_build/default/src/legifrance_catala.exe
-
-CLIENT_ID?=$(shell cat ../../legifrance_oauth_id.txt)
-CLIENT_SECRET?=$(shell cat ../../legifrance_oauth_secret.txt)
 
 ifeq ($(CATALA_LANG),fr)
 	PYGMENTIZE=$(PYGMENTIZE_FR)
@@ -50,9 +46,6 @@ endif
 	--pygmentize=$(PYGMENTIZE) \
 	HTML \
 	$<
-
-%.expired: %.catala_$(CATALA_LANG) $(CATALA_EXE) $(LEGIFRANCE_CATALA_EXE)
-	$(LEGIFRANCE_CATALA) $< $(CLIENT_ID) $(CLIENT_SECRET)
 
 %.pdf: %.tex
 	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)

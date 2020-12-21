@@ -18,7 +18,7 @@
 	> /dev/null || { echo "[FAIL $@]"; exit 1; }
 	@echo "[PASS $@]"
 
-TEST_FILES=$(wildcard */tests/*.catala*)
+TEST_FILES?=$(wildcard */tests/*.catala*)
 
 TEST_FILES_SCOPES_EN=$(foreach TEST_FILE,$(TEST_FILES),\
 	$(foreach TEST_SCOPE,\
@@ -34,6 +34,6 @@ TEST_FILES_SCOPES_FR=$(foreach TEST_FILE,$(TEST_FILES),\
 	) \
 )
 
-test_examples: $(TEST_FILES_SCOPES_EN) $(TEST_FILES_SCOPES_FR)
+tests: $(TEST_FILES_SCOPES_EN) $(TEST_FILES_SCOPES_FR)
 
 .FORCE:
