@@ -239,7 +239,7 @@ income tax is 20% of the income.
 /*
 declaration scope NewIncomeTaxComputation:
   context two_brackets scope TwoBracketsTaxComputation
-  # This line says that we add the item two_brackets_for_rich to the context.
+  # This line says that we add the item two_brackets to the context.
   # However, the "scope" keyword tells that this item is not a piece of data 
   # but rather a subscope that we can use to compute things.
   context individual content Individual
