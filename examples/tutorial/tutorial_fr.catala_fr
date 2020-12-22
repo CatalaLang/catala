@@ -201,37 +201,39 @@ soit vrai à tout moment. Toutefois si ce n'est pas le cas, Catala vous permettr
 de définir un ordre des priorités sur les conditions, qui doit être justifié par
 la loi.
 
-@@Functions@@+
+@@Fonctions@@+
 
-Catala lets you define functions anywhere in your data. Here's what it looks 
-like in the metadata definition when we want to define a two-brackets tax 
-computation:
-@@Begin metadata@@
+Catala vous permet de définir des fonctions partout dans vos données. Voici
+à quoi cela ressemble dans la définition des métadonnées quand nous voulons 
+définir un calcul de l'impôt sur le revenu à deux tranches :
+
+@@Début métadonnées@@
 /*
-declaration structure TwoBrackets:
-  data breakpoint content money
-  data rate1 content decimal
-  data rate2 content decimal
+déclaration structure DeuxTranches:
+  donnée seuil contenu argent
+  donnée taux1 contenu décimal
+  donnée taux2 contenu décimal
 
-declaration scope TwoBracketsTaxComputation :
-  context brackets content TwoBrackets
-  context tax_formula content money depends on money
+déclaration champ d'application CalculImpotDeuxTranches :
+  contexte tranches contenu DeuxTranches
+  contexte formule_imposition contenu argent dépend de argent
 */
-@@End metadata@@
+@@Fin métadonnées@@
 
-And in the code:
+Et dans le code :
 
-@Article4@ The tax amount for a two-brackets computation is equal to the amount 
-of income in each bracket multiplied by the rate of each bracket.
+@Article4@ Le montant d'impôt pour le calcul à deux tranches 
+est égal au montant d'impôt dans chaque tranche multiplié 
+par le taux de chaque branche.
 
 /*
-scope TwoBracketsTaxComputation :
-  definition tax_formula of income equals
-    if income <=$ brackets.breakpoint then
-      income *$ brackets.rate1
-    else (
-      brackets.breakpoint *$ brackets.rate1 +$ 
-      (income -$ brackets.breakpoint) *$ brackets.rate2
+champ d'application CalculImpotDeuxTranches :
+  définition formule_imposition de revenu égal à
+    si revenu <=$ tranches.seuil then
+      revenu *$ tranches.taux1
+    sinon (
+      tranches.seuil *$ tranches.taux1 +$ 
+      (revenu -$ tranches.seuil) *$ tranches.taux2
     )
 */
 
