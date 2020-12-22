@@ -250,9 +250,10 @@ $100 000. En dessous de $100 000, l'impôt sur le revenu est de 20% du revenu.
 /*
 déclaration champ d'application NouveauCalculImpotRevenu:
   contexte deux_tranches champ d'application CalculImpotDeuxTranches
-  # This line says that we add the item two_brackets_for_rich to the context.
-  # However, the "scope" keyword tells that this item is not a piece of data 
-  # but rather a subscope that we can use to compute things.
+  # Cette ligne indique que nous ajoutons l'élément deux_tranches au contexte.
+  # Toutefois, les mots clé "champ d'application" indique que l'élément n'est 
+  # pas une donnée mais plutôt un sous-champ d'application qui peut être utiliser
+  # pour calculer des choses.
   contexte personne contenu Personne
   contexte impot_revenu contenu argent
 
