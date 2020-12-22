@@ -267,23 +267,24 @@ champ d'application NouveauCalculImpotRevenu :
 */
 
 @Article 6@
-Individuals earning less than $10,000 are exempted of the income tax mentionned 
-at article 1.
+Les personnes ayant moins de $10 000 de revenus sont exemptés de l'impôt sur le revenu
+prévu à l'article 1.
 /*
-scope NewIncomeTaxComputation:
-  definition income_tax under condition 
-    individual.income <=$ $10,000
-  consequence equals $0
+champ d'application NouveauCalculImpotRevenu:
+  définition impot_revenu sous condition 
+    personne.revenu <=$ $10,000
+  conséquence égal à $0
 */
 
-That's it! We've defined a two-brackets tax computation simply by annotating 
-legislative article by snippets of Catala code. However, attentive readers 
-may have caught something weird in articles 5 and 6. What happens when the 
-income of the individual is between $10,000 and $100,000 ? 
+Et voilà ! Nous avons défini un calcul d'impôt à deux tranches en annotant
+tout simplement un texte législatif par des bouts de code Catala. 
+Cependant, les lecteurs attentifs auront vu quelque chose de curieux dans les 
+articles 5 et 6. Que se passe-t-il si le revenu d'une personne se situe entre 
+$10 000 et $100 000 ?
 
-The law leaves it unspecified ; our dummy articles are clearly badly drafted. 
-But Catala can help you find this sort of errors via simple testing or 
-even formal verification. Let's start with the testing.
+La loi ne le précise pas; nos articles sont clairement mal rédigés.
+Mais Catala vous aide à trouver ce genre d'erreur par de simples tests ou
+même la vérification formelle. Commençons par les tests.
 
 @@Testing Catala programs@@+
 
