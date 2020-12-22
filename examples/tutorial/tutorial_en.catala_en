@@ -72,7 +72,7 @@ declaration structure Individual:
 */
 @@End metadata@@
 
-This structre contains two data fields, "income" and "age". Structures are 
+This structre contains two data fields, "income" and "number_of_children". Structures are 
 useful to group together data that goes together. Usually, you 
 get one structure per concrete object on which the law applies (like the 
 individual). It is up to you to decide how to group the data together, 
@@ -110,7 +110,7 @@ programming. Scopes also have to be declared in metadata, so here we go:
 declaration scope IncomeTaxComputation:
   # Scope names use CamlCase
   context individual content Individual
-  # This line declares a context element of the scope, which is aking to 
+  # This line declares a context element of the scope, which is akin to 
   # a function parameter in computer science term. This is the piece of 
   # data on which the scope will operate
   context fixed_percentage content decimal
