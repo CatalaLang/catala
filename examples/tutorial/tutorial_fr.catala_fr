@@ -31,21 +31,21 @@ arobase.
 Étudions un exemple ficitif qui définit un impôt sur le revenu.
 
 @Article 1@
-The income tax for an individual is defined as a fixed percentage of the 
-individual's income over a year.
+L'impôt sur le revenu d'un individu est calculé en tant qu'un pourcentage
+fixe des revenus d'une personne pour une année.
 
 /*
-# Welcome to the code mode of Catala. This is a comment, because the line is 
-# prefixed by #.
-# We will soon learn what to write here in order to translate the meaning 
-# of the article into Catala code.
+# Bienvenue au code Catala. Ceci est un commentaire car la ligne débute par 
+# le caractère #.
+# Nous allons bientôt apprendre ce que l'on doit écrire ici pour traduire  
+# le sens d'un article de loi en code Catala.
 */
 
-To do that, we will intertwine short snippets of code between the sentences of 
-the legislative text. Each snippet of code should be as short as possible and 
-as close as possible to the actual sentence that justifies the code. This style 
-is called litterate programming, a programming paradigm invented by the famous 
-computer scientist Donald Knuth in the 70s.
+Afin de faire cela, nous allons mélanger de courts bouts de code entre des phrases
+d'un texte législatif. Chaque bout de code devra être aussi court que possible
+et aussi proche que possible de la phrase qui justifie le code. Ce style 
+s'appelle programmation littéraire, un paradigme de programmation inventé par le 
+célèbre informaticien Donald Knuth dans les années 70.
 
 @@Defining a fictional income tax@@+
 
