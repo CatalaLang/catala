@@ -126,77 +126,80 @@ Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
 de l'article 1 qui a été copié ci-dessous.
 
 @Article 1@
-The income tax for an individual is defined as a fixed percentage of the 
-individual's income over a year.
+L'impôt sur le revenu pour une personne est défini comme un pourcentage fixe
+des revenus de la personne pour une année.
 /*
-scope IncomeTaxComputation:
-  definition income_tax equals
-    individual.income *$ fixed_percentage
+champ d'application IncomeTaxComputation:
+  définition impot_revenu égal à
+    personne.revenu *$ pourcentage_fixe
 */
 
-In the code, we are defining inside our scope the amount of the income tax 
-according to the formula described in the article. When defining formulaes, 
-you have access to all the usual arithmetic operators: addition "+", 
-substraction "-", multiplication "*" and division (slash). 
+Dans le code, nous définissons à l'intérieur de notre champ d'application
+le montant d'impôt sur le revenu selon la formule décrit dans l'article.
+Quand nous définissons des fomules, vous avez accès à tous les opérateurs
+arithmétiques habituels : addition "+", soustraction "-", multiplication "*"
+et division (slash).
 
-However, in the Catala code, you can see that we use "*$" to multiply the 
-individual income by the fixed percentage. The $ suffix indicates that we 
-are performing a multiplication on an amount of money. Indeed, in Catala, 
-you have to keep track of what you are dealing with: is it money ? Is it 
-an integer? Using just "+" or "*" can be ambiguous in terms of rounding, 
-since money is usually rounded at the cent. So to disambiguate, we suffix these 
-operations with something that indicates the type of what we manipulate. 
-The suffixes are "$" for money "." for decimals, "at" (like in email adresses) 
-for dates and the hat symbol for durations. If you forget the suffix, the Catala type 
-checker will display an error message that will help you put it where it 
-belongs. 
+Toutefois, dans le code Catala, vous pouvez voir que nous utilisons "*$"
+pour multiplier les revenus d'une personne par le pourcentage fixe. Le 
+suffixe $ inique que nous effectuons une multiplication sur une somme d'argent.
+En effet, en Catala, vous devez rester conscient de la donnée manipulée : 
+est-ce de l'argent ? est-ce un entier ? Utiliser simple "+" ou "*" est ambigu
+en termes d'arrondis car l'argent est habituellement arrondi au centime. 
+Ainsi, afin d'être clair, nous suffixons ces opérations avec quelque chose
+qui indique le type de donnée manipulé. Les suffixes sont "$" pour de l'argent,
+"." pour les décimales, arobase (comme dans les adresses mail) pour les dates et
+le symbole chapeau pour les durées. Si vous oubliez le suffixe, le vérificateur
+de type Catala va afficher une message d'erreur afin de vous aider à le placer
+comme il le faut. 
 
-But inside article 1, one question remains unknown: what is the value of  
-of the fixed percentage? Often, precise values are defined elsewhere in the
-legislative source. Here, let's suppose we have:
+Mais dans l'article 1, une question reste sans réponse: quelle est la valeur 
+de la pourcentage fixe? Souvent, des valeurs précises sont définis ailleurs
+dans les sources législatives. Ici, supposons que nous avons:
 
 @Article 2@
-The fixed percentage mentionned at article 1 is equal to 20 %.
+Le pourcentage fixe mentionné à l'article 1 est égal à 20%.
 /*
-scope IncomeTaxComputation:
-  definition fixed_percentage equals 20 %
-  # Writing 20% is just an abbreviation for 0.20
+champ d'application CalculImpotRevenu:
+  définition pourcentage_fixe égal à 20 %
+  # Ecrire 20% est juste une abbréviation pour 0.20
 */
 
-You can see here that Catala allows definitions to be scattered throughout 
-the annotation of the legislative text, so that each
-definition is as close as possible to its location in the text.
+Vous pouvez voir ici que Catala permet des définitions réparties dans toute
+l'annotation du texte législatif, afin que chaque définition soit le plus 
+proche possible de sa localisation dans le texte.
 
-@@Conditional definitions@@+
+@@Définitions conditionnelles@@+
 
-So far so good, but now the legislative text introduces some trickyness. Let us 
-suppose the third article says:
+Jusqu'à là tout va bien mais maintenant le texte législatif présente quelques 
+difficultés. Supposons que le troisième article dispose :
 
-@Article 3@ If the individual is in charge of 2 or more children, then the fixed 
-percentage mentionned at article 1 is equal to 15 %.
+
+@Article 3@ Si l'individu a à sa charge deux ou plus enfants alors
+le pourcentage fixe mentionné à l'article 1 vaut 15 %.
 /*
-# How to redefine fixed_percentage?
+# Comment redéfinir pourcentage_fixe ?
 */
 
-This article actually gives another definition for the fixed percentage, which
-was already defined in article 2. However, article 3 defines the percentage 
-conditionnally to the individual having more than 2 children. Catala allows 
-you precisely to redefine a variable under a condition:
+Cet article donne en réalité une autre définition pour le pourcentage fixe, 
+préalablement défini à l'article 2. Toutefois, si l'article 3 définit le pourcentage
+de manière conditionnelle pour la personne ayant plus de deux enfants. 
+Catala permet de redéfinir précisément uen variable sous une condition :
 
 /*
-scope IncomeTaxComputation:
-  definition fixed_percentage under condition
-    individual.number_of_children >= 2
-  consequence equals 15 %
-  # Writing 15% is just an abbreviation for 0.15
+champ d'application CalculImpotRevenu:
+  définition pourcentage_fixe sous condition
+    personne.nombre_enfants >= 2
+  conséquence égal à 15 %
+  # Ecrire 15% est juste une abbréviation pour 0.15
 */
 
-When the Catala program will execute, the right definition will be dynamically
-chosen by looking at which condition is true. A correctly drafted legislative 
-source should always ensure that at most one condition is true at all times. 
-However, if it is not the case, Catala will let you define a precedence on the 
-conditions, which has to be justified by the law.
-
+Quand le programme Catala va s'exécuter, la définition qui est juste sera choisi
+dynamiquement en vérifiant quelle condition est vraie. Une source législative
+rédigée correctement doit toujours garantir qu'au maximum une seule condition 
+soit vrai à tout moment. Toutefois si ce n'est pas le cas, Catala vous permettra
+de définir un ordre des priorités sur les conditions, qui doit être justifié par
+la loi.
 
 @@Functions@@+
 
