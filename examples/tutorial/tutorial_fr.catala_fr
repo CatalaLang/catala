@@ -286,112 +286,118 @@ La loi ne le précise pas; nos articles sont clairement mal rédigés.
 Mais Catala vous aide à trouver ce genre d'erreur par de simples tests ou
 même la vérification formelle. Commençons par les tests.
 
-@@Testing Catala programs@@+
+@@Tester les programmes Catala@@+
 
-Testing Catala programs can be done directly into Catala. Indeed, writing test
-cases for each Catala scope that you define is a good practice called 
-"unit testing" in the software engineering community. A test case is defined 
-as another scope:
+Tester les programmes Catala peut se faire directement en Catala. En effet,
+écrire des cas de tests pour chaque champ d'application Catala que vous 
+définissez est une bonne pratique appelée "tests unitaires" dans la 
+communauté du génie logicielle. Un cas de test est défini dans un autre
+champ d'application :
 
-@Testing NewIncomeTaxComputation@
+@Tester NouveauCalculImpotRevenu@
 /*
-declaration scope Test1:
-  context tax_computation scope NewIncomeTaxComputation
+déclaration champ d'application Test1:
+  contexte calcul_impot champ d'application NouveauCalculImpotRevenu
 
-scope Test1:
-  definition
-    tax_computation.individual 
-    # We define the argument to the subscope
-  equals
-    # The four lines below define a whole structure by giving a value to 
-    # each of its fields
-    Individual {
-      -- income: $230,000
-      -- number_of_children: 0
+champ d'application Test1:
+  définition
+    calcul_impot.personne 
+    # L'on définit le paramètre au sous-champ d'application
+  égal à
+    # Les quatre lignes ci-dessous définissent une structure entière
+    # en valorisant chacun des champs
+    Personne {
+      -- revenu: $230,000
+      -- nombre_enfants: 0
     }
-    
-  # Next, we retrieve the income tax value compute it by the subscope and 
-  # assert that it is equal to the expected value :
+
+  # Ensuite, nous récupérons le montant d'impôt, calculé par 
+  # sous-champ d'application et nous assertons qu'il vaut bien 
+  # la valeur attendue :
   # ($230,000-$100,00)*40%+$100,000*20% = $72,000
-  assertion tax_computation.income_tax = $72,000
+
+  assertion calcul_impot.impot_revenu = $72,000
 */
 
-This test should pass. Let us now consider a failing test case:
+Ce test devrait être bon. Maintenant étudions un test en échec :
 /*
-declaration scope Test2:
-  context tax_computation scope NewIncomeTaxComputation
+déclaration champ d'application Test2:
+  contexte calcul_impot champ d'application NouveauCalculImpotRevenu
 
-scope Test2:
-  definition tax_computation.individual equals Individual {
-    -- income: $4,000
-    -- number_of_children: 0
+champ d'application Test2:
+  définition calcul_impot.personne égal à Personne {
+    -- revenu: $4,000
+    -- nombre_enfants: 0
   }
 
-  assertion tax_computation.income_tax = $0
+  assertion calcul_impot.revenu = $0
 */
 
-This test case should compute a $0 income tax because of Article 6. But instead,
-execution will yield an error saying that there is a conflict between rules. 
+Ce cas de test devrait calculer un impôt sur le revenu de $0,
+en raison de l'article 6. Mais au lieu de cela, l'exécution produira
+une erreur car il y a un conflit entre les règles.
 
-@@Defining exceptions to rules@@+
+@@Définir des exceptions à des règles@@+
 
-Indeed, the definition of the income tax in article 6 conflicts with the 
-definition of income tax in article 5. But actually, article 6 is just an 
-exception of article 5. In the law, it is implicit that if article 6 is 
-applicable, then it takes precedence over article 5.
+En effet, la définition d'un impôt sur le revenu à l'article 6 entre en 
+conflit avec la définition de l'article 5. Mais en réalité, l'article 6
+est une simple exception à l'article 5. Dans la loi, il est implicite que 
+si l'article 6 est applicable, alors son application est prioritaire 
+sur l'article 5.
 
-@Fixing the computation@
+@Régler correctement le calcul@
 
-This implicit precedence has to be explicitely declared in Catala. Here is a
-fixed version of the NewIncomeTaxComputation scope:
+Cette priorité implicite doit être explicitement déclaré en Catala. Voici une
+version correcte du champ d'application NouveauCalculImpotRevenu :
 
 /*
-declaration scope NewIncomeTaxComputationFixed:
-  context two_brackets scope TwoBracketsTaxComputation
-  context individual content Individual
-  context income_tax content money
+déclaration champ d'application NouveauCalculImpotRevenuCorrect:
+  contexte deux_tranches champ d'application CalculImpotDeuxTranches
+  contexte personne contenu Personne
+  contexte impot_revenu contenu argent
 
-scope NewIncomeTaxComputationFixed :
-  definition two_brackets.brackets equals TwoBrackets {
-    -- breakpoint: $100,000
-    -- rate1: 20%
-    -- rate2: 40%
+champ d'application NouveauCalculImpotRevenuCorrect :
+  définition deux_tranches.tranches égal à DeuxTranches {
+    -- seuil: $100,000
+    -- taux1: 20%
+    -- taux2: 40%
   }
 
-  # To define an exception to a rule, you have to first label the rule that 
-  # you want to attach to exception to. You can put any snake_case identifier
-  # for the label
-  label article_5 
-  definition income_tax equals two_brackets.tax_formula of individual.income 
 
-  # Then, you can declare the exception by referring back to the label
+  # Pour définir une exception à une règle, vous devez d'abord étiquetter
+  # la règle à laquelle vous voulez attacher l'exception. Vous pouvez mettre
+  # n'importe quel identifiant en snake_case pour l'étiquette.
+  étiquette article_5 
+  définition impot_revenu égal à deux_tranches.formule_imposition de personne.revenu 
+
+  # Puis, vous pouvez déclarez l'exception par référence à l'étiquette
   exception article_5
-  definition income_tax under condition 
-    individual.income <=$ $10,000
-  consequence equals $0
+  définition impot_revenu sous condition 
+    personne.revenu <=$ $10,000
+  conséquence égal à $0
 */
 
-And the test that should now work:
+Le test devrait désormais fonctionner :
 
 /*
-declaration scope Test3:
-  context tax_computation scope NewIncomeTaxComputationFixed
+déclaration champ d'application Test3:
+  contexte calcul_impot champ d'application NouveauCalculImpotRevenuCorrect
 
-scope Test3:
-  definition tax_computation.individual equals Individual {
-    -- income: $4,000
-    -- number_of_children: 0
+champ d'application Test3:
+  définition calcul_impot.personne égal à Personne {
+    -- revenu: $4,000
+    -- nombre_enfants: 0
   }
-  assertion tax_computation.income_tax = $0
+  assertion calcul_impot.impot_revenu = $0
 */
 
 @@Conclusion@@+
 
-This tutorial present the basic concepts and syntax of the Catala language 
-features. It is then up to you tu use them to annotate legislative texts 
-with their algorithmic translation.
+Ce tutoriel présente les concepts de base et la syntaxe des fonctionnalités
+du langage Catala. C'est à vous de les utiliser pour annoter du texte 
+législatif avec leur traduction algorithmique.
 
-There is no single way to write Catala programs, as the program style should be 
-adapted to the legislation it annotates. However, Catala is a functional 
-language at heart, so following standard functional programming design patterns 
-should help achieve concise and readable code.
+Il n'y pas une seule bonne façon d'écrire des programmes Catala car le style de
+programmation doit être adapté au texte de loi annoté. Cependant, Catala est un
+langage fonctionnel au fond, alors suivre les patrons de conception fonctionnels
+devrait aider à obtenir du code concis et lisible.
