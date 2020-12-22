@@ -12,7 +12,7 @@ license: "Apache2"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
-  "ocaml" {>= "4.07.0"}
+  "ocaml" {>= "4.08.0"}
   "ANSITerminal" {>= "0.8.2"}
   "sedlex" {>= "2.1"}
   "menhir" {>= "20200211"}
@@ -24,7 +24,7 @@ depends: [
   "re" {>= "1.9.0"}
   "zarith" {>= "1.10"}
   "zarith_stubs_js" {>= "0.14.0"}
-  "dune" {build}
+  "dune" {>= "2.2"}
   "ocamlgraph" {>= "1.8.8"}
   "odate" {>= "0.6"}
 ]
