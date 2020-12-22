@@ -237,30 +237,32 @@ champ d'application CalculImpotDeuxTranches :
     )
 */
 
-@@Scope inclusion@@+
+@@Inclusion de champ d'application@@+
 
-Now that we've defined our helper scope for computing a two-brackets tax, we 
-want to use it in our main tax computation scope.
+Maintenant que nous avons défini notre champ d'application utilitaire pour
+calculer un impôt à deux tranches, nous voulons l'utiliser dans notre champ
+d'application principal de calcul de l'impôt.
 
-@Article 5@ For individuals whose income is greater than $100,000, the income 
-tax of article 1 is 40% of the income above $100,000. Below $100,000, the 
-income tax is 20% of the income.
+@Article 5@ Pour les individus dont le revenu est supérieur à $100 000, 
+l'impôt sur le revenu de l'article 1 est de 40% du revenu au-dessus de 
+$100 000. En dessous de $100 000, l'impôt sur le revenu est de 20% du revenu.
+
 /*
-declaration scope NewIncomeTaxComputation:
-  context two_brackets scope TwoBracketsTaxComputation
+déclaration champ d'application NouveauCalculImpotRevenu:
+  contexte deux_tranches champ d'application CalculImpotDeuxTranches
   # This line says that we add the item two_brackets_for_rich to the context.
   # However, the "scope" keyword tells that this item is not a piece of data 
   # but rather a subscope that we can use to compute things.
-  context individual content Individual
-  context income_tax content money
+  contexte personne contenu Personne
+  contexte impot_revenu contenu argent
 
-scope NewIncomeTaxComputation :
-  definition two_brackets.brackets equals TwoBrackets {
-    -- breakpoint: $100,000
-    -- rate1: 20%
-    -- rate2: 40%
+champ d'application NouveauCalculImpotRevenu :
+  définition deux_tranches.tranches égal à DeuxTranches {
+    -- seuil: $100,000
+    -- taux1: 20%
+    -- taux2: 40%
   }
-  definition income_tax equals two_brackets.tax_formula of individual.income 
+  définition impot_revenu égal à deux_tranches.formule_imposition de personne.revenu 
 */
 
 @Article 6@
