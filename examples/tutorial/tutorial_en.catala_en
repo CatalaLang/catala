@@ -374,8 +374,8 @@ scope Test3:
 
 @@Conclusion@@+
 
-This tutorial present the basic concepts and syntax of the Catala language 
-features. It is then up to you tu use them to annotate legislative texts 
+This tutorial presents the basic concepts and syntax of the Catala language 
+features. It is then up to you use them to annotate legislative texts 
 with their algorithmic translation.
 
 There is no single way to write Catala programs, as the program style should be 
