@@ -6,26 +6,29 @@ législatifs avec ce langage. Ce document s'adresse principalement à des dével
 ou des personnes ayant déjà programmé, même si des juristes avec des appétences
 en informatique devraient pouvoir s'en sortir.
 
-@@Literate programming@@+
+@@Programmation littéraire@@+
 
-To begin writing a Catala program, you must start from the text of the 
-legislative source that will justify the code that you will write. Concretely, 
-that means copy-pasting the text of the law into a Catala source file and 
-formatting it according so that Catala can understand it. Catala source files 
-have the ".catala_en" extension. If you were to write a Catala program for a 
-French law, you would use the ".catala_fr" extension.
+Pour commencer à écrire un programme Catala, vous devez partir du texte
+d'une source législative qui va justifier le code que vous écrirez.
+Concrètement, cela signifie faire un copier-coller du texte de la loi dans
+un fichier de source Catala et le formatter afin que Catala puisse le comprendre.
+Les fichiers de source Catala ont l'extension ".catala_en" en version anglaise.
+Si vous écriviez un programme Catala pour une loi française, vous devrez utiliser
+l'extension ".catala_fr".
 
-You can write any kind of plain text in Catala, and it will be printed as is 
-in PDF or HTML output. You can split your text into short lines, those 
-will appear as a single paragraph in the output. If you want to create a 
-new paragrah, you have to leave a blank line in the source. 
+Vous pouvez écrire n'importe quel texte simple en Catala, cela sera affiché
+sans modification dans une sortie PDF ou HTML. Vous pouvez découper votre texte
+en de courtes lignes, cela apparaîtera comme un seul paragraphe dans la sortie.
+Si vous voulez créer un nouveau paragraphe laisser une ligne vierge dans la source.
 
-Catala allows you to declare section or subsection headers as it is done
-here, with the "at" symbol repeated twice. You can define heading of lower 
-importance by adding increasing numbers of "+" after the title of the heading. 
+Catala vous permet de déclarer des entêtes de section ou de sous-section, 
+comme c'est le cas ici, acec la répétition deux fois de l'arobase. Vous pouvez
+diminuer l'importance du titre en augmentant le nombre de "+" après le titre de
+l'entête.
 
-The fundamental division unit is the article, introduced by a single "at".
-Let's analyse a fictional example that defines an income tax.
+L'unité de division fondamentale est l'article, commencé par un simple
+arobase. 
+Étudions un exemple ficitif qui définit un impôt sur le revenu.
 
 @Article 1@
 The income tax for an individual is defined as a fixed percentage of the 
