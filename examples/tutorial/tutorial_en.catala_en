@@ -72,7 +72,7 @@ declaration structure Individual:
 */
 @@End metadata@@
 
-This structre contains two data fields, "income" and "age". Structures are 
+This structre contains two data fields, "income" and "number_of_children". Structures are 
 useful to group together data that goes together. Usually, you 
 get one structure per concrete object on which the law applies (like the 
 individual). It is up to you to decide how to group the data together, 
@@ -110,7 +110,7 @@ programming. Scopes also have to be declared in metadata, so here we go:
 declaration scope IncomeTaxComputation:
   # Scope names use CamlCase
   context individual content Individual
-  # This line declares a context element of the scope, which is aking to 
+  # This line declares a context element of the scope, which is akin to 
   # a function parameter in computer science term. This is the piece of 
   # data on which the scope will operate
   context fixed_percentage content decimal
@@ -239,7 +239,7 @@ income tax is 20% of the income.
 /*
 declaration scope NewIncomeTaxComputation:
   context two_brackets scope TwoBracketsTaxComputation
-  # This line says that we add the item two_brackets_for_rich to the context.
+  # This line says that we add the item two_brackets to the context.
   # However, the "scope" keyword tells that this item is not a piece of data 
   # but rather a subscope that we can use to compute things.
   context individual content Individual
@@ -374,8 +374,8 @@ scope Test3:
 
 @@Conclusion@@+
 
-This tutorial present the basic concepts and syntax of the Catala language 
-features. It is then up to you tu use them to annotate legislative texts 
+This tutorial presents the basic concepts and syntax of the Catala language 
+features. It is then up to you use them to annotate legislative texts 
 with their algorithmic translation.
 
 There is no single way to write Catala programs, as the program style should be 
