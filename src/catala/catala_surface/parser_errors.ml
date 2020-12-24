@@ -8,10 +8,13 @@ let message s =
   | 1 ->
       "expected an inclusion of a Catala file, since this file is a master file which can only \
        contain inclusions of other Catala files\n"
+  | 3 -> "expected some text or includes only\n"
   | 7 ->
       "expected another inclusion of a Catala file, since this file is a master file which can \
        only contain inclusions of other Catala files\n"
-  | 326 -> "expected some text, another heading or a law article\n"
+  | 8 -> "expected some text, another heading or a law article\n"
+  | 341 -> "expected a heading, an article title or some text\n"
+  | 326 -> "expected an article title, another heading or some text\n"
   | 331 -> "expected a code block, a metadata block, more law text or a heading\n"
   | 337 -> "expected a code block, a metadata block, more law text or a heading\n"
   | 332 -> "expected a declaration or a scope use\n"
@@ -85,6 +88,12 @@ let message s =
   | 75 ->
       "expected a payload for the enum case constructor, or the rest of the expression (with an \
        operator ?)\n"
+  | 76 -> "expected structure fields introduced by --\n"
+  | 77 -> "expected the name of the structure field\n"
+  | 81 -> "expected a colon\n"
+  | 82 -> "expected the expression for this struct field\n"
+  | 78 -> "expected another structure field or the closing bracket\n"
+  | 79 -> "expected the name of the structure field\n"
   | 150 -> "expected an expression for the content of this enum case\n"
   | 151 ->
       "the expression for the content of the enum case is already well-formed, expected an \
@@ -101,6 +110,10 @@ let message s =
   | 235 -> "expected the expression of the rule\n"
   | 239 -> "expected the filled keyword the this rule \n"
   | 213 -> "expected a struct field or a sub-scope context item after the dot\n"
+  | 200 -> "expected the name of the label\n"
+  | 230 -> "expected a rule or a definition after the label declaration\n"
+  | 231 -> "expected the label to which the exception is referring back\n"
+  | 233 -> "expected a rule or a definition after the exception declaration\n"
   | 246 -> "expected the name of the variable you want to define\n"
   | 247 -> "expected the defined as keyword to introduce the definition of this variable\n"
   | 249 -> "expected an expression for the consequence of this definition under condition\n"
@@ -138,7 +151,7 @@ let message s =
   | 294 -> "expected the name of this new context item\n"
   | 295 -> "expected the kind of this context item: is it a condition, a sub-scope or a data?\n"
   | 296 -> "expected the name of the subscope for this context item\n"
-  | 303 -> "expected the next context item, or another declaration or scope use\n"
+  | 303 -> "expected another scope context item or the end of the scope declaration\n"
   | 298 -> "expected the type of this context item\n"
   | 299 -> "expected the next context item or a dependency declaration for this item\n"
   | 301 -> "expected the next context item or a dependency declaration for this item\n"
@@ -150,7 +163,9 @@ let message s =
   | 311 -> "expected a content type\n"
   | 316 -> "expected another enum case, or a new declaration or scope use\n"
   | 18 -> "expected a declaration or a scope use\n"
+  | 19 -> "expected some text or the beginning of a code section\n"
   | 20 -> "expected a declaration or a scope use\n"
-  | 322 ->
-      "should not happen, please file an issue at https://github.com/CatalaLang/catala/issues\n"
+  | 21 -> "should not happen\n"
+  | 322 -> "expected a metadata-closing tag\n"
+  | 323 -> "expected a metadata-closing tag\n"
   | _ -> raise Not_found

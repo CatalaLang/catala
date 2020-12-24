@@ -1,3 +1,15 @@
+source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE LAW_TEXT END_CODE
+##
+## Ends in an error in state: 323.
+##
+## metadata_block -> BEGIN_CODE option(law_text) code END_CODE option(law_text) . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
+##
+## The known suffix of the stack is as follows:
+## BEGIN_CODE option(law_text) code END_CODE option(law_text)
+##
+
+expected a metadata-closing tag
+
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
 ## Ends in an error in state: 322.
@@ -8,7 +20,19 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ## BEGIN_CODE option(law_text) code END_CODE
 ##
 
-should not happen, please file an issue at https://github.com/CatalaLang/catala/issues
+expected a metadata-closing tag
+
+source_file_or_master: BEGIN_METADATA BEGIN_CODE LAW_TEXT DECIMAL_LITERAL
+##
+## Ends in an error in state: 21.
+##
+## metadata_block -> BEGIN_CODE option(law_text) . code END_CODE option(law_text) END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
+##
+## The known suffix of the stack is as follows:
+## BEGIN_CODE option(law_text)
+##
+
+should not happen
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
@@ -21,6 +45,18 @@ source_file_or_master: BEGIN_METADATA BEGIN_CODE YEAR
 ##
 
 expected a declaration or a scope use
+
+source_file_or_master: BEGIN_METADATA LAW_TEXT ASSERTION
+##
+## Ends in an error in state: 19.
+##
+## source_file_item -> BEGIN_METADATA option(law_text) . metadata_block [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
+##
+## The known suffix of the stack is as follows:
+## BEGIN_METADATA option(law_text)
+##
+
+expected some text or the beginning of a code section
 
 source_file_or_master: BEGIN_METADATA YEAR
 ##
@@ -166,7 +202,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLO
 ## scope_decl_item
 ##
 
-expected the next context item, or another declaration or scope use
+expected another scope context item or the end of the scope declaration
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT SCOPE YEAR
 ##
@@ -416,16 +452,16 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 53, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
-## In state 222, spurious reduction of production assertion_base -> expression 
-## In state 223, spurious reduction of production assertion -> option(condition_consequence) assertion_base 
-## In state 227, spurious reduction of production scope_item -> ASSERTION assertion 
+## In state 53, spurious reduction of production primitive_expression -> CARDINAL
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
+## In state 222, spurious reduction of production assertion_base -> expression
+## In state 223, spurious reduction of production assertion -> option(condition_consequence) assertion_base
+## In state 227, spurious reduction of production scope_item -> ASSERTION assertion
 ##
 
 expected a new scope use item 
@@ -455,8 +491,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
+## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
 ##
 
 expected the legislative text by which the value of the variable is fixed
@@ -498,14 +534,14 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 53, spurious reduction of production primitive_expression -> CARDINAL 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
-## In state 216, spurious reduction of production condition -> UNDER_CONDITION expression 
+## In state 53, spurious reduction of production primitive_expression -> CARDINAL
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
+## In state 216, spurious reduction of production condition -> UNDER_CONDITION expression
 ##
 
 expected a consequence for this definition under condition
@@ -535,8 +571,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
+## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
 ##
 
 expected an indication about what this variable varies with
@@ -554,8 +590,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
 ##
 
 expected an indication about the variation sense of the variable, or a new scope item
@@ -645,8 +681,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
+## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
 ##
 
 expected the defined as keyword to introduce the definition of this variable
@@ -662,6 +698,56 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION
 ##
 
 expected the name of the variable you want to define
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION IDENT DEFINED_AS
+##
+## Ends in an error in state: 233.
+##
+## definition -> option(label) option(exception_to) . DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+##
+## The known suffix of the stack is as follows:
+## option(label) option(exception_to)
+##
+
+expected a rule or a definition after the exception declaration
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION YEAR
+##
+## Ends in an error in state: 231.
+##
+## exception_to -> EXCEPTION . ident [ RULE DEFINITION ]
+##
+## The known suffix of the stack is as follows:
+## EXCEPTION
+##
+
+expected the label to which the exception is referring back
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON LABEL IDENT DEFINED_AS
+##
+## Ends in an error in state: 230.
+##
+## definition -> option(label) . option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+##
+## The known suffix of the stack is as follows:
+## option(label)
+##
+
+expected a rule or a definition after the label declaration
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON LABEL YEAR
+##
+## Ends in an error in state: 200.
+##
+## label -> LABEL . ident [ RULE EXCEPTION DEFINITION ]
+##
+## The known suffix of the stack is as follows:
+## LABEL
+##
+
+expected the name of the label
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
@@ -736,8 +822,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident 
-## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident) 
+## In state 212, spurious reduction of production separated_nonempty_list(DOT,ident) -> ident
+## In state 204, spurious reduction of production qident -> separated_nonempty_list(DOT,ident)
 ##
 
 expected a condition or a consequence for this rule
@@ -818,6 +904,92 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected an expression for the content of this enum case
 
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT COLON CARDINAL ALT YEAR
+##
+## Ends in an error in state: 79.
+##
+## separated_nonempty_list(ALT,struct_content_field) -> struct_content_field ALT . separated_nonempty_list(ALT,struct_content_field) [ RBRACKET ]
+##
+## The known suffix of the stack is as follows:
+## struct_content_field ALT
+##
+
+expected the name of the structure field
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT COLON CARDINAL THEN
+##
+## Ends in an error in state: 78.
+##
+## separated_nonempty_list(ALT,struct_content_field) -> struct_content_field . [ RBRACKET ]
+## separated_nonempty_list(ALT,struct_content_field) -> struct_content_field . ALT separated_nonempty_list(ALT,struct_content_field) [ RBRACKET ]
+##
+## The known suffix of the stack is as follows:
+## struct_content_field
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 53, spurious reduction of production primitive_expression -> CARDINAL
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 142, spurious reduction of production struct_content_field -> ident COLON logical_expression
+##
+
+expected another structure field or the closing bracket
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT COLON YEAR
+##
+## Ends in an error in state: 82.
+##
+## struct_content_field -> ident COLON . logical_expression [ RBRACKET ALT ]
+##
+## The known suffix of the stack is as follows:
+## ident COLON
+##
+
+expected the expression for this struct field
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT IDENT YEAR
+##
+## Ends in an error in state: 81.
+##
+## struct_content_field -> ident . COLON logical_expression [ RBRACKET ALT ]
+##
+## The known suffix of the stack is as follows:
+## ident
+##
+
+expected a colon
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET ALT YEAR
+##
+## Ends in an error in state: 77.
+##
+## struct_or_enum_inject_content -> LBRACKET ALT . separated_nonempty_list(ALT,struct_content_field) RBRACKET [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR OF NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING IN GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## LBRACKET ALT
+##
+
+expected the name of the structure field
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR LBRACKET YEAR
+##
+## Ends in an error in state: 76.
+##
+## struct_or_enum_inject_content -> LBRACKET . ALT separated_nonempty_list(ALT,struct_content_field) RBRACKET [ WITH WE_HAVE THEN SUCH SCOPE RULE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR OF NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING IN GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## LBRACKET
+##
+
+expected structure fields introduced by --
+
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 75.
@@ -867,7 +1039,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
 ##
 
 expected a keyword to form the "such that" expression for the existential test
@@ -933,7 +1105,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
 ##
 
 expected the "we have" keyword for this universal test
@@ -999,13 +1171,13 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
 ##
 
 expected the "then" keyword as the conditional expression is complete
@@ -1035,13 +1207,13 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
 ##
 
 expected the "else" branch of this conditional expression as the "then" branch is complete
@@ -1095,13 +1267,13 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
 ##
 
 unmatched parenthesis that should have been closed by here
@@ -1131,7 +1303,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
 ##
 
 expected the "with patter" keyword to complete the pattern matching expression
@@ -1149,13 +1321,13 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 141, spurious reduction of production logical_expression -> logical_unop compare_expression 
-## In state 188, spurious reduction of production match_arm -> constructor_binding COLON logical_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 141, spurious reduction of production logical_expression -> logical_unop compare_expression
+## In state 188, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
 ##
 
 expected another match case or the rest of the expression since the previous match case is complete
@@ -1306,7 +1478,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
 ##
 
 expected the "for" keyword and the expression to compute the aggregate
@@ -1384,15 +1556,15 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
-## In state 120, spurious reduction of production mult_expression -> base_expression 
-## In state 107, spurious reduction of production sum_expression -> mult_expression 
-## In state 83, spurious reduction of production compare_expression -> sum_expression 
-## In state 143, spurious reduction of production logical_expression -> compare_expression 
-## In state 158, spurious reduction of production expression -> logical_expression 
-## In state 196, spurious reduction of production scope_use_condition -> UNDER_CONDITION expression 
-## In state 197, spurious reduction of production option(scope_use_condition) -> scope_use_condition 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
+## In state 120, spurious reduction of production mult_expression -> base_expression
+## In state 107, spurious reduction of production sum_expression -> mult_expression
+## In state 83, spurious reduction of production compare_expression -> sum_expression
+## In state 143, spurious reduction of production logical_expression -> compare_expression
+## In state 158, spurious reduction of production expression -> logical_expression
+## In state 196, spurious reduction of production scope_use_condition -> UNDER_CONDITION expression
+## In state 197, spurious reduction of production option(scope_use_condition) -> scope_use_condition
 ##
 
 expected a colon after the scope use precondition
@@ -1435,8 +1607,8 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
-## In state 62, spurious reduction of production base_expression -> primitive_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
+## In state 62, spurious reduction of production base_expression -> primitive_expression
 ##
 
 expected an operator to compose the expression on the left
@@ -1517,7 +1689,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 57, spurious reduction of production primitive_expression -> small_expression 
+## In state 57, spurious reduction of production primitive_expression -> small_expression
 ##
 
 expected an operator to compose the expression on the left with
@@ -1702,6 +1874,30 @@ source_file_or_master: LAW_HEADING YEAR
 ## source_file_item
 ##
 
+expected an article title, another heading or some text
+
+source_file_or_master: LAW_TEXT YEAR
+##
+## Ends in an error in state: 341.
+##
+## list(law_intermediate_text) -> law_intermediate_text . list(law_intermediate_text) [ LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
+##
+## The known suffix of the stack is as follows:
+## law_intermediate_text
+##
+
+expected a heading, an article title or some text
+
+source_file_or_master: MASTER_FILE LAW_INCLUDE LAW_TEXT ENUM
+##
+## Ends in an error in state: 8.
+##
+## master_file_includes -> master_file_include option(law_text) . master_file_includes [ # ]
+##
+## The known suffix of the stack is as follows:
+## master_file_include option(law_text)
+##
+
 expected some text, another heading or a law article
 
 source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
@@ -1716,6 +1912,17 @@ source_file_or_master: MASTER_FILE LAW_INCLUDE YEAR
 
 expected another inclusion of a Catala file, since this file is a master file which can only contain inclusions of other Catala files
 
+source_file_or_master: MASTER_FILE LAW_TEXT ENUM
+##
+## Ends in an error in state: 3.
+##
+## source_file_or_master -> MASTER_FILE option(law_text) . master_file_includes [ # ]
+##
+## The known suffix of the stack is as follows:
+## MASTER_FILE option(law_text)
+##
+
+expected some text or includes only
 
 source_file_or_master: MASTER_FILE YEAR
 ##
