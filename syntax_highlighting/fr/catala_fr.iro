@@ -132,9 +132,9 @@ styles [] {
 ## Parse contexts
 #################################################
 
-__LOWER_CHARS \= a-zéèàâùîêœç
+__LOWER_CHARS \= a-zéèàâùîôêœç
 
-__UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
+__UPPER_CHARS \= A-ZÉÈÀÂÙÎÔÊŒÇ
 
 __SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
