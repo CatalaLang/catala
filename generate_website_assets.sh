@@ -15,4 +15,4 @@ scp examples/us_tax_code/us_tax_code.html $1/
 scp examples/tutorial/tutorial_en.html $1/
 scp grammar.html $1/
 scp catala.html $1/
-scp legifrance_catala.html $1/
+scp _build/default/src/catala.bc.js $1/playground/
