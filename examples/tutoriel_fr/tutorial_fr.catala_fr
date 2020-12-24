@@ -131,7 +131,7 @@ des revenus de la personne pour une année.
 /*
 champ d'application IncomeTaxComputation:
   définition impot_revenu égal à
-    personne.revenu *$ pourcentage_fixe
+    personne.revenu *€ pourcentage_fixe
 */
 
 Dans le code, nous définissons à l'intérieur de notre champ d'application
@@ -140,14 +140,14 @@ Quand nous définissons des fomules, vous avez accès à tous les opérateurs
 arithmétiques habituels : addition "+", soustraction "-", multiplication "*"
 et division (slash).
 
-Toutefois, dans le code Catala, vous pouvez voir que nous utilisons "*$"
+Toutefois, dans le code Catala, vous pouvez voir que nous utilisons "*€"
 pour multiplier les revenus d'une personne par le pourcentage fixe. Le 
-suffixe $ inique que nous effectuons une multiplication sur une somme d'argent.
+suffixe € inique que nous effectuons une multiplication sur une somme d'argent.
 En effet, en Catala, vous devez rester conscient de la donnée manipulée : 
 est-ce de l'argent ? est-ce un entier ? Utiliser simple "+" ou "*" est ambigu
 en termes d'arrondis car l'argent est habituellement arrondi au centime. 
 Ainsi, afin d'être clair, nous suffixons ces opérations avec quelque chose
-qui indique le type de donnée manipulé. Les suffixes sont "$" pour de l'argent,
+qui indique le type de donnée manipulé. Les suffixes sont "€" pour de l'argent,
 "." pour les décimales, arobase (comme dans les adresses mail) pour les dates et
 le symbole chapeau pour les durées. Si vous oubliez le suffixe, le vérificateur
 de type Catala va afficher une message d'erreur afin de vous aider à le placer
@@ -229,11 +229,11 @@ par le taux de chaque branche.
 /*
 champ d'application CalculImpotDeuxTranches :
   définition formule_imposition de revenu égal à
-    si revenu <=$ tranches.seuil then
-      revenu *$ tranches.taux1
+    si revenu <=€ tranches.seuil alors
+      revenu *€ tranches.taux1
     sinon (
-      tranches.seuil *$ tranches.taux1 +$ 
-      (revenu -$ tranches.seuil) *$ tranches.taux2
+      tranches.seuil *€ tranches.taux1 +€ 
+      (revenu -€ tranches.seuil) *€ tranches.taux2
     )
 */
 
@@ -243,9 +243,9 @@ Maintenant que nous avons défini notre champ d'application utilitaire pour
 calculer un impôt à deux tranches, nous voulons l'utiliser dans notre champ
 d'application principal de calcul de l'impôt.
 
-@Article 5@ Pour les individus dont le revenu est supérieur à $100 000, 
+@Article 5@ Pour les individus dont le revenu est supérieur à 100 000€, 
 l'impôt sur le revenu de l'article 1 est de 40% du revenu au-dessus de 
-$100 000. En dessous de $100 000, l'impôt sur le revenu est de 20% du revenu.
+100 000€. En dessous de 100 000€, l'impôt sur le revenu est de 20% du revenu.
 
 /*
 déclaration champ d'application NouveauCalculImpotRevenu:
@@ -259,7 +259,7 @@ déclaration champ d'application NouveauCalculImpotRevenu:
 
 champ d'application NouveauCalculImpotRevenu :
   définition deux_tranches.tranches égal à DeuxTranches {
-    -- seuil: $100,000
+    -- seuil: 100 000€
     -- taux1: 20%
     -- taux2: 40%
   }
@@ -267,20 +267,20 @@ champ d'application NouveauCalculImpotRevenu :
 */
 
 @Article 6@
-Les personnes ayant moins de $10 000 de revenus sont exemptés de l'impôt sur le revenu
+Les personnes ayant moins de 10 000€ de revenus sont exemptés de l'impôt sur le revenu
 prévu à l'article 1.
 /*
 champ d'application NouveauCalculImpotRevenu:
   définition impot_revenu sous condition 
-    personne.revenu <=$ $10,000
-  conséquence égal à $0
+    personne.revenu <=€ 10 000€
+  conséquence égal à 0€
 */
 
 Et voilà ! Nous avons défini un calcul d'impôt à deux tranches en annotant
 tout simplement un texte législatif par des bouts de code Catala. 
 Cependant, les lecteurs attentifs auront vu quelque chose de curieux dans les 
 articles 5 et 6. Que se passe-t-il si le revenu d'une personne se situe entre 
-$10 000 et $100 000 ?
+10 000€ et 100 000€ ?
 
 La loi ne le précise pas; nos articles sont clairement mal rédigés.
 Mais Catala vous aide à trouver ce genre d'erreur par de simples tests ou
@@ -307,16 +307,16 @@ champ d'application Test1:
     # Les quatre lignes ci-dessous définissent une structure entière
     # en valorisant chacun des champs
     Personne {
-      -- revenu: $230,000
+      -- revenu: 230 000€
       -- nombre_enfants: 0
     }
 
   # Ensuite, nous récupérons le montant d'impôt, calculé par 
   # sous-champ d'application et nous assertons qu'il vaut bien 
   # la valeur attendue :
-  # ($230,000-$100,00)*40%+$100,000*20% = $72,000
+  # (230 000€ - 100 000€) * 40% + 100 000€ * 20% = 72 000€
 
-  assertion calcul_impot.impot_revenu = $72,000
+  assertion calcul_impot.impot_revenu = 72 000€
 */
 
 Ce test devrait être bon. Maintenant étudions un test en échec :
@@ -326,14 +326,14 @@ déclaration champ d'application Test2:
 
 champ d'application Test2:
   définition calcul_impot.personne égal à Personne {
-    -- revenu: $4,000
+    -- revenu: 4 000€
     -- nombre_enfants: 0
   }
 
-  assertion calcul_impot.revenu = $0
+  assertion calcul_impot.revenu = 0€
 */
 
-Ce cas de test devrait calculer un impôt sur le revenu de $0,
+Ce cas de test devrait calculer un impôt sur le revenu de 0€,
 en raison de l'article 6. Mais au lieu de cela, l'exécution produira
 une erreur car il y a un conflit entre les règles.
 
@@ -358,7 +358,7 @@ déclaration champ d'application NouveauCalculImpotRevenuCorrect:
 
 champ d'application NouveauCalculImpotRevenuCorrect :
   définition deux_tranches.tranches égal à DeuxTranches {
-    -- seuil: $100,000
+    -- seuil: 100 000€
     -- taux1: 20%
     -- taux2: 40%
   }
@@ -373,8 +373,8 @@ champ d'application NouveauCalculImpotRevenuCorrect :
   # Puis, vous pouvez déclarez l'exception par référence à l'étiquette
   exception article_5
   définition impot_revenu sous condition 
-    personne.revenu <=$ $10,000
-  conséquence égal à $0
+    personne.revenu <=€ 10 000€
+  conséquence égal à 0€
 */
 
 Le test devrait désormais fonctionner :
@@ -385,10 +385,10 @@ déclaration champ d'application Test3:
 
 champ d'application Test3:
   définition calcul_impot.personne égal à Personne {
-    -- revenu: $4,000
+    -- revenu: 4 000€
     -- nombre_enfants: 0
   }
-  assertion calcul_impot.impot_revenu = $0
+  assertion calcul_impot.impot_revenu = 0€
 */
 
 @@Conclusion@@+
