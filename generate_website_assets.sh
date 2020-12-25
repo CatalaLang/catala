@@ -17,3 +17,7 @@ scp examples/tutoriel_fr/tutoriel_fr.html $1/
 scp grammar.html $1/
 scp catala.html $1/
 scp _build/default/src/catala.bc.js $1/playground/
+scp examples/tutorial_en/tutorial_en.catala_en $1/playground/
+scp examples/tutoriel_fr/tutoriel_fr.catala_fr $1/playground/
+scp syntax_highlighting/en/ace/mode-catala_en.js $1/playground/
+scp syntax_highlighting/fr/ace/mode-catala_fr.js $1/playground/
