@@ -15,6 +15,8 @@
 (** Ssource files to be compiled *)
 let source_files : string list ref = ref []
 
+let contents : string ref = ref ""
+
 (** Prints debug information *)
 let debug_flag = ref false
 
@@ -99,6 +101,8 @@ let catala_t f =
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ pygmentize_loc $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ ex_scope $ output)
 
+let version = "0.2.0"
+
 let info =
   let doc =
     "Compiler for Catala, a specification language for tax and social benefits computation rules."
@@ -120,12 +124,7 @@ let info =
     ]
   in
   let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
-  Term.info "catala"
-    ~version:
-      ( match Build_info.V1.version () with
-      | None -> "n/a"
-      | Some v -> Build_info.V1.Version.to_string v )
-    ~doc ~exits ~man
+  Term.info "catala" ~version ~doc ~exits ~man
 
 (**{1 Terminal formatting}*)
 

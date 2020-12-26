@@ -16,7 +16,7 @@ dependencies-ocaml:
 		sedlex \
 		menhir \
 		menhirLib \
-		dune dune-build-info \
+		dune \
 		cmdliner obelisk \
 		re \
 		obelisk \
@@ -24,7 +24,7 @@ dependencies-ocaml:
 		bindlib \
 		zarith zarith_stubs_js \
 		ocamlgraph \
-		js_of_ocaml-compiler \
+		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx \
 		odate
 
 init-submodules:
@@ -50,7 +50,7 @@ doc:
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
 install:
-	dune build @install
+	dune build --profile release @install
 
 ##########################################
 # Syntax highlighting rules
@@ -161,7 +161,7 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc literate_examples grammar.html catala.html
+website-assets: doc literate_examples grammar.html catala.html install
 
 ##########################################
 # Misceallenous

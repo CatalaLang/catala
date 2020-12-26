@@ -31,6 +31,8 @@ val get_end_column : t -> int
 
 val get_file : t -> string
 
+type input_file = FileName of string | Contents of string
+
 (**{2 Formatters}*)
 
 val to_string : t -> string

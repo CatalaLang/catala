@@ -14,17 +14,19 @@
 
 module Cli = Utils.Cli
 module Errors = Utils.Errors
+module Pos = Utils.Pos
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
-let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_output : bool)
-    (pygmentize_loc : string option) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
-    (output_file : string option) : int =
+let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
+    (wrap_weaved_output : bool) (pygmentize_loc : string option) (backend : string)
+    (language : string option) (max_prec_digits : int option) (trace : bool)
+    (ex_scope : string option) (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.trace_flag := trace;
     Cli.debug_print "Reading files...";
+    (match source_file with FileName _ -> () | Contents c -> Cli.contents := c);
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
     let language =
       match language with
@@ -50,6 +52,12 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in
+        let source_file =
+          match source_file with
+          | FileName f -> f
+          | Contents _ ->
+              Errors.raise_error "The Makefile backend does not work if the input is not a file"
+        in
         let output_file =
           match output_file with
           | Some f -> f
@@ -67,6 +75,13 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         0
     | Cli.Latex | Cli.Html ->
         let language : Cli.backend_lang = Cli.to_backend_lang language in
+        let source_file =
+          match source_file with
+          | FileName f -> f
+          | Contents _ ->
+              Errors.raise_error
+                "The literate programming backends do not work if the input is not a file"
+        in
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
              ( match backend with
@@ -144,6 +159,7 @@ let driver (source_file : string) (debug : bool) (unstyled : bool) (wrap_weaved_
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);
-    exit (-1)
+    -1
 
-let main () = Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t driver, Cli.info)
+let main () =
+  Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info)

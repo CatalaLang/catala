@@ -179,12 +179,22 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
 (** {1 API} *)
 
 (** Parses a single source file *)
-let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) : Ast.program =
-  Cli.debug_print (Printf.sprintf "Parsing %s" source_file);
-  let input = try open_in source_file with Sys_error msg -> Errors.raise_error msg in
-  let lexbuf = Sedlexing.Utf8.from_channel input in
-  Sedlexing.set_filename lexbuf source_file;
-  Parse_utils.current_file := source_file;
+let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
+    Ast.program =
+  Cli.debug_print
+    (Printf.sprintf "Parsing %s" (match source_file with FileName s | Contents s -> s));
+  let lexbuf, input =
+    match source_file with
+    | FileName source_file -> (
+        try
+          let input = open_in source_file in
+          (Sedlexing.Utf8.from_channel input, Some input)
+        with Sys_error msg -> Errors.raise_error msg )
+    | Contents contents -> (Sedlexing.Utf8.from_gen (Gen.of_string contents), None)
+  in
+  let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
+  Sedlexing.set_filename lexbuf source_file_name;
+  Parse_utils.current_file := source_file_name;
   let lexer_lang =
     match language with
     | `Fr -> Lexer_fr.lexer_fr
@@ -200,16 +210,16 @@ let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) 
   let commands_or_includes =
     sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master lexbuf
   in
-  close_in input;
+  (match input with Some input -> close_in input | None -> ());
   match commands_or_includes with
   | Ast.SourceFile commands ->
-      let program = expand_includes source_file commands language in
+      let program = expand_includes source_file_name commands language in
       {
         program_items = program.Ast.program_items;
-        program_source_files = source_file :: program.Ast.program_source_files;
+        program_source_files = source_file_name :: program.Ast.program_source_files;
       }
   | Ast.MasterFile includes ->
-      let current_source_file_dirname = Filename.dirname source_file in
+      let current_source_file_dirname = Filename.dirname source_file_name in
       let includes =
         List.map
           (fun includ ->
@@ -220,7 +230,7 @@ let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) 
       let new_program =
         List.fold_left
           (fun acc includ_file ->
-            let includ_program = parse_source_file includ_file language in
+            let includ_program = parse_source_file (FileName includ_file) language in
             {
               Ast.program_source_files =
                 acc.Ast.program_source_files @ includ_program.program_source_files;
@@ -229,7 +239,10 @@ let rec parse_source_file (source_file : string) (language : Cli.frontend_lang) 
           { Ast.program_source_files = []; Ast.program_items = [] }
           includes
       in
-      { new_program with program_source_files = source_file :: new_program.program_source_files }
+      {
+        new_program with
+        program_source_files = source_file_name :: new_program.program_source_files;
+      }
 
 (** Expands the include directives in a parsing result, thus parsing new source files *)
 and expand_includes (source_file : string) (commands : Ast.program_item list)
@@ -240,7 +253,7 @@ and expand_includes (source_file : string) (commands : Ast.program_item list)
       | Ast.LawStructure (LawInclude (Ast.CatalaFile sub_source)) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
-          let includ_program = parse_source_file sub_source language in
+          let includ_program = parse_source_file (FileName sub_source) language in
           {
             Ast.program_source_files =
               acc.Ast.program_source_files @ includ_program.program_source_files;

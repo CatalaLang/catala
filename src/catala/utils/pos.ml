@@ -41,6 +41,8 @@ let get_end_column (pos : t) : int =
 
 let get_file (pos : t) : string = (fst pos).Lexing.pos_fname
 
+type input_file = FileName of string | Contents of string
+
 let to_string (pos : t) : string =
   let s, e = pos in
   Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
@@ -62,75 +64,89 @@ let indent_number (s : string) : int =
   with Invalid_argument _ -> String.length s
 
 let retrieve_loc_text (pos : t) : string =
-  let filename = get_file pos in
-  let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
-  if filename = "" then "No position information"
-  else
-    let sline = get_start_line pos in
-    let eline = get_end_line pos in
-    let oc =
-      try open_in filename
-      with Sys_error _ ->
-        Cli.error_print (Printf.sprintf "File not found : \"%s\"" filename);
-        exit (-1)
-    in
-    let input_line_opt () : string option = try Some (input_line oc) with End_of_file -> None in
-    let print_matched_line (line : string) (line_no : int) : string =
-      let line_indent = indent_number line in
-      let error_indicator_style = [ ANSITerminal.red; ANSITerminal.Bold ] in
-      line
-      ^
-      if line_no >= sline && line_no <= eline then
-        "\n"
+  try
+    let filename = get_file pos in
+    let blue_style = [ ANSITerminal.Bold; ANSITerminal.blue ] in
+    if filename = "" then "No position information"
+    else
+      let sline = get_start_line pos in
+      let eline = get_end_line pos in
+      let oc, input_line_opt =
+        if filename = "stdin" then
+          let line_index = ref 0 in
+          let lines = String.split_on_char '\n' !Cli.contents in
+          let input_line_opt () : string option =
+            match List.nth_opt lines !line_index with
+            | Some l ->
+                line_index := !line_index + 1;
+                Some l
+            | None -> None
+          in
+          (None, input_line_opt)
+        else
+          let oc = open_in filename in
+          let input_line_opt () : string option =
+            try Some (input_line oc) with End_of_file -> None
+          in
+          (Some oc, input_line_opt)
+      in
+      let print_matched_line (line : string) (line_no : int) : string =
+        let line_indent = indent_number line in
+        let error_indicator_style = [ ANSITerminal.red; ANSITerminal.Bold ] in
+        line
         ^
-        if line_no = sline && line_no = eline then
-          Cli.print_with_style error_indicator_style "%*s"
-            (get_end_column pos - 1)
-            (String.make (max (get_end_column pos - get_start_column pos) 0) '^')
-        else if line_no = sline && line_no <> eline then
-          Cli.print_with_style error_indicator_style "%*s"
-            (String.length line - 1)
-            (String.make (max (String.length line - get_start_column pos) 0) '^')
-        else if line_no <> sline && line_no <> eline then
-          Cli.print_with_style error_indicator_style "%*s%s" line_indent ""
-            (String.make (max (String.length line - line_indent) 0) '^')
-        else if line_no <> sline && line_no = eline then
-          Cli.print_with_style error_indicator_style "%*s%*s" line_indent ""
-            (get_end_column pos - 1 - line_indent)
-            (String.make (max (get_end_column pos - line_indent) 0) '^')
-        else assert false (* should not happen *)
-      else ""
-    in
-    let include_extra_count = 0 in
-    let rec get_lines (n : int) : string list =
-      match input_line_opt () with
-      | Some line ->
-          if n < sline - include_extra_count then get_lines (n + 1)
-          else if n >= sline - include_extra_count && n <= eline + include_extra_count then
-            print_matched_line line n :: get_lines (n + 1)
-          else []
-      | None -> []
-    in
-    let pos_lines = get_lines 1 in
-    let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
-    close_in oc;
-    Cli.print_with_style blue_style "%*s--> %s\n%s" spaces "" filename
-      (Cli.add_prefix_to_each_line
-         (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
-         (fun i ->
-           let cur_line = sline - include_extra_count + i - 1 in
-           if
-             cur_line >= sline
-             && cur_line <= sline + (2 * (eline - sline))
-             && cur_line mod 2 = sline mod 2
-           then Cli.print_with_style blue_style "%*d | " spaces (sline + ((cur_line - sline) / 2))
-           else if cur_line >= sline - include_extra_count && cur_line < sline then
-             Cli.print_with_style blue_style "%*d | " spaces cur_line
-           else if
-             cur_line <= sline + (2 * (eline - sline)) + 1 + include_extra_count
-             && cur_line > sline + (2 * (eline - sline)) + 1
-           then Cli.print_with_style blue_style "%*d | " spaces (cur_line - (eline - sline + 1))
-           else Cli.print_with_style blue_style "%*s | " spaces ""))
+        if line_no >= sline && line_no <= eline then
+          "\n"
+          ^
+          if line_no = sline && line_no = eline then
+            Cli.print_with_style error_indicator_style "%*s"
+              (get_end_column pos - 1)
+              (String.make (max (get_end_column pos - get_start_column pos) 0) '^')
+          else if line_no = sline && line_no <> eline then
+            Cli.print_with_style error_indicator_style "%*s"
+              (String.length line - 1)
+              (String.make (max (String.length line - get_start_column pos) 0) '^')
+          else if line_no <> sline && line_no <> eline then
+            Cli.print_with_style error_indicator_style "%*s%s" line_indent ""
+              (String.make (max (String.length line - line_indent) 0) '^')
+          else if line_no <> sline && line_no = eline then
+            Cli.print_with_style error_indicator_style "%*s%*s" line_indent ""
+              (get_end_column pos - 1 - line_indent)
+              (String.make (max (get_end_column pos - line_indent) 0) '^')
+          else assert false (* should not happen *)
+        else ""
+      in
+      let include_extra_count = 0 in
+      let rec get_lines (n : int) : string list =
+        match input_line_opt () with
+        | Some line ->
+            if n < sline - include_extra_count then get_lines (n + 1)
+            else if n >= sline - include_extra_count && n <= eline + include_extra_count then
+              print_matched_line line n :: get_lines (n + 1)
+            else []
+        | None -> []
+      in
+      let pos_lines = get_lines 1 in
+      let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
+      (match oc with None -> () | Some oc -> close_in oc);
+      Cli.print_with_style blue_style "%*s--> %s\n%s" spaces "" filename
+        (Cli.add_prefix_to_each_line
+           (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
+           (fun i ->
+             let cur_line = sline - include_extra_count + i - 1 in
+             if
+               cur_line >= sline
+               && cur_line <= sline + (2 * (eline - sline))
+               && cur_line mod 2 = sline mod 2
+             then Cli.print_with_style blue_style "%*d | " spaces (sline + ((cur_line - sline) / 2))
+             else if cur_line >= sline - include_extra_count && cur_line < sline then
+               Cli.print_with_style blue_style "%*d | " spaces cur_line
+             else if
+               cur_line <= sline + (2 * (eline - sline)) + 1 + include_extra_count
+               && cur_line > sline + (2 * (eline - sline)) + 1
+             then Cli.print_with_style blue_style "%*d | " spaces (cur_line - (eline - sline + 1))
+             else Cli.print_with_style blue_style "%*s | " spaces ""))
+  with Sys_error _ -> "Location:" ^ to_string pos
 
 type 'a marked = 'a * t
 

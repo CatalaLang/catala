@@ -152,14 +152,14 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
           match entry with
           | VarDef ->
               Cli.log_print
-                (Format.asprintf "%a %a = %a" Print.format_log_entry entry
+                (Format.asprintf "@[<hov 2>%a@ %a@ =@ %a@]" Print.format_log_entry entry
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
                       (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
                    infos Print.format_expr (e', Pos.no_pos))
           | _ ->
               Cli.log_print
-                (Format.asprintf "%a %a" Print.format_log_entry entry
+                (Format.asprintf "@[<hov 2>%a@ %a@]" Print.format_log_entry entry
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
                       (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))

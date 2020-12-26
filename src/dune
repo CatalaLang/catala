@@ -1,6 +1,6 @@
 (executable
  (name catala)
- (modes native js)
+ (modes native)
  (package catala)
  (modules catala)
  (public_name catala)
