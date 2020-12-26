@@ -129,7 +129,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
-                    (Printf.sprintf "There is no scope %s inside the program." name)
+                    (Printf.sprintf "There is no scope \"%s\" inside the program." name)
               | Some uid -> uid )
         in
         Cli.debug_print "Desugaring...";
