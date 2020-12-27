@@ -36,10 +36,16 @@ let empty_thunked_term : Ast.expr Pos.marked =
 
 (** {1 Evaluation} *)
 
-let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
+let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
     A.expr Pos.marked =
   Pos.same_pos_as
     ( match (Pos.unmark op, List.map Pos.unmark args) with
+    | A.Ternop A.Fold, [ _; _; EArray es ] ->
+        Pos.unmark
+          (List.fold_left
+             (fun acc e' ->
+               evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ acc; e' ])) e'))
+             (List.nth args 1) es)
     | A.Binop A.And, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 && b2))
     | A.Binop A.Or, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 || b2))
     | A.Binop (A.Add KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt (Z.add i1 i2))
@@ -136,10 +142,16 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
     | A.Binop A.Neq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <> i2))
     | A.Binop A.Neq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 <> b2))
     | A.Binop A.Neq, [ _; _ ] -> A.ELit (LBool true)
+    | A.Binop A.Map, [ _; A.EArray es ] ->
+        A.EArray
+          (List.map
+             (fun e' -> evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e'))
+             es)
     | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
     | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Z.sub Z.zero i))
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
+    | A.Unop A.Length, [ EArray es ] -> A.ELit (LInt (Z.of_int (List.length es)))
     | A.Unop A.ErrorOnEmpty, [ e' ] ->
         if e' = A.ELit LEmptyError then
           Errors.raise_spanned_error
@@ -178,7 +190,7 @@ let evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked lis
               args ) )
     op
 
-let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
+and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
   match Pos.unmark e with
   | EVar _ ->
       Errors.raise_spanned_error
@@ -282,6 +294,7 @@ let rec evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             "Expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond) )
+  | EArray es -> Pos.same_pos_as (A.EArray (List.map evaluate_expr es)) e
   | EAssert e' -> (
       match Pos.unmark (evaluate_expr e') with
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'

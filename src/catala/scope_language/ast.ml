@@ -96,6 +96,7 @@ type expr =
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | EArray of expr Pos.marked list
 
 let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   match Pos.unmark e with
@@ -126,6 +127,8 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
         (fun acc except -> LocationSet.union (locations_used except) acc)
         (LocationSet.union (locations_used just) (locations_used cons))
         excepts
+  | EArray es ->
+      List.fold_left (fun acc e' -> LocationSet.union acc (locations_used e')) LocationSet.empty es
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked

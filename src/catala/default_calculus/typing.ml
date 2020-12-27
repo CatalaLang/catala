@@ -29,6 +29,7 @@ type typ =
   | TArrow of typ Pos.marked UnionFind.elem * typ Pos.marked UnionFind.elem
   | TTuple of typ Pos.marked UnionFind.elem list
   | TEnum of typ Pos.marked UnionFind.elem list
+  | TArray of typ Pos.marked UnionFind.elem
   | TAny
 
 let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem) : unit =
@@ -45,6 +46,7 @@ let rec format_typ (fmt : Format.formatter) (ty : typ Pos.marked UnionFind.elem)
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " + ") format_typ)
         ts
   | TArrow (t1, t2) -> Format.fprintf fmt "%a → %a" format_typ t1 format_typ t2
+  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
 
 (** Raises an error if unification cannot be performed *)
 let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFind.elem) : unit =
@@ -93,8 +95,11 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let dut = UnionFind.make (TLit TDuration, pos) in
   let dat = UnionFind.make (TLit TDate, pos) in
   let any = UnionFind.make (TAny, pos) in
+  let array_any = UnionFind.make (TArray any, pos) in
+  let any2 = UnionFind.make (TAny, pos) in
   let arr x y = UnionFind.make (TArrow (x, y), pos) in
   match Pos.unmark op with
+  | A.Ternop A.Fold -> arr (arr any2 (arr any any2)) (arr array_any any2)
   | A.Binop (A.And | A.Or) -> arr bt (arr bt bt)
   | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) -> arr it (arr it it)
   | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) -> arr rt (arr rt rt)
@@ -111,6 +116,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Lt KDuration | A.Lte KDuration | A.Gt KDuration | A.Gte KDuration) ->
       arr dut (arr dut bt)
   | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
+  | A.Binop A.Map -> arr (arr any any2) (arr array_any any2)
   | A.Unop (A.Minus KInt) -> arr it it
   | A.Unop (A.Minus KRat) -> arr rt rt
   | A.Unop (A.Minus KMoney) -> arr mt mt
@@ -118,6 +124,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop A.Not -> arr bt bt
   | A.Unop A.ErrorOnEmpty -> arr any any
   | A.Unop (A.Log _) -> arr any any
+  | A.Unop A.Length -> arr array_any it
   | Binop (Mult (KDate | KDuration)) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
       Errors.raise_spanned_error "This operator is not available!" pos
 
@@ -130,6 +137,7 @@ let rec ast_to_typ (ty : A.typ) : typ =
           UnionFind.make (Pos.map_under_mark ast_to_typ t2) )
   | A.TTuple ts -> TTuple (List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts)
   | A.TEnum ts -> TEnum (List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts)
+  | A.TArray t -> TArray (UnionFind.make (Pos.map_under_mark ast_to_typ t))
 
 let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
   Pos.map_under_mark
@@ -139,7 +147,8 @@ let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
       | TTuple ts -> A.TTuple (List.map typ_to_ast ts)
       | TEnum ts -> A.TEnum (List.map typ_to_ast ts)
       | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2)
-      | TAny -> A.TLit A.TUnit)
+      | TAny -> A.TLit A.TUnit
+      | TArray t1 -> A.TArray (typ_to_ast t1))
     (UnionFind.get (UnionFind.find ty))
 
 (** {1 Double-directed typing} *)
@@ -254,6 +263,14 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
   | EAssert e' ->
       typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
       UnionFind.make (Pos.same_pos_as (TLit TUnit) e')
+  | EArray es ->
+      let cell_type = UnionFind.make (Pos.same_pos_as TAny e) in
+      List.iter
+        (fun e' ->
+          let t_e' = typecheck_expr_bottom_up env e' in
+          unify cell_type t_e')
+        es;
+      UnionFind.make (Pos.same_pos_as (TArray cell_type) e)
 
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
@@ -383,6 +400,14 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
   | EAssert e' ->
       typecheck_expr_top_down env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
       unify tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e'))
+  | EArray es ->
+      let cell_type = UnionFind.make (Pos.same_pos_as TAny e) in
+      List.iter
+        (fun e' ->
+          let t_e' = typecheck_expr_bottom_up env e' in
+          unify cell_type t_e')
+        es;
+      unify tau (UnionFind.make (Pos.same_pos_as (TArray cell_type) e))
 
 (** {1 API} *)
 

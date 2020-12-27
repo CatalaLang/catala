@@ -236,7 +236,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         Bindlib.box_apply3
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
-    | EOp op -> Bindlib.box (Dcalc.Ast.EOp op) )
+    | EOp op -> Bindlib.box (Dcalc.Ast.EOp op)
+    | EArray es ->
+        Bindlib.box_apply
+          (fun es -> Dcalc.Ast.EArray es)
+          (Bindlib.box_list (List.map (translate_expr ctx) es)) )
 
 let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :

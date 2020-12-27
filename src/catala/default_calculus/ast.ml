@@ -26,6 +26,7 @@ type typ =
   | TTuple of typ Pos.marked list
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
+  | TArray of typ Pos.marked
 
 type date = ODate.Unix.t
 
@@ -48,6 +49,8 @@ type op_kind =
   | KDate
   | KDuration  (** All ops don't have a Kdate and KDuration *)
 
+type ternop = Fold
+
 type binop =
   | And
   | Or
@@ -61,6 +64,7 @@ type binop =
   | Gte of op_kind
   | Eq
   | Neq
+  | Map
 
 type log_entry = VarDef | BeginCall | EndCall
 
@@ -69,8 +73,9 @@ type unop =
   | Minus of op_kind
   | ErrorOnEmpty
   | Log of log_entry * Utils.Uid.MarkedString.info list
+  | Length
 
-type operator = Binop of binop | Unop of unop
+type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
     higher-order abstract syntax*)
@@ -84,6 +89,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EMatch of expr Pos.marked * (expr Pos.marked * Uid.MarkedString.info) list
       (** The [MarkedString.info] is the former enum case name *)
+  | EArray of expr Pos.marked list
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
