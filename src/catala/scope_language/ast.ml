@@ -80,6 +80,8 @@ type typ =
   | TStruct of StructName.t
   | TEnum of EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked
+  | TArray of typ
+  | TAny
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
     higher-order abstract syntax*)

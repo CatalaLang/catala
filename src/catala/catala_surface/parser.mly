@@ -48,7 +48,7 @@
 %token LESSER_DATE GREATER_DATE LESSER_EQUAL_DATE GREATER_EQUAL_DATE
 %token LESSER_DURATION GREATER_DURATION LESSER_EQUAL_DURATION GREATER_EQUAL_DURATION
 %token EXISTS IN SUCH THAT NOW 
-%token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
+%token DOT AND OR LPAREN RPAREN EQUAL
 %token CARDINAL ASSERTION FIXED BY YEAR MONTH DAY
 %token PLUS MINUS MULT DIV
 %token PLUSDEC MINUSDEC MULTDEC DIVDEC
@@ -62,7 +62,7 @@
 %token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
-%token LABEL EXCEPTION
+%token LABEL EXCEPTION LSQUARE RSQUARE SEMICOLON
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -86,18 +86,12 @@ typ_base:
 collection_marked:
 | COLLECTION { $sloc }
 
-optional_marked:
-| OPTIONAL { $sloc }
-
 typ:
 | t = typ_base {
   let t, loc = t in
   (Primitive t, loc)
 }
 | collection_marked t = typ {
-  (Optional t, $sloc)
-}
-| optional_marked t = typ {
   (Collection t, $sloc)
 }
 
@@ -149,6 +143,9 @@ primitive_expression:
 }
 | e = struct_or_enum_inject {
  e
+}
+| LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
+  (ArrayLit l, $sloc)
 }
 
 num_literal:

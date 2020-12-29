@@ -42,6 +42,8 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
+  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ (Pos.same_pos_as t1 typ)
+  | TAny -> Format.fprintf fmt "any"
 
 let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =

@@ -53,12 +53,15 @@ let token_list_language_agnostic : (string * token) list =
     (")", RPAREN);
     ("{", LBRACKET);
     ("}", RBRACKET);
+    ("{", LSQUARE);
+    ("}", RSQUARE);
     ("+", PLUS);
     ("-", MINUS);
     ("*", MULT);
     ("/", DIV);
     ("|", VERTICAL);
     (":", COLON);
+    (";", SEMICOLON);
     ("--", ALT);
   ]
 
@@ -67,7 +70,7 @@ let token_list_language_agnostic : (string * token) list =
 let token_list : (string * token) list =
   [
     ("scope", SCOPE);
-    ("]", CONSEQUENCE);
+    ("|]", CONSEQUENCE);
     ("data", DATA);
     ("fun of", DEPENDS);
     ("new", DECLARATION);
@@ -92,13 +95,12 @@ let token_list : (string * token) list =
     ("equals", DEFINED_AS);
     ("match", MATCH);
     ("with", WITH);
-    ("[", UNDER_CONDITION);
+    ("[|", UNDER_CONDITION);
     ("if", IF);
     ("then", THEN);
     ("else", ELSE);
     ("content", CONTENT);
     ("struct", STRUCT);
-    ("option", OPTIONAL);
     ("assert", ASSERTION);
     ("varies", VARIES);
     ("with parameter", WITH_V);
@@ -222,7 +224,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "with" ->
       update_acc lexbuf;
       WITH
-  | "[" ->
+  | "[|" ->
       update_acc lexbuf;
       UNDER_CONDITION
   | "if" ->
@@ -243,9 +245,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "struct" ->
       update_acc lexbuf;
       STRUCT
-  | "option" ->
-      update_acc lexbuf;
-      OPTIONAL
   | "assert" ->
       update_acc lexbuf;
       ASSERTION
@@ -292,7 +291,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "not" ->
       update_acc lexbuf;
       NOT
-  | "]" ->
+  | "|]" ->
       update_acc lexbuf;
       CONSEQUENCE
   | "number" ->
@@ -464,12 +463,21 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '}' ->
       update_acc lexbuf;
       RBRACKET
+  | '[' ->
+      update_acc lexbuf;
+      LSQUARE
+  | ']' ->
+      update_acc lexbuf;
+      RSQUARE
   | '|' ->
       update_acc lexbuf;
       VERTICAL
   | ':' ->
       update_acc lexbuf;
       COLON
+  | ';' ->
+      update_acc lexbuf;
+      SEMICOLON
   | "--" ->
       update_acc lexbuf;
       ALT

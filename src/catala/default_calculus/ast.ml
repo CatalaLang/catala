@@ -27,6 +27,7 @@ type typ =
   | TEnum of typ Pos.marked list
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
+  | TAny
 
 type date = ODate.Unix.t
 

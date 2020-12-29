@@ -31,7 +31,7 @@ class CatalaNvLexer(RegexLexer):
             (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(true|false)\\b', bygroups(Keyword.Constant)),
             (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
-            (u'(\\-\\-|\\;|\\.|\\,|\\:=|\\:|\\(|\\)|\\[|\\])',
+            (u'(\\-\\-|\\;|\\.|\\,|\\:=|\\:|\\(|\\)|\\[\\||\\|\\]|\\[|\\]|\\{|\\})',
              bygroups(Operator)),
             (u'(\\-\\>|\\+|\\-|\\*|/|\\!|not|or|and|=|>|<|\\$|%|year|month|day)',
              bygroups(Operator)),

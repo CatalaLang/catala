@@ -31,7 +31,8 @@ class CatalaFrLexer(RegexLexer):
             (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(vrai|faux)\\b', bygroups(Keyword.Constant)),
             (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
-            (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))', bygroups(Operator)),
+            (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})', bygroups(
+                Operator)),
             (u'(\\-\\>|\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)',
              bygroups(Operator)),
             (u'\\b(entier|bool\xe9en|date|argent|texte|d\xe9cimal|d\xe9cret|loi|nombre|somme|date_aujourd_hui)\\b',

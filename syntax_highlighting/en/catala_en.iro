@@ -235,7 +235,7 @@ code : context {
 
 
   : pattern {
-     regex \= (\-\-|\;|\.|\,|\:|\(|\))
+     regex \= (\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})
      styles [] = .punctuation;
   }
 

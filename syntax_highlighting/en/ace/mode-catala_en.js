@@ -70,7 +70,7 @@ ace.define("ace/mode/catala_en_highlighting_rules", ["require", "exports", "modu
                 },
                 {
                     "token": "punctuation",
-                    "regex": "(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))"
+                    "regex": "(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})"
                 },
                 {
                     "token": "keyword.operator",

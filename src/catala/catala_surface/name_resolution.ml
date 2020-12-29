@@ -151,12 +151,14 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes }
 
 (** Process a basic type (all types except function types) *)
-let process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
+let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
     Scopelang.Ast.typ Pos.marked =
   match typ with
   | Ast.Condition -> (Scopelang.Ast.TLit TBool, typ_pos)
-  | Ast.Data (Ast.Collection _) -> raise_unsupported_feature "collection type" typ_pos
-  | Ast.Data (Ast.Optional _) -> raise_unsupported_feature "option type" typ_pos
+  | Ast.Data (Ast.Collection t) ->
+      ( Scopelang.Ast.TArray
+          (Pos.unmark (process_base_typ ctxt (Ast.Data (Pos.unmark t), Pos.get_position t))),
+        typ_pos )
   | Ast.Data (Ast.Primitive prim) -> (
       match prim with
       | Ast.Integer -> (Scopelang.Ast.TLit TInt, typ_pos)

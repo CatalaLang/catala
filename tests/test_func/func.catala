@@ -11,8 +11,8 @@ new scope R:
   param r content int
 
 scope S:
-  def f of x [ (x >= x) ] := x + x
-  def f of x [ not b ] := x * x
+  def f of x [| (x >= x) |] := x + x
+  def f of x [| not b |] := x * x
   def b := false
   def out := f of 5
 

@@ -5,6 +5,6 @@ new scope A:
   param x content int
 
 scope A:
-  def x [true] := 1
-  def x [true] := 0
+  def x [|true|] := 1
+  def x [|true|] := 0
 */

@@ -116,7 +116,7 @@
         'name' : 'constant.numeric.catala_en'
       }
       {
-        'match' : '(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\))'
+        'match' : '(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})'
         'name' : 'punctuation.catala_en'
       }
       {

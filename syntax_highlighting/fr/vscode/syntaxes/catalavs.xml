@@ -185,7 +185,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\-|\;|\.|\,|\:|\(|\))</string>
+          <string>(\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})</string>
           <key>name</key>
           <string>punctuation.catala_fr</string>
         </dict>

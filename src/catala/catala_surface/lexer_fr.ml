@@ -53,7 +53,6 @@ let token_list_fr : (string * token) list =
     ("sinon", ELSE);
     ("contenu", CONTENT);
     ("structure", STRUCT);
-    ("optionnel", OPTIONAL);
     ("assertion", ASSERTION);
     ("varie", VARIES);
     ("avec", WITH_V);
@@ -200,9 +199,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "structure" ->
       L.update_acc lexbuf;
       STRUCT
-  | "optionnel" ->
-      L.update_acc lexbuf;
-      OPTIONAL
   | "assertion" ->
       L.update_acc lexbuf;
       ASSERTION
@@ -428,12 +424,21 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | '}' ->
       L.update_acc lexbuf;
       RBRACKET
+  | '[' ->
+      L.update_acc lexbuf;
+      LSQUARE
+  | ']' ->
+      L.update_acc lexbuf;
+      RSQUARE
   | '|' ->
       L.update_acc lexbuf;
       VERTICAL
   | ':' ->
       L.update_acc lexbuf;
       COLON
+  | ';' ->
+      L.update_acc lexbuf;
+      SEMICOLON
   | "--" ->
       L.update_acc lexbuf;
       ALT

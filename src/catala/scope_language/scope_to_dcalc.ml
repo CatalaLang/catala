@@ -54,7 +54,9 @@ let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.m
         Dcalc.Ast.TTuple (List.map (fun (_, t) -> translate_typ ctx t) s_fields)
     | Ast.TEnum e_uid ->
         let e_cases = Ast.EnumMap.find e_uid ctx.enums in
-        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases) )
+        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases)
+    | Ast.TArray t1 -> Dcalc.Ast.TArray (translate_typ ctx (Pos.same_pos_as t1 t))
+    | Ast.TAny -> Dcalc.Ast.TAny )
     t
 
 let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
