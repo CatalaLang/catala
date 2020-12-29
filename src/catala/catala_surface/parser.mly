@@ -210,7 +210,7 @@ compare_op:
 | NOT_EQUAL { (Neq, $sloc) }
 
 aggregate_func:
-| SUM { (Aggregate AggregateSum, $sloc) }
+| SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), $sloc) }
 | CARDINAL { (Aggregate AggregateCount, $sloc) }
 
 aggregate:

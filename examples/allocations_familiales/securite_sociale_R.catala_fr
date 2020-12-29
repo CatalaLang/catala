@@ -135,7 +135,7 @@ du nombre d'enfants à charge dans les conditions suivantes :
 /*
 champ d'application CalculAllocationsFamiliales :
   définition allocations_familiales.nombre_moyen_enfants égal à
-    somme pour enfant dans ménage.enfants de (
+    somme entier pour enfant dans ménage.enfants de (
       selon enfant.prise_en_charge sous forme
       -- Complète : 1
       -- GardeAlternée de parents : 0,5

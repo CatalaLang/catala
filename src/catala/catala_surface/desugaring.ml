@@ -89,7 +89,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Number ((Int i, _), Some (Percent, _)) ->
             Scopelang.Ast.ELit (Dcalc.Ast.LRat (Q.div (Q.of_bigint i) (Q.of_int 100)))
         | Number ((Dec (i, f), _), None) ->
-            let digits_f = int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) in
+            let digits_f =
+              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              with Invalid_argument _ -> 0
+            in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
                  Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
@@ -340,48 +343,85 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       Bindlib.box_apply
         (fun es -> (Scopelang.Ast.EArray es, pos))
         (Bindlib.box_list (List.map rec_helper es))
-  | CollectionOp (op, param, collection, predicate) ->
-      let ctxt, param = Name_resolution.add_def_local_var ctxt param in
+  | CollectionOp (op', param', collection, predicate) ->
+      let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
       let collection = rec_helper collection in
       let init =
-        match Pos.unmark op with
-        | Ast.Exists -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos)
-        | Ast.Forall -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), pos)
-        | _ ->
-            Name_resolution.raise_unsupported_feature "operator not supported" (Pos.get_position op)
-      in
-      let acc_var = Scopelang.Ast.Var.make ("acc", pos) in
-      let acc = Scopelang.Ast.make_var (acc_var, pos) in
-      let f_body =
-        match Pos.unmark op with
+        match Pos.unmark op' with
         | Ast.Exists ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), Pos.get_position op')
+        | Ast.Forall -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LRat Q.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum t) ->
+            Errors.raise_spanned_error
+              (Format.asprintf "It is impossible to sum two values of type %a together"
+                 Print.format_primitive_typ t)
+              pos
+        | Ast.Aggregate Ast.AggregateCount ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+      in
+      let acc_var = Scopelang.Ast.Var.make ("acc", Pos.get_position param') in
+      let acc = Scopelang.Ast.make_var (acc_var, Pos.get_position param') in
+      let f_body =
+        let make_body (op : Dcalc.Ast.binop) =
+          Bindlib.box_apply2
+            (fun predicate acc ->
+              ( Scopelang.Ast.EApp
+                  ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop op), Pos.get_position op'),
+                    [ acc; predicate ] ),
+                pos ))
+            (translate_expr scope ctxt predicate)
+            acc
+        in
+        match Pos.unmark op' with
+        | Ast.Exists -> make_body Dcalc.Ast.Or
+        | Ast.Forall -> make_body Dcalc.Ast.And
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KInt)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KRat)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KMoney)
+        | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box_apply2
               (fun predicate acc ->
-                ( Scopelang.Ast.EApp
-                    ((Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.Or), pos), [ acc; predicate ]),
+                ( Scopelang.Ast.EIfThenElse
+                    ( predicate,
+                      ( Scopelang.Ast.EApp
+                          ( ( Scopelang.Ast.EOp (Dcalc.Ast.Binop (Dcalc.Ast.Add Dcalc.Ast.KInt)),
+                              Pos.get_position op' ),
+                            [
+                              acc;
+                              (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.one), Pos.get_position predicate);
+                            ] ),
+                        pos ),
+                      acc ),
                   pos ))
               (translate_expr scope ctxt predicate)
               acc
-        | Ast.Forall ->
-            Bindlib.box_apply2
-              (fun predicate acc ->
-                ( Scopelang.Ast.EApp
-                    ((Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.And), pos), [ acc; predicate ]),
-                  pos ))
-              (translate_expr scope ctxt predicate)
-              acc
-        | _ ->
-            Name_resolution.raise_unsupported_feature "operator not supported" (Pos.get_position op)
       in
       let f =
-        Bindlib.box_apply
-          (fun binder ->
-            ( Scopelang.Ast.EAbs
-                ( pos,
-                  binder,
-                  [ (Scopelang.Ast.TLit Dcalc.Ast.TBool, pos); (Scopelang.Ast.TAny, pos) ] ),
-              pos ))
-          (Bindlib.bind_mvar [| acc_var; param |] f_body)
+        let make_f (t : Dcalc.Ast.typ_lit) =
+          Bindlib.box_apply
+            (fun binder ->
+              ( Scopelang.Ast.EAbs
+                  ( pos,
+                    binder,
+                    [ (Scopelang.Ast.TLit t, Pos.get_position op'); (Scopelang.Ast.TAny, pos) ] ),
+                pos ))
+            (Bindlib.bind_mvar [| acc_var; param |] f_body)
+        in
+        match Pos.unmark op' with
+        | Ast.Exists -> make_f Dcalc.Ast.TBool
+        | Ast.Forall -> make_f Dcalc.Ast.TBool
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_f Dcalc.Ast.TInt
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_f Dcalc.Ast.TRat
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_f Dcalc.Ast.TMoney
+        | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate Ast.AggregateCount -> make_f Dcalc.Ast.TInt
       in
       Bindlib.box_apply3
         (fun f collection init ->

@@ -35,10 +35,10 @@ déclaration énumération Collectivité :
 déclaration structure Ménage :
   donnée enfants contenu collection Enfant
   donnée parent_en_charge contenu Personne dépend de Enfant
-  donnée enfant_plus_âgé contenu optionnel Enfant
+  donnée enfant_plus_âgé contenu Enfant
   donnée parents contenu collection Personne
   donnée parent1 contenu Personne
-  donnée parent2 contenu optionnel Personne
+  donnée parent2 contenu Personne
   donnée résidence contenu Collectivité
   # Le mot optionnel permet de prévoir le cas où le
   # ménage n'a pas d'enfants
@@ -131,7 +131,7 @@ déclaration énumération ChoixParentAllocataire :
   -- DeuxParents
 
 déclaration structure AllocationsGardeAlternée :
-  donnée choix_allocataire contenu optionnel ChoixParentAllocataire
+  donnée choix_allocataire contenu ChoixParentAllocataire
      dépend de Enfant
   condition unique_allocataire dépend de Enfant
   condition allocataire_double dépend de Enfant

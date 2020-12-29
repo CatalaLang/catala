@@ -89,7 +89,7 @@ type unop = Not | Minus of op_kind
 
 type builtin_expression = Cardinal | Now
 
-type aggregate_func = AggregateSum | AggregateCount
+type aggregate_func = AggregateSum of primitive_typ | AggregateCount
 
 type literal_date = {
   literal_date_day : int Pos.marked;
