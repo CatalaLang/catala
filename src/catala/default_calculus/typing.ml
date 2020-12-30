@@ -68,7 +68,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked UnionFind.elem
 
 (** Raises an error if unification cannot be performed *)
 let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFind.elem) : unit =
-  Cli.debug_print (Format.asprintf "Unifying %a and %a" format_typ t1 format_typ t2);
+  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" format_typ t1 format_typ t2); *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let repr =
@@ -101,12 +101,7 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
           ]
   in
   let t_union = UnionFind.union t1 t2 in
-  match repr with
-  | None -> ()
-  | Some t_repr ->
-      Cli.debug_print
-        (Format.asprintf "Setting %a to %a" format_typ t_union format_typ (UnionFind.make t_repr));
-      UnionFind.set t_union t_repr
+  match repr with None -> () | Some t_repr -> UnionFind.set t_union t_repr
 
 (** Operators have a single type, instead of being polymorphic with constraints. This allows us to
     have a simpler type system, while we argue the syntactic burden of operator annotations helps
@@ -179,7 +174,7 @@ let rec typ_to_ast (ty : typ Pos.marked UnionFind.elem) : A.typ Pos.marked =
 
 (** {1 Double-directed typing} *)
 
-type env = typ Pos.marked A.VarMap.t
+type env = typ Pos.marked UnionFind.elem A.VarMap.t
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.marked UnionFind.elem
@@ -188,7 +183,7 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
     match Pos.unmark e with
     | EVar v -> (
         match A.VarMap.find_opt (Pos.unmark v) env with
-        | Some t -> UnionFind.make t
+        | Some t -> t
         | None ->
             Errors.raise_spanned_error "Variable not found in the current context"
               (Pos.get_position e) )
@@ -252,13 +247,13 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
         if Array.length xs = List.length taus then
           let xstaus =
             List.map2
-              (fun x tau -> (x, (ast_to_typ (Pos.unmark tau), Pos.get_position tau)))
+              (fun x tau -> (x, UnionFind.make (ast_to_typ (Pos.unmark tau), Pos.get_position tau)))
               (Array.to_list xs) taus
           in
           let env = List.fold_left (fun env (x, tau) -> A.VarMap.add x tau env) env xstaus in
           List.fold_right
             (fun (_, t_arg) (acc : typ Pos.marked UnionFind.elem) ->
-              UnionFind.make (TArrow (UnionFind.make t_arg, acc), pos_binder))
+              UnionFind.make (TArrow (t_arg, acc), pos_binder))
             xstaus
             (typecheck_expr_bottom_up env body)
         else
@@ -299,17 +294,17 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
           es;
         UnionFind.make (Pos.same_pos_as (TArray cell_type) e)
   in
-  Cli.debug_print (Format.asprintf "Found type of %a: %a" Print.format_expr e format_typ out);
+  (* Cli.debug_print (Format.asprintf "Found type of %a: %a" Print.format_expr e format_typ out); *)
   out
 
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
-  Cli.debug_print (Format.asprintf "Typechecking %a : %a" Print.format_expr e format_typ tau);
+  (* Cli.debug_print (Format.asprintf "Typechecking %a : %a" Print.format_expr e format_typ tau); *)
   match Pos.unmark e with
   | EVar v -> (
       match A.VarMap.find_opt (Pos.unmark v) env with
-      | Some tau' -> ignore (unify tau (UnionFind.make tau'))
+      | Some tau' -> ignore (unify tau tau')
       | None ->
           Errors.raise_spanned_error "Variable not found in the current context"
             (Pos.get_position e) )
@@ -390,19 +385,15 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
       if Array.length xs = List.length t_args then
         let xstaus =
           List.map2
-            (fun x t_arg -> (x, Pos.map_under_mark ast_to_typ t_arg))
+            (fun x t_arg -> (x, UnionFind.make (Pos.map_under_mark ast_to_typ t_arg)))
             (Array.to_list xs) t_args
         in
         let env = List.fold_left (fun env (x, t_arg) -> A.VarMap.add x t_arg env) env xstaus in
         let t_out = typecheck_expr_bottom_up env body in
         let t_func =
           List.fold_right
-            (fun t_arg acc ->
-              UnionFind.make
-                (Pos.same_pos_as
-                   (TArrow (UnionFind.make (ast_to_typ (Pos.unmark t_arg), pos_binder), acc))
-                   e))
-            t_args t_out
+            (fun (_, t_arg) acc -> UnionFind.make (Pos.same_pos_as (TArrow (t_arg, acc)) e))
+            xstaus t_out
         in
         unify t_func tau
       else
