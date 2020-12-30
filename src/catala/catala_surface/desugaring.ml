@@ -410,7 +410,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               ( Scopelang.Ast.EAbs
                   ( pos,
                     binder,
-                    [ (Scopelang.Ast.TLit t, Pos.get_position op'); (Scopelang.Ast.TAny, pos) ] ),
+                    [
+                      (Scopelang.Ast.TLit t, Pos.get_position op');
+                      (Scopelang.Ast.TAny, pos)
+                      (* we put any here because the type of the elements of the arrays is not
+                         always the type of the accumulator; for instance in AggregateCount. *);
+                    ] ),
                 pos ))
             (Bindlib.bind_mvar [| acc_var; param |] f_body)
         in
@@ -429,6 +434,45 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               ((Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos), [ f; init; collection ]),
             pos ))
         f collection init
+  | MemCollection (member, collection) ->
+      let param_var = Scopelang.Ast.Var.make ("collection_member", pos) in
+      let param = Scopelang.Ast.make_var (param_var, pos) in
+      let collection = rec_helper collection in
+      let init = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos) in
+      let acc_var = Scopelang.Ast.Var.make ("acc", pos) in
+      let acc = Scopelang.Ast.make_var (acc_var, pos) in
+      let f_body =
+        Bindlib.box_apply3
+          (fun member acc param ->
+            ( Scopelang.Ast.EApp
+                ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.Or), pos),
+                  [
+                    ( Scopelang.Ast.EApp
+                        ((Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.Eq), pos), [ member; param ]),
+                      pos );
+                    acc;
+                  ] ),
+              pos ))
+          (translate_expr scope ctxt member)
+          acc param
+      in
+      let f =
+        Bindlib.box_apply
+          (fun binder ->
+            ( Scopelang.Ast.EAbs
+                ( pos,
+                  binder,
+                  [ (Scopelang.Ast.TLit Dcalc.Ast.TBool, pos); (Scopelang.Ast.TAny, pos) ] ),
+              pos ))
+          (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
+      in
+      Bindlib.box_apply3
+        (fun f collection init ->
+          ( Scopelang.Ast.EApp
+              ((Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos), [ f; init; collection ]),
+            pos ))
+        f collection init
+  | Builtin Cardinal -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.Length), pos)
   | _ ->
       Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
 

@@ -67,7 +67,6 @@ let token_list_en : (string * token) list =
     ("exists", EXISTS);
     ("such", SUCH);
     ("that", THAT);
-    ("now", NOW);
     ("and", AND);
     ("or", OR);
     ("not", NOT);
@@ -236,9 +235,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "that" ->
       L.update_acc lexbuf;
       THAT
-  | "now" ->
-      L.update_acc lexbuf;
-      NOW
   | "and" ->
       L.update_acc lexbuf;
       AND

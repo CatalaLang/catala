@@ -197,7 +197,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(integer|boolean|date|money|text|decimal|number|sum|now)\b</string>
+          <string>\b(integer|boolean|date|money|text|decimal|number|sum)\b</string>
           <key>name</key>
           <string>support.type.catala_en</string>
         </dict>

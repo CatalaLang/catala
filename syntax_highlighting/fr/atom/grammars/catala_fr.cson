@@ -124,7 +124,7 @@
         'name' : 'keyword.operator.catala_fr'
       }
       {
-        'match' : '\\b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\\b'
+        'match' : '\\b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme)\\b'
         'name' : 'support.type.catala_fr'
       }
       {

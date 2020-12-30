@@ -78,7 +78,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
                 },
                 {
                     "token": "support.type",
-                    "regex": "\\b(entier|bool\u00e9en|date|argent|texte|d\u00e9cimal|d\u00e9cret|loi|nombre|somme|date_aujourd_hui)\\b"
+                    "regex": "\\b(entier|bool\u00e9en|date|argent|texte|d\u00e9cimal|d\u00e9cret|loi|nombre|somme)\\b"
                 },
                 {
                     "token": ["entity.name.class", "punctuation", "entity.name.function"],

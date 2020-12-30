@@ -87,7 +87,7 @@ type binop =
 
 type unop = Not | Minus of op_kind
 
-type builtin_expression = Cardinal | Now
+type builtin_expression = Cardinal
 
 type aggregate_func = AggregateSum of primitive_typ | AggregateCount
 
