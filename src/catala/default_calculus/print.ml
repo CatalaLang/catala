@@ -173,13 +173,13 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       match i with
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )
-  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a %a" Uid.MarkedString.format_info i format_expr e
+  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a@ %a" Uid.MarkedString.format_info i format_expr e
   | EMatch (e, es) ->
-      Format.fprintf fmt "@[<hov 2>match %a with %a@]" format_expr e
+      Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " |@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "%a %a" Uid.MarkedString.format_info c format_expr e))
+             Format.fprintf fmt "%a@ %a" Uid.MarkedString.format_info c format_expr e))
         es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
@@ -188,7 +188,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
       Format.fprintf fmt "@[%a%a@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
            (fun fmt (x, tau, arg) ->
              Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
                format_typ tau format_expr arg))
@@ -196,9 +196,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EAbs (_, binder, taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-      Format.fprintf fmt "@[<hov 2>λ@ %a@ →@ %a@]"
+      Format.fprintf fmt "@[<hov 2>λ@ %a →@ %a@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
            (fun fmt (x, tau) ->
              Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
         xs_tau format_expr body
@@ -221,7 +221,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       if List.length exceptions = 0 then
         Format.fprintf fmt "@[<hov 2>⟨%a@ ⊢@ %a⟩@]" format_expr just format_expr cons
       else
-        Format.fprintf fmt "@[<hov 2>⟨%a@ |@ @[<hov 2>%a ⊢ %a@]@ ⟩@]"
+        Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a@ ⊢@ %a@ ⟩@]"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
           exceptions format_expr just format_expr cons
   | EAssert e' -> Format.fprintf fmt "@[<hov 2>assert@ (%a)@]" format_expr e'

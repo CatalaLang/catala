@@ -411,6 +411,24 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
           subscope_func (Bindlib.box_list subscope_args)
       in
+      let call_expr =
+        Bindlib.box_apply
+          (fun call_expr ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.EndCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position call_expr ),
+                  [ call_expr ] ),
+              Pos.get_position call_expr ))
+          call_expr
+      in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
       let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let results_bindings, _ =
@@ -425,24 +443,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           all_subscope_vars_dcalc
           (next_e, List.length all_subscope_vars_dcalc - 1)
       in
-      let results_bindings =
-        Bindlib.box_apply
-          (fun results_bindings ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log
-                            ( Dcalc.Ast.EndCall,
-                              [
-                                (sigma_name, pos_sigma);
-                                Ast.SubScopeName.get_info subindex;
-                                Ast.ScopeName.get_info subname;
-                              ] ))),
-                    Pos.get_position results_bindings ),
-                  [ results_bindings ] ),
-              Pos.get_position results_bindings ))
-          results_bindings
-      in
+
       let result_tuple_typ =
         ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
           pos_sigma )
