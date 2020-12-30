@@ -74,7 +74,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
                 },
                 {
                     "token": "keyword.operator",
-                    "regex": "(\\-\\>|\\+|\\-|\\*|/|\\!|non|ou|et|=|>|<|\\u20ac|%|an|mois|jour)"
+                    "regex": "(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\u20ac|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\u20ac|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\u20ac|\\*|/\\.|/\\@|/\\^|/\\u20ac|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\u20ac|>=\\u20ac|<=\\u20ac|<\\u20ac|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|non|ou|et|\\u20ac|%|an|mois|jour)"
                 },
                 {
                     "token": "support.type",

@@ -57,7 +57,7 @@ type context = {
   scopes : scope_context Scopelang.Ast.ScopeMap.t;  (** For each scope, its context *)
   structs : struct_context Scopelang.Ast.StructMap.t;  (** For each struct, its context *)
   enums : enum_context Scopelang.Ast.EnumMap.t;  (** For each enum, its context *)
-  var_typs : typ Pos.marked Scopelang.Ast.ScopeVarMap.t;
+  var_typs : (typ Pos.marked * bool) (* is it a condition? *) Scopelang.Ast.ScopeVarMap.t;
       (** The types of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -77,7 +77,10 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.marked =
-  Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs
+  fst (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs)
+
+let is_var_cond (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : bool =
+  snd (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs)
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
@@ -115,7 +118,15 @@ let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ Pos.mark
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
      the original subscope *)
   | Desugared.Ast.ScopeDef.Var x ->
-      Scopelang.Ast.ScopeVarMap.find x ctxt.var_typs
+      get_var_typ ctxt x
+
+let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
+  match def with
+  | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
+  (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
+     the original subscope *)
+  | Desugared.Ast.ScopeDef.Var x ->
+      is_var_cond ctxt x
 
 (** {1 Declarations pass} *)
 
@@ -149,6 +160,11 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
         }
       in
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes }
+
+let is_type_cond ((typ, _) : Ast.typ Pos.marked) =
+  match typ with
+  | Ast.Base Ast.Condition | Ast.Func { arg_typ = _; return_typ = Ast.Condition, _ } -> true
+  | _ -> false
 
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.marked) :
@@ -192,6 +208,7 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (decl : Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
+  let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
@@ -209,7 +226,7 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       {
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = Scopelang.Ast.ScopeVarMap.add uid data_typ ctxt.var_typs;
+        var_typs = Scopelang.Ast.ScopeVarMap.add uid (data_typ, is_cond) ctxt.var_typs;
       }
 
 (** Process an item declaration *)

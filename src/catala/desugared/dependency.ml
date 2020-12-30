@@ -127,7 +127,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   let g =
     Ast.ScopeDefMap.fold
-      (fun def_key (def, _) g ->
+      (fun def_key (def, _, _) g ->
         let fv = Ast.free_variables def in
         Ast.ScopeDefMap.fold
           (fun fv_def fv_def_pos g ->

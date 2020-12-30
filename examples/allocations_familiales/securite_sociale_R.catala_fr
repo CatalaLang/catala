@@ -11,8 +11,8 @@ Les enfants ouvrent droit aux prestations familiales jusqu'à l'âge de vingt
 ans sous réserve que leur rémunération n'excède pas le plafond fixé au deuxième 
 alinéa du présent article.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition l512_3.âge_limite_alinéa_2 égal à 20 an
+champ d'application OuvertureDroitPrestationsFamiliales :
+  définition âge_l512_3_2 égal à 20
 */
 
 Le plafond de rémunération mentionné au 2° de l'article L. 512-3 est égal, pour 
@@ -20,9 +20,9 @@ un mois, à 55 % du salaire minimum interprofessionnel de croissance défini aux
 articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition l512_3.plafond_rémunération_mensuelle_alinéa_2 égal à
-    55 % * smic.brut_horaire de ménage.résidence * 169
+champ d'application OuvertureDroitPrestationsFamiliales :
+  définition plafond_l512_3_2 égal à
+   (smic.brut_horaire *€ 55 %) *€ 169,0
 */
 
 Pour ceux des enfants qui bénéficient d'avantages en nature, l'évaluation de ces 
@@ -42,15 +42,15 @@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les
 enfants ouvrent droit à la majoration des allocations familiales est fixé à 
 14 ans.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition l521_3.âge_limite_alinéa_1 de enfant égal à 14 an
+# champ d'application CalculAllocationsFamiliales :
+#   définition l521_3.âge_limite_alinéa_1 de enfant égal à 14 an
 */
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article 
 L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition l521_3.minimum_alinéa_2 égal à 3
+# champ d'application CalculAllocationsFamiliales :
+#   définition l521_3.minimum_alinéa_2 égal à 3
 */
 
 NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les 
@@ -61,15 +61,15 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # version du corpus législatif dont un morceau s'applique encore. Nous avons
 # choisi de montrer ce vieux champ d'application ici plutôt qu'à côté du texte
 # du décret de 2008 pour des raisons de place seulement.
-champ d'application CalculAllocationFamilialesAvril2008:
-# Âge limite avant décret n° 2008-409 du 28 avril 2008
-  définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
+# champ d'application CalculAllocationFamilialesAvril2008:
+# # Âge limite avant décret n° 2008-409 du 28 avril 2008
+#   définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
 
-champ d'application CalculAllocationsFamiliales :
-  définition l521_3.minimum_alinéa_2 de enfant
-  sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
-  conséquence égal à
-    calcul_avril_2008.l521_3.minimum_alinéa_2 de enfant
+# champ d'application CalculAllocationsFamiliales :
+#   définition l521_3.minimum_alinéa_2 de enfant
+#   sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
+#   conséquence égal à
+#     calcul_avril_2008.l521_3.minimum_alinéa_2 de enfant
 */
 @Article R521-2|LEGIARTI000006750608@
 Dans les situations visées au deuxième alinéa de l'article L. 521-2 , 
@@ -85,18 +85,18 @@ une demande conjointe de partage.
 # Le fait que l'allocataire dans le cas d'un commun accord soit celui des
 # deux parents désigné par l'accord est déjà modélisé dans L512-2.
 
-champ d'application CalculAllocationsFamiliales :
-  définition allocations_familiales.charge_par_enfant de enfant sous condition
-    (enfant dans ménage.enfants) et
-    (enfant.prise_en_charge sous forme GardeAlternée) et
-    (
-      (allocations_garde_alternée.demande_conjointe_partage_charge) ou
-      (
-        (non allocations_garde_alternée.demande_conjointe_partage_charge) et
-        (enfant.choix_allocataire_garde_alternée sous forme Absent)
-      )
-    )
-  conséquence égal à Partagée
+# champ d'application CalculAllocationsFamiliales :
+#   définition allocations_familiales.charge_par_enfant de enfant sous condition
+#     (enfant dans ménage.enfants) et
+#     (enfant.prise_en_charge sous forme GardeAlternée) et
+#     (
+#       (allocations_garde_alternée.demande_conjointe_partage_charge) ou
+#       (
+#         (non allocations_garde_alternée.demande_conjointe_partage_charge) et
+#         (enfant.choix_allocataire_garde_alternée sous forme Absent)
+#       )
+#     )
+#   conséquence égal à Partagée
 */
 
 Lorsque les parents ont désigné un allocataire unique ou fait une demande 
@@ -116,14 +116,14 @@ multiplié par un coefficient résultant du rapport entre le nombre moyen
 d'enfants et le nombre total d'enfants.
 
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition allocations_familiales.avec_garde_alternée égal à
-    allocations_familiales.base *
-    allocations_familiales.rapport_enfants_total_moyen
+# champ d'application CalculAllocationsFamiliales :
+#   définition allocations_familiales.avec_garde_alternée égal à
+#     allocations_familiales.base *
+#     allocations_familiales.rapport_enfants_total_moyen
 
-  définition allocations_familiales.rapport_enfants_total_moyen égal à
-    allocations_familiales.nombre_moyen_enfants /
-    allocations_familiales.nombre_total_enfants
+#   définition allocations_familiales.rapport_enfants_total_moyen égal à
+#     allocations_familiales.nombre_moyen_enfants /
+#     allocations_familiales.nombre_total_enfants
 */
 
 Le nombre moyen d'enfants, pour chaque foyer, est obtenu en faisant la somme 
@@ -133,21 +133,21 @@ du nombre d'enfants à charge dans les conditions suivantes :
 
 2° Les autres enfants à charge comptent pour 1.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition allocations_familiales.nombre_moyen_enfants égal à
-    somme entier pour enfant dans ménage.enfants de (
-      selon enfant.prise_en_charge sous forme
-      -- Complète : 1
-      -- GardeAlternée de parents : 0,5
-    )
+# champ d'application CalculAllocationsFamiliales :
+#   définition allocations_familiales.nombre_moyen_enfants égal à
+#     somme entier pour enfant dans ménage.enfants de (
+#       selon enfant.prise_en_charge sous forme
+#       -- Complète : 1
+#       -- GardeAlternée de parents : 0,5
+#     )
 */
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du 
 ou des enfants en résidence alternée et, le cas échéant, du ou des autres 
 enfants à charge.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition allocations_familiales.nombre_total_enfants égal à
-    nombre de ménage.enfants
+# champ d'application CalculAllocationsFamiliales :
+#   définition allocations_familiales.nombre_total_enfants égal à
+#     nombre de ménage.enfants
 */
 
 @Article R521-4|LEGIARTI000006750613@
@@ -164,16 +164,16 @@ Lorsque le ou les enfants ouvrant droit à ladite majoration sont en résidence
 alternée, le montant servi au titre de cette majoration est réduit de moitié.
 
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition
-    majorations_allocations_familiales.avec_garde_alternée de enfant
-  sous condition enfant dans ménage.enfants
-  conséquence égal à (
-    selon enfant.prise_en_charge sous forme
-    -- Complète : majorations_allocations_familiales.base_par_enfant
-    -- GardeAlternée de parents:
-      majorations_allocations_familiales.base_par_enfant / 2
-  )
+# champ d'application CalculAllocationsFamiliales :
+#   définition
+#     majorations_allocations_familiales.avec_garde_alternée de enfant
+#   sous condition enfant dans ménage.enfants
+#   conséquence égal à (
+#     selon enfant.prise_en_charge sous forme
+#     -- Complète : majorations_allocations_familiales.base_par_enfant
+#     -- GardeAlternée de parents:
+#       majorations_allocations_familiales.base_par_enfant / 2
+#   )
 */
 
 @@Livre 7 : Régimes divers - Dispositions diverses@@++
@@ -188,9 +188,9 @@ L. 512-3 est égal, pour un mois, à 55 % du salaire minimum de croissance en
 vigueur dans chacun des départements mentionnés à l'article L. 751-1 , 
 multiplié par 169.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition l512_3.plafond_rémunération_mensuelle_alinéa_2
-  sous condition l751_1.régime_outre_mer
-  conséquence égal à
-    55 % * smic.brut_horaire de ménage.résidence * 169
+# champ d'application CalculAllocationsFamiliales :
+#   définition l512_3.plafond_rémunération_mensuelle_alinéa_2
+#   sous condition l751_1.régime_outre_mer
+#   conséquence égal à
+#     55 % * smic.brut_horaire de ménage.résidence * 169
 */

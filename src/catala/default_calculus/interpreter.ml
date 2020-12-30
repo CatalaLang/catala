@@ -135,6 +135,7 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
         A.ELit (LBool (ODate.Unix.compare i1 i2 > 0))
     | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 >= 0))
+    | A.Binop A.Eq, [ ELit LUnit; ELit LUnit ] -> A.ELit (LBool true)
     | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (ODate.Unix.compare i1 i2 = 0))
@@ -170,7 +171,7 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
         A.ELit
           (LBool
              ( try
-                 List.for_all2 type_eq ts1 ts2 && i1 == i2
+                 List.for_all2 type_eq ts1 ts2 && i1 = i2
                  &&
                  match Pos.unmark (evaluate_operator op [ e1; e2 ]) with
                  | A.ELit (LBool b) -> b
@@ -340,7 +341,7 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
       | ELit (LBool false) -> (
           match Pos.unmark e' with
-          | EApp ((Ast.EOp (Binop op), pos_op), [ e1; e2 ]) ->
+          | EApp ((Ast.EOp (Binop op), pos_op), [ ((ELit _, _) as e1); ((ELit _, _) as e2) ]) ->
               Errors.raise_spanned_error
                 (Format.asprintf "Assertion failed: %a %a %a" Print.format_expr e1
                    Print.format_binop (op, pos_op) Print.format_expr e2)

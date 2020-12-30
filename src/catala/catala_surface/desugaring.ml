@@ -557,10 +557,13 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
         (Some (Pos.same_pos_as param_var param), ctxt)
   in
   let scope_updated =
-    let x_def, x_type =
+    let x_def, x_type, is_cond =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
-      | None -> (Desugared.Ast.RuleMap.empty, Name_resolution.get_def_typ ctxt def_key)
+      | None ->
+          ( Desugared.Ast.RuleMap.empty,
+            Name_resolution.get_def_typ ctxt def_key,
+            Name_resolution.is_def_cond ctxt def_key )
     in
     let rule_name =
       match def.Ast.definition_label with
@@ -590,7 +593,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     in
     {
       scope with
-      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type) scope.scope_defs;
+      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type, is_cond) scope.scope_defs;
     }
   in
   {
@@ -693,9 +696,9 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
               Desugared.Ast.scope_defs =
                 Desugared.Ast.IdentMap.fold
                   (fun _ v acc ->
+                    let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
                     Desugared.Ast.ScopeDefMap.add (Desugared.Ast.ScopeDef.Var v)
-                      ( Desugared.Ast.RuleMap.empty,
-                        Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs )
+                      (Desugared.Ast.RuleMap.empty, x, y)
                       acc)
                   s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty;
               Desugared.Ast.scope_assertions = [];

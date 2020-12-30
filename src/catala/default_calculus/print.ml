@@ -143,7 +143,7 @@ let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | EApp _ -> true | _ -> false
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  Format.fprintf fmt "%s" (Bindlib.name_of v)
+  Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
@@ -153,9 +153,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   match Pos.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ETuple es ->
-      Format.fprintf fmt "(%a)"
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (e, struct_field) ->
              match struct_field with
              | Some struct_field ->
@@ -164,7 +164,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
              | None -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
   | EArray es ->
-      Format.fprintf fmt "[%a]"
+      Format.fprintf fmt "@[<hov 2>[%a]@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))

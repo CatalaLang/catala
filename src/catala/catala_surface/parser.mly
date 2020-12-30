@@ -466,9 +466,9 @@ struct_scope:
     struct_decl_field_name = name;
     struct_decl_field_typ = match func_typ with
     | None -> (Base typ, typ_pos)
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (typ, typ_pos);
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (typ, typ_pos);
     }, $sloc) ;
   }, $sloc)
 }
@@ -480,9 +480,9 @@ scope_decl_item:
     let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (Data typ, typ_pos);
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (Data typ, typ_pos);
     }, $sloc);
   }), $sloc) }
 | CONTEXT i = ident SCOPE c = constructor {
@@ -496,9 +496,9 @@ scope_decl_item:
   scope_decl_context_item_typ =
     match func_typ with
     | None -> (Base (Condition), $loc(_condition))
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (Condition, $loc(_condition));
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (Condition, $loc(_condition));
     }, $sloc);
   }), $sloc) }
 

@@ -239,8 +239,8 @@ code : context {
      styles [] = .punctuation;
   }
 
-   : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)
+  : pattern {
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\u20ac|\+|\-\.|\-\@|\-\^|\-\u20ac|\-|\*\.|\*\@|\*\^|\*\u20ac|\*|/\.|/\@|/\^|/\u20ac|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\u20ac|>=\u20ac|<=\u20ac|<\u20ac|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|non|ou|et|\u20ac|%|an|mois|jour)
      styles [] = .operator;
   }
 

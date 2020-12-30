@@ -1,0 +1,34 @@
+@@Inclusion: ../allocations_familiales.catala_fr@@
+
+@Tests@
+
+/*
+déclaration champ d'application Test1:
+  contexte f champ d'application OuvertureDroitPrestationsFamiliales
+
+champ d'application Test1:
+  définition f.âge_l512_3_2_alternatif égal à Absent
+  définition f.date_courante égal à |01/01/2020| 
+  définition f.prestation_courante égal à AllocationsFamiliales
+  définition f.résidence égal à Métropole
+  assertion (f.droits_ouverts de Enfant {
+    -- fin_obligation_scolaire : |01/08/2021|
+    -- âge: 13
+    -- rémuneration_mensuelle: 0€
+  })
+  assertion (non (f.droits_ouverts de Enfant {
+    -- fin_obligation_scolaire : |01/08/2019|
+    -- âge: 17
+    -- rémuneration_mensuelle: 1000€
+  }))
+  assertion (f.droits_ouverts de Enfant {
+    -- fin_obligation_scolaire : |01/08/2019|
+    -- âge: 17
+    -- rémuneration_mensuelle: 400€
+  })
+  assertion (non (f.droits_ouverts de Enfant {
+    -- fin_obligation_scolaire : |01/08/2019|
+    -- âge: 21
+    -- rémuneration_mensuelle: 0€
+  }))
+*/
