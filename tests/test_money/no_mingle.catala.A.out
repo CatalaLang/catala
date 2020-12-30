@@ -9,5 +9,5 @@
 [ERROR] Type money coming from expression:
 [ERROR]  --> test_money/no_mingle.catala
 [ERROR]   | 
-[ERROR] 4 | new scope A:
-[ERROR]   |           ^
+[ERROR] 6 |   param y content money 
+[ERROR]   |                   ^^^^^
