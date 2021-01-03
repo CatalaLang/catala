@@ -69,6 +69,9 @@ let token_list_fr : (string * token) list =
     ("ou", OR);
     ("non", NOT);
     ("nombre", CARDINAL);
+    ("entier_vers_décimal", INT_TO_DEC);
+    ("maximum", MAXIMUM);
+    ("minimum", MINIMUM);
     ("an", YEAR);
     ("mois", MONTH);
     ("jour", DAY);
@@ -251,6 +254,15 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "nombre" ->
       L.update_acc lexbuf;
       CARDINAL
+  | "maximum" ->
+      L.update_acc lexbuf;
+      MAXIMUM
+  | "minimum" ->
+      L.update_acc lexbuf;
+      MINIMUM
+  | "entier_vers_d", 0xE9, "cimal" ->
+      L.update_acc lexbuf;
+      INT_TO_DEC
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE

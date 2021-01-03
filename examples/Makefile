@@ -13,7 +13,7 @@ RESET := $(shell tput -Txterm sgr0)
 # Running legislation unit tests
 ################################
 
-# Usage `make <name_of_example_folder>.<name_of_test_file>.<name_of_test_scope>`
+# Usage `make <name_of_example_folder>.<name_of_test_file>.<name_of_test_scope>.run`
 # This Makefile rule assumes the following directory structure:
 # foo_example
 #     tests/

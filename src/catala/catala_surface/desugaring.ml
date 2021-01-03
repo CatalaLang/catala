@@ -98,12 +98,14 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                  Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
         | Number ((Dec (i, f), _), Some (Percent, _)) ->
             let digits_f =
-              int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) + 2
-              (* because of % *)
+              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              with Invalid_argument _ -> 0
             in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
-                 Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
+                 (Q.div
+                    Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f)))
+                    (Q.of_int 100)))
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | MoneyAmount i ->
             Scopelang.Ast.ELit
@@ -357,6 +359,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LRat Q.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum t) ->
             Errors.raise_spanned_error
               (Format.asprintf "It is impossible to sum two values of type %a together"
@@ -385,6 +390,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KRat)
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KMoney)
         | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box_apply2
               (fun predicate acc ->
@@ -425,6 +433,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_f Dcalc.Ast.TInt
         | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_f Dcalc.Ast.TRat
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_f Dcalc.Ast.TMoney
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
         | Ast.Aggregate Ast.AggregateCount -> make_f Dcalc.Ast.TInt
       in
@@ -472,6 +483,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               ((Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos), [ f; init; collection ]),
             pos ))
         f collection init
+  | Builtin IntToDec -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.IntToRat), pos)
   | Builtin Cardinal -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.Length), pos)
   | _ ->
       Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
@@ -582,7 +594,13 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     let parent_rule =
       match def.Ast.definition_exception_to with
       | None -> None
-      | Some label -> Some (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
+      | Some label ->
+          Some
+            ( try Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap
+              with Not_found ->
+                Errors.raise_spanned_error
+                  (Format.asprintf "Unknown label: \"%s\"" (Pos.unmark label))
+                  (Pos.get_position label) )
     in
     let x_def =
       Desugared.Ast.RuleMap.add rule_name

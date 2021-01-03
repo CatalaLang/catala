@@ -75,6 +75,7 @@ type unop =
   | ErrorOnEmpty
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
+  | IntToRat
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 

@@ -63,6 +63,7 @@
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
 %token LABEL EXCEPTION LSQUARE RSQUARE SEMICOLON
+%token INT_TO_DEC MAXIMUM MINIMUM
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -140,6 +141,9 @@ primitive_expression:
 | CARDINAL {
    (Builtin Cardinal, $sloc)
 }
+| INT_TO_DEC {
+  (Builtin IntToDec, $sloc)
+}
 | e = struct_or_enum_inject {
  e
 }
@@ -209,6 +213,8 @@ compare_op:
 | NOT_EQUAL { (Neq, $sloc) }
 
 aggregate_func:
+| MAXIMUM t = typ_base { (Aggregate (AggregateExtremum (true, Pos.unmark t)), $sloc) }
+| MINIMUM t = typ_base { (Aggregate (AggregateExtremum (false, Pos.unmark t)), $sloc) }
 | SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), $sloc) }
 | CARDINAL { (Aggregate AggregateCount, $sloc) }
 

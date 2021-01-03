@@ -87,9 +87,12 @@ type binop =
 
 type unop = Not | Minus of op_kind
 
-type builtin_expression = Cardinal
+type builtin_expression = Cardinal | IntToDec
 
-type aggregate_func = AggregateSum of primitive_typ | AggregateCount
+type aggregate_func =
+  | AggregateSum of primitive_typ
+  | AggregateCount
+  | AggregateExtremum of bool (* true if max *) * primitive_typ
 
 type literal_date = {
   literal_date_day : int Pos.marked;

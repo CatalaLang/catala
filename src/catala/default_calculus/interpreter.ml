@@ -193,6 +193,7 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.Length, [ EArray es ] -> A.ELit (LInt (Z.of_int (List.length es)))
+    | A.Unop A.IntToRat, [ ELit (LInt i) ] -> A.ELit (LRat (Q.of_bigint i))
     | A.Unop A.ErrorOnEmpty, [ e' ] ->
         if e' = A.ELit LEmptyError then
           Errors.raise_spanned_error

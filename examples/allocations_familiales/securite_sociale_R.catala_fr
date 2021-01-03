@@ -21,6 +21,7 @@ articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 
 /*
 champ d'application PrestationsFamiliales :
+  étiquette définition_plafond_l512_3_2
   définition plafond_l512_3_2 égal à
    (smic.brut_horaire *€ 55 %) *€ 169,0
 */
@@ -103,14 +104,12 @@ multiplié par un coefficient résultant du rapport entre le nombre moyen
 d'enfants et le nombre total d'enfants.
 
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition allocations_familiales.avec_garde_alternée égal à
-#     allocations_familiales.base *
-#     allocations_familiales.rapport_enfants_total_moyen
+champ d'application AllocationsFamiliales :
+  définition montant_avec_garde_alternée_base égal à
+    montant_initial_base *€ rapport_enfants_total_moyen
 
-#   définition allocations_familiales.rapport_enfants_total_moyen égal à
-#     allocations_familiales.nombre_moyen_enfants /
-#     allocations_familiales.nombre_total_enfants
+  définition rapport_enfants_total_moyen égal à
+    nombre_moyen_enfants /. nombre_total_enfants
 */
 
 Le nombre moyen d'enfants, pour chaque foyer, est obtenu en faisant la somme 
@@ -120,21 +119,21 @@ du nombre d'enfants à charge dans les conditions suivantes :
 
 2° Les autres enfants à charge comptent pour 1.
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition allocations_familiales.nombre_moyen_enfants égal à
-#     somme entier pour enfant dans ménage.enfants de (
-#       selon enfant.prise_en_charge sous forme
-#       -- Complète : 1
-#       -- GardeAlternée de parents : 0,5
-#     )
+champ d'application AllocationsFamiliales :
+  définition nombre_moyen_enfants égal à
+    somme décimal pour enfant dans enfants_à_charge de (
+      selon (prise_en_compte de enfant) sous forme
+      -- Complète : 1,0
+      -- Partagée : 0,5
+    )
 */
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du 
 ou des enfants en résidence alternée et, le cas échéant, du ou des autres 
 enfants à charge.
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition allocations_familiales.nombre_total_enfants égal à
-#     nombre de ménage.enfants
+champ d'application AllocationsFamiliales :
+  définition nombre_total_enfants égal à 
+    entier_vers_décimal de (nombre de enfants_à_charge)
 */
 
 @Article R521-4|LEGIARTI000006750613@
@@ -143,7 +142,7 @@ nombre d'enfants à charge est évalué dans les conditions prévues au premier
 alinéa de l'article R. 521-3.
 
 /*
-# ménage.enfants ne contient que des enfants à charge donc rien à formaliser
+# enfants_à_charge ne contient que des enfants à charge donc rien à formaliser
 # ici
 */
 
@@ -151,16 +150,15 @@ Lorsque le ou les enfants ouvrant droit à ladite majoration sont en résidence
 alternée, le montant servi au titre de cette majoration est réduit de moitié.
 
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition
-#     majorations_allocations_familiales.avec_garde_alternée de enfant
-#   sous condition enfant dans ménage.enfants
-#   conséquence égal à (
-#     selon enfant.prise_en_charge sous forme
-#     -- Complète : majorations_allocations_familiales.base_par_enfant
-#     -- GardeAlternée de parents:
-#       majorations_allocations_familiales.base_par_enfant / 2
-#   )
+champ d'application AllocationsFamiliales :
+  définition
+    montant_avec_garde_alternée_majoration de enfant
+  sous condition enfant dans enfants_à_charge
+  conséquence égal à (
+    selon (prise_en_compte de enfant) sous forme
+    -- Complète : montant_initial_majoration de enfant
+    -- Partagée : montant_initial_majoration de enfant *€ 50%
+  )
 */
 
 @@Livre 7 : Régimes divers - Dispositions diverses@@++
@@ -175,9 +173,10 @@ L. 512-3 est égal, pour un mois, à 55 % du salaire minimum de croissance en
 vigueur dans chacun des départements mentionnés à l'article L. 751-1 , 
 multiplié par 169.
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition l512_3.plafond_rémunération_mensuelle_alinéa_2
-#   sous condition l751_1.régime_outre_mer
-#   conséquence égal à
-#     55 % * smic.brut_horaire de ménage.résidence * 169
+champ d'application PrestationsFamiliales :
+  exception définition_plafond_l512_3_2
+  définition plafond_l512_3_2
+  sous condition régime_outre_mer_l751_1
+  conséquence égal à
+    (smic.brut_horaire *€ 55%) *€ 169,0
 */
