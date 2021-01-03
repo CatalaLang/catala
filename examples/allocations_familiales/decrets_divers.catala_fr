@@ -10,12 +10,12 @@ Au  titre  de  l’année  2020,  l’article  81  de  la  loi  du  24  décembr
 Le montant précité de la base mensuelle de calcul des allocations familiales (BMAF), en pourcentage duquel sont fxés les montants des prestations familiales, est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
 
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition prestations_familiales.base_mensuelle
-#   sous condition
-#     date_calcul >= |01/04/2020| et
-#     date_calcul < |01/04/2021|
-#   conséquence égal à 414,4 €
+champ d'application PrestationsFamiliales :
+  définition base_mensuelle
+  sous condition
+    date_courante >=@ |01/04/2020| et
+    date_courante <@ |01/04/2021|
+  conséquence égal à 414,4 €
 */
 
 Des  règles  spécifques  s’appliquent  par  ailleurs  aux  prestations  familiales  suivantes  en  métropole  tout  comme  dans  les  collectivités  de  Guadeloupe,  Guyane,  Martinique,  La  Réunion,  Saint-Barthélemy et à Saint-Martin : l’article 37 de la LFSS pour 2018 a prévu une mesure d’harmonisation du barème de l’allocation de  base  (AB),  de  la  prime  à  la  naissance  et  de  la  prime  à  l’adoption  sur  celui  du  complément  familial. Cette réforme est applicable aux enfants nés ou adoptés à compter du 1er avril 2018 et en conséquence à l’ensemble des enfants à compter du 1er avril 2021.
@@ -107,14 +107,6 @@ Je  vous  demande  de  bien  vouloir  transmettre  à  la  connaissance  des  or
 
 
 @@Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance@@
-
-@@Début métadonnées@@
-/*
-déclaration champ d'application Smic :
-  contexte résidence contenu Collectivité
-  contexte brut_horaire contenu argent
-*/
-@@Fin métadonnées@@
 
 @Article 1|LEGIARTI000039640195|01/01/2020@
 A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à l' article L. 2211-1 du code du travail , le montant du salaire minimum de croissance est relevé dans les conditions ci-après :

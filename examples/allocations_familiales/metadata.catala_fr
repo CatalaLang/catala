@@ -1,24 +1,26 @@
 @@Début métadonnées@@
 /*
-# déclaration structure Personne :
-#   donnée prénom contenu texte
-#   donnée nom contenu texte
-#   donnée date_de_naissance contenu date
+déclaration structure Personne:
+  donnée numéro_sécurité_sociale contenu entier
 
-# déclaration structure ParentsGardeAlternée :
-#   donnée parent1 contenu Personne
-#   donnée parent2 contenu Personne
+déclaration énumération GardeAlternée :
+  -- OuiPartageAllocations
+  -- OuiAllocataireUnique
+  -- NonGardeUnique
 
-# déclaration énumération PriseEnCharge :
-#   -- Complète contenu Personne
-#   -- GardeAlternée contenu ParentsGardeAlternée
+déclaration énumération PriseEnChargeServiceSociaux:
+  -- OuiAllocationVerséeÀLaFamille
+  -- OuiAllocationVerséeAuxServicesSociaux
+  -- NonPriseEnChargeFamille
 
 déclaration structure Enfant :
   donnée fin_obligation_scolaire contenu date
   donnée rémuneration_mensuelle contenu argent
+  donnée date_de_naissance contenu date
   donnée âge contenu entier
-  # donnée prise_en_charge contenu PriseEnCharge
-  # condition confié_service_social
+  donnée garde_alternée contenu GardeAlternée
+  donnée pris_en_charge_par_services_sociaux contenu 
+    PriseEnChargeServiceSociaux
 
 déclaration énumération Collectivité :
   -- Guadeloupe
@@ -31,198 +33,82 @@ déclaration énumération Collectivité :
   -- SaintPierreEtMiquelon
   -- Mayotte
 
-# déclaration structure Ménage :
-#   donnée enfants contenu collection Enfant
-#   donnée parent_en_charge contenu Personne dépend de Enfant
-#   donnée enfant_plus_âgé contenu Enfant
-#   donnée parents contenu collection Personne
-#   donnée parent1 contenu Personne
-#   donnée parent2 contenu Personne
-#   donnée résidence contenu Collectivité
-#   # Le mot optionnel permet de prévoir le cas où le
-#   # ménage n'a pas d'enfants
+déclaration champ d'application Smic :
+  contexte résidence contenu Collectivité
+  contexte brut_horaire contenu argent
 
-# déclaration champ d'application MénageBienFormé :
-#   contexte ménage contenu Ménage
+déclaration énumération PriseEnCompteÉvaluationMontant:
+  -- Complète
+  -- Partagée
 
-# champ d'application MénageBienFormé :
-#   assertion nombre de parents > 0 et nombre de parents <= 2
+déclaration énumération VersementAllocations: 
+  -- Normal
+  -- AllocationVerséeAuxServicesSociaux
 
-#   # Les champs parent1 et parent2 sont cohérents
-#   assertion ménage.parent1 dans ménage.parents
-#   assertion (
-#     selon ménage.parent2 sous forme
-#     -- Présent de parent2 :
-#       parent2 dans ménage.parents et parent2 != ménage.parent1
-#     -- Absent : vrai
-#   )
+déclaration énumération ÂgeAlternatif:
+  -- Absent 
+  -- Présent contenu entier
 
-#   # Dans la traduction informatique, le ménage est en charge de chacun
-#   # des enfants
-#   assertion (pour tout enfant dans enfants on a
-#     selon enfant.prise_en_charge sous forme
-#     -- Complète de parent : parent dans ménage.parents
-#     -- GardeAlternée de parents_garde_alternée :
-#       parents_garde_alternée.parent1 dans ménage.parents ou
-#       parents_garde_alternée.parent2 dans ménage.parents
-#   )
+déclaration énumération ÉlémentPrestationsFamiliales:
+  -- PrestationAccueilJeuneEnfant
+  -- AllocationsFamiliales
+  -- ComplémentFamilial 
+  -- AllocationLogement
+  -- AllocationÉducationEnfantHandicapé
+  -- AllocationSoutienFamilial
+  -- AllocationRentréeScolaire 
+  -- AllocationJournalièrePresenceParentale
 
-#   # parent_en_charge permet de savoir quel parent du ménage
-#   # est en charge de quel enfant
-#   définition parent_en_charge de enfant égal à (
-#     selon enfant.prise_en_charge sous forme
-#     -- Complète de parent : parent
-#     -- GardeAlternée de parents_garde_alternée : (
-#       si parents_garde_alternée.parent1 dans ménage.parents
-#       alors parents_garde_alternée.parent1
-#       sinon parents_garde_alternée.parent2
-#   ))
+déclaration champ d'application PrestationsFamiliales:
+  contexte droit_ouvert condition dépend de Enfant
+  contexte conditions_hors_âge condition dépend de Enfant
+  contexte plafond_l512_3_2 contenu argent 
+  contexte âge_l512_3_2 contenu entier
+  contexte âge_l512_3_2_alternatif contenu ÂgeAlternatif
+  contexte régime_outre_mer_l751_1 condition
+  contexte date_courante contenu date
+  contexte prestation_courante contenu ÉlémentPrestationsFamiliales
+  contexte résidence contenu Collectivité
+  contexte smic champ d'application Smic
+  contexte base_mensuelle contenu argent
 
-#   # Lorsqu'un enfant est confié au service social, il ne peut être
-#   # en garde alternée
-#   assertion pour tout enfant dans enfants on a
-#     si enfant.confié_service_social
-#     alors enfant.prise_en_charge = Complète contenu service_social
-#     sinon vrai
+champ d'application PrestationsFamiliales:
+  définition smic.résidence égal à résidence
 
-# déclaration énumération Prestation:
-#   -- PrestationAccueilJeuneEnfant
-#   -- AllocationFamiliale
-#   -- ComplémentFamilial
-#   -- AllocationLogement
-#   -- AllocationÉducationEnfantHandicapé
-#   -- AllocationSoutienFamilial
-#   -- AllocationRentréeScolaire
-#   -- AllocationJournalièrePresenceParentale
+déclaration champ d'application AllocationFamilialesAvril2008:
+  contexte âge_limite_alinéa_1_l521_3 contenu entier
 
-# déclaration structure PrestationsFamiliales :
-#   condition conditions_hors_âge dépend de Enfant
-#   condition droits_ouverts dépend de Enfant
-#   donnée base_mensuelle contenu argent
-#   donnée base_mensuelle_dom contenu argent
+déclaration champ d'application AllocationsFamiliales:
+  contexte enfants_à_charge contenu collection Enfant 
+  contexte ressources_ménage contenu argent
+  contexte prise_en_compte contenu 
+    PriseEnCompteÉvaluationMontant dépend de Enfant
+  contexte versement contenu 
+    VersementAllocations dépend de Enfant
 
-# déclaration énumération ChargeAllocation :
-#   -- Complète
-#   -- Partagée
+  contexte droit_ouvert_base condition
+  contexte droit_ouvert_majoration condition dépend de Enfant
+  contexte montant_versé_base contenu argent
 
-# déclaration structure AllocationsFamiliales :
-#   condition droits_ouverts
-#   donnée date_ouverture_droits contenu date
-#   condition conditions_hors_âge dépend de Enfant
-#   donnée base contenu argent
-#   donnée avec_garde_alternée contenu argent
-#   donnée montant_versé contenu argent
-#   donnée récipiendaire_par_enfant contenu Personne dépend de Enfant
-#   donnée charge_par_enfant contenu ChargeAllocation dépend de Enfant
-#   donnée rapport_enfants_total_moyen contenu décimal
-#   donnée nombre_total_enfants contenu entier
-#   donnée nombre_moyen_enfants contenu décimal
-#   donnée montant_premier_enfant contenu argent
-#   donnée montant_deuxieme_enfant contenu argent
-#   donnée montant_troisième_enfant_et_plus contenu argent
+  contexte droit_ouvert_forfaitaire condition dépend de Enfant 
+  contexte montant_versé_forfaitaire contenu argent
 
-# déclaration structure AllocationForfaitaire :
-#   condition droits_ouverts dépend de Enfant
-#   donnée montant_versé contenu argent
+  contexte montant_versé_majorations contenu argent
 
-# déclaration énumération ChoixParentAllocataire :
-#   -- UnParent contenu Personne
-#   -- DeuxParents
+  contexte droit_ouvert_complément condition
+  contexte montant_versé_complément contenu argent
 
-# déclaration structure AllocationsGardeAlternée :
-#   donnée choix_allocataire contenu ChoixParentAllocataire
-#      dépend de Enfant
-#   condition unique_allocataire dépend de Enfant
-#   condition allocataire_double dépend de Enfant
-#   condition demande_conjointe_partage_charge dépend de Enfant
-#   condition desaccord_charge dépend de Enfant
+  contexte prestations_familiales champ d'application PrestationsFamiliales
+  contexte version_avril_2008 champ d'application AllocationFamilialesAvril2008
+  contexte conditions_hors_âge condition dépend de Enfant
 
-# déclaration structure MajorationsAllocationsFamiliales :
-#   condition droits_ouverts dépend de Enfant
-#   donnée base_par_enfant contenu argent dépend de Enfant
-#   donnée avec_garde_alternée contenu argent dépend de Enfant
-#   donnée montant_versé contenu argent
+  contexte nombre_enfants_l512_1 contenu entier
+  contexte âge_limite_alinéa_1_l521_3 contenu entier dépend de Enfant
+  contexte nombre_enfants_alinéa_2_l521_3 contenu entier
+  contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
 
-# déclaration structure ComplémentDégressif :
-#   condition droits_ouverts dépend de argent
-#   donnée dépassement contenu argent dépend de argent
-#   donnée pour_allocation_forfaitaire contenu argent
-#   donnée pour_allocations_familiales_et_majorations contenu argent
-#   donnée montant_versé contenu argent
-
-# déclaration structure TitreI:
-#   condition droits_ouverts_allocations_familiales dépend de Personne
-
-# déclaration structure L511_1:
-#   donnée prestation_courante contenu Prestation
-
-# déclaration structure L512_3 :
-#   donnée âge_limite_alinéa_2 contenu entier
-#   donnée âge_limite_alinéa_2_alternatif contenu entier
-#   condition âge_limite_alinéa_2_alternatif_utilisé
-#   donnée plafond_rémunération_mensuelle_alinéa_2 contenu argent
-
-# déclaration structure L521_1 :
-#   donnée nombre_minimum_enfants contenu argent
-#   donnée ressources_ménage contenu argent
-
-# déclaration structure L521_3 :
-#   donnée âge_limite_alinéa_1 contenu entier dépend de Enfant
-#   donnée minimum_alinéa_2 contenu argent
-
-# déclaration structure L751_1 :
-#   condition régime_outre_mer
-
-# déclaration structure D521_3 :
-#   donnée plafond_I contenu argent
-#   donnée plafond_II contenu argent
-
-# déclaration structure SMIC :
-#   donnée brut_horaire contenu argent dépend de Collectivité
-
-# déclaration champ d'application CalculPrestationsFamiliales :
-#   # Les règles déclarées dans PrestationsFamiliales pourront utiliser
-#   # ménage et l512_3 et leur données associées
-#   contexte date_calcul contenu date
-#   contexte ménage contenu Ménage
-#   contexte prestations_familiales contenu PrestationsFamiliales
-#   contexte l511_1 contenu L511_1
-#   contexte l512_3 contenu L512_3
-#   contexte ménage_bien_formé champ d'application MénageBienFormé
-
-# champ d'application CalculPrestationsFamiliales:
-#   définition ménage_bien_formé.ménage égal à ménage
-
-# déclaration champ d'application CalculAllocationsFamilialesAvril2008 :
-#   contexte l521_3 contenu L521_3
-
-# déclaration champ d'application CalculAllocationsFamiliales :
-#   contexte date_calcul contenu date
-#   contexte ménage contenu Ménage
-#   contexte allocations_familiales contenu AllocationsFamiliales
-#   contexte allocation_forfaitaire contenu AllocationForfaitaire
-#   contexte allocations_garde_alternée contenu AllocationsGardeAlternée
-#   contexte majorations_allocations_familiales
-#     contenu MajorationsAllocationsFamiliales
-#   contexte smic contenu SMIC
-
-#   contexte titre_I contenu TitreI
-#   contexte l521_1 contenu L521_1
-#   contexte l521_3 contenu L521_3
-#   contexte l751_1 contenu L751_1
-#   contexte d521_1 contenu D521_1
-#   contexte d521_3 contenu D521_3
-#   contexte calcul_prestations_familiales
-#     champ d'application CalculPrestationsFamiliales
-#   contexte calcul_avril_2008
-#     champ d'application CalculAllocationsFamilialesAvril2008
-
-# champ d'application CalculAllocationsFamiliales:
-#   définition calcul_prestations_familiales.ménage égal à ménage
-#   définition calcul_prestations_familiales.date_calcul égal à date_calcul
-#   # AllocationsFamiliales est un cas particulier de PrestationsFamiliales,
-#   # le dernier est donc inclus dans l'autre. Il est nécessaire de préciser
-#   #  que les deux contextes parlent du même ménage pour caractériser
-#   # l'inclusion.
+champ d'application AllocationsFamiliales:
+  définition prestations_familiales.prestation_courante égal à 
+    AllocationsFamiliales
 */
 @@Fin métadonnées@@

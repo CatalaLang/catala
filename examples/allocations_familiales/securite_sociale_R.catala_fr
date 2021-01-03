@@ -11,7 +11,7 @@ Les enfants ouvrent droit aux prestations familiales jusqu'à l'âge de vingt
 ans sous réserve que leur rémunération n'excède pas le plafond fixé au deuxième 
 alinéa du présent article.
 /*
-champ d'application OuvertureDroitPrestationsFamiliales :
+champ d'application PrestationsFamiliales :
   définition âge_l512_3_2 égal à 20
 */
 
@@ -20,7 +20,7 @@ un mois, à 55 % du salaire minimum interprofessionnel de croissance défini aux
 articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 
 /*
-champ d'application OuvertureDroitPrestationsFamiliales :
+champ d'application PrestationsFamiliales :
   définition plafond_l512_3_2 égal à
    (smic.brut_horaire *€ 55 %) *€ 169,0
 */
@@ -42,15 +42,15 @@ L'âge mentionné au premier alinéa de l'article L. 521-3 à partir duquel les
 enfants ouvrent droit à la majoration des allocations familiales est fixé à 
 14 ans.
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition l521_3.âge_limite_alinéa_1 de enfant égal à 14 an
+champ d'application AllocationsFamiliales :
+  définition âge_limite_alinéa_1_l521_3 de enfant égal à 14
 */
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article 
 L. 521-3 ouvrant droit à ladite majoration pour chaque enfant est fixé à trois.
 /*
-# champ d'application CalculAllocationsFamiliales :
-#   définition l521_3.minimum_alinéa_2 égal à 3
+champ d'application AllocationsFamiliales :
+  définition nombre_enfants_alinéa_2_l521_3 égal à 3
 */
 
 NOTA : Décret n° 2008-409 du 28 avril 2008 JORF du 29 avril 2008 art. 2 : Les 
@@ -61,15 +61,15 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # version du corpus législatif dont un morceau s'applique encore. Nous avons
 # choisi de montrer ce vieux champ d'application ici plutôt qu'à côté du texte
 # du décret de 2008 pour des raisons de place seulement.
-# champ d'application CalculAllocationFamilialesAvril2008:
-# # Âge limite avant décret n° 2008-409 du 28 avril 2008
-#   définition l521_3.minimum_alinéa_2 de enfant égal à 16 an
+champ d'application AllocationFamilialesAvril2008:
+  # Âge limite avant décret n° 2008-409 du 28 avril 2008
+  définition âge_limite_alinéa_1_l521_3 égal à 16
 
-# champ d'application CalculAllocationsFamiliales :
-#   définition l521_3.minimum_alinéa_2 de enfant
-#   sous condition (enfant.date_naissance + 11 an <= |30/04/2008|)
-#   conséquence égal à
-#     calcul_avril_2008.l521_3.minimum_alinéa_2 de enfant
+champ d'application AllocationsFamiliales :
+  définition âge_limite_alinéa_1_l521_3 de enfant
+  sous condition (enfant.date_de_naissance +@ 11 an <=@ |30/04/2008|)
+  conséquence égal à
+    version_avril_2008.âge_limite_alinéa_1_l521_3
 */
 @Article R521-2|LEGIARTI000006750608@
 Dans les situations visées au deuxième alinéa de l'article L. 521-2 , 
@@ -84,19 +84,6 @@ une demande conjointe de partage.
 /*
 # Le fait que l'allocataire dans le cas d'un commun accord soit celui des
 # deux parents désigné par l'accord est déjà modélisé dans L512-2.
-
-# champ d'application CalculAllocationsFamiliales :
-#   définition allocations_familiales.charge_par_enfant de enfant sous condition
-#     (enfant dans ménage.enfants) et
-#     (enfant.prise_en_charge sous forme GardeAlternée) et
-#     (
-#       (allocations_garde_alternée.demande_conjointe_partage_charge) ou
-#       (
-#         (non allocations_garde_alternée.demande_conjointe_partage_charge) et
-#         (enfant.choix_allocataire_garde_alternée sous forme Absent)
-#       )
-#     )
-#   conséquence égal à Partagée
 */
 
 Lorsque les parents ont désigné un allocataire unique ou fait une demande 

@@ -92,8 +92,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                 try Ast.StructFieldMap.find field_name e_fields
                 with Not_found ->
                   Errors.raise_spanned_error
-                    (Format.asprintf "The field %a does not belong to the structure %a"
-                       Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+                    (Format.asprintf "Missing field for structure %a: \"%a\""
+                       Ast.StructName.format_t struct_name Ast.StructFieldName.format_t field_name)
                     (Pos.get_position e)
               in
               let field_d = translate_expr ctx field_e in
@@ -107,8 +107,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
           Errors.raise_spanned_error
-            (Format.asprintf "Missing fields for structure %a: %a" Ast.StructName.format_t
-               struct_name
+            (Format.asprintf "The fields \"%a\" do not belong to the structure %a"
+               Ast.StructName.format_t struct_name
                (Format.pp_print_list
                   ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
                   (fun fmt (field_name, _) ->
@@ -123,7 +123,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           try List.assoc field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig)
           with Not_found ->
             Errors.raise_spanned_error
-              (Format.asprintf "The field %a does not belong to the structure %a"
+              (Format.asprintf "The field \"%a\" does not belong to the structure %a"
                  Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
               (Pos.get_position e)
         in
@@ -138,7 +138,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           try List.assoc constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig)
           with Not_found ->
             Errors.raise_spanned_error
-              (Format.asprintf "The constructor %a does not belong to the enum %a"
+              (Format.asprintf "The constructor \"%a\" does not belong to the enum %a"
                  Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
               (Pos.get_position e)
         in
