@@ -49,7 +49,7 @@ scope BasisOfGift:
       transferor.basis
 
   definition basis under condition
-    acquisition.moment > |01/31/1920| and
+    acquisition.moment > |12/31/1920| and
     acquisition.method = Gift
   consequence equals basis_subsection_a
 
