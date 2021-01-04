@@ -8,7 +8,7 @@ higher-level specification languages for fiscal legislation.
 """
 maintainer: ["contact@catala-lang.org"]
 authors: ["Denis Merigoux"]
-license: "Apache2"
+license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [

@@ -41,7 +41,7 @@ individual's income over a year.
 To do that, we will intertwine short snippets of code between the sentences of 
 the legislative text. Each snippet of code should be as short as possible and 
 as close as possible to the actual sentence that justifies the code. This style 
-is called litterate programming, a programming paradigm invented by the famous 
+is called literate programming, a programming paradigm invented by the famous 
 computer scientist Donald Knuth in the 70s.
 
 @@Defining a fictional income tax@@+
@@ -72,7 +72,7 @@ declaration structure Individual:
 */
 @@End metadata@@
 
-This structre contains two data fields, "income" and "number_of_children". Structures are 
+This structure contains two data fields, "income" and "number_of_children". Structures are 
 useful to group together data that goes together. Usually, you 
 get one structure per concrete object on which the law applies (like the 
 individual). It is up to you to decide how to group the data together, 
