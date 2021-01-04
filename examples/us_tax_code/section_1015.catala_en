@@ -19,7 +19,7 @@ declaration structure Value:
 
 declaration structure Transferor:
   data basis content money
-  data basis_known content optional money
+  data basis_known content money
   data acquisition content Acquisition
   data gain_or_loss content money depends on date
 

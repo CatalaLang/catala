@@ -7,6 +7,6 @@ new scope TestBool :
 
 scope TestBool :
   def bar := 1
-  def foo [ bar >= 0 ] := true
-  def foo [ bar < 0 ] := false
+  def foo [| bar >= 0 |] := true
+  def foo [| bar < 0 |] := false
 */

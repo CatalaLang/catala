@@ -83,6 +83,17 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
     exception_to_rule = None;
   }
 
+let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
+  {
+    just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), pos);
+    cons = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
+    parameter =
+      ( match have_parameter with
+      | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
+      | None -> None );
+    exception_to_rule = None;
+  }
+
 type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
 
 type variation_typ = Increasing | Decreasing
@@ -97,7 +108,8 @@ type scope = {
   scope_vars : Scopelang.Ast.ScopeVarSet.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs : (rule RuleMap.t * Scopelang.Ast.typ Pos.marked) ScopeDefMap.t;
+  scope_defs :
+    (rule RuleMap.t * Scopelang.Ast.typ Pos.marked * bool) (* is it a condition? *) ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }

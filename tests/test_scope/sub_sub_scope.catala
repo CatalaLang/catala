@@ -20,9 +20,9 @@ scope A:
  def u := true
 
 scope B:
-  def a2.x [ a1.u ] := 1
-  def y [ a2.x = 1 ] := 1
-  def y [ a2.x + 1 = 2 ] := 1
+  def a2.x [| a1.u |] := 1
+  def y [| a2.x = 1 |] := 1
+  def y [| a2.x + 1 = 2 |] := 1
 
 scope C:
   def a.x := 2

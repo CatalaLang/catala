@@ -55,7 +55,6 @@ let token_list_en : (string * token) list =
     ("else", ELSE);
     ("content", CONTENT);
     ("structure", STRUCT);
-    ("optional", OPTIONAL);
     ("assertion", ASSERTION);
     ("varies", VARIES);
     ("with", WITH_V);
@@ -68,10 +67,12 @@ let token_list_en : (string * token) list =
     ("exists", EXISTS);
     ("such", SUCH);
     ("that", THAT);
-    ("now", NOW);
     ("and", AND);
     ("or", OR);
     ("not", NOT);
+    ("integer_to_decimal", INT_TO_DEC);
+    ("maximum", MAXIMUM);
+    ("minimum", MAXIMUM);
     ("number", CARDINAL);
     ("year", YEAR);
     ("month", MONTH);
@@ -197,9 +198,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "structure" ->
       L.update_acc lexbuf;
       STRUCT
-  | "optional" ->
-      L.update_acc lexbuf;
-      OPTIONAL
   | "assertion" ->
       L.update_acc lexbuf;
       ASSERTION
@@ -240,9 +238,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "that" ->
       L.update_acc lexbuf;
       THAT
-  | "now" ->
-      L.update_acc lexbuf;
-      NOW
   | "and" ->
       L.update_acc lexbuf;
       AND
@@ -252,6 +247,15 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "not" ->
       L.update_acc lexbuf;
       NOT
+  | "integer_to_decimal" ->
+      L.update_acc lexbuf;
+      INT_TO_DEC
+  | "maximum" ->
+      L.update_acc lexbuf;
+      MAXIMUM
+  | "minimum" ->
+      L.update_acc lexbuf;
+      MINIMUM
   | "number" ->
       L.update_acc lexbuf;
       CARDINAL
@@ -421,12 +425,21 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | '}' ->
       L.update_acc lexbuf;
       RBRACKET
+  | '[' ->
+      L.update_acc lexbuf;
+      LSQUARE
+  | ']' ->
+      L.update_acc lexbuf;
+      RSQUARE
   | '|' ->
       L.update_acc lexbuf;
       VERTICAL
   | ':' ->
       L.update_acc lexbuf;
       COLON
+  | ';' ->
+      L.update_acc lexbuf;
+      SEMICOLON
   | "--" ->
       L.update_acc lexbuf;
       ALT

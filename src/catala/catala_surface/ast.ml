@@ -34,10 +34,7 @@ type primitive_typ =
   | Date
   | Named of constructor
 
-type base_typ_data =
-  | Primitive of primitive_typ
-  | Collection of base_typ_data Pos.marked
-  | Optional of base_typ_data Pos.marked
+type base_typ_data = Primitive of primitive_typ | Collection of base_typ_data Pos.marked
 
 type base_typ = Condition | Data of base_typ_data
 
@@ -90,9 +87,12 @@ type binop =
 
 type unop = Not | Minus of op_kind
 
-type builtin_expression = Cardinal | Now
+type builtin_expression = Cardinal | IntToDec
 
-type aggregate_func = AggregateSum | AggregateCount
+type aggregate_func =
+  | AggregateSum of primitive_typ
+  | AggregateCount
+  | AggregateExtremum of bool (* true if max *) * primitive_typ
 
 type literal_date = {
   literal_date_day : int Pos.marked;
@@ -136,6 +136,7 @@ and expression =
   | EnumInject of constructor Pos.marked * expression Pos.marked option
   | EnumProject of expression Pos.marked * constructor Pos.marked
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
+  | ArrayLit of expression Pos.marked list
   | Ident of ident
   | Dotted of expression Pos.marked * ident Pos.marked
       (** Dotted is for both struct field projection and sub-scope variables *)

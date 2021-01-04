@@ -1,0 +1,13 @@
+[ERROR] Error during typechecking, types money and integer are incompatible
+[ERROR] 
+[ERROR] Type money coming from expression:
+[ERROR]   --> test_array/fold_error.catala
+[ERROR]    | 
+[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7) 
+[ERROR]    |                                                     ^^^
+[ERROR] 
+[ERROR] Type integer coming from expression:
+[ERROR]  --> test_array/fold_error.catala
+[ERROR]   | 
+[ERROR] 5 |   param list content set int
+[ERROR]   |                      ^^^^^^^

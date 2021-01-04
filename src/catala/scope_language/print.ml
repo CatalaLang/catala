@@ -42,6 +42,8 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   | TEnum e -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
+  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ (Pos.same_pos_as t1 typ)
+  | TAny -> Format.fprintf fmt "any"
 
 let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
@@ -104,6 +106,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EIfThenElse (e1, e2, e3) ->
       Format.fprintf fmt "if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]" format_expr
         e1 format_expr e2 format_expr e3
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
   | EDefault (excepts, just, cons) ->
@@ -113,3 +116,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
         Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a ⊢ %a⟩@]"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
           excepts format_expr just format_expr cons
+  | EArray es ->
+      Format.fprintf fmt "[%a]"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";")
+           (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
+        es

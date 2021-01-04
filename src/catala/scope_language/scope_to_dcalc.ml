@@ -54,7 +54,9 @@ let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.m
         Dcalc.Ast.TTuple (List.map (fun (_, t) -> translate_typ ctx t) s_fields)
     | Ast.TEnum e_uid ->
         let e_cases = Ast.EnumMap.find e_uid ctx.enums in
-        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases) )
+        Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases)
+    | Ast.TArray t1 -> Dcalc.Ast.TArray (translate_typ ctx (Pos.same_pos_as t1 t))
+    | Ast.TAny -> Dcalc.Ast.TAny )
     t
 
 let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
@@ -90,8 +92,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                 try Ast.StructFieldMap.find field_name e_fields
                 with Not_found ->
                   Errors.raise_spanned_error
-                    (Format.asprintf "The field %a does not belong to the structure %a"
-                       Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
+                    (Format.asprintf "Missing field for structure %a: \"%a\""
+                       Ast.StructName.format_t struct_name Ast.StructFieldName.format_t field_name)
                     (Pos.get_position e)
               in
               let field_d = translate_expr ctx field_e in
@@ -105,8 +107,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
           Errors.raise_spanned_error
-            (Format.asprintf "Missing fields for structure %a: %a" Ast.StructName.format_t
-               struct_name
+            (Format.asprintf "The fields \"%a\" do not belong to the structure %a"
+               Ast.StructName.format_t struct_name
                (Format.pp_print_list
                   ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
                   (fun fmt (field_name, _) ->
@@ -121,7 +123,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           try List.assoc field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig)
           with Not_found ->
             Errors.raise_spanned_error
-              (Format.asprintf "The field %a does not belong to the structure %a"
+              (Format.asprintf "The field \"%a\" does not belong to the structure %a"
                  Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
               (Pos.get_position e)
         in
@@ -136,7 +138,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           try List.assoc constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig)
           with Not_found ->
             Errors.raise_spanned_error
-              (Format.asprintf "The constructor %a does not belong to the enum %a"
+              (Format.asprintf "The constructor \"%a\" does not belong to the enum %a"
                  Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
               (Pos.get_position e)
         in
@@ -236,7 +238,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         Bindlib.box_apply3
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
-    | EOp op -> Bindlib.box (Dcalc.Ast.EOp op) )
+    | EOp op -> Bindlib.box (Dcalc.Ast.EOp op)
+    | EArray es ->
+        Bindlib.box_apply
+          (fun es -> Dcalc.Ast.EArray es)
+          (Bindlib.box_list (List.map (translate_expr ctx) es)) )
 
 let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
@@ -405,6 +411,24 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
           subscope_func (Bindlib.box_list subscope_args)
       in
+      let call_expr =
+        Bindlib.box_apply
+          (fun call_expr ->
+            ( Dcalc.Ast.EApp
+                ( ( Dcalc.Ast.EOp
+                      (Dcalc.Ast.Unop
+                         (Dcalc.Ast.Log
+                            ( Dcalc.Ast.EndCall,
+                              [
+                                (sigma_name, pos_sigma);
+                                Ast.SubScopeName.get_info subindex;
+                                Ast.ScopeName.get_info subname;
+                              ] ))),
+                    Pos.get_position call_expr ),
+                  [ call_expr ] ),
+              Pos.get_position call_expr ))
+          call_expr
+      in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
       let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let results_bindings, _ =
@@ -419,24 +443,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           all_subscope_vars_dcalc
           (next_e, List.length all_subscope_vars_dcalc - 1)
       in
-      let results_bindings =
-        Bindlib.box_apply
-          (fun results_bindings ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log
-                            ( Dcalc.Ast.EndCall,
-                              [
-                                (sigma_name, pos_sigma);
-                                Ast.SubScopeName.get_info subindex;
-                                Ast.ScopeName.get_info subname;
-                              ] ))),
-                    Pos.get_position results_bindings ),
-                  [ results_bindings ] ),
-              Pos.get_position results_bindings ))
-          results_bindings
-      in
+
       let result_tuple_typ =
         ( Dcalc.Ast.TTuple (List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc),
           pos_sigma )

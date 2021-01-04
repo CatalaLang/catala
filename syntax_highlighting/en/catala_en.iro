@@ -235,17 +235,17 @@ code : context {
 
 
   : pattern {
-     regex \= (\-\-|\;|\.|\,|\:|\(|\))
+     regex \= (\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})
      styles [] = .punctuation;
   }
 
-   : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|not|or|and|=|>|<|\$|%|year|month|day)
+  : pattern {
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|and|\$|%|year|month|day)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(integer|boolean|date|money|text|decimal|number|sum|now)\b
+    regex \= \b(integer|boolean|date|money|text|decimal|number|sum)\b
     styles [] = .primitive;
   }
 

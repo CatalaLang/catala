@@ -185,19 +185,19 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\-|\;|\.|\,|\:=|\:|\(|\)|\[|\])</string>
+          <string>(\-\-|\;|\.|\,|\:=|\:|\(|\)|\[\||\|\]|\[|\]|\{|\})</string>
           <key>name</key>
           <string>punctuation.catala_nv</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+|\-|\*|/|\!|not|or|and|=|&gt;|&lt;|\$|%|year|month|day)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\$|&gt;=\$|&lt;=\$|&lt;\$|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|not|or|and|\$|%|year|month|day)</string>
           <key>name</key>
           <string>keyword.operator.catala_nv</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(int|bool|date|money|text|decimal|number|sum|now)\b</string>
+          <string>\b(int|bool|date|money|text|decimal|number|sum)\b</string>
           <key>name</key>
           <string>support.type.catala_nv</string>
         </dict>

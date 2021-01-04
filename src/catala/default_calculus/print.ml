@@ -16,7 +16,7 @@ module Pos = Utils.Pos
 open Ast
 
 let typ_needs_parens (e : typ Pos.marked) : bool =
-  match Pos.unmark e with TArrow _ -> true | _ -> false
+  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   match l with
@@ -45,6 +45,8 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
         ts
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
+  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
+  | TAny -> Format.fprintf fmt "any"
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
@@ -111,6 +113,10 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
+  | Map -> Format.fprintf fmt "map"
+
+let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
+  match Pos.unmark op with Fold -> Format.fprintf fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "%s"
@@ -130,7 +136,9 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
              (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-          infos )
+          infos
+    | Length -> "length"
+    | IntToRat -> "int_to_rat" )
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | EApp _ -> true | _ -> false
@@ -146,9 +154,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   match Pos.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ETuple es ->
-      Format.fprintf fmt "(%a)"
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (e, struct_field) ->
              match struct_field with
              | Some struct_field ->
@@ -156,17 +164,23 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
                    struct_field format_expr e
              | None -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
+  | EArray es ->
+      Format.fprintf fmt "@[<hov 2>[%a]@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+           (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
+        es
   | ETupleAccess (e1, n, i) -> (
       match i with
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )
-  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a %a" Uid.MarkedString.format_info i format_expr e
+  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a@ %a" Uid.MarkedString.format_info i format_expr e
   | EMatch (e, es) ->
-      Format.fprintf fmt "@[<hov 2>match %a with %a@]" format_expr e
+      Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " |@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "%a %a" Uid.MarkedString.format_info c format_expr e))
+             Format.fprintf fmt "%a@ %a" Uid.MarkedString.format_info c format_expr e))
         es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
@@ -175,7 +189,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
       Format.fprintf fmt "@[%a%a@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
            (fun fmt (x, tau, arg) ->
              Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
                format_typ tau format_expr arg))
@@ -183,30 +197,32 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EAbs (_, binder, taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-      Format.fprintf fmt "@[<hov 2>λ@ %a@ →@ %a@]"
+      Format.fprintf fmt "@[<hov 2>λ@ %a →@ %a@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
-           (fun fmt (x, tau) -> Format.fprintf fmt "@[(%a:@ %a)@]" format_var x format_typ tau))
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+           (fun fmt (x, tau) ->
+             Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
         xs_tau format_expr body
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
-      Format.fprintf fmt "@[%a@ %a@ %a@]" format_with_parens arg1 format_binop (op, Pos.no_pos)
-        format_with_parens arg2
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
+        (op, Pos.no_pos) format_with_parens arg2
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
-      Format.fprintf fmt "@[%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->
-      Format.fprintf fmt "@[%a@ %a@]" format_expr f
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ") format_with_parens)
         args
   | EIfThenElse (e1, e2, e3) ->
       Format.fprintf fmt "if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]" format_expr
         e1 format_expr e2 format_expr e3
+  | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EDefault (exceptions, just, cons) ->
       if List.length exceptions = 0 then
-        Format.fprintf fmt "@[⟨%a ⊢ %a⟩@]" format_expr just format_expr cons
+        Format.fprintf fmt "@[<hov 2>⟨%a@ ⊢@ %a⟩@]" format_expr just format_expr cons
       else
-        Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a ⊢ %a ⟩@]"
+        Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a@ ⊢@ %a@ ⟩@]"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
           exceptions format_expr just format_expr cons
   | EAssert e' -> Format.fprintf fmt "@[<hov 2>assert@ (%a)@]" format_expr e'

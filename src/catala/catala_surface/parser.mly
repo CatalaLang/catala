@@ -47,8 +47,8 @@
 %token LESSER_MONEY GREATER_MONEY LESSER_EQUAL_MONEY GREATER_EQUAL_MONEY
 %token LESSER_DATE GREATER_DATE LESSER_EQUAL_DATE GREATER_EQUAL_DATE
 %token LESSER_DURATION GREATER_DURATION LESSER_EQUAL_DURATION GREATER_EQUAL_DURATION
-%token EXISTS IN SUCH THAT NOW 
-%token DOT AND OR LPAREN RPAREN OPTIONAL EQUAL
+%token EXISTS IN SUCH THAT 
+%token DOT AND OR LPAREN RPAREN EQUAL
 %token CARDINAL ASSERTION FIXED BY YEAR MONTH DAY
 %token PLUS MINUS MULT DIV
 %token PLUSDEC MINUSDEC MULTDEC DIVDEC
@@ -62,7 +62,8 @@
 %token CONTEXT ENUM ELSE DATE SUM
 %token BEGIN_METADATA END_METADATA MONEY DECIMAL
 %token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
-%token LABEL EXCEPTION
+%token LABEL EXCEPTION LSQUARE RSQUARE SEMICOLON
+%token INT_TO_DEC MAXIMUM MINIMUM
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -86,18 +87,12 @@ typ_base:
 collection_marked:
 | COLLECTION { $sloc }
 
-optional_marked:
-| OPTIONAL { $sloc }
-
 typ:
 | t = typ_base {
   let t, loc = t in
   (Primitive t, loc)
 }
 | collection_marked t = typ {
-  (Optional t, $sloc)
-}
-| optional_marked t = typ {
   (Collection t, $sloc)
 }
 
@@ -143,12 +138,17 @@ struct_or_enum_inject:
 
 primitive_expression:
 | e = small_expression { e }
-| NOW { (Builtin Now, $sloc) }
 | CARDINAL {
    (Builtin Cardinal, $sloc)
 }
+| INT_TO_DEC {
+  (Builtin IntToDec, $sloc)
+}
 | e = struct_or_enum_inject {
  e
+}
+| LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
+  (ArrayLit l, $sloc)
 }
 
 num_literal:
@@ -213,7 +213,9 @@ compare_op:
 | NOT_EQUAL { (Neq, $sloc) }
 
 aggregate_func:
-| SUM { (Aggregate AggregateSum, $sloc) }
+| MAXIMUM t = typ_base { (Aggregate (AggregateExtremum (true, Pos.unmark t)), $sloc) }
+| MINIMUM t = typ_base { (Aggregate (AggregateExtremum (false, Pos.unmark t)), $sloc) }
+| SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), $sloc) }
 | CARDINAL { (Aggregate AggregateCount, $sloc) }
 
 aggregate:
@@ -470,9 +472,9 @@ struct_scope:
     struct_decl_field_name = name;
     struct_decl_field_typ = match func_typ with
     | None -> (Base typ, typ_pos)
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (typ, typ_pos);
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (typ, typ_pos);
     }, $sloc) ;
   }, $sloc)
 }
@@ -484,9 +486,9 @@ scope_decl_item:
     let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (Data typ, typ_pos);
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (Data typ, typ_pos);
     }, $sloc);
   }), $sloc) }
 | CONTEXT i = ident SCOPE c = constructor {
@@ -500,9 +502,9 @@ scope_decl_item:
   scope_decl_context_item_typ =
     match func_typ with
     | None -> (Base (Condition), $loc(_condition))
-    | Some (return_typ, return_pos) -> (Func  {
-      arg_typ = (Condition, $loc(_condition));
-      return_typ = (Data return_typ, return_pos);
+    | Some (arg_typ, arg_pos) -> (Func  {
+      arg_typ = (Data arg_typ, arg_pos);
+      return_typ = (Condition, $loc(_condition));
     }, $sloc);
   }), $sloc) }
 

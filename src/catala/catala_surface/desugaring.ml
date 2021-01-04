@@ -89,18 +89,23 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Number ((Int i, _), Some (Percent, _)) ->
             Scopelang.Ast.ELit (Dcalc.Ast.LRat (Q.div (Q.of_bigint i) (Q.of_int 100)))
         | Number ((Dec (i, f), _), None) ->
-            let digits_f = int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) in
+            let digits_f =
+              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              with Invalid_argument _ -> 0
+            in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
                  Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
         | Number ((Dec (i, f), _), Some (Percent, _)) ->
             let digits_f =
-              int_of_float (ceil (float_of_int (Z.log2up f) *. log 2.0 /. log 10.0)) + 2
-              (* because of % *)
+              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              with Invalid_argument _ -> 0
             in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
-                 Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
+                 (Q.div
+                    Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f)))
+                    (Q.of_int 100)))
         | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | MoneyAmount i ->
             Scopelang.Ast.ELit
@@ -336,6 +341,150 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         (fun e1 cases_d -> (Scopelang.Ast.EMatch (e1, Option.get e_uid, cases_d), pos))
         e1
         (LiftEnumConstructorMap.lift_box cases_d)
+  | ArrayLit es ->
+      Bindlib.box_apply
+        (fun es -> (Scopelang.Ast.EArray es, pos))
+        (Bindlib.box_list (List.map rec_helper es))
+  | CollectionOp (op', param', collection, predicate) ->
+      let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+      let collection = rec_helper collection in
+      let init =
+        match Pos.unmark op' with
+        | Ast.Exists ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), Pos.get_position op')
+        | Ast.Forall -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LRat Q.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum t) ->
+            Errors.raise_spanned_error
+              (Format.asprintf "It is impossible to sum two values of type %a together"
+                 Print.format_primitive_typ t)
+              pos
+        | Ast.Aggregate Ast.AggregateCount ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+      in
+      let acc_var = Scopelang.Ast.Var.make ("acc", Pos.get_position param') in
+      let acc = Scopelang.Ast.make_var (acc_var, Pos.get_position param') in
+      let f_body =
+        let make_body (op : Dcalc.Ast.binop) =
+          Bindlib.box_apply2
+            (fun predicate acc ->
+              ( Scopelang.Ast.EApp
+                  ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop op), Pos.get_position op'),
+                    [ acc; predicate ] ),
+                pos ))
+            (translate_expr scope ctxt predicate)
+            acc
+        in
+        match Pos.unmark op' with
+        | Ast.Exists -> make_body Dcalc.Ast.Or
+        | Ast.Forall -> make_body Dcalc.Ast.And
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KInt)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KRat)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KMoney)
+        | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
+        | Ast.Aggregate Ast.AggregateCount ->
+            Bindlib.box_apply2
+              (fun predicate acc ->
+                ( Scopelang.Ast.EIfThenElse
+                    ( predicate,
+                      ( Scopelang.Ast.EApp
+                          ( ( Scopelang.Ast.EOp (Dcalc.Ast.Binop (Dcalc.Ast.Add Dcalc.Ast.KInt)),
+                              Pos.get_position op' ),
+                            [
+                              acc;
+                              (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.one), Pos.get_position predicate);
+                            ] ),
+                        pos ),
+                      acc ),
+                  pos ))
+              (translate_expr scope ctxt predicate)
+              acc
+      in
+      let f =
+        let make_f (t : Dcalc.Ast.typ_lit) =
+          Bindlib.box_apply
+            (fun binder ->
+              ( Scopelang.Ast.EAbs
+                  ( pos,
+                    binder,
+                    [
+                      (Scopelang.Ast.TLit t, Pos.get_position op');
+                      (Scopelang.Ast.TAny, pos)
+                      (* we put any here because the type of the elements of the arrays is not
+                         always the type of the accumulator; for instance in AggregateCount. *);
+                    ] ),
+                pos ))
+            (Bindlib.bind_mvar [| acc_var; param |] f_body)
+        in
+        match Pos.unmark op' with
+        | Ast.Exists -> make_f Dcalc.Ast.TBool
+        | Ast.Forall -> make_f Dcalc.Ast.TBool
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_f Dcalc.Ast.TInt
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_f Dcalc.Ast.TRat
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_f Dcalc.Ast.TMoney
+        | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
+              (Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate Ast.AggregateCount -> make_f Dcalc.Ast.TInt
+      in
+      Bindlib.box_apply3
+        (fun f collection init ->
+          ( Scopelang.Ast.EApp
+              ((Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos), [ f; init; collection ]),
+            pos ))
+        f collection init
+  | MemCollection (member, collection) ->
+      let param_var = Scopelang.Ast.Var.make ("collection_member", pos) in
+      let param = Scopelang.Ast.make_var (param_var, pos) in
+      let collection = rec_helper collection in
+      let init = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos) in
+      let acc_var = Scopelang.Ast.Var.make ("acc", pos) in
+      let acc = Scopelang.Ast.make_var (acc_var, pos) in
+      let f_body =
+        Bindlib.box_apply3
+          (fun member acc param ->
+            ( Scopelang.Ast.EApp
+                ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.Or), pos),
+                  [
+                    ( Scopelang.Ast.EApp
+                        ((Scopelang.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.Eq), pos), [ member; param ]),
+                      pos );
+                    acc;
+                  ] ),
+              pos ))
+          (translate_expr scope ctxt member)
+          acc param
+      in
+      let f =
+        Bindlib.box_apply
+          (fun binder ->
+            ( Scopelang.Ast.EAbs
+                ( pos,
+                  binder,
+                  [ (Scopelang.Ast.TLit Dcalc.Ast.TBool, pos); (Scopelang.Ast.TAny, pos) ] ),
+              pos ))
+          (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
+      in
+      Bindlib.box_apply3
+        (fun f collection init ->
+          ( Scopelang.Ast.EApp
+              ((Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos), [ f; init; collection ]),
+            pos ))
+        f collection init
+  | Builtin IntToDec -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.IntToRat), pos)
+  | Builtin Cardinal -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.Length), pos)
   | _ ->
       Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
 
@@ -378,11 +527,11 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
        | Scopelang.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
        | Scopelang.Ast.TArrow _, None ->
            Errors.raise_spanned_error
-             "this definition has a function type but the parameter is missing"
+             "This definition has a function type but the parameter is missing"
              (Pos.get_position (Bindlib.unbox cons))
        | _, Some _ ->
            Errors.raise_spanned_error
-             "this definition has a parameter but its type is not a function"
+             "This definition has a parameter but its type is not a function"
              (Pos.get_position (Bindlib.unbox cons))
        | _ -> None);
     exception_to_rule;
@@ -420,10 +569,13 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
         (Some (Pos.same_pos_as param_var param), ctxt)
   in
   let scope_updated =
-    let x_def, x_type =
+    let x_def, x_type, is_cond =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
-      | None -> (Desugared.Ast.RuleMap.empty, Name_resolution.get_def_typ ctxt def_key)
+      | None ->
+          ( Desugared.Ast.RuleMap.empty,
+            Name_resolution.get_def_typ ctxt def_key,
+            Name_resolution.is_def_cond ctxt def_key )
     in
     let rule_name =
       match def.Ast.definition_label with
@@ -442,7 +594,13 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     let parent_rule =
       match def.Ast.definition_exception_to with
       | None -> None
-      | Some label -> Some (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
+      | Some label ->
+          Some
+            ( try Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap
+              with Not_found ->
+                Errors.raise_spanned_error
+                  (Format.asprintf "Unknown label: \"%s\"" (Pos.unmark label))
+                  (Pos.get_position label) )
     in
     let x_def =
       Desugared.Ast.RuleMap.add rule_name
@@ -453,7 +611,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     in
     {
       scope with
-      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type) scope.scope_defs;
+      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type, is_cond) scope.scope_defs;
     }
   in
   {
@@ -556,9 +714,9 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
               Desugared.Ast.scope_defs =
                 Desugared.Ast.IdentMap.fold
                   (fun _ v acc ->
+                    let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
                     Desugared.Ast.ScopeDefMap.add (Desugared.Ast.ScopeDef.Var v)
-                      ( Desugared.Ast.RuleMap.empty,
-                        Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs )
+                      (Desugared.Ast.RuleMap.empty, x, y)
                       acc)
                   s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty;
               Desugared.Ast.scope_assertions = [];

@@ -94,8 +94,9 @@ let rec def_map_to_tree (def_info : Ast.ScopeDef.t)
 (** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault} expression in the
     scope language. The [~toplevel] parameter is used to know when to place the toplevel binding in
     the case of functions. *)
-let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t option)
-    (tree : rule_tree) : Scopelang.Ast.expr Pos.marked Bindlib.box =
+let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
+    (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
+    Scopelang.Ast.expr Pos.marked Bindlib.box =
   let exceptions, rule =
     match tree with Leaf r -> ([], r) | Node (exceptions, r) -> (exceptions, r)
   in
@@ -116,7 +117,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
   let just = substitute_parameter rule.Ast.just in
   let cons = substitute_parameter rule.Ast.cons in
   let exceptions =
-    Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false is_func) exceptions)
+    Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false def_pos is_func) exceptions)
   in
   let default =
     Bindlib.box_apply3
@@ -128,7 +129,17 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
   | None, None -> default
   | Some new_param, Some (_, typ) ->
       if toplevel then
-        Scopelang.Ast.make_abs (Array.of_list [ new_param ]) default Pos.no_pos [ typ ] Pos.no_pos
+        (* When we're creating a function from multiple defaults, we must check that the result
+           returned by the function is not empty *)
+        let default =
+          Bindlib.box_apply
+            (fun (default : Scopelang.Ast.expr * Pos.t) ->
+              ( Scopelang.Ast.EApp
+                  ((Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), def_pos), [ default ]),
+                def_pos ))
+            default
+        in
+        Scopelang.Ast.make_abs (Array.of_list [ new_param ]) default def_pos [ typ ] def_pos
       else default
   | _ -> (* should not happen *) assert false
 
@@ -137,7 +148,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (is_func : Scopelang.Ast.Var.t opti
 (** Translates a definition inside a scope, the resulting expression should be an {!constructor:
     Dcalc.Ast.EDefault} *)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Pos.marked) : Scopelang.Ast.expr Pos.marked =
+    (typ : Scopelang.Ast.typ Pos.marked) (is_cond : bool) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.parameter in
   let all_rules_func = Ast.RuleMap.for_all is_func def in
@@ -167,14 +178,18 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
             (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)) )
   in
   let top_list = def_map_to_tree def_info is_def_func def in
+  let top_value =
+    (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func
+  in
   Bindlib.unbox
     (rule_tree_to_expr ~toplevel:true
+       (Ast.ScopeDef.get_position def_info)
        (Option.map (fun _ -> Scopelang.Ast.Var.make ("ρ", Pos.no_pos)) is_def_func)
        ( match top_list with
        | [] ->
            (* In this case, there are no rules to define the expression *)
-           Leaf (Ast.empty_rule Pos.no_pos is_def_func)
-       | _ -> Node (top_list, Ast.empty_rule Pos.no_pos is_def_func) ))
+           Leaf top_value
+       | _ -> Node (top_list, top_value) ))
 
 (** Translates a scope *)
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
@@ -187,10 +202,10 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
          (fun vertex ->
            match vertex with
            | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) ->
-               let var_def, var_typ =
+               let var_def, var_typ, is_cond =
                  Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs
                in
-               let expr_def = translate_def (Ast.ScopeDef.Var var) var_def var_typ in
+               let expr_def = translate_def (Ast.ScopeDef.Var var) var_def var_typ is_cond in
                [
                  Scopelang.Ast.Definition
                    ( ( Scopelang.Ast.ScopeVar
@@ -207,11 +222,11 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                in
                let sub_scope_vars_redefs =
                  Ast.ScopeDefMap.mapi
-                   (fun def_key (def, def_typ) ->
+                   (fun def_key (def, def_typ, is_cond) ->
                      match def_key with
                      | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
                      | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
-                         let expr_def = translate_def def_key def def_typ in
+                         let expr_def = translate_def def_key def def_typ is_cond in
                          let subscop_real_name =
                            Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                          in
@@ -248,7 +263,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_sig =
     Scopelang.Ast.ScopeVarSet.fold
       (fun var acc ->
-        let _, typ = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+        let _, typ, _ = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
         Scopelang.Ast.ScopeVarMap.add var typ acc)
       scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
   in

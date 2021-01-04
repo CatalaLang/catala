@@ -53,7 +53,6 @@ let token_list_fr : (string * token) list =
     ("sinon", ELSE);
     ("contenu", CONTENT);
     ("structure", STRUCT);
-    ("optionnel", OPTIONAL);
     ("assertion", ASSERTION);
     ("varie", VARIES);
     ("avec", WITH_V);
@@ -66,11 +65,13 @@ let token_list_fr : (string * token) list =
     ("existe", EXISTS);
     ("tel", SUCH);
     ("que", THAT);
-    ("maintenant", NOW);
     ("et", AND);
     ("ou", OR);
     ("non", NOT);
     ("nombre", CARDINAL);
+    ("entier_vers_décimal", INT_TO_DEC);
+    ("maximum", MAXIMUM);
+    ("minimum", MINIMUM);
     ("an", YEAR);
     ("mois", MONTH);
     ("jour", DAY);
@@ -200,9 +201,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "structure" ->
       L.update_acc lexbuf;
       STRUCT
-  | "optionnel" ->
-      L.update_acc lexbuf;
-      OPTIONAL
   | "assertion" ->
       L.update_acc lexbuf;
       ASSERTION
@@ -244,9 +242,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "que" ->
       L.update_acc lexbuf;
       THAT
-  | "maintenant" ->
-      L.update_acc lexbuf;
-      NOW
   | "et" ->
       L.update_acc lexbuf;
       AND
@@ -259,6 +254,15 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "nombre" ->
       L.update_acc lexbuf;
       CARDINAL
+  | "maximum" ->
+      L.update_acc lexbuf;
+      MAXIMUM
+  | "minimum" ->
+      L.update_acc lexbuf;
+      MINIMUM
+  | "entier_vers_d", 0xE9, "cimal" ->
+      L.update_acc lexbuf;
+      INT_TO_DEC
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE
@@ -428,12 +432,21 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | '}' ->
       L.update_acc lexbuf;
       RBRACKET
+  | '[' ->
+      L.update_acc lexbuf;
+      LSQUARE
+  | ']' ->
+      L.update_acc lexbuf;
+      RSQUARE
   | '|' ->
       L.update_acc lexbuf;
       VERTICAL
   | ':' ->
       L.update_acc lexbuf;
       COLON
+  | ';' ->
+      L.update_acc lexbuf;
+      SEMICOLON
   | "--" ->
       L.update_acc lexbuf;
       ALT
