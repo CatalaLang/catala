@@ -21,6 +21,11 @@ declaration scope Section121:
   # This input is a fact and circumstance
   context aggregate_periods_from_last_five_years content duration 
     depends on collection Period
+
+# Temporary definitions (to remove)
+scope Section121:
+  definition return_date equals |01/01/2021|
+
 */
 @@End metadata@@
 
@@ -31,9 +36,6 @@ during the 5-year period ending on the date of the sale or exchange, such
 property has been owned and used by the taxpayer as the taxpayer’s principal 
 residence for periods aggregating 2 years or more. 
 /*
-# Regulation 1.121-1(c)(1): 2 years = 730 days  
-# Regulation 1.121-1(c)(1): the periods of ownage and usage 
-# don't have to overlap
 scope Section121:
   # Here we aggregate over all the periods of the collection. For 
   # each period, three cases:
@@ -51,11 +53,18 @@ scope Section121:
         0 day 
       else (period.end -@ (date_of_sale_or_exchange +@ (-^ 5 year))))
     )
+  
+  label base_case1
+  definition income_excluded_from_gross_income_uncapped equals $0
 
+  # Regulation 1.121-1(c)(1): 2 years = 730 days
+  # Regulation 1.121-1(c)(1): the periods of ownage and usage 
+  # don't have to overlap
+  exception base_case1
   definition income_excluded_from_gross_income_uncapped under condition 
-    aggregate_periods_from_last_five_years of property_ownage >= 730 day and
+    aggregate_periods_from_last_five_years of property_ownage >=^ 730 day and
     aggregate_periods_from_last_five_years of
-       property_usage_as_principal_residence >= 730 day
+       property_usage_as_principal_residence >=^ 730 day
   consequence equals 
      gain_from_sale_or_exchange_of_property
 */
@@ -76,8 +85,12 @@ scope Section121:
   # However, one can also view recursion in justifications or consequence 
   # of defaults as a reference to the value provided by defaults of lower 
   # priority. We should extend the semantics to reflect that.
+  label base_case2
+  definition income_excluded_from_gross_income equals $0
+
+  exception base_case2
   definition income_excluded_from_gross_income under condition 
-    income_excluded_from_gross_income_uncapped >= gain_cap
+    income_excluded_from_gross_income_uncapped >=$ gain_cap
   consequence equals gain_cap
 */
 
@@ -108,7 +121,7 @@ such property; and
 respect to such property by reason of paragraph (3).
 
 /*
-scope Section1 under condition 
+scope Section121 under condition 
   joint_return and get_year of date_of_sale_or_exchange = get_year of return_date:
   
   # This rule has priority over the over rule defining gain_cap

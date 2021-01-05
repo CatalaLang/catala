@@ -1,0 +1,46 @@
+@@Include: ../section_121.catala_en@@
+
+@Testing paragraph (a)@
+
+In the first test, we define a property sold for $250,000 and who has been 
+owned and used for four years straight: (a) applies.
+
+/*
+declaration scope Test1:
+  context scope121 scope Section121
+
+scope Test1:
+  definition scope121.date_of_sale_or_exchange equals |01/01/2021|
+  definition scope121.gain_from_sale_or_exchange_of_property equals $250,000
+  definition scope121.property_ownage equals [Period {
+    -- begin: |01/01/2017|
+    -- end: |01/01/2021|
+  }]
+  definition scope121.property_usage_as_principal_residence equals [Period {
+    -- begin: |01/01/2017|
+    -- end: |01/01/2021|
+  }]
+  assertion scope121.income_excluded_from_gross_income = $250,000
+*/
+
+In the second test, we assume the property was only used for one year in the 
+last five years: (a) does not apply.
+
+/*
+
+declaration scope Test2:
+  context scope121 scope Section121
+
+scope Test2:
+  definition scope121.date_of_sale_or_exchange equals |01/01/2021|
+  definition scope121.gain_from_sale_or_exchange_of_property equals $250,000
+  definition scope121.property_ownage equals [Period {
+    -- begin: |01/01/2017|
+    -- end: |01/01/2021|
+  }]
+  definition scope121.property_usage_as_principal_residence equals [Period {
+    -- begin: |01/01/2017|
+    -- end: |01/01/2018|
+  }]
+  assertion scope121.income_excluded_from_gross_income = $0
+*/
