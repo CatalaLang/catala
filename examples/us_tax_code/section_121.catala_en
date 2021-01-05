@@ -1,34 +1,31 @@
 @@Section 121@@
 
 @@Begin metadata@@
-/*
-declaration structure PropertyOwnagePeriod:
-    data owner content Person
-    data user content Person 
-    data start_date content date 
-    data end_date content date 
-
-declaration structure Property:
-    data ownages content collection PropertyOwnagePeriod
-
-declaration structure SaleOrExchange:
-    data property content Property
-    data gain content money
-    data date_of_sale_or_exchange content date
+/* 
+declaration structure Period:
+  data begin content date 
+  data end content date
 
 declaration scope Section121:
-    context taxpayer content Person
-    context applicable condition
-    context maximum_gain_excluded content money
-    context gain_considered_for_exclusion content money
-    context sale_or_exchange content SaleOrExchange 
-    context included_in_gross_income condition 
-    context ownage_considered_for_gain_inclusion condition 
-      depends on PropertyOwnagePeriod
-    context joint_return condition
-    context taxable_year content integer
-    context joint_return condition
-    context condition_b_2 condition
+  context income_excluded_from_gross_income_uncapped content money
+  context income_excluded_from_gross_income content money
+  context gain_from_sale_or_exchange_of_property content money
+  context joint_return condition 
+  context gain_cap content money
+  context return_date content date
+  context date_of_sale_or_exchange content date
+  context property_ownage content collection Period
+  # This input is a fact and circumstance
+  context property_usage_as_principal_residence 
+    content collection Period
+  # This input is a fact and circumstance
+  context aggregate_periods_from_last_five_years content duration 
+    depends on collection Period
+
+# Temporary definitions (to remove)
+scope Section121:
+  definition return_date equals |01/01/2021|
+
 */
 @@End metadata@@
 
@@ -39,20 +36,37 @@ during the 5-year period ending on the date of the sale or exchange, such
 property has been owned and used by the taxpayer as the taxpayer’s principal 
 residence for periods aggregating 2 years or more. 
 /*
-# It's actually agragated. Input: how many days have you lived in the property 
-# for the last five years.
-# FIXME: how many days have you used the property as the principal residence in the 
-# last five years
 scope Section121:
-  definition ownage_considered_for_gain_inclusion of ownage equals
-    ownage.owner = taxpayer and ownage.user = taxpayer and 
-    ownage.end_date - ownage.start_date >= 2 year and 
-    ownage.start_data >= sale_or_exchange.date_of_sale_or_exchange - 5 year
+  # Here we aggregate over all the periods of the collection. For 
+  # each period, three cases:
+  # - either the period began less that 5 years before the 
+  #   date_of_sale_or_exchange in which case we count if full
+  # - either the period ended more that 5 years before the 
+  #   date_of_sale_or_exchange in which case we don't count it 
+  # - either the 5 years mark is inside the period and we only 
+  #   cound the half after 5 years
+  definition aggregate_periods_from_last_five_years of periods equals 
+    sum duration for period in periods of (
+      if date_of_sale_or_exchange -@ period.begin <=^ 5 year then
+        period.end -@ period.begin
+      else (if date_of_sale_or_exchange -@ period.end >=^ 5 year then 
+        0 day 
+      else (period.end -@ (date_of_sale_or_exchange +@ (-^ 5 year))))
+    )
+  
+  label base_case1
+  definition income_excluded_from_gross_income_uncapped equals $0
 
-  rule included_in_gross_income under condition
-    exists ownage in sale_or_exchange.property.ownages such that 
-      ownage_considered_for_gain_inclusion of ownage
-  consequence not fulfilled
+  # Regulation 1.121-1(c)(1): 2 years = 730 days
+  # Regulation 1.121-1(c)(1): the periods of ownage and usage 
+  # don't have to overlap
+  exception base_case1
+  definition income_excluded_from_gross_income_uncapped under condition 
+    aggregate_periods_from_last_five_years of property_ownage >=^ 730 day and
+    aggregate_periods_from_last_five_years of
+       property_usage_as_principal_residence >=^ 730 day
+  consequence equals 
+     gain_from_sale_or_exchange_of_property
 */
 
 @@(b) Limitations@@+
@@ -63,13 +77,21 @@ The amount of gain excluded from gross income under subsection (a)  with
 respect to any sale or exchange shall not exceed $250,000.
 /*
 scope Section121:
-  definition maximum_gain_excluded equals $250,000
+  definition gain_cap equals $250,000
+  
+  # Big semantics insight for Catala. Here we could want to get rid of 
+  # the "_uncapped" version of the variable. But in the current 
+  # semantics we can't do that because we don't allow for recursion.
+  # However, one can also view recursion in justifications or consequence 
+  # of defaults as a reference to the value provided by defaults of lower 
+  # priority. We should extend the semantics to reflect that.
+  label base_case2
+  definition income_excluded_from_gross_income equals $0
 
-  definition gain_considered_for_exclusion equals 
-    if sale_or_exchange.gain >= maximum_gain_excluded then 
-      maximum_gain_excluded
-    else
-      sale_or_exchange.gain
+  exception base_case2
+  definition income_excluded_from_gross_income under condition 
+    income_excluded_from_gross_income_uncapped >=$ gain_cap
+  consequence equals gain_cap
 */
 
 @(2) Special rules for joint returns@
@@ -77,19 +99,17 @@ scope Section121:
 In the case of a husband and wife who make a joint return for the taxable year  
 of the sale or exchange of the property—
 
-/* 
-scope Section121:
-  rule condition_b_2 under condition 
-    joint_return and 
-    taxable_year = get_year of sale_or_exchange.date_of_sale_or_exchange 
-  consequence fulfilled
+/*
+# What if the current taxable year is not the taxable 
+# year of the sale or exchange ? One could think of a situation where the 
+# property is sold but the payment is arriving much later so the seller 
+# can choose in which taxable year to include the gain.
+# @Sarah: will have to do some research.
 */
-
 
 @(A) $500,000 Limitation for certain joint returns@
 
 Paragraph (1) shall be applied by substituting “$500,000” for “$250,000” if—
-
 
 (i) either spouse meets the ownership requirements of subsection (a) with
 respect to such property;
@@ -99,6 +119,18 @@ such property; and
 
 (iii) neither spouse is ineligible for the benefits of subsection (a) with 
 respect to such property by reason of paragraph (3).
+
+/*
+scope Section121 under condition 
+  joint_return and get_year of date_of_sale_or_exchange = get_year of return_date:
+  
+  # This rule has priority over the over rule defining gain_cap
+  definition gain_cap under condition true
+    # i) TODO
+    # ii) TODO
+    # iii) TODO
+  consequence equals $500,000
+*/
 
 @(B) Other joint returns@
 If such spouses do not meet the requirements of subparagraph (A), the limitation 

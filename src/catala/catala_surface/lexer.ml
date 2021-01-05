@@ -77,7 +77,6 @@ let token_list : (string * token) list =
     ("param", CONTEXT);
     ("decreasing", DECREASING);
     ("increasing", INCREASING);
-    ("int_to_dec", INT_TO_DEC);
     ("maximum", MAXIMUM);
     ("minimum", MAXIMUM);
     ("of", OF);
@@ -296,6 +295,15 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "int_to_dec" ->
       update_acc lexbuf;
       INT_TO_DEC
+  | "get_day" ->
+      update_acc lexbuf;
+      GET_DAY
+  | "get_month" ->
+      update_acc lexbuf;
+      GET_MONTH
+  | "get_year" ->
+      update_acc lexbuf;
+      GET_YEAR
   | "maximum" ->
       update_acc lexbuf;
       MAXIMUM

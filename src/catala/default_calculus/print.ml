@@ -138,7 +138,10 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
              (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
           infos
     | Length -> "length"
-    | IntToRat -> "int_to_rat" )
+    | IntToRat -> "int_to_rat"
+    | GetDay -> "get_day"
+    | GetMonth -> "get_month"
+    | GetYear -> "get_year" )
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | EApp _ -> true | _ -> false
@@ -170,7 +173,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
-  | ETupleAccess (e1, n, i) -> (
+  | ETupleAccess (e1, n, i, _) -> (
       match i with
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )
