@@ -132,9 +132,9 @@ styles [] {
 ## Parse contexts
 #################################################
 
-__LOWER_CHARS \= a-zéèàâùîêœç
+__LOWER_CHARS \= a-zéèàâùîôêœç
 
-__UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
+__UPPER_CHARS \= A-ZÉÈÀÂÙÎÔÊŒÇ
 
 __SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
@@ -213,7 +213,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b
     styles [] = .keyword_rule ;
   }
 
@@ -235,17 +235,17 @@ code : context {
 
 
   : pattern {
-     regex \= (\-\-|\;|\.|\,|\:|\(|\))
+     regex \= (\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})
      styles [] = .punctuation;
   }
 
-   : pattern {
-     regex \= (\-\>|\+|\-|\*|/|\!|non|ou|et|=|>|<|\u20ac|%|an|mois|jour)
+  : pattern {
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\u20ac|\+|\-\.|\-\@|\-\^|\-\u20ac|\-|\*\.|\*\@|\*\^|\*\u20ac|\*|/\.|/\@|/\^|/\u20ac|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\u20ac|>=\u20ac|<=\u20ac|<\u20ac|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|non|ou|et|\u20ac|%|an|mois|jour)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b
+    regex \= \b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme)\b
     styles [] = .primitive;
   }
 

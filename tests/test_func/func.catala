@@ -2,15 +2,21 @@
 
 /*
 new scope S:
-  param f type int fun of int
-  param x type int
-  param b type bool
+  param f content int fun of int
+  param b content bool
+  param out content int
+
+new scope R:
+  param s scope S
+  param r content int
 
 scope S:
-  def f of x [ (x >= x) ] := x + x
-  def f of x [ not b ] := x * x
-
+  def f of x [| (x >= x) |] := x + x
+  def f of x [| not b |] := x * x
   def b := false
+  def out := f of 5
 
-  def x := f of 3
+scope R:
+  def s.f of x := x + x * x 
+  def r := s.out
 */

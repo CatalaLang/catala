@@ -133,7 +133,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(contexte)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
+          <string>(contexte)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
           <key>captures</key>
           <dict>
             <key>1</key>
@@ -161,7 +161,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition)\b</string>
+          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b</string>
           <key>name</key>
           <string>keyword.other.catala_fr</string>
         </dict>
@@ -185,25 +185,25 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\-|\;|\.|\,|\:|\(|\))</string>
+          <string>(\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})</string>
           <key>name</key>
           <string>punctuation.catala_fr</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+|\-|\*|/|\!|non|ou|et|=|&gt;|&lt;|\x{20ac}|%|an|mois|jour)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\x{20ac}|\+|\-\.|\-\@|\-\^|\-\x{20ac}|\-|\*\.|\*\@|\*\^|\*\x{20ac}|\*|/\.|/\@|/\^|/\x{20ac}|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\x{20ac}|&gt;=\x{20ac}|&lt;=\x{20ac}|&lt;\x{20ac}|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|non|ou|et|\x{20ac}|%|an|mois|jour)</string>
           <key>name</key>
           <string>keyword.operator.catala_fr</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(entier|booléen|date|montant|texte|décimal|décret|loi|nombre|somme|date_aujourd_hui)\b</string>
+          <string>\b(entier|booléen|date|argent|texte|décimal|décret|loi|nombre|somme)\b</string>
           <key>name</key>
           <string>support.type.catala_fr</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b([A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)(\.)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
+          <string>\b([A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)(\.)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
           <key>captures</key>
           <dict>
             <key>1</key>
@@ -225,7 +225,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)(\.)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;\.]*)\b</string>
+          <string>\b([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)(\.)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;\.]*)\b</string>
           <key>captures</key>
           <dict>
             <key>1</key>
@@ -247,13 +247,13 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
+          <string>\b([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
           <key>name</key>
           <string>entity.name.function.catala_fr</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b([A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
+          <string>\b([A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)\b</string>
           <key>name</key>
           <string>entity.name.class.catala_fr</string>
         </dict>
@@ -286,4 +286,3 @@
   </dict>
 </dict>
 </plist>
-

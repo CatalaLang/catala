@@ -1,0 +1,13 @@
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_func/func.catala
+[ERROR]    | 
+[ERROR] 14 |   def f of x [| (x >= x) |] := x + x
+[ERROR]    |                  ^^^^^^
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_func/func.catala
+[ERROR]    | 
+[ERROR] 15 |   def f of x [| not b |] := x * x
+[ERROR]    |                 ^^^^^

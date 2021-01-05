@@ -1,0 +1,18 @@
+@Article@
+
+/*
+new scope A:
+   param x content set money 
+
+scope A:
+   def x := [$0; $4 +$ $5; $8 *$ 0.65]
+
+new scope B:
+   param a scope A 
+   param y content money
+   param z content int
+
+scope B:
+   def y := sum money for m in a.x of (m +$ $1)
+   def z := number for m in a.x of (m >=$ $8.95)
+*/

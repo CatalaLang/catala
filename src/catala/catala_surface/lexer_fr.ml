@@ -14,9 +14,13 @@
 
 open Parser
 open Sedlexing
+module Pos = Utils.Pos
+module Errors = Utils.Errors
 module L = Lexer
 module R = Re.Pcre
 
+(** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
+    French. *)
 let token_list_fr : (string * token) list =
   [
     ("champ d'application", SCOPE);
@@ -31,10 +35,11 @@ let token_list_fr : (string * token) list =
     ("collection", COLLECTION);
     ("énumération", ENUM);
     ("entier", INTEGER);
-    ("montant", MONEY);
+    ("argent", MONEY);
     ("texte", TEXT);
     ("decimal", DECIMAL);
     ("date", DATE);
+    ("durée", DURATION);
     ("booléen", BOOLEAN);
     ("somme", SUM);
     ("rempli", FILLED);
@@ -48,7 +53,6 @@ let token_list_fr : (string * token) list =
     ("sinon", ELSE);
     ("contenu", CONTENT);
     ("structure", STRUCT);
-    ("optionnel", OPTIONAL);
     ("assertion", ASSERTION);
     ("varie", VARIES);
     ("avec", WITH_V);
@@ -61,18 +65,25 @@ let token_list_fr : (string * token) list =
     ("existe", EXISTS);
     ("tel", SUCH);
     ("que", THAT);
-    ("maintenant", NOW);
     ("et", AND);
     ("ou", OR);
     ("non", NOT);
     ("nombre", CARDINAL);
+    ("entier_vers_décimal", INT_TO_DEC);
+    ("maximum", MAXIMUM);
+    ("minimum", MINIMUM);
     ("an", YEAR);
+    ("mois", MONTH);
+    ("jour", DAY);
     ("vrai", TRUE);
     ("faux", FALSE);
   ]
   @ L.token_list_language_agnostic
 
+(** Main lexing function used in code blocks *)
 let rec lex_code_fr (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | white_space | '\n' ->
       (* Whitespaces *)
@@ -120,7 +131,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "entier" ->
       L.update_acc lexbuf;
       INTEGER
-  | "montant" ->
+  | "argent" ->
       L.update_acc lexbuf;
       MONEY
   | "texte" ->
@@ -132,6 +143,9 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "date" ->
       L.update_acc lexbuf;
       DATE
+  | "dur", 0xE9, "e" ->
+      L.update_acc lexbuf;
+      DURATION
   | "bool", 0xE9, "en" ->
       L.update_acc lexbuf;
       BOOLEAN
@@ -145,6 +159,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* 0xE9 is é *)
       L.update_acc lexbuf;
       DEFINITION
+  | 0xE9, "tiquette" ->
+      L.update_acc lexbuf;
+      LABEL
+  | "exception" ->
+      L.update_acc lexbuf;
+      EXCEPTION
   | 0xE9, "gal ", 0x00E0 ->
       (* 0xE9 is é *)
       L.update_acc lexbuf;
@@ -181,9 +201,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "structure" ->
       L.update_acc lexbuf;
       STRUCT
-  | "optionnel" ->
-      L.update_acc lexbuf;
-      OPTIONAL
   | "assertion" ->
       L.update_acc lexbuf;
       ASSERTION
@@ -225,9 +242,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "que" ->
       L.update_acc lexbuf;
       THAT
-  | "maintenant" ->
-      L.update_acc lexbuf;
-      NOW
   | "et" ->
       L.update_acc lexbuf;
       AND
@@ -240,6 +254,15 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "nombre" ->
       L.update_acc lexbuf;
       CARDINAL
+  | "maximum" ->
+      L.update_acc lexbuf;
+      MAXIMUM
+  | "minimum" ->
+      L.update_acc lexbuf;
+      MINIMUM
+  | "entier_vers_d", 0xE9, "cimal" ->
+      L.update_acc lexbuf;
+      INT_TO_DEC
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE
@@ -249,6 +272,12 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "an" ->
       L.update_acc lexbuf;
       YEAR
+  | "mois" ->
+      L.update_acc lexbuf;
+      MONTH
+  | "jour" ->
+      L.update_acc lexbuf;
+      DAY
   | ( '0' .. '9',
       Star ('0' .. '9' | white_space),
       Opt (',', Rep ('0' .. '9', 0 .. 2)),
@@ -261,8 +290,8 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* Integer literal*)
       let units = parts 1 in
       let remove_spaces = R.regexp " " in
-      let units = int_of_string (R.substitute ~rex:remove_spaces ~subst:(fun _ -> "") units) in
-      let cents = try int_of_string (parts 4) with Not_found -> 0 in
+      let units = Z.of_string (R.substitute ~rex:remove_spaces ~subst:(fun _ -> "") units) in
+      let cents = try Z.of_string (parts 4) with Not_found -> Z.zero in
       L.update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
   | Plus '0' .. '9', ',', Star '0' .. '9' ->
@@ -270,13 +299,94 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
       L.update_acc lexbuf;
-      DECIMAL_LITERAL (int_of_string (dec_parts 1), int_of_string (dec_parts 2))
+      DECIMAL_LITERAL (Z.of_string (dec_parts 1), Z.of_string (dec_parts 2))
   | "->" ->
       L.update_acc lexbuf;
       ARROW
-  | '.' ->
+  | "<=@" ->
       L.update_acc lexbuf;
-      DOT
+      LESSER_EQUAL_DATE
+  | "<@" ->
+      L.update_acc lexbuf;
+      LESSER_DATE
+  | ">=@" ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DATE
+  | ">@" ->
+      L.update_acc lexbuf;
+      GREATER_DATE
+  | "-@" ->
+      L.update_acc lexbuf;
+      MINUSDATE
+  | "+@" ->
+      L.update_acc lexbuf;
+      PLUSDATE
+  | "<=^" ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_DURATION
+  | "<^" ->
+      L.update_acc lexbuf;
+      LESSER_DURATION
+  | ">=^" ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DURATION
+  | ">^" ->
+      L.update_acc lexbuf;
+      GREATER_DURATION
+  | "+^" ->
+      L.update_acc lexbuf;
+      PLUSDURATION
+  | "-^" ->
+      L.update_acc lexbuf;
+      MINUSDURATION
+  | "<=", 0x20AC ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_MONEY
+  | '<', 0x20AC ->
+      L.update_acc lexbuf;
+      LESSER_MONEY
+  | ">=", 0x20AC ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_MONEY
+  | '>', 0x20AC ->
+      L.update_acc lexbuf;
+      GREATER_MONEY
+  | '+', 0x20AC ->
+      L.update_acc lexbuf;
+      PLUSMONEY
+  | '-', 0x20AC ->
+      L.update_acc lexbuf;
+      MINUSMONEY
+  | '*', 0x20AC ->
+      L.update_acc lexbuf;
+      MULTMONEY
+  | '/', 0x20AC ->
+      L.update_acc lexbuf;
+      DIVMONEY
+  | "<=." ->
+      L.update_acc lexbuf;
+      LESSER_EQUAL_DEC
+  | "<." ->
+      L.update_acc lexbuf;
+      LESSER_DEC
+  | ">=." ->
+      L.update_acc lexbuf;
+      GREATER_EQUAL_DEC
+  | ">." ->
+      L.update_acc lexbuf;
+      GREATER_DEC
+  | "+." ->
+      L.update_acc lexbuf;
+      PLUSDEC
+  | "-." ->
+      L.update_acc lexbuf;
+      MINUSDEC
+  | "*." ->
+      L.update_acc lexbuf;
+      MULTDEC
+  | "/." ->
+      L.update_acc lexbuf;
+      DIVDEC
   | "<=" ->
       L.update_acc lexbuf;
       LESSER_EQUAL
@@ -289,18 +399,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | '>' ->
       L.update_acc lexbuf;
       GREATER
-  | "!=" ->
-      L.update_acc lexbuf;
-      NOT_EQUAL
-  | '=' ->
-      L.update_acc lexbuf;
-      EQUAL
-  | '(' ->
-      L.update_acc lexbuf;
-      LPAREN
-  | ')' ->
-      L.update_acc lexbuf;
-      RPAREN
   | '+' ->
       L.update_acc lexbuf;
       PLUS
@@ -310,21 +408,51 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | '*' ->
       L.update_acc lexbuf;
       MULT
-  | '%' ->
-      L.update_acc lexbuf;
-      PERCENT
   | '/' ->
       L.update_acc lexbuf;
       DIV
+  | "!=" ->
+      L.update_acc lexbuf;
+      NOT_EQUAL
+  | '=' ->
+      L.update_acc lexbuf;
+      EQUAL
+  | '%' ->
+      L.update_acc lexbuf;
+      PERCENT
+  | '(' ->
+      L.update_acc lexbuf;
+      LPAREN
+  | ')' ->
+      L.update_acc lexbuf;
+      RPAREN
+  | '{' ->
+      L.update_acc lexbuf;
+      LBRACKET
+  | '}' ->
+      L.update_acc lexbuf;
+      RBRACKET
+  | '[' ->
+      L.update_acc lexbuf;
+      LSQUARE
+  | ']' ->
+      L.update_acc lexbuf;
+      RSQUARE
   | '|' ->
       L.update_acc lexbuf;
       VERTICAL
   | ':' ->
       L.update_acc lexbuf;
       COLON
+  | ';' ->
+      L.update_acc lexbuf;
+      SEMICOLON
   | "--" ->
       L.update_acc lexbuf;
       ALT
+  | '.' ->
+      L.update_acc lexbuf;
+      DOT
   | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;
@@ -336,12 +464,14 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | Plus '0' .. '9' ->
       (* Integer literal*)
       L.update_acc lexbuf;
-      INT_LITERAL (int_of_string (Utf8.lexeme lexbuf))
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+      INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
+  | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
-let rec lex_law_fr (lexbuf : lexbuf) : token =
+(** Main lexing function used outside code blocks *)
+let lex_law_fr (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
-  | '\n' -> lex_law_fr lexbuf
   | "/*" ->
       L.is_code := true;
       L.code_string_acc := "";
@@ -371,10 +501,9 @@ let rec lex_law_fr (lexbuf : lexbuf) : token =
       let name = get_component 1 in
       let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
       let pos = lexing_positions lexbuf in
-      if R.pmatch ~rex:jorftext name then LAW_INCLUDE (Catala_ast.LegislativeText (name, pos))
-      else if Filename.extension name = ".pdf" then
-        LAW_INCLUDE (Catala_ast.PdfFile ((name, pos), pages))
-      else LAW_INCLUDE (Catala_ast.CatalaFile (name, pos))
+      if R.pmatch ~rex:jorftext name then LAW_INCLUDE (Ast.LegislativeText (name, pos))
+      else if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
+      else LAW_INCLUDE (Ast.CatalaFile (name, pos))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -410,8 +539,10 @@ let rec lex_law_fr (lexbuf : lexbuf) : token =
       done;
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
-  | Plus (Compl ('@' | '/' | '\n')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf) "unknown token"
+  | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | _ -> L.raise_lexer_error prev_pos prev_lexeme
 
+(** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
+    {!val: Surface.Lexer.is_code}. *)
 let lexer_fr (lexbuf : lexbuf) : token =
   if !L.is_code then lex_code_fr lexbuf else lex_law_fr lexbuf

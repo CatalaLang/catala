@@ -1,14 +1,16 @@
 (lang dune 2.2)
+
 (name catala)
-(version 0.1.1)
+(version 0.2.0)
 (generate_opam_files true)
+(formatting)
 
 (source (uri git+https://github.com/CatalaLang/catala.git))
 (homepage https://github.com/CatalaLang/catala)
 (bug_reports https://github.com/CatalaLang/catala/issues)
 (authors "Denis Merigoux")
-(maintainers "denis.merigoux@inria.fr")
-(license Apache2)
+(maintainers "contact@catala-lang.org")
+(license Apache-2.0)
 
 
 (package
@@ -18,18 +20,21 @@
               "\| higher-level specification languages for fiscal legislation.
  )
  (depends
-   (ocaml (>= 4.07.0))
+   (ocaml (>= 4.08.0))
    (ANSITerminal (>= 0.8.2))
    (sedlex (>= 2.1))
    (menhir (>= 20200211))
    (menhirLib (>= 20200211))
-   (dune-build-info (>= 2.0.1))
+   (unionFind (>= 20200320))
+   (bindlib (>= 5.0.1))
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
-   (dune (and :build ))
+   (zarith (>= 1.10))
+   (zarith_stubs_js (>= 0.14.0))
+   (dune (>= 2.2))
    (ocamlgraph (>= 1.8.8))
+   (odate (>= 0.6))
  )
 )
-
 
 (using menhir 2.1)

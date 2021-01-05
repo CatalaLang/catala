@@ -44,7 +44,7 @@ jobs:
     - name: Install dependencies
       run: |
         eval $(opam env)
-        make install-dependencies
+        make dependencies
         sudo apt update
         sudo apt install python3-dev python3-setuptools man2html rsync colordiff
         sudo python3 -m pip install --upgrade pip
@@ -54,18 +54,12 @@ jobs:
       run: |
         eval $(opam env)
         make build
-
     - name: Run tests
       run: |
         eval $(opam env)
         make tests
 
-    - name: Make examples
-      run: |
-        eval $(opam env)
-        make all_examples
-
     - name: Make assets and documentation
       run: |
         eval $(opam env)
-        make all
+        make website-assets doc 

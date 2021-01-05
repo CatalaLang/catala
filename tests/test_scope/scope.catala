@@ -2,14 +2,14 @@
 
 /*
 new scope A:
-  param a type int
-  param b type dec
-  param c type bool
+  param a content int
+  param b content int
+  param c content bool
 
 scope A:
   def c := false
-  def a [ c ] := 42
-  def a [ not c ] := 0
-  def b [ not c ] := 1337
-  def b [ not c ] := 0
+  def a [| c |] := 42
+  def a [| not c |] := 0
+  def b [| not c |] := 1337
+  def b [| not c |] := 0
 */

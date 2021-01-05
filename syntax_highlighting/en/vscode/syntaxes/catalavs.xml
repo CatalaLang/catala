@@ -161,7 +161,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition)\b</string>
+          <string>\b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception)\b</string>
           <key>name</key>
           <string>keyword.other.catala_en</string>
         </dict>
@@ -185,19 +185,19 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\-|\;|\.|\,|\:|\(|\))</string>
+          <string>(\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})</string>
           <key>name</key>
           <string>punctuation.catala_en</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+|\-|\*|/|\!|not|or|and|=|&gt;|&lt;|\\$|%|year|month|day)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\$|&gt;=\$|&lt;=\$|&lt;\$|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|not|or|and|\$|%|year|month|day)</string>
           <key>name</key>
           <string>keyword.operator.catala_en</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(integer|boolean|date|amount|text|decimal|number|sum|now)\b</string>
+          <string>\b(integer|boolean|date|money|text|decimal|number|sum)\b</string>
           <key>name</key>
           <string>support.type.catala_en</string>
         </dict>

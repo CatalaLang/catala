@@ -10,11 +10,11 @@ Au  titre  de  l’année  2020,  l’article  81  de  la  loi  du  24  décembr
 Le montant précité de la base mensuelle de calcul des allocations familiales (BMAF), en pourcentage duquel sont fxés les montants des prestations familiales, est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
 
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition prestations_familiales.base_mensuelle
+champ d'application PrestationsFamiliales :
+  définition base_mensuelle
   sous condition
-    date_calcul >= |01/04/2020| et
-    date_calcul < |01/04/2021|
+    date_courante >=@ |01/04/2020| et
+    date_courante <@ |01/04/2021|
   conséquence égal à 414,4 €
 */
 
@@ -32,79 +32,77 @@ Ils  indiquent  les  montants  relatifs  aux  allocations  familiales,  à  l’
 
 Je  vous  demande  de  bien  vouloir  transmettre  à  la  connaissance  des  organismes  débiteurs  les  présentes instructions.
 
-@@Inclusion: JORFTEXT000000227447@@
-
 /*
 # Cependant, le cas de Mayotte n'est pas traité dans la loi et ce sont donc
 # les règles de cette annexe qui s'apppliquent.
-champ d'application CalculAllocationsFamiliales :
-  définition allocations_familiales.base sous condition
-    ménage.résidence = Mayotte et
-    allocations_familiales.droits_ouverts
-  conséquence égal à
-    si nombre de ménage.enfants = 1 alors
-      allocations_familiales.montant_premier_enfant
-    sinon (
-      allocations_familiales.montant_deuxieme_enfant +
-      allocations_familiales.montant_troisième_enfant_et_plus
-    )
+# champ d'application CalculAllocationsFamiliales :
+#   définition allocations_familiales.base sous condition
+#     ménage.résidence = Mayotte et
+#     allocations_familiales.droits_ouverts
+#   conséquence égal à
+#     si nombre de ménage.enfants = 1 alors
+#       allocations_familiales.montant_premier_enfant
+#     sinon (
+#       allocations_familiales.montant_deuxieme_enfant +
+#       allocations_familiales.montant_troisième_enfant_et_plus
+#     )
 
-  définition allocations_familiales.montant_deuxieme_enfant sous condition
-    ménage.résidence = Mayotte et
-    date_calcul > |30/04/2020| et
-    date_calcul <= |31/12/2020|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 30,68 %
+#   définition allocations_familiales.montant_deuxieme_enfant sous condition
+#     ménage.résidence = Mayotte et
+#     date_calcul > |30/04/2020| et
+#     date_calcul <= |31/12/2020|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 30,68 %
 
-  définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
-    ménage.résidence = Mayotte et
-    date_calcul > |30/04/2020| et
-    date_calcul <= |31/12/2020|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 14,3 % +
-    (si nombre de ménage.enfants >= 4 alors
-      prestations_familiales.base_mensuelle * 4,63 % *
-        (nombre de ménage.enfants - 3)
-      sinon 0 €)
+#   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
+#     ménage.résidence = Mayotte et
+#     date_calcul > |30/04/2020| et
+#     date_calcul <= |31/12/2020|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 14,3 % +
+#     (si nombre de ménage.enfants >= 4 alors
+#       prestations_familiales.base_mensuelle * 4,63 % *
+#         (nombre de ménage.enfants - 3)
+#       sinon 0 €)
 
-  définition allocations_familiales.montant_deuxieme_enfant sous condition
-    ménage.résidence = Mayotte et
-    date_calcul > |01/01/2021| et
-    date_calcul <= |31/03/2021|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 32 %
+#   définition allocations_familiales.montant_deuxieme_enfant sous condition
+#     ménage.résidence = Mayotte et
+#     date_calcul > |01/01/2021| et
+#     date_calcul <= |31/03/2021|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 32 %
 
-  définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
-    ménage.résidence = Mayotte et
-    date_calcul > |01/01/2021| et
-    date_calcul <= |31/03/2021|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 16 % +
-    (si nombre de ménage.enfants >= 4 alors
-      prestations_familiales.base_mensuelle * 4,63 % *
-        (nombre de ménage.enfants - 3)
-      sinon 0 €)
+#   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
+#     ménage.résidence = Mayotte et
+#     date_calcul > |01/01/2021| et
+#     date_calcul <= |31/03/2021|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 16 % +
+#     (si nombre de ménage.enfants >= 4 alors
+#       prestations_familiales.base_mensuelle * 4,63 % *
+#         (nombre de ménage.enfants - 3)
+#       sinon 0 €)
 
-  définition allocations_familiales.montant_premier_enfant sous condition
-    ménage.résident = Mayotte et
-    allocations_familiales.date_ouverture_droits < |01/01/2012|
-  conséquence égal à 57,28 €
+#   définition allocations_familiales.montant_premier_enfant sous condition
+#     ménage.résident = Mayotte et
+#     allocations_familiales.date_ouverture_droits < |01/01/2012|
+#   conséquence égal à 57,28 €
 
-  définition allocations_familiales.montant_premier_enfant sous condition
-    ménage.résident = Mayotte et
-    allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-    date_calcul > |30/04/2020| et
-    date_calcul <= |31/12/2020|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 7,17 %
+#   définition allocations_familiales.montant_premier_enfant sous condition
+#     ménage.résident = Mayotte et
+#     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
+#     date_calcul > |30/04/2020| et
+#     date_calcul <= |31/12/2020|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 7,17 %
 
-  définition allocations_familiales.montant_premier_enfant sous condition
-    ménage.résident = Mayotte et
-    allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-    date_calcul > |01/01/2021| et
-    date_calcul <= |31/03/2021|
-  conséquence égal à
-    prestations_familiales.base_mensuelle * 5,88 %
+#   définition allocations_familiales.montant_premier_enfant sous condition
+#     ménage.résident = Mayotte et
+#     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
+#     date_calcul > |01/01/2021| et
+#     date_calcul <= |31/03/2021|
+#   conséquence égal à
+#     prestations_familiales.base_mensuelle * 5,88 %
 */
 
 
@@ -114,21 +112,21 @@ champ d'application CalculAllocationsFamiliales :
 A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à l' article L. 2211-1 du code du travail , le montant du salaire minimum de croissance est relevé dans les conditions ci-après :
 1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, son montant est porté à 10,15 € l'heure ;
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition smic.brut_horaire sous condition
-    (ménage.résidence = Métropole) ou
-    (ménage.résidence = Guyane) ou
-    (ménage.résidence = Martinique) ou
-    (ménage.résidence = LaRéunion) ou
-    (ménage.résidence = SaintBarthélemy) ou
-    (ménage.résidence = SaintMartin) ou
-    (ménage.résidence = SaintPierreEtMiquelon)
+champ d'application Smic :
+  définition brut_horaire sous condition
+    (résidence = Métropole) ou
+    (résidence = Guyane) ou
+    (résidence = Martinique) ou
+    (résidence = LaRéunion) ou
+    (résidence = SaintBarthélemy) ou
+    (résidence = SaintMartin) ou
+    (résidence = SaintPierreEtMiquelon)
   conséquence égal à 10,15 €
 */
 2° A Mayotte, son montant est fixé à 7,66 € l'heure.
 /*
-champ d'application CalculAllocationsFamiliales :
-  définition smic.brut_horaire sous condition
-    (ménage.résidence = Mayotte)
+champ d'application Smic :
+  définition brut_horaire sous condition
+    (résidence = Mayotte)
   conséquence égal à 7,66 €
 */

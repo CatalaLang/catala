@@ -1,2 +1,3 @@
-[RESULT] x -> 0
-[RESULT] u -> true
+[RESULT] Computation successful! Results:
+[RESULT] u = true
+[RESULT] x = 0

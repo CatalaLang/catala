@@ -1,3 +1,15 @@
+(library
+ (name surface)
+ (libraries utils menhirLib sedlex re desugared scopelang zarith
+   zarith_stubs_js odate)
+ (public_name catala.surface)
+ (preprocess
+  (pps sedlex.ppx)))
+
 (menhir
  (modules parser)
  (flags --table))
+
+(documentation
+ (package catala)
+ (mld_files surface))

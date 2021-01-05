@@ -1,0 +1,6 @@
+[ERROR] Unknown type, not a struct or enum previously declared
+[ERROR] 
+[ERROR]  --> test_struct/nested2.catala
+[ERROR]   | 
+[ERROR] 5 |   data x content E 
+[ERROR]   |                  ^

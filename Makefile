@@ -9,23 +9,28 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-install-dependencies-ocaml:
+dependencies-ocaml:
 	opam install \
 		ocamlformat \
 		ANSITerminal \
 		sedlex \
 		menhir \
 		menhirLib \
-		dune dune-build-info \
+		dune \
 		cmdliner obelisk \
-		re reason\
-		obelisk\
-		ocamlgraph
+		re \
+		obelisk \
+		unionfind \
+		bindlib \
+		zarith zarith_stubs_js \
+		ocamlgraph \
+		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx \
+		odate
 
 init-submodules:
 	git submodule update --init
 
-install-dependencies: install-dependencies-ocaml init-submodules
+dependencies: dependencies-ocaml init-submodules
 
 
 ##########################################
@@ -36,14 +41,18 @@ format:
 	dune build @fmt --auto-promote | true
 
 build:
-	$(MAKE) -C src/catala/catala_surface parser_errors.ml
-	$(MAKE) format
+	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
+	@$(MAKE) --no-print-directory format
 	dune build
 
-doc: build
-	dune build @doc
+release_build:
+	dune build --profile release
 
-install: build
+doc: 
+	dune build @doc
+	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
+
+install:
 	dune build @install
 
 ##########################################
@@ -103,25 +112,32 @@ EXAMPLES_DIR=examples
 ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
 CODE_GENERAL_IMPOTS_DIR=$(EXAMPLES_DIR)/code_general_impots
 US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
-TUTORIAL_DIR=$(EXAMPLES_DIR)/tutorial
+TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
+TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 
-allocations_familiales: pygments build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.tex
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) $@.html
 
-code_general_impots: pygments build
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.tex
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) $@.html
+literate_allocations_familiales: pygments build
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
-us_tax_code: pygments build
-	$(MAKE) -C $(US_TAX_CODE_DIR) $@.tex
-	$(MAKE) -C $(US_TAX_CODE_DIR) $@.html
+literate_code_general_impots: pygments build
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
-tutorial_en: pygments build
-	$(MAKE) -C $(TUTORIAL_DIR) $@.tex
-	$(MAKE) -C $(TUTORIAL_DIR) $@.html
+literate_us_tax_code: pygments build
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
-all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
+literate_tutorial_en: pygments build
+	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
+	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
+
+literate_tutoriel_fr: pygments build
+	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
+	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
+
+literate_examples: literate_allocations_familiales literate_code_general_impots \
+	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
 
 ##########################################
 # Execute test suite
@@ -129,8 +145,13 @@ all_examples: allocations_familiales code_general_impots us_tax_code tutorial_en
 
 .FORCE:
 
-tests: build .FORCE
-	$(MAKE) -C tests
+test_suite: .FORCE
+	@$(MAKE) --no-print-directory -C tests pass_tests
+
+test_examples: .FORCE 
+	@$(MAKE) --no-print-directory -C examples tests
+
+tests: test_suite test_examples
 
 ##########################################
 # Website assets
@@ -139,17 +160,17 @@ tests: build .FORCE
 grammar.html: src/catala/catala_surface/parser.mly
 	obelisk html -o $@ $<
 
-catala.html: src/catala/cli.ml
+catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc all_examples grammar.html catala.html
+website-assets: doc literate_examples grammar.html catala.html release_build
 
 ##########################################
 # Misceallenous
 ##########################################
 
-all: install-dependencies build doc tests all_examples website-assets
+all: dependencies build doc tests literate_examples website-assets
 
 clean:
 	dune clean
@@ -159,11 +180,11 @@ clean:
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
-	gitinspector -f ml,mli,mly,iro,tex,catala,md,ir --grading
+	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_fr,md,fst,mld --grading
 
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all all_examples english allocations_familiales pygments \
-	install build format install-dependencies install-dependencies-ocaml \
-	catala.html
+.PHONY: inspect clean all literate_examples english allocations_familiales pygments \
+	install build doc format dependencies dependencies-ocaml \
+	catala.html 

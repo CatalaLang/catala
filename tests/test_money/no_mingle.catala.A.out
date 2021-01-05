@@ -1,0 +1,13 @@
+[ERROR] Error during typechecking, types decimal and money are incompatible
+[ERROR] 
+[ERROR] Type decimal coming from expression:
+[ERROR]   --> test_money/no_mingle.catala
+[ERROR]    | 
+[ERROR] 12 |   def z := (x *$ y)
+[ERROR]    |               ^^
+[ERROR] 
+[ERROR] Type money coming from expression:
+[ERROR]  --> test_money/no_mingle.catala
+[ERROR]   | 
+[ERROR] 6 |   param y content money 
+[ERROR]   |                   ^^^^^

@@ -1,19 +1,13 @@
-[ERROR] Default logic conflict, multiple justifications are true but are not related by a precedence
-[ERROR]
-[ERROR] The conflict concerns this variable y
-[ERROR]  --> test_scope/sub_sub_scope.catala
-[ERROR]   |
-[ERROR] 10 |   param y type int
-[ERROR]   |         ^
-[ERROR]
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
-[ERROR]    |
-[ERROR] 23 |   def y [ a.x = 1 ] := 1
-[ERROR]    |           ^^^^^^^
-[ERROR]
+[ERROR]    | 
+[ERROR] 24 |   def y [| a2.x = 1 |] := 1
+[ERROR]    |            ^^^^^^^^
+[ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
-[ERROR]    |
-[ERROR] 24 |   def y [ a.x + 1 = 2 ] := 1
-[ERROR]    |           ^^^^^^^^^^^
+[ERROR]    | 
+[ERROR] 25 |   def y [| a2.x + 1 = 2 |] := 1
+[ERROR]    |            ^^^^^^^^^^^^
