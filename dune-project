@@ -10,7 +10,7 @@
 (bug_reports https://github.com/CatalaLang/catala/issues)
 (authors "Denis Merigoux")
 (maintainers "contact@catala-lang.org")
-(license Apache2)
+(license Apache-2.0)
 
 
 (package

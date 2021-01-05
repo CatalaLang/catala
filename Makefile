@@ -45,12 +45,15 @@ build:
 	@$(MAKE) --no-print-directory format
 	dune build
 
+release_build:
+	dune build --profile release
+
 doc: 
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
 install:
-	dune build --profile release @install
+	dune build @install
 
 ##########################################
 # Syntax highlighting rules
@@ -161,7 +164,7 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc literate_examples grammar.html catala.html install
+website-assets: doc literate_examples grammar.html catala.html release_build
 
 ##########################################
 # Misceallenous
