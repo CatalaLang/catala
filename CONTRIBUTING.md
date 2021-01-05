@@ -4,6 +4,9 @@ The project is open to external contributions, in the spirit of open source.
 If you want to open a pull request, please follow the instructions below.
 
 To ask a question to the Catala team, please open an issue on this repository. 
+You can also join the [Zulip chat](https://zulip.catala-lang.org/) to ask 
+any questions about the project.
+
 If you want to contribute to the project on a longer-term basis, or if you have 
 specific competences as a socio-fiscal lawyer or a programming language specialist, 
 please [contact the authors](mailto:contact@catala-lang.org).

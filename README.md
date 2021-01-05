@@ -10,6 +10,8 @@ faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official 
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
 
+Join the Catala community on Zulip: https://zulip.catala-lang.org/!
+
 ## Concepts
 
 Catala is a programming language adapted for socio-fiscal legislative literate
