@@ -70,7 +70,6 @@ let token_list_en : (string * token) list =
     ("and", AND);
     ("or", OR);
     ("not", NOT);
-    ("integer_to_decimal", INT_TO_DEC);
     ("maximum", MAXIMUM);
     ("minimum", MAXIMUM);
     ("number", CARDINAL);
@@ -250,6 +249,15 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "integer_to_decimal" ->
       L.update_acc lexbuf;
       INT_TO_DEC
+  | "get_day" ->
+      L.update_acc lexbuf;
+      GET_DAY
+  | "get_month" ->
+      L.update_acc lexbuf;
+      GET_MONTH
+  | "get_year" ->
+      L.update_acc lexbuf;
+      GET_YEAR
   | "maximum" ->
       L.update_acc lexbuf;
       MAXIMUM

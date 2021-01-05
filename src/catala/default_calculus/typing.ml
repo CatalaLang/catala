@@ -145,6 +145,9 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop A.ErrorOnEmpty -> arr any any
   | A.Unop (A.Log _) -> arr any any
   | A.Unop A.Length -> arr array_any it
+  | A.Unop A.GetDay -> arr dat it
+  | A.Unop A.GetMonth -> arr dat it
+  | A.Unop A.GetYear -> arr dat it
   | A.Unop A.IntToRat -> arr it rt
   | Binop (Mult (KDate | KDuration)) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
       Errors.raise_spanned_error "This operator is not available!" pos

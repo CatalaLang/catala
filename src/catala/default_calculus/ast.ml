@@ -76,6 +76,9 @@ type unop =
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
+  | GetDay
+  | GetMonth
+  | GetYear
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 

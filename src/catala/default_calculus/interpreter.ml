@@ -193,6 +193,10 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.Length, [ EArray es ] -> A.ELit (LInt (Z.of_int (List.length es)))
+    | A.Unop A.GetDay, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (ODate.Unix.get_day d)))
+    | A.Unop A.GetMonth, [ ELit (LDate d) ] ->
+        A.ELit (LInt (Z.of_int (ODate.Month.to_int (ODate.Unix.get_month d))))
+    | A.Unop A.GetYear, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (ODate.Unix.get_year d)))
     | A.Unop A.IntToRat, [ ELit (LInt i) ] -> A.ELit (LRat (Q.of_bigint i))
     | A.Unop A.ErrorOnEmpty, [ e' ] ->
         if e' = A.ELit LEmptyError then
