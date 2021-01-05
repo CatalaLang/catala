@@ -1,16 +1,17 @@
 @@Section 121@@
 
+@@Begin metadata@@
 /* 
 declaration structure Period:
   data begin content date 
   data end content date
 
 declaration scope Section121:
-  context income_excluded_from_gross_income_uncapped content amount
-  context income_excluded_from_gross_income content amount
-  context gain_from_sale_or_exchange_of_property content amount
+  context income_excluded_from_gross_income_uncapped content money
+  context income_excluded_from_gross_income content money
+  context gain_from_sale_or_exchange_of_property content money
   context joint_return condition 
-  context gain_cap content amount
+  context gain_cap content money
   context return_date content date
   context date_of_sale_or_exchange content date
   context property_ownage content collection Period
@@ -21,6 +22,7 @@ declaration scope Section121:
   context aggregate_periods_from_last_five_years content duration 
     depends on collection Period
 */
+@@End metadata@@
 
 @(a) Exclusion@
 
@@ -35,22 +37,20 @@ residence for periods aggregating 2 years or more.
 scope Section121:
   # Here we aggregate over all the periods of the collection. For 
   # each period, three cases:
-  # - either the period began less that 5 years ago in which case 
-  #   we count if full
-  # - either the period ended more that 5 years ago in which case 
-  #   we don't count it 
+  # - either the period began less that 5 years before the 
+  #   date_of_sale_or_exchange in which case we count if full
+  # - either the period ended more that 5 years before the 
+  #   date_of_sale_or_exchange in which case we don't count it 
   # - either the 5 years mark is inside the period and we only 
   #   cound the half after 5 years
   definition aggregate_periods_from_last_five_years of periods equals 
-    sum for period in periods of 
-      max of (
-         (
-            if date_of_sale_or_exchange - period.begin >= 5 year then
-               period.end - (period.end - 5 year)
-            else period.end - period.begin
-        ),
-        0
-      )
+    sum duration for period in periods of (
+      if date_of_sale_or_exchange -@ period.begin <=^ 5 year then
+        period.end -@ period.begin
+      else (if date_of_sale_or_exchange -@ period.end >=^ 5 year then 
+        0 day 
+      else (period.end -@ date_of_sale_or_exchange))
+    )
 
   definition income_excluded_from_gross_income_uncapped under condition 
     aggregate_periods_from_last_five_years of property_ownage >= 730 day and
@@ -78,7 +78,7 @@ scope Section121:
   # priority. We should extend the semantics to reflect that.
   definition income_excluded_from_gross_income under condition 
     income_excluded_from_gross_income_uncapped >= gain_cap
-  equals to gain_cap
+  consequence equals gain_cap
 */
 
 @(2) Special rules for joint returns@
@@ -109,13 +109,13 @@ respect to such property by reason of paragraph (3).
 
 /*
 scope Section1 under condition 
-  joint_return and year of date_of_sale_or_exchange = year of return_date:
+  joint_return and get_year of date_of_sale_or_exchange = get_year of return_date:
   
   # This rule has priority over the over rule defining gain_cap
-  definition gain_cap under condition 
-    # i) 
-    # ii)
-    # iii)
+  definition gain_cap under condition true
+    # i) TODO
+    # ii) TODO
+    # iii) TODO
   consequence equals $500,000
 */
 
