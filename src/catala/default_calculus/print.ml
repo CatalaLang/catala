@@ -170,7 +170,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
-  | ETupleAccess (e1, n, i) -> (
+  | ETupleAccess (e1, n, i, _) -> (
       match i with
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )

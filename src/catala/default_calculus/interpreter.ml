@@ -259,7 +259,7 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             (Pos.get_position e) )
   | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
   | ETuple es -> Pos.same_pos_as (A.ETuple (List.map (fun (e', i) -> (evaluate_expr e', i)) es)) e
-  | ETupleAccess (e1, n, _) -> (
+  | ETupleAccess (e1, n, _, _) -> (
       let e1 = evaluate_expr e1 in
       match Pos.unmark e1 with
       | ETuple es -> (

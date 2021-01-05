@@ -199,21 +199,16 @@ let rec typecheck_expr_bottom_up (env : env) (e : A.expr Pos.marked) : typ Pos.m
     | ETuple es ->
         let ts = List.map (fun (e, _) -> typecheck_expr_bottom_up env e) es in
         UnionFind.make (Pos.same_pos_as (TTuple ts) e)
-    | ETupleAccess (e1, n, _) -> (
-        let t1 = typecheck_expr_bottom_up env e1 in
-        match Pos.unmark (UnionFind.get (UnionFind.find t1)) with
-        | TTuple ts -> (
-            match List.nth_opt ts n with
-            | Some t' -> t'
-            | None ->
-                Errors.raise_spanned_error
-                  (Format.asprintf
-                     "Expression should have a tuple type with at least %d elements but only has %d"
-                     n (List.length ts))
-                  (Pos.get_position e1) )
-        | _ ->
+    | ETupleAccess (e1, n, _, typs) -> (
+        let typs = List.map (fun typ -> UnionFind.make (Pos.map_under_mark ast_to_typ typ)) typs in
+        typecheck_expr_top_down env e1 (UnionFind.make (TTuple typs, Pos.get_position e));
+        match List.nth_opt typs n with
+        | Some t' -> t'
+        | None ->
             Errors.raise_spanned_error
-              (Format.asprintf "Expected a tuple, got a %a" format_typ t1)
+              (Format.asprintf
+                 "Expression should have a tuple type with at least %d elements but only has %d" n
+                 (List.length typs))
               (Pos.get_position e1) )
     | EInj (e1, n, _, ts) ->
         let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
@@ -331,28 +326,17 @@ and typecheck_expr_top_down (env : env) (e : A.expr Pos.marked)
           Errors.raise_spanned_error
             (Format.asprintf "expected %a, got a tuple" format_typ tau)
             (Pos.get_position e) )
-  | ETupleAccess (e1, n, _) -> (
-      let t1 = typecheck_expr_bottom_up env e1 in
-      match Pos.unmark (UnionFind.get (UnionFind.find t1)) with
-      | TTuple t1s -> (
-          match List.nth_opt t1s n with
-          | Some t1n -> unify t1n tau
-          | None ->
-              Errors.raise_spanned_error
-                (Format.asprintf
-                   "expression should have a tuple type with at least %d elements but only has %d" n
-                   (List.length t1s))
-                (Pos.get_position e1) )
-      | TAny _ ->
-          (* Include total number of cases in ETupleAccess to continue typechecking at this point *)
+  | ETupleAccess (e1, n, _, typs) -> (
+      let typs = List.map (fun typ -> UnionFind.make (Pos.map_under_mark ast_to_typ typ)) typs in
+      typecheck_expr_top_down env e1 (UnionFind.make (TTuple typs, Pos.get_position e));
+      match List.nth_opt typs n with
+      | Some t1n -> unify t1n tau
+      | None ->
           Errors.raise_spanned_error
-            "The precise type of this expression cannot be inferred.\n\
-             Please raise an issue one https://github.com/CatalaLang/catala/issues"
-            (Pos.get_position e1)
-      | _ ->
-          Errors.raise_spanned_error
-            (Format.asprintf "expected a tuple , got %a" format_typ tau)
-            (Pos.get_position e) )
+            (Format.asprintf
+               "Expression should have a tuple type with at least %d elements but only has %d" n
+               (List.length typs))
+            (Pos.get_position e1) )
   | EInj (e1, n, _, ts) ->
       let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
       let ts_n =

@@ -359,6 +359,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LRat Q.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
+            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateExtremum _) ->
             Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
               (Pos.get_position op')
@@ -389,6 +391,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KInt)
         | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KRat)
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KMoney)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
+            make_body (Dcalc.Ast.Add Dcalc.Ast.KDuration)
         | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
         | Ast.Aggregate (Ast.AggregateExtremum _) ->
             Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
@@ -433,6 +437,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_f Dcalc.Ast.TInt
         | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_f Dcalc.Ast.TRat
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_f Dcalc.Ast.TMoney
+        | Ast.Aggregate (Ast.AggregateSum Ast.Duration) -> make_f Dcalc.Ast.TDuration
         | Ast.Aggregate (Ast.AggregateExtremum _) ->
             Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
               (Pos.get_position op')
