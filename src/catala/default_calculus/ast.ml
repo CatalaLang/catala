@@ -76,6 +76,9 @@ type unop =
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
+  | GetDay
+  | GetMonth
+  | GetYear
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
@@ -85,8 +88,8 @@ type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of (expr Pos.marked * Uid.MarkedString.info option) list
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * Uid.MarkedString.info option
-      (** The [MarkedString.info] is the former struct field name*)
+  | ETupleAccess of expr Pos.marked * int * Uid.MarkedString.info option * typ Pos.marked list
+      (** The [MarkedString.info] is the former struct field name *)
   | EInj of expr Pos.marked * int * Uid.MarkedString.info * typ Pos.marked list
       (** The [MarkedString.info] is the former enum case name *)
   | EMatch of expr Pos.marked * (expr Pos.marked * Uid.MarkedString.info) list

@@ -64,6 +64,7 @@
 %token UNDER_CONDITION CONSEQUENCE LBRACKET RBRACKET
 %token LABEL EXCEPTION LSQUARE RSQUARE SEMICOLON
 %token INT_TO_DEC MAXIMUM MINIMUM
+%token GET_DAY GET_MONTH GET_YEAR
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -141,8 +142,18 @@ primitive_expression:
 | CARDINAL {
    (Builtin Cardinal, $sloc)
 }
+  
 | INT_TO_DEC {
   (Builtin IntToDec, $sloc)
+}
+| GET_DAY {
+  (Builtin GetDay, $sloc)
+}
+| GET_MONTH {
+  (Builtin GetMonth, $sloc)
+}
+| GET_YEAR {
+  (Builtin GetYear, $sloc)
 }
 | e = struct_or_enum_inject {
  e

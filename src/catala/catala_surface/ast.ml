@@ -87,7 +87,7 @@ type binop =
 
 type unop = Not | Minus of op_kind
 
-type builtin_expression = Cardinal | IntToDec
+type builtin_expression = Cardinal | IntToDec | GetDay | GetMonth | GetYear
 
 type aggregate_func =
   | AggregateSum of primitive_typ

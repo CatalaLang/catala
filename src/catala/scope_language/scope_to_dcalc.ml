@@ -130,7 +130,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply
           (fun e1 ->
-            Dcalc.Ast.ETupleAccess (e1, field_index, Some (Ast.StructFieldName.get_info field_name)))
+            Dcalc.Ast.ETupleAccess
+              ( e1,
+                field_index,
+                Some (Ast.StructFieldName.get_info field_name),
+                List.map (fun (_, t) -> translate_typ ctx t) struct_sig ))
           e1
     | EEnumInj (e1, constructor, enum_name) ->
         let enum_sig = Ast.EnumMap.find enum_name ctx.enums in
@@ -436,7 +440,13 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           (fun (_, tau, dvar) (acc, i) ->
             let result_access =
               Bindlib.box_apply
-                (fun r -> (Dcalc.Ast.ETupleAccess (r, i, None), pos_sigma))
+                (fun r ->
+                  ( Dcalc.Ast.ETupleAccess
+                      ( r,
+                        i,
+                        None,
+                        List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
+                    pos_sigma ))
                 (Dcalc.Ast.make_var (result_tuple_var, pos_sigma))
             in
             (Dcalc.Ast.make_let_in dvar (tau, pos_sigma) result_access acc, i - 1))
