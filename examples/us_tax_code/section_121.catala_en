@@ -49,7 +49,7 @@ scope Section121:
         period.end -@ period.begin
       else (if date_of_sale_or_exchange -@ period.end >=^ 5 year then 
         0 day 
-      else (period.end -@ date_of_sale_or_exchange))
+      else (period.end -@ (date_of_sale_or_exchange +@ (-^ 5 year))))
     )
 
   definition income_excluded_from_gross_income_uncapped under condition 
