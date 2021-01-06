@@ -361,12 +361,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.zero), Pos.get_position op')
-        | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
         | Ast.Aggregate (Ast.AggregateSum t) ->
             Errors.raise_spanned_error
               (Format.asprintf "It is impossible to sum two values of type %a together"
                  Print.format_primitive_typ t)
               pos
+        | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
       in
@@ -416,8 +416,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               | Ast.Decimal -> (Dcalc.Ast.KRat, (Scopelang.Ast.TLit TRat, pos))
               | Ast.Money -> (Dcalc.Ast.KMoney, (Scopelang.Ast.TLit TMoney, pos))
               | Ast.Duration -> (Dcalc.Ast.KDuration, (Scopelang.Ast.TLit TDuration, pos))
-              | _ -> assert false
-              (* should not happen *)
+              | _ ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "It is impossible to compute the %s of two values of type %a"
+                       (if max_or_min then "max" else "min")
+                       Print.format_primitive_typ t)
+                    pos
             in
             let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
             make_extr_body cmp_op typ
