@@ -383,19 +383,22 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             (translate_expr scope ctxt predicate)
             acc
         in
-        let make_extr_body (cmp_op : Dcalc.Ast.binop) =
-          Bindlib.box_apply2
-            (fun predicate acc ->
-              ( Scopelang.Ast.EIfThenElse
-                  ( ( Scopelang.Ast.EApp
-                        ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop cmp_op), Pos.get_position op'),
-                          [ acc; predicate ] ),
-                      pos ),
-                    acc,
-                    predicate ),
-                pos ))
+        let make_extr_body (cmp_op : Dcalc.Ast.binop) (t : Scopelang.Ast.typ Pos.marked) =
+          let tmp_var = Scopelang.Ast.Var.make ("tmp", Pos.get_position param') in
+          let tmp = Scopelang.Ast.make_var (tmp_var, Pos.get_position param') in
+          Scopelang.Ast.make_let_in tmp_var t
             (translate_expr scope ctxt predicate)
-            acc
+            (Bindlib.box_apply2
+               (fun acc tmp ->
+                 ( Scopelang.Ast.EIfThenElse
+                     ( ( Scopelang.Ast.EApp
+                           ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop cmp_op), Pos.get_position op'),
+                             [ acc; tmp ] ),
+                         pos ),
+                       acc,
+                       tmp ),
+                   pos ))
+               acc tmp)
         in
         match Pos.unmark op' with
         | Ast.Exists -> make_body Dcalc.Ast.Or
@@ -407,16 +410,17 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             make_body (Dcalc.Ast.Add Dcalc.Ast.KDuration)
         | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
         | Ast.Aggregate (Ast.AggregateExtremum (max_or_min, t, _)) ->
-            let op_kind =
+            let op_kind, typ =
               match t with
-              | Ast.Integer -> Dcalc.Ast.KInt
-              | Ast.Decimal -> Dcalc.Ast.KRat
-              | Ast.Money -> Dcalc.Ast.KMoney
-              | Ast.Duration -> Dcalc.Ast.KDuration
+              | Ast.Integer -> (Dcalc.Ast.KInt, (Scopelang.Ast.TLit TInt, pos))
+              | Ast.Decimal -> (Dcalc.Ast.KRat, (Scopelang.Ast.TLit TRat, pos))
+              | Ast.Money -> (Dcalc.Ast.KMoney, (Scopelang.Ast.TLit TMoney, pos))
+              | Ast.Duration -> (Dcalc.Ast.KDuration, (Scopelang.Ast.TLit TDuration, pos))
               | _ -> assert false
+              (* should not happen *)
             in
             let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
-            make_extr_body cmp_op
+            make_extr_body cmp_op typ
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box_apply2
               (fun predicate acc ->
