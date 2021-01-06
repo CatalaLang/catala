@@ -1,0 +1,15 @@
+[ERROR] Error during typechecking, types (any[49]) and (integer +
+[ERROR] unit) are incompatible
+[ERROR] 
+[ERROR] Type (any[49]) coming from expression:
+[ERROR]   --> test_enum/quick_pattern_2.catala
+[ERROR]    | 
+[ERROR] 28 |   def y := x with Case3
+[ERROR]    |            ^
+[ERROR] 
+[ERROR] Type (integer +
+[ERROR] unit) coming from expression:
+[ERROR]   --> test_enum/quick_pattern_2.catala
+[ERROR]    | 
+[ERROR] 17 |   param x content E
+[ERROR]    |                   ^

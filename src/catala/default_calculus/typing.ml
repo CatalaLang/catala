@@ -78,12 +78,19 @@ let rec unify (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFin
         unify t11 t21;
         unify t12 t22;
         None
-    | (TTuple ts1, _), (TTuple ts2, _) ->
-        List.iter2 unify ts1 ts2;
-        None
-    | (TEnum ts1, _), (TEnum ts2, _) ->
-        List.iter2 unify ts1 ts2;
-        None
+    | (TTuple ts1, t1_pos), (TTuple ts2, t2_pos) | (TEnum ts1, t1_pos), (TEnum ts2, t2_pos) ->
+        if List.length ts1 = List.length ts2 then begin
+          List.iter2 unify ts1 ts2;
+          None
+        end
+        else
+          Errors.raise_multispanned_error
+            (Format.asprintf "Error during typechecking, types %a and %a are incompatible"
+               format_typ t1 format_typ t2)
+            [
+              (Some (Format.asprintf "Type %a coming from expression:" format_typ t1), t1_pos);
+              (Some (Format.asprintf "Type %a coming from expression:" format_typ t2), t2_pos);
+            ]
     | (TArray t1', _), (TArray t2', _) ->
         unify t1' t2';
         None
