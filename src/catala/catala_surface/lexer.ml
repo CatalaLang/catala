@@ -78,7 +78,8 @@ let token_list : (string * token) list =
     ("decreasing", DECREASING);
     ("increasing", INCREASING);
     ("maximum", MAXIMUM);
-    ("minimum", MAXIMUM);
+    ("minimum", MINIMUM);
+    ("init", INIT);
     ("of", OF);
     ("set", COLLECTION);
     ("enum", ENUM);
@@ -310,6 +311,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "minimum" ->
       update_acc lexbuf;
       MINIMUM
+  | "init" ->
+      update_acc lexbuf;
+      INIT
   | "number" ->
       update_acc lexbuf;
       CARDINAL
