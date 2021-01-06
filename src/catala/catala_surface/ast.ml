@@ -89,11 +89,6 @@ type unop = Not | Minus of op_kind
 
 type builtin_expression = Cardinal | IntToDec | GetDay | GetMonth | GetYear
 
-type aggregate_func =
-  | AggregateSum of primitive_typ
-  | AggregateCount
-  | AggregateExtremum of bool (* true if max *) * primitive_typ
-
 type literal_date = {
   literal_date_day : int Pos.marked;
   literal_date_month : int Pos.marked;
@@ -104,8 +99,6 @@ type literal_number = Int of Z.t | Dec of Z.t * Z.t
 
 type literal_unit = Percent | Year | Month | Day
 
-type collection_op = Exists | Forall | Aggregate of aggregate_func
-
 type money_amount = { money_amount_units : Z.t; money_amount_cents : Z.t }
 
 type literal =
@@ -114,7 +107,14 @@ type literal =
   | MoneyAmount of money_amount
   | Date of literal_date
 
-type match_case = {
+type aggregate_func =
+  | AggregateSum of primitive_typ
+  | AggregateCount
+  | AggregateExtremum of bool (* true if max *) * primitive_typ * expression Pos.marked
+
+and collection_op = Exists | Forall | Aggregate of aggregate_func
+
+and match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
   match_case_expr : expression Pos.marked;
 }

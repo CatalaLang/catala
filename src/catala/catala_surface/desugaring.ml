@@ -361,14 +361,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.zero), Pos.get_position op')
-        | Ast.Aggregate (Ast.AggregateExtremum _) ->
-            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
-              (Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum t) ->
             Errors.raise_spanned_error
               (Format.asprintf "It is impossible to sum two values of type %a together"
                  Print.format_primitive_typ t)
               pos
+        | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
       in
@@ -385,6 +383,23 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             (translate_expr scope ctxt predicate)
             acc
         in
+        let make_extr_body (cmp_op : Dcalc.Ast.binop) (t : Scopelang.Ast.typ Pos.marked) =
+          let tmp_var = Scopelang.Ast.Var.make ("tmp", Pos.get_position param') in
+          let tmp = Scopelang.Ast.make_var (tmp_var, Pos.get_position param') in
+          Scopelang.Ast.make_let_in tmp_var t
+            (translate_expr scope ctxt predicate)
+            (Bindlib.box_apply2
+               (fun acc tmp ->
+                 ( Scopelang.Ast.EIfThenElse
+                     ( ( Scopelang.Ast.EApp
+                           ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop cmp_op), Pos.get_position op'),
+                             [ acc; tmp ] ),
+                         pos ),
+                       acc,
+                       tmp ),
+                   pos ))
+               acc tmp)
+        in
         match Pos.unmark op' with
         | Ast.Exists -> make_body Dcalc.Ast.Or
         | Ast.Forall -> make_body Dcalc.Ast.And
@@ -394,9 +409,22 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
             make_body (Dcalc.Ast.Add Dcalc.Ast.KDuration)
         | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
-        | Ast.Aggregate (Ast.AggregateExtremum _) ->
-            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
-              (Pos.get_position op')
+        | Ast.Aggregate (Ast.AggregateExtremum (max_or_min, t, _)) ->
+            let op_kind, typ =
+              match t with
+              | Ast.Integer -> (Dcalc.Ast.KInt, (Scopelang.Ast.TLit TInt, pos))
+              | Ast.Decimal -> (Dcalc.Ast.KRat, (Scopelang.Ast.TLit TRat, pos))
+              | Ast.Money -> (Dcalc.Ast.KMoney, (Scopelang.Ast.TLit TMoney, pos))
+              | Ast.Duration -> (Dcalc.Ast.KDuration, (Scopelang.Ast.TLit TDuration, pos))
+              | _ ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "It is impossible to compute the %s of two values of type %a"
+                       (if max_or_min then "max" else "min")
+                       Print.format_primitive_typ t)
+                    pos
+            in
+            let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
+            make_extr_body cmp_op typ
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box_apply2
               (fun predicate acc ->
@@ -434,14 +462,20 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         match Pos.unmark op' with
         | Ast.Exists -> make_f Dcalc.Ast.TBool
         | Ast.Forall -> make_f Dcalc.Ast.TBool
-        | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_f Dcalc.Ast.TInt
-        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) -> make_f Dcalc.Ast.TRat
-        | Ast.Aggregate (Ast.AggregateSum Ast.Money) -> make_f Dcalc.Ast.TMoney
-        | Ast.Aggregate (Ast.AggregateSum Ast.Duration) -> make_f Dcalc.Ast.TDuration
-        | Ast.Aggregate (Ast.AggregateExtremum _) ->
-            Errors.raise_spanned_error "Unsupported feature: minimum and maximum"
-              (Pos.get_position op')
-        | Ast.Aggregate (Ast.AggregateSum _) -> assert false (* should not happen *)
+        | Ast.Aggregate (Ast.AggregateSum Ast.Integer)
+        | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Integer, _)) ->
+            make_f Dcalc.Ast.TInt
+        | Ast.Aggregate (Ast.AggregateSum Ast.Decimal)
+        | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Decimal, _)) ->
+            make_f Dcalc.Ast.TRat
+        | Ast.Aggregate (Ast.AggregateSum Ast.Money)
+        | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Money, _)) ->
+            make_f Dcalc.Ast.TMoney
+        | Ast.Aggregate (Ast.AggregateSum Ast.Duration)
+        | Ast.Aggregate (Ast.AggregateExtremum (_, Ast.Duration, _)) ->
+            make_f Dcalc.Ast.TDuration
+        | Ast.Aggregate (Ast.AggregateSum _) | Ast.Aggregate (Ast.AggregateExtremum _) ->
+            assert false (* should not happen *)
         | Ast.Aggregate Ast.AggregateCount -> make_f Dcalc.Ast.TInt
       in
       Bindlib.box_apply3
