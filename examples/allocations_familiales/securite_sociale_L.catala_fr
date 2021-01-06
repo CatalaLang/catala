@@ -71,9 +71,7 @@ peut être différent de celui mentionné au 2° du présent article.
 /*
 champ d'application PrestationsFamiliales :
   définition âge_l512_3_2 sous condition
-    (selon âge_l512_3_2_alternatif sous forme 
-      -- Présent de âge : vrai 
-      -- Absent: faux) et
+    (âge_l512_3_2_alternatif sous forme Présent) et
     (prestation_courante = ComplémentFamilial ou
      prestation_courante = AllocationLogement)
   conséquence égal à
@@ -190,36 +188,24 @@ champ d'application AllocationsFamiliales :
   # Premier cas : garde alternée, parents désignent un unique allocataire
   exception définition_prise_en_compte
   définition prise_en_compte de enfant sous condition 
-    selon enfant.garde_alternée sous forme
-      -- OuiAllocataireUnique: vrai 
-      -- OuiPartageAllocations: faux
-      -- NonGardeUnique: faux
+    enfant.garde_alternée sous forme OuiAllocataireUnique
   conséquence égal à Complète
 
   exception définition_versement
   définition versement de enfant sous condition 
-    selon enfant.garde_alternée sous forme
-      -- OuiAllocataireUnique: vrai 
-      -- OuiPartageAllocations: faux
-      -- NonGardeUnique: faux
+    enfant.garde_alternée sous forme OuiAllocataireUnique
   conséquence égal à Normal
 
   # Deuxième cas : garde alternée, parents partagent la charge pour
   # l'allocation
   exception définition_prise_en_compte
   définition prise_en_compte de enfant sous condition 
-    selon enfant.garde_alternée sous forme
-      -- OuiPartageAllocations: vrai
-      -- OuiAllocataireUnique: faux 
-      -- NonGardeUnique: faux
+    enfant.garde_alternée sous forme OuiPartageAllocations
   conséquence égal à Partagée
 
   exception définition_versement
   définition versement de enfant sous condition 
-    selon enfant.garde_alternée sous forme
-      -- OuiPartageAllocations: vrai
-      -- OuiAllocataireUnique: faux 
-      -- NonGardeUnique: faux
+    enfant.garde_alternée sous forme OuiPartageAllocations
   conséquence égal à Partagée
 */
 
