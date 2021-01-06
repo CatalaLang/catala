@@ -1,0 +1,20 @@
+@Article@
+
+/*
+new enum E:
+  -- Case1 content int
+  -- Case2
+  -- Case3
+
+new scope A:
+  param x content E
+  param y content bool
+  param z content bool
+  param t content bool 
+
+scope A:
+  def x := Case1 content 2
+  def y := x with Case1
+  def z := x with Case2
+  def t := x with Case3
+*/
