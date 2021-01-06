@@ -341,6 +341,42 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         (fun e1 cases_d -> (Scopelang.Ast.EMatch (e1, Option.get e_uid, cases_d), pos))
         e1
         (LiftEnumConstructorMap.lift_box cases_d)
+  | TestMatchCase (e1, constructor) ->
+      let possible_c_uids =
+        try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
+        with Not_found ->
+          Errors.raise_spanned_error
+            "The name of this constructor has not been defined before, maybe it is a typo?"
+            (Pos.get_position constructor)
+      in
+      if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
+        Errors.raise_spanned_error
+          (Format.asprintf
+             "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing \
+              it with the enum name."
+             (Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                (fun fmt (s_name, _) ->
+                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+          (Pos.get_position constructor);
+      let enum_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
+      let nop_var = Scopelang.Ast.Var.make ("___", pos) in
+      let cases =
+        Scopelang.Ast.EnumConstructorMap.mapi
+          (fun c_uid' tau ->
+            Bindlib.unbox
+              (Scopelang.Ast.make_abs [| nop_var |]
+                 (Bindlib.box
+                    ( Scopelang.Ast.ELit
+                        (Dcalc.Ast.LBool (Scopelang.Ast.EnumConstructor.compare c_uid c_uid' = 0)),
+                      pos ))
+                 pos [ tau ] pos))
+          (Scopelang.Ast.EnumMap.find enum_uid ctxt.enums)
+      in
+      Bindlib.box_apply
+        (fun e -> (Scopelang.Ast.EMatch (e, enum_uid, cases), pos))
+        (translate_expr scope ctxt e1)
   | ArrayLit es ->
       Bindlib.box_apply
         (fun es -> (Scopelang.Ast.EArray es, pos))
