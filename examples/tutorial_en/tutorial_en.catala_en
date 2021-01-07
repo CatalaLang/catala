@@ -284,6 +284,7 @@ as another scope:
 /*
 declaration scope Test1:
   context tax_computation scope NewIncomeTaxComputation
+  context income_tax content money
 
 scope Test1:
   definition
@@ -296,17 +297,19 @@ scope Test1:
       -- income: $230,000
       -- number_of_children: 0
     }
-    
+  
+  definition income_tax equals tax_computation.income_tax
   # Next, we retrieve the income tax value compute it by the subscope and 
   # assert that it is equal to the expected value :
   # ($230,000-$100,00)*40%+$100,000*20% = $72,000
-  assertion tax_computation.income_tax = $72,000
+  assertion income_tax = $72,000
 */
 
 This test should pass. Let us now consider a failing test case:
 /*
 declaration scope Test2:
   context tax_computation scope NewIncomeTaxComputation
+  context income_tax content money
 
 scope Test2:
   definition tax_computation.individual equals Individual {
@@ -314,7 +317,8 @@ scope Test2:
     -- number_of_children: 0
   }
 
-  assertion tax_computation.income_tax = $0
+  definition income_tax equals tax_computation.income_tax
+  assertion income_tax = $0
 */
 
 This test case should compute a $0 income tax because of Article 6. But instead,
@@ -363,13 +367,15 @@ And the test that should now work:
 /*
 declaration scope Test3:
   context tax_computation scope NewIncomeTaxComputationFixed
+  context income_tax content money
 
 scope Test3:
   definition tax_computation.individual equals Individual {
     -- income: $4,000
     -- number_of_children: 0
   }
-  assertion tax_computation.income_tax = $0
+  definition income_tax equals tax_computation.income_tax 
+  assertion income_tax = $0
 */
 
 @@Conclusion@@+

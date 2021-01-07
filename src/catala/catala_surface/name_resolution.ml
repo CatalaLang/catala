@@ -87,7 +87,10 @@ let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
     ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
-  | None -> raise_unknown_identifier "for a var of this scope" (x, pos)
+  | None ->
+      raise_unknown_identifier
+        (Format.asprintf "for a variable of scope %a" Scopelang.Ast.ScopeName.format_t scope_uid)
+        (x, pos)
   | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)

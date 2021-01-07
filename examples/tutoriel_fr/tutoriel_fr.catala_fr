@@ -301,6 +301,7 @@ champ d'application :
 /*
 déclaration champ d'application Test1:
   contexte calcul_impôt champ d'application NouveauCalculImpôtRevenu
+  contexte impôt_revenu contenu argent
 
 champ d'application Test1:
   définition
@@ -314,17 +315,19 @@ champ d'application Test1:
       -- nombre_enfants: 0
     }
 
+  définition impôt_revenu égal à calcul_impôt.impôt_revenu
   # Ensuite, nous récupérons le montant d'impôt, calculé par 
   # sous-champ d'application et nous assertons qu'il vaut bien 
   # la valeur attendue :
   # (230 000€ - 100 000€) * 40% + 100 000€ * 20% = 72 000€
-  assertion calcul_impôt.impôt_revenu = 72 000€
+  assertion impôt_revenu = 72 000€
 */
 
 Ce test devrait être bon. Maintenant étudions un test en échec :
 /*
 déclaration champ d'application Test2:
   contexte calcul_impôt champ d'application NouveauCalculImpôtRevenu
+  contexte impôt_revenu contenu argent
 
 champ d'application Test2:
   définition calcul_impôt.personne égal à Personne {
@@ -332,7 +335,8 @@ champ d'application Test2:
     -- nombre_enfants: 0
   }
 
-  assertion calcul_impôt.impôt_revenu = 0€
+  définition impôt_revenu égal à calcul_impôt.impôt_revenu
+  assertion impôt_revenu = 0€
 */
 
 Ce cas de test devrait calculer un impôt sur le revenu de 0€,
@@ -385,13 +389,15 @@ Le test devrait désormais fonctionner :
 /*
 déclaration champ d'application Test3:
   contexte calcul_impôt champ d'application NouveauCalculImpôtRevenuCorrect
+  contexte impôt_revenu contenu argent
 
 champ d'application Test3:
   définition calcul_impôt.personne égal à Personne {
     -- revenu: 4 000€
     -- nombre_enfants: 0
   }
-  assertion calcul_impôt.impôt_revenu = 0€
+  définition impôt_revenu égal à calcul_impôt.impôt_revenu
+  assertion impôt_revenu = 0€
 */
 
 @@Conclusion@@+
