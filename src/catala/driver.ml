@@ -39,6 +39,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
       | None -> `NonVerbose
     in
+    Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
       if backend = "Makefile" then Cli.Makefile
       else if backend = "LaTeX" then Cli.Latex

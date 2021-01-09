@@ -214,10 +214,7 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
               let aux l = if !Utils.Cli.style_flag then l else [] in
               Cli.log_print
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
-                   (Format.pp_print_list
-                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-                   infos
+                   Print.format_uid_list infos
                    ( match e' with
                    | Ast.EAbs _ -> ANSITerminal.sprintf (aux [ ANSITerminal.green ]) "<function>"
                    | _ ->
@@ -231,19 +228,13 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
           | BeginCall ->
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
-                   (Format.pp_print_list
-                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-                   infos);
+                   Print.format_uid_list infos);
               log_indent := !log_indent + 1
           | EndCall ->
               log_indent := !log_indent - 1;
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
-                   (Format.pp_print_list
-                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-                   infos) )
+                   Print.format_uid_list infos) )
         else ();
         e'
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError

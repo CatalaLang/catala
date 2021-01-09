@@ -12,8 +12,17 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Ssource files to be compiled *)
+type frontend_lang = [ `Fr | `En | `NonVerbose ]
+
+type backend_lang = [ `Fr | `En ]
+
+let to_backend_lang (lang : frontend_lang) : backend_lang =
+  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr
+
+(** Source files to be compiled *)
 let source_files : string list ref = ref []
+
+let locale_lang : backend_lang ref = ref `En
 
 let contents : string ref = ref ""
 
@@ -73,13 +82,6 @@ let max_prec_digits_opt =
 let ex_scope =
   Arg.(
     value & opt (some string) None & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be executed")
-
-type frontend_lang = [ `Fr | `En | `NonVerbose ]
-
-type backend_lang = [ `Fr | `En ]
-
-let to_backend_lang (lang : frontend_lang) : backend_lang =
-  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr
 
 let output =
   Arg.(

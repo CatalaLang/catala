@@ -18,6 +18,24 @@ open Ast
 let typ_needs_parens (e : typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
+let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
+  let aux l = if !Utils.Cli.style_flag then l else [] in
+  Format.fprintf fmt "%a"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+       (fun fmt info ->
+         Format.fprintf fmt "%s"
+           (ANSITerminal.sprintf
+              (aux
+                 (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
+                  match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
+                  | `Ll -> []
+                  | `Lu -> [ ANSITerminal.red ]
+                  | _ -> []))
+              "%s"
+              (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
+    infos
+
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   match l with
   | TUnit -> Format.fprintf fmt "unit"
@@ -89,7 +107,10 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         (List.rev !digits)
         ( if List.length !digits - leading_zeroes !digits = !Utils.Cli.max_prec_digits then "…"
         else "" )
-  | LMoney e -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
+  | LMoney e -> (
+      match !Utils.Cli.locale_lang with
+      | `En -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
+      | `Fr -> Format.fprintf fmt "%.2f €" Q.(to_float (of_bigint e / of_int 100)) )
   | LDate d ->
       Format.fprintf fmt "%s"
         (ODate.Unix.To.string (Option.get (ODate.Unix.To.generate_printer "%Y-%m-%d")) d)
