@@ -43,6 +43,8 @@ let rec type_eq (t1 : A.typ Pos.marked) (t2 : A.typ Pos.marked) : bool =
   | A.TArrow (t11, t12), A.TArrow (t21, t22) -> type_eq t11 t12 && type_eq t21 t22
   | _, _ -> false
 
+let log_indent = ref 0
+
 (** {1 Evaluation} *)
 
 let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
@@ -206,22 +208,42 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
             (Pos.get_position op)
         else e'
     | A.Unop (A.Log (entry, infos)), [ e' ] ->
-        if !Cli.trace_flag then
+        if !Cli.trace_flag then (
           match entry with
           | VarDef ->
+              let aux l = if !Utils.Cli.style_flag then l else [] in
               Cli.log_print
-                (Format.asprintf "@[<hov 2>%a@ %a@ =@ %a@]" Print.format_log_entry entry
+                (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
                       (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-                   infos Print.format_expr (e', Pos.no_pos))
-          | _ ->
+                   infos
+                   ( match e' with
+                   | Ast.EAbs _ -> ANSITerminal.sprintf (aux [ ANSITerminal.green ]) "<function>"
+                   | _ ->
+                       let expr_str = Format.asprintf "%a" Print.format_expr (e', Pos.no_pos) in
+                       let expr_str =
+                         Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+                           ~subst:(fun _ -> " ")
+                           expr_str
+                       in
+                       ANSITerminal.sprintf (aux [ ANSITerminal.green ]) "%s" expr_str ))
+          | BeginCall ->
               Cli.log_print
-                (Format.asprintf "@[<hov 2>%a@ %a@]" Print.format_log_entry entry
+                (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
                    (Format.pp_print_list
                       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
                       (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-                   infos)
+                   infos);
+              log_indent := !log_indent + 1
+          | EndCall ->
+              log_indent := !log_indent - 1;
+              Cli.log_print
+                (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
+                   (Format.pp_print_list
+                      ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+                      (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+                   infos) )
         else ();
         e'
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError

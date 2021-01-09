@@ -119,11 +119,11 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> Format.fprintf fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  Format.fprintf fmt "%s"
-    ( match entry with
-    | VarDef -> "Defining variable"
-    | BeginCall -> "Calling subscope"
-    | EndCall -> "Returned from subscope" )
+  let aux l = if !Utils.Cli.style_flag then l else [] in
+  match entry with
+  | VarDef -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.blue ]) "≔ ")
+  | BeginCall -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.yellow ]) "→ ")
+  | EndCall -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.yellow ]) "← ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
@@ -163,21 +163,22 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            (fun fmt (e, struct_field) ->
              match struct_field with
              | Some struct_field ->
-                 Format.fprintf fmt "@[<hov 2>\"%a\":@ %a@]" Uid.MarkedString.format_info
-                   struct_field format_expr e
-             | None -> Format.fprintf fmt "@[%a@]" format_expr e))
+                 Format.fprintf fmt "\"%a\":@ %a" Uid.MarkedString.format_info struct_field
+                   format_expr e
+             | None -> Format.fprintf fmt "%a" format_expr e))
         es
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[%a]@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
+           (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
         es
   | ETupleAccess (e1, n, i, _) -> (
       match i with
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some i -> Format.fprintf fmt "%a.\"%a\"" format_expr e1 Uid.MarkedString.format_info i )
-  | EInj (e, _n, i, _ts) -> Format.fprintf fmt "%a@ %a" Uid.MarkedString.format_info i format_expr e
+  | EInj (e, _n, i, _ts) ->
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" Uid.MarkedString.format_info i format_expr e
   | EMatch (e, es) ->
       Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
         (Format.pp_print_list
@@ -216,8 +217,8 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ") format_with_parens)
         args
   | EIfThenElse (e1, e2, e3) ->
-      Format.fprintf fmt "if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]" format_expr
-        e1 format_expr e2 format_expr e3
+      Format.fprintf fmt "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
+        format_expr e1 format_expr e2 format_expr e3
   | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
