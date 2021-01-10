@@ -28,10 +28,14 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
            (ANSITerminal.sprintf
               (aux
                  (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
-                  match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
-                  | `Ll -> []
-                  | `Lu -> [ ANSITerminal.red ]
-                  | _ -> []))
+                  try
+                    match
+                      CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter
+                    with
+                    | `Ll -> []
+                    | `Lu -> [ ANSITerminal.red ]
+                    | _ -> []
+                  with _ -> []))
               "%s"
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
