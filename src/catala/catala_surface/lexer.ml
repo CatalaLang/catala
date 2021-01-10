@@ -79,6 +79,8 @@ let token_list : (string * token) list =
     ("increasing", INCREASING);
     ("maximum", MAXIMUM);
     ("minimum", MINIMUM);
+    ("filter", FILTER);
+    ("map", MAP);
     ("init", INIT);
     ("of", OF);
     ("set", COLLECTION);
@@ -311,6 +313,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "minimum" ->
       update_acc lexbuf;
       MINIMUM
+  | "filter" ->
+      update_acc lexbuf;
+      FILTER
+  | "map" ->
+      update_acc lexbuf;
+      MAP
   | "init" ->
       update_acc lexbuf;
       INIT

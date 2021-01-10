@@ -66,6 +66,7 @@ type binop =
   | Eq
   | Neq
   | Map
+  | Filter
 
 type log_entry = VarDef | BeginCall | EndCall
 

@@ -124,6 +124,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let any = UnionFind.make (TAny (Any.fresh ()), pos) in
   let array_any = UnionFind.make (TArray any, pos) in
   let any2 = UnionFind.make (TAny (Any.fresh ()), pos) in
+  let array_any2 = UnionFind.make (TArray any2, pos) in
   let arr x y = UnionFind.make (TArrow (x, y), pos) in
   match Pos.unmark op with
   | A.Ternop A.Fold -> arr (arr any2 (arr any any2)) (arr any2 (arr array_any any2))
@@ -143,7 +144,8 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Lt KDuration | A.Lte KDuration | A.Gt KDuration | A.Gte KDuration) ->
       arr dut (arr dut bt)
   | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
-  | A.Binop A.Map -> arr (arr any any2) (arr array_any any2)
+  | A.Binop A.Map -> arr (arr any any2) (arr array_any array_any2)
+  | A.Binop A.Filter -> arr (arr any bt) (arr array_any array_any)
   | A.Unop (A.Minus KInt) -> arr it it
   | A.Unop (A.Minus KRat) -> arr rt rt
   | A.Unop (A.Minus KMoney) -> arr mt mt

@@ -72,6 +72,8 @@ let token_list_en : (string * token) list =
     ("not", NOT);
     ("maximum", MAXIMUM);
     ("minimum", MINIMUM);
+    ("filter", FILTER);
+    ("map", MAP);
     ("initial", INIT);
     ("number", CARDINAL);
     ("year", YEAR);
@@ -265,6 +267,12 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "minimum" ->
       L.update_acc lexbuf;
       MINIMUM
+  | "filter" ->
+      L.update_acc lexbuf;
+      FILTER
+  | "map" ->
+      L.update_acc lexbuf;
+      MAP
   | "initial" ->
       L.update_acc lexbuf;
       INIT

@@ -381,9 +381,26 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       Bindlib.box_apply
         (fun es -> (Scopelang.Ast.EArray es, pos))
         (Bindlib.box_list (List.map rec_helper es))
-  | CollectionOp ((Ast.Map, _pos_op'), _param', _collection, _predicate) -> failwith "unimplemented"
-  | CollectionOp ((Ast.Filter, _pos_op'), _param', _collection, _predicate) ->
-      failwith "unimplemented"
+  | CollectionOp ((((Ast.Filter | Ast.Map) as op'), _pos_op'), param', collection, predicate) ->
+      let collection = rec_helper collection in
+      let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+      let f_pred =
+        Scopelang.Ast.make_abs [| param |]
+          (translate_expr scope ctxt predicate)
+          pos [ (Scopelang.Ast.TAny, pos) ] pos
+      in
+      Bindlib.box_apply2
+        (fun f_pred collection ->
+          ( Scopelang.Ast.EApp
+              ( ( Scopelang.Ast.EOp
+                    ( match op' with
+                    | Ast.Map -> Dcalc.Ast.Binop Dcalc.Ast.Map
+                    | Ast.Filter -> Dcalc.Ast.Binop Dcalc.Ast.Filter
+                    | _ -> assert false (* should not happen *) ),
+                  pos ),
+                [ f_pred; collection ] ),
+            pos ))
+        f_pred collection
   | CollectionOp
       ( (Ast.Aggregate (Ast.AggregateArgExtremum (max_or_min, pred_typ, init)), pos_op'),
         param',

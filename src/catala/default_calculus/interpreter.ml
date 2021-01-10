@@ -190,6 +190,18 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
           (List.map
              (fun e' -> evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e'))
              es)
+    | A.Binop A.Filter, [ _; A.EArray es ] ->
+        A.EArray
+          (List.filter
+             (fun e' ->
+               match evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e') with
+               | A.ELit (A.LBool b), _ -> b
+               | _ ->
+                   Errors.raise_spanned_error
+                     "This predicate evaluated to something else than a boolean (should not happen \
+                      if the term was well-typed)"
+                     (Pos.get_position (List.nth args 0)))
+             es)
     | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
     | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Z.sub Z.zero i))
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))

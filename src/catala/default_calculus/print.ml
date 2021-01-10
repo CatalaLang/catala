@@ -135,6 +135,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
   | Map -> Format.fprintf fmt "map"
+  | Filter -> Format.fprintf fmt "filter"
 
 let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> Format.fprintf fmt "fold"
@@ -228,6 +229,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            (fun fmt (x, tau) ->
              Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
         xs_tau format_expr body
+  | EApp ((EOp (Binop ((Ast.Map | Ast.Filter) as op)), _), [ arg1; arg2 ]) ->
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos) format_with_parens
+        arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2

@@ -65,6 +65,7 @@
 %token LABEL EXCEPTION LSQUARE RSQUARE SEMICOLON
 %token INT_TO_DEC MAXIMUM MINIMUM INIT
 %token GET_DAY GET_MONTH GET_YEAR
+%token FILTER MAP
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -238,6 +239,8 @@ aggregate_func:
 }
 | SUM t = typ_base { (Aggregate (AggregateSum (Pos.unmark t)), $sloc) }
 | CARDINAL { (Aggregate AggregateCount, $sloc) }
+| FILTER { (Filter, $sloc ) }
+| MAP { (Map, $sloc) }
 
 aggregate:
 | func = aggregate_func FOR i = ident IN e1 = primitive_expression
