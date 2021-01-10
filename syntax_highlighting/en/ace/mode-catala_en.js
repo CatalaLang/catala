@@ -50,7 +50,7 @@ ace.define("ace/mode/catala_en_highlighting_rules", ["require", "exports", "modu
                 },
                 {
                     "token": "keyword.control",
-                    "regex": "\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else)\\b"
+                    "regex": "\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b"
                 },
                 {
                     "token": "keyword.other",

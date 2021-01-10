@@ -208,7 +208,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else)\b
+    regex \= \b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else|init)\b
     styles [] = .keyword_expression ;
   }
 

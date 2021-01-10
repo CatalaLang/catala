@@ -224,6 +224,12 @@ compare_op:
 | NOT_EQUAL { (Neq, $sloc) }
 
 aggregate_func:
+| CONTENT MAXIMUM t = typ_base INIT init = primitive_expression {
+  (Aggregate (AggregateArgExtremum (true, Pos.unmark t, init)), $sloc)
+}
+| CONTENT MINIMUM t = typ_base INIT init = primitive_expression {
+  (Aggregate (AggregateArgExtremum (false, Pos.unmark t, init)), $sloc)
+}
 | MAXIMUM t = typ_base INIT init = primitive_expression {
   (Aggregate (AggregateExtremum (true, Pos.unmark t, init)), $sloc)
 }

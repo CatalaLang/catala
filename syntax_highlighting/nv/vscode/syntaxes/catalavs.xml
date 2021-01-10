@@ -155,7 +155,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else)\b</string>
+          <string>\b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else|init)\b</string>
           <key>name</key>
           <string>keyword.control.catala_nv</string>
         </dict>

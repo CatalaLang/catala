@@ -1,0 +1,26 @@
+@Article@
+
+/*
+new struct S: 
+  data id content int 
+  data income content money
+
+new scope A:
+   param x content set S 
+
+scope A:
+   def x := [
+      S { -- id: 0 -- income: $0 };
+      S { -- id: 1 -- income: $4 +$ $5 };
+      S { -- id: 2 -- income: $8 *$ 0.65 }
+   ]
+
+new scope B:
+   param a scope A 
+   param argmax content S
+   param argmin content S
+
+scope B:
+   def argmax := content maximum money init S { -- id: -1 --income: $0 } for m in a.x of (m.income *$ 2.0)
+   def argmin := content minimum money init  S { -- id: -1 --income: $20 } for m in a.x of (m.income +$ $5)
+*/

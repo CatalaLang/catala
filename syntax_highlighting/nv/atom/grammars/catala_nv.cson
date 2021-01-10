@@ -96,7 +96,7 @@
         }
       }
       {
-        'match' : '\\b(match|with|fixed|by|decreasing|increasing|varies|with\\s+param|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else)\\b'
+        'match' : '\\b(match|with|fixed|by|decreasing|increasing|varies|with\\s+param|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|init)\\b'
         'name' : 'keyword.control.catala_nv'
       }
       {

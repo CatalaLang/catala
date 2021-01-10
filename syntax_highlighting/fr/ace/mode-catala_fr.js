@@ -50,7 +50,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
                 },
                 {
                     "token": "keyword.control",
-                    "regex": "\\b(selon|sous\\s+forme|fix\u00e9|par|d\u00e9croissante|croissante|varie|avec|on\\s+a|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon)\\b"
+                    "regex": "\\b(selon|sous\\s+forme|fix\u00e9|par|d\u00e9croissante|croissante|varie|avec|on\\s+a|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b"
                 },
                 {
                     "token": "keyword.other",

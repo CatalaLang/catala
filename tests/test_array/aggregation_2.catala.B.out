@@ -1,0 +1,3 @@
+[RESULT] Computation successful! Results:
+[RESULT] argmax = ("id": 1, "income": $9.00)
+[RESULT] argmin = ("id": 0, "income": $0.00)

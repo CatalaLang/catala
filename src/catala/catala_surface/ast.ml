@@ -111,8 +111,9 @@ type aggregate_func =
   | AggregateSum of primitive_typ
   | AggregateCount
   | AggregateExtremum of bool (* true if max *) * primitive_typ * expression Pos.marked
+  | AggregateArgExtremum of bool (* true if max *) * primitive_typ * expression Pos.marked
 
-and collection_op = Exists | Forall | Aggregate of aggregate_func
+and collection_op = Exists | Forall | Aggregate of aggregate_func | Map | Filter
 
 and match_case = {
   match_case_pattern : match_case_pattern Pos.marked;

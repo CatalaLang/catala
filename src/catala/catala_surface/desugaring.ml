@@ -381,11 +381,83 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       Bindlib.box_apply
         (fun es -> (Scopelang.Ast.EArray es, pos))
         (Bindlib.box_list (List.map rec_helper es))
+  | CollectionOp ((Ast.Map, _pos_op'), _param', _collection, _predicate) -> failwith "unimplemented"
+  | CollectionOp ((Ast.Filter, _pos_op'), _param', _collection, _predicate) ->
+      failwith "unimplemented"
+  | CollectionOp
+      ( (Ast.Aggregate (Ast.AggregateArgExtremum (max_or_min, pred_typ, init)), pos_op'),
+        param',
+        collection,
+        predicate ) ->
+      let init = rec_helper init in
+      let collection = rec_helper collection in
+      let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
+      let op_kind =
+        match pred_typ with
+        | Ast.Integer -> Dcalc.Ast.KInt
+        | Ast.Decimal -> Dcalc.Ast.KRat
+        | Ast.Money -> Dcalc.Ast.KMoney
+        | Ast.Duration -> Dcalc.Ast.KDuration
+        | Ast.Date -> Dcalc.Ast.KDate
+        | _ ->
+            Errors.raise_spanned_error
+              (Format.asprintf "It is impossible to compute the arg-%s of two values of type %a"
+                 (if max_or_min then "max" else "min")
+                 Print.format_primitive_typ pred_typ)
+              pos
+      in
+      let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
+      let f_pred =
+        Scopelang.Ast.make_abs [| param |]
+          (translate_expr scope ctxt predicate)
+          pos [ (Scopelang.Ast.TAny, pos) ] pos
+      in
+      let f_pred_var = Scopelang.Ast.Var.make ("predicate", Pos.get_position predicate) in
+      let f_pred_var_e = Scopelang.Ast.make_var (f_pred_var, Pos.get_position predicate) in
+      let acc_var = Scopelang.Ast.Var.make ("acc", pos) in
+      let acc_var_e = Scopelang.Ast.make_var (acc_var, pos) in
+      let item_var = Scopelang.Ast.Var.make ("item", Pos.get_position (Bindlib.unbox collection)) in
+      let item_var_e =
+        Scopelang.Ast.make_var (item_var, Pos.get_position (Bindlib.unbox collection))
+      in
+      let fold_body =
+        Bindlib.box_apply3
+          (fun acc_var_e item_var_e f_pred_var_e ->
+            ( Scopelang.Ast.EIfThenElse
+                ( ( Scopelang.Ast.EApp
+                      ( (Scopelang.Ast.EOp (Dcalc.Ast.Binop cmp_op), pos_op'),
+                        [
+                          (Scopelang.Ast.EApp (f_pred_var_e, [ acc_var_e ]), pos);
+                          (Scopelang.Ast.EApp (f_pred_var_e, [ item_var_e ]), pos);
+                        ] ),
+                    pos ),
+                  acc_var_e,
+                  item_var_e ),
+              pos ))
+          acc_var_e item_var_e f_pred_var_e
+      in
+      let fold_f =
+        Scopelang.Ast.make_abs [| acc_var; item_var |] fold_body pos
+          [ (Scopelang.Ast.TAny, pos); (Scopelang.Ast.TAny, pos) ]
+          pos
+      in
+      let fold =
+        Bindlib.box_apply3
+          (fun fold_f collection init ->
+            ( Scopelang.Ast.EApp
+                ( (Scopelang.Ast.EOp (Dcalc.Ast.Ternop Dcalc.Ast.Fold), pos),
+                  [ fold_f; init; collection ] ),
+              pos ))
+          fold_f collection init
+      in
+      Scopelang.Ast.make_let_in f_pred_var (Scopelang.Ast.TAny, pos) f_pred fold
   | CollectionOp (op', param', collection, predicate) ->
       let ctxt, param = Name_resolution.add_def_local_var ctxt param' in
       let collection = rec_helper collection in
       let init =
         match Pos.unmark op' with
+        | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+            assert false (* should not happen *)
         | Ast.Exists ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), Pos.get_position op')
         | Ast.Forall -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), Pos.get_position op')
@@ -437,6 +509,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                acc tmp)
         in
         match Pos.unmark op' with
+        | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+            assert false (* should not happen *)
         | Ast.Exists -> make_body Dcalc.Ast.Or
         | Ast.Forall -> make_body Dcalc.Ast.And
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer) -> make_body (Dcalc.Ast.Add Dcalc.Ast.KInt)
@@ -452,6 +526,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               | Ast.Decimal -> (Dcalc.Ast.KRat, (Scopelang.Ast.TLit TRat, pos))
               | Ast.Money -> (Dcalc.Ast.KMoney, (Scopelang.Ast.TLit TMoney, pos))
               | Ast.Duration -> (Dcalc.Ast.KDuration, (Scopelang.Ast.TLit TDuration, pos))
+              | Ast.Date -> (Dcalc.Ast.KDate, (Scopelang.Ast.TLit TDate, pos))
               | _ ->
                   Errors.raise_spanned_error
                     (Format.asprintf "It is impossible to compute the %s of two values of type %a"
@@ -496,6 +571,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             (Bindlib.bind_mvar [| acc_var; param |] f_body)
         in
         match Pos.unmark op' with
+        | Ast.Map | Ast.Filter | Ast.Aggregate (Ast.AggregateArgExtremum _) ->
+            assert false (* should not happen *)
         | Ast.Exists -> make_f Dcalc.Ast.TBool
         | Ast.Forall -> make_f Dcalc.Ast.TBool
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer)
