@@ -498,7 +498,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 
 expected the name of the variable that should be fixed
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL CONSEQUENCE BY
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION TRUE CONSEQUENCE BY
 ##
 ## Ends in an error in state: 259.
 ##
@@ -510,7 +510,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 
 expected an expression for this definition under condition
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION CARDINAL THEN
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION TRUE THEN
 ##
 ## Ends in an error in state: 263.
 ##
@@ -523,7 +523,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 106, spurious reduction of production primitive_expression -> CARDINAL
+## In state 70, spurious reduction of production primitive_expression -> small_expression
 ## In state 109, spurious reduction of production base_expression -> primitive_expression
 ## In state 138, spurious reduction of production mult_expression -> base_expression
 ## In state 125, spurious reduction of production sum_expression -> mult_expression
@@ -786,7 +786,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT
 
 expected the name of the parameter for this dependent variable 
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION TRUE CONSEQUENCE FALSE
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION CARDINAL CONSEQUENCE FALSE
 ##
 ## Ends in an error in state: 274.
 ##
@@ -991,6 +991,91 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected a payload for the enum case constructor, or the rest of the expression (with an operator ?)
 
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MAXIMUM TEXT INIT YEAR
+##
+## Ends in an error in state: 189.
+##
+## aggregate_func -> CONTENT MAXIMUM typ_base INIT . primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MAXIMUM typ_base INIT
+##
+
+expected the initial expression for the maximum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MAXIMUM TEXT YEAR
+##
+## Ends in an error in state: 188.
+##
+## aggregate_func -> CONTENT MAXIMUM typ_base . INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MAXIMUM typ_base
+##
+
+expected the "initial" keyword introducing the initial expression for the maximum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MAXIMUM YEAR
+##
+## Ends in an error in state: 187.
+##
+## aggregate_func -> CONTENT MAXIMUM . typ_base INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MAXIMUM
+##
+
+expected the type of the elements compared to get the maximum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM TEXT INIT YEAR
+##
+## Ends in an error in state: 87.
+##
+## aggregate_func -> CONTENT MINIMUM typ_base INIT . primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MINIMUM typ_base INIT
+##
+
+expected the initial expression for the minimum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM TEXT YEAR
+##
+## Ends in an error in state: 86.
+##
+## aggregate_func -> CONTENT MINIMUM typ_base . INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MINIMUM typ_base
+##
+
+expected the "initial" keyword introducing the initial expression for the minimum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM YEAR
+##
+## Ends in an error in state: 85.
+##
+## aggregate_func -> CONTENT MINIMUM . typ_base INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT MINIMUM
+##
+
+expected the type of the elements compared to get the minimum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT YEAR
+##
+## Ends in an error in state: 84.
+##
+## aggregate_func -> CONTENT . MAXIMUM typ_base INIT primitive_expression [ FOR ]
+## aggregate_func -> CONTENT . MINIMUM typ_base INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## CONTENT
+##
+
+this is the start of an arg-maximum or arg-minimum expression
+
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION EXISTS IDENT IN CARDINAL SUCH THAT YEAR
 ##
 ## Ends in an error in state: 211.
@@ -1147,7 +1232,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected the "all" keyword to mean the "for all" construction of the universal test
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE SCOPE
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION IF TRUE SEMICOLON
 ##
 ## Ends in an error in state: 219.
 ##
@@ -1279,6 +1364,133 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected an expression inside the parenthesis
 
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE TRUE SEMICOLON YEAR
+##
+## Ends in an error in state: 231.
+##
+## separated_nonempty_list(SEMICOLON,expression) -> expression SEMICOLON . separated_nonempty_list(SEMICOLON,expression) [ RSQUARE ]
+##
+## The known suffix of the stack is as follows:
+## expression SEMICOLON
+##
+
+expected another element of the collection
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE TRUE THEN
+##
+## Ends in an error in state: 230.
+##
+## separated_nonempty_list(SEMICOLON,expression) -> expression . [ RSQUARE ]
+## separated_nonempty_list(SEMICOLON,expression) -> expression . SEMICOLON separated_nonempty_list(SEMICOLON,expression) [ RSQUARE ]
+##
+## The known suffix of the stack is as follows:
+## expression
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 70, spurious reduction of production primitive_expression -> small_expression
+## In state 109, spurious reduction of production base_expression -> primitive_expression
+## In state 138, spurious reduction of production mult_expression -> base_expression
+## In state 125, spurious reduction of production sum_expression -> mult_expression
+## In state 147, spurious reduction of production compare_expression -> sum_expression
+## In state 175, spurious reduction of production logical_expression -> compare_expression
+## In state 203, spurious reduction of production expression -> logical_expression
+##
+
+expected a semicolon or a right square bracket after the collection element 
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION LSQUARE YEAR
+##
+## Ends in an error in state: 54.
+##
+## primitive_expression -> LSQUARE . loption(separated_nonempty_list(SEMICOLON,expression)) RSQUARE [ WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR OF NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING IN GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER FOR EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## LSQUARE
+##
+
+expected a collection element
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP FOR IDENT IN TRUE OF YEAR
+##
+## Ends in an error in state: 120.
+##
+## aggregate -> aggregate_func FOR ident IN primitive_expression OF . base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func FOR ident IN primitive_expression OF
+##
+
+expected an expression for the map predicate
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP FOR IDENT IN TRUE WITH
+##
+## Ends in an error in state: 119.
+##
+## aggregate -> aggregate_func FOR ident IN primitive_expression . OF base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func FOR ident IN primitive_expression
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 70, spurious reduction of production primitive_expression -> small_expression
+##
+
+expected the "of" keyword to introduce the map predicate
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP FOR IDENT IN YEAR
+##
+## Ends in an error in state: 118.
+##
+## aggregate -> aggregate_func FOR ident IN . primitive_expression OF base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func FOR ident IN
+##
+
+expected the collection argument to map
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP FOR IDENT YEAR
+##
+## Ends in an error in state: 117.
+##
+## aggregate -> aggregate_func FOR ident . IN primitive_expression OF base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func FOR ident
+##
+
+expected the "in" keyword to introduce the collection argument to map
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP FOR YEAR
+##
+## Ends in an error in state: 116.
+##
+## aggregate -> aggregate_func FOR . ident IN primitive_expression OF base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func FOR
+##
+
+expected the identifier for the map predicate
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAP YEAR
+##
+## Ends in an error in state: 115.
+##
+## aggregate -> aggregate_func . FOR ident IN primitive_expression OF base_expression [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
+##
+## The known suffix of the stack is as follows:
+## aggregate_func
+##
+
+expected the "for" keyword to introduce the identifier for the map predicate
+
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WE_HAVE
 ##
 ## Ends in an error in state: 75.
@@ -1297,7 +1509,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected the "with patter" keyword to complete the pattern matching expression
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON NOT TRUE OR
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR COLON CARDINAL RBRACKET
 ##
 ## Ends in an error in state: 78.
 ##
@@ -1310,12 +1522,12 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 70, spurious reduction of production primitive_expression -> small_expression
+## In state 106, spurious reduction of production primitive_expression -> CARDINAL
 ## In state 109, spurious reduction of production base_expression -> primitive_expression
 ## In state 138, spurious reduction of production mult_expression -> base_expression
 ## In state 125, spurious reduction of production sum_expression -> mult_expression
 ## In state 147, spurious reduction of production compare_expression -> sum_expression
-## In state 173, spurious reduction of production logical_expression -> logical_unop compare_expression
+## In state 175, spurious reduction of production logical_expression -> compare_expression
 ## In state 191, spurious reduction of production match_arm -> constructor_binding COLON logical_expression
 ##
 
@@ -1418,7 +1630,79 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected an expression to match with
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINUS YEAR
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAXIMUM TEXT INIT YEAR
+##
+## Ends in an error in state: 57.
+##
+## aggregate_func -> MAXIMUM typ_base INIT . primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MAXIMUM typ_base INIT
+##
+
+expected the maximum initial expression
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAXIMUM TEXT YEAR
+##
+## Ends in an error in state: 56.
+##
+## aggregate_func -> MAXIMUM typ_base . INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MAXIMUM typ_base
+##
+
+expected the "initial" keyword to introduce the maximum initial expression
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MAXIMUM YEAR
+##
+## Ends in an error in state: 55.
+##
+## aggregate_func -> MAXIMUM . typ_base INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MAXIMUM
+##
+
+expected the type of the elements compared for the maximum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINIMUM TEXT INIT YEAR
+##
+## Ends in an error in state: 53.
+##
+## aggregate_func -> MINIMUM typ_base INIT . primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MINIMUM typ_base INIT
+##
+
+expected the minimum initial expression
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINIMUM TEXT YEAR
+##
+## Ends in an error in state: 52.
+##
+## aggregate_func -> MINIMUM typ_base . INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MINIMUM typ_base
+##
+
+expected the "initial" keyword to introduce the minimum initial expression
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINIMUM YEAR
+##
+## Ends in an error in state: 51.
+##
+## aggregate_func -> MINIMUM . typ_base INIT primitive_expression [ FOR ]
+##
+## The known suffix of the stack is as follows:
+## MINIMUM
+##
+
+expected the type of the elements compared for the minimum
+
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MINUSMONEY YEAR
 ##
 ## Ends in an error in state: 107.
 ##
@@ -1589,7 +1873,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION 
 
 expected an expression on the right side of the logical operator
 
-source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE PLUS YEAR
+source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION TRUE PLUSMONEY YEAR
 ##
 ## Ends in an error in state: 136.
 ##
@@ -1792,7 +2076,7 @@ source_file_or_master: LAW_ARTICLE YEAR
 
 expected a code block, a metadata block, more law text or a heading
 
-source_file_or_master: LAW_HEADING YEAR
+source_file_or_master: LAW_INCLUDE YEAR
 ##
 ## Ends in an error in state: 353.
 ##
