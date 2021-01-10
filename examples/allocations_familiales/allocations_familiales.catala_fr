@@ -1,6 +1,6 @@
 @@Fichier maître@@
 
-@@Inclusion: metadata.catala_fr@@
+@@Inclusion: prologue.catala_fr@@
 
 @@Inclusion: decrets_divers.catala_fr@@
 
@@ -10,3 +10,4 @@
 
 @@Inclusion: securite_sociale_D.catala_fr@@
 
+@@Inclusion: epilogue.catala_fr@@

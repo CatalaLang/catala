@@ -1,0 +1,61 @@
+@@Début métadonnées@@
+/*
+champ d'application EnfantLePlusÂgé:
+  définition est_le_plus_âgé de enfant égal à 
+    enfant = (
+      contenu maximum entier initial Enfant {
+        -- fin_obligation_scolaire: |01/01/1900|
+        -- rémuneration_mensuelle: 0€
+        -- date_de_naissance: |01/01/1900|
+        -- âge: 0 
+        -- garde_alternée: NonGardeUnique
+        -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+      } 
+      pour potentiel_plus_âgé dans enfants de 
+      potentiel_plus_âgé.âge
+    )
+
+champ d'application PrestationsFamiliales: 
+  définition âge_l512_3_2_alternatif égal à Absent
+
+champ d'application AllocationsFamiliales:
+  définition prestations_familiales.prestation_courante égal à 
+    AllocationsFamiliales
+  définition prestations_familiales.date_courante égal à 
+    date_courante
+  définition prestations_familiales.résidence égal à 
+    résidence
+
+  définition montant_initial_majoration de enfant sous condition 
+    non (droit_ouvert_majoration de enfant)
+  conséquence égal à 0 €
+
+  étiquette définition_droit_ouvert_complément
+  règle droit_ouvert_complément rempli
+
+  assertion (pour tout enfant dans enfants_à_charge on a 
+    prestations_familiales.droit_ouvert de enfant)
+ 
+  définition enfant_le_plus_âgé.enfants égal à enfants_à_charge 
+  définition est_enfant_le_plus_âgé de enfant égal à 
+    enfant_le_plus_âgé.est_le_plus_âgé de enfant
+
+  définition montant_versé_base égal à 
+    si droit_ouvert_base alors montant_avec_garde_alternée_base sinon 0€
+  définition montant_versé_majoration égal à 
+    si droit_ouvert_base alors
+      somme argent pour enfant dans enfants_à_charge de 
+        montant_avec_garde_alternée_majoration de enfant 
+    sinon 0€
+
+  
+  définition montant_versé égal à 
+    si droit_ouvert_base alors
+      montant_versé_base +€
+      montant_versé_majoration +€
+      montant_versé_forfaitaire +€
+      montant_versé_complément_pour_base_et_majoration +€
+      montant_versé_complément_pour_forfaitaire 
+    sinon 0€
+*/
+@@Fin métadonnées@@

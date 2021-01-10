@@ -44,6 +44,7 @@ enfants ouvrent droit à la majoration des allocations familiales est fixé à
 14 ans.
 /*
 champ d'application AllocationsFamiliales :
+  étiquette base_âge_limite_alinéa_1_l521_3
   définition âge_limite_alinéa_1_l521_3 de enfant égal à 14
 */
 

@@ -44,7 +44,7 @@ champ d'application Test1:
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
-  assertion f.montant_versé = 417,51€
+  assertion f.montant_versé = 351,26€
 
 déclaration champ d'application Test2:
   contexte f champ d'application AllocationsFamiliales
@@ -52,10 +52,10 @@ déclaration champ d'application Test2:
 
 champ d'application Test2:
   définition f.enfants_à_charge égal à [données.enfant1]
-  définition f.ressources_ménage égal à 30 000 €
+  définition f.ressources_ménage égal à 61 565 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Guyane
-  assertion f.montant_versé = 39,63€
+  assertion f.montant_versé = 12,18€
 
 déclaration champ d'application Test3:
   contexte f champ d'application AllocationsFamiliales
@@ -66,5 +66,5 @@ champ d'application Test3:
   définition f.ressources_ménage égal à 67 250 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
-  assertion f.montant_versé = 388,29€
+  assertion f.montant_versé = 255,81€
 */

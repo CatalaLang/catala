@@ -86,10 +86,6 @@ déclaration champ d'application EnfantLePlusÂgé:
   contexte enfants contenu collection Enfant 
   contexte est_le_plus_âgé contenu booléen dépend de Enfant 
 
-champ d'application EnfantLePlusÂgé:
-  définition est_le_plus_âgé de enfant égal à 
-    faux # TODO: changer!
-
 déclaration champ d'application AllocationsFamiliales:
   contexte enfants_à_charge contenu collection Enfant 
   contexte date_courante contenu date
@@ -138,42 +134,5 @@ déclaration champ d'application AllocationsFamiliales:
   contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
   contexte plafond_I_d521_3 contenu argent
   contexte plafond_II_d521_3 contenu argent
-
-
-## Code non défini dans la loi 
-champ d'application PrestationsFamiliales: 
-  définition âge_l512_3_2_alternatif égal à Absent
-
-champ d'application AllocationsFamiliales:
-  définition prestations_familiales.prestation_courante égal à 
-    AllocationsFamiliales
-  définition prestations_familiales.date_courante égal à 
-    date_courante
-  définition prestations_familiales.résidence égal à 
-    résidence
-
-  assertion (pour tout enfant dans enfants_à_charge on a 
-    prestations_familiales.droit_ouvert de enfant)
- 
-  définition enfant_le_plus_âgé.enfants égal à enfants_à_charge 
-  définition est_enfant_le_plus_âgé de enfant égal à 
-    enfant_le_plus_âgé.est_le_plus_âgé de enfant
-
-  définition montant_versé_base égal à 
-    si droit_ouvert_base alors montant_avec_garde_alternée_base sinon 0€
-  définition montant_versé_majoration égal à 
-    si droit_ouvert_base alors
-      somme argent pour enfant dans enfants_à_charge de 
-        montant_avec_garde_alternée_majoration de enfant 
-    sinon 0€
-  
-  définition montant_versé égal à 
-    si droit_ouvert_base alors
-      montant_versé_base +€
-      montant_versé_majoration +€
-      montant_versé_forfaitaire +€
-      montant_versé_complément_pour_base_et_majoration +€
-      montant_versé_complément_pour_forfaitaire 
-    sinon 0€
 */
 @@Fin métadonnées@@

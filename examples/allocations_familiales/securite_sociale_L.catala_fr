@@ -113,6 +113,7 @@ champ d'application AllocationsFamiliales :
     prestations_familiales.conditions_hors_âge de enfant
   conséquence  rempli
 
+  étiquette base_droit_ouvert_forfaitaire
   règle droit_ouvert_forfaitaire de enfant sous condition
     (nombre de enfants_à_charge >= nombre_enfants_l521_1) et
     (enfant.âge = prestations_familiales.âge_l512_3_2) et
@@ -262,6 +263,7 @@ l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une
 majoration des allocations familiales.
 /*
 champ d'application AllocationsFamiliales :
+  étiquette base_droit_ouvert_majoration
   règle droit_ouvert_majoration de enfant
   sous condition
     (non (est_enfant_le_plus_âgé de enfant)) et
@@ -274,6 +276,7 @@ bénéficient de ladite majoration pour chaque enfant à charge à partir
 de l'âge mentionné au premier alinéa.
 /*
 champ d'application AllocationsFamiliales :
+  exception base_droit_ouvert_majoration
   règle droit_ouvert_majoration de enfant
   sous condition
     (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_3) et
@@ -361,11 +364,13 @@ applicables lorsque le ménage ou la personne a un seul enfant à charge.
 # et au complément dégressif.
 
 champ d'application AllocationsFamiliales :
+  exception base_droit_ouvert_forfaitaire
   règle droit_ouvert_forfaitaire de enfant sous condition
      prestations_familiales.régime_outre_mer_l751_1 et
      (nombre de enfants_à_charge = 1)
   conséquence non rempli
 
+  exception définition_droit_ouvert_complément
   règle droit_ouvert_complément sous condition
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge = 1)
