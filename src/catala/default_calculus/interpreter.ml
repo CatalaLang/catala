@@ -205,6 +205,8 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
     | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
     | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Z.sub Z.zero i))
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
+    | A.Unop (A.Minus KMoney), [ ELit (LMoney i) ] -> A.ELit (LMoney (Z.sub Z.zero i))
+    | A.Unop (A.Minus KDuration), [ ELit (LDuration i) ] -> A.ELit (LDuration (Z.sub Z.zero i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.Length, [ EArray es ] -> A.ELit (LInt (Z.of_int (List.length es)))
     | A.Unop A.GetDay, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (ODate.Unix.get_day d)))

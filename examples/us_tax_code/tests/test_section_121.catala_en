@@ -2,45 +2,131 @@
 
 @Testing paragraph (a)@
 
-In the first test, we define a property sold for $250,000 and who has been 
-owned and used for four years straight: (a) applies.
-
 /*
+declaration scope Data:
+  context period_four_years_recent content Period 
+  context period_one_year_recent content Period 
+  context period_two_years_middle content Period
+  context date_of_sale_or_exchange content date
+  context gain_from_sale_or_exchange_of_property content money
+  context return_date content date
+  context person_ok_1 content PersonalData 
+  context person_ok_2 content PersonalData 
+  context person_ko_1 content PersonalData
+  context person_ko_2 content PersonalData
+
+scope Data:
+  definition date_of_sale_or_exchange equals |01/01/2021|
+  definition return_date equals |01/01/2021|
+  definition gain_from_sale_or_exchange_of_property equals $350,000
+  definition period_four_years_recent equals Period {
+    -- begin: |01/01/2017|
+    -- end: |01/01/2021|
+  }
+  definition period_one_year_recent equals Period {
+    -- begin: |01/01/2019|
+    -- end: |01/01/2020|
+  }
+  definition period_two_years_middle equals Period {
+    -- begin: |01/01/2016|
+    -- end: |01/01/2018|
+  }
+  definition person_ok_1 equals PersonalData {
+    -- property_ownage: [period_four_years_recent]
+    -- property_usage_as_principal_residence: [period_four_years_recent]
+  }
+  definition person_ok_2 equals PersonalData {
+    -- property_ownage: [period_four_years_recent]
+    -- property_usage_as_principal_residence: 
+      [period_two_years_middle; period_one_year_recent]
+  }
+  definition person_ko_1 equals PersonalData {
+    -- property_ownage: [period_four_years_recent]
+    -- property_usage_as_principal_residence: [period_one_year_recent]
+  }
+
+  definition person_ko_2 equals PersonalData {
+    -- property_ownage: [period_four_years_recent]
+    -- property_usage_as_principal_residence: [period_two_years_middle]
+  }
+  
+
+  
+
+########################### Testing Section121a ################################
+
 declaration scope Test1:
-  context scope121 scope Section121
+  context scope121a scope Section121a
+  context data_ scope Data
 
 scope Test1:
-  definition scope121.date_of_sale_or_exchange equals |01/01/2021|
-  definition scope121.gain_from_sale_or_exchange_of_property equals $250,000
-  definition scope121.property_ownage equals [Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2021|
-  }]
-  definition scope121.property_usage_as_principal_residence equals [Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2021|
-  }]
-  assertion scope121.income_excluded_from_gross_income = $250,000
-*/
-
-In the second test, we assume the property was only used for one year in the 
-last five years: (a) does not apply.
-
-/*
+  definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+  definition scope121a.property_ownage equals [data_.period_four_years_recent]
+  definition scope121a.property_usage_as_principal_residence equals
+     [data_.period_four_years_recent]
+  assertion scope121a.requirements_met
 
 declaration scope Test2:
-  context scope121 scope Section121
+  context scope121a scope Section121a
+  context data_ scope Data
 
 scope Test2:
-  definition scope121.date_of_sale_or_exchange equals |01/01/2021|
-  definition scope121.gain_from_sale_or_exchange_of_property equals $250,000
-  definition scope121.property_ownage equals [Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2021|
-  }]
-  definition scope121.property_usage_as_principal_residence equals [Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2018|
-  }]
-  assertion scope121.income_excluded_from_gross_income = $0
+  definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+  definition scope121a.property_ownage equals [data_.period_four_years_recent]
+  definition scope121a.property_usage_as_principal_residence equals 
+    [data_.period_one_year_recent]
+  assertion not scope121a.requirements_met
+
+declaration scope Test3:
+  context scope121a scope Section121a
+  context data_ scope Data
+
+scope Test3:
+  definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+  definition scope121a.property_ownage equals [data_.period_four_years_recent]
+  definition scope121a.property_usage_as_principal_residence equals 
+    [data_.period_two_years_middle]
+  assertion not scope121a.requirements_met
+
+declaration scope Test4:
+  context scope121a scope Section121a
+  context data_ scope Data
+
+scope Test4:
+  definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+  definition scope121a.property_ownage equals [data_.period_four_years_recent]
+  definition scope121a.property_usage_as_principal_residence equals 
+    [data_.period_two_years_middle; data_.period_one_year_recent]
+  assertion scope121a.requirements_met
+
+########################### Testing Section121 ################################
+
+declaration scope Test5:
+    context scope121 scope Section121
+    context data_ scope Data
+
+scope Test5: 
+   definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+   definition scope121.return_date equals data_.return_date
+   definition scope121.gain_from_sale_or_exchange_of_property equals 
+     data_.gain_from_sale_or_exchange_of_property
+   definition scope121.return_type equals SingleReturn content data_.person_ok_1
+   assertion scope121.income_excluded_from_gross_income_uncapped = $350,000
+   assertion scope121.income_excluded_from_gross_income = $250,000
+
+declaration scope Test6:
+    context scope121 scope Section121
+    context data_ scope Data
+
+scope Test6: 
+   definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
+   definition scope121.return_date equals data_.return_date
+   definition scope121.gain_from_sale_or_exchange_of_property equals 
+     data_.gain_from_sale_or_exchange_of_property
+   definition scope121.return_type equals JointReturn content (JointReturn {
+      -- person1: data_.person_ok_1
+      -- person2: data_.person_ok_2
+   })
+   assertion scope121.income_excluded_from_gross_income_uncapped = $350,000
+   assertion scope121.income_excluded_from_gross_income = $350,000
 */

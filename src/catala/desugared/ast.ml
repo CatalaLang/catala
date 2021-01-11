@@ -39,7 +39,9 @@ module ScopeDef = struct
     match (x, y) with
     | Var x, Var y | Var x, SubScopeVar (_, y) | SubScopeVar (_, x), Var y ->
         Scopelang.Ast.ScopeVar.compare x y
-    | SubScopeVar (_, x), SubScopeVar (_, y) -> Scopelang.Ast.ScopeVar.compare x y
+    | SubScopeVar (x', x), SubScopeVar (y', y) ->
+        let cmp = Scopelang.Ast.SubScopeName.compare x' y' in
+        if cmp = 0 then Scopelang.Ast.ScopeVar.compare x y else cmp
 
   let get_position x =
     match x with
@@ -56,7 +58,7 @@ module ScopeDef = struct
   let hash x =
     match x with
     | Var v -> Scopelang.Ast.ScopeVar.hash v
-    | SubScopeVar (_, v) -> Scopelang.Ast.ScopeVar.hash v
+    | SubScopeVar (w, v) -> Scopelang.Ast.SubScopeName.hash w * Scopelang.Ast.ScopeVar.hash v
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)

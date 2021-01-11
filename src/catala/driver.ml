@@ -166,4 +166,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     -1
 
 let main () =
-  Cmdliner.Term.exit @@ Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info)
+  let return_code = Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info) in
+  match return_code with
+  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
+  | _ -> Cmdliner.Term.exit (`Error `Term)

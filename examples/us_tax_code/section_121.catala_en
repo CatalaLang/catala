@@ -6,13 +6,8 @@ declaration structure Period:
   data begin content date 
   data end content date
 
-declaration scope Section121:
-  context income_excluded_from_gross_income_uncapped content money
-  context income_excluded_from_gross_income content money
-  context gain_from_sale_or_exchange_of_property content money
-  context joint_return condition 
-  context gain_cap content money
-  context return_date content date
+declaration scope Section121a:
+  context requirements_met condition 
   context date_of_sale_or_exchange content date
   context property_ownage content collection Period
   # This input is a fact and circumstance
@@ -22,10 +17,58 @@ declaration scope Section121:
   context aggregate_periods_from_last_five_years content duration 
     depends on collection Period
 
-# Temporary definitions (to remove)
-scope Section121:
-  definition return_date equals |01/01/2021|
+declaration structure PersonalData:
+  data property_ownage content collection Period
+  data property_usage_as_principal_residence 
+    content collection Period
 
+declaration structure JointReturn: 
+  data person1 content PersonalData 
+  data person2 content PersonalData 
+
+declaration enumeration ReturnType:
+  -- SingleReturn content PersonalData
+  -- JointReturn content JointReturn
+
+declaration scope Section121:
+  context section121aPerson1 scope Section121a 
+  context section121aPerson2 scope Section121a
+  context section121a_requirements_met condition
+  context return_type content ReturnType 
+  context return_date content date
+  context gain_cap content money
+  context date_of_sale_or_exchange content date
+  context gain_from_sale_or_exchange_of_property content money
+
+  context income_excluded_from_gross_income_uncapped content money
+  context income_excluded_from_gross_income content money
+
+# Defining sub-scopes arguments
+scope Section121:
+  definition section121aPerson2.date_of_sale_or_exchange equals 
+    date_of_sale_or_exchange
+  definition section121aPerson1.date_of_sale_or_exchange equals 
+    date_of_sale_or_exchange
+
+  definition section121aPerson1.property_ownage equals 
+    match return_type with pattern 
+    -- SingleReturn of data_person1 : data_person1.property_ownage
+    -- JointReturn of data_couple : data_couple.person1.property_ownage
+  
+  definition section121aPerson1.property_usage_as_principal_residence equals 
+    match return_type with pattern 
+    -- SingleReturn of data_person1 : data_person1.property_usage_as_principal_residence
+    -- JointReturn of data_couple : data_couple.person1.property_usage_as_principal_residence
+
+  definition section121aPerson2.property_ownage equals 
+    match return_type with pattern 
+    -- SingleReturn of data_person1 : data_person1.property_ownage
+    -- JointReturn of data_couple : data_couple.person2.property_ownage
+  
+  definition section121aPerson2.property_usage_as_principal_residence equals 
+    match return_type with pattern 
+    -- SingleReturn of data_person1 : data_person1.property_usage_as_principal_residence
+    -- JointReturn of data_couple : data_couple.person2.property_usage_as_principal_residence
 */
 @@End metadata@@
 
@@ -36,7 +79,7 @@ during the 5-year period ending on the date of the sale or exchange, such
 property has been owned and used by the taxpayer as the taxpayer’s principal 
 residence for periods aggregating 2 years or more. 
 /*
-scope Section121:
+scope Section121a:
   # Here we aggregate over all the periods of the collection. For 
   # each period, three cases:
   # - either the period began less that 5 years before the 
@@ -53,18 +96,26 @@ scope Section121:
         0 day 
       else (period.end -@ (date_of_sale_or_exchange +@ (-^ 5 year))))
     )
+
+  rule requirements_met under condition 
+    aggregate_periods_from_last_five_years of property_ownage >=^ 730 day and
+    aggregate_periods_from_last_five_years of
+       property_usage_as_principal_residence >=^ 730 day
+  consequence fulfilled
   
-  label base_case1
+scope Section121:
+  label base_excluded_uncapped
   definition income_excluded_from_gross_income_uncapped equals $0
+
+  label base_requirements_met
+  definition section121a_requirements_met equals section121aPerson1.requirements_met
 
   # Regulation 1.121-1(c)(1): 2 years = 730 days
   # Regulation 1.121-1(c)(1): the periods of ownage and usage 
   # don't have to overlap
-  exception base_case1
+  exception base_excluded_uncapped
   definition income_excluded_from_gross_income_uncapped under condition 
-    aggregate_periods_from_last_five_years of property_ownage >=^ 730 day and
-    aggregate_periods_from_last_five_years of
-       property_usage_as_principal_residence >=^ 730 day
+    section121a_requirements_met
   consequence equals 
      gain_from_sale_or_exchange_of_property
 */
@@ -77,18 +128,17 @@ The amount of gain excluded from gross income under subsection (a)  with
 respect to any sale or exchange shall not exceed $250,000.
 /*
 scope Section121:
+  label base_gain_cap
   definition gain_cap equals $250,000
   
   # Big semantics insight for Catala. Here we could want to get rid of 
   # the "_uncapped" version of the variable. But in the current 
   # semantics we can't do that because we don't allow for recursion.
-  # However, one can also view recursion in justifications or consequence 
-  # of defaults as a reference to the value provided by defaults of lower 
-  # priority. We should extend the semantics to reflect that.
-  label base_case2
-  definition income_excluded_from_gross_income equals $0
+  label base_excluded
+  definition income_excluded_from_gross_income equals 
+    income_excluded_from_gross_income_uncapped
 
-  exception base_case2
+  exception base_excluded
   definition income_excluded_from_gross_income under condition 
     income_excluded_from_gross_income_uncapped >=$ gain_cap
   consequence equals gain_cap
@@ -113,7 +163,6 @@ Paragraph (1) shall be applied by substituting “$500,000” for “$250,000”
 
 (i) either spouse meets the ownership requirements of subsection (a) with
 respect to such property;
-
 (ii) both spouses meet the use requirements of subsection (a) with respect to 
 such property; and
 
@@ -122,14 +171,18 @@ respect to such property by reason of paragraph (3).
 
 /*
 scope Section121 under condition 
-  joint_return and get_year of date_of_sale_or_exchange = get_year of return_date:
+  (return_type with pattern JointReturn) and 
+  (get_year of date_of_sale_or_exchange = get_year of return_date) and 
+  # i) and ii) 
+  (section121aPerson1.requirements_met or section121aPerson2.requirements_met)
+  # iii): TODO 
+  :
+    
+  exception base_requirements_met
+  rule section121a_requirements_met fulfilled
   
-  # This rule has priority over the over rule defining gain_cap
-  definition gain_cap under condition true
-    # i) TODO
-    # ii) TODO
-    # iii) TODO
-  consequence equals $500,000
+  exception base_gain_cap
+  definition gain_cap equals $500,000
 */
 
 @(B) Other joint returns@

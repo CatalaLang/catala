@@ -25,7 +25,7 @@ RESET := $(shell tput -Txterm sgr0)
 %.run: .FORCE
 	@SCOPE="$(word 3,$(subst ., ,$*))" $(MAKE) --no-print-directory -C \
 		$(word 1,$(subst ., ,$*)) tests/$(word 2,$(subst ., ,$*)).run \
-	> /dev/null || { echo "[${RED}FAIL${RESET} ${PURPLE}$@${RESET}]"; exit 1; }
+	> /dev/null || { echo "${RED}FAIL${RESET} ${PURPLE}$@${RESET}"; exit 1; }
 	@echo "${GREEN}PASS${RESET} ${PURPLE}$@${RESET}"
 
 TEST_FILES?=$(wildcard */tests/*.catala*)
