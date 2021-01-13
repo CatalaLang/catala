@@ -17,7 +17,7 @@
 module Pos = Utils.Pos
 
 type constructor = string
-(** Constructors are CamlCase *)
+(** Constructors are CamelCase *)
 
 type ident = string
 (** Idents are snake_case *)
