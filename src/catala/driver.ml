@@ -139,7 +139,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
-        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" Dcalc.Print.format_expr prgm); *)
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" Dcalc.Print.format_expr prgm);
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ

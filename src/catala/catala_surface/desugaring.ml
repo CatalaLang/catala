@@ -685,8 +685,9 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     (def_key : Desugared.Ast.ScopeDef.t Pos.marked)
     (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (exception_to_rule : Desugared.Ast.RuleName.t option) (just : Ast.expression Pos.marked option)
-    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
+    (exception_to_rule : Desugared.Ast.RuleName.t Pos.marked option)
+    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
+    Desugared.Ast.rule =
   let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
   let just = merge_conditions precond just (Pos.get_position def_key) in
   let cons = translate_expr scope ctxt cons in
@@ -759,16 +760,22 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | Some x -> x
       | None ->
           Desugared.Ast.RuleName.fresh
-            (Pos.map_under_mark
-               (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-               def.definition_name)
+            ( match def.definition_label with
+            | None ->
+                Pos.map_under_mark
+                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+                  def.definition_name
+            | Some label -> label )
     in
     let parent_rule =
       match def.Ast.definition_exception_to with
       | None -> None
       | Some label ->
           Some
-            ( try Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap
+            ( try
+                Pos.same_pos_as
+                  (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
+                  label
               with Not_found ->
                 Errors.raise_spanned_error
                   (Format.asprintf "Unknown label: \"%s\"" (Pos.unmark label))

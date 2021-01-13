@@ -10,7 +10,7 @@ scope A:
   def x := 0
 
   label exception_x
-  exception base_x 
+  exception base_x
   def x := 1
 
   label exception_exception_x

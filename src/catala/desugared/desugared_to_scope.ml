@@ -23,73 +23,25 @@ module Cli = Utils.Cli
 type rule_tree = Leaf of Ast.rule | Node of rule_tree list * Ast.rule
 
 (** Transforms a flat list of rules into a tree, taking into account the priorities declared between
-    rules
-
-    {e Invariant:} there are no exceptions cycles
-
-    {e Invariant:} there are no dandling exception pointers in the rules *)
-let rec def_map_to_tree (def_info : Ast.ScopeDef.t)
-    (is_def_func : Scopelang.Ast.typ Pos.marked option) (def : Ast.rule Ast.RuleMap.t) :
-    rule_tree list =
-  (* first we look to the rules that don't have any exceptions *)
-  let has_no_exception (r : Ast.RuleName.t) _ =
-    not
-      (Ast.RuleMap.exists
-         (fun _ r' -> match r'.Ast.exception_to_rule with Some r_ex -> r_ex = r | None -> false)
-         def)
+    rules *)
+let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) : rule_tree list =
+  let exc_graph = Dependency.build_exceptions_graph def def_info in
+  Dependency.check_for_exception_cycle exc_graph;
+  (* we start by the base cases: they are the vertices which have no successors *)
+  let base_cases =
+    Dependency.ExceptionsDependencies.fold_vertex
+      (fun v base_cases ->
+        if Dependency.ExceptionsDependencies.out_degree exc_graph v = 0 then v :: base_cases
+        else base_cases)
+      exc_graph []
   in
-  let no_exceptions = Ast.RuleMap.filter has_no_exception def in
-  (* Then, for each top-level rule (that has no exceptions), we build a rule tree *)
-  (* Among the top-level rules are the base rules that are exceptions to nothing *)
-  let base_rules, rules_that_are_exceptions =
-    Ast.RuleMap.partition (fun _ r -> Option.is_none r.Ast.exception_to_rule) no_exceptions
+  let rec build_tree (base_case : Ast.RuleName.t) : rule_tree =
+    let exceptions = Dependency.ExceptionsDependencies.pred exc_graph base_case in
+    match exceptions with
+    | [] -> Leaf (Ast.RuleMap.find base_case def)
+    | _ -> Node (List.map build_tree exceptions, Ast.RuleMap.find base_case def)
   in
-  let base_trees : rule_tree Ast.RuleMap.t =
-    Ast.RuleMap.map
-      (fun r ->
-        (* we look at the the eventual rule of which r is an exception *)
-        match r.Ast.exception_to_rule with None -> Leaf r | Some _ -> assert false
-        (* should not happen *))
-      base_rules
-  in
-  (* Now let's deal with the rules that are exceptions but have no exception. We have to bucket
-     these, each bucket containing all the rules that are exception to the same rule *)
-  let exception_targets =
-    Ast.RuleMap.fold
-      (fun _ r acc ->
-        match r.Ast.exception_to_rule with
-        | None -> assert false (* should not happen *)
-        | Some r' -> Ast.RuleMap.add r' () acc)
-      rules_that_are_exceptions Ast.RuleMap.empty
-  in
-  (* In each bucket corresponding to an exception target, we have all the rules that are exceptions
-     to the target *)
-  let exception_trees =
-    Ast.RuleMap.mapi
-      (fun r' _ ->
-        (* we recursively call the function of a def where we have removed exception edges: this is
-           why the function should terminate *)
-        let def_rec =
-          Ast.RuleMap.map
-            (fun r ->
-              {
-                r with
-                Ast.exception_to_rule =
-                  ( match r.Ast.exception_to_rule with
-                  | None -> None
-                  | Some r'' -> if r'' = r' then None else Some r'' );
-              })
-            def
-        in
-        let def_rec =
-          Ast.RuleMap.filter (fun r _ -> not (Ast.RuleMap.mem r exception_targets)) def_rec
-        in
-        let exceptions = def_map_to_tree def_info is_def_func def_rec in
-        Node (exceptions, Ast.RuleMap.find r' def))
-      exception_targets
-  in
-  List.map snd (Ast.RuleMap.bindings base_trees)
-  @ List.map snd (Ast.RuleMap.bindings exception_trees)
+  List.map build_tree base_cases
 
 (** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault} expression in the
     scope language. The [~toplevel] parameter is used to know when to place the toplevel binding in
@@ -177,7 +129,7 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
                 Pos.get_position (Bindlib.unbox r.Ast.cons) ))
             (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)) )
   in
-  let top_list = def_map_to_tree def_info is_def_func def in
+  let top_list = def_map_to_tree def_info def in
   let top_value =
     (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func
   in

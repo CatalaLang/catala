@@ -1,0 +1,14 @@
+@Test@
+
+/*
+new scope A:
+  param x content int
+  param y content int 
+
+scope A:
+  label base_y 
+  def y := 0
+ 
+  exception base_y
+  def x := 1
+*/

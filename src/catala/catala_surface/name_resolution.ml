@@ -415,9 +415,12 @@ let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.
   | Some label ->
       let rule_name =
         Desugared.Ast.RuleName.fresh
-          (Pos.map_under_mark
-             (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-             r.rule_name)
+          ( match r.rule_label with
+          | None ->
+              Pos.map_under_mark
+                (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+                r.rule_name
+          | Some label -> label )
       in
       {
         ctxt with
@@ -443,9 +446,12 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
   | Some label ->
       let definition_name =
         Desugared.Ast.RuleName.fresh
-          (Pos.map_under_mark
-             (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-             d.definition_name)
+          ( match d.definition_label with
+          | None ->
+              Pos.map_under_mark
+                (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
+                d.definition_name
+          | Some label -> label )
       in
       {
         ctxt with

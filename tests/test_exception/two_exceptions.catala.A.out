@@ -3,11 +3,11 @@
 [ERROR] This justification is true:
 [ERROR]   --> test_exception/two_exceptions.catala
 [ERROR]    | 
-[ERROR] 12 |   def x := 1
+[ERROR] 15 |   def x := 2
 [ERROR]    |       ^
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_exception/two_exceptions.catala
 [ERROR]    | 
-[ERROR] 15 |   def x := 2
+[ERROR] 12 |   def x := 1
 [ERROR]    |       ^

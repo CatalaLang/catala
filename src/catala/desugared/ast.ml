@@ -71,7 +71,7 @@ type rule = {
   just : Scopelang.Ast.expr Pos.marked Bindlib.box;
   cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
   parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  exception_to_rule : RuleName.t option;
+  exception_to_rule : RuleName.t Pos.marked option;
 }
 
 let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
