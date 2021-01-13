@@ -70,6 +70,10 @@ déclaration énumération DomicileFiscal:
 -- France
 -- HorsDeFrance
 
+déclaration énumération SourceRevenu:
+-- Française
+-- NonFrançaise
+
 déclaration structure Personne:
   donnée domicileFiscal contenu DomicileFiscal
 */
