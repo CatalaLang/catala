@@ -63,6 +63,7 @@ declaration scope Section121:
   context return_date content date
   context date_of_sale_or_exchange content date
   context gain_from_sale_or_exchange_of_property content money
+  context income_excluded_from_gross_income_uncapped content money
   context income_excluded_from_gross_income content money
 
 # Defining sub-scopes arguments
@@ -148,19 +149,17 @@ scope Section121SinglePerson:
     requirements_ownership_met and requirements_usage_met
   consequence fulfilled
 
-  label base_excluded_uncapped
-  definition income_excluded_from_gross_income_uncapped equals $0
-
-  exception base_excluded_uncapped
-  definition income_excluded_from_gross_income_uncapped under condition 
-    requirements_met
-  consequence equals 
-    gain_from_sale_or_exchange_of_property
+  definition income_excluded_from_gross_income_uncapped equals
+    if requirements_met then gain_from_sale_or_exchange_of_property
+    else $0
   
 scope Section121:
-
   label base_requirements_met
   definition section121a_requirements_met equals section121Person1.requirements_met
+
+  label base_income_excluded 
+  definition income_excluded_from_gross_income_uncapped equals 
+    section121Person1.income_excluded_from_gross_income_uncapped
 
 */
 
@@ -186,6 +185,12 @@ scope Section121SinglePerson:
 scope Section121: 
     label base_gain_cap
     definition gain_cap equals section121Person1.gain_cap 
+
+    definition income_excluded_from_gross_income equals 
+    if income_excluded_from_gross_income_uncapped >=$ gain_cap then 
+      gain_cap
+    else 
+      income_excluded_from_gross_income_uncapped
 */
 
 @(2) Special rules for joint returns@
