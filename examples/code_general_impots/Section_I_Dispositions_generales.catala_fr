@@ -84,7 +84,7 @@ déclaration champ d'application CalculImpotSurLeRevenu :
 
 champ d'application CalculImpotSurLeRevenu:
   définition personne.revenus égal à 
-  si personne.domicileFiscal = DomicileFiscal.France alors
+  si personne.domicileFiscal = France alors
   montantsSourcesRevenus.sourceFrançaise +€ montantsSourcesRevenus.sourceÉtrangère
   sinon 
   montantsSourcesRevenus.sourceÉtrangère
