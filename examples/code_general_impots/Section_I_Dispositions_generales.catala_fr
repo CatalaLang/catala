@@ -57,6 +57,8 @@ champ d'application CalculImpotSurLeRevenu:
     + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
 */
 
+@@0I : Définition du revenu net global@@++++++
+
 @Article 4 A@
 
 Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt sur le revenu en raison de l'ensemble de leurs revenus.
