@@ -70,10 +70,23 @@ déclaration énumération DomicileFiscal:
 -- France
 -- HorsDeFrance
 
-déclaration énumération SourceRevenu:
--- Française
--- NonFrançaise
+déclaration structure MontantsSourcesRevenus:
+  donnée sourceFrançaise contenu argent
+  donnée sourceÉtrangère contenu argent
 
 déclaration structure Personne:
   donnée domicileFiscal contenu DomicileFiscal
+  donnée revenus contenu argent
+  donnée montantsSourcesRevenus contenu MontantsSourcesRevenus 
+
+déclaration champ d'application CalculImpotSurLeRevenu :
+  contexte personne contenu Personne
+
+champ d'application CalculImpotSurLeRevenu:
+  définition personne.revenus égal à 
+  si personne.domicileFiscal = DomicileFiscal.France alors
+  montantsSourcesRevenus.sourceFrançaise +€ montantsSourcesRevenus.sourceÉtrangère
+  sinon 
+  montantsSourcesRevenus.sourceÉtrangère
+
 */
