@@ -138,14 +138,14 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Cli.debug_print "Collecting rules...";
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
-        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
-        Cli.debug_print (Format.asprintf "Output program:@\n%a" Dcalc.Print.format_expr prgm);
+        let prgm, ctx = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx) prgm);
         Cli.debug_print "Typechecking...";
-        let _typ = Dcalc.Typing.infer_type prgm in
+        let _typ = Dcalc.Typing.infer_type ctx prgm in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
            typ); *)
         Cli.debug_print "Starting interpretation...";
-        let results = Dcalc.Interpreter.interpret_program prgm in
+        let results = Dcalc.Interpreter.interpret_program ctx prgm in
         let results =
           List.sort
             (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
@@ -157,8 +157,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         List.iter
           (fun (var, result) ->
             Cli.result_print
-              (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var) Dcalc.Print.format_expr
-                 result))
+              (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var)
+                 (Dcalc.Print.format_expr ctx) result))
           results;
         0
   with Errors.StructuredError (msg, pos) ->

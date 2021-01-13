@@ -207,7 +207,7 @@ champ d'application AllocationsFamiliales :
   exception définition_versement
   définition versement de enfant sous condition 
     enfant.garde_alternée sous forme OuiPartageAllocations
-  conséquence égal à Partagée
+  conséquence égal à Normal
 */
 
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne 

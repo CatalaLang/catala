@@ -15,6 +15,20 @@
 module Pos = Utils.Pos
 module Uid = Utils.Uid
 
+module StructName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
+
+module EnumName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
+
+module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
+
 (** Abstract syntax tree for the default calculus *)
 
 (** {1 Abstract syntax tree} *)
@@ -23,8 +37,8 @@ type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list
-  | TEnum of typ Pos.marked list
+  | TTuple of typ Pos.marked list * StructName.t option
+  | TEnum of typ Pos.marked list * EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
@@ -87,13 +101,13 @@ type operator = Ternop of ternop | Binop of binop | Unop of unop
     higher-order abstract syntax*)
 type expr =
   | EVar of expr Bindlib.var Pos.marked
-  | ETuple of (expr Pos.marked * Uid.MarkedString.info option) list
+  | ETuple of expr Pos.marked list * StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * Uid.MarkedString.info option * typ Pos.marked list
+  | ETupleAccess of expr Pos.marked * int * StructName.t option * typ Pos.marked list
       (** The [MarkedString.info] is the former struct field name *)
-  | EInj of expr Pos.marked * int * Uid.MarkedString.info * typ Pos.marked list
+  | EInj of expr Pos.marked * int * EnumName.t * typ Pos.marked list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Pos.marked * (expr Pos.marked * Uid.MarkedString.info) list
+  | EMatch of expr Pos.marked * expr Pos.marked list * EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
@@ -103,6 +117,12 @@ type expr =
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+
+type struct_ctx = StructFieldName.t list StructMap.t
+
+type enum_ctx = EnumConstructor.t list EnumMap.t
+
+type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
 (** {1 Variable helpers} *)
 

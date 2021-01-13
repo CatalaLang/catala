@@ -37,21 +37,15 @@ module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
 
 module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 
-module StructName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
-
-module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
-
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module StructName = Dcalc.Ast.StructName
+module StructMap = Dcalc.Ast.StructMap
+module StructFieldName = Dcalc.Ast.StructFieldName
 
 module StructFieldMap : Map.S with type key = StructFieldName.t = Map.Make (StructFieldName)
 
-module EnumName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
-
-module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
-
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module EnumName = Dcalc.Ast.EnumName
+module EnumMap = Dcalc.Ast.EnumMap
+module EnumConstructor = Dcalc.Ast.EnumConstructor
 
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t = Map.Make (EnumConstructor)
 

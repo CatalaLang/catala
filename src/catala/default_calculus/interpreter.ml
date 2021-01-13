@@ -37,8 +37,10 @@ let empty_thunked_term : Ast.expr Pos.marked =
 let rec type_eq (t1 : A.typ Pos.marked) (t2 : A.typ Pos.marked) : bool =
   match (Pos.unmark t1, Pos.unmark t2) with
   | A.TLit tl1, A.TLit tl2 -> tl1 = tl2
-  | A.TTuple ts1, A.TTuple ts2 | A.TEnum ts1, A.TEnum ts2 -> (
-      try List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false )
+  | A.TTuple (ts1, s1), A.TTuple (ts2, s2) -> (
+      try s1 == s2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false )
+  | A.TEnum (ts1, e1), A.TEnum (ts2, e2) -> (
+      try e1 == e2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false )
   | A.TArray t1, A.TArray t2 -> type_eq t1 t2
   | A.TArrow (t11, t12), A.TArrow (t21, t22) -> type_eq t11 t12 && type_eq t21 t22
   | _, _ -> false
@@ -47,15 +49,15 @@ let log_indent = ref 0
 
 (** {1 Evaluation} *)
 
-let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
-    A.expr Pos.marked =
+let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
+    (args : A.expr Pos.marked list) : A.expr Pos.marked =
   Pos.same_pos_as
     ( match (Pos.unmark op, List.map Pos.unmark args) with
     | A.Ternop A.Fold, [ _f; _init; EArray es ] ->
         Pos.unmark
           (List.fold_left
              (fun acc e' ->
-               evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ acc; e' ])) e'))
+               evaluate_expr ctx (Pos.same_pos_as (A.EApp (List.nth args 0, [ acc; e' ])) e'))
              (List.nth args 1) es)
     | A.Binop A.And, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 && b2))
     | A.Binop A.Or, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 || b2))
@@ -151,50 +153,51 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
              ( try
                  List.for_all2
                    (fun e1 e2 ->
-                     match Pos.unmark (evaluate_operator op [ e1; e2 ]) with
+                     match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
                      | A.ELit (LBool b) -> b
                      | _ -> assert false
                      (* should not happen *))
                    es1 es2
                with Invalid_argument _ -> false ))
-    | A.Binop A.Eq, [ ETuple es1; ETuple es2 ] ->
+    | A.Binop A.Eq, [ ETuple (es1, s1); ETuple (es2, s2) ] ->
         A.ELit
           (LBool
              ( try
-                 List.for_all2
-                   (fun (e1, _) (e2, _) ->
-                     match Pos.unmark (evaluate_operator op [ e1; e2 ]) with
-                     | A.ELit (LBool b) -> b
-                     | _ -> assert false
-                     (* should not happen *))
-                   es1 es2
+                 s1 = s2
+                 && List.for_all2
+                      (fun e1 e2 ->
+                        match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
+                        | A.ELit (LBool b) -> b
+                        | _ -> assert false
+                        (* should not happen *))
+                      es1 es2
                with Invalid_argument _ -> false ))
-    | A.Binop A.Eq, [ EInj (e1, i1, _, ts1); EInj (e2, i2, _, ts2) ] ->
+    | A.Binop A.Eq, [ EInj (e1, i1, en1, ts1); EInj (e2, i2, en2, ts2) ] ->
         A.ELit
           (LBool
              ( try
-                 List.for_all2 type_eq ts1 ts2 && i1 = i2
+                 en1 = en2 && List.for_all2 type_eq ts1 ts2 && i1 = i2
                  &&
-                 match Pos.unmark (evaluate_operator op [ e1; e2 ]) with
+                 match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
                  | A.ELit (LBool b) -> b
                  | _ -> assert false
                  (* should not happen *)
                with Invalid_argument _ -> false ))
     | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing anything else return false *)
     | A.Binop A.Neq, [ _; _ ] -> (
-        match Pos.unmark (evaluate_operator (Pos.same_pos_as (A.Binop A.Eq) op) args) with
+        match Pos.unmark (evaluate_operator ctx (Pos.same_pos_as (A.Binop A.Eq) op) args) with
         | A.ELit (A.LBool b) -> A.ELit (A.LBool (not b))
         | _ -> assert false (*should not happen *) )
     | A.Binop A.Map, [ _; A.EArray es ] ->
         A.EArray
           (List.map
-             (fun e' -> evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e'))
+             (fun e' -> evaluate_expr ctx (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e'))
              es)
     | A.Binop A.Filter, [ _; A.EArray es ] ->
         A.EArray
           (List.filter
              (fun e' ->
-               match evaluate_expr (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e') with
+               match evaluate_expr ctx (Pos.same_pos_as (A.EApp (List.nth args 0, [ e' ])) e') with
                | A.ELit (A.LBool b), _ -> b
                | _ ->
                    Errors.raise_spanned_error
@@ -231,7 +234,9 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
                    ( match e' with
                    | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
                    | _ ->
-                       let expr_str = Format.asprintf "%a" Print.format_expr (e', Pos.no_pos) in
+                       let expr_str =
+                         Format.asprintf "%a" (Print.format_expr ctx) (e', Pos.no_pos)
+                       in
                        let expr_str =
                          Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
                            ~subst:(fun _ -> " ")
@@ -257,30 +262,32 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
           ( [ (Some "Operator:", Pos.get_position op) ]
           @ List.mapi
               (fun i arg ->
-                ( Some (Format.asprintf "Argument n°%d, value %a" (i + 1) Print.format_expr arg),
+                ( Some
+                    (Format.asprintf "Argument n°%d, value %a" (i + 1) (Print.format_expr ctx) arg),
                   Pos.get_position arg ))
               args ) )
     op
 
-and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
+and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.marked =
   match Pos.unmark e with
   | EVar _ ->
       Errors.raise_spanned_error
         "free variable found at evaluation (should not happen if term was well-typed"
         (Pos.get_position e)
   | EApp (e1, args) -> (
-      let e1 = evaluate_expr e1 in
-      let args = List.map evaluate_expr args in
+      let e1 = evaluate_expr ctx e1 in
+      let args = List.map (evaluate_expr ctx) args in
       match Pos.unmark e1 with
       | EAbs (_, binder, _) ->
           if Bindlib.mbinder_arity binder = List.length args then
-            evaluate_expr (Bindlib.msubst binder (Array.of_list (List.map Pos.unmark args)))
+            evaluate_expr ctx (Bindlib.msubst binder (Array.of_list (List.map Pos.unmark args)))
           else
             Errors.raise_spanned_error
               (Format.asprintf "wrong function call, expected %d arguments, got %d"
                  (Bindlib.mbinder_arity binder) (List.length args))
               (Pos.get_position e)
-      | EOp op -> Pos.same_pos_as (Pos.unmark (evaluate_operator (Pos.same_pos_as op e1) args)) e
+      | EOp op ->
+          Pos.same_pos_as (Pos.unmark (evaluate_operator ctx (Pos.same_pos_as op e1) args)) e
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
@@ -288,13 +295,21 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
              term was well-typed"
             (Pos.get_position e) )
   | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
-  | ETuple es -> Pos.same_pos_as (A.ETuple (List.map (fun (e', i) -> (evaluate_expr e', i)) es)) e
-  | ETupleAccess (e1, n, _, _) -> (
-      let e1 = evaluate_expr e1 in
+  | ETuple (es, s) -> Pos.same_pos_as (A.ETuple (List.map (evaluate_expr ctx) es, s)) e
+  | ETupleAccess (e1, n, s, _) -> (
+      let e1 = evaluate_expr ctx e1 in
       match Pos.unmark e1 with
-      | ETuple es -> (
+      | ETuple (es, s') -> (
+          ( match (s, s') with
+          | None, None -> ()
+          | Some s, Some s' when s = s' -> ()
+          | _ ->
+              Errors.raise_multispanned_error
+                "Error during tuple access: not the same structs (should not happen if the term \
+                 was well-typed)"
+                [ (None, Pos.get_position e); (None, Pos.get_position e1) ] );
           match List.nth_opt es n with
-          | Some (e', _) -> e'
+          | Some e' -> e'
           | None ->
               Errors.raise_spanned_error
                 (Format.asprintf
@@ -309,14 +324,19 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                 if the term was well-typed)"
                n)
             (Pos.get_position e1) )
-  | EInj (e1, n, i, ts) ->
-      let e1' = evaluate_expr e1 in
-      Pos.same_pos_as (A.EInj (e1', n, i, ts)) e
-  | EMatch (e1, es) -> (
-      let e1 = evaluate_expr e1 in
+  | EInj (e1, n, en, ts) ->
+      let e1' = evaluate_expr ctx e1 in
+      Pos.same_pos_as (A.EInj (e1', n, en, ts)) e
+  | EMatch (e1, es, e_name) -> (
+      let e1 = evaluate_expr ctx e1 in
       match Pos.unmark e1 with
-      | A.EInj (e1, n, _, _) ->
-          let es_n, _ =
+      | A.EInj (e1, n, e_name', _) ->
+          if e_name <> e_name' then
+            Errors.raise_multispanned_error
+              "Error during match: two different enums found (should not happend if the term was \
+               well-typed)"
+              [ (None, Pos.get_position e); (None, Pos.get_position e1) ];
+          let es_n =
             match List.nth_opt es n with
             | Some es_n -> es_n
             | None ->
@@ -325,7 +345,7 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                   (Pos.get_position e)
           in
           let new_e = Pos.same_pos_as (A.EApp (es_n, [ e1 ])) e in
-          evaluate_expr new_e
+          evaluate_expr ctx new_e
       | A.ELit A.LEmptyError -> Pos.same_pos_as (A.ELit A.LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
@@ -334,14 +354,14 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
             (Pos.get_position e1) )
   | EDefault (exceptions, just, cons) -> (
       let exceptions_orig = exceptions in
-      let exceptions = List.map evaluate_expr exceptions in
+      let exceptions = List.map (evaluate_expr ctx) exceptions in
       let empty_count = List.length (List.filter is_empty_error exceptions) in
       match List.length exceptions - empty_count with
       | 0 -> (
-          let just = evaluate_expr just in
+          let just = evaluate_expr ctx just in
           match Pos.unmark just with
           | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
-          | ELit (LBool true) -> evaluate_expr cons
+          | ELit (LBool true) -> evaluate_expr ctx cons
           | ELit (LBool false) -> Pos.same_pos_as (A.ELit LEmptyError) e
           | _ ->
               Errors.raise_spanned_error
@@ -358,24 +378,24 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
                   (fun (sub, _) -> not (is_empty_error sub))
                   (List.map2 (fun x y -> (x, y)) exceptions exceptions_orig))) )
   | EIfThenElse (cond, et, ef) -> (
-      match Pos.unmark (evaluate_expr cond) with
-      | ELit (LBool true) -> evaluate_expr et
-      | ELit (LBool false) -> evaluate_expr ef
+      match Pos.unmark (evaluate_expr ctx cond) with
+      | ELit (LBool true) -> evaluate_expr ctx et
+      | ELit (LBool false) -> evaluate_expr ctx ef
       | _ ->
           Errors.raise_spanned_error
             "Expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond) )
-  | EArray es -> Pos.same_pos_as (A.EArray (List.map evaluate_expr es)) e
+  | EArray es -> Pos.same_pos_as (A.EArray (List.map (evaluate_expr ctx) es)) e
   | EAssert e' -> (
-      match Pos.unmark (evaluate_expr e') with
+      match Pos.unmark (evaluate_expr ctx e') with
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
       | ELit (LBool false) -> (
           match Pos.unmark e' with
           | EApp ((Ast.EOp (Binop op), pos_op), [ ((ELit _, _) as e1); ((ELit _, _) as e2) ]) ->
               Errors.raise_spanned_error
-                (Format.asprintf "Assertion failed: %a %a %a" Print.format_expr e1
-                   Print.format_binop (op, pos_op) Print.format_expr e2)
+                (Format.asprintf "Assertion failed: %a %a %a" (Print.format_expr ctx) e1
+                   Print.format_binop (op, pos_op) (Print.format_expr ctx) e2)
                 (Pos.get_position e')
           | _ ->
               Errors.raise_spanned_error (Format.asprintf "Assertion failed") (Pos.get_position e')
@@ -390,15 +410,16 @@ and evaluate_expr (e : A.expr Pos.marked) : A.expr Pos.marked =
 
 (** Interpret a program. This function expects an expression typed as a function whose argument are
     all thunked. The function is executed by providing for each argument a thunked empty default. *)
-let interpret_program (e : Ast.expr Pos.marked) : (Ast.Var.t * Ast.expr Pos.marked) list =
-  match Pos.unmark (evaluate_expr e) with
+let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
+    (Ast.Var.t * Ast.expr Pos.marked) list =
+  match Pos.unmark (evaluate_expr ctx e) with
   | Ast.EAbs (_, binder, taus) -> (
       let application_term = List.map (fun _ -> empty_thunked_term) taus in
       let to_interpret = (Ast.EApp (e, application_term), Pos.no_pos) in
-      match Pos.unmark (evaluate_expr to_interpret) with
-      | Ast.ETuple args ->
+      match Pos.unmark (evaluate_expr ctx to_interpret) with
+      | Ast.ETuple (args, None) ->
           let vars, _ = Bindlib.unmbind binder in
-          List.map2 (fun (arg, _) var -> (var, arg)) args (Array.to_list vars)
+          List.map2 (fun arg var -> (var, arg)) args (Array.to_list vars)
       | _ ->
           Errors.raise_spanned_error "The interpretation of a program should always yield a tuple"
             (Pos.get_position e) )
