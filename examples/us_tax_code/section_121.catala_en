@@ -55,7 +55,8 @@ declaration scope Section121:
   context section121Person1 scope Section121SinglePerson
   context section121Person2 scope Section121SinglePerson
   context section121a_requirements_met condition
-  context section_121_b_3_applies content boolean depends on PersonalData
+  context section_121_b_3_applies content boolean 
+    depends on OtherSection121aSale
   context section_121_b_2_A_condition condition
   context gain_cap content money
   context return_type content ReturnType 
@@ -97,7 +98,7 @@ scope Section121:
     -- SingleReturn of data_person1 : data_person1.property_usage_as_principal_residence
     -- JointReturn of data_couple : data_couple.person2.property_usage_as_principal_residence
     -- SingleReturnSurvivingSpouse of data_single: 
-      data_single.de.property_usage_as_principal_residence
+      data_single.death_spouse_info_at_time_of_death.property_usage_as_principal_residence
 
   definition section121Person1.gain_from_sale_or_exchange_of_property equals 
     gain_from_sale_or_exchange_of_property
@@ -277,8 +278,8 @@ during the 2-year period ending on the date of such sale or exchange, there
 was any other sale or exchange by the taxpayer to which subsection (a) applied.
 /*
 scope Section121: 
-  definition section_121_b_3_applies of personal_data equals 
-    match personal_data.other_section_121a_sale with pattern 
+  definition section_121_b_3_applies of other_section_121a_sale equals 
+    match other_section_121a_sale with pattern 
       -- NoOtherSaleWhereSection121aApplied: false 
       -- MostRecentSaleWhereSection121aApplied of other_sale: 
         date_of_sale_or_exchange -@ other_sale.date_of_sale_or_exchange 

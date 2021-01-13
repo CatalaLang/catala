@@ -19,23 +19,19 @@ let typ_needs_parens (e : typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
 let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
-  let aux l = if !Utils.Cli.style_flag then l else [] in
   Format.fprintf fmt "%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
        (fun fmt info ->
          Format.fprintf fmt "%s"
-           (ANSITerminal.sprintf
-              (aux
-                 (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
-                  try
-                    match
-                      CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter
-                    with
-                    | `Ll -> []
-                    | `Lu -> [ ANSITerminal.red ]
-                    | _ -> []
-                  with _ -> []))
+           (Utils.Cli.print_with_style
+              (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
+               try
+                 match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
+                 | `Ll -> []
+                 | `Lu -> [ ANSITerminal.red ]
+                 | _ -> []
+               with _ -> [])
               "%s"
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
@@ -145,11 +141,10 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> Format.fprintf fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  let aux l = if !Utils.Cli.style_flag then l else [] in
   match entry with
-  | VarDef -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.blue ]) "≔ ")
-  | BeginCall -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.yellow ]) "→ ")
-  | EndCall -> Format.fprintf fmt "%s" (ANSITerminal.sprintf (aux [ ANSITerminal.yellow ]) "← ")
+  | VarDef -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
+  | BeginCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ ")
+  | EndCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"

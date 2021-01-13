@@ -1,4 +1,12 @@
-[ERROR] Error during typechecking, types money and integer are incompatible
+[ERROR] Error during typechecking, incompatible types:
+[ERROR] --> money
+[ERROR] --> integer
+[ERROR] 
+[ERROR] Error coming from typechecking the following expression:
+[ERROR]   --> test_array/fold_error.catala
+[ERROR]    | 
+[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7) 
+[ERROR]    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [ERROR] 
 [ERROR] Type money coming from expression:
 [ERROR]   --> test_array/fold_error.catala
