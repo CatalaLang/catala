@@ -14,3 +14,10 @@ difficult for the user to refer to a specific point of the chain of definitions,
 * Whenever we try to code up an article, we identify the notions inside the article, we turn them into variables, and then we connect variables with rules.
 
 * Idea for the paper: compare the Catala implementation with the equivalent using OpenFisca.
+
+* Sometimes we have to turn a variable into a function, this 
+is very important and kind of the core of the formalization.
+
+* Formalizing helps you think way more about a statute than 
+you thought you knew about it. Parallel with formalization 
+of traditional software.

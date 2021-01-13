@@ -225,12 +225,11 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
         if !Cli.trace_flag then (
           match entry with
           | VarDef ->
-              let aux l = if !Utils.Cli.style_flag then l else [] in
               Cli.log_print
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    Print.format_uid_list infos
                    ( match e' with
-                   | Ast.EAbs _ -> ANSITerminal.sprintf (aux [ ANSITerminal.green ]) "<function>"
+                   | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
                    | _ ->
                        let expr_str = Format.asprintf "%a" Print.format_expr (e', Pos.no_pos) in
                        let expr_str =
@@ -238,7 +237,7 @@ let rec evaluate_operator (op : A.operator Pos.marked) (args : A.expr Pos.marked
                            ~subst:(fun _ -> " ")
                            expr_str
                        in
-                       ANSITerminal.sprintf (aux [ ANSITerminal.green ]) "%s" expr_str ))
+                       Cli.print_with_style [ ANSITerminal.green ] "%s" expr_str ))
           | BeginCall ->
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
