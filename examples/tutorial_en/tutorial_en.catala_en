@@ -60,7 +60,7 @@ individual:
 /* 
 declaration structure Individual:
   # The name of the structure "Individual", must start with an
-  # uppercase letter: this is the CamlCase convention.
+  # uppercase letter: this is the CamelCase convention.
   data income content money
   # In this line, "income" is the name of the structure field and 
   # "money" is the type of what is stored in that field.
@@ -83,7 +83,7 @@ enumerations are modeled in Catala using an enumeration type, like:
 @@Begin metadata@@
 /*
 declaration enumeration TaxCredit:
-# The name "TaxCredit" is also written in CamlCase 
+# The name "TaxCredit" is also written in CamelCase 
 -- NoTaxCredit
 # This line says that "TaxCredit" can be a "NoTaxCredit" situation
 -- ChildrenTaxCredit content integer 
@@ -108,7 +108,7 @@ programming. Scopes also have to be declared in metadata, so here we go:
 @@Begin metadata@@
 /*
 declaration scope IncomeTaxComputation:
-  # Scope names use CamlCase
+  # Scope names use CamelCase
   context individual content Individual
   # This line declares a context element of the scope, which is akin to 
   # a function parameter in computer science term. This is the piece of 

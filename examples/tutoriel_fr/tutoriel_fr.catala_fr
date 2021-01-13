@@ -62,7 +62,7 @@ personne :
 /* 
 déclaration structure Personne:
   # Le nom de la structure "Personne", doit commencer
-  # par une lettre majuscule: c'est la convention CamlCase.
+  # par une lettre majuscule: c'est la convention CamelCase.
   donnée revenu contenu argent
   # A cette ligne, revenu est le nom du champ de la structure et
   # "argent" est le type de de données de ce champ. 
@@ -86,7 +86,7 @@ sont modélisés en Catala par le type énumération, comme suit :
 @@Début métadonnées@@
 /*
 déclaration énumération CréditImpôt:
-# Le nom "CréditImpôt" s'écrit aussi en CamlCase
+# Le nom "CréditImpôt" s'écrit aussi en CamelCase
 -- AucunCréditImpôt
 # Cette ligne indique que "CréditImpôt" peut être en situation 
 # "AucunCréditImpôt"
@@ -114,7 +114,7 @@ préalablement dans les métadonnées, de la manière suivante:
 @@Début métadonnées@@
 /*
 déclaration champ d'application CalculImpôtRevenu:
-  # Les champs d'application utilisent le CamlCase
+  # Les champs d'application utilisent le CamelCase
   contexte personne contenu Personne
   # Cette ligne déclare un élémént de contexte du champ d'application,
   # cela ressemble à un paramètre de fonction en informatique. C'est la
