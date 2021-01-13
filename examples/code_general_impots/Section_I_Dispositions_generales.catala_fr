@@ -56,3 +56,37 @@ champ d'application CalculImpotSurLeRevenu:
     + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
     + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
 */
+
+@@0I : Définition du revenu net global@@++++++
+
+@Article 4 A@
+
+Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt sur le revenu en raison de l'ensemble de leurs revenus.
+
+Celles dont le domicile fiscal est situé hors de France sont passibles de cet impôt en raison de leurs seuls revenus de source française.
+
+/*
+déclaration énumération DomicileFiscal:
+-- France
+-- HorsDeFrance
+
+déclaration structure MontantsSourcesRevenus:
+  donnée source_française contenu argent
+  donnée source_étrangère contenu argent
+
+déclaration structure Personne:
+  donnée domicile_fiscal contenu DomicileFiscal
+  donnée revenus contenu argent
+  donnée montants_sources_revenus contenu MontantsSourcesRevenus 
+
+déclaration champ d'application CalculImpotSurLeRevenu :
+  contexte personne contenu Personne
+
+champ d'application CalculImpotSurLeRevenu:
+  définition personne.revenus égal à 
+  si personne.domicileFiscal = France alors
+  montants_sources_revenus.source_française +€ montants_sources_revenus.source_étrangère
+  sinon 
+  montants_sources_revenus.source_française
+
+*/
