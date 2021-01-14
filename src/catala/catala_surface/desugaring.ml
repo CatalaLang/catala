@@ -123,6 +123,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Errors.raise_spanned_error
               "Impossible to specify decimal amounts of days, months or years" pos
         | Date date ->
+            if Pos.unmark date.literal_date_month > 12 then
+              Errors.raise_spanned_error "Month number bigger than 12"
+                (Pos.get_position date.literal_date_month);
+            if Pos.unmark date.literal_date_day > 31 then
+              Errors.raise_spanned_error "Month number bigger than 31"
+                (Pos.get_position date.literal_date_day);
             let date =
               try
                 CalendarLib.Date.lmake

@@ -10,7 +10,7 @@ new scope A:
 
 scope A:
   def x := |01/01/2019|
-  def y := |30/09/2002|
+  def y := |09/30/2002|
   def z := y +@ (x -@ y) = x
   def z3 := x -@ y 
   def z2 := z3 = 5937 day
