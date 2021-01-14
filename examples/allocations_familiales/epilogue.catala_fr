@@ -27,6 +27,7 @@ champ d'application EnfantLePlusÂgé:
 champ d'application PrestationsFamiliales: 
   définition âge_l512_3_2_alternatif égal à Absent
 
+champ d'application AllocationsFamiliales:
   définition montant_initial_majoration de enfant sous condition 
     non (droit_ouvert_majoration de enfant)
   conséquence égal à 0 €
