@@ -4,67 +4,93 @@
 
 /*
 déclaration champ d'application Données:
-  contexte enfant1 contenu Enfant 
-  contexte enfant2 contenu Enfant
-  contexte enfant3 contenu Enfant 
+  contexte enfant1 contenu EnfantEntrée 
+  contexte enfant2 contenu EnfantEntrée
+  contexte enfant3 contenu EnfantEntrée 
+  contexte enfant4 contenu EnfantEntrée
+  contexte enfant5 contenu EnfantEntrée
 
 champ d'application Données:
-  définition enfant1 égal à Enfant {
-    -- fin_obligation_scolaire : |01/08/2023|
-    -- date_de_naissance: |01/01/2007|
-    -- âge: 13
-    -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+  définition enfant1 égal à EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |01/01/2007|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
   }
-  définition enfant2 égal à Enfant {
-    -- fin_obligation_scolaire : |01/08/2021|
-    -- date_de_naissance: |01/01/2009|
-    -- âge: 15
-    -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: OuiPartageAllocations
+  définition enfant2 égal à EnfantEntrée {
+    -- d_identifiant: 2
+    -- d_date_de_naissance: |01/01/2009|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
   }
-  définition enfant3 égal à Enfant {
-    -- fin_obligation_scolaire : |01/08/2019|
-    -- date_de_naissance: |01/01/2003|
-    -- âge: 18
-    -- rémuneration_mensuelle: 400€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+  définition enfant3 égal à EnfantEntrée {
+    -- d_identifiant: 3
+    -- d_date_de_naissance: |01/01/2003|
+    -- d_rémuneration_mensuelle: 400€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: OuiPartageAllocations
+  }
+  définition enfant4 égal à EnfantEntrée {
+    -- d_identifiant: 4
+    -- d_date_de_naissance: |01/01/2001|
+    -- d_rémuneration_mensuelle: 1100€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
+  }
+  définition enfant5 égal à EnfantEntrée {
+    -- d_identifiant: 5
+    -- d_date_de_naissance: |01/01/2000|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
   }
 
 déclaration champ d'application Test1:
-  contexte f champ d'application AllocationsFamiliales
+  contexte f champ d'application InterfaceAllocationsFamiliales
   contexte données champ d'application Données 
 
 champ d'application Test1:
-  définition f.enfants_à_charge égal à 
-    [données.enfant1;données.enfant2;données.enfant3]
+  définition f.enfants égal à 
+    [données.enfant1;données.enfant2;données.enfant3;données.enfant4]
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
   assertion f.montant_versé = 351,26€
 
 déclaration champ d'application Test2:
-  contexte f champ d'application AllocationsFamiliales
+  contexte f champ d'application InterfaceAllocationsFamiliales
   contexte données champ d'application Données 
 
 champ d'application Test2:
-  définition f.enfants_à_charge égal à [données.enfant1]
-  définition f.ressources_ménage égal à 61 565 €
+  définition f.enfants égal à 
+    [données.enfant1;données.enfant2;données.enfant5]
+  définition f.ressources_ménage égal à 30 000 €
+  définition f.date_courante égal à |01/05/2020|
+  définition f.résidence égal à Métropole
+  assertion f.montant_versé = 216,27€
+
+
+déclaration champ d'application Test3:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+  contexte données champ d'application Données 
+
+champ d'application Test3:
+  définition f.enfants égal à [données.enfant1]
+  définition f.ressources_ménage égal à 63540 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Guyane
   assertion f.montant_versé = 12,18€
 
-déclaration champ d'application Test3:
-  contexte f champ d'application AllocationsFamiliales
+déclaration champ d'application Test4:
+  contexte f champ d'application InterfaceAllocationsFamiliales
   contexte données champ d'application Données 
 
-champ d'application Test3:
-  définition f.enfants_à_charge égal à [données.enfant1; données.enfant3]
+champ d'application Test4:
+  définition f.enfants égal à [données.enfant1; données.enfant3]
   définition f.ressources_ménage égal à 67 250 €
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
-  assertion f.montant_versé = 255,81€
+  assertion f.montant_versé = 99,37€
 */

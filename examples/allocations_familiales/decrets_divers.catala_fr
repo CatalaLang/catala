@@ -1,7 +1,33 @@
 
-@Instruction  interministérielle  no  DSS/SD2B/2020/33  du  18  février  2020
-relative  à  la  revalorisation  au  1er  avril  2020  des  prestations
-familiales  servies  en  métropole,  en  Guadeloupe,  en  Guyane, en
+@INSTRUCTION INTERMINISTERIELLE N° DSS/SD2B/2019/65 du 25 mars 2019 relative 
+à la revalorisation au 1er avril 2019 des prestations familiales servies en 
+métropole@
+
+Conformément à l’article L. 551-1 du code de la sécurité sociale, le montant 
+des prestations familiales est déterminé d'après des bases mensuelles 
+de calcul revalorisées au 1er avril de chaque année, par application 
+du coefficient mentionnée à l’article L. 161-25 du code de la 
+sécurité sociale. Au titre de l’année 2019, l’article 68 de la loi du 22 
+décembre 2018 de financement de la sécurité sociale a prévu, par dérogation 
+aux dispositions de l’article L. 161-25, une revalorisation de 0,3 % du montant 
+des prestations relevant de cet article.  
+
+Le montant précité de la base mensuelle de calcul des allocations 
+familiales (BMAF), en pourcentage duquel sont fixés les montants des prestations 
+familiales, est ainsi porté de 411,92 € à 413,16 € au 1er avril 2019.
+
+/*
+champ d'application PrestationsFamiliales :
+  définition base_mensuelle
+  sous condition
+    date_courante >=@ |01/04/2019| et
+    date_courante <@ |01/04/2020|
+  conséquence égal à 413,16 €
+*/
+
+@Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020
+relative à la revalorisation au 1er avril 2020 des prestations
+familiales servies en métropole, en Guadeloupe, en Guyane, en
 Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans
 le département de Mayotte@
 
@@ -23,135 +49,45 @@ champ d'application PrestationsFamiliales :
   conséquence égal à 414,4 €
 */
 
-Des règles spécifques s’appliquent par ailleurs aux prestations familiales 
-suivantes en métropole tout comme dans les collectivités de Guadeloupe, Guyane, 
-Martinique, La Réunion, Saint-Barthélemy et à Saint-Martin : l’article 37 de la 
-LFSS pour 2018 a prévu une mesure d’harmonisation du barème de l’allocation de 
-base (AB), de la prime à la naissance et de la prime à l’adoption sur celui du 
-complément familial. Cette réforme est applicable aux enfants nés ou adoptés à 
-compter du 1er avril 2018 et en conséquence à l’ensemble des enfants à compter 
-du 1er avril 2021.
 
-En revanche, elle ne s’applique pas aux familles au titre des enfants à leur 
-charge nés ou adoptés jusqu’au 31 mars 2018. Au titre de ces enfants, les 
-montants de l’AB (à taux plein et à taux partiel), de la prime à la naissance 
-et de la prime à l’adoption sont maintenus à leur niveau en vigueur au 1er 
-avril 2013, conformément aux dispositions de l’article 74 de la loi de 
-financement de la sécurité sociale pour 2014. Ces familles se voient toutefois 
-appliquer les nouvelles dispositions au titre d’une nouvelle naissance ou 
-adoption intervenant à compter du 1er avril 2018 ;–le montant du sixième 
-complément de l’allocation d’éducation de l’enfant handicapé (AEEH), 
-revalorisé de la même manière que les pensions mentionnées à l’article 
-L. 341-6 du code de la sécurité sociale, fait l’objet d’une revalorisation 
-de 0,3 % au 1er avril 2020 qui le porte de 1 121,92 € par mois au 1er avril 
-2019 à 1 125,29 € par mois au 1er avril 2020.
+@@Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance@@
 
-D’autre part, dans les collectivités de Guadeloupe, Guyane, Martinique, La Réunion, 
-Saint-Barthélemy et Saint-Martin, conformément à l’article 25 de la loi du 28 
-février 2017 de programmation relative à l’égalité réelle outre-mer et portant 
-autres dispositions en matière sociale et économique, les montants respectifs 
-du complément familial et de son montant majoré sont alignés sur ceux de la 
-métropole à compter du 1er avril 2020.
+@Article 1|JORFARTI000037833214@
 
-Enfn, le montant des allocations familiales pour les familles de deux enfants 
-et plus connaît dans le département de Mayotte une dernière majoration 
-exceptionnelle au 1er janvier 2021 liée à la mise en œuvre du plan de 
-convergence qui s’achèvera à cette date.
+A compter du 1er janvier 2019, pour les catégories de travailleurs mentionnés à 
+l'article L. 2211-1 du code du travail, le montant du salaire minimum de 
+croissance est relevé dans les conditions ci-après :
 
-Les tableaux annexés ont pour objet d’indiquer aux organismes débiteurs des 
-prestations familiales le montant des prestations familiales (avant le 
-précompte de la contribution au remboursement de la dette sociale) applicable 
-pour procéder à la liquidation des prestations familiales à compter du 1er 
-avril 2020 en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
-à Saint-Barthélemy et à Saint-Martin. Ces montants sont arrondis au centième 
-d’euro le plus proche ; il en est de même lorsqu’il s’agit du service d’une 
-allocation différentielle.
-
-Ils indiquent les montants relatifs aux allocations familiales, à l’allocation 
-de rentrée scolaire, à l’AEEH (allocation de base, complément et majoration 
-pour parent isolé), au complément familial et à son montant majoré sur la 
-période du 1er avril 2020 au 31 mars 2021 dans le département de Mayotte.
-
-Je vous demande de bien vouloir transmettre à la connaissance des organismes 
-débiteurs les présentes instructions.
-
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
+son montant est porté à 10,03 € l'heure.
 /*
-# Cependant, le cas de Mayotte n'est pas traité dans la loi et ce sont donc
-# les règles de cette annexe qui s'apppliquent.
-# champ d'application CalculAllocationsFamiliales :
-#   définition allocations_familiales.base sous condition
-#     ménage.résidence = Mayotte et
-#     allocations_familiales.droits_ouverts
-#   conséquence égal à
-#     si nombre de ménage.enfants = 1 alors
-#       allocations_familiales.montant_premier_enfant
-#     sinon (
-#       allocations_familiales.montant_deuxieme_enfant +
-#       allocations_familiales.montant_troisième_enfant_et_plus
-#     )
-
-#   définition allocations_familiales.montant_deuxieme_enfant sous condition
-#     ménage.résidence = Mayotte et
-#     date_calcul > |30/04/2020| et
-#     date_calcul <= |31/12/2020|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 30,68 %
-
-#   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
-#     ménage.résidence = Mayotte et
-#     date_calcul > |30/04/2020| et
-#     date_calcul <= |31/12/2020|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 14,3 % +
-#     (si nombre de ménage.enfants >= 4 alors
-#       prestations_familiales.base_mensuelle * 4,63 % *
-#         (nombre de ménage.enfants - 3)
-#       sinon 0 €)
-
-#   définition allocations_familiales.montant_deuxieme_enfant sous condition
-#     ménage.résidence = Mayotte et
-#     date_calcul > |01/01/2021| et
-#     date_calcul <= |31/03/2021|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 32 %
-
-#   définition allocations_familiales.montant_troisième_enfant_et_plus sous condition
-#     ménage.résidence = Mayotte et
-#     date_calcul > |01/01/2021| et
-#     date_calcul <= |31/03/2021|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 16 % +
-#     (si nombre de ménage.enfants >= 4 alors
-#       prestations_familiales.base_mensuelle * 4,63 % *
-#         (nombre de ménage.enfants - 3)
-#       sinon 0 €)
-
-#   définition allocations_familiales.montant_premier_enfant sous condition
-#     ménage.résident = Mayotte et
-#     allocations_familiales.date_ouverture_droits < |01/01/2012|
-#   conséquence égal à 57,28 €
-
-#   définition allocations_familiales.montant_premier_enfant sous condition
-#     ménage.résident = Mayotte et
-#     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-#     date_calcul > |30/04/2020| et
-#     date_calcul <= |31/12/2020|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 7,17 %
-
-#   définition allocations_familiales.montant_premier_enfant sous condition
-#     ménage.résident = Mayotte et
-#     allocations_familiales.date_ouverture_droits >= |01/01/2012| et
-#     date_calcul > |01/01/2021| et
-#     date_calcul <= |31/03/2021|
-#   conséquence égal à
-#     prestations_familiales.base_mensuelle * 5,88 %
+champ d'application Smic :
+  définition brut_horaire sous condition 
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Métropole) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 10,03 €
 */
-
+2° A Mayotte, son montant est fixé à 7,57 € l'heure.
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 7,57 €
+*/
 
 @@Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance@@
 
-@Article 1|LEGIARTI000039640195|01/01/2020@
+@Article 1|LEGIARTI000039640195@
 A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à 
 l' article L. 2211-1 du code du travail , le montant du salaire minimum de 
 croissance est relevé dans les conditions ci-après :
@@ -161,20 +97,97 @@ croissance est relevé dans les conditions ci-après :
 son montant est porté à 10,15 € l'heure ;
 /*
 champ d'application Smic :
-  définition brut_horaire sous condition
-    (résidence = Métropole) ou
-    (résidence = Guyane) ou
-    (résidence = Martinique) ou
-    (résidence = LaRéunion) ou
-    (résidence = SaintBarthélemy) ou
-    (résidence = SaintMartin) ou
-    (résidence = SaintPierreEtMiquelon)
+  définition brut_horaire sous condition 
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
+      (résidence = Métropole) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
   conséquence égal à 10,15 €
 */
 2° A Mayotte, son montant est fixé à 7,66 € l'heure.
 /*
 champ d'application Smic :
   définition brut_horaire sous condition
-    (résidence = Mayotte)
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Mayotte)
+    )
   conséquence égal à 7,66 €
+*/
+
+@@Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations@@
+
+@Article 1|JORFARTI000042694985@
+
+I. - Le plafond de ressources prévu au 1° du I des articles D. 521-1 et D. 521-2 
+du code de la sécurité sociale relatif aux allocations familiales, à la majoration 
+pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
+L. 521-1 est fixé à 58 279 euros pour la période du 1er janvier 2021 au 31 
+décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
+
+/*
+champ d'application AllocationsFamiliales :
+  exception base_plafond_I_d521_3
+  définition plafond_I_d521_3 sous condition 
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+  conséquence égal à 58 279 € +€
+    5 827 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
+*/
+
+II. - Le plafond de ressources prévu au 2° du I des articles D. 521-1 et 
+D. 521-2 du même code relatif aux allocations familiales, à la majoration 
+pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
+L. 521-1 est fixé à 81 558 euros pour la période du 1er janvier 2021 au 31 
+décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
+
+/*
+champ d'application AllocationsFamiliales :
+  exception base_plafond_II_d521_3 
+  définition plafond_II_d521_3 sous condition 
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+  conséquence égal à 81 558 € +€
+    5 827 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
+*/
+
+@Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019
+relative à la revalorisation au 1er janvier 2020 des plafonds de ressources 
+d’attribution de certaines prestations familiales servies en métropole, 
+en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, 
+à Saint-Martin et à Mayotte@
+
+Plafonds de ressources applicables pour l’attribution du montant modulé des 
+allocations familiales, de la majoration pour âge et de l’allocation forfaitaire, 
+du 1er janvier 2020 au 31 décembre 2020 (à comparer au revenu net catégoriel de 
+l’année 2018)
+
+La première tranche est celle dont les revenus sont inférieurs ou 
+égaux à un plafond de base de 57 759 € majoré de 5 775 € par 
+enfant à charge. La deuxième tranche est celle dont les revenus 
+sont supérieurs à un plafond de base de 57 759 € majoré de 5 775 
+€ par enfant à charge mais inférieurs ou égaux au plafond de base 
+de 80 831 € majoré de 5 775 € par enfant à charge. La troisième 
+tranche est celle dont les revenus sont supérieurs au plafond de base de 
+80 831 € majoré de 5 775 € par enfant à charge.
+
+/*
+champ d'application AllocationsFamiliales :
+  exception base_plafond_I_d521_3
+  définition plafond_I_d521_3 sous condition 
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
+  conséquence égal à 57 759 € +€
+    5 775 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
+
+  exception base_plafond_II_d521_3 
+  définition plafond_II_d521_3 sous condition 
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
+  conséquence égal à 80 831 € +€
+    5 775 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 */

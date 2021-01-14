@@ -14,6 +14,7 @@ déclaration énumération PriseEnChargeServiceSociaux:
   -- NonPriseEnChargeFamille
 
 déclaration structure Enfant :
+  donnée identifiant contenu entier
   donnée fin_obligation_scolaire contenu date
   donnée rémuneration_mensuelle contenu argent
   donnée date_de_naissance contenu date
@@ -34,6 +35,7 @@ déclaration énumération Collectivité :
   -- Mayotte
 
 déclaration champ d'application Smic :
+  contexte date_courante contenu date
   contexte résidence contenu Collectivité
   contexte brut_horaire contenu argent
 
@@ -74,6 +76,7 @@ déclaration champ d'application PrestationsFamiliales:
 
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
+  définition smic.date_courante égal à date_courante
 
 déclaration champ d'application AllocationFamilialesAvril2008:
   contexte âge_limite_alinéa_1_l521_3 contenu entier
@@ -84,10 +87,12 @@ déclaration énumération StockageEnfant:
 
 déclaration champ d'application EnfantLePlusÂgé:
   contexte enfants contenu collection Enfant 
-  contexte est_le_plus_âgé contenu booléen dépend de Enfant 
+  contexte le_plus_âgé contenu Enfant  
 
 déclaration champ d'application AllocationsFamiliales:
   contexte enfants_à_charge contenu collection Enfant 
+  contexte enfants_à_charge_droit_ouvert_prestation_familiale 
+    contenu collection Enfant
   contexte date_courante contenu date
   contexte résidence contenu Collectivité
   contexte ressources_ménage contenu argent

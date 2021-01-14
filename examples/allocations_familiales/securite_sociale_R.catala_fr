@@ -122,7 +122,9 @@ du nombre d'enfants à charge dans les conditions suivantes :
 /*
 champ d'application AllocationsFamiliales :
   définition nombre_moyen_enfants égal à
-    somme décimal pour enfant dans enfants_à_charge de (
+    somme décimal pour enfant dans 
+      enfants_à_charge_droit_ouvert_prestation_familiale 
+    de (
       selon (prise_en_compte de enfant) sous forme
       -- Complète : 1,0
       -- Partagée : 0,5
@@ -134,7 +136,8 @@ enfants à charge.
 /*
 champ d'application AllocationsFamiliales :
   définition nombre_total_enfants égal à 
-    entier_vers_décimal de (nombre de enfants_à_charge)
+    entier_vers_décimal de (nombre de 
+      enfants_à_charge_droit_ouvert_prestation_familiale)
 */
 
 @Article R521-4|LEGIARTI000006750613@
@@ -154,8 +157,7 @@ alternée, le montant servi au titre de cette majoration est réduit de moitié.
 champ d'application AllocationsFamiliales :
   définition
     montant_avec_garde_alternée_majoration de enfant
-  sous condition enfant dans enfants_à_charge
-  conséquence égal à (
+  égal à (
     selon (prise_en_compte de enfant) sous forme
     -- Complète : montant_initial_majoration de enfant
     -- Partagée : montant_initial_majoration de enfant *€ 50%

@@ -1,19 +1,19 @@
 @@Début métadonnées@@
 /*
 champ d'application EnfantLePlusÂgé:
-  définition est_le_plus_âgé de enfant égal à 
-    enfant = (
-      contenu maximum entier initial Enfant {
-        -- fin_obligation_scolaire: |01/01/1900|
-        -- rémuneration_mensuelle: 0€
-        -- date_de_naissance: |01/01/1900|
-        -- âge: 0 
-        -- garde_alternée: NonGardeUnique
-        -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-      } 
-      pour potentiel_plus_âgé dans enfants de 
-      potentiel_plus_âgé.âge
-    )
+  définition le_plus_âgé  égal à 
+    contenu maximum entier initial Enfant {
+      -- identifiant: -1
+      -- fin_obligation_scolaire: |01/01/1900|
+      -- rémuneration_mensuelle: 0€
+      -- date_de_naissance: |01/01/1900|
+      -- âge: 0 
+      -- garde_alternée: NonGardeUnique
+      -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    } 
+    pour potentiel_plus_âgé dans enfants de 
+    potentiel_plus_âgé.âge
+
 
 champ d'application PrestationsFamiliales: 
   définition âge_l512_3_2_alternatif égal à Absent
@@ -33,12 +33,9 @@ champ d'application AllocationsFamiliales:
   étiquette définition_droit_ouvert_complément
   règle droit_ouvert_complément rempli
 
-  assertion (pour tout enfant dans enfants_à_charge on a 
-    prestations_familiales.droit_ouvert de enfant)
- 
   définition enfant_le_plus_âgé.enfants égal à enfants_à_charge 
   définition est_enfant_le_plus_âgé de enfant égal à 
-    enfant_le_plus_âgé.est_le_plus_âgé de enfant
+    enfant_le_plus_âgé.le_plus_âgé = enfant
 
   définition montant_versé_base égal à 
     si droit_ouvert_base alors montant_avec_garde_alternée_base sinon 0€
@@ -57,5 +54,54 @@ champ d'application AllocationsFamiliales:
       montant_versé_complément_pour_base_et_majoration +€
       montant_versé_complément_pour_forfaitaire 
     sinon 0€
+
+déclaration structure EnfantEntrée: 
+  donnée d_identifiant contenu entier
+  donnée d_rémuneration_mensuelle contenu argent
+  donnée d_date_de_naissance contenu date
+  donnée d_garde_alternée contenu GardeAlternée
+  donnée d_pris_en_charge_par_services_sociaux contenu 
+    PriseEnChargeServiceSociaux
+
+déclaration champ d'application InterfaceAllocationsFamiliales:
+  contexte date_courante contenu date
+  contexte enfants contenu collection EnfantEntrée 
+  contexte enfants_à_charge contenu collection Enfant
+  contexte allocations_familiales champ d'application AllocationsFamiliales
+  contexte ressources_ménage contenu argent
+  contexte résidence contenu Collectivité
+  contexte montant_versé contenu argent
+
+champ d'application InterfaceAllocationsFamiliales:
+  définition allocations_familiales.date_courante égal à date_courante 
+  définition allocations_familiales.enfants_à_charge égal à enfants_à_charge
+  définition allocations_familiales.ressources_ménage égal à ressources_ménage
+  définition allocations_familiales.résidence égal à résidence
+  définition montant_versé égal à allocations_familiales.montant_versé
 */
 @@Fin métadonnées@@
+
+@@Code de l'éducation@@
+
+@Article L131-1|LEGIARTI000038901859@
+
+L'instruction est obligatoire pour chaque enfant dès l'âge de trois ans et 
+jusqu'à l'âge de seize ans.
+
+La présente disposition ne fait pas obstacle à l'application des prescriptions 
+particulières imposant une scolarité plus longue.
+/* 
+champ d'application InterfaceAllocationsFamiliales:
+  définition enfants_à_charge égal à application pour enfant dans enfants de 
+    Enfant {
+      -- identifiant : enfant.d_identifiant
+      -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
+      -- date_de_naissance : enfant.d_date_de_naissance
+      -- pris_en_charge_par_services_sociaux : 
+        enfant.d_pris_en_charge_par_services_sociaux
+      -- garde_alternée : enfant.d_garde_alternée
+      -- âge: accès_année de 
+        (|01/01/0000| +@ (date_courante -@ enfant.d_date_de_naissance))
+      -- fin_obligation_scolaire : enfant.d_date_de_naissance +@ 16 an
+    }
+*/
