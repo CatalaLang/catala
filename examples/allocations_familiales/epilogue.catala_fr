@@ -1,3 +1,12 @@
+@@Épilogue@@
+
+@@Règles diverses@@+
+
+Les textes législatifs et règlementaires contiennent toutes les informations
+nécessaires au calcul. Cependant, certaines règles de calcul sont implicites 
+dans ces textes et doivent être explicitées pour le calcul informatique. C'est 
+la fonction du bloc de code ci-dessous.
+
 @@Début métadonnées@@
 /*
 champ d'application EnfantLePlusÂgé:
@@ -18,14 +27,6 @@ champ d'application EnfantLePlusÂgé:
 champ d'application PrestationsFamiliales: 
   définition âge_l512_3_2_alternatif égal à Absent
 
-champ d'application AllocationsFamiliales:
-  définition prestations_familiales.prestation_courante égal à 
-    AllocationsFamiliales
-  définition prestations_familiales.date_courante égal à 
-    date_courante
-  définition prestations_familiales.résidence égal à 
-    résidence
-
   définition montant_initial_majoration de enfant sous condition 
     non (droit_ouvert_majoration de enfant)
   conséquence égal à 0 €
@@ -45,7 +46,6 @@ champ d'application AllocationsFamiliales:
         montant_avec_garde_alternée_majoration de enfant 
     sinon 0€
 
-  
   définition montant_versé égal à 
     si droit_ouvert_base alors
       montant_versé_base +€
@@ -54,7 +54,20 @@ champ d'application AllocationsFamiliales:
       montant_versé_complément_pour_base_et_majoration +€
       montant_versé_complément_pour_forfaitaire 
     sinon 0€
+*/
+@@Fin métadonnées@@
 
+@@Interface du programme@@+
+
+Le calcul des allocations familiales nécessite un certain nombre d'informations 
+sur les enfants à charge. Certaines de ces informations sont dépendantes les 
+unes des autres : par exemple, l'âge de l'enfant se déduit de sa date de 
+naissance. Le but du block ci-dessous est d'encoder ces dépendances, de telle 
+sorte que l'utilisateur puisse ne doive saisir que le nombre minimal 
+d'informations sur les enfants à charge. 
+
+@@Début métadonnées@@
+/*
 déclaration structure EnfantEntrée: 
   donnée d_identifiant contenu entier
   donnée d_rémuneration_mensuelle contenu argent
@@ -81,7 +94,7 @@ champ d'application InterfaceAllocationsFamiliales:
 */
 @@Fin métadonnées@@
 
-@@Code de l'éducation@@
+@@Code de l'éducation@@++
 
 @Article L131-1|LEGIARTI000038901859@
 

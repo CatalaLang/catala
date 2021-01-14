@@ -1,3 +1,9 @@
+@@Prologue@@
+
+Avant de présenter les textes réglementaires qui régissent le calcul des 
+allocations familiales, il est nécessaire de définir les structures de données
+informatiques qui modélisent la situation dont parlent ces textes législatifs.
+
 @@Début métadonnées@@
 /*
 déclaration structure Personne:
@@ -139,5 +145,14 @@ déclaration champ d'application AllocationsFamiliales:
   contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
   contexte plafond_I_d521_3 contenu argent
   contexte plafond_II_d521_3 contenu argent
+
+champ d'application AllocationsFamiliales:
+  définition prestations_familiales.prestation_courante égal à 
+    AllocationsFamiliales
+  définition prestations_familiales.date_courante égal à 
+    date_courante
+  définition prestations_familiales.résidence égal à 
+    résidence
+
 */
 @@Fin métadonnées@@
