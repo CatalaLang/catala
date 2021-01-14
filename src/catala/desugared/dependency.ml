@@ -216,16 +216,12 @@ let build_exceptions_graph (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeD
         match rule.Ast.exception_to_rule with
         | None -> g
         | Some (exc_r, pos) ->
-            if ExceptionsDependencies.mem_vertex g exc_r then (
+            if ExceptionsDependencies.mem_vertex g exc_r then
               if exc_r = rule_name then
                 Errors.raise_spanned_error "Cannot define rule as an exception to itself" pos
               else
                 let edge = ExceptionsDependencies.E.create rule_name pos exc_r in
-                Utils.Cli.debug_print
-                  (Format.asprintf "%d -> %d"
-                     (Pos.get_start_line (Pos.get_position (Ast.RuleName.get_info rule_name)))
-                     (Pos.get_start_line (Pos.get_position (Ast.RuleName.get_info exc_r))));
-                ExceptionsDependencies.add_edge_e g edge )
+                ExceptionsDependencies.add_edge_e g edge
             else
               Errors.raise_spanned_error
                 (Format.asprintf

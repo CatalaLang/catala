@@ -28,8 +28,8 @@ scope Data:
     -- end: |01/01/2020|
   }
   definition period_two_years_middle equals Period {
-    -- begin: |01/01/2016|
-    -- end: |01/01/2018|
+    -- begin: |01/01/2015|
+    -- end: |01/02/2017|
   }
   definition person_ok_1 equals PersonalData {
     -- property_ownage: [period_four_years_recent]

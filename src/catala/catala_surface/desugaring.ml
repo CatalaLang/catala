@@ -111,28 +111,29 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Scopelang.Ast.ELit
               (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
         | Number ((Int i, _), Some (Year, _)) ->
-            Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.(of_int 365 * i))
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~year:(Z.to_int i) ()))
         | Number ((Int i, _), Some (Month, _)) ->
-            Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.(of_int 30 * i))
-        | Number ((Int i, _), Some (Day, _)) -> Scopelang.Ast.ELit (Dcalc.Ast.LDuration i)
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~month:(Z.to_int i) ()))
+        | Number ((Int i, _), Some (Day, _)) ->
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~day:(Z.to_int i) ()))
         | Number ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
             Errors.raise_spanned_error
               "Impossible to specify decimal amounts of days, months or years" pos
-        | Date date -> (
+        | Date date ->
             let date =
-              ODate.Unix.make
-                ~year:(Pos.unmark date.literal_date_year)
-                ~day:(Pos.unmark date.literal_date_day)
-                ~month:
-                  ( try ODate.Month.of_int (Pos.unmark date.literal_date_month)
-                    with Failure _ ->
-                      Errors.raise_spanned_error "Invalid month (should be between 1 and 12)"
-                        (Pos.get_position date.literal_date_month) )
-                ()
+              try
+                CalendarLib.Date.lmake
+                  ~year:(Pos.unmark date.literal_date_year)
+                  ~day:(Pos.unmark date.literal_date_day)
+                  ~month:(Pos.unmark date.literal_date_month)
+                  ()
+              with CalendarLib.Date.Out_of_bounds | CalendarLib.Date.Undefined ->
+                Errors.raise_spanned_error "Invalid date" pos
             in
-            match ODate.Unix.some_if_valid date with
-            | Some date -> Scopelang.Ast.ELit (Dcalc.Ast.LDate date)
-            | None -> Errors.raise_spanned_error "Invalid date" pos )
+            Scopelang.Ast.ELit (Dcalc.Ast.LDate date)
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
@@ -485,7 +486,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
-            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LDuration Z.zero), Pos.get_position op')
+            Bindlib.box
+              ( Scopelang.Ast.ELit (Dcalc.Ast.LDuration CalendarLib.Date.Period.empty),
+                Pos.get_position op' )
         | Ast.Aggregate (Ast.AggregateSum t) ->
             Errors.raise_spanned_error
               (Format.asprintf "It is impossible to sum two values of type %a together"

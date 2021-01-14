@@ -1,7 +1,8 @@
 (library
  (name dcalc)
  (public_name catala.dcalc)
- (libraries bindlib unionFind utils zarith zarith_stubs_js odate re camomile))
+ (libraries bindlib unionFind utils zarith zarith_stubs_js calendar re
+   camomile))
 
 (documentation
  (package catala))

@@ -104,13 +104,13 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
             ]
     | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration (Z.( + ) i1 i2))
+        A.ELit (LDuration (CalendarLib.Date.Period.add i1 i2))
     | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration (Z.( - ) i1 i2))
+        A.ELit (LDuration (CalendarLib.Date.Period.sub i1 i2))
     | A.Binop (A.Sub KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LDuration (Z.of_int (ODuration.To.day (ODate.Unix.between i2 i1))))
+        A.ELit (LDuration (CalendarLib.Date.sub i1 i2))
     | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
-        A.ELit (LDate (ODate.Unix.advance_by_days i1 (Z.to_int i2)))
+        A.ELit (LDate (CalendarLib.Date.add i1 i2))
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 < i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 <= i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 > i2))
@@ -124,25 +124,25 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Gt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 > i2))
     | A.Binop (A.Gte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 >= i2))
     | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (i1 < i2))
+        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 < 0))
     | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (i1 <= i2))
+        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 <= 0))
     | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (i1 > i2))
+        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 > 0))
     | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (i1 >= i2))
+        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 >= 0))
     | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool (ODate.Unix.compare i1 i2 < 0))
+        A.ELit (LBool (CalendarLib.Date.compare i1 i2 < 0))
     | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool (ODate.Unix.compare i1 i2 <= 0))
+        A.ELit (LBool (CalendarLib.Date.compare i1 i2 <= 0))
     | A.Binop (A.Gt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool (ODate.Unix.compare i1 i2 > 0))
+        A.ELit (LBool (CalendarLib.Date.compare i1 i2 > 0))
     | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool (ODate.Unix.compare i1 i2 >= 0))
+        A.ELit (LBool (CalendarLib.Date.compare i1 i2 >= 0))
     | A.Binop A.Eq, [ ELit LUnit; ELit LUnit ] -> A.ELit (LBool true)
     | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool (ODate.Unix.compare i1 i2 = 0))
+        A.ELit (LBool (CalendarLib.Date.compare i1 i2 = 0))
     | A.Binop A.Eq, [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 = i2))
     | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Q.(i1 = i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool (i1 = i2))
@@ -209,13 +209,15 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt (Z.sub Z.zero i))
     | A.Unop (A.Minus KRat), [ ELit (LRat i) ] -> A.ELit (LRat (Q.sub Q.zero i))
     | A.Unop (A.Minus KMoney), [ ELit (LMoney i) ] -> A.ELit (LMoney (Z.sub Z.zero i))
-    | A.Unop (A.Minus KDuration), [ ELit (LDuration i) ] -> A.ELit (LDuration (Z.sub Z.zero i))
+    | A.Unop (A.Minus KDuration), [ ELit (LDuration i) ] ->
+        A.ELit (LDuration (CalendarLib.Date.Period.opp i))
     | A.Unop A.Not, [ ELit (LBool b) ] -> A.ELit (LBool (not b))
     | A.Unop A.Length, [ EArray es ] -> A.ELit (LInt (Z.of_int (List.length es)))
-    | A.Unop A.GetDay, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (ODate.Unix.get_day d)))
+    | A.Unop A.GetDay, [ ELit (LDate d) ] ->
+        A.ELit (LInt (Z.of_int (CalendarLib.Date.day_of_month d)))
     | A.Unop A.GetMonth, [ ELit (LDate d) ] ->
-        A.ELit (LInt (Z.of_int (ODate.Month.to_int (ODate.Unix.get_month d))))
-    | A.Unop A.GetYear, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (ODate.Unix.get_year d)))
+        A.ELit (LInt (Z.of_int (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))))
+    | A.Unop A.GetYear, [ ELit (LDate d) ] -> A.ELit (LInt (Z.of_int (CalendarLib.Date.year d)))
     | A.Unop A.IntToRat, [ ELit (LInt i) ] -> A.ELit (LRat (Q.of_bigint i))
     | A.Unop A.ErrorOnEmpty, [ e' ] ->
         if e' = A.ELit LEmptyError then

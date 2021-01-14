@@ -43,9 +43,9 @@ type typ =
   | TArray of typ Pos.marked
   | TAny
 
-type date = ODate.Unix.t
+type date = CalendarLib.Date.t
 
-type duration = Z.t
+type duration = CalendarLib.Date.Period.t
 
 type lit =
   | LBool of bool

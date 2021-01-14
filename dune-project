@@ -33,7 +33,7 @@
    (zarith_stubs_js (>= 0.14.0))
    (dune (>= 2.2))
    (ocamlgraph (>= 1.8.8))
-   (odate (>= 0.6))
+   (calendar (>= 2.04))
  )
 )
 

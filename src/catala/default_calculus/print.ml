@@ -124,10 +124,20 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
       match !Utils.Cli.locale_lang with
       | `En -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
       | `Fr -> Format.fprintf fmt "%.2f €" Q.(to_float (of_bigint e / of_int 100)) )
-  | LDate d ->
-      Format.fprintf fmt "%s"
-        (ODate.Unix.To.string (Option.get (ODate.Unix.To.generate_printer "%Y-%m-%d")) d)
-  | LDuration d -> Format.fprintf fmt "%a days" Z.pp_print d
+  | LDate d -> Format.fprintf fmt "%s" (CalendarLib.Printer.Date.to_string d)
+  | LDuration d -> (
+      let x, y, z = CalendarLib.Date.Period.ymd d in
+      let to_print =
+        List.filter (fun (a, _) -> a <> 0) [ (x, "years"); (y, "months"); (z, "days") ]
+      in
+      match to_print with
+      | [] -> Format.fprintf fmt "empty duration"
+      | _ ->
+          Format.fprintf fmt "%a"
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+               (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
+            to_print )
 
 let format_op_kind (fmt : Format.formatter) (k : op_kind) =
   Format.fprintf fmt "%s"

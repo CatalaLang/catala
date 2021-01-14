@@ -192,8 +192,8 @@ literal:
 }
 | VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
   (Date {
-    literal_date_day = d;
-    literal_date_month = m;
+    literal_date_day = (match !Utils.Cli.locale_lang with `En -> m | `Fr -> d);
+    literal_date_month = (match !Utils.Cli.locale_lang with `En -> d | `Fr -> m);
     literal_date_year = y;
   }, $sloc)
 }
