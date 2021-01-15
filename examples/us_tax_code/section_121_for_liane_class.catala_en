@@ -37,7 +37,7 @@ scope Section121:
   # - either the period ended more that 5 years before the 
   #   date_of_sale_or_exchange in which case we don't count it 
   # - either the 5 years mark is inside the period and we only 
-  #   cound the half after 5 years
+  #   count the half after 5 years
   definition aggregate_periods_from_last_five_years of periods equals 
     sum duration for period in periods of (
       if date_of_sale_or_exchange -@ period.begin <=^ 5 year then
@@ -57,7 +57,7 @@ scope Section121:
   definition income_excluded_from_gross_income under condition 
     aggregate_periods_from_last_five_years of property_ownage >=^ 730 day and
     aggregate_periods_from_last_five_years of
-       property_usage_as_principal_residence >=^ 730 day
+       property_usage_as_principal_residence <=^ 730 day
   consequence equals 
      gain_from_sale_or_exchange_of_property
 */
