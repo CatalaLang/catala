@@ -124,14 +124,13 @@ scope Section121SinglePerson:
   #   date_of_sale_or_exchange in which case we don't count it 
   # - either the 5 years mark is inside the period and we only 
   #   cound the half after 5 years
-  # Regulation 1.121-1(c)(1): 5 years = 1825 days
   definition aggregate_periods_from_last_five_years of periods equals 
     sum duration for period in periods of (
-      if date_of_sale_or_exchange -@ period.begin <=^ 1825 day then
+      if date_of_sale_or_exchange <=@ period.begin +@ 5 year then
         period.end -@ period.begin
-      else (if date_of_sale_or_exchange -@ period.end >=^ 1825 day then 
+      else (if date_of_sale_or_exchange >=@ period.end +@ 5 year then 
         0 day 
-      else (period.end -@ (date_of_sale_or_exchange +@ (-^ 1825 day))))
+      else ((period.end +@ 5 year) -@ date_of_sale_or_exchange))
     )
 
   # Regulation 1.121-1(c)(1): 2 years = 730 days

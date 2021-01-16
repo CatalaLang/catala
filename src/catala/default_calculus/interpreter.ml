@@ -49,6 +49,17 @@ let log_indent = ref 0
 
 (** {1 Evaluation} *)
 
+let compare_periods (p1 : CalendarLib.Date.Period.t Pos.marked)
+    (p2 : CalendarLib.Date.Period.t Pos.marked) : int =
+  try
+    let p1_days = CalendarLib.Date.Period.nb_days (Pos.unmark p1) in
+    let p2_days = CalendarLib.Date.Period.nb_days (Pos.unmark p2) in
+    compare p1_days p2_days
+  with CalendarLib.Date.Period.Not_computable ->
+    Errors.raise_multispanned_error
+      "Cannot compare together durations that cannot be converted to a precise number of days"
+      [ (None, Pos.get_position p1); (None, Pos.get_position p2) ]
+
 let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     (args : A.expr Pos.marked list) : A.expr Pos.marked =
   Pos.same_pos_as
@@ -124,13 +135,33 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Gt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 > i2))
     | A.Binop (A.Gte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool (i1 >= i2))
     | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 < 0))
+        A.ELit
+          (LBool
+             ( compare_periods
+                 (Pos.same_pos_as i1 (List.nth args 0))
+                 (Pos.same_pos_as i2 (List.nth args 1))
+             < 0 ))
     | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 <= 0))
+        A.ELit
+          (LBool
+             ( compare_periods
+                 (Pos.same_pos_as i1 (List.nth args 0))
+                 (Pos.same_pos_as i2 (List.nth args 1))
+             <= 0 ))
     | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 > 0))
+        A.ELit
+          (LBool
+             ( compare_periods
+                 (Pos.same_pos_as i1 (List.nth args 0))
+                 (Pos.same_pos_as i2 (List.nth args 1))
+             > 0 ))
     | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool (CalendarLib.Date.Period.compare i1 i2 >= 0))
+        A.ELit
+          (LBool
+             ( compare_periods
+                 (Pos.same_pos_as i1 (List.nth args 0))
+                 (Pos.same_pos_as i2 (List.nth args 1))
+             >= 0 ))
     | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool (CalendarLib.Date.compare i1 i2 < 0))
     | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
