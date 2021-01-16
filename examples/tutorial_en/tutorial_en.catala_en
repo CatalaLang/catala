@@ -131,7 +131,7 @@ scope IncomeTaxComputation:
 */
 
 In the code, we are defining inside our scope the amount of the income tax 
-according to the formula described in the article. When defining formulaes, 
+according to the formula described in the article. When defining formulae, 
 you have access to all the usual arithmetic operators: addition "+", 
 substraction "-", multiplication "*" and division (slash). 
 
@@ -165,7 +165,7 @@ definition is as close as possible to its location in the text.
 
 @@Conditional definitions@@+
 
-So far so good, but now the legislative text introduces some trickyness. Let us 
+So far so good, but now the legislative text introduces some trickiness. Let us 
 suppose the third article says:
 
 @Article 3@ If the individual is in charge of 2 or more children, then the fixed 
@@ -350,7 +350,7 @@ scope NewIncomeTaxComputationFixed :
   }
 
   # To define an exception to a rule, you have to first label the rule that 
-  # you want to attach to exception to. You can put any snake_case identifier
+  # you want to attach the exception to. You can put any snake_case identifier
   # for the label
   label article_5 
   definition income_tax equals two_brackets.tax_formula of individual.income 

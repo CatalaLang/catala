@@ -31,10 +31,10 @@ format:
 build:
 	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
 	@$(MAKE) --no-print-directory format
-	dune build
+	dune build src/catala.exe
 
-release_build:
-	dune build --profile release
+js_build:
+	dune build src/catala_web/catala_web.bc.js --profile release
 
 doc: 
 	dune build @doc
@@ -152,7 +152,7 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc literate_examples grammar.html catala.html release_build
+website-assets: doc literate_examples grammar.html catala.html js_build
 
 ##########################################
 # Misceallenous
@@ -164,7 +164,8 @@ clean:
 	dune clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
 	$(MAKE) -C $(US_TAX_CODE_DIR) clean
-	$(MAKE) -C $(TUTORIAL_DIR) clean
+	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
+	$(MAKE) -C $(TUTORIAL_EN_DIR) clean
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:

@@ -6,8 +6,7 @@ language.
 It uses `make pass_tests` to launch tests and compare the test terminal output
 with an expected output.
 
-When you create a new test, please register it in the `Makefile` following the 
-other examples. Expected outputs are stored using the convention 
+Expected outputs are stored using the convention 
 `<name_of_test>.catala.<name_of_scope>.out` in the corresponding test folder.
 
 For both workflows: use `CATALA_OPTS="..." make ...` to pass in Catala compiler
