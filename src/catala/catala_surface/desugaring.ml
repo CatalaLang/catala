@@ -57,6 +57,34 @@ let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
 module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
 
+let disambiguate_constructor (ctxt : Name_resolution.context) (constructor : string Pos.marked list)
+    (pos : Pos.t) : Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t =
+  let constructor =
+    match constructor with
+    | [ c ] -> c
+    | _ ->
+        Errors.raise_spanned_error "The deep pattern matching syntactic sugar is not yet supported"
+          pos
+  in
+  let possible_c_uids =
+    try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
+    with Not_found ->
+      Errors.raise_spanned_error
+        "The name of this constructor has not been defined before, maybe it is a typo?"
+        (Pos.get_position constructor)
+  in
+  if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
+    Errors.raise_spanned_error
+      (Format.asprintf
+         "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing it \
+          with the enum name."
+         (Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+            (fun fmt (s_name, _) -> Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+         (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+      (Pos.get_position constructor);
+  Scopelang.Ast.EnumMap.choose possible_c_uids
+
 (** Usage: [translate_expr scope ctxt expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to disambiguate the scope and
@@ -66,6 +94,31 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope ctxt in
   match expr with
+  | Binop
+      ( (Ast.And, _pos_op),
+        (TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)), _pos_e1),
+        e2 ) ->
+      (* This sugar corresponds to [e is P x && e'] and should desugar to [match e with P x -> e' |
+         _ -> false] *)
+      let enum_uid, c_uid = disambiguate_constructor ctxt constructors pos_pattern in
+      let cases =
+        Scopelang.Ast.EnumConstructorMap.mapi
+          (fun c_uid' tau ->
+            if Scopelang.Ast.EnumConstructor.compare c_uid c_uid' <> 0 then
+              let nop_var = Scopelang.Ast.Var.make ("_", pos) in
+              Bindlib.unbox
+                (Scopelang.Ast.make_abs [| nop_var |]
+                   (Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos))
+                   pos [ tau ] pos)
+            else
+              let ctxt, binding_var = Name_resolution.add_def_local_var ctxt binding in
+              let e2 = translate_expr scope ctxt e2 in
+              Bindlib.unbox (Scopelang.Ast.make_abs [| binding_var |] e2 pos [ tau ] pos))
+          (Scopelang.Ast.EnumMap.find enum_uid ctxt.enums)
+      in
+      Bindlib.box_apply
+        (fun e1_sub -> (Scopelang.Ast.EMatch (e1_sub, enum_uid, cases), pos))
+        (translate_expr scope ctxt e1_sub)
   | IfThenElse (e_if, e_then, e_else) ->
       Bindlib.box_apply3
         (fun e_if e_then e_else -> (Scopelang.Ast.EIfThenElse (e_if, e_then, e_else), pos))
@@ -265,113 +318,25 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
           (Bindlib.box_opt payload)
   | MatchWith (e1, (cases, _cases_pos)) ->
       let e1 = translate_expr scope ctxt e1 in
-      let cases_d, e_uid =
-        List.fold_left
-          (fun (cases_d, e_uid) (case, pos_case) ->
-            match Pos.unmark case.Ast.match_case_pattern with
-            | [ constructor ], binding ->
-                let possible_c_uids =
-                  try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
-                  with Not_found ->
-                    Errors.raise_spanned_error
-                      "The name of this constructor has not been defined before, maybe it is a \
-                       typo?"
-                      (Pos.get_position constructor)
-                in
-                if e_uid = None && Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by \
-                        prefixing it with the enum name."
-                       (Format.pp_print_list
-                          ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                          (fun fmt (s_name, _) ->
-                            Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-                       (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-                    (Pos.get_position constructor)
-                else
-                  let e_uid, c_uid =
-                    match e_uid with
-                    | Some e_uid -> (
-                        ( e_uid,
-                          try Scopelang.Ast.EnumMap.find e_uid possible_c_uids
-                          with Not_found ->
-                            Errors.raise_spanned_error
-                              (Format.asprintf "This constructor is not part of the %a enumeration"
-                                 Scopelang.Ast.EnumName.format_t e_uid)
-                              (Pos.get_position constructor) ) )
-                    | None -> Scopelang.Ast.EnumMap.choose possible_c_uids
-                  in
-                  ( match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
-                  | None -> ()
-                  | Some e_case ->
-                      Errors.raise_multispanned_error
-                        (Format.asprintf "The constructor %a has been matched twice:"
-                           Scopelang.Ast.EnumConstructor.format_t c_uid)
-                        [
-                          (None, Pos.get_position case.match_case_expr);
-                          (None, Pos.get_position (Bindlib.unbox e_case));
-                        ] );
-                  let ctxt, (param_var, param_pos) =
-                    match binding with
-                    | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
-                    | Some param ->
-                        let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
-                        (ctxt, (param_var, Pos.get_position param))
-                  in
-                  let case_body = translate_expr scope ctxt case.Ast.match_case_expr in
-                  let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
-                  let case_expr =
-                    Bindlib.box_apply2
-                      (fun e_binder case_body ->
-                        Pos.same_pos_as
-                          (Scopelang.Ast.EAbs
-                             ( param_pos,
-                               e_binder,
-                               [
-                                 Scopelang.Ast.EnumConstructorMap.find c_uid
-                                   (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
-                               ] ))
-                          case_body)
-                      e_binder case_body
-                  in
-                  (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid)
-            | _ :: _, _ ->
-                Errors.raise_spanned_error
-                  "The deep pattern matching syntactic sugar is not yet supported" pos_case
-            | [], _ -> assert false
-            (* should not happen *))
-          (Scopelang.Ast.EnumConstructorMap.empty, None)
-          cases
-      in
+      let cases_d, e_uid = disambiguate_match_and_build_expression scope ctxt cases in
       Bindlib.box_apply2
-        (fun e1 cases_d -> (Scopelang.Ast.EMatch (e1, Option.get e_uid, cases_d), pos))
+        (fun e1 cases_d -> (Scopelang.Ast.EMatch (e1, e_uid, cases_d), pos))
         e1
         (LiftEnumConstructorMap.lift_box cases_d)
-  | TestMatchCase (e1, constructor) ->
-      let possible_c_uids =
-        try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
-        with Not_found ->
-          Errors.raise_spanned_error
-            "The name of this constructor has not been defined before, maybe it is a typo?"
-            (Pos.get_position constructor)
+  | TestMatchCase (e1, pattern) ->
+      ( match snd (Pos.unmark pattern) with
+      | None -> ()
+      | Some binding ->
+          Errors.print_spanned_warning
+            "This binding will be ignored (remove it to suppress warning)"
+            (Pos.get_position binding) );
+      let enum_uid, c_uid =
+        disambiguate_constructor ctxt (fst (Pos.unmark pattern)) (Pos.get_position pattern)
       in
-      if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
-        Errors.raise_spanned_error
-          (Format.asprintf
-             "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing \
-              it with the enum name."
-             (Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                (fun fmt (s_name, _) ->
-                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-          (Pos.get_position constructor);
-      let enum_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
-      let nop_var = Scopelang.Ast.Var.make ("___", pos) in
       let cases =
         Scopelang.Ast.EnumConstructorMap.mapi
           (fun c_uid' tau ->
+            let nop_var = Scopelang.Ast.Var.make ("_", pos) in
             Bindlib.unbox
               (Scopelang.Ast.make_abs [| nop_var |]
                  (Bindlib.box
@@ -668,6 +633,69 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
   | Builtin GetYear -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
   | _ ->
       Name_resolution.raise_unsupported_feature "desugaring not implemented for this expression" pos
+
+and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
+    (ctxt : Name_resolution.context) (cases : Ast.match_case Pos.marked list) :
+    Scopelang.Ast.expr Pos.marked Bindlib.box Scopelang.Ast.EnumConstructorMap.t
+    * Scopelang.Ast.EnumName.t =
+  let expr, e_name =
+    List.fold_left
+      (fun (cases_d, e_uid) (case, _pos_case) ->
+        let constructor, binding = Pos.unmark case.Ast.match_case_pattern in
+        let e_uid', c_uid =
+          disambiguate_constructor ctxt constructor (Pos.get_position case.Ast.match_case_pattern)
+        in
+        let e_uid =
+          match e_uid with
+          | None -> e_uid'
+          | Some e_uid ->
+              if e_uid = e_uid' then e_uid
+              else
+                Errors.raise_spanned_error
+                  (Format.asprintf
+                     "This case matches a constructor of enumeration %a but previous case were \
+                      matching constructors of enumeration %a"
+                     Scopelang.Ast.EnumName.format_t e_uid Scopelang.Ast.EnumName.format_t e_uid')
+                  (Pos.get_position case.Ast.match_case_pattern)
+        in
+        ( match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+        | None -> ()
+        | Some e_case ->
+            Errors.raise_multispanned_error
+              (Format.asprintf "The constructor %a has been matched twice:"
+                 Scopelang.Ast.EnumConstructor.format_t c_uid)
+              [
+                (None, Pos.get_position case.match_case_expr);
+                (None, Pos.get_position (Bindlib.unbox e_case));
+              ] );
+        let ctxt, (param_var, param_pos) =
+          match binding with
+          | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
+          | Some param ->
+              let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
+              (ctxt, (param_var, Pos.get_position param))
+        in
+        let case_body = translate_expr scope ctxt case.Ast.match_case_expr in
+        let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
+        let case_expr =
+          Bindlib.box_apply2
+            (fun e_binder case_body ->
+              Pos.same_pos_as
+                (Scopelang.Ast.EAbs
+                   ( param_pos,
+                     e_binder,
+                     [
+                       Scopelang.Ast.EnumConstructorMap.find c_uid
+                         (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
+                     ] ))
+                case_body)
+            e_binder case_body
+        in
+        (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid))
+      (Scopelang.Ast.EnumConstructorMap.empty, None)
+      cases
+  in
+  (expr, Option.get e_name)
 
 (** {1 Translating scope definitions} *)
 

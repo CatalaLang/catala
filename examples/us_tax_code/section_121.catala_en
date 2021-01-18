@@ -221,7 +221,7 @@ respect to such property by reason of paragraph (3).
 /*
 scope Section121:
   rule section_121_b_2_A_condition under condition 
-  (return_type with pattern JointReturn)
+  (return_type with pattern JointReturn of data_couple)
   and 
   # i) 
   (section121Person1.requirements_ownership_met or 
@@ -232,16 +232,12 @@ scope Section121:
      section121Person2.requirements_usage_met)
   # iii)
   and
-  (match return_type with pattern 
-   -- SingleReturn: false # should not happen so we put a placeholder
-   -- SingleReturnSurvivingSpouse: false # same here
-   -- JointReturn of data_couple: (
-      (not (
-        section_121_b_3_applies of data_couple.person1.other_section_121a_sale))
-      and (not (
-        section_121_b_3_applies of data_couple.person2.other_section_121a_sale))
-    )
-  ) consequence fulfilled
+  (not (
+      section_121_b_3_applies of data_couple.person1.other_section_121a_sale))
+  and 
+  (not (
+      section_121_b_3_applies of data_couple.person2.other_section_121a_sale)) 
+  consequence fulfilled
     
   exception base_requirements_met
   rule section121a_requirements_met under condition 
@@ -284,11 +280,9 @@ was any other sale or exchange by the taxpayer to which subsection (a) applied.
 /*
 scope Section121: 
   definition section_121_b_3_applies of other_section_121a_sale equals 
-    match other_section_121a_sale with pattern 
-      -- NoOtherSaleWhereSection121aApplied: false 
-      -- MostRecentSaleWhereSection121aApplied of other_sale: 
-        date_of_sale_or_exchange -@ other_sale.date_of_sale_or_exchange 
-          <=^ 2 year
+    (other_section_121a_sale with pattern 
+       MostRecentSaleWhereSection121aApplied of other_sale) and
+    date_of_sale_or_exchange -@ other_sale.date_of_sale_or_exchange <=^ 2 year
 */
 
 @(4) Special rule for certain sales by surviving spouses@
@@ -304,14 +298,11 @@ years after the date of death of such spouse and the requirements of paragraph
 (2)(A) were met immediately before such date of death.
 /*
 scope Section121 under condition 
-  match return_type with pattern 
-    -- SingleReturnSurvivingSpouse of single_data: 
-      single_data.date_of_spouse_death <@ date_of_sale_or_exchange and
-      date_of_sale_or_exchange <=@ single_data.date_of_spouse_death +@ 2 year 
-      # So here we have to reexecute the scope Section121 using 
-      # single_data.date_of_spouse_death instead of date_of_sale_or_exchange
-    -- SingleReturn: false 
-    -- JointReturn: false
+  return_type with pattern SingleReturnSurvivingSpouse of single_data and 
+  single_data.date_of_spouse_death <@ date_of_sale_or_exchange and
+  date_of_sale_or_exchange <=@ single_data.date_of_spouse_death +@ 2 year 
+  # So here we have to reexecute the scope Section121 using 
+  # single_data.date_of_spouse_death instead of date_of_sale_or_exchange
   :
 
   exception base_gain_cap 

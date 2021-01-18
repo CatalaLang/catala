@@ -157,10 +157,10 @@ alternée, le montant servi au titre de cette majoration est réduit de moitié.
 champ d'application AllocationsFamiliales :
   définition
     montant_avec_garde_alternée_majoration de enfant
-  égal à (
+  égal à montant_initial_majoration de enfant *€ (
     selon (prise_en_compte de enfant) sous forme
-    -- Complète : montant_initial_majoration de enfant
-    -- Partagée : montant_initial_majoration de enfant *€ 50%
+    -- Complète : 100%
+    -- Partagée : 50%
   )
 */
 

@@ -130,7 +130,7 @@ and expression =
   | CollectionOp of
       collection_op Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
   | MemCollection of expression Pos.marked * expression Pos.marked
-  | TestMatchCase of expression Pos.marked * constructor Pos.marked
+  | TestMatchCase of expression Pos.marked * match_case_pattern Pos.marked
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
   | Literal of literal

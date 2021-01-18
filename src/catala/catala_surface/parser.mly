@@ -254,8 +254,8 @@ base_expression:
 | e1 = primitive_expression OF e2 = base_expression {
   (FunCall (e1, e2), $sloc)
 }
-| e = primitive_expression WITH c= constructor {
-  (TestMatchCase (e, c), $sloc)
+| e = primitive_expression WITH c = constructor_binding {
+  (TestMatchCase (e, (c, $sloc)), $sloc)
 }
 | e1 = primitive_expression IN e2 = base_expression {
    (MemCollection (e1, e2), $sloc)

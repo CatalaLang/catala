@@ -240,10 +240,8 @@ de l'enfant dans son foyer.
 champ d'application AllocationsFamiliales :
   exception définition_versement
   définition versement de enfant sous condition 
-    selon enfant.pris_en_charge_par_services_sociaux sous forme
-      -- OuiAllocationVerséeAuxServicesSociaux: vrai
-      -- OuiAllocationVerséeÀLaFamille: faux 
-      -- NonPriseEnChargeFamille: faux
+    enfant.pris_en_charge_par_services_sociaux sous forme
+      OuiAllocationVerséeAuxServicesSociaux
   conséquence égal à AllocationVerséeAuxServicesSociaux
 */
 

@@ -41,3 +41,13 @@ let raise_multispanned_error (msg : string) (spans : (string option * Pos.t) lis
   raise (StructuredError (msg, spans))
 
 let raise_error (msg : string) : 'a = raise (StructuredError (msg, []))
+
+(** {1 Warning printing}*)
+
+let print_multispanned_warning (msg : string) (pos : (string option * Pos.t) list) : unit =
+  Cli.warning_print (print_structured_error msg pos)
+
+let print_spanned_warning (msg : string) ?(span_msg : string option) (span : Pos.t) : unit =
+  print_multispanned_warning msg [ (span_msg, span) ]
+
+let print_warning (msg : string) : unit = print_multispanned_warning msg []
