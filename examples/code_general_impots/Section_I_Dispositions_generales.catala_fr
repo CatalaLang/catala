@@ -124,7 +124,7 @@ déclaration structure Personne:
  donnée foyer_lieu_sejour_principal_france contenu booléen
 
 déclaration structure ActivitéProfessionnelle:
- donnée exercé_en_france contenu booléen
+ donnée exercée_en_france contenu booléen
  donnée est_accessoire contenu booléen
 
 champ d'application CalculImpotSurLeRevenu:
