@@ -66,29 +66,12 @@ Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt 
 Celles dont le domicile fiscal est situé hors de France sont passibles de cet impôt en raison de leurs seuls revenus de source française.
 
 /*
-déclaration énumération DomicileFiscal:
--- France
--- HorsDeFrance
-
-déclaration structure MontantsSourcesRevenus:
-  donnée source_française contenu argent
-  donnée source_étrangère contenu argent
-
-déclaration structure Personne:
-  donnée domicile_fiscal contenu DomicileFiscal
-  donnée revenus contenu argent
-  donnée montants_sources_revenus contenu MontantsSourcesRevenus 
-
-déclaration champ d'application CalculImpotSurLeRevenu :
-  contexte personne contenu Personne
-
 champ d'application CalculImpotSurLeRevenu:
   définition personne.revenus égal à 
   si personne.domicile_fiscal = France alors
   montants_sources_revenus.source_française +€ montants_sources_revenus.source_étrangère
   sinon 
   montants_sources_revenus.source_française
-
 */
 
 @Article 4 B@
@@ -120,13 +103,6 @@ ou sont chargés de mission dans un pays étranger et qui ne sont pas soumis dan
 sur l'ensemble de leurs revenus.
 
 /*
-déclaration structure Personne:
- donnée foyer_lieu_sejour_principal_france contenu booléen
-
-déclaration structure ActivitéProfessionnelle:
- donnée exercée_en_france contenu booléen
- donnée est_accessoire contenu booléen
-
 champ d'application CalculImpotSurLeRevenu:
  définition personne.domicile_fiscal égal à
  si 
