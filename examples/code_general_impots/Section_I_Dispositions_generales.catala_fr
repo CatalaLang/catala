@@ -123,7 +123,7 @@ sur l'ensemble de leurs revenus.
 déclaration structure Personne:
  donnée foyer_lieu_sejour_principal_france contenu booléen
 
-déclaration structure ActivitéProfessionnel:
+déclaration structure ActivitéProfessionnelle:
  donnée exercé_en_france contenu booléen
  donnée est_accessoire contenu booléen
 
