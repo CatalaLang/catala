@@ -192,3 +192,11 @@ class ['self] marked_map =
     method visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked =
       fun f env x -> same_pos_as (f env (unmark x)) x
   end
+
+class ['self] marked_iter =
+  object (_self : 'self)
+    constraint 'self = < visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
+
+    method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit =
+      fun f env x -> f env (unmark x)
+  end

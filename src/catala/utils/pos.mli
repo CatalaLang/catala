@@ -81,3 +81,10 @@ class ['self] marked_map :
 
     method visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
   end
+
+class ['self] marked_iter :
+  object ('self)
+    constraint 'self = < visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
+
+    method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
+  end
