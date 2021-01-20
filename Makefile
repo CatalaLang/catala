@@ -13,7 +13,8 @@ dependencies-ocaml:
 	opam install \
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
 		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
-		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile
+		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
+		visitors
 
 init-submodules:
 	git submodule update --init

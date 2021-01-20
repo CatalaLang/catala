@@ -69,3 +69,21 @@ val map_under_mark : ('a -> 'b) -> 'a marked -> 'b marked
 val same_pos_as : 'a -> 'b marked -> 'a marked
 
 val unmark_option : 'a marked option -> 'a option
+
+(** Visitors *)
+
+class ['self] marked_map :
+  object ('self)
+    constraint
+    'self = < visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
+
+    method visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
+  end
+
+class ['self] marked_iter :
+  object ('self)
+    constraint
+    'self = < visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
+
+    method visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
+  end

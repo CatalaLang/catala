@@ -4,7 +4,7 @@
    zarith_stubs_js calendar)
  (public_name catala.surface)
  (preprocess
-  (pps sedlex.ppx)))
+  (pps sedlex.ppx visitors.ppx)))
 
 (menhir
  (modules parser)

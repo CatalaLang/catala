@@ -34,6 +34,7 @@
    (dune (>= 2.2))
    (ocamlgraph (>= 1.8.8))
    (calendar (>= 2.04))
+   (visitors (>= 20200210))
  )
 )
 

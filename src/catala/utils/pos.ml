@@ -168,3 +168,21 @@ let same_pos_as (x : 'a) ((_, y) : 'b marked) : 'a marked = (x, y)
 
 let unmark_option (x : 'a marked option) : 'a option =
   match x with Some x -> Some (unmark x) | None -> None
+
+class ['self] marked_map =
+  object (_self : 'self)
+    constraint
+    'self = < visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
+
+    method visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked =
+      fun f env x -> same_pos_as (f env (unmark x)) x
+  end
+
+class ['self] marked_iter =
+  object (_self : 'self)
+    constraint
+    'self = < visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
+
+    method visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit =
+      fun f env x -> f env (unmark x)
+  end

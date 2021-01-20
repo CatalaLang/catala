@@ -181,24 +181,24 @@ date_int:
 
 literal:
 | l = num_literal u = option(unit_literal) {
-   (Number (l, u), Pos.from_lpos $sloc)
+   (LNumber (l, u), Pos.from_lpos $sloc)
 }
 | money = MONEY_AMOUNT {
   let (units, cents) = money in
-  (MoneyAmount {
+  (LMoneyAmount {
     money_amount_units = units;
     money_amount_cents = cents;
   }, Pos.from_lpos $sloc)
 }
 | VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
-  (Date {
+  (LDate {
     literal_date_day = (match !Utils.Cli.locale_lang with `En -> m | `Fr -> d);
     literal_date_month = (match !Utils.Cli.locale_lang with `En -> d | `Fr -> m);
     literal_date_year = y;
   }, Pos.from_lpos $sloc)
 }
-| TRUE { (Bool true, Pos.from_lpos $sloc) }
-| FALSE { (Bool false, Pos.from_lpos $sloc) }
+| TRUE { (LBool true, Pos.from_lpos $sloc) }
+| FALSE { (LBool false, Pos.from_lpos $sloc) }
 
 compare_op:
 | LESSER { (Lt KInt, Pos.from_lpos $sloc) }

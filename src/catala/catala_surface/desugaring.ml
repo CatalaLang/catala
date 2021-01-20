@@ -138,10 +138,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
   | Literal l ->
       let untyped_term =
         match l with
-        | Number ((Int i, _), None) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
-        | Number ((Int i, _), Some (Percent, _)) ->
+        | LNumber ((Int i, _), None) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
+        | LNumber ((Int i, _), Some (Percent, _)) ->
             Scopelang.Ast.ELit (Dcalc.Ast.LRat (Q.div (Q.of_bigint i) (Q.of_int 100)))
-        | Number ((Dec (i, f), _), None) ->
+        | LNumber ((Dec (i, f), _), None) ->
             let digits_f =
               try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
               with Invalid_argument _ -> 0
@@ -149,7 +149,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
                  Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
-        | Number ((Dec (i, f), _), Some (Percent, _)) ->
+        | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
             let digits_f =
               try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
               with Invalid_argument _ -> 0
@@ -159,23 +159,23 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                  (Q.div
                     Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f)))
                     (Q.of_int 100)))
-        | Bool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
-        | MoneyAmount i ->
+        | LBool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
+        | LMoneyAmount i ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
-        | Number ((Int i, _), Some (Year, _)) ->
+        | LNumber ((Int i, _), Some (Year, _)) ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~year:(Z.to_int i) ()))
-        | Number ((Int i, _), Some (Month, _)) ->
+        | LNumber ((Int i, _), Some (Month, _)) ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~month:(Z.to_int i) ()))
-        | Number ((Int i, _), Some (Day, _)) ->
+        | LNumber ((Int i, _), Some (Day, _)) ->
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~day:(Z.to_int i) ()))
-        | Number ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
+        | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
             Errors.raise_spanned_error
               "Impossible to specify decimal amounts of days, months or years" pos
-        | Date date ->
+        | LDate date ->
             if Pos.unmark date.literal_date_month > 12 then
               Errors.raise_spanned_error "Month number bigger than 12"
                 (Pos.get_position date.literal_date_month);
@@ -839,7 +839,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
 let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
-  let consequence_expr = Ast.Literal (Ast.Bool (Pos.unmark rule.rule_consequence)) in
+  let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
   let def =
     {
       Ast.definition_label = rule.rule_label;
@@ -863,7 +863,7 @@ let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | None -> ass.Ast.assertion_content
       | Some cond ->
           ( Ast.IfThenElse
-              (cond, ass.Ast.assertion_content, Pos.same_pos_as (Ast.Literal (Ast.Bool true)) cond),
+              (cond, ass.Ast.assertion_content, Pos.same_pos_as (Ast.Literal (Ast.LBool true)) cond),
             Pos.get_position cond ) )
   in
   let ass =
