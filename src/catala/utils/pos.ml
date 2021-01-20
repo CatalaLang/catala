@@ -25,6 +25,8 @@ let from_info (file : string) (sline : int) (scol : int) (eline : int) (ecol : i
   in
   { code_pos = (spos, epos); law_pos = [] }
 
+let overwrite_law_info (pos : t) (law_pos : string list) : t = { pos with law_pos }
+
 let get_start_line (pos : t) : int =
   let s, _ = pos.code_pos in
   s.Lexing.pos_lnum
@@ -130,8 +132,9 @@ let retrieve_loc_text (pos : t) : string =
       in
       let pos_lines = get_lines 1 in
       let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
+      let legal_pos_lines = List.rev pos.law_pos in
       (match oc with None -> () | Some oc -> close_in oc);
-      Cli.print_with_style blue_style "%*s--> %s\n%s" spaces "" filename
+      Cli.print_with_style blue_style "%*s--> %s\n%s\n%s" spaces "" filename
         (Cli.add_prefix_to_each_line
            (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
            (fun i ->
@@ -148,6 +151,13 @@ let retrieve_loc_text (pos : t) : string =
                && cur_line > sline + (2 * (eline - sline)) + 1
              then Cli.print_with_style blue_style "%*d | " spaces (cur_line - (eline - sline + 1))
              else Cli.print_with_style blue_style "%*s | " spaces ""))
+        (Cli.add_prefix_to_each_line
+           (Printf.sprintf "%s"
+              (String.concat "\n"
+                 (List.map (fun l -> Cli.print_with_style blue_style "%s" l) legal_pos_lines)))
+           (fun i ->
+             if i = 0 then Cli.print_with_style blue_style "%*s + " (spaces + (2 * i)) ""
+             else Cli.print_with_style blue_style "%*s+-+ " (spaces + (2 * i) - 1) ""))
   with Sys_error _ -> "Location:" ^ to_string pos
 
 type 'a marked = 'a * t
@@ -172,17 +182,8 @@ let unmark_option (x : 'a marked option) : 'a option =
 class ['self] marked_map =
   object (_self : 'self)
     constraint
-    'self = < visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
+    'self = < visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
 
-    method visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked =
+    method visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked =
       fun f env x -> same_pos_as (f env (unmark x)) x
-  end
-
-class ['self] marked_iter =
-  object (_self : 'self)
-    constraint
-    'self = < visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
-
-    method visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit =
-      fun f env x -> f env (unmark x)
   end

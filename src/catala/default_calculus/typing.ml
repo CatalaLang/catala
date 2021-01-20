@@ -91,14 +91,16 @@ let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
     (* TODO: if we get weird error messages, then it means that we should use the persistent version
        of the union-find data structure. *)
     let t1_s =
-      Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-        ~subst:(fun _ -> " ")
-        (Format.asprintf "%a" (format_typ ctx) t1)
+      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+           ~subst:(fun _ -> " ")
+           (Format.asprintf "%a" (format_typ ctx) t1))
     in
     let t2_s =
-      Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-        ~subst:(fun _ -> " ")
-        (Format.asprintf "%a" (format_typ ctx) t2)
+      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+           ~subst:(fun _ -> " ")
+           (Format.asprintf "%a" (format_typ ctx) t2))
     in
     Errors.raise_multispanned_error
       (Format.asprintf "Error during typechecking, incompatible types:\n%s %s\n%s %s"
