@@ -186,10 +186,80 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
             (fun d_fields e1 -> Dcalc.Ast.EMatch (e1, d_fields, enum_name))
             (Bindlib.box_list d_cases) e1
     | EApp (e1, args) ->
-        Bindlib.box_apply2
-          (fun e u -> Dcalc.Ast.EApp (e, u))
-          (translate_expr ctx e1)
-          (Bindlib.box_list (List.map (translate_expr ctx) args))
+        (* We insert various log calls to record arguments and outputs of user-defined functions
+           belonging to scopes *)
+        let e1_func = translate_expr ctx e1 in
+        let markings l =
+          match l with
+          | Ast.ScopeVar (v, _) ->
+              [ Ast.ScopeName.get_info ctx.scope_name; Ast.ScopeVar.get_info v ]
+          | Ast.SubScopeVar (s, _, (v, _)) -> [ Ast.ScopeName.get_info s; Ast.ScopeVar.get_info v ]
+        in
+        let e1_func =
+          match Pos.unmark e1 with
+          | ELocation l ->
+              Bindlib.box_apply
+                (fun subscope_func ->
+                  ( Dcalc.Ast.EApp
+                      ( ( Dcalc.Ast.EOp
+                            (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.BeginCall, markings l))),
+                          Pos.get_position subscope_func ),
+                        [ subscope_func ] ),
+                    Pos.get_position subscope_func ))
+                e1_func
+          | _ -> e1_func
+        in
+        let new_args = List.map (translate_expr ctx) args in
+        let new_args =
+          match (Pos.unmark e1, new_args) with
+          | ELocation l, [ new_arg ] ->
+              [
+                Bindlib.box_apply
+                  (fun new_arg ->
+                    ( Dcalc.Ast.EApp
+                        ( ( Dcalc.Ast.EOp
+                              (Dcalc.Ast.Unop
+                                 (Dcalc.Ast.Log
+                                    (Dcalc.Ast.VarDef, markings l @ [ Pos.same_pos_as "input" e ]))),
+                            Pos.get_position e ),
+                          [ new_arg ] ),
+                      Pos.get_position new_arg ))
+                  new_arg;
+              ]
+          | _ -> new_args
+        in
+        let new_e =
+          Bindlib.box_apply2 (fun e u -> Dcalc.Ast.EApp (e, u)) e1_func (Bindlib.box_list new_args)
+        in
+        let new_e =
+          match Pos.unmark e1 with
+          | ELocation l ->
+              Bindlib.box_apply
+                (fun new_e ->
+                  Dcalc.Ast.EApp
+                    ( ( Dcalc.Ast.EOp
+                          (Dcalc.Ast.Unop
+                             (Dcalc.Ast.Log
+                                (Dcalc.Ast.VarDef, markings l @ [ Pos.same_pos_as "output" e ]))),
+                        Pos.get_position e ),
+                      [ Pos.same_pos_as new_e e ] ))
+                new_e
+          | _ -> new_e
+        in
+        let new_e =
+          match Pos.unmark e1 with
+          | ELocation l ->
+              Bindlib.box_apply
+                (fun new_e ->
+                  Dcalc.Ast.EApp
+                    ( ( Dcalc.Ast.EOp
+                          (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.EndCall, markings l))),
+                        Pos.get_position e ),
+                      [ Pos.same_pos_as new_e e ] ))
+                new_e
+          | _ -> new_e
+        in
+        new_e
     | EAbs (pos_binder, binder, typ) ->
         let xs, body = Bindlib.unmbind binder in
         let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, Pos.no_pos)) xs in
