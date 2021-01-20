@@ -661,48 +661,4 @@ master_file_includes:
 
 source_file_or_master:
 | MASTER_FILE option(law_text) is = master_file_includes { MasterFile is }
-| f = source_file { 
-  (* 
-    now here the heading structure is completely flat because of the 
-    [source_file_item] rule. We need to tree-i-fy the flat structure,
-    by looking at the precedence of the law headings.
-  *)
-  let rec law_struct_list_to_tree (f: program_item list) : program_item list = 
-    match f with 
-    | [] -> []
-    | [item] -> [item]
-    | first_item::rest -> 
-      let rest_tree = law_struct_list_to_tree rest in 
-      begin match rest_tree with 
-      | [] -> assert false (* there should be at least one rest element *)
-      | rest_head::rest_tail -> 
-        begin match first_item with 
-        | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _ | LawInclude _) -> 
-          (* if an article or an include is just before a new heading or a new article, 
-             then we don't merge it with what comes next *)
-          first_item::rest_head::rest_tail
-        | LawStructure (LawHeading (heading, _)) -> 
-          (* here we have encountered a heading, which is going to "gobble" 
-             everything in the [rest_tree] until it finds a heading of 
-             at least the same precedence *)
-          let rec split_rest_tree (rest_tree: program_item list) 
-            : law_structure list * program_item list =
-            match rest_tree with 
-            | [] -> [], [] 
-            | (LawStructure (LawHeading (new_heading, _)))::_ 
-              when new_heading.law_heading_precedence <= heading.law_heading_precedence
-              ->
-              (* we stop gobbling *) 
-              [], rest_tree
-            | (LawStructure first)::after ->
-              (* we continue gobbling *)
-              let after_gobbled, after_out = split_rest_tree after in 
-              first::after_gobbled, after_out 
-          in 
-          let gobbled, rest_out = split_rest_tree rest_tree in 
-          (LawStructure (LawHeading (heading, gobbled)))::rest_out    
-        end
-      end
-  in
-  SourceFile (law_struct_list_to_tree f)
-}
+| f = source_file { SourceFile (f) }

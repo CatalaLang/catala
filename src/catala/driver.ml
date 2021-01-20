@@ -49,7 +49,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Surface.Parser_driver.parse_source_file source_file language in
+    let program = Surface.Parser_driver.parse_top_level_file source_file language in
     let program = Surface.Fill_positions.fill_pos_with_legislative_info program in
     match backend with
     | Cli.Makefile ->

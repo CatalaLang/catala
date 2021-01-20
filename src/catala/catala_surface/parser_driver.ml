@@ -60,6 +60,41 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
+(** After parsing, heading structure is completely flat because of the [source_file_item] rule. We
+    need to tree-i-fy the flat structure, by looking at the precedence of the law headings. *)
+let rec law_struct_list_to_tree (f : Ast.program_item list) : Ast.program_item list =
+  match f with
+  | [] -> []
+  | [ item ] -> [ item ]
+  | first_item :: rest -> (
+      let rest_tree = law_struct_list_to_tree rest in
+      match rest_tree with
+      | [] -> assert false (* there should be at least one rest element *)
+      | rest_head :: rest_tail -> (
+          match first_item with
+          | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _ | LawInclude _) ->
+              (* if an article or an include is just before a new heading or a new article, then we
+                 don't merge it with what comes next *)
+              first_item :: rest_head :: rest_tail
+          | LawStructure (LawHeading (heading, _)) ->
+              (* here we have encountered a heading, which is going to "gobble" everything in the
+                 [rest_tree] until it finds a heading of at least the same precedence *)
+              let rec split_rest_tree (rest_tree : Ast.program_item list) :
+                  Ast.law_structure list * Ast.program_item list =
+                match rest_tree with
+                | [] -> ([], [])
+                | LawStructure (LawHeading (new_heading, _)) :: _
+                  when new_heading.law_heading_precedence <= heading.law_heading_precedence ->
+                    (* we stop gobbling *)
+                    ([], rest_tree)
+                | LawStructure first :: after ->
+                    (* we continue gobbling *)
+                    let after_gobbled, after_out = split_rest_tree after in
+                    (first :: after_gobbled, after_out)
+              in
+              let gobbled, rest_out = split_rest_tree rest_tree in
+              LawStructure (LawHeading (heading, gobbled)) :: rest_out ) )
+
 (** Style with which to display syntax hints in the terminal output *)
 let syntax_hints_style = [ ANSITerminal.yellow ]
 
@@ -179,7 +214,7 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
     Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
 
-(** {1 API} *)
+(** {1 Parsing multiple files}*)
 
 (** Parses a single source file *)
 let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
@@ -243,7 +278,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
           includes
       in
       {
-        new_program with
+        program_items = new_program.Ast.program_items;
         program_source_files = source_file_name :: new_program.program_source_files;
       }
 
@@ -278,3 +313,10 @@ and expand_includes (source_file : string) (commands : Ast.program_item list)
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [ i ] })
     { Ast.program_source_files = []; Ast.program_items = [] }
     commands
+
+(** {1 API} *)
+
+let parse_top_level_file (source_file : Pos.input_file) (language : Cli.frontend_lang) : Ast.program
+    =
+  let program = parse_source_file source_file language in
+  { program with Ast.program_items = law_struct_list_to_tree program.Ast.program_items }

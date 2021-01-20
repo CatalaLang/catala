@@ -132,7 +132,12 @@ let retrieve_loc_text (pos : t) : string =
       in
       let pos_lines = get_lines 1 in
       let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
-      let legal_pos_lines = List.rev pos.law_pos in
+      let legal_pos_lines =
+        List.rev
+          (List.map
+             (fun s -> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*") ~subst:(fun _ -> " ") s)
+             pos.law_pos)
+      in
       (match oc with None -> () | Some oc -> close_in oc);
       Cli.print_with_style blue_style "%*s--> %s\n%s\n%s" spaces "" filename
         (Cli.add_prefix_to_each_line

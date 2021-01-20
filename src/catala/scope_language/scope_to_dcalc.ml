@@ -211,7 +211,16 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           binder
     | EDefault (excepts, just, cons) ->
         Bindlib.box_apply3
-          (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
+          (fun e j c ->
+            Dcalc.Ast.EDefault
+              ( e,
+                ( Dcalc.Ast.EApp
+                    ( ( Dcalc.Ast.EOp
+                          (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.PosRecordIfTrueBool, []))),
+                        Pos.get_position j ),
+                      [ j ] ),
+                  Pos.get_position j ),
+                c ))
           (Bindlib.box_list (List.map (translate_expr ctx) excepts))
           (translate_expr ctx just) (translate_expr ctx cons)
     | ELocation (ScopeVar a) ->

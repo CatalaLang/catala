@@ -168,6 +168,8 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   | VarDef -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
   | BeginCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ ")
   | EndCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← ")
+  | PosRecordIfTrueBool ->
+      Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.green ] "☛ ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"

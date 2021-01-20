@@ -82,7 +82,7 @@ type binop =
   | Map
   | Filter
 
-type log_entry = VarDef | BeginCall | EndCall
+type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
 
 type unop =
   | Not

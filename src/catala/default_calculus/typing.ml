@@ -184,6 +184,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop (A.Minus KDuration) -> arr dut dut
   | A.Unop A.Not -> arr bt bt
   | A.Unop A.ErrorOnEmpty -> arr any any
+  | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
   | A.Unop (A.Log _) -> arr any any
   | A.Unop A.Length -> arr array_any it
   | A.Unop A.GetDay -> arr dat it
