@@ -485,7 +485,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* Integer literal*)
       L.update_acc lexbuf;
       INT_LITERAL (Z.of_string (Utf8.lexeme lexbuf))
-  | _ -> L.raise_lexer_error prev_pos prev_lexeme
+  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Main lexing function used outside code blocks *)
 let lex_law_fr (lexbuf : lexbuf) : token =
@@ -521,9 +521,11 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       let name = get_component 1 in
       let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
       let pos = lexing_positions lexbuf in
-      if R.pmatch ~rex:jorftext name then LAW_INCLUDE (Ast.LegislativeText (name, pos))
-      else if Filename.extension name = ".pdf" then LAW_INCLUDE (Ast.PdfFile ((name, pos), pages))
-      else LAW_INCLUDE (Ast.CatalaFile (name, pos))
+      if R.pmatch ~rex:jorftext name then
+        LAW_INCLUDE (Ast.LegislativeText (name, Pos.from_lpos pos))
+      else if Filename.extension name = ".pdf" then
+        LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
+      else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
   | "@@", Plus (Compl '@'), "@@", Star '+' ->
       let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -560,7 +562,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error prev_pos prev_lexeme
+  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
     {!val: Surface.Lexer.is_code}. *)

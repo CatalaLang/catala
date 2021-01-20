@@ -143,7 +143,10 @@ let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string *
     | Some similar_token_msg ->
         Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
   in
-  raise_parser_error (lexing_positions lexbuf) last_positions (Utf8.lexeme lexbuf) msg
+  raise_parser_error
+    (Pos.from_lpos (lexing_positions lexbuf))
+    (Option.map Pos.from_lpos last_positions)
+    (Utf8.lexeme lexbuf) msg
 
 (** Main parsing loop *)
 let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
@@ -174,7 +177,7 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
   in
   try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
   with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-    Lexer.raise_lexer_error (lexing_positions lexbuf) (Utf8.lexeme lexbuf)
+    Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
 
 (** {1 API} *)
 

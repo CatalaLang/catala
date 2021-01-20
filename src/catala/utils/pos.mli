@@ -14,10 +14,14 @@
 
 (** Source code position *)
 
-type t = Lexing.position * Lexing.position
+type t
 (** A position in the source code is a file, as well as begin and end location of the form col:line *)
 
+(** Custom visitor for the [Pos.marked] type *)
+
 (**{2 Constructor and getters}*)
+
+val from_lpos : Lexing.position * Lexing.position -> t
 
 val from_info : string -> int -> int -> int -> int -> t
 

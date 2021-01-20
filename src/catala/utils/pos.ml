@@ -12,7 +12,9 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = Lexing.position * Lexing.position
+type t = { code_pos : Lexing.position * Lexing.position; law_pos : string list }
+
+let from_lpos (p : Lexing.position * Lexing.position) : t = { code_pos = p; law_pos = [] }
 
 let from_info (file : string) (sline : int) (scol : int) (eline : int) (ecol : int) : t =
   let spos =
@@ -21,37 +23,37 @@ let from_info (file : string) (sline : int) (scol : int) (eline : int) (ecol : i
   let epos =
     { Lexing.pos_fname = file; Lexing.pos_lnum = eline; Lexing.pos_cnum = ecol; Lexing.pos_bol = 1 }
   in
-  (spos, epos)
+  { code_pos = (spos, epos); law_pos = [] }
 
 let get_start_line (pos : t) : int =
-  let s, _ = pos in
+  let s, _ = pos.code_pos in
   s.Lexing.pos_lnum
 
 let get_start_column (pos : t) : int =
-  let s, _ = pos in
+  let s, _ = pos.code_pos in
   s.Lexing.pos_cnum - s.Lexing.pos_bol + 1
 
 let get_end_line (pos : t) : int =
-  let _, e = pos in
+  let _, e = pos.code_pos in
   e.Lexing.pos_lnum
 
 let get_end_column (pos : t) : int =
-  let _, e = pos in
+  let _, e = pos.code_pos in
   e.Lexing.pos_cnum - e.Lexing.pos_bol + 1
 
-let get_file (pos : t) : string = (fst pos).Lexing.pos_fname
+let get_file (pos : t) : string = (fst pos.code_pos).Lexing.pos_fname
 
 type input_file = FileName of string | Contents of string
 
 let to_string (pos : t) : string =
-  let s, e = pos in
+  let s, e = pos.code_pos in
   Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
     (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum
     (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
 let to_string_short (pos : t) : string =
-  let s, e = pos in
+  let s, e = pos.code_pos in
   Printf.sprintf "%s;%d:%d--%d:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
     (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
     e.Lexing.pos_lnum
@@ -154,7 +156,7 @@ let no_pos : t =
   let zero_pos =
     { Lexing.pos_fname = ""; Lexing.pos_lnum = 0; Lexing.pos_cnum = 0; Lexing.pos_bol = 0 }
   in
-  (zero_pos, zero_pos)
+  { code_pos = (zero_pos, zero_pos); law_pos = [] }
 
 let unmark ((x, _) : 'a marked) : 'a = x
 
