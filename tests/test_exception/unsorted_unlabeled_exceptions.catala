@@ -1,0 +1,18 @@
+@Test@
+
+/*
+new scope A:
+  param x content int
+  param y content int
+
+scope A:
+  exception
+  def x := 1
+
+  exception
+  def y := 2
+
+  def x := 0
+
+  def y := 3
+*/

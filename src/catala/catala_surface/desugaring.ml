@@ -825,9 +825,15 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       match def.Ast.definition_exception_to with
       | None -> None
       | Some None ->
-          Some (Pos.same_pos_as
+          Some 
+            ( try 
+                Pos.same_pos_as
                   (Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.default_rulemap)
-                  def.Ast.definition_name)
+                  def.Ast.definition_name
+              with Not_found ->
+                Errors.raise_spanned_error
+                  "No definition associated to this exception"
+                  (Pos.get_position def.Ast.definition_name) )
       | Some (Some label) ->
           Some
             ( try

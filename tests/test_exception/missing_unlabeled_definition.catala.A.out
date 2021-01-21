@@ -1,0 +1,6 @@
+[ERROR] No definition associated to this exception
+[ERROR] 
+[ERROR]  --> test_exception/missing_unlabeled_definition.catala
+[ERROR]   | 
+[ERROR] 9 |   def x := 1
+[ERROR]   |       ^
