@@ -15,8 +15,7 @@
 (** Graph representation of the dependencies between scopes in the Catala program. Vertices are
     functions, x -> y if x is used in the definition of y. *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 
 module SVertex = struct
   type t = Ast.ScopeName.t

@@ -17,9 +17,7 @@
     - Removes syntactic sugars
     - Separate code from legislation *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 
 (** {1 Translating expressions} *)
 

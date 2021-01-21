@@ -18,8 +18,7 @@
 
 %{
   open Ast
-
-  module Errors = Utils.Errors
+  open Utils  
 
   type struct_or_enum_inject_content =
   | StructContent of (ident Pos.marked * expression Pos.marked) list

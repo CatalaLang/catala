@@ -15,8 +15,7 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking lexical scopes into
     account *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 
 (** {1 Name resolution context} *)
 

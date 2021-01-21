@@ -12,9 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 
 type scope_sigs_ctx = ((Ast.ScopeVar.t * Dcalc.Ast.typ) list * Dcalc.Ast.Var.t) Ast.ScopeMap.t
 
@@ -75,6 +73,15 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
       caller callee
   in
   body
+
+let tag_with_log_entry (e : Dcalc.Ast.expr Pos.marked Bindlib.box) (l : Dcalc.Ast.log_entry)
+    (markings : Utils.Uid.MarkedString.info list) : Dcalc.Ast.expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun e ->
+      ( Dcalc.Ast.EApp
+          ((Dcalc.Ast.EOp (Dcalc.Ast.Unop (Dcalc.Ast.Log (l, markings))), Pos.get_position e), [ e ]),
+        Pos.get_position e ))
+    e
 
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Pos.marked Bindlib.box
     =
@@ -197,16 +204,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         let e1_func =
           match Pos.unmark e1 with
-          | ELocation l ->
-              Bindlib.box_apply
-                (fun subscope_func ->
-                  ( Dcalc.Ast.EApp
-                      ( ( Dcalc.Ast.EOp
-                            (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.BeginCall, markings l))),
-                          Pos.get_position subscope_func ),
-                        [ subscope_func ] ),
-                    Pos.get_position subscope_func ))
-                e1_func
+          | ELocation l -> tag_with_log_entry e1_func Dcalc.Ast.BeginCall (markings l)
           | _ -> e1_func
         in
         let new_args = List.map (translate_expr ctx) args in
@@ -214,52 +212,26 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           match (Pos.unmark e1, new_args) with
           | ELocation l, [ new_arg ] ->
               [
-                Bindlib.box_apply
-                  (fun new_arg ->
-                    ( Dcalc.Ast.EApp
-                        ( ( Dcalc.Ast.EOp
-                              (Dcalc.Ast.Unop
-                                 (Dcalc.Ast.Log
-                                    (Dcalc.Ast.VarDef, markings l @ [ Pos.same_pos_as "input" e ]))),
-                            Pos.get_position e ),
-                          [ new_arg ] ),
-                      Pos.get_position new_arg ))
-                  new_arg;
+                tag_with_log_entry new_arg Dcalc.Ast.VarDef
+                  (markings l @ [ Pos.same_pos_as "input" e ]);
               ]
           | _ -> new_args
         in
         let new_e =
-          Bindlib.box_apply2 (fun e u -> Dcalc.Ast.EApp (e, u)) e1_func (Bindlib.box_list new_args)
+          Bindlib.box_apply2
+            (fun e' u -> (Dcalc.Ast.EApp (e', u), Pos.get_position e))
+            e1_func (Bindlib.box_list new_args)
         in
         let new_e =
           match Pos.unmark e1 with
           | ELocation l ->
-              Bindlib.box_apply
-                (fun new_e ->
-                  Dcalc.Ast.EApp
-                    ( ( Dcalc.Ast.EOp
-                          (Dcalc.Ast.Unop
-                             (Dcalc.Ast.Log
-                                (Dcalc.Ast.VarDef, markings l @ [ Pos.same_pos_as "output" e ]))),
-                        Pos.get_position e ),
-                      [ Pos.same_pos_as new_e e ] ))
-                new_e
+              tag_with_log_entry
+                (tag_with_log_entry new_e Dcalc.Ast.VarDef
+                   (markings l @ [ Pos.same_pos_as "output" e ]))
+                Dcalc.Ast.EndCall (markings l)
           | _ -> new_e
         in
-        let new_e =
-          match Pos.unmark e1 with
-          | ELocation l ->
-              Bindlib.box_apply
-                (fun new_e ->
-                  Dcalc.Ast.EApp
-                    ( ( Dcalc.Ast.EOp
-                          (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.EndCall, markings l))),
-                        Pos.get_position e ),
-                      [ Pos.same_pos_as new_e e ] ))
-                new_e
-          | _ -> new_e
-        in
-        new_e
+        Bindlib.box_apply Pos.unmark new_e
     | EAbs (pos_binder, binder, typ) ->
         let xs, body = Bindlib.unmbind binder in
         let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, Pos.no_pos)) xs in
@@ -280,19 +252,11 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
           binder
     | EDefault (excepts, just, cons) ->
+        let just = tag_with_log_entry (translate_expr ctx just) Dcalc.Ast.PosRecordIfTrueBool [] in
         Bindlib.box_apply3
-          (fun e j c ->
-            Dcalc.Ast.EDefault
-              ( e,
-                ( Dcalc.Ast.EApp
-                    ( ( Dcalc.Ast.EOp
-                          (Dcalc.Ast.Unop (Dcalc.Ast.Log (Dcalc.Ast.PosRecordIfTrueBool, []))),
-                        Pos.get_position j ),
-                      [ j ] ),
-                  Pos.get_position j ),
-                c ))
+          (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
           (Bindlib.box_list (List.map (translate_expr ctx) excepts))
-          (translate_expr ctx just) (translate_expr ctx cons)
+          just (translate_expr ctx cons)
     | ELocation (ScopeVar a) ->
         Bindlib.box_var (fst (Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars))
     | ELocation (SubScopeVar (_, s, a)) -> (
@@ -336,7 +300,6 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
       let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in
       let new_e = translate_expr ctx e in
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
-      let merged_expr = merge_defaults a_expr new_e in
       let merged_expr =
         Bindlib.box_apply
           (fun merged_expr ->
@@ -344,20 +307,12 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
                 ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
                   [ merged_expr ] ),
               Pos.get_position merged_expr ))
-          merged_expr
+          (merge_defaults a_expr new_e)
       in
       let merged_expr =
-        Bindlib.box_apply
-          (fun merged_expr ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
-                    Pos.get_position a_name ),
-                  [ merged_expr ] ),
-              Pos.get_position merged_expr ))
-          merged_expr
+        tag_with_log_entry merged_expr Dcalc.Ast.VarDef [ (sigma_name, pos_sigma); a_name ]
       in
+
       let next_e = Dcalc.Ast.make_let_in a_var tau merged_expr next_e in
       (next_e, new_ctx)
   | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
@@ -395,18 +350,9 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           [ (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos) ]
           (Pos.get_position e)
       in
-      let new_e = translate_expr ctx e in
       let new_e =
-        Bindlib.box_apply
-          (fun new_e ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log (Dcalc.Ast.VarDef, [ (sigma_name, pos_sigma); a_name ]))),
-                    Pos.get_position a_name ),
-                  [ new_e ] ),
-              Pos.get_position new_e ))
-          new_e
+        tag_with_log_entry (translate_expr ctx e) Dcalc.Ast.VarDef
+          [ (sigma_name, pos_sigma); a_name ]
       in
       let silent_var = Dcalc.Ast.Var.make ("_", Pos.no_pos) in
       let thunked_new_e =
@@ -461,48 +407,27 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
         }
       in
       let subscope_func =
-        Dcalc.Ast.make_var (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex))
-      in
-      let subscope_func =
-        Bindlib.box_apply
-          (fun subscope_func ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log
-                            ( Dcalc.Ast.BeginCall,
-                              [
-                                (sigma_name, pos_sigma);
-                                Ast.SubScopeName.get_info subindex;
-                                Ast.ScopeName.get_info subname;
-                              ] ))),
-                    Pos.get_position subscope_func ),
-                  [ subscope_func ] ),
-              Pos.get_position subscope_func ))
-          subscope_func
+        tag_with_log_entry
+          (Dcalc.Ast.make_var
+             (scope_dcalc_var, Pos.get_position (Ast.SubScopeName.get_info subindex)))
+          Dcalc.Ast.BeginCall
+          [
+            (sigma_name, pos_sigma);
+            Ast.SubScopeName.get_info subindex;
+            Ast.ScopeName.get_info subname;
+          ]
       in
       let call_expr =
-        Bindlib.box_apply2
-          (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
-          subscope_func (Bindlib.box_list subscope_args)
-      in
-      let call_expr =
-        Bindlib.box_apply
-          (fun call_expr ->
-            ( Dcalc.Ast.EApp
-                ( ( Dcalc.Ast.EOp
-                      (Dcalc.Ast.Unop
-                         (Dcalc.Ast.Log
-                            ( Dcalc.Ast.EndCall,
-                              [
-                                (sigma_name, pos_sigma);
-                                Ast.SubScopeName.get_info subindex;
-                                Ast.ScopeName.get_info subname;
-                              ] ))),
-                    Pos.get_position call_expr ),
-                  [ call_expr ] ),
-              Pos.get_position call_expr ))
-          call_expr
+        tag_with_log_entry
+          (Bindlib.box_apply2
+             (fun e u -> (Dcalc.Ast.EApp (e, u), Pos.no_pos))
+             subscope_func (Bindlib.box_list subscope_args))
+          Dcalc.Ast.EndCall
+          [
+            (sigma_name, pos_sigma);
+            Ast.SubScopeName.get_info subindex;
+            Ast.ScopeName.get_info subname;
+          ]
       in
       let result_tuple_var = Dcalc.Ast.Var.make ("result", Pos.no_pos) in
       let next_e, new_ctx = translate_rules new_ctx rest (sigma_name, pos_sigma) in

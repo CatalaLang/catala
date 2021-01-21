@@ -16,7 +16,7 @@
 
 (** Abstract syntax tree built by the Catala parser *)
 
-module Pos = Utils.Pos
+open Utils
 
 type constructor = (string[@opaque])
 [@@deriving

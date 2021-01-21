@@ -14,9 +14,7 @@
 
 (** Reference interpreter for the default calculus *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 module A = Ast
 
 (** {1 Helpers} *)

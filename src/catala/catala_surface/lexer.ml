@@ -16,8 +16,7 @@
 
 open Parser
 open Sedlexing
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 module R = Re.Pcre
 
 (** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing

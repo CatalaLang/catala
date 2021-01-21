@@ -12,8 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module Pos = Utils.Pos
-module Uid = Utils.Uid
+open Utils
 
 module StructName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
 

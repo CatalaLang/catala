@@ -15,10 +15,8 @@
 (** Typing for the default calculus. Because of the error terms, we perform type inference using the
     classical W algorithm with union-find unification. *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 module A = Ast
-module Cli = Utils.Cli
 
 (** {1 Types and unification} *)
 

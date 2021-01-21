@@ -14,8 +14,7 @@
 
 open Parser
 open Sedlexing
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 module L = Lexer
 module R = Re.Pcre
 

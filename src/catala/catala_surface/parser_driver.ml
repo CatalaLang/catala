@@ -15,9 +15,7 @@
 (** Wrapping module around parser and lexer that offers the {!val: parse_source_file} API *)
 
 open Sedlexing
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 module I = Parser.MenhirInterpreter
 
 (** {1 Internal functions} *)

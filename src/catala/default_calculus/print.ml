@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module Pos = Utils.Pos
+open Utils
 open Ast
 
 let typ_needs_parens (e : typ Pos.marked) : bool =

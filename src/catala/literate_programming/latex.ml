@@ -15,9 +15,7 @@
 (** This modules weaves the source code and the legislative text together into a document that law
     professionals can understand. *)
 
-module Pos = Utils.Pos
-module Cli = Utils.Cli
-module Errors = Utils.Errors
+open Utils
 module A = Surface.Ast
 module R = Re.Pcre
 module C = Cli
