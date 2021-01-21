@@ -15,10 +15,8 @@
 (** Typing for the default calculus. Because of the error terms, we perform type inference using the
     classical W algorithm with union-find unification. *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 module A = Ast
-module Cli = Utils.Cli
 
 (** {1 Types and unification} *)
 
@@ -91,14 +89,16 @@ let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
     (* TODO: if we get weird error messages, then it means that we should use the persistent version
        of the union-find data structure. *)
     let t1_s =
-      Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-        ~subst:(fun _ -> " ")
-        (Format.asprintf "%a" (format_typ ctx) t1)
+      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+           ~subst:(fun _ -> " ")
+           (Format.asprintf "%a" (format_typ ctx) t1))
     in
     let t2_s =
-      Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-        ~subst:(fun _ -> " ")
-        (Format.asprintf "%a" (format_typ ctx) t2)
+      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+        (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+           ~subst:(fun _ -> " ")
+           (Format.asprintf "%a" (format_typ ctx) t2))
     in
     Errors.raise_multispanned_error
       (Format.asprintf "Error during typechecking, incompatible types:\n%s %s\n%s %s"
@@ -182,6 +182,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop (A.Minus KDuration) -> arr dut dut
   | A.Unop A.Not -> arr bt bt
   | A.Unop A.ErrorOnEmpty -> arr any any
+  | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
   | A.Unop (A.Log _) -> arr any any
   | A.Unop A.Length -> arr array_any it
   | A.Unop A.GetDay -> arr dat it

@@ -14,9 +14,7 @@
 
 (** Reference interpreter for the default calculus *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 module A = Ast
 
 (** {1 Helpers} *)
@@ -276,6 +274,17 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                            expr_str
                        in
                        Cli.print_with_style [ ANSITerminal.green ] "%s" expr_str ))
+          | PosRecordIfTrueBool -> (
+              let pos = Pos.get_position op in
+              match (pos <> Pos.no_pos, e') with
+              | true, ELit (LBool true) ->
+                  Cli.log_print
+                    (Format.asprintf "%*s%a%s:\n%s" (!log_indent * 2) "" Print.format_log_entry
+                       entry
+                       (Cli.print_with_style [ ANSITerminal.green ] "Definition applied")
+                       (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
+                            Format.asprintf "%*s" (!log_indent * 2) "")))
+              | _ -> () )
           | BeginCall ->
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry

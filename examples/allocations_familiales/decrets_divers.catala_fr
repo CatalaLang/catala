@@ -1,4 +1,7 @@
 
+@@Instructions ministérielles@@
+
+
 @INSTRUCTION INTERMINISTERIELLE N° DSS/SD2B/2019/65 du 25 mars 2019 relative 
 à la revalorisation au 1er avril 2019 des prestations familiales servies en 
 métropole@
@@ -49,112 +52,6 @@ champ d'application PrestationsFamiliales :
   conséquence égal à 414,4 €
 */
 
-
-@@Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance@@
-
-@Article 1|JORFARTI000037833214@
-
-A compter du 1er janvier 2019, pour les catégories de travailleurs mentionnés à 
-l'article L. 2211-1 du code du travail, le montant du salaire minimum de 
-croissance est relevé dans les conditions ci-après :
-
-1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
-à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
-son montant est porté à 10,03 € l'heure.
-/*
-champ d'application Smic :
-  définition brut_horaire sous condition 
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
-      (résidence = Métropole) ou
-      (résidence = Guyane) ou
-      (résidence = Martinique) ou
-      (résidence = LaRéunion) ou
-      (résidence = SaintBarthélemy) ou
-      (résidence = SaintMartin) ou
-      (résidence = SaintPierreEtMiquelon)
-    )
-  conséquence égal à 10,03 €
-*/
-2° A Mayotte, son montant est fixé à 7,57 € l'heure.
-/*
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
-      (résidence = Mayotte)
-    )
-  conséquence égal à 7,57 €
-*/
-
-@@Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance@@
-
-@Article 1|LEGIARTI000039640195@
-A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à 
-l' article L. 2211-1 du code du travail , le montant du salaire minimum de 
-croissance est relevé dans les conditions ci-après :
-
-1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
-à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
-son montant est porté à 10,15 € l'heure ;
-/*
-champ d'application Smic :
-  définition brut_horaire sous condition 
-    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
-      (résidence = Métropole) ou
-      (résidence = Guyane) ou
-      (résidence = Martinique) ou
-      (résidence = LaRéunion) ou
-      (résidence = SaintBarthélemy) ou
-      (résidence = SaintMartin) ou
-      (résidence = SaintPierreEtMiquelon)
-    )
-  conséquence égal à 10,15 €
-*/
-2° A Mayotte, son montant est fixé à 7,66 € l'heure.
-/*
-champ d'application Smic :
-  définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
-      (résidence = Mayotte)
-    )
-  conséquence égal à 7,66 €
-*/
-
-@@Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations@@
-
-@Article 1|JORFARTI000042694985@
-
-I. - Le plafond de ressources prévu au 1° du I des articles D. 521-1 et D. 521-2 
-du code de la sécurité sociale relatif aux allocations familiales, à la majoration 
-pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
-L. 521-1 est fixé à 58 279 euros pour la période du 1er janvier 2021 au 31 
-décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
-
-/*
-champ d'application AllocationsFamiliales :
-  exception base_plafond_I_d521_3
-  définition plafond_I_d521_3 sous condition 
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
-  conséquence égal à 58 279 € +€
-    5 827 € *€ (entier_vers_décimal de 
-      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
-*/
-
-II. - Le plafond de ressources prévu au 2° du I des articles D. 521-1 et 
-D. 521-2 du même code relatif aux allocations familiales, à la majoration 
-pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
-L. 521-1 est fixé à 81 558 euros pour la période du 1er janvier 2021 au 31 
-décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
-
-/*
-champ d'application AllocationsFamiliales :
-  exception base_plafond_II_d521_3 
-  définition plafond_II_d521_3 sous condition 
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
-  conséquence égal à 81 558 € +€
-    5 827 € *€ (entier_vers_décimal de 
-      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
-*/
-
 @Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019
 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources 
 d’attribution de certaines prestations familiales servies en métropole, 
@@ -191,3 +88,111 @@ champ d'application AllocationsFamiliales :
     5 775 € *€ (entier_vers_décimal de 
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 */
+
+@@Décrets divers@@
+
+@@Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance@@+
+
+@Article 1|JORFARTI000037833214@
+
+A compter du 1er janvier 2019, pour les catégories de travailleurs mentionnés à 
+l'article L. 2211-1 du code du travail, le montant du salaire minimum de 
+croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
+son montant est porté à 10,03 € l'heure.
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition 
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Métropole) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 10,03 €
+*/
+2° A Mayotte, son montant est fixé à 7,57 € l'heure.
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 7,57 €
+*/
+
+@@Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance@@+
+
+@Article 1|LEGIARTI000039640195@
+A compter du 1er janvier 2020, pour les catégories de travailleurs mentionnés à 
+l' article L. 2211-1 du code du travail , le montant du salaire minimum de 
+croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
+son montant est porté à 10,15 € l'heure ;
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition 
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
+      (résidence = Métropole) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 10,15 €
+*/
+2° A Mayotte, son montant est fixé à 7,66 € l'heure.
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 7,66 €
+*/
+
+@@Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations@@+
+
+@Article 1|JORFARTI000042694985@
+
+I. - Le plafond de ressources prévu au 1° du I des articles D. 521-1 et D. 521-2 
+du code de la sécurité sociale relatif aux allocations familiales, à la majoration 
+pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
+L. 521-1 est fixé à 58 279 euros pour la période du 1er janvier 2021 au 31 
+décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
+
+/*
+champ d'application AllocationsFamiliales :
+  exception base_plafond_I_d521_3
+  définition plafond_I_d521_3 sous condition 
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+  conséquence égal à 58 279 € +€
+    5 827 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
+*/
+
+II. - Le plafond de ressources prévu au 2° du I des articles D. 521-1 et 
+D. 521-2 du même code relatif aux allocations familiales, à la majoration 
+pour âge et à l'allocation forfaitaire prévue au deuxième alinéa de l'article 
+L. 521-1 est fixé à 81 558 euros pour la période du 1er janvier 2021 au 31 
+décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
+
+/*
+champ d'application AllocationsFamiliales :
+  exception base_plafond_II_d521_3 
+  définition plafond_II_d521_3 sous condition 
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+  conséquence égal à 81 558 € +€
+    5 827 € *€ (entier_vers_décimal de 
+      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
+*/
+

@@ -5,9 +5,11 @@
 [ERROR]    | 
 [ERROR] 25 |   def y [| a2.x + 1 = 2 |] := 1
 [ERROR]    |            ^^^^^^^^^^^^
+[ERROR]    + Article
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/sub_sub_scope.catala
 [ERROR]    | 
 [ERROR] 24 |   def y [| a2.x = 1 |] := 1
 [ERROR]    |            ^^^^^^^^
+[ERROR]    + Article

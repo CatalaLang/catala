@@ -14,8 +14,7 @@
 
 (** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/} OCamlgraph} *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 
 (** {1 Scope variables dependency graph} *)
 

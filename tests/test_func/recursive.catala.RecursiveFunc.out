@@ -4,3 +4,4 @@
 [ERROR]   | 
 [ERROR] 8 |   def f of x := f of x + 1
 [ERROR]   |                 ^
+[ERROR]   +  Article 

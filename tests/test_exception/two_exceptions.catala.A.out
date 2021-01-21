@@ -5,9 +5,11 @@
 [ERROR]    | 
 [ERROR] 15 |   def x := 2
 [ERROR]    |       ^
+[ERROR]    + Test
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_exception/two_exceptions.catala
 [ERROR]    | 
 [ERROR] 12 |   def x := 1
 [ERROR]    |       ^
+[ERROR]    + Test

@@ -14,8 +14,7 @@
 
 (** Abstract syntax tree of the desugared representation *)
 
-module Pos = Utils.Pos
-module Uid = Utils.Uid
+open Utils
 
 (** {1 Names, Maps and Keys} *)
 

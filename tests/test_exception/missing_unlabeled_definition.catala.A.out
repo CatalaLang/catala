@@ -4,3 +4,4 @@
 [ERROR]   | 
 [ERROR] 9 |   def x := 1
 [ERROR]   |       ^
+[ERROR]   + Test

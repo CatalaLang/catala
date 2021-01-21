@@ -25,6 +25,8 @@ val from_lpos : Lexing.position * Lexing.position -> t
 
 val from_info : string -> int -> int -> int -> int -> t
 
+val overwrite_law_info : t -> string list -> t
+
 val get_start_line : t -> int
 
 val get_start_column : t -> int
@@ -75,15 +77,14 @@ val unmark_option : 'a marked option -> 'a option
 class ['self] marked_map :
   object ('self)
     constraint
-    'self = < visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
+    'self = < visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked ; .. >
 
-    method visit_marked : 'env 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
+    method visit_marked : 'a. ('env -> 'a -> 'a) -> 'env -> 'a marked -> 'a marked
   end
 
 class ['self] marked_iter :
   object ('self)
-    constraint
-    'self = < visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
+    constraint 'self = < visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit ; .. >
 
-    method visit_marked : 'env 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
+    method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> 'a marked -> unit
   end

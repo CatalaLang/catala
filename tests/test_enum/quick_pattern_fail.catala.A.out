@@ -4,3 +4,4 @@
 [ERROR]    | 
 [ERROR] 15 |   def y := x with Case3
 [ERROR]    |                   ^^^^^
+[ERROR]    + Article

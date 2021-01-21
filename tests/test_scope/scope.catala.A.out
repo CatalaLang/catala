@@ -5,9 +5,11 @@
 [ERROR]    | 
 [ERROR] 14 |   def b [| not c |] := 0
 [ERROR]    |            ^^^^^
+[ERROR]    + Article
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]   --> test_scope/scope.catala
 [ERROR]    | 
 [ERROR] 13 |   def b [| not c |] := 1337
 [ERROR]    |            ^^^^^
+[ERROR]    + Article

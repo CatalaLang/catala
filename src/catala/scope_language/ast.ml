@@ -14,8 +14,7 @@
 
 (** Abstract syntax tree of the scope language *)
 
-module Pos = Utils.Pos
-module Uid = Utils.Uid
+open Utils
 
 (** {1 Identifiers} *)
 

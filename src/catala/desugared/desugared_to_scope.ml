@@ -14,9 +14,7 @@
 
 (** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
-module Cli = Utils.Cli
+open Utils
 
 (** {1 Rule tree construction} *)
 

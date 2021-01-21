@@ -5,9 +5,11 @@
 [ERROR]   | 
 [ERROR] 9 |   def x [|true|] := 0
 [ERROR]   |           ^^^^
+[ERROR]   + Article
 [ERROR] 
 [ERROR] This justification is true:
 [ERROR]  --> test_default/conflict.catala
 [ERROR]   | 
 [ERROR] 8 |   def x [|true|] := 1
 [ERROR]   |           ^^^^
+[ERROR]   + Article

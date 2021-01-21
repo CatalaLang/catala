@@ -4,3 +4,4 @@
 [ERROR]    | 
 [ERROR] 16 |   def y := 4
 [ERROR]    |       ^
+[ERROR]    + Test

@@ -15,8 +15,7 @@
 (** Builds a context that allows for mapping each name to a precise uid, taking lexical scopes into
     account *)
 
-module Pos = Utils.Pos
-module Errors = Utils.Errors
+open Utils
 
 (** {1 Name resolution context} *)
 
@@ -74,7 +73,9 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
     previously *)
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
   Errors.raise_spanned_error
-    (Printf.sprintf "\"%s\": unknown identifier %s" (Pos.unmark ident) msg)
+    (Printf.sprintf "\"%s\": unknown identifier %s"
+       (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Pos.unmark ident))
+       msg)
     (Pos.get_position ident)
 
 (** Gets the type associated to an uid *)
@@ -143,7 +144,9 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
-      Errors.raise_multispanned_error "Subscope name already used"
+      Errors.raise_multispanned_error
+        (Format.asprintf "Subscope name \"%s\" already used"
+           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" subscope))
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
@@ -197,7 +200,9 @@ let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.mar
               | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
               | None ->
                   Errors.raise_spanned_error
-                    "Unknown type, not a struct or enum previously declared" typ_pos ) ) )
+                    (Format.asprintf "Unknown type \"%s\", not a struct or enum previously declared"
+                       (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" ident))
+                    typ_pos ) ) )
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
@@ -218,7 +223,9 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
-      Errors.raise_multispanned_error "var name already used"
+      Errors.raise_multispanned_error
+        (Format.asprintf "var name \"%s\" already used"
+           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.ScopeVar.get_info use));
           (Some "second use", pos);
@@ -259,7 +266,9 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
   (* Checks if the name is already used *)
   match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
   | Some use ->
-      Errors.raise_multispanned_error "scope name already used"
+      Errors.raise_multispanned_error
+        (Format.asprintf "scope name \"%s\" already used"
+           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.ScopeName.get_info use));
           (Some "second use", pos);
@@ -487,7 +496,8 @@ let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
     with Not_found ->
       Errors.raise_spanned_error
         (Format.asprintf "\"%s\": this scope has not been declared anywhere, is it a typo?"
-           (Pos.unmark suse.Ast.scope_use_name))
+           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+              (Pos.unmark suse.Ast.scope_use_name)))
         (Pos.get_position suse.Ast.scope_use_name)
   in
   List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items
