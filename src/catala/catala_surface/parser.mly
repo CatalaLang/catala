@@ -405,9 +405,10 @@ rule:
    consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
     let cons : bool Pos.marked = consequence in
+    let rule_exception = match except with | None -> NotAnException | Some x -> x in
     ({
       rule_label = label;
-      rule_exception_to = except;
+      rule_exception_to = rule_exception;
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
@@ -422,7 +423,8 @@ label:
 | LABEL i = ident { i }
 
 exception_to:
-| EXCEPTION i = ident { i }
+| EXCEPTION i = option(ident) { 
+    match i with | None -> UnlabeledException | Some x -> ExceptionToLabel x  }
 
 definition:
 | label = option(label) 
@@ -430,9 +432,10 @@ definition:
   DEFINITION
   name = qident param = option(definition_parameters)
   cond = option(condition_consequence) DEFINED_AS e = expression {
+    let def_exception = match except with | None -> NotAnException | Some x -> x in
     ({
       definition_label = label;
-      definition_exception_to = except;
+      definition_exception_to = def_exception;
       definition_name = name;
       definition_parameter = param;
       definition_condition = cond;

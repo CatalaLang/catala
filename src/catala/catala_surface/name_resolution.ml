@@ -27,6 +27,8 @@ type typ = Scopelang.Ast.typ
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
   label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
+  default_rulemap : Desugared.Ast.RuleName.t Desugared.Ast.ScopeDefMap.t;
+      (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
   sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
@@ -283,6 +285,7 @@ let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
               {
                 var_idmap = Desugared.Ast.IdentMap.empty;
                 label_idmap = Desugared.Ast.IdentMap.empty;
+                default_rulemap = Desugared.Ast.ScopeDefMap.empty;
                 sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
                 sub_scopes = Scopelang.Ast.SubScopeMap.empty;
               }

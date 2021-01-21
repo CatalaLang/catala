@@ -295,22 +295,42 @@ and expression =
         name = "expression_iter";
       }]
 
+type exception_to = NotAnException | UnlabeledException | ExceptionToLabel of ident Pos.marked
+[@@deriving
+  visitors
+    { variety = "map"; ancestors = [ "ident_map"; "Pos.marked_map" ]; name = "exception_to_map" },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "ident_iter"; "Pos.marked_iter" ];
+        name = "exception_to_iter";
+      }]
+
 type rule = {
   rule_label : ident Pos.marked option;
-  rule_exception_to : ident Pos.marked option;
+  rule_exception_to : exception_to;
   rule_parameter : ident Pos.marked option;
   rule_condition : expression Pos.marked option;
   rule_name : qident Pos.marked;
   rule_consequence : (bool[@opaque]) Pos.marked;
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "expression_map"; "qident_map" ]; name = "rule_map" },
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "expression_map"; "qident_map"; "exception_to_map" ];
+      name = "rule_map";
+    },
     visitors
-      { variety = "iter"; ancestors = [ "expression_iter"; "qident_iter" ]; name = "rule_iter" }]
+      {
+        variety = "iter";
+        ancestors = [ "expression_iter"; "qident_iter"; "exception_to_iter" ];
+        name = "rule_iter";
+      }]
 
 type definition = {
   definition_label : ident Pos.marked option;
-  definition_exception_to : ident Pos.marked option;
+  definition_exception_to : exception_to;
   definition_name : qident Pos.marked;
   definition_parameter : ident Pos.marked option;
   definition_condition : expression Pos.marked option;
@@ -318,11 +338,15 @@ type definition = {
 }
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "expression_map"; "qident_map" ]; name = "definition_map" },
+    {
+      variety = "map";
+      ancestors = [ "expression_map"; "qident_map"; "exception_to_map" ];
+      name = "definition_map";
+    },
     visitors
       {
         variety = "iter";
-        ancestors = [ "expression_iter"; "qident_iter" ];
+        ancestors = [ "expression_iter"; "qident_iter"; "exception_to_iter" ];
         name = "definition_iter";
       }]
 
