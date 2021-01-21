@@ -27,7 +27,6 @@ module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
 
 module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
 
-
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
   type t =
