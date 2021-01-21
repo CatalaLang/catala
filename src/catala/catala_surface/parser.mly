@@ -422,7 +422,7 @@ label:
 | LABEL i = ident { i }
 
 exception_to:
-| EXCEPTION i = ident { i }
+| EXCEPTION i = option(ident) { i }
 
 definition:
 | label = option(label) 

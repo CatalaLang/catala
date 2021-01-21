@@ -807,7 +807,8 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     let parent_rule =
       match def.Ast.definition_exception_to with
       | None -> None
-      | Some label ->
+      | Some None -> failwith "unnamed exceptions not yet handled"
+      | Some (Some label) ->
           Some
             ( try
                 Pos.same_pos_as

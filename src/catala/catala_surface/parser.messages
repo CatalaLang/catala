@@ -1,6 +1,6 @@
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE LAW_TEXT END_CODE
 ##
-## Ends in an error in state: 350.
+## Ends in an error in state: 351.
 ##
 ## metadata_block -> BEGIN_CODE option(law_text) code END_CODE option(law_text) . END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
 ##
@@ -12,7 +12,7 @@ expected a metadata-closing tag
 
 source_file_or_master: BEGIN_METADATA BEGIN_CODE END_CODE YEAR
 ##
-## Ends in an error in state: 349.
+## Ends in an error in state: 350.
 ##
 ## metadata_block -> BEGIN_CODE option(law_text) code END_CODE . option(law_text) END_METADATA [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
 ##
@@ -72,7 +72,7 @@ expected a declaration or a scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 344.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
@@ -85,7 +85,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 339.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -97,7 +97,7 @@ expected a content type
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 337.
+## Ends in an error in state: 338.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -109,7 +109,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 336.
+## Ends in an error in state: 337.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -121,7 +121,7 @@ expected the name of an enum case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 335.
+## Ends in an error in state: 336.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -133,7 +133,7 @@ expected an enum case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 334.
+## Ends in an error in state: 335.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -145,7 +145,7 @@ expected a colon
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 333.
+## Ends in an error in state: 334.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -157,7 +157,7 @@ expected the name of your enum
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONDITION YEAR
 ##
-## Ends in an error in state: 328.
+## Ends in an error in state: 329.
 ##
 ## scope_decl_item -> CONTEXT ident CONDITION . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -169,7 +169,7 @@ expected the next context item or a dependency declaration for this item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 326.
+## Ends in an error in state: 327.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT typ . option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -181,7 +181,7 @@ expected the next context item or a dependency declaration for this item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 325.
+## Ends in an error in state: 326.
 ##
 ## scope_decl_item -> CONTEXT ident CONTENT . typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -193,7 +193,7 @@ expected the type of this context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 330.
+## Ends in an error in state: 331.
 ##
 ## nonempty_list(scope_decl_item) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(scope_decl_item) -> scope_decl_item . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -206,7 +206,7 @@ expected another scope context item or the end of the scope declaration
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT SCOPE YEAR
 ##
-## Ends in an error in state: 323.
+## Ends in an error in state: 324.
 ##
 ## scope_decl_item -> CONTEXT ident SCOPE . constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
 ##
@@ -218,7 +218,7 @@ expected the name of the subscope for this context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
-## Ends in an error in state: 322.
+## Ends in an error in state: 323.
 ##
 ## scope_decl_item -> CONTEXT ident . CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT ident . SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
@@ -232,7 +232,7 @@ expected the kind of this context item: is it a condition, a sub-scope or a data
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 321.
+## Ends in an error in state: 322.
 ##
 ## scope_decl_item -> CONTEXT . ident CONTENT typ option(struct_scope_func) [ SCOPE END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> CONTEXT . ident SCOPE constructor [ SCOPE END_CODE DECLARATION CONTEXT ]
@@ -246,7 +246,7 @@ expected the name of this new context item
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 320.
+## Ends in an error in state: 321.
 ##
 ## code_item -> DECLARATION SCOPE constructor COLON . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -258,7 +258,7 @@ expected a context item introduced by "context"
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 319.
+## Ends in an error in state: 320.
 ##
 ## code_item -> DECLARATION SCOPE constructor . COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -270,7 +270,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 318.
+## Ends in an error in state: 319.
 ##
 ## code_item -> DECLARATION SCOPE . constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -282,7 +282,7 @@ expected the name of the scope you are declaring
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION YEAR
 ##
-## Ends in an error in state: 305.
+## Ends in an error in state: 306.
 ##
 ## typ -> collection_marked . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
@@ -295,7 +295,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
-## Ends in an error in state: 313.
+## Ends in an error in state: 314.
 ##
 ## list(struct_scope) -> struct_scope . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -307,7 +307,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 309.
+## Ends in an error in state: 310.
 ##
 ## struct_scope_func -> DEPENDS . typ [ SCOPE END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -319,7 +319,7 @@ expected the type of the parameter of this struct data function
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 308.
+## Ends in an error in state: 309.
 ##
 ## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -331,7 +331,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 315.
+## Ends in an error in state: 316.
 ##
 ## struct_scope_base -> condition_pos . ident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -343,7 +343,7 @@ expected the name of this struct condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 301.
+## Ends in an error in state: 302.
 ##
 ## struct_scope_base -> DATA ident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -355,7 +355,7 @@ expected the type of this struct data
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 300.
+## Ends in an error in state: 301.
 ##
 ## struct_scope_base -> DATA ident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -367,7 +367,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 299.
+## Ends in an error in state: 300.
 ##
 ## struct_scope_base -> DATA . ident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -379,7 +379,7 @@ expected the name of this struct data
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 298.
+## Ends in an error in state: 299.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -391,7 +391,7 @@ expected struct data or condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 297.
+## Ends in an error in state: 298.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -403,7 +403,7 @@ expected a colon
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 296.
+## Ends in an error in state: 297.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -415,7 +415,7 @@ expected the struct name
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 295.
+## Ends in an error in state: 296.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -623,7 +623,7 @@ expected an expression that shoud be asserted during execution
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 288.
+## Ends in an error in state: 289.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -635,7 +635,7 @@ expected an expression for the definition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 286.
+## Ends in an error in state: 287.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -647,7 +647,7 @@ expected a expression for defining this function, introduced by the defined as k
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT UNDER_CONDITION CARDINAL CONSEQUENCE DECREASING
 ##
-## Ends in an error in state: 287.
+## Ends in an error in state: 288.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) . DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -659,7 +659,7 @@ expected an expression for the consequence of this definition under condition
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 285.
+## Ends in an error in state: 286.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -678,7 +678,7 @@ expected the defined as keyword to introduce the definition of this variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 284.
+## Ends in an error in state: 285.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION . qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -690,7 +690,7 @@ expected the name of the variable you want to define
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION IDENT DEFINED_AS
 ##
-## Ends in an error in state: 271.
+## Ends in an error in state: 272.
 ##
 ## definition -> option(label) option(exception_to) . DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
@@ -705,7 +705,7 @@ source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION 
 ##
 ## Ends in an error in state: 269.
 ##
-## exception_to -> EXCEPTION . ident [ RULE DEFINITION ]
+## exception_to -> EXCEPTION . option(ident) [ RULE DEFINITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## EXCEPTION
@@ -752,7 +752,7 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT FALSE
 ##
-## Ends in an error in state: 277.
+## Ends in an error in state: 278.
 ##
 ## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -764,7 +764,7 @@ expected the filled keyword the this rule
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
-## Ends in an error in state: 273.
+## Ends in an error in state: 274.
 ##
 ## rule -> option(label) option(exception_to) RULE rule_expr . option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -776,7 +776,7 @@ expected the expression of the rule
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 280.
+## Ends in an error in state: 281.
 ##
 ## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
 ##
@@ -788,7 +788,7 @@ expected the name of the parameter for this dependent variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT UNDER_CONDITION CARDINAL CONSEQUENCE FALSE
 ##
-## Ends in an error in state: 274.
+## Ends in an error in state: 275.
 ##
 ## rule -> option(label) option(exception_to) RULE rule_expr option(condition_consequence) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -800,7 +800,7 @@ expected filled or not filled for a rule consequence
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 279.
+## Ends in an error in state: 280.
 ##
 ## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
 ##
@@ -832,7 +832,7 @@ expected a condition or a consequence for this rule, or the rest of the variable
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ##
-## Ends in an error in state: 272.
+## Ends in an error in state: 273.
 ##
 ## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -2042,7 +2042,7 @@ expected the name of the scope you want to use
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 359.
+## Ends in an error in state: 360.
 ##
 ## law_article_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA BEGIN_CODE ]
 ##
@@ -2054,7 +2054,7 @@ expected a declaration or a scope use
 
 source_file_or_master: LAW_ARTICLE LAW_TEXT YEAR
 ##
-## Ends in an error in state: 364.
+## Ends in an error in state: 365.
 ##
 ## law_articles_items -> law_article_item . law_articles_items [ LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
 ##
@@ -2066,7 +2066,7 @@ expected a code block, a metadata block, more law text or a heading
 
 source_file_or_master: LAW_ARTICLE YEAR
 ##
-## Ends in an error in state: 358.
+## Ends in an error in state: 359.
 ##
 ## source_file_article -> law_article . law_articles_items [ LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
 ##
@@ -2078,7 +2078,7 @@ expected a code block, a metadata block, more law text or a heading
 
 source_file_or_master: LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 353.
+## Ends in an error in state: 354.
 ##
 ## source_file_after_text -> source_file_item . list(law_intermediate_text) source_file_after_text [ # ]
 ##
@@ -2090,7 +2090,7 @@ expected an article title, another heading or some text
 
 source_file_or_master: LAW_TEXT YEAR
 ##
-## Ends in an error in state: 368.
+## Ends in an error in state: 369.
 ##
 ## list(law_intermediate_text) -> law_intermediate_text . list(law_intermediate_text) [ LAW_INCLUDE LAW_HEADING LAW_ARTICLE EOF BEGIN_METADATA ]
 ##

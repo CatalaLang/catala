@@ -218,7 +218,7 @@ and expression =
 
 type rule = {
   rule_label : ident Pos.marked option;
-  rule_exception_to : ident Pos.marked option;
+  rule_exception_to : ident Pos.marked option option;
   rule_parameter : ident Pos.marked option;
   rule_condition : expression Pos.marked option;
   rule_name : qident Pos.marked;
@@ -229,7 +229,7 @@ type rule = {
 
 type definition = {
   definition_label : ident Pos.marked option;
-  definition_exception_to : ident Pos.marked option;
+  definition_exception_to : ident Pos.marked option option;
   definition_name : qident Pos.marked;
   definition_parameter : ident Pos.marked option;
   definition_condition : expression Pos.marked option;
