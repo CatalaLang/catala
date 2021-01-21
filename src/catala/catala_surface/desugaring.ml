@@ -860,21 +860,23 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     program_scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm.program_scopes;
   }
 
+(** Translates a {!type: Surface.Ast.rule} into the corresponding {!type: Surface.Ast.definition} *)
+let rule_to_def (rule : Ast.rule) : Ast.definition =
+  let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
+  {
+    Ast.definition_label = rule.rule_label;
+    Ast.definition_exception_to = rule.rule_exception_to;
+    Ast.definition_name = rule.rule_name;
+    Ast.definition_parameter = rule.rule_parameter;
+    Ast.definition_condition = rule.rule_condition;
+    Ast.definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
+  }
+
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
-  let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
-  let def =
-    {
-      Ast.definition_label = rule.rule_label;
-      Ast.definition_exception_to = rule.rule_exception_to;
-      Ast.definition_name = rule.rule_name;
-      Ast.definition_parameter = rule.rule_parameter;
-      Ast.definition_condition = rule.rule_condition;
-      Ast.definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
-    }
-  in
+  let def = rule_to_def rule in
   process_def precond scope ctxt prgm def
 
 (** Translates assertions *)
@@ -926,17 +928,7 @@ let gather_unnamed_exceptions (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
   | Ast.Rule rule -> (
       match rule.Ast.rule_exception_to with
       | UnlabeledException ->
-          let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
-          let def =
-            {
-              Ast.definition_label = rule.rule_label;
-              Ast.definition_exception_to = rule.rule_exception_to;
-              Ast.definition_name = rule.rule_name;
-              Ast.definition_parameter = rule.rule_parameter;
-              Ast.definition_condition = rule.rule_condition;
-              Ast.definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
-            }
-          in
+          let def = rule_to_def rule in
           let scope_def = get_def_key def scope ctxt in
           Desugared.Ast.ScopeDefSet.add scope_def defset
       | _ -> defset )
@@ -957,17 +949,7 @@ let generate_default_rulenames (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_
   in
   match Pos.unmark item with
   | Ast.Rule rule ->
-      let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
-      let def =
-        {
-          Ast.definition_label = rule.rule_label;
-          Ast.definition_exception_to = rule.rule_exception_to;
-          Ast.definition_name = rule.rule_name;
-          Ast.definition_parameter = rule.rule_parameter;
-          Ast.definition_condition = rule.rule_condition;
-          Ast.definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
-        }
-      in
+      let def = rule_to_def rule in
       let scope_def = get_def_key def scope ctxt in
       if Desugared.Ast.ScopeDefSet.mem scope_def defset && not (is_exception def) then
         (* This is a non-exception definition corresponding to an unnamed exception *)
