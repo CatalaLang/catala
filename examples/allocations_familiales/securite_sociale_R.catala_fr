@@ -21,7 +21,6 @@ articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 
 /*
 champ d'application PrestationsFamiliales :
-  étiquette définition_plafond_l512_3_2
   définition plafond_l512_3_2 égal à
    (smic.brut_horaire *€ 55 %) *€ 169,0
 */
@@ -177,7 +176,7 @@ vigueur dans chacun des départements mentionnés à l'article L. 751-1 ,
 multiplié par 169.
 /*
 champ d'application PrestationsFamiliales :
-  exception définition_plafond_l512_3_2
+  exception
   définition plafond_l512_3_2
   sous condition régime_outre_mer_l751_1
   conséquence égal à

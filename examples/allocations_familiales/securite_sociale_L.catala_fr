@@ -93,7 +93,6 @@ champ d'application PrestationsFamiliales :
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 /*
 champ d'application AllocationsFamiliales :
-  étiquette définitition_droit_ouvert_base 
   règle droit_ouvert_base sous condition
     nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
   conséquence rempli
@@ -118,7 +117,6 @@ champ d'application AllocationsFamiliales :
     prestations_familiales.conditions_hors_âge de enfant
   conséquence  rempli
 
-  étiquette base_droit_ouvert_forfaitaire
   règle droit_ouvert_forfaitaire de enfant sous condition
     (nombre de enfants_à_charge >= nombre_enfants_l521_1) et
     (enfant.âge = prestations_familiales.âge_l512_3_2) et
@@ -174,10 +172,8 @@ Les allocations sont versées à la personne qui assume, dans quelques condition
 que ce soit, la charge effective et permanente de l'enfant.
 /*
 champ d'application AllocationsFamiliales :
-  étiquette définition_prise_en_compte
   définition prise_en_compte de enfant égal à Complète
 
-  étiquette définition_versement
   définition versement de enfant égal à Normal
 */
 
@@ -192,24 +188,24 @@ les conditions d'application du présent alinéa.
 /*
 champ d'application AllocationsFamiliales :
   # Premier cas : garde alternée, parents désignent un unique allocataire
-  exception définition_prise_en_compte
+  exception
   définition prise_en_compte de enfant sous condition 
     enfant.garde_alternée sous forme OuiAllocataireUnique
   conséquence égal à Complète
 
-  exception définition_versement
+  exception
   définition versement de enfant sous condition 
     enfant.garde_alternée sous forme OuiAllocataireUnique
   conséquence égal à Normal
 
   # Deuxième cas : garde alternée, parents partagent la charge pour
   # l'allocation
-  exception définition_prise_en_compte
+  exception
   définition prise_en_compte de enfant sous condition 
     enfant.garde_alternée sous forme OuiPartageAllocations
   conséquence égal à Partagée
 
-  exception définition_versement
+  exception
   définition versement de enfant sous condition 
     enfant.garde_alternée sous forme OuiPartageAllocations
   conséquence égal à Normal
@@ -238,7 +234,7 @@ de l'enfant dans son foyer.
 
 /*
 champ d'application AllocationsFamiliales :
-  exception définition_versement
+  exception
   définition versement de enfant sous condition 
     enfant.pris_en_charge_par_services_sociaux sous forme
       OuiAllocationVerséeAuxServicesSociaux
@@ -266,7 +262,6 @@ l'exception du plus âgé, ouvre droit à partir d'un âge minimum à une
 majoration des allocations familiales.
 /*
 champ d'application AllocationsFamiliales :
-  étiquette base_droit_ouvert_majoration
   règle droit_ouvert_majoration de enfant
   sous condition
     (non (est_enfant_le_plus_âgé de enfant)) et
@@ -279,7 +274,7 @@ bénéficient de ladite majoration pour chaque enfant à charge à partir
 de l'âge mentionné au premier alinéa.
 /*
 champ d'application AllocationsFamiliales :
-  exception base_droit_ouvert_majoration
+  exception
   règle droit_ouvert_majoration de enfant
   sous condition
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 
@@ -355,7 +350,7 @@ Les allocations familiales sont dues, pour tout enfant, à la personne qui a
 effectivement la charge de celui-ci.
 /*
 champ d'application AllocationsFamiliales:
-  exception définitition_droit_ouvert_base
+  exception
   règle droit_ouvert_base sous condition
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 1)
@@ -368,13 +363,13 @@ applicables lorsque le ménage ou la personne a un seul enfant à charge.
 # et au complément dégressif.
 
 champ d'application AllocationsFamiliales :
-  exception base_droit_ouvert_forfaitaire
+  exception
   règle droit_ouvert_forfaitaire de enfant sous condition
      prestations_familiales.régime_outre_mer_l751_1 et
      (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence non rempli
 
-  exception définition_droit_ouvert_complément
+  exception
   règle droit_ouvert_complément sous condition
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)

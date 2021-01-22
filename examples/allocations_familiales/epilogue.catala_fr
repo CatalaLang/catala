@@ -32,7 +32,6 @@ champ d'application AllocationsFamiliales:
     non (droit_ouvert_majoration de enfant)
   conséquence égal à 0 €
 
-  étiquette définition_droit_ouvert_complément
   règle droit_ouvert_complément rempli
 
   définition enfant_le_plus_âgé.enfants égal à enfants_à_charge 
