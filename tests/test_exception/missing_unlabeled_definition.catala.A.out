@@ -1,7 +1,11 @@
-[ERROR] No definition associated to this exception
+[ERROR] This exception does not have a corresponding definition
 [ERROR] 
 [ERROR]  --> test_exception/missing_unlabeled_definition.catala
 [ERROR]   | 
+[ERROR] 7 | scope A:
+[ERROR]   |        
+[ERROR] 8 |   exception 
+[ERROR]   |   ^^^^^^^^^^
 [ERROR] 9 |   def x := 1
-[ERROR]   |       ^
+[ERROR]   |   ^^^^^^^^^^^
 [ERROR]   + Test
