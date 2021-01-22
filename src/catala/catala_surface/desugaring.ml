@@ -745,33 +745,15 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     exception_to_rule;
   }
 
-let get_def_key (def : Ast.definition) (scope_uid : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context) : Desugared.Ast.ScopeDef.t =
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  match Pos.unmark def.definition_name with
-  | [ x ] ->
-      let x_uid = Name_resolution.get_var_uid scope_uid ctxt x in
-      Desugared.Ast.ScopeDef.Var x_uid
-  | [ y; x ] ->
-      let subscope_uid : Scopelang.Ast.SubScopeName.t =
-        Name_resolution.get_subscope_uid scope_uid ctxt y
-      in
-      let subscope_real_uid : Scopelang.Ast.ScopeName.t =
-        Scopelang.Ast.SubScopeMap.find subscope_uid scope_ctxt.sub_scopes
-      in
-      let x_uid = Name_resolution.get_var_uid subscope_real_uid ctxt x in
-      Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
-  | _ ->
-      Errors.raise_spanned_error "Structs are not handled yet"
-        (Pos.get_position def.definition_expr)
-
 (** Wrapper around {!val: process_default} that performs some name disambiguation *)
 let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (def : Ast.definition) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  let def_key = get_def_key def scope_uid ctxt in
+  let def_key = Name_resolution.get_def_key 
+    (Pos.unmark def.definition_name) scope_uid ctxt (Pos.get_position def.definition_expr) 
+  in
   (* We add to the name resolution context the name of the parameter variable *)
   let param_uid, new_ctxt =
     match def.definition_parameter with
@@ -815,21 +797,19 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       if is_exception def then rule_name
       else
         match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
-        | None -> rule_name
-        | Some x -> x
+        | None | Some Name_resolution.Ambiguous -> rule_name
+        | Some (Name_resolution.Unique x) -> x
     in
     let parent_rule =
       match def.Ast.definition_exception_to with
       | NotAnException -> None
       | UnlabeledException ->
           Some
-            ( try
-                Pos.same_pos_as
-                  (Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.default_rulemap)
-                  def.Ast.definition_name
-              with Not_found ->
-                Errors.raise_spanned_error "No definition associated to this exception"
-                  (Pos.get_position def.Ast.definition_name) )
+            ( match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
+              (* This should have been caught previously by check_unlabeled_exception *)
+              | None | Some Name_resolution.Ambiguous -> assert false 
+              | Some (Name_resolution.Unique name) -> Pos.same_pos_as name def.Ast.definition_name
+            ) 
       | ExceptionToLabel label ->
           Some
             ( try
@@ -918,82 +898,50 @@ let process_scope_use_item (precond : Ast.expression Pos.marked option)
 
 (** {1 Translating top-level items} *)
 
-(* Collects the scope definition in the set if it is an unlabeled exception *)
-let gather_unnamed_exceptions (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
-    (defset : Desugared.Ast.ScopeDefSet.t) (item : Ast.scope_use_item Pos.marked) :
-    Desugared.Ast.ScopeDefSet.t =
+(* If this is an unlabeled exception, ensures that it has a unique default definition *)
+let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+  (item : Ast.scope_use_item Pos.marked) : unit =
+  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Pos.unmark item with
   | Ast.Rule rule -> (
-      match rule.Ast.rule_exception_to with
-      | UnlabeledException ->
-          let def = rule_to_def rule in
-          let scope_def = get_def_key def scope ctxt in
-          Desugared.Ast.ScopeDefSet.add scope_def defset
-      | _ -> defset )
+      match rule.rule_exception_to with
+      | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
+      (* If this is an unlabeled exception, we check that it has a unique default definition *)
+      | Ast.UnlabeledException ->
+        let def_key = Name_resolution.get_def_key
+          (Pos.unmark rule.rule_name) scope ctxt (Pos.get_position rule.rule_consequence)
+        in
+        match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
+        | None ->
+          Errors.raise_spanned_error
+          "This exception does not have a corresponding definition"
+          (Pos.get_position item)
+        | Some Ambiguous ->
+          Errors.raise_spanned_error
+          "This exception can refer to several definitions. Try using labels to disambiguate"
+          (Pos.get_position item)
+        | Some (Unique _) -> () 
+    )
   | Ast.Definition def -> (
-      match def.Ast.definition_exception_to with
-      | UnlabeledException ->
-          let scope_def = get_def_key def scope ctxt in
-          Desugared.Ast.ScopeDefSet.add scope_def defset
-      | _ -> defset )
-  | _ -> defset
-
-let generate_default_rulenames (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
-    (defset : Desugared.Ast.ScopeDefSet.t)
-    (rulemap : Desugared.Ast.RuleName.t Desugared.Ast.ScopeDefMap.t)
-    (item : Ast.scope_use_item Pos.marked) : Desugared.Ast.RuleName.t Desugared.Ast.ScopeDefMap.t =
-  let is_exception (def : Ast.definition) =
-    match def.Ast.definition_exception_to with NotAnException -> false | _ -> true
-  in
-  match Pos.unmark item with
-  | Ast.Rule rule ->
-      let def = rule_to_def rule in
-      let scope_def = get_def_key def scope ctxt in
-      if Desugared.Ast.ScopeDefSet.mem scope_def defset && not (is_exception def) then
-        (* This is a non-exception definition corresponding to an unnamed exception *)
-        match def.Ast.definition_label with
-        | Some label ->
-            Errors.raise_spanned_error
-              "This definition has a label, but an unlabeled exception refers to it"
-              (Pos.get_position label)
-        | None -> (
-            match Desugared.Ast.ScopeDefMap.find_opt scope_def rulemap with
-            | Some _ ->
-                (* There is already a default definition for this, we raise an error *)
-                Errors.raise_spanned_error
-                  "An unlabeled exception refers to several definitions, including this one. \
-                   Disambiguate by using labels."
-                  (Pos.get_position def.Ast.definition_name)
-            | None ->
-                let fresh_name =
-                  Desugared.Ast.RuleName.fresh (Pos.same_pos_as "dummy" def.Ast.definition_name)
-                in
-                Desugared.Ast.ScopeDefMap.add scope_def fresh_name rulemap )
-      else rulemap
-  | Ast.Definition def ->
-      let scope_def = get_def_key def scope ctxt in
-      if Desugared.Ast.ScopeDefSet.mem scope_def defset && not (is_exception def) then
-        (* This is a non-exception definition corresponding to an unnamed exception *)
-        match def.Ast.definition_label with
-        | Some label ->
-            Errors.raise_spanned_error
-              "This definition has a label, but an unlabeled exception refers to it"
-              (Pos.get_position label)
-        | None -> (
-            match Desugared.Ast.ScopeDefMap.find_opt scope_def rulemap with
-            | Some _ ->
-                (* There is already a default definition for this, we raise an error *)
-                Errors.raise_spanned_error
-                  "An unlabeled exception refers to several definitions, including this one. \
-                   Disambiguate by using labels."
-                  (Pos.get_position def.Ast.definition_name)
-            | None ->
-                let fresh_name =
-                  Desugared.Ast.RuleName.fresh (Pos.same_pos_as "dummy" def.Ast.definition_name)
-                in
-                Desugared.Ast.ScopeDefMap.add scope_def fresh_name rulemap )
-      else rulemap
-  | _ -> rulemap
+      match def.definition_exception_to with
+      | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
+      (* If this is an unlabeled exception, we check that it has a unique default definition *)
+      | Ast.UnlabeledException ->
+        let def_key = Name_resolution.get_def_key
+          (Pos.unmark def.definition_name) scope ctxt (Pos.get_position def.definition_expr)
+        in
+        match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
+        | None ->
+          Errors.raise_spanned_error
+          "This exception does not have a corresponding definition"
+          (Pos.get_position item)
+        | Some Ambiguous ->
+          Errors.raise_spanned_error
+          "This exception can refer to several definitions. Try using labels to disambiguate"
+          (Pos.get_position item)
+        | Some (Unique _) -> () 
+    )
+  | _ -> ()
 
 (** Translates a surface scope use, which is a bunch of definitions *)
 let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.program)
@@ -1008,24 +956,7 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
     (* should not happen *)
   in
   let precond = use.scope_use_condition in
-  let defset =
-    List.fold_left
-      (gather_unnamed_exceptions scope_uid ctxt)
-      Desugared.Ast.ScopeDefSet.empty use.scope_use_items
-  in
-  let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
-  let new_scope_ctxt =
-    {
-      scope_ctxt with
-      default_rulemap =
-        List.fold_left
-          (generate_default_rulenames scope_uid ctxt defset)
-          scope_ctxt.default_rulemap use.scope_use_items;
-    }
-  in
-  let ctxt =
-    { ctxt with scopes = Scopelang.Ast.ScopeMap.add scope_uid new_scope_ctxt ctxt.scopes }
-  in
+  List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
 
 (** Main function of this module *)

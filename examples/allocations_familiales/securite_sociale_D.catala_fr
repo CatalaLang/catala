@@ -14,7 +14,6 @@ est défini selon le barème suivant :
 /*
 # Composantes des allocations familiales
 champ d'application AllocationsFamiliales :
-  étiquette définition_montant_initial_base
   définition montant_initial_base égal à
     montant_initial_base_deuxième_enfant +€
     montant_initial_base_troisième_enfant_et_plus
@@ -154,7 +153,7 @@ différence entre, d'une part, ce plafond de ressources majoré de la somme
 définie à l'alinéa précédent et, d'autre part, le montant des ressources.
 /*
 champ d'application AllocationsFamiliales :
-  exception base_dépassement
+  exception
   définition dépassement_plafond_ressources de allocation
   sous condition
     (ressources_ménage >€ plafond_I_d521_3) et
@@ -162,7 +161,7 @@ champ d'application AllocationsFamiliales :
   conséquence égal à
     plafond_I_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage
 
-  exception base_dépassement
+  exception
   définition dépassement_plafond_ressources de allocation
   sous condition
     (ressources_ménage >€ plafond_II_d521_3) et
@@ -171,7 +170,6 @@ champ d'application AllocationsFamiliales :
     plafond_II_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage
 
   # Dans les autres cas, le dépassement est nul
-  étiquette base_dépassement
   définition dépassement_plafond_ressources de allocations égal à 0 €
 
   définition montant_versé_complément_pour_base_et_majoration égal à
@@ -262,7 +260,6 @@ I.-Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à
 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
 /*
 champ d'application AllocationsFamiliales :
-  étiquette base_plafond_I_d521_3
   définition plafond_I_d521_3 égal à 55 950 € +€
     5 595 € *€ (entier_vers_décimal de 
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
@@ -272,7 +269,6 @@ II.-Le plafond prévu au 2° du I des articles D. 521-1 et D. 521-2 est fixé à
 78 300 euros. Il est majoré de 5 595 euros par enfant à charge.
 /*
 champ d'application AllocationsFamiliales :
-  étiquette base_plafond_II_d521_3
   définition plafond_II_d521_3 égal à 78 300 € +€
     5 595 € *€ (entier_vers_décimal de 
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
@@ -307,7 +303,7 @@ fixé à 5,88 p. 100 de la base mensuelle prévue à l'article L. 755-3.
 # Composantes des allocations familiales
 champ d'application AllocationsFamiliales :
   
-  exception définition_montant_initial_base
+  exception
   définition montant_initial_base sous condition
     prestations_familiales.régime_outre_mer_l751_1 et 
     nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1

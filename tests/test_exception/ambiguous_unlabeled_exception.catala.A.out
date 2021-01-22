@@ -1,7 +1,13 @@
-[ERROR] An unlabeled exception refers to several definitions, including this one. Disambiguate by using labels.
+[ERROR] This exception can refer to several definitions. Try using labels to disambiguate
 [ERROR] 
 [ERROR]   --> test_exception/ambiguous_unlabeled_exception.catala
 [ERROR]    | 
 [ERROR] 10 |   def x := 1
-[ERROR]    |       ^
+[ERROR]    |            
+[ERROR] 11 | 
+[ERROR]    | 
+[ERROR] 12 |   exception 
+[ERROR]    |   ^^^^^^^^^^
+[ERROR] 13 |   def x := 2
+[ERROR]    |   ^^^^^^^^^^^
 [ERROR]    + Test

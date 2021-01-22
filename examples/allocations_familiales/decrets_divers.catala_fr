@@ -74,14 +74,14 @@ tranche est celle dont les revenus sont supérieurs au plafond de base de
 
 /*
 champ d'application AllocationsFamiliales :
-  exception base_plafond_I_d521_3
+  exception
   définition plafond_I_d521_3 sous condition 
     date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
   conséquence égal à 57 759 € +€
     5 775 € *€ (entier_vers_décimal de 
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 
-  exception base_plafond_II_d521_3 
+  exception 
   définition plafond_II_d521_3 sous condition 
     date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
   conséquence égal à 80 831 € +€
@@ -172,7 +172,7 @@ décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
 
 /*
 champ d'application AllocationsFamiliales :
-  exception base_plafond_I_d521_3
+  exception
   définition plafond_I_d521_3 sous condition 
     date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
   conséquence égal à 58 279 € +€
@@ -188,7 +188,7 @@ décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
 
 /*
 champ d'application AllocationsFamiliales :
-  exception base_plafond_II_d521_3 
+  exception 
   définition plafond_II_d521_3 sous condition 
     date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
   conséquence égal à 81 558 € +€

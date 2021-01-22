@@ -154,10 +154,8 @@ scope Section121SinglePerson:
     else $0
   
 scope Section121:
-  label base_requirements_met
   definition section121a_requirements_met equals section121Person1.requirements_met
 
-  label base_income_excluded 
   definition income_excluded_from_gross_income_uncapped equals 
     section121Person1.income_excluded_from_gross_income_uncapped
 
@@ -183,7 +181,6 @@ scope Section121SinglePerson:
       income_excluded_from_gross_income_uncapped
 
 scope Section121: 
-    label base_gain_cap
     definition gain_cap equals section121Person1.gain_cap 
 
     definition income_excluded_from_gross_income equals 
@@ -239,12 +236,12 @@ scope Section121:
       section_121_b_3_applies of data_couple.person2.other_section_121a_sale)) 
   consequence fulfilled
     
-  exception base_requirements_met
+  exception
   rule section121a_requirements_met under condition 
     section_121_b_2_A_condition 
   consequence fulfilled
   
-  exception base_gain_cap 
+  exception 
   definition gain_cap under condition 
     section_121_b_2_A_condition
   consequence equals $500,000
@@ -261,7 +258,7 @@ scope Section121 under condition
   (return_type with pattern JointReturn) and 
   not (section_121_b_2_A_condition):
 
-  exception base_gain_cap 
+  exception 
   definition gain_cap equals 
     section121Person1.gain_cap +$ section121Person2.gain_cap
 
@@ -305,7 +302,7 @@ scope Section121 under condition
   # single_data.date_of_spouse_death instead of date_of_sale_or_exchange
   :
 
-  exception base_gain_cap 
+  exception 
   definition gain_cap equals $500,000
   
 */
