@@ -69,6 +69,7 @@
 \newcommand{\synlarrow}{~\synpunct{$\leftarrow$}~}
 \newcommand{\synarrow}{~\synpunct{$\rightarrow$}~}
 \newcommand{\synellipsis}{\synpunct{,$\ldots$,}}
+\newcommand{\synlistellipsis}{\synpunct{;$\ldots$;}}
 \newcommand{\syndef}{$ ::= $}
 \newcommand{\synalt}{\;$|$\;}
 \newcommand{\synhole}{\synvar{\cdot}}
@@ -119,6 +120,16 @@
 \newcommand{\redrparen}{\redctx{)}}
 \newcommand{\redequal}{\redctx{~=~}}
 \newcommand{\redinit}{\redctx{\mathsf{init\_subvars}}}
+
+%% Reduction of the defaults
+\newcommand{\compctx}[1]{\textcolor{yellow!70!black}{\ensuremath{#1}}}
+\newcommand{\compkeyword}[1]{\textcolor{yellow!60!black}{\texttt{#1}}}
+\newcommand{\compiles}{\;\ensuremath{\compctx{\rightrightarrows}}\;}
+\newcommand{\compnormal}{\compkeyword{normal}}
+\newcommand{\compdefault}{\compkeyword{default}}
+\newcommand{\compcons}{\compkeyword{cons}}
+\newcommand{\compvdash}{\compctx{\;\vdash\;}}
+\newcommand{\compok}{\;\;\compkeyword{ok}}
 
 
 \title{Formalization of the Catala language}
@@ -793,6 +804,85 @@ all the variables from a list not present in \redctx{\Delta}.
   \redequal\synhole
 }
 \end{mathpar}
+
+\section{Compiling defaults away}
+
+The default calculus is a solid semantic foundation for the Catala language,
+but it is not a good compilation target since default logic cannot be shallowly
+embedded easily in mainstream programming languages. Hence, we propose a
+compilation scheme whose goal is to eliminate default terms and empty error 
+terms (\synemptydefault) from the default calculus, leaving us with a the semantics of a
+regular lambda calculus.
+
+While it is clear that defaults terms will be translated to conditionals,
+the empty error poses a challenge. Given the semantics of the empty error term
+propagation, it would be natural to compile the term to an exception raise, 
+exception which should be caught by the default term when counting of many 
+exceptions are triggered.
+
+However, compiling empty errors to catchable exceptions would require the 
+target language to support catchable exceptions at runtime. Because we wish 
+to target low-level languages like C that don't support catchable exceptions 
+natively, we chose instead another compilation scheme.
+
+We propose to compile the default terms to expressions returning an option 
+value, the \verb|None| case corresponding to a \synemptydefault. 
+Since we will use an option type for this translation, we suppose that our 
+target lambda calculus has polymorphic algebraic data types associated with 
+a classic semantics. The translation judgment that we will use is: 
+\fbox{\synvar{e}\compiles\synvar{e'}}. 
+
+\begin{mathpar}
+\inferrule[C-Default]{
+  \typctx{\Gamma}\typvdash
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_\mathrm{just}}
+  \synjust\synvar{e_\mathrm{cons}}\synrangle\typcolon\synvar{\tau}\\
+  \synvar{e_1}\compiles\synvar{e_1'}\\
+  \cdots\\
+  \synvar{e_n}\compiles\synvar{e_n'}\\
+  \synvar{e_\mathrm{just}}\compiles\synvar{e_\mathrm{just}'}\\
+  \synvar{e_\mathrm{cons}}\compiles\synvar{e_\mathrm{cons}'}\\
+}{
+  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_\mathrm{just}}
+  \synjust\synvar{e_\mathrm{cons}}\synrangle\compiles
+  \synkeyword{let}\;\synvar{r_\mathrm{exceptions}}\synequal
+  \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
+  \synvar{\tau}\;\synkeyword{option}\synrparen\;
+  \synlparen\synvar{e'}\syntyped
+  \synvar{\tau}\;\synkeyword{option}\synrparen\syndot\\
+  \synkeyword{match}\;\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\;\synkeyword{with}\;
+  \synlparen\synkeyword{None}\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}
+  \synmid\synlparen\synkeyword{Some}\;\synvar{a}\syncomma\;\synkeyword{None}\synrparen\synarrow
+  \synkeyword{Some}\;\synvar{a}
+  \synmid\synlparen\synkeyword{Some}\;\synvar{a}\syncomma\;\synkeyword{Some}\;\synvar{e'}\synrparen\synarrow
+  \synerror
+  \synrparen\\\synkeyword{None}\;\synlsquare\synvar{e_1'}
+  \synlistellipsis\synvar{e_n'}\synrsquare\;\synkeyword{in}\;\synkeyword{match}\;
+  \synvar{r_\mathrm{exceptions}}\;\synkeyword{with}\;\synkeyword{Some}\;\synvar{e'}\synarrow 
+  \synkeyword{Some}\;\synvar{e'}\synmid\synkeyword{None}\synarrow\\
+  \synif \synvar{e_\mathrm{just}'}\synthen \synkeyword{Some}\;\synvar{e_\mathrm{cons}'}\synelse 
+  \synkeyword{None}
+}
+
+\inferrule[C-EmptyError]{}{
+  \synemptydefault\compiles\synkeyword{None}
+}
+
+\inferrule[C-Base]{
+  \synvar{e}\neq\synemptydefault\\
+  \synvar{e}\text{ not a default}
+}{
+  \synvar{e}\compiles\synkeyword{Some}\;\synvar{e}
+}
+\end{mathpar}
+
+This supposes 
+that default terms are wrapped as \verb|crash_if_not_empty| arguments.
+Indeed, since we will be transforming $\tau$ to $\tau\;\text{option}$ inside 
+defaults, so one needs to eliminate the \verb|None| case before using the 
+value coming from a default evaluation. 
+
 \printbibliography
+
 
 \end{document}
