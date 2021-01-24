@@ -1,5 +1,9 @@
 module Catala.DefaultCalculus
 
+//TODO: change default to have exceptions first
+//TODO: change empty error propagation for function application, does not 
+//propagate for function argument
+
 (*** Syntax *)
 
 type ty =

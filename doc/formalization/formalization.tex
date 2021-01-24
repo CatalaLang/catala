@@ -78,6 +78,7 @@
 \newcommand{\synsome}{\texttt{Some}~}
 \newcommand{\synmatch}{\synkeyword{match}~}
 \newcommand{\synwith}{~\synkeyword{with}~}
+\newcommand{\synoption}{\;\texttt{option}}
 
 %% Typing
 \newcommand{\typctx}[1]{\textcolor{orange!90!black}{\ensuremath{#1}}}
@@ -323,12 +324,13 @@ currently being reduced.
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
-    Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application\\
-       contexts&&\synalt&\synlangle$[\synvar{v}^*]$\syncomma\synhole\syncomma$[\synvar{e}^*]$\synmid
+    Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt&function application evaluation\\
+    contexts&&\synalt&\synlangle$[\synvar{v}^*]$\synmid\synhole\synjust\synvar{e}\synrangle&default justification evaluation\\
+    &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\syntrue\synjust\synhole \synrangle&default consequence evaluation\\
+    &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
+    &&\synalt&\synlangle$[\synvar{v}^*]$\syncomma\synhole\syncomma$[\synvar{e}^*]$\synmid
        \synvar{e}\synjust\synvar{e}\synrangle&default exceptions evaluation\\
-               &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
-               &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\synhole\synjust\synvar{e}\synrangle&default justification evaluation\\
-                    &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\syntrue\synjust\synhole \synrangle&default consequence evaluation\\
+    &&\synalt&\synvar{v}\;\synhole&function argument evaluation\\
   \end{tabular}
 \end{center}
 
@@ -842,8 +844,8 @@ We propose to compile the default terms to expressions returning an option
 value, the \verb|None| case corresponding to a \synemptydefault. 
 Since we will use an option type for this translation, we suppose that our 
 target lambda calculus has polymorphic algebraic data types associated with 
-a classic semantics. The translation judgment that we will use is: 
-\fbox{\synvar{e}\compiles\synvar{e'}}. 
+a classic semantics. The translations judgments that we will use are: 
+\fbox{\synvar{e}\compiles\synvar{e'}} and \fbox{\synvar{\tau}\compiles\synvar{\tau'}}. 
 
 \begin{mathpar}
 \inferrule[C-Default]{
@@ -860,17 +862,17 @@ a classic semantics. The translation judgment that we will use is:
   \synjust\synvar{e_\mathrm{cons}}\synrangle\compiles
   \synlet\synvar{r_\mathrm{exceptions}}\synequal
   \texttt{process\_exceptions}\;\synlsquare\synvar{e_1'}
-  \synlistellipsis\synvar{e_n'}\synrsquare\synin\\\synkeyword{match}
+  \synlistellipsis\synvar{e_n'}\synrsquare\synin\\\synmatch
   \synvar{r_\mathrm{exceptions}}\synwith\synsome\synvar{e'}\synarrow 
-  \synsome\synvar{e'}\synmid\synnone\synarrow
-  \synif \synvar{e_\mathrm{just}'}\synthen \synsome\synvar{e_\mathrm{cons}'}\synelse 
-  \synnone
+  \synsome\synvar{e'}\synmid\synnone\synarrow\\
+  \synlparen\synmatch\synvar{e_\mathrm{just}'}\synwith\synsome\synvar{e_\mathrm{just}'}\synarrow 
+  \synlparen\synif\synvar{e_\mathrm{just}'}\synthen\synvar{e_\mathrm{cons}'}\synelse\synnone\synrparen
+  \synmid\synnone\synarrow\synnone\synrparen
 }
 
 \inferrule[C-EmptyError]{}{
   \synemptydefault\compiles\synnone
 }
-
 \end{mathpar}
 
 The \TirName{C-Default} rule relies on a helper function that accumulate a 
@@ -881,9 +883,9 @@ exception handling defined in \TirName{D-DefaultOneException} and
 \begin{align*}
   \texttt{process\_exceptions}\quad&\triangleq&&
   \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
-  \synvar{\tau}\;\texttt{option}\synrparen\;
+  \synvar{\tau}\synoption\synrparen\;
   \synlparen\synvar{e'}\syntyped
-  \synvar{\tau}\;\texttt{option}\synrparen\syndot\\
+  \synvar{\tau}\synoption\synrparen\syndot\\
   &&&\quad\synkeyword{match}\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\synwith\\
   &&&\quad\quad\synmid\synlparen\synnone\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}\\
   &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synnone\synrparen\synarrow
@@ -900,7 +902,47 @@ completely correct in all generality, we would have to apply the \synvar{\tau}
 to \synvar{\tau} \texttt{option} transformation to all terms in the 
 program. This would entail cumbersome pattern matching at each stage in order 
 to propagate the \verb|None| case faithfully to the \TirName{D-ContextEmptyError}
-rule.
+rule. Here are the corresponding rules:
+
+\begin{mathpar}
+
+\inferrule[C-Var]{}{\synvar{x}\compiles\synvar{x}}
+
+\inferrule[C-Literal]{\synvar{e}\in\{\synunit,\;\syntrue,\;\synfalse\}}{
+  \synvar{e}\compiles\synsome\synvar{e}
+}
+
+\inferrule[C-Abs]{
+  \synvar{e}\compiles\synvar{e'}\\
+  \synvar{\tau}\compiles\synvar{\tau'}
+}{
+  \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\compiles 
+  \synsome\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau'}\synrparen\syndot\synvar{e'} 
+}
+
+\inferrule[C-App]{
+  \synvar{e_1}\compiles\synvar{e_1'}\\
+  \synvar{e_2}\compiles\synvar{e_2'}
+}{
+  \synvar{e_1}\;\synvar{e_2}\compiles\synmatch\synvar{e_1'}
+  \synwith\synsome\synvar{f}\synarrow \synvar{f}\;
+  \synvar{e_2'}\synmid\synnone\synarrow \synnone
+}
+
+\inferrule[C-TArrow]{
+  \synvar{\tau_1}\compiles\synvar{\tau_1'}\\
+  \synvar{\tau_2}\compiles\synvar{\tau_2'}
+}{
+  \synvar{\tau_1}\synarrow\synvar{\tau_2}\compiles
+  \synlparen\synvar{\tau_1'}\synarrow\synvar{\tau_2'}\synrparen\synoption
+}
+
+\inferrule[C-TLit]{
+ \synvar{\tau}\in\{\synbool,\;\synunitt\} 
+}{
+  \synvar{\tau}\compiles\synvar{\tau}\synoption
+}
+\end{mathpar}
 
 While perfectly correct, this maximalist translation scheme would entail 
 a lot of redundant branching in the generated code, which would hinder the 
