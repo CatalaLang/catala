@@ -1,0 +1,15 @@
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_scope/bad/bad_sub_sub_scope.catala
+[ERROR]    | 
+[ERROR] 25 |   def y [| a2.x + 1 = 2 |] := 1
+[ERROR]    |            ^^^^^^^^^^^^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_scope/bad/bad_sub_sub_scope.catala
+[ERROR]    | 
+[ERROR] 24 |   def y [| a2.x = 1 |] := 1
+[ERROR]    |            ^^^^^^^^
+[ERROR]    + Article
