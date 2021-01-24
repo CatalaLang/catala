@@ -73,6 +73,11 @@
 \newcommand{\syndef}{$ ::= $}
 \newcommand{\synalt}{\;$|$\;}
 \newcommand{\synhole}{\synvar{\cdot}}
+\newcommand{\syncrashifempty}{\synkeyword{crash\_if\_empty}}
+\newcommand{\synnone}{\texttt{None}}
+\newcommand{\synsome}{\texttt{Some}~}
+\newcommand{\synmatch}{\synkeyword{match}~}
+\newcommand{\synwith}{~\synkeyword{with}~}
 
 %% Typing
 \newcommand{\typctx}[1]{\textcolor{orange!90!black}{\ensuremath{#1}}}
@@ -124,7 +129,7 @@
 %% Reduction of the defaults
 \newcommand{\compctx}[1]{\textcolor{yellow!70!black}{\ensuremath{#1}}}
 \newcommand{\compkeyword}[1]{\textcolor{yellow!60!black}{\texttt{#1}}}
-\newcommand{\compiles}{\;\ensuremath{\compctx{\rightrightarrows}}\;}
+\newcommand{\compiles}{\ensuremath{~\compctx{\rightrightarrows}~}}
 \newcommand{\compnormal}{\compkeyword{normal}}
 \newcommand{\compdefault}{\compkeyword{default}}
 \newcommand{\compcons}{\compkeyword{cons}}
@@ -479,7 +484,9 @@ sub-call and give them different names $\synvar{S'}_1$,
 \label{sec:scope:example}
 
 Let's illustrate how the scope language plays out with a simple program 
-that calls a sub-scope:
+that calls a sub-scope, with Fig.~\ref{fig:simplescopeprogram}.
+
+\begin{figure}
 \begin{Verbatim}[frame=lines,label=Simple scope program, numbers=left, framesep=10pt, samepage=true]
 scope X:
   rule a = < true :- 0 >
@@ -490,6 +497,8 @@ scope Y:
   call X_1
   rule c = < X_1[b] != 43 :- false | X_1[b] == 43 :- true > 
 \end{Verbatim}
+\caption{Illustrative program written in the scope language\label{fig:simplescopeprogram}}
+\end{figure}
 
 Considered alone, the execution \Verb+X+ is simple: \Verb+a+ and \Verb+b+ are defined by 
 a single default whose justification is \Verb+true+. Hence, \Verb+a+ should evaluate 
@@ -512,7 +521,9 @@ The goal is to provide an encoding of the scope language
 into the lambda calculus that is compatible with this intuitive description 
 of how scopes should evaluate. To get a high-level 
 picture of the translation, we first show what the previous simple program will translate 
-to, using ML-like syntax for the target default calculus:
+to, using ML-like syntax for the target default calculus in Fig.~\ref{fig:simpledefaultprogram}.
+
+\begin{figure}
 \begin{Verbatim}[frame=lines,label=Simple default program, numbers=left, framesep=10pt, samepage=true]
 let X (a: unit -> int) (b: unit -> int) : (int * int) =
   let a : int = < a () | < true :- 0 >> in
@@ -526,7 +537,9 @@ let Y (c: unit -> bool) : bool =
   let c : bool = < c () | < X_1[b] != 43 :- false | X_1[b] == 43 :- true >> in 
   c 
 \end{Verbatim}
-
+\caption{Default calculus program resulting from the compilation of Fig.~\ref{fig:simplescopeprogram}
+\label{fig:simpledefaultprogram}}
+\end{figure}
 
 We start unravelling this translation with the scope \Verb+X+. \Verb+X+ has 
 been turned into a function whose arguments are all the local variables of the 
@@ -845,42 +858,190 @@ a classic semantics. The translation judgment that we will use is:
 }{
   \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_\mathrm{just}}
   \synjust\synvar{e_\mathrm{cons}}\synrangle\compiles
-  \synkeyword{let}\;\synvar{r_\mathrm{exceptions}}\synequal
-  \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
-  \synvar{\tau}\;\synkeyword{option}\synrparen\;
-  \synlparen\synvar{e'}\syntyped
-  \synvar{\tau}\;\synkeyword{option}\synrparen\syndot\\
-  \synkeyword{match}\;\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\;\synkeyword{with}\;
-  \synlparen\synkeyword{None}\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}
-  \synmid\synlparen\synkeyword{Some}\;\synvar{a}\syncomma\;\synkeyword{None}\synrparen\synarrow
-  \synkeyword{Some}\;\synvar{a}
-  \synmid\synlparen\synkeyword{Some}\;\synvar{a}\syncomma\;\synkeyword{Some}\;\synvar{e'}\synrparen\synarrow
-  \synerror
-  \synrparen\\\synkeyword{None}\;\synlsquare\synvar{e_1'}
-  \synlistellipsis\synvar{e_n'}\synrsquare\;\synkeyword{in}\;\synkeyword{match}\;
-  \synvar{r_\mathrm{exceptions}}\;\synkeyword{with}\;\synkeyword{Some}\;\synvar{e'}\synarrow 
-  \synkeyword{Some}\;\synvar{e'}\synmid\synkeyword{None}\synarrow\\
-  \synif \synvar{e_\mathrm{just}'}\synthen \synkeyword{Some}\;\synvar{e_\mathrm{cons}'}\synelse 
-  \synkeyword{None}
+  \synlet\synvar{r_\mathrm{exceptions}}\synequal
+  \texttt{process\_exceptions}\;\synlsquare\synvar{e_1'}
+  \synlistellipsis\synvar{e_n'}\synrsquare\synin\\\synkeyword{match}
+  \synvar{r_\mathrm{exceptions}}\synwith\synsome\synvar{e'}\synarrow 
+  \synsome\synvar{e'}\synmid\synnone\synarrow
+  \synif \synvar{e_\mathrm{just}'}\synthen \synsome\synvar{e_\mathrm{cons}'}\synelse 
+  \synnone
 }
 
 \inferrule[C-EmptyError]{}{
-  \synemptydefault\compiles\synkeyword{None}
+  \synemptydefault\compiles\synnone
 }
 
-\inferrule[C-Base]{
-  \synvar{e}\neq\synemptydefault\\
-  \synvar{e}\text{ not a default}
+\end{mathpar}
+
+The \TirName{C-Default} rule relies on a helper function that accumulate a 
+value through the list of exceptions, implementing the semantics of 
+exception handling defined in \TirName{D-DefaultOneException} and
+\TirName{D-DefaultExceptionsConflict}:
+
+\begin{align*}
+  \texttt{process\_exceptions}\quad&\triangleq&&
+  \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
+  \synvar{\tau}\;\texttt{option}\synrparen\;
+  \synlparen\synvar{e'}\syntyped
+  \synvar{\tau}\;\texttt{option}\synrparen\syndot\\
+  &&&\quad\synkeyword{match}\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\synwith\\
+  &&&\quad\quad\synmid\synlparen\synnone\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}\\
+  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synnone\synrparen\synarrow
+  \synsome\synvar{a}\\
+  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synsome
+  \synvar{e'}\synrparen\synarrow \synerror \synrparen\;\synnone
+\end{align*}
+
+
+These two rules \TirName{C-Default} and \TirName{C-EmptyError} 
+only address part of the translation: what to do with all the 
+other expressions, which are neither defaults nor empty error terms? To be 
+completely correct in all generality, we would have to apply the \synvar{\tau}
+to \synvar{\tau} \texttt{option} transformation to all terms in the 
+program. This would entail cumbersome pattern matching at each stage in order 
+to propagate the \verb|None| case faithfully to the \TirName{D-ContextEmptyError}
+rule.
+
+While perfectly correct, this maximalist translation scheme would entail 
+a lot of redundant branching in the generated code, which would hinder the 
+resulting program's performance. Because Catala aims at providing 
+production-ready high-performance code that can scale to computations 
+concerning millions of household, we need to be more clever to reduce the 
+number of generated branches. 
+
+Let's look back at the code of Fig.~\ref{fig:simpledefaultprogram}. One way 
+we can avoid having to propagate errors all the time in the program is to 
+contain empty error propagation inside each scope variable. Concretely,
+that means enforcing a crashing error each time a scope variable evaluates 
+to an empty error term. This gives us a new default calculus program, 
+Fig~\ref{fig:noerrordefaultprogram}, which differs 
+from Fig.~\ref{fig:simpledefaultprogram} by the addition of \syncrashifempty{}
+calls to wrap up each scope variable definition.
+
+
+\begin{figure}
+  \begin{Verbatim}[frame=lines,label=Simple default program without error propagation, numbers=left, framesep=10pt, samepage=true]
+  let X (a: unit -> int) (b: unit -> int) : (int * int) =
+    let a : int = crash_if_empty < a () | < true :- 0 >> in
+    let b : int = crash_if_empty < b () | < true :- a + 1 >> in 
+    (a, b)
+  
+  let Y (c: unit -> bool) : bool = 
+    let X_1[a] : unit -> int = fun () -> < true :- 42 > in
+    let X_1[b] : unit -> int = fun () -> EmptyError in 
+    let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
+    let c : bool = crash_if_empty 
+      < c () | < X_1[b] != 43 :- false | X_1[b] == 43 :- true >>
+    in 
+    c 
+  \end{Verbatim}
+  \caption{Alternative to Fig.~\ref{fig:simpledefaultprogram} with error containment
+  \label{fig:noerrordefaultprogram}}
+  \end{figure}
+
+We can model \syncrashifempty{} as a special operator of the default 
+calculus governed by the following rules:
+
+\begin{mathpar}
+\inferrule[T-CrashIfEmpty]{
+  \typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}
 }{
-  \synvar{e}\compiles\synkeyword{Some}\;\synvar{e}
+  \typctx{\Gamma}\typvdash\syncrashifempty\;\synvar{e}\typcolon\synvar{\tau}
+}
+
+\inferrule[D-CrashIfEmptyError]{}{
+  \syncrashifempty\;\synemptydefault\exeval\synerror
+}
+
+\inferrule[D-CrashIfEmptyOK]{
+  \synvar{e}\neq \synemptydefault
+}{
+  \syncrashifempty\;\synvar{e}\exeval \synvar{e}
+}
+
+\inferrule[C-CrashIfEmpty]{
+  \synvar{e}\compiles\synvar{e'}
+}{
+  \syncrashifempty\;\synvar{e}\compiles\synmatch\synvar{e'}\synwith
+  \synnone\;\synarrow\synerror\synmid\synsome\synvar{e'}\synarrow 
+  \synvar{e'}
 }
 \end{mathpar}
 
-This supposes 
-that default terms are wrapped as \verb|crash_if_not_empty| arguments.
-Indeed, since we will be transforming $\tau$ to $\tau\;\text{option}$ inside 
-defaults, so one needs to eliminate the \verb|None| case before using the 
-value coming from a default evaluation. 
+The addition of \syncrashifempty{} to the default calculus allow us to prevent 
+\synemptydefault{} to leak beyond this special operator call. Hence, we can 
+apply our \synvar{\tau} to \synvar{\tau} \texttt{option} transformation scheme 
+locally rather than globally on all terms of the program. More specifically, 
+we can assume that after it has been defined, a scope variable has type 
+\synvar{\tau} rather than \synvar{\tau} \texttt{option} in our translated program.
+
+\begin{figure}[htb]
+  \begin{Verbatim}[frame=lines,label=Simple lambda calculus program, numbers=left, framesep=10pt, samepage=true]
+  let crash_if_empty x = match x with Some x -> x | None -> raise Error 
+  
+  let X (a: unit -> int option) (b: unit -> int option) : (int * int) =
+    let a : int = crash_if_empty (match a () with 
+      | Some x -> Some x
+      | None -> if true then Some 0 else None))
+    in
+    let b : int = crash_if_empty (match b () with 
+      | Some x -> Some x 
+      | None -> if true then Some (a + 1) else None)
+    in 
+    (a, b)
+  
+  let Y (c: unit -> bool option) : bool = 
+    let X_1[a] : unit -> int = fun () -> if true then Some 42 else None in
+    let X_1[b] : unit -> int = fun () -> None in 
+    let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
+    let c : bool = crash_if_empty (match c () with  
+      | Some x -> Some x 
+      | None -> (match (if X_1[b] != 43 then Some false else None) with 
+        | Some x -> Some x 
+        | None -> if X_1[b] == 43 then true else None))
+    in 
+    c 
+  \end{Verbatim}
+  \caption{Translation of Fig.~\ref{fig:noerrordefaultprogram} to lambda calculus
+  \label{fig:lambdaprogram}}
+  \end{figure}
+
+Fig.~\ref{fig:lambdaprogram} shows the result of the compilation of the code in
+Fig.~\ref{fig:noerrordefaultprogram} according to our locally-restricted 
+compilation scheme. The \texttt{process\_exceptions} functions has been 
+partially evaluated and specialized to the example for readability.
+
+This compilation mode helps minimizing the number of branching required 
+at execution time, but comes a the price of being very specialized to the 
+exact shape of the programs that we wish to compile. Indeed, we had to 
+know which function parameter types to change from \synvar{\tau} to 
+\synvar{\tau} \texttt{option}: here, only the thunked arguments of the 
+scopes. We claim that the correctness of the local application of our compilation 
+scheme can be validated by a mere typechecking pass over the resulting 
+lambda-calculus program.
+
+Last, we want to discuss further the insertion of \syncrashifempty{} calls. 
+Inserting these calls effectively changes the semantics of the default calculus 
+program. By preventing the \synemptydefault{} error to propagate and be later 
+caught by an exception of a default, we change the behavior of the program.
+Hence, it is the program of Fig.~\ref{fig:noerrordefaultprogram} that 
+should be taken as a reference, and not the program of 
+Fig.~\ref{fig:simpledefaultprogram}.
+
+We chose to insert the \syncrashifempty{} calls before each scope variable 
+definition because it corresponds to the following high-level behavior:
+each scope variable should be defined at execution time by one rule coming 
+from the source Catala program. Indeed, if no rules from the source 
+Catala program were to apply for a particular scope variable, then this 
+scope variable would evaluate to \synemptydefault{} in the default calculus.
+
+Contrary to tax rules DSL like \cite{merigoux:hal-02936606} that have a special 
+\texttt{undefined} value (similar to \synemptydefault{} or the null pointer), 
+we wanted Catala not to reproduce the billion-dollar mistake and force the 
+programmer to rely on user-defined option types to deal with missing data 
+situations. Alternatively, the Catala programmer can also define an additional 
+base case rule in the source program defining a user-chosen default value 
+for a particular scope-variable. 
 
 \printbibliography
 
