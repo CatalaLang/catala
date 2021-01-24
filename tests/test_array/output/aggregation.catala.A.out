@@ -1,3 +1,2 @@
-catala: too many arguments, don't know what to do with `test_array/good/aggregation_2.catala'
-Usage: catala [OPTION]... BACKEND FILE
-Try `catala --help' for more information.
+[RESULT] Computation successful! Results:
+[RESULT] x = [$0.00; $9.00; $5.20]

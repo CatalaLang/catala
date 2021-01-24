@@ -1,3 +1,7 @@
-catala: too many arguments, don't know what to do with `test_default/bad/empty_with_rules.catala'
-Usage: catala [OPTION]... BACKEND FILE
-Try `catala --help' for more information.
+[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
+[ERROR] 
+[ERROR]  --> test_default/bad/empty.catala
+[ERROR]   | 
+[ERROR] 6 |   param y content bool
+[ERROR]   |         ^
+[ERROR]   + Article

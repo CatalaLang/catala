@@ -1,3 +1,7 @@
-catala: too many arguments, don't know what to do with `test_struct/bad/nested2.catala', `test_struct/bad/nested.catala'
-Usage: catala [OPTION]... BACKEND FILE
-Try `catala --help' for more information.
+[ERROR] The type S is defined using itself, which is forbidden since Catala does not provide recursive types
+[ERROR] 
+[ERROR]  --> test_struct/bad/nested.catala
+[ERROR]   | 
+[ERROR] 5 |   data x content S 
+[ERROR]   |                  ^
+[ERROR]   + Article

@@ -34,8 +34,8 @@ reset_tests: $(subst .out,.in,$(wildcard */output/*.out))
 # <test_dir>/output/<test_name>.catala.<scope_name>.out
 %.out: .FORCE
 	@$(CATALA) --unstyled $(wildcard \
-		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))* \
-		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))*) \
+		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala* \
+		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala*) \
 	-s $(word 3, $(subst ., ,$*)) 2>&1 | \
 		colordiff -u -b $@ - || { echo "${RED}FAIL${RESET} ${PURPLE}$*${RESET}"; exit 1; }
 	@echo "${GREEN}PASS${RESET} ${PURPLE}$*${RESET}"
@@ -45,11 +45,11 @@ reset_tests: $(subst .out,.in,$(wildcard */output/*.out))
 # writes this output to the <test_dir>/output/<test_name>.catala.<scope_name>.out file
 %.in: .FORCE
 	@-$(CATALA) $(wildcard \
-		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))* \
-		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))*) \
+		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala* \
+		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala*) \
 	-s $(word 3, $(subst ., ,$*))
 	@-$(CATALA) --unstyled $(wildcard \
-		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))* \
-		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*))))*) \
+		$(word 1, $(subst /, , $*))/good/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala* \
+		$(word 1, $(subst /, , $*))/bad/$(word 1, $(subst ., ,$(word 3, $(subst /, , $*)))).catala*) \
 	-s $(word 3, $(subst ., ,$*)) \
 		> $(word 1, $(subst /, , $*))/output/$(word 3, $(subst /, , $*)).out 2>&1

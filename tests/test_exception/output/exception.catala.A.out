@@ -1,3 +1,2 @@
-catala: too many arguments, don't know what to do with `test_exception/good/exceptions_squared.catala', `test_exception/bad/exceptions_cycle.catala'
-Usage: catala [OPTION]... BACKEND FILE
-Try `catala --help' for more information.
+[RESULT] Computation successful! Results:
+[RESULT] x = 1
