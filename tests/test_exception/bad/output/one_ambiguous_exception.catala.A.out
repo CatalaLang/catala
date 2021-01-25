@@ -1,0 +1,13 @@
+[ERROR] This exception can refer to several definitions. Try using labels to disambiguate
+[ERROR] 
+[ERROR]   --> test_exception/bad/one_ambiguous_exception.catala
+[ERROR]    | 
+[ERROR] 16 |   def y := 4
+[ERROR]    |            
+[ERROR] 17 | 
+[ERROR]    | 
+[ERROR] 18 |   exception
+[ERROR]    |   ^^^^^^^^^
+[ERROR] 19 |   def y := 3
+[ERROR]    |   ^^^^^^^^^^^
+[ERROR]    + Test

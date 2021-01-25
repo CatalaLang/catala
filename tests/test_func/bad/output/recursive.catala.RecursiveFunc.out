@@ -1,0 +1,7 @@
+[ERROR] The variable f is used in one of its definitions, but recursion is forbidden in Catala
+[ERROR] 
+[ERROR]  --> test_func/bad/recursive.catala
+[ERROR]   | 
+[ERROR] 8 |   def f of x := f of x + 1
+[ERROR]   |                 ^
+[ERROR]   +  Article 
