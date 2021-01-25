@@ -21,15 +21,15 @@ options when debugging.
    your test.
 4. When you're happy with the output, launch `make foo/{good,bad}/bar.catala.A.in`. This 
    will record the content of the output of your test into a file.
-5. Check that your test pass with `make foo/output/bar.catala.A.out`.
+5. Check that your test pass with `make foo/{good,bad}/output/bar.catala.A.out`.
 6. That's it, you've added a new test for the Catala language!
 
 
 ## Workflow for fixing regressions
 
 1. Run `make`, if a test fails you should see something like 
-   `[FAIL foo/output/bar.catala.A]`.
-2. Compare the computed and expected output with `make foo/output/bar.catala.A.out`.
+   `[FAIL foo/{good,bad}/output/bar.catala.A]`.
+2. Compare the computed and expected output with `make foo/{good,bad}/output/bar.catala.A.out`.
 3. Debug the compiler and/or the test, running `make foo/{good,bad}/bar.catala.A.run` 
    periodically to check the output of Catala on the test case.
 4. When you're finished debugging, record the new test output with 
