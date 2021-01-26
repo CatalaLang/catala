@@ -314,16 +314,23 @@ logical_expression:
    (Binop (binop, e1, e2), Pos.from_lpos $sloc)
  }
 
+maybe_qualified_constructor:
+| c_or_path = constructor c = option(preceded(DOT, constructor)) {
+   match c with
+  | None -> (None, c_or_path)
+  | Some c -> (Some c_or_path, c)
+}
+
 optional_binding:
 | { ([], None)}
 | OF i = ident {([], Some i)}
-| OF c = constructor cs_and_i = constructor_binding {
+| OF c = maybe_qualified_constructor cs_and_i = constructor_binding {
   let (cs, i) = cs_and_i in
   (c::cs, i)
 }
 
 constructor_binding:
-| c = constructor cs_and_i = optional_binding {
+| c = maybe_qualified_constructor cs_and_i = optional_binding {
   let (cs, i) = cs_and_i in
   (c::cs, i)
  }

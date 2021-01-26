@@ -134,7 +134,8 @@ type enum_decl = {
         nude = true;
       }]
 
-type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
+type match_case_pattern =
+  (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option
 [@@deriving
   visitors
     {

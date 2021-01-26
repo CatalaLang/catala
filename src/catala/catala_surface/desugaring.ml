@@ -55,9 +55,10 @@ let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
 module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
 
-let disambiguate_constructor (ctxt : Name_resolution.context) (constructor : string Pos.marked list)
-    (pos : Pos.t) : Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t =
-  let constructor =
+let disambiguate_constructor (ctxt : Name_resolution.context)
+    (constructor : (string Pos.marked option * string Pos.marked) list) (pos : Pos.t) :
+    Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t =
+  let enum, constructor =
     match constructor with
     | [ c ] -> c
     | _ ->
@@ -71,17 +72,36 @@ let disambiguate_constructor (ctxt : Name_resolution.context) (constructor : str
         "The name of this constructor has not been defined before, maybe it is a typo?"
         (Pos.get_position constructor)
   in
-  if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
-    Errors.raise_spanned_error
-      (Format.asprintf
-         "This constructor name is ambiguous, it can belong to %a. Desambiguate it by prefixing it \
-          with the enum name."
-         (Format.pp_print_list
-            ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-            (fun fmt (s_name, _) -> Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-         (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-      (Pos.get_position constructor);
-  Scopelang.Ast.EnumMap.choose possible_c_uids
+  match enum with
+  | None ->
+      if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
+        Errors.raise_spanned_error
+          (Format.asprintf
+             "This constructor name is ambiguous, it can belong to %a. Disambiguate it by \
+              prefixing it with the enum name."
+             (Format.pp_print_list
+                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                (fun fmt (s_name, _) ->
+                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+          (Pos.get_position constructor);
+      Scopelang.Ast.EnumMap.choose possible_c_uids
+  | Some enum -> (
+      try
+        (* The path is fully qualified *)
+        let e_uid = Desugared.Ast.IdentMap.find (Pos.unmark enum) ctxt.enum_idmap in
+        try
+          let c_uid = Scopelang.Ast.EnumMap.find e_uid possible_c_uids in
+          (e_uid, c_uid)
+        with Not_found ->
+          Errors.raise_spanned_error
+            (Format.asprintf "Enum %s does not contain case %s" (Pos.unmark enum)
+               (Pos.unmark constructor))
+            pos
+      with Not_found ->
+        Errors.raise_spanned_error
+          (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
+          (Pos.get_position enum) )
 
 (** Usage: [translate_expr scope ctxt expr]
 
