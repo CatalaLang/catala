@@ -205,7 +205,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       | Some uid ->
           Scopelang.Ast.make_var (uid, pos) (* the whole box thing is to accomodate for this case *)
       )
-  | Dotted (e, x) -> (
+  | Dotted (e, _c, x) -> (
       match Pos.unmark e with
       | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
           (* In this case, y.x is a subscope variable *)

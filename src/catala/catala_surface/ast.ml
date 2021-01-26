@@ -263,7 +263,7 @@ and expression =
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list
   | Ident of ident
-  | Dotted of expression Pos.marked * ident Pos.marked
+  | Dotted of expression Pos.marked * constructor Pos.marked option * ident Pos.marked
       (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors

@@ -112,8 +112,8 @@ small_expression:
 | e = small_expression ARROW c = constructor {
   (EnumProject (e, c), Pos.from_lpos $sloc)
 }
-| e = small_expression DOT i = ident {
-  (Dotted (e, i), Pos.from_lpos $sloc)
+| e = small_expression DOT c = option(terminated(constructor,DOT)) i = ident {
+  (Dotted (e, c, i), Pos.from_lpos $sloc)
 }
 
 struct_content_field:
