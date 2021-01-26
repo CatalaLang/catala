@@ -205,7 +205,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       | Some uid ->
           Scopelang.Ast.make_var (uid, pos) (* the whole box thing is to accomodate for this case *)
       )
-  | Dotted (e, _c, x) -> (
+  | Dotted (e, c, x) -> (
       match Pos.unmark e with
       | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
           (* In this case, y.x is a subscope variable *)
@@ -228,21 +228,48 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             with Not_found ->
               Errors.raise_spanned_error "This identifier should refer to a struct field"
                 (Pos.get_position x)
-          in
-          if Scopelang.Ast.StructMap.cardinal x_possible_structs > 1 then
-            Errors.raise_spanned_error
-              (Format.asprintf
-                 "This struct field name is ambiguous, it can belong to %a. Desambiguate it by \
-                  prefixing it with the struct name."
-                 (Format.pp_print_list
-                    ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                    (fun fmt (s_name, _) ->
-                      Format.fprintf fmt "%a" Scopelang.Ast.StructName.format_t s_name))
-                 (Scopelang.Ast.StructMap.bindings x_possible_structs))
-              (Pos.get_position x)
-          else
-            let s_uid, f_uid = Scopelang.Ast.StructMap.choose x_possible_structs in
-            Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, s_uid), pos)) e )
+          in (
+            match c with
+            | None ->
+              (* No constructor name was specified *)
+              if Scopelang.Ast.StructMap.cardinal x_possible_structs > 1 then
+                Errors.raise_spanned_error
+                  (Format.asprintf
+                     "This struct field name is ambiguous, it can belong to %a. Disambiguate it by \
+                      prefixing it with the struct name."
+                     (Format.pp_print_list
+                        ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                        (fun fmt (s_name, _) ->
+                          Format.fprintf fmt "%a" Scopelang.Ast.StructName.format_t s_name))
+                     (Scopelang.Ast.StructMap.bindings x_possible_structs))
+                  (Pos.get_position x)
+              else
+                let s_uid, f_uid = Scopelang.Ast.StructMap.choose x_possible_structs in
+                Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, s_uid), pos)) e
+            | Some c_name ->
+              try
+                let c_uid = Desugared.Ast.IdentMap.find (Pos.unmark c_name) ctxt.struct_idmap in
+                try
+                  let f_uid = Scopelang.Ast.StructMap.find c_uid x_possible_structs in
+                  Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, c_uid), pos)) e
+                with
+                | Not_found -> Errors.raise_spanned_error
+                    (Format.asprintf
+                      "Struct %s does not contain field %s"
+                      (Pos.unmark c_name)
+                      (Pos.unmark x)
+                    )
+                    pos
+              with
+              | Not_found -> Errors.raise_spanned_error
+                (Format.asprintf
+                  "Constructor %s has not been defined before"
+                  (Pos.unmark c_name)
+                )
+                (Pos.get_position c_name)
+           )
+      )
+
   | FunCall (f, arg) ->
       Bindlib.box_apply2
         (fun f arg -> (Scopelang.Ast.EApp (f, [ arg ]), pos))
