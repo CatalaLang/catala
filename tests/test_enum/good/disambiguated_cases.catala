@@ -11,5 +11,5 @@ new scope A:
   param e content E
 
 scope A:
-  def e := Case1
+  def e := E.Case1
 */

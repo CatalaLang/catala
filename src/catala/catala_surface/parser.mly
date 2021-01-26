@@ -123,7 +123,7 @@ struct_inject_content:
 | LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET { fields }
 
 struct_or_enum_inject:
-| enum = constructor c = option(terminated(constructor, DOT)) data = option(enum_inject_content) {
+| enum = constructor c = option(preceded(DOT, constructor)) data = option(enum_inject_content) {
   (* The fully qualified enum is actually the optional part, but it leads to shift/reduce conflicts.
      We flip it here *)
   match c with
