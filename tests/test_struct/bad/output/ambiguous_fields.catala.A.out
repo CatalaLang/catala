@@ -1,4 +1,4 @@
-[ERROR] This struct field name is ambiguous, it can belong to Foo or Bar. Desambiguate it by prefixing it with the struct name.
+[ERROR] This struct field name is ambiguous, it can belong to Foo or Bar. Disambiguate it by prefixing it with the struct name.
 [ERROR] 
 [ERROR]   --> test_struct/bad/ambiguous_fields.catala
 [ERROR]    | 
