@@ -140,8 +140,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
         let prgm, ctx = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
-        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx)
-           prgm); *)
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx) prgm);
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type ctx prgm in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
@@ -162,6 +161,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var)
                  (Dcalc.Print.format_expr ctx) result))
           results;
+        let _prgm = Lcalc.Eliminate_defaults.translate_expr prgm in
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);

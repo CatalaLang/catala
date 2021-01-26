@@ -1,0 +1,7 @@
+(library
+ (name lcalc)
+ (public_name catala.lcalc)
+ (libraries bindlib dcalc))
+
+(documentation
+ (package catala))

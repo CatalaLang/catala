@@ -1,7 +1,7 @@
 (library
  (public_name catala)
  (libraries catala.utils catala.surface catala.desugared catala.literate
-   catala.dcalc))
+   catala.dcalc catala.lcalc))
 
 (documentation
  (package catala))
