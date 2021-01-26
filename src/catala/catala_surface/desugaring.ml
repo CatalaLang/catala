@@ -74,7 +74,7 @@ let disambiguate_constructor (ctxt : Name_resolution.context) (constructor : str
   if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
     Errors.raise_spanned_error
       (Format.asprintf
-         "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing it \
+         "This constructor name is ambiguous, it can belong to %a. Desambiguate it by prefixing it \
           with the enum name."
          (Format.pp_print_list
             ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
@@ -220,7 +220,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             ( Scopelang.Ast.ELocation
                 (SubScopeVar (subscope_real_uid, (subscope_uid, pos), (subscope_var_uid, pos))),
               pos )
-      | _ ->
+      | _ -> (
           (* In this case e.x is the struct field x access of expression e *)
           let e = translate_expr scope ctxt e in
           let x_possible_structs =
@@ -228,9 +228,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             with Not_found ->
               Errors.raise_spanned_error "This identifier should refer to a struct field"
                 (Pos.get_position x)
-          in (
-            match c with
-            | None ->
+          in
+          match c with
+          | None ->
               (* No constructor name was specified *)
               if Scopelang.Ast.StructMap.cardinal x_possible_structs > 1 then
                 Errors.raise_spanned_error
@@ -246,30 +246,23 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               else
                 let s_uid, f_uid = Scopelang.Ast.StructMap.choose x_possible_structs in
                 Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, s_uid), pos)) e
-            | Some c_name ->
+          | Some c_name -> (
               try
                 let c_uid = Desugared.Ast.IdentMap.find (Pos.unmark c_name) ctxt.struct_idmap in
                 try
                   let f_uid = Scopelang.Ast.StructMap.find c_uid x_possible_structs in
-                  Bindlib.box_apply (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, c_uid), pos)) e
-                with
-                | Not_found -> Errors.raise_spanned_error
-                    (Format.asprintf
-                      "Struct %s does not contain field %s"
-                      (Pos.unmark c_name)
-                      (Pos.unmark x)
-                    )
+                  Bindlib.box_apply
+                    (fun e -> (Scopelang.Ast.EStructAccess (e, f_uid, c_uid), pos))
+                    e
+                with Not_found ->
+                  Errors.raise_spanned_error
+                    (Format.asprintf "Struct %s does not contain field %s" (Pos.unmark c_name)
+                       (Pos.unmark x))
                     pos
-              with
-              | Not_found -> Errors.raise_spanned_error
-                (Format.asprintf
-                  "Constructor %s has not been defined before"
-                  (Pos.unmark c_name)
-                )
-                (Pos.get_position c_name)
-           )
-      )
-
+              with Not_found ->
+                Errors.raise_spanned_error
+                  (Format.asprintf "Struct %s has not been defined before" (Pos.unmark c_name))
+                  (Pos.get_position c_name) ) ) )
   | FunCall (f, arg) ->
       Bindlib.box_apply2
         (fun f arg -> (Scopelang.Ast.EApp (f, [ arg ]), pos))
@@ -309,7 +302,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
       Bindlib.box_apply
         (fun s_fields -> (Scopelang.Ast.EStruct (s_uid, s_fields), pos))
         (LiftStructFieldMap.lift_box s_fields)
-  | EnumInject (constructor, payload) ->
+  | EnumInject (enum, constructor, payload) -> (
       let possible_c_uids =
         try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
         with Not_found ->
@@ -317,30 +310,63 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             "The name of this constructor has not been defined before, maybe it is a typo?"
             (Pos.get_position constructor)
       in
-      if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
-        Errors.raise_spanned_error
-          (Format.asprintf
-             "This constuctor name is ambiguous, it can belong to %a. Desambiguate it by prefixing \
-              it with the enum name."
-             (Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                (fun fmt (s_name, _) ->
-                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-          (Pos.get_position constructor)
-      else
-        let e_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
-        let payload = Option.map (translate_expr scope ctxt) payload in
-        Bindlib.box_apply
-          (fun payload ->
-            ( Scopelang.Ast.EEnumInj
-                ( ( match payload with
-                  | Some e' -> e'
-                  | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor) ),
-                  c_uid,
-                  e_uid ),
-              pos ))
-          (Bindlib.box_opt payload)
+      match enum with
+      | None ->
+          if
+            (* No constructor name was specified *)
+            Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1
+          then
+            Errors.raise_spanned_error
+              (Format.asprintf
+                 "This constructor name is ambiguous, it can belong to %a. Desambiguate it by \
+                  prefixing it with the enum name."
+                 (Format.pp_print_list
+                    ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                    (fun fmt (s_name, _) ->
+                      Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+                 (Scopelang.Ast.EnumMap.bindings possible_c_uids))
+              (Pos.get_position constructor)
+          else
+            let e_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
+            let payload = Option.map (translate_expr scope ctxt) payload in
+            Bindlib.box_apply
+              (fun payload ->
+                ( Scopelang.Ast.EEnumInj
+                    ( ( match payload with
+                      | Some e' -> e'
+                      | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)
+                      ),
+                      c_uid,
+                      e_uid ),
+                  pos ))
+              (Bindlib.box_opt payload)
+      | Some enum -> (
+          try
+            (* The path has been fully qualified *)
+            let e_uid = Desugared.Ast.IdentMap.find (Pos.unmark enum) ctxt.enum_idmap in
+            try
+              let c_uid = Scopelang.Ast.EnumMap.find e_uid possible_c_uids in
+              let payload = Option.map (translate_expr scope ctxt) payload in
+              Bindlib.box_apply
+                (fun payload ->
+                  ( Scopelang.Ast.EEnumInj
+                      ( ( match payload with
+                        | Some e' -> e'
+                        | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)
+                        ),
+                        c_uid,
+                        e_uid ),
+                    pos ))
+                (Bindlib.box_opt payload)
+            with Not_found ->
+              Errors.raise_spanned_error
+                (Format.asprintf "Enum %s does not contain case %s" (Pos.unmark enum)
+                   (Pos.unmark constructor))
+                pos
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
+              (Pos.get_position enum) ) )
   | MatchWith (e1, (cases, _cases_pos)) ->
       let e1 = translate_expr scope ctxt e1 in
       let cases_d, e_uid = disambiguate_match_and_build_expression scope ctxt cases in

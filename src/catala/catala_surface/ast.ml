@@ -258,7 +258,8 @@ and expression =
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
   | Literal of literal
-  | EnumInject of constructor Pos.marked * expression Pos.marked option
+  | EnumInject of
+      constructor Pos.marked option * constructor Pos.marked * expression Pos.marked option
   | EnumProject of expression Pos.marked * constructor Pos.marked
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list

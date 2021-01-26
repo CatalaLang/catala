@@ -1,0 +1,15 @@
+@Article@
+
+/*
+new enum E:
+  -- Case1 content int
+
+new enum F:
+  -- Case1 content int
+
+new scope A:
+  param e content E
+
+scope A:
+  def e := Case1
+*/

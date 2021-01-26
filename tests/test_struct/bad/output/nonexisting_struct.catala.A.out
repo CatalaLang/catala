@@ -1,4 +1,4 @@
-[ERROR] Constructor Fo has not been defined before
+[ERROR] Struct Fo has not been defined before
 [ERROR] 
 [ERROR]   --> test_struct/bad/nonexisting_struct.catala
 [ERROR]    | 
