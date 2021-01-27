@@ -117,9 +117,9 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
 
-type struct_ctx = StructFieldName.t list StructMap.t
+type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
-type enum_ctx = EnumConstructor.t list EnumMap.t
+type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 

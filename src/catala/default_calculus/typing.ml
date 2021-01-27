@@ -65,14 +65,14 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter)
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.StructFieldName.format_t f format_typ t))
-        (List.combine ts (Ast.StructMap.find s ctx.ctx_structs))
+        (List.combine ts (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
   | TEnum (ts, e) ->
       Format.fprintf fmt "%a [@[<hov 2>%a@]]" Ast.EnumName.format_t e
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.EnumConstructor.format_t f format_typ t))
-        (List.combine ts (Ast.EnumMap.find e ctx.ctx_enums))
+        (List.combine ts (List.map fst (Ast.EnumMap.find e ctx.ctx_enums)))
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1

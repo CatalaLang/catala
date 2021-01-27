@@ -55,7 +55,7 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
   match Pos.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" format_tlit l
   | TTuple (ts, None) ->
-      Format.fprintf fmt "@[<hov 2>(%a)]"
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
            (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
@@ -66,14 +66,14 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.StructFieldName.format_t f format_typ t))
-        (List.combine ts (Ast.StructMap.find s ctx.ctx_structs))
+        (List.combine ts (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
   | TEnum (ts, e) ->
       Format.fprintf fmt "%a [@[<hov 2>%a@]]" Ast.EnumName.format_t e
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.EnumConstructor.format_t f format_typ t))
-        (List.combine ts (Ast.EnumMap.find e ctx.ctx_enums))
+        (List.combine ts (List.map fst (Ast.EnumMap.find e ctx.ctx_enums)))
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
@@ -151,7 +151,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Div k -> Format.fprintf fmt "/%a" format_op_kind k
   | And -> Format.fprintf fmt "%s" "&&"
   | Or -> Format.fprintf fmt "%s" "||"
-  | Eq -> Format.fprintf fmt "%s" "=="
+  | Eq -> Format.fprintf fmt "%s" "="
   | Neq -> Format.fprintf fmt "%s" "!="
   | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
@@ -216,7 +216,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
            (fun fmt (e, struct_field) ->
              Format.fprintf fmt "\"%a\":@ %a" Ast.StructFieldName.format_t struct_field format_expr
                e))
-        (List.combine es (Ast.StructMap.find s ctx.ctx_structs))
+        (List.combine es (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[%a]@]"
         (Format.pp_print_list
@@ -228,10 +228,10 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some s ->
           Format.fprintf fmt "%a.\"%a\"" format_expr e1 Ast.StructFieldName.format_t
-            (List.nth (Ast.StructMap.find s ctx.ctx_structs) n) )
+            (fst (List.nth (Ast.StructMap.find s ctx.ctx_structs) n)) )
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Ast.EnumConstructor.format_t
-        (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n)
+        (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
       Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
@@ -239,7 +239,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (e, c) ->
              Format.fprintf fmt "%a@ %a" Ast.EnumConstructor.format_t c format_expr e))
-        (List.combine es (Ast.EnumMap.find e_name ctx.ctx_enums))
+        (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in

@@ -525,10 +525,20 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let struct_ctx = prgm.program_structs in
   let enum_ctx = prgm.program_enums in
+  let ctx_for_typ_translation scope_name =
+    empty_ctx struct_ctx enum_ctx Ast.ScopeMap.empty scope_name
+  in
+  let dummy_scope = Ast.ScopeName.fresh ("dummy", Pos.no_pos) in
   let decl_ctx =
     {
-      Dcalc.Ast.ctx_structs = Ast.StructMap.map (List.map fst) struct_ctx;
-      Dcalc.Ast.ctx_enums = Ast.EnumMap.map (List.map fst) enum_ctx;
+      Dcalc.Ast.ctx_structs =
+        Ast.StructMap.map
+          (List.map (fun (x, y) -> (x, translate_typ (ctx_for_typ_translation dummy_scope) y)))
+          struct_ctx;
+      Dcalc.Ast.ctx_enums =
+        Ast.EnumMap.map
+          (List.map (fun (x, y) -> (x, (translate_typ (ctx_for_typ_translation dummy_scope)) y)))
+          enum_ctx;
     }
   in
   let sctx : scope_sigs_ctx =
@@ -537,9 +547,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
         let scope_dvar = Dcalc.Ast.Var.make (Ast.ScopeName.get_info scope.Ast.scope_decl_name) in
         ( List.map
             (fun (scope_var, tau) ->
-              let tau =
-                translate_typ (empty_ctx struct_ctx enum_ctx Ast.ScopeMap.empty scope_name) tau
-              in
+              let tau = translate_typ (ctx_for_typ_translation scope_name) tau in
               (scope_var, Pos.unmark tau))
             (Ast.ScopeVarMap.bindings scope.scope_sig),
           scope_dvar ))

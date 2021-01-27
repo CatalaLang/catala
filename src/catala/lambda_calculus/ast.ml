@@ -24,13 +24,14 @@ module D = Dcalc.Ast
 
 type lit =
   | LBool of bool
-  | LCrash
   | LInt of Z.t
   | LRat of Q.t
   | LMoney of Z.t
   | LUnit
   | LDate of D.date
   | LDuration of D.duration
+
+type except = ConflictError | EmptyError | Crash
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -49,6 +50,8 @@ type expr =
   | EAssert of expr Pos.marked
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | ERaise of except
+  | ECatch of expr Pos.marked * except * expr Pos.marked
 
 (** {1 Variable helpers} *)
 

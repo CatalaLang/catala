@@ -31,6 +31,14 @@ endif
 		-s $(SCOPE) \
 		$<
 
+%.ml: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+	@$(CATALA) Makefile $<
+	@$(CATALA) \
+		OCaml \
+		-s $(SCOPE) \
+		$<
+
+
 %.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
 	@$(CATALA) Makefile $<
 	$(CATALA) \
