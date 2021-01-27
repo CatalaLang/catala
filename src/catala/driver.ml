@@ -161,7 +161,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var)
                  (Dcalc.Print.format_expr ctx) result))
           results;
-        let _prgm = Lcalc.Eliminate_defaults.translate_expr prgm in
+        (* let _prgm = Lcalc.Eliminate_defaults.translate_expr prgm in *)
         0
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);
