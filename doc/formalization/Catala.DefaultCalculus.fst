@@ -1,9 +1,5 @@
 module Catala.DefaultCalculus
 
-//TODO: change default to have exceptions first
-//TODO: change empty error propagation for function application, does not 
-//propagate for function argument
-
 (*** Syntax *)
 
 type ty =
@@ -26,7 +22,7 @@ type exp =
   | EAbs : v: var -> vty: ty -> body: exp -> exp
   | ELit : l: lit -> exp
   | EIf : test: exp -> btrue: exp -> bfalse: exp -> exp
-  | EDefault : just: exp -> cons: exp -> subdefaults: list exp -> exp
+  | EDefault : exceptions: list exp -> just: exp -> cons: exp -> exp
 
 (*** Operational semantics *)
 
@@ -49,8 +45,8 @@ let rec subst (x: var) (e_x e: exp) : Tot exp (decreases e) =
   | EApp e1 e2 tau_arg -> EApp (subst x e_x e1) (subst x e_x e2) tau_arg
   | ELit l -> ELit l
   | EIf e1 e2 e3 -> EIf (subst x e_x e1) (subst x e_x e2) (subst x e_x e3)
-  | EDefault ejust econd subs ->
-    EDefault (subst x e_x ejust) (subst x e_x econd) (subst_list x e_x subs)
+  | EDefault exceptions ejust econd ->
+    EDefault (subst_list x e_x exceptions) (subst x e_x ejust) (subst x e_x econd)
 and subst_list (x: var) (e_x: exp) (subs: list exp) : Tot (list exp) (decreases subs) =
   match subs with
   | [] -> []
@@ -79,25 +75,22 @@ let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau
   if is_value e1
   then
     match e1 with
-    | ELit LConflictError -> Some c_err
-    | ELit LEmptyError -> Some e_err
+    | ELit LConflictError -> Some c_err (* D-ContextConflictError *)
+    | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
     | _ ->
       if is_value e2
       then
+        if e2 = c_err then Some c_err else
         (match e1 with
-          | EAbs x t e' -> Some (subst x e2 e')
+          | EAbs x t e' -> Some (subst x e2 e') (* D-Beta *)
           | _ -> None)
       else
         (match step e2 with
-          | Some (ELit LConflictError) -> Some (ELit LConflictError)
-          | Some (ELit LEmptyError) -> Some (ELit LEmptyError)
-          | Some e2' -> Some (EApp e1 e2' tau_arg)
+          | Some e2' -> Some (EApp e1 e2' tau_arg) (* D-Context *)
           | None -> None)
   else
     (match step e1 with
-      | Some (ELit LConflictError) -> Some c_err
-      | Some (ELit LEmptyError) -> Some e_err
-      | Some e1' -> Some (EApp e1' e2 tau_arg)
+      | Some e1' -> Some (EApp e1' e2 tau_arg) (* D-Context *)
       | None -> None)
 
 and step_if (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (e3: exp{e3 << e})
@@ -105,86 +98,77 @@ and step_if (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (e3: exp{e3 << e})
   if is_value e1
   then
     match e1 with
-    | ELit LConflictError -> Some c_err
-    | ELit LEmptyError -> Some e_err
-    | ELit LTrue -> Some e2
-    | ELit LFalse -> Some e3
+    | ELit LConflictError -> Some c_err  (* D-ContextConflictError *)
+    | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
+    | ELit LTrue -> Some e2 (* D-CondTrue *)
+    | ELit LFalse -> Some e3 (* D-CondFalse*)
     | _ -> None
   else
     match (step e1) with
-    | Some (ELit LConflictError) -> Some c_err
-    | Some (ELit LEmptyError) -> Some e_err
-    | Some e1' -> Some (EIf e1' e2 e3)
+    | Some e1' -> Some (EIf e1' e2 e3) (* D-Context *)
     | None -> None
 
-and step_subdefaults_left_to_right
+and step_exceptions_left_to_right
       (e: exp)
+      (exceptions: list exp {exceptions << e})
       (just: exp{just << e})
       (cons: exp{cons << e})
-      (subs: list exp {subs << e})
-    : Tot (option exp) (decreases %[ e; 2; subs ]) =
-  match subs with
-  | [] -> Some (EDefault just cons [])
+    : Tot (option exp) (decreases %[ e; 2; exceptions ]) =
+  match exceptions with
+  | [] -> None
   | hd :: tl ->
     if is_value hd
     then
-      match step_subdefaults_left_to_right e just cons tl with
-      | Some (ELit LConflictError) -> Some c_err
-      | Some (EDefault just cons tl') -> Some (EDefault just cons (hd :: tl'))
+      match step_exceptions_left_to_right e tl just cons with
+      | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
+      | Some (EDefault tl' just cons) -> Some (EDefault (hd :: tl') just cons) (* D-Context *)
       | _ -> None
     else
       match step hd with
-      | Some (ELit LConflictError) -> Some c_err
-      | Some hd' -> Some (EDefault just cons (hd' :: tl))
+      | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
+      | Some hd' -> Some (EDefault (hd' :: tl) just cons ) (* D-Context *)
       | _ -> None
 
-and step_subdefaults_just_false
+and step_exceptions
       (e: exp)
+      (exceptions: list exp {exceptions << e})
       (just: exp{just << e})
       (cons: exp{cons << e})
-      (subs: list exp {subs << e})
     : Tot (option exp) (decreases %[ e; 3 ]) =
-  if List.Tot.for_all (fun sub -> is_value sub) subs
+  if List.Tot.for_all (fun except -> is_value except) exceptions
   then
-    match empty_count AllEmpty subs with
-    | AllEmpty -> Some (ELit LEmptyError) (* D-DefaultFalseNoSub *)
-    | OneNonEmpty e' -> Some e' (* D-DefaultFalseOneSub *)
-    | Conflict ->
-      (* D-DefaultFalseSubConflict *)
-      Some (ELit LConflictError)
-  else
-    match step_subdefaults_left_to_right e just cons subs with
-    | Some e' -> Some e'
-    | _ -> None
+    match empty_count AllEmpty exceptions with
+    | AllEmpty -> None
+    | OneNonEmpty e' -> Some e' (* D-DefaultOneException *)
+    | Conflict -> Some (ELit LConflictError) (* D-DefaultExceptionConflict *)
+  else step_exceptions_left_to_right e exceptions just cons
 
-and step_default (e: exp) (just: exp{just << e}) (cons: exp{cons << e}) (subs: list exp {subs << e})
+and step_default (e: exp) (exceptions: list exp {exceptions << e}) (just: exp{just << e}) (cons: exp{cons << e})
     : Tot (option exp) (decreases %[ e; 4 ]) =
-  if is_value just
-  then
-    match just with
-    | ELit LConflictError -> Some c_err
-    | ELit LEmptyError -> Some e_err
-    | _ ->
-      match just, cons with
-      | EAbs _ _ _, EAbs _ _ _ -> None
-      | ELit LTrue, ELit LEmptyError -> Some (EDefault (ELit LFalse) cons subs)
-      | ELit LTrue, _ ->
-        (* D-DefaultTrueError *)
-        (* D-DefaultTrueNoError *)
-        if is_value cons
-        then Some cons
-        else
-          (match (step cons) with
-            | Some (ELit LConflictError) -> Some c_err
-            | Some cons' -> Some (EDefault just cons' subs)
-            | None -> None)
-      | ELit LFalse, _ -> step_subdefaults_just_false e just cons subs
-      | _ -> None
+  match step_exceptions e exceptions just cons with
+  | Some e' -> Some e'
+  | None ->
+    if is_value just then
+      match just with
+      | ELit LConflictError -> Some c_err  (* D-ContextConflictError *)
+      | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
+      | _ ->
+        match just with
+        | ELit LTrue ->
+          if is_value cons
+          then Some cons
+          else
+            (match (step cons) with
+              | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
+              | Some cons' -> Some (EDefault exceptions just cons') (* D-DefaultTrueNoExceptions*)
+              | None -> None)
+        | ELit LFalse -> Some e_err (* D-DefaultFalseNoExceptions *)
+        | _ -> None
   else
     match (step just) with
-    | Some just' -> Some (EDefault just' cons subs)
-    | Some (ELit LConflictError) -> Some c_err
-    | Some (ELit LEmptyError) -> Some e_err
+    | Some just' -> Some (EDefault exceptions just' cons)
+    | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
+    | Some (ELit LEmptyError) -> Some e_err (* D-ContextEmptyError *)
     | None -> None
 
 and step (e: exp) : Tot (option exp) (decreases %[ e; 5 ]) =
@@ -231,8 +215,8 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   | ELit LEmptyError -> true
   | ELit LConflictError -> true
   | EIf e1 e2 e3 -> typing g e1 TBool && typing g e2 tau && typing g e3 tau
-  | EDefault ejust econs subs ->
-    typing g ejust TBool && typing g econs tau && typing_list g subs tau (* T-Default *)
+  | EDefault exceptions ejust econs ->
+    typing_list g exceptions tau && typing g ejust TBool && typing g econs tau (* T-Default *)
   | _ -> false
 and typing_list (g: env) (subs: list exp) (tau: ty) : Tot bool (decreases (subs)) =
   match subs with
@@ -271,60 +255,29 @@ let rec progress (e: exp) (tau: ty)
     progress e2 tau;
     progress e3 tau;
     if is_value e1 then is_bool_value_cannot_be_abs empty e1
-  | EDefault just cons subs -> if is_value e then () else progress_defaults e just cons subs tau
+  | EDefault exceptions just cons -> progress_default e exceptions just cons tau
   | _ -> ()
-and progress_defaults
+and progress_default
       (e: exp)
+      (exceptions: list exp {exceptions << e})
       (just: exp{just << e})
       (cons: exp{cons << e})
-      (subs: list exp {subs << e})
       (tau: ty)
-    : Lemma (requires (~(is_value e) /\ e == EDefault just cons subs /\ (typing empty e tau)))
-      (ensures (Some? (step_default e just cons subs)))
+    : Lemma (requires (~(is_value e) /\ e == EDefault exceptions just cons /\ (typing empty e tau)))
+      (ensures (Some? (step_default e exceptions just cons)))
       (decreases %[ e; 2 ]) =
-  progress just TBool;
-  if is_value just
-  then
-    (is_bool_value_cannot_be_abs empty just;
-      match just, cons with
-      | ELit LTrue, ELit LEmptyError -> ()
-      | ELit LTrue, _ -> progress cons tau
-      | ELit LFalse, _ -> progress_defaults_just_false e just cons subs tau
-      | ELit LEmptyError, _ | ELit LConflictError, _ -> ())
-and progress_defaults_just_false
-      (e: exp)
-      (just: exp{just << e})
-      (cons: exp{cons << e})
-      (subs: list exp {subs << e})
-      (tau: ty)
-    : Lemma
-      (requires
-        (~(is_value e) /\ just == ELit LFalse /\ e == EDefault (ELit LFalse) cons subs /\
-          (typing empty e tau)))
-      (ensures (Some? (step_subdefaults_just_false e just cons subs)))
-      (decreases %[ e; 1 ]) =
-  if List.Tot.for_all (fun sub -> is_value sub) subs
-  then ()
-  else progress_defaults_left_to_right e just cons subs tau
-and progress_defaults_left_to_right
-      (e: exp)
-      (just: exp{just << e})
-      (cons: exp{cons << e})
-      (subs: list exp {subs << e})
-      (tau: ty)
-    : Lemma
-      (requires
-        (~(is_value e) /\ just == ELit LFalse /\ (typing empty (EDefault just cons subs) tau)))
-      (ensures (Some? (step_subdefaults_left_to_right e just cons subs)))
-      (decreases %[ e; 0; subs ]) =
-  match subs with
-  | [] -> ()
-  | hd :: tl ->
-    progress hd tau;
-    if is_value hd
-    then
-      (typing_conserved_by_list_reduction empty subs tau;
-        progress_defaults_left_to_right e just cons tl tau)
+  match step_exceptions e exceptions just cons with
+  | Some _ -> ()
+  | None ->
+    if is_value just then
+      (is_bool_value_cannot_be_abs empty just;
+        match just, cons with
+        | ELit LTrue, ELit LEmptyError -> ()
+        | ELit LTrue, _ -> progress cons tau
+        | ELit LFalse, _ ->  ()
+        | ELit LEmptyError, _ -> ()
+        | ELit LConflictError, _ -> ())
+    else progress just TBool
 #pop-options
 
 (*** Preservation *)
@@ -359,8 +312,8 @@ let rec appears_free_in (x: var) (e: exp) : Tot bool =
   | EApp e1 e2 tau_arg -> appears_free_in x e1 || appears_free_in x e2
   | EAbs y _ e1 -> x <> y && appears_free_in x e1
   | EIf e1 e2 e3 -> appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
-  | EDefault ejust econs subs ->
-    appears_free_in x ejust || appears_free_in x econs || appears_free_in_list x subs
+  | EDefault exceptions ejust econs ->
+    appears_free_in_list x exceptions || appears_free_in x ejust || appears_free_in x econs
   | ELit _ -> false
 and appears_free_in_list (x: var) (subs: list exp) : Tot bool =
   match subs with
@@ -383,10 +336,10 @@ let rec free_in_context (x: var) (e: exp) (g: env) (tau: ty)
     free_in_context x e1 g TBool;
     free_in_context x e2 g tau;
     free_in_context x e3 g tau
-  | EDefault ejust econs subs ->
+  | EDefault exceptions ejust econs ->
     free_in_context x ejust g TBool;
     free_in_context x econs g tau;
-    free_in_context_list x subs g tau
+    free_in_context_list x exceptions g tau
 and free_in_context_list (x: var) (subs: list exp) (g: env) (tau: ty)
     : Lemma (requires (typing_list g subs tau))
       (ensures (appears_free_in_list x subs ==> Some? (g x)))
@@ -429,16 +382,16 @@ let rec context_invariance (e: exp) (g g': env) (tau: ty)
     context_invariance e1 g g' TBool;
     context_invariance e2 g g' tau;
     context_invariance e3 g g' tau
-  | EDefault ejust econs subs ->
+  | EDefault exceptions ejust econs ->
     context_invariance ejust g g' TBool;
     context_invariance econs g g' tau;
-    context_invariance_list subs g g' tau
+    context_invariance_list exceptions g g' tau
   | _ -> ()
-and context_invariance_list (subs: list exp) (g g': env) (tau: ty)
-    : Lemma (requires (equalE_list subs g g'))
-      (ensures (typing_list g subs tau <==> typing_list g' subs tau))
-      (decreases %[ subs ]) =
-  match subs with
+and context_invariance_list (exceptions: list exp) (g g': env) (tau: ty)
+    : Lemma (requires (equalE_list exceptions g g'))
+      (ensures (typing_list g exceptions tau <==> typing_list g' exceptions tau))
+      (decreases %[ exceptions ]) =
+  match exceptions with
   | [] -> ()
   | hd :: tl ->
     context_invariance hd g g' tau;
@@ -481,21 +434,21 @@ let rec substitution_preserves_typing (x: var) (tau_x: ty) (e v: exp) (g: env) (
             typing_extensional gxy gyx e1 tau_out;
             substitution_preserves_typing x tau_x e1 v gy tau_out
       | _ -> ())
-  | EDefault ejust econs subs ->
+  | EDefault exceptions ejust econs ->
     substitution_preserves_typing x tau_x ejust v g TBool;
     substitution_preserves_typing x tau_x econs v g tau;
-    substitution_preserves_typing_list x tau_x subs v g tau
+    substitution_preserves_typing_list x tau_x exceptions v g tau
 and substitution_preserves_typing_list
       (x: var)
       (tau_x: ty)
-      (subs: list exp)
+      (exceptions: list exp)
       (v: exp)
       (g: env)
       (tau: ty)
-    : Lemma (requires (typing empty v tau_x /\ typing_list (extend g x tau_x) subs tau))
-      (ensures (typing_list g (subst_list x v subs) tau))
-      (decreases (%[ subs ])) =
-  match subs with
+    : Lemma (requires (typing empty v tau_x /\ typing_list (extend g x tau_x) exceptions tau))
+      (ensures (typing_list g (subst_list x v exceptions) tau))
+      (decreases (%[ exceptions ])) =
+  match exceptions with
   | [] -> ()
   | hd :: tl ->
     substitution_preserves_typing x tau_x hd v g tau;
@@ -526,46 +479,52 @@ let rec preservation (e: exp) (tau: ty)
           | _ -> ()
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
-  | EDefault just cons subs ->
-    if not (is_value just)
-    then preservation just TBool
-    else
-      (match just, cons with
-        | ELit LTrue, _ -> if not (is_value cons) then preservation cons tau
-        | ELit LFalse, _ ->
-          if List.Tot.for_all (fun sub -> is_value sub) subs
-          then
-            match empty_count AllEmpty subs with
-            | AllEmpty -> ()
-            | OneNonEmpty e' -> empty_count_preserves_type AllEmpty subs empty tau
-            | Conflict -> ()
-          else preservation_subdefaults_left_to_right e just cons subs tau
-        | _ -> ())
+  | EDefault exceptions just cons ->
+    if List.Tot.for_all (fun except -> is_value except) exceptions then
+      match empty_count AllEmpty exceptions with
+      | AllEmpty ->
+        begin if not (is_value just) then preservation just TBool else match just with
+        | ELit LTrue -> if not (is_value cons) then preservation cons tau
+        | _ -> ()
+        end
+      | OneNonEmpty e' -> empty_count_preserves_type AllEmpty exceptions empty tau
+      | Conflict -> ()
+    else begin
+      match step_exceptions_left_to_right e exceptions just cons with
+      | None ->
+         begin if not (is_value just) then preservation just TBool else match just with
+        | ELit LTrue -> if not (is_value cons) then preservation cons tau
+        | _ -> ()
+        end
+      | Some e' -> preservation_exceptions_left_to_right e exceptions just cons tau
+    end
   | _ -> ()
-and preservation_subdefaults_left_to_right
+and preservation_exceptions_left_to_right
       (e: exp)
+      (exceptions: list exp {exceptions << e})
       (just: exp{just << e})
       (cons: exp{cons << e})
-      (subs: list exp {subs << e})
       (tau: ty)
     : Lemma
-      (requires
-        (typing empty (EDefault just cons subs) tau /\
-          Some? (step_subdefaults_left_to_right e just cons subs)))
-      (ensures
-        (Nil? subs \/ typing empty (Some?.v (step_subdefaults_left_to_right e just cons subs)) tau))
-      (decreases %[ subs ]) =
-  match subs with
+      (requires (
+        typing empty (EDefault exceptions just cons) tau /\
+        Some? (step_exceptions_left_to_right e exceptions just cons)
+      ))
+      (ensures (
+        Nil? exceptions \/
+        typing empty (Some?.v (step_exceptions_left_to_right e exceptions just cons)) tau
+      ))
+      (decreases %[ exceptions ]) =
+  match exceptions with
   | [] -> ()
   | hd :: tl ->
     if is_value hd
     then
-      (typing_conserved_by_list_reduction empty subs tau;
-        preservation_subdefaults_left_to_right e just cons tl tau)
+      (typing_conserved_by_list_reduction empty exceptions tau;
+        preservation_exceptions_left_to_right e tl just cons tau)
     else
       (preservation hd tau;
         match step hd with
         | Some (ELit LConflictError) -> ()
         | Some hd' -> ())
 #pop-options
-
