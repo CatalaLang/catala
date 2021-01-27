@@ -1,0 +1,7 @@
+[ERROR] This struct field name is ambiguous, it can belong to Foo or Bar. Disambiguate it by prefixing it with the struct name.
+[ERROR] 
+[ERROR]   --> test_struct/bad/ambiguous_fields.catala
+[ERROR]    | 
+[ERROR] 16 |   def y := x.f 
+[ERROR]    |              ^
+[ERROR]    + Article

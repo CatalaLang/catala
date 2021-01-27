@@ -1,0 +1,19 @@
+@Article@
+
+/*
+new struct Foo:
+  data f content int
+
+new struct Bar:
+  data f content int
+  data g content int
+
+new scope A:
+  param x content Foo
+  param y content int
+
+scope A:
+  def x := Foo { -- f: 1 }
+  def y := x.Foo.g 
+
+*/
