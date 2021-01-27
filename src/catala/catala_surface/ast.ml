@@ -134,7 +134,8 @@ type enum_decl = {
         nude = true;
       }]
 
-type match_case_pattern = constructor Pos.marked list * ident Pos.marked option
+type match_case_pattern =
+  (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option
 [@@deriving
   visitors
     {
@@ -258,12 +259,13 @@ and expression =
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
   | Literal of literal
-  | EnumInject of constructor Pos.marked * expression Pos.marked option
+  | EnumInject of
+      constructor Pos.marked option * constructor Pos.marked * expression Pos.marked option
   | EnumProject of expression Pos.marked * constructor Pos.marked
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list
   | Ident of ident
-  | Dotted of expression Pos.marked * ident Pos.marked
+  | Dotted of expression Pos.marked * constructor Pos.marked option * ident Pos.marked
       (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors

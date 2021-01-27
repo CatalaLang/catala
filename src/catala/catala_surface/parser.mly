@@ -19,11 +19,6 @@
 %{
   open Ast
   open Utils  
-
-  type struct_or_enum_inject_content =
-  | StructContent of (ident Pos.marked * expression Pos.marked) list
-  | EnumContent of expression Pos.marked option
-
 %}
 
 %token EOF
@@ -112,8 +107,8 @@ small_expression:
 | e = small_expression ARROW c = constructor {
   (EnumProject (e, c), Pos.from_lpos $sloc)
 }
-| e = small_expression DOT i = ident {
-  (Dotted (e, i), Pos.from_lpos $sloc)
+| e = small_expression DOT c = option(terminated(constructor,DOT)) i = ident {
+  (Dotted (e, c, i), Pos.from_lpos $sloc)
 }
 
 struct_content_field:
@@ -124,18 +119,18 @@ struct_content_field:
 enum_inject_content:
 | CONTENT e = small_expression { e }
 
-struct_or_enum_inject_content:
-| e = option(enum_inject_content) { EnumContent e }
-| LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET {
-  StructContent fields
-}
+struct_inject_content:
+| LBRACKET ALT fields = separated_nonempty_list(ALT, struct_content_field) RBRACKET { fields }
 
 struct_or_enum_inject:
-| c = constructor data = struct_or_enum_inject_content {
-  match data with
-  | EnumContent data -> (EnumInject (c, data), Pos.from_lpos $sloc)
-  | StructContent fields -> (StructLit (c, fields), Pos.from_lpos $sloc)
+| enum = constructor c = option(preceded(DOT, constructor)) data = option(enum_inject_content) {
+  (* The fully qualified enum is actually the optional part, but it leads to shift/reduce conflicts.
+     We flip it here *)
+  match c with
+  | None -> (EnumInject(None, enum, data), Pos.from_lpos $sloc)
+  | Some c -> (EnumInject(Some enum, c, data), Pos.from_lpos $sloc)
 }
+| c = constructor fields = struct_inject_content { (StructLit(c, fields), Pos.from_lpos $sloc) }
 
 primitive_expression:
 | e = small_expression { e }
@@ -319,16 +314,23 @@ logical_expression:
    (Binop (binop, e1, e2), Pos.from_lpos $sloc)
  }
 
+maybe_qualified_constructor:
+| c_or_path = constructor c = option(preceded(DOT, constructor)) {
+   match c with
+  | None -> (None, c_or_path)
+  | Some c -> (Some c_or_path, c)
+}
+
 optional_binding:
 | { ([], None)}
 | OF i = ident {([], Some i)}
-| OF c = constructor cs_and_i = constructor_binding {
+| OF c = maybe_qualified_constructor cs_and_i = constructor_binding {
   let (cs, i) = cs_and_i in
   (c::cs, i)
 }
 
 constructor_binding:
-| c = constructor cs_and_i = optional_binding {
+| c = maybe_qualified_constructor cs_and_i = optional_binding {
   let (cs, i) = cs_and_i in
   (c::cs, i)
  }
