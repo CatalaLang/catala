@@ -24,8 +24,13 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
       Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
         (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
   | LMoney e -> Format.fprintf fmt "money_of_cent_string@ \"%s\"" (Z.to_string e)
-  | LDate d -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LDate d) l)
-  | LDuration d -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LDuration d) l)
+  | LDate d ->
+      Format.fprintf fmt "date_of_numbers (%d) (%d) (%d)" (CalendarLib.Date.year d)
+        (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
+        (CalendarLib.Date.day_of_month d)
+  | LDuration d ->
+      let years, months, days = CalendarLib.Date.Period.ymd d in
+      Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
@@ -52,29 +57,28 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
-  | Map -> Format.fprintf fmt "List.map"
-  | Filter -> Format.fprintf fmt "List.filter"
+  | Map -> Format.fprintf fmt "Array.map"
+  | Filter -> Format.fprintf fmt "array_filter"
 
 let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Pos.marked) : unit =
-  match Pos.unmark op with Fold -> Format.fprintf fmt "List.fold_left"
+  match Pos.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
 
 let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit =
-  Format.fprintf fmt "%s"
-    ( match Pos.unmark op with
-    | Minus _ -> "-"
-    | Not -> "not"
-    | ErrorOnEmpty -> "error_empty"
-    | Log (entry, infos) ->
-        Format.asprintf "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-             (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
-          infos
-    | Length -> "length"
-    | IntToRat -> "int_to_rat"
-    | GetDay -> "get_day"
-    | GetMonth -> "get_month"
-    | GetYear -> "get_year" )
+  match Pos.unmark op with
+  | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
+  | Not -> Format.fprintf fmt "%s" "not"
+  | ErrorOnEmpty -> Format.fprintf fmt "%s" "error_empty"
+  | Log (entry, infos) ->
+      Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
+           (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+        infos
+  | Length -> Format.fprintf fmt "%s" "array_length"
+  | IntToRat -> Format.fprintf fmt "%s" "int_to_rat"
+  | GetDay -> Format.fprintf fmt "%s" "get_day"
+  | GetMonth -> Format.fprintf fmt "%s" "get_month"
+  | GetYear -> Format.fprintf fmt "%s" "get_year"
 
 let to_ascii (s : string) : string =
   let out = ref "" in
@@ -166,7 +170,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "%a=@ %a" format_struct_field_name struct_field format_expr e))
         (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
-      Format.fprintf fmt "@[<hov 2>[%a]@]"
+      Format.fprintf fmt "@[<hov 2>[|%a|]@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
@@ -233,6 +237,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
+  | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_expr arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->
@@ -251,37 +256,41 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_expr e1 format_exception exc
         format_expr e2
 
-let format_ctx (fmt : Format.formatter) (ctx : D.decl_ctx) : unit =
-  Format.fprintf fmt "%a\n\n%a"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-       (fun fmt (struct_name, struct_fields) ->
-         Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" format_struct_name struct_name
-           (Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-              (fun _fmt (struct_field, struct_field_type) ->
-                Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
-                  struct_field_type))
-           struct_fields))
-    (Dcalc.Ast.StructMap.bindings ctx.Dcalc.Ast.ctx_structs)
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-       (fun _fmt (enum_name, enum_cons) ->
-         Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n" format_enum_name enum_name
-           (Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-              (fun _fmt (enum_cons, enum_cons_type) ->
-                Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
-                  enum_cons_type))
-           enum_cons))
-    (List.filter
-       (* option is a polymorphic type which we don't handle well... *)
-         (fun (e, _) -> e <> Compile_with_exceptions.option_enum)
-       (Dcalc.Ast.EnumMap.bindings ctx.Dcalc.Ast.ctx_enums))
+let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
+    (ctx : D.decl_ctx) : unit =
+  let format_struct_decl fmt (struct_name, struct_fields) =
+    Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" format_struct_name struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (struct_field, struct_field_type) ->
+           Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
+             struct_field_type))
+      struct_fields
+  in
+  let format_enum_decl fmt (enum_name, enum_cons) =
+    Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n" format_enum_name enum_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
+             enum_cons_type))
+      enum_cons
+  in
+  List.iter
+    (fun struct_or_enum ->
+      match struct_or_enum with
+      | Scopelang.Dependency.TVertex.Struct s ->
+          Format.fprintf fmt "%a@\n@\n" format_struct_decl
+            (s, Dcalc.Ast.StructMap.find s ctx.Dcalc.Ast.ctx_structs)
+      | Scopelang.Dependency.TVertex.Enum e ->
+          Format.fprintf fmt "%a@\n@\n" format_enum_decl
+            (e, Dcalc.Ast.EnumMap.find e ctx.Dcalc.Ast.ctx_enums))
+    type_ordering
 
-let format_program (fmt : Format.formatter) (p : Ast.program) : unit =
-  Format.fprintf fmt "open Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a" format_ctx
-    p.decl_ctx
+let format_program (fmt : Format.formatter) (p : Ast.program)
+    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+  Format.fprintf fmt "open Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a"
+    (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
        (fun fmt (name, e) ->

@@ -203,11 +203,11 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : TDepend
   in
   g
 
-let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : unit =
+let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : TVertex.t list =
   let g = build_type_graph structs enums in
   (* if there is a cycle, there will be an strongly connected component of cardinality > 1 *)
   let sccs = TSCC.scc_list g in
-  if List.length sccs < TDependencies.nb_vertex g then
+  ( if List.length sccs < TDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     Errors.raise_multispanned_error "Cyclic dependency detected between types!"
       (List.flatten
@@ -224,4 +224,5 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : unit =
                 ( Some ("Used here in the definition of another cycle type " ^ succ_str ^ ":"),
                   edge_pos );
               ])
-            scc))
+            scc)) );
+  List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])

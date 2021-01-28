@@ -35,7 +35,6 @@ endif
 	@$(CATALA) Makefile $<
 	@$(CATALA) \
 		OCaml \
-		-s $(SCOPE) \
 		$<
 
 

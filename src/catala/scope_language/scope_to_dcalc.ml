@@ -518,10 +518,10 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
     scope_sig result_typ
 
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
-    Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked =
+    Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked * Dependency.TVertex.t list =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
-  Dependency.check_type_cycles prgm.program_structs prgm.program_enums;
+  let types_ordering = Dependency.check_type_cycles prgm.program_structs prgm.program_enums in
   let scope_ordering = Dependency.get_scope_ordering scope_dependencies in
   let struct_ctx = prgm.program_structs in
   let enum_ctx = prgm.program_enums in
@@ -570,4 +570,4 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
           (dvar, Bindlib.unbox scope_expr) :: scopes ))
       scope_ordering (acc, [])
   in
-  ({ scopes; decl_ctx }, Bindlib.unbox whole_program_expr)
+  ({ scopes; decl_ctx }, Bindlib.unbox whole_program_expr, types_ordering)

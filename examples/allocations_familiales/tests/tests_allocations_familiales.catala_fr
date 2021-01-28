@@ -95,4 +95,15 @@ champ d'application Test4:
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
   assertion f.montant_versé = 99,37€
+
+déclaration champ d'application Test5:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+  contexte données champ d'application Données 
+
+champ d'application Test5:
+  définition f.enfants égal à [données.enfant1]
+  définition f.ressources_ménage égal à 30 000 €
+  définition f.date_courante égal à |01/05/2020|
+  définition f.résidence égal à Métropole
+  assertion f.montant_versé = 0,00€
 */

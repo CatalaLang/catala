@@ -126,9 +126,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Cli.debug_print "Name resolution...";
         let ctxt = Surface.Name_resolution.form_context program in
         let scope_uid =
-          match ex_scope with
-          | None -> Errors.raise_error "No scope was provided for execution."
-          | Some name -> (
+          match (ex_scope, backend) with
+          | None, Cli.Run -> Errors.raise_error "No scope was provided for execution."
+          | None, _ -> snd (Desugared.Ast.IdentMap.choose ctxt.scope_idmap)
+          | Some name, _ -> (
               match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
                   Errors.raise_error
@@ -140,7 +141,9 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Cli.debug_print "Collecting rules...";
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
-        let prgm, prgm_expr = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        let prgm, prgm_expr, type_ordering =
+          Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
+        in
         (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx)
            prgm); *)
         Cli.debug_print "Typechecking...";
@@ -184,7 +187,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
             let oc = open_out output_file in
             let fmt = Format.formatter_of_out_channel oc in
-            Lcalc.To_ocaml.format_program fmt prgm;
+            Lcalc.To_ocaml.format_program fmt prgm type_ordering;
             close_out oc;
             0
         | _ -> assert false

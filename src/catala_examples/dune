@@ -2,5 +2,13 @@
  (name driver)
  (modes native)
  (package catala)
+ (modules
+  (:standard \ runtime))
  (public_name catala_examples)
- (libraries catala.utils zarith calendar))
+ (libraries runtime))
+
+(library
+ (name runtime)
+ (public_name catala.runtime)
+ (libraries catala.utils zarith calendar benchmark)
+ (modules runtime))

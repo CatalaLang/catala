@@ -42,7 +42,7 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   match l with
   | TUnit -> Format.fprintf fmt "unit"
-  | TBool -> Format.fprintf fmt "boolean"
+  | TBool -> Format.fprintf fmt "bool"
   | TInt -> Format.fprintf fmt "integer"
   | TRat -> Format.fprintf fmt "decimal"
   | TMoney -> Format.fprintf fmt "money"

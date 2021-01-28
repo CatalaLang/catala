@@ -109,7 +109,8 @@ champ d'application AllocationsFamiliales :
     montant_initial_base *€ rapport_enfants_total_moyen
 
   définition rapport_enfants_total_moyen égal à
-    nombre_moyen_enfants /. nombre_total_enfants
+    si nombre_total_enfants = 0,0 alors 0,0 sinon
+      (nombre_moyen_enfants /. nombre_total_enfants)
 */
 
 Le nombre moyen d'enfants, pour chaque foyer, est obtenu en faisant la somme 
