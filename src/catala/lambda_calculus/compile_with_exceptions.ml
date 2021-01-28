@@ -27,6 +27,8 @@ let option_ctx =
     [ D.EnumConstructor.fresh ("Some", Pos.no_pos); D.EnumConstructor.fresh ("None", Pos.no_pos) ]
     option_sig
 
+let handle_default pos = A.make_var (A.Var.make ("fold_exceptions", pos), pos)
+
 let translate_lit (l : D.lit) : A.expr =
   match l with
   | D.LBool l -> A.ELit (A.LBool l)
@@ -39,69 +41,17 @@ let translate_lit (l : D.lit) : A.expr =
   | D.LEmptyError -> A.ERaise A.EmptyError
 
 let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
-    (_just : D.expr Pos.marked) (_cons : D.expr Pos.marked) (pos_default : Pos.t) :
+    (just : D.expr Pos.marked) (cons : D.expr Pos.marked) (pos_default : Pos.t) :
     A.expr Pos.marked Bindlib.box =
-  let none_expr =
-    Bindlib.box (A.EInj ((A.ELit A.LUnit, pos_default), 1, option_enum, option_sig), pos_default)
-  in
-  let some_expr e =
-    Bindlib.box_apply (fun e -> (A.EInj (e, 0, option_enum, option_sig), pos_default)) e
-  in
-  let acc_var = A.Var.make ("acc", pos_default) in
-  let exc_var = A.Var.make ("exc", pos_default) in
-  let acc_some_var = A.Var.make ("acc", pos_default) in
-  let acc_none_var = A.Var.make ("_", pos_default) in
-  let exc_some_var = A.Var.make ("_", pos_default) in
-  let exc_none_var = A.Var.make ("_", pos_default) in
-  let exc_none_case_body = some_expr (A.make_var (acc_some_var, pos_default)) in
-  let exc_some_case_body = Bindlib.box (A.ERaise A.ConflictError, pos_default) in
-  let acc_some_case_body =
-    Bindlib.box_apply4
-      (fun some_exc_var exc_none_case exc_some_case none_expr ->
-        ( A.EMatch
-            ( (A.ECatch (some_exc_var, A.EmptyError, none_expr), pos_default),
-              [ exc_some_case; exc_none_case ],
-              option_enum ),
-          pos_default ))
-      (some_expr (A.make_var (exc_var, pos_default)))
-      (A.make_abs [| exc_none_var |] exc_none_case_body pos_default
-         [ (D.TLit D.TUnit, pos_default) ] pos_default)
-      (A.make_abs [| exc_some_var |] exc_some_case_body pos_default [ (D.TAny, pos_default) ]
-         pos_default)
-      none_expr
-  in
-  let acc_none_case_body =
-    Bindlib.box_apply2
-      (fun some_exc_var none_expr ->
-        (A.ECatch (some_exc_var, A.EmptyError, none_expr), pos_default))
-      (some_expr (A.make_var (exc_var, pos_default)))
-      none_expr
-  in
-  let fold_body =
-    Bindlib.box_apply3
-      (fun acc_var acc_none_case acc_some_case ->
-        (A.EMatch (acc_var, [ acc_some_case; acc_none_case ], option_enum), pos_default))
-      (A.make_var (acc_var, pos_default))
-      (A.make_abs [| acc_none_var |] acc_none_case_body pos_default
-         [ (D.TLit D.TUnit, pos_default) ] pos_default)
-      (A.make_abs [| acc_some_var |] acc_some_case_body pos_default [ (D.TAny, pos_default) ]
-         pos_default)
-  in
-  let fold_func =
-    A.make_abs [| acc_var; exc_var |] fold_body pos_default
-      [ (D.TAny, pos_default); (D.TAny, pos_default) ]
-      pos_default
-  in
   let exceptions = List.map (translate_expr ctx) exceptions in
   let exceptions =
-    A.make_app
-      (Bindlib.box (A.EOp (D.Ternop D.Fold), pos_default))
+    A.make_app (handle_default pos_default)
       [
-        fold_func;
-        none_expr;
         Bindlib.box_apply
           (fun exceptions -> (A.EArray exceptions, pos_default))
           (Bindlib.box_list exceptions);
+        translate_expr ctx just;
+        translate_expr ctx cons;
       ]
       pos_default
   in
@@ -163,6 +113,27 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
-let translate_expr (e : D.expr Pos.marked) (ctx : D.decl_ctx) : A.expr Pos.marked * D.decl_ctx =
-  ( Bindlib.unbox (translate_expr D.VarMap.empty e),
-    { ctx with D.ctx_enums = D.EnumMap.add option_enum option_ctx ctx.D.ctx_enums } )
+let translate_program (prgm : D.program) : A.program =
+  {
+    scopes =
+      (let acc, _ =
+         List.fold_left
+           (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (n, e) ->
+             let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
+             let new_acc =
+               ( new_n,
+                 Bindlib.unbox
+                   (translate_expr (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx) e) )
+               :: acc
+             in
+             let new_ctx = D.VarMap.add n new_n ctx in
+             (new_acc, new_ctx))
+           ([], D.VarMap.empty) prgm.scopes
+       in
+       List.rev acc);
+    decl_ctx =
+      {
+        prgm.decl_ctx with
+        D.ctx_enums = D.EnumMap.add option_enum option_ctx prgm.decl_ctx.D.ctx_enums;
+      };
+  }

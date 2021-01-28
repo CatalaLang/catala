@@ -134,7 +134,7 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
   Bindlib.unbox
     (rule_tree_to_expr ~toplevel:true
        (Ast.ScopeDef.get_position def_info)
-       (Option.map (fun _ -> Scopelang.Ast.Var.make ("ρ", Pos.no_pos)) is_def_func)
+       (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func)
        ( match top_list with
        | [] ->
            (* In this case, there are no rules to define the expression *)

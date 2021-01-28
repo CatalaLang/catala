@@ -518,7 +518,7 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
     scope_sig result_typ
 
 let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
-    Dcalc.Ast.expr Pos.marked * Dcalc.Ast.decl_ctx =
+    Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
   Dependency.check_type_cycles prgm.program_structs prgm.program_enums;
@@ -558,17 +558,16 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
   let acc = Dcalc.Ast.make_var (snd (Ast.ScopeMap.find top_level_scope_name sctx), Pos.no_pos) in
   (* the resulting expression is the list of definitions of all the scopes, ending with the
      top-level scope. *)
-  ( Bindlib.unbox
-      (let acc =
-         List.fold_right
-           (fun scope_name (acc : Dcalc.Ast.expr Pos.marked Bindlib.box) ->
-             let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
-             let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
-             let scope_expr = translate_scope_decl struct_ctx enum_ctx sctx scope_name scope in
-             let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in
-             let scope_typ = build_scope_typ_from_sig scope_sig pos_scope in
-             Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc)
-           scope_ordering acc
-       in
-       acc),
-    decl_ctx )
+  let whole_program_expr, scopes =
+    List.fold_right
+      (fun scope_name (acc, scopes) ->
+        let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
+        let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
+        let scope_expr = translate_scope_decl struct_ctx enum_ctx sctx scope_name scope in
+        let scope_sig, dvar = Ast.ScopeMap.find scope_name sctx in
+        let scope_typ = build_scope_typ_from_sig scope_sig pos_scope in
+        ( Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc,
+          (dvar, Bindlib.unbox scope_expr) :: scopes ))
+      scope_ordering (acc, [])
+  in
+  ({ scopes; decl_ctx }, Bindlib.unbox whole_program_expr)

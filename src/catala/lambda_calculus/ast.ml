@@ -94,3 +94,5 @@ let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindl
     (Bindlib.box_list [ e1 ])
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
+
+type program = { decl_ctx : D.decl_ctx; scopes : (Var.t * expr Pos.marked) list }

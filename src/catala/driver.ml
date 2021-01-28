@@ -140,17 +140,17 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Cli.debug_print "Collecting rules...";
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         Cli.debug_print "Translating to default calculus...";
-        let prgm, ctx = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
+        let prgm, prgm_expr = Scopelang.Scope_to_dcalc.translate_program prgm scope_uid in
         (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx)
            prgm); *)
         Cli.debug_print "Typechecking...";
-        let _typ = Dcalc.Typing.infer_type ctx prgm in
+        let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgm_expr in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
            typ); *)
         match backend with
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
-            let results = Dcalc.Interpreter.interpret_program ctx prgm in
+            let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgm_expr in
             let results =
               List.sort
                 (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
@@ -163,12 +163,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               (fun (var, result) ->
                 Cli.result_print
                   (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var)
-                     (Dcalc.Print.format_expr ctx) result))
+                     (Dcalc.Print.format_expr prgm.decl_ctx)
+                     result))
               results;
             0
         | Cli.OCaml ->
             Cli.debug_print "Compiling program into OCaml...";
-            let prgm, ctx = Lcalc.Compile_with_exceptions.translate_expr prgm ctx in
+            let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
             let source_file =
               match source_file with
               | FileName f -> f
@@ -183,7 +184,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
             let oc = open_out output_file in
             let fmt = Format.formatter_of_out_channel oc in
-            Lcalc.To_ocaml.format_program ctx fmt prgm;
+            Lcalc.To_ocaml.format_program fmt prgm;
             close_out oc;
             0
         | _ -> assert false
