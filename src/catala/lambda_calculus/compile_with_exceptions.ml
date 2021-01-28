@@ -27,7 +27,7 @@ let option_ctx =
     [ D.EnumConstructor.fresh ("Some", Pos.no_pos); D.EnumConstructor.fresh ("None", Pos.no_pos) ]
     option_sig
 
-let handle_default pos = A.make_var (A.Var.make ("fold_exceptions", pos), pos)
+let handle_default pos = A.make_var (A.Var.make ("handle_default", pos), pos)
 
 let translate_lit (l : D.lit) : A.expr =
   match l with
@@ -40,18 +40,24 @@ let translate_lit (l : D.lit) : A.expr =
   | D.LDuration d -> A.ELit (A.LDuration d)
   | D.LEmptyError -> A.ERaise A.EmptyError
 
+let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) : A.expr Pos.marked Bindlib.box =
+  let dummy_var = A.Var.make ("_", pos) in
+  A.make_abs [| dummy_var |] e pos [ (D.TAny, pos) ] pos
+
 let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
     (just : D.expr Pos.marked) (cons : D.expr Pos.marked) (pos_default : Pos.t) :
     A.expr Pos.marked Bindlib.box =
-  let exceptions = List.map (translate_expr ctx) exceptions in
+  let exceptions =
+    List.map (fun except -> thunk_expr (translate_expr ctx except) pos_default) exceptions
+  in
   let exceptions =
     A.make_app (handle_default pos_default)
       [
         Bindlib.box_apply
           (fun exceptions -> (A.EArray exceptions, pos_default))
           (Bindlib.box_list exceptions);
-        translate_expr ctx just;
-        translate_expr ctx cons;
+        thunk_expr (translate_expr ctx just) pos_default;
+        thunk_expr (translate_expr ctx cons) pos_default;
       ]
       pos_default
   in

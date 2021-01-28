@@ -143,6 +143,17 @@ test_examples: .FORCE
 tests: test_suite test_examples
 
 ##########################################
+# Catala examples in OCaml
+##########################################
+
+allocations_familiales_ml: 
+	SCOPE=InterfaceAllocationsFamiliales $(MAKE) -C examples/allocations_familiales allocations_familiales.ml -B 
+	cp -f examples/allocations_familiales/allocations_familiales.ml src/catala_examples 
+	$(MAKE) -C ./ format
+	dune exec  src/catala_examples/driver.exe
+
+
+##########################################
 # Website assets
 ##########################################
 

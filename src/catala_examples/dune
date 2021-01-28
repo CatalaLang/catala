@@ -1,0 +1,6 @@
+(executable
+ (name driver)
+ (modes native)
+ (package catala)
+ (public_name catala_examples)
+ (libraries catala.utils zarith calendar))

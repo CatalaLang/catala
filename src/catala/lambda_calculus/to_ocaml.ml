@@ -18,16 +18,18 @@ open Ast
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
-  | LInt i -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LInt i) l)
+  | LInt i -> Format.fprintf fmt "integer_of_string@ \"%s\"" (Z.to_string i)
   | LUnit -> Dcalc.Print.format_lit fmt (Pos.same_pos_as Dcalc.Ast.LUnit l)
-  | LRat i -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
-  | LMoney e -> Format.fprintf fmt "mk_money@ %.2f" Q.(to_float (of_bigint e / of_int 100))
+  | LRat i ->
+      Format.fprintf fmt "decimal_of_string \"%a\"" Dcalc.Print.format_lit
+        (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
+  | LMoney e -> Format.fprintf fmt "money_of_cent_string@ \"%s\"" (Z.to_string e)
   | LDate d -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LDate d) l)
   | LDuration d -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LDuration d) l)
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
-    (match k with KInt -> "" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
+    (match k with KInt -> "!" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
   match entry with
@@ -60,10 +62,10 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   Format.fprintf fmt "%s"
     ( match Pos.unmark op with
     | Minus _ -> "-"
-    | Not -> "~"
+    | Not -> "not"
     | ErrorOnEmpty -> "error_empty"
     | Log (entry, infos) ->
-        Format.asprintf "@[<hov 2>log@ \"%a|%a\"@]" format_log_entry entry
+        Format.asprintf "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
              (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
@@ -74,13 +76,32 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
     | GetMonth -> "get_month"
     | GetYear -> "get_year" )
 
+let to_ascii (s : string) : string =
+  let out = ref "" in
+  CamomileLibraryDefault.Camomile.UTF8.iter
+    (fun c ->
+      out :=
+        !out
+        ^
+        if CamomileLibraryDefault.Camomile.UChar.code c > 128 then "_"
+        else String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c))
+    s;
+  !out
+
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) : unit =
   Format.fprintf fmt "%s"
-    (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v))
+    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v)))
+
+let format_struct_field_name (fmt : Format.formatter) (v : Dcalc.Ast.StructFieldName.t) : unit =
+  Format.fprintf fmt "%s"
+    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v)))
 
 let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit =
   Format.fprintf fmt "%s"
-    (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v))
+    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v)))
+
+let format_enum_cons_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumConstructor.t) : unit =
+  Format.fprintf fmt "%s" (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v))
 
 let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : unit =
   let format_typ = format_typ in
@@ -108,7 +129,10 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
-  Format.fprintf fmt "%s" lowercase_name
+  let lowercase_name = to_ascii lowercase_name in
+  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
+    Format.fprintf fmt "%s" lowercase_name
+  else Format.fprintf fmt "%s_%d" lowercase_name (Bindlib.uid_of v)
 
 let needs_parens (_e : expr Pos.marked) : bool = true
 
@@ -139,8 +163,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (e, struct_field) ->
-             Format.fprintf fmt "%a=@ %a" Dcalc.Ast.StructFieldName.format_t struct_field
-               format_expr e))
+             Format.fprintf fmt "%a=@ %a" format_struct_field_name struct_field format_expr e))
         (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[%a]@]"
@@ -158,10 +181,10 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             (List.mapi (fun i _ -> i) ts)
             format_expr e1
       | Some s ->
-          Format.fprintf fmt "%a.%a" format_expr e1 Dcalc.Ast.StructFieldName.format_t
+          Format.fprintf fmt "%a.%a" format_expr e1 format_struct_field_name
             (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)) )
   | EInj (e, n, en, _ts) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Ast.EnumConstructor.format_t
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
@@ -169,7 +192,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "%a@ %a" Dcalc.Ast.EnumConstructor.format_t c
+             Format.fprintf fmt "%a@ %a" format_enum_cons_name c
                (fun fmt e ->
                  match Pos.unmark e with
                  | EAbs (_, binder, _) ->
@@ -205,10 +228,10 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "@[<hov 2>(%a:@ %a)@]" format_var x format_typ tau))
         xs_tau format_expr body
   | EApp ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [ arg1; arg2 ]) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Dcalc.Print.format_binop (op, Pos.no_pos)
-        format_with_parens arg1 format_with_parens arg2
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos) format_with_parens
+        arg1 format_with_parens arg2
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
@@ -237,8 +260,8 @@ let format_ctx (fmt : Format.formatter) (ctx : D.decl_ctx) : unit =
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
               (fun _fmt (struct_field, struct_field_type) ->
-                Format.fprintf fmt "%a:@ %a;" Dcalc.Ast.StructFieldName.format_t struct_field
-                  format_typ struct_field_type))
+                Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
+                  struct_field_type))
            struct_fields))
     (Dcalc.Ast.StructMap.bindings ctx.Dcalc.Ast.ctx_structs)
     (Format.pp_print_list
@@ -248,8 +271,8 @@ let format_ctx (fmt : Format.formatter) (ctx : D.decl_ctx) : unit =
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
               (fun _fmt (enum_cons, enum_cons_type) ->
-                Format.fprintf fmt "| %a@ of@ %a" Dcalc.Ast.EnumConstructor.format_t enum_cons
-                  format_typ enum_cons_type))
+                Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
+                  enum_cons_type))
            enum_cons))
     (List.filter
        (* option is a polymorphic type which we don't handle well... *)
@@ -257,7 +280,8 @@ let format_ctx (fmt : Format.formatter) (ctx : D.decl_ctx) : unit =
        (Dcalc.Ast.EnumMap.bindings ctx.Dcalc.Ast.ctx_enums))
 
 let format_program (fmt : Format.formatter) (p : Ast.program) : unit =
-  Format.fprintf fmt "%a@\n@\n%a" format_ctx p.decl_ctx
+  Format.fprintf fmt "open Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a" format_ctx
+    p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
        (fun fmt (name, e) ->

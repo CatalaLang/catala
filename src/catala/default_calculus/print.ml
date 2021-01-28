@@ -18,6 +18,15 @@ open Ast
 let typ_needs_parens (e : typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
+let begins_with_uppercase (s : string) : bool =
+  let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
+  try
+    match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
+    | `Ll -> false
+    | `Lu -> true
+    | _ -> false
+  with _ -> true
+
 let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
   Format.fprintf fmt "%a"
     (Format.pp_print_list
@@ -25,13 +34,7 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
        (fun fmt info ->
          Format.fprintf fmt "%s"
            (Utils.Cli.print_with_style
-              (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
-               try
-                 match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
-                 | `Ll -> []
-                 | `Lu -> [ ANSITerminal.red ]
-                 | _ -> []
-               with _ -> [])
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else [])
               "%s"
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
