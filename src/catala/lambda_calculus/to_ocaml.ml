@@ -84,25 +84,53 @@ let to_ascii (s : string) : string =
   let out = ref "" in
   CamomileLibraryDefault.Camomile.UTF8.iter
     (fun c ->
+      let code = CamomileLibraryDefault.Camomile.UChar.uint_code c in
       out :=
         !out
         ^
-        if CamomileLibraryDefault.Camomile.UChar.code c > 128 then "_"
-        else String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c))
+        match code with
+        | 0xc7 -> "C"
+        | 0xe7 -> "c"
+        | c when c >= 0xc0 && c <= 0xc6 -> "A"
+        | c when c >= 0xe0 && c <= 0xe6 -> "a"
+        | c when c >= 0xc8 && c <= 0xcb -> "E"
+        | c when c >= 0xe8 && c <= 0xeb -> "e"
+        | c when c >= 0xcc && c <= 0xcf -> "I"
+        | c when c >= 0xec && c <= 0xef -> "i"
+        | c when c >= 0xd2 && c <= 0xd6 -> "O"
+        | c when c >= 0xf2 && c <= 0xf6 -> "o"
+        | c when c >= 0xd9 && c <= 0xdc -> "U"
+        | c when c >= 0xf9 && c <= 0xfc -> "u"
+        | _ ->
+            if code > 128 then "_"
+            else String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c))
+    s;
+  !out
+
+let to_lowercase (s : string) : string =
+  let is_first = ref true in
+  let out = ref "" in
+  CamomileLibraryDefault.Camomile.UTF8.iter
+    (fun c ->
+      let is_uppercase = Dcalc.Print.is_uppercase c in
+      out :=
+        !out
+        ^ (if is_uppercase && not !is_first then "_" else "")
+        ^ String.lowercase_ascii (String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c));
+      is_first := false)
     s;
   !out
 
 let format_struct_name (fmt : Format.formatter) (v : Dcalc.Ast.StructName.t) : unit =
   Format.fprintf fmt "%s"
-    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v)))
+    (to_lowercase (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructName.format_t v)))
 
 let format_struct_field_name (fmt : Format.formatter) (v : Dcalc.Ast.StructFieldName.t) : unit =
-  Format.fprintf fmt "%s"
-    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v)))
+  Format.fprintf fmt "%s" (to_ascii (Format.asprintf "%a" Dcalc.Ast.StructFieldName.format_t v))
 
 let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit =
   Format.fprintf fmt "%s"
-    (to_ascii (String.lowercase_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v)))
+    (to_lowercase (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumName.format_t v)))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumConstructor.t) : unit =
   Format.fprintf fmt "%s" (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v))
@@ -129,14 +157,14 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  let lowercase_name = String.lowercase_ascii (Bindlib.name_of v) in
+  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
   let lowercase_name = to_ascii lowercase_name in
   if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
     Format.fprintf fmt "%s" lowercase_name
-  else Format.fprintf fmt "%s_%d" lowercase_name (Bindlib.uid_of v)
+  else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (_e : expr Pos.marked) : bool = true
 

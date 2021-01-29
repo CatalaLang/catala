@@ -30,6 +30,8 @@ type duration = CalendarLib.Date.Period.t
 
 let money_of_cent_string (cents : string) : money = Z.of_string cents
 
+let money_of_units_integers (units : int) : money = Z.(of_int units * of_int 100)
+
 let decimal_of_string (d : string) : decimal = Q.of_string d
 
 let integer_of_string (i : string) : integer = Z.of_string i
@@ -62,6 +64,8 @@ let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) ->
       None exceptions
   in
   match except with Some x -> x | None -> if just () then cons () else raise EmptyError
+
+let no_input : unit -> 'a = fun _ -> raise EmptyError
 
 (**{1 Operators} *)
 

@@ -18,15 +18,6 @@ module A = Ast
 
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
 
-let option_enum = D.EnumName.fresh ("Option", Pos.no_pos)
-
-let option_sig = [ (D.TAny, Pos.no_pos); (D.TLit D.TUnit, Pos.no_pos) ]
-
-let option_ctx =
-  List.combine
-    [ D.EnumConstructor.fresh ("Some", Pos.no_pos); D.EnumConstructor.fresh ("None", Pos.no_pos) ]
-    option_sig
-
 let handle_default pos = A.make_var (A.Var.make ("handle_default", pos), pos)
 
 let translate_lit (l : D.lit) : A.expr =
@@ -137,9 +128,5 @@ let translate_program (prgm : D.program) : A.program =
            ([], D.VarMap.empty) prgm.scopes
        in
        List.rev acc);
-    decl_ctx =
-      {
-        prgm.decl_ctx with
-        D.ctx_enums = D.EnumMap.add option_enum option_ctx prgm.decl_ctx.D.ctx_enums;
-      };
+    decl_ctx = prgm.decl_ctx;
   }
