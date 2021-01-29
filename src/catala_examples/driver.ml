@@ -3,7 +3,7 @@ open Runtime
 
 let compute_allocations_familiales ~(current_date : Runtime.date)
     ~(children : M.enfant_entree array) ~(income : int) ~(residence : M.collectivite) : float =
-  let _, _, _, _, _, amount =
+  let result =
     M.interface_allocations_familiales
       (fun _ -> current_date)
       (fun _ -> children)
@@ -12,7 +12,7 @@ let compute_allocations_familiales ~(current_date : Runtime.date)
       (fun _ -> residence)
       no_input
   in
-  Float.div (Z.to_float amount) 100.
+  Float.div (Z.to_float result.M.montant_verse) 100.
 
 let run_test (id : int) =
   let children =

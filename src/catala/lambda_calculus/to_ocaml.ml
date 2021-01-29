@@ -304,6 +304,20 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
              enum_cons_type))
       enum_cons
   in
+  let is_in_type_ordering s =
+    List.exists
+      (fun struct_or_enum ->
+        match struct_or_enum with
+        | Scopelang.Dependency.TVertex.Enum _ -> false
+        | Scopelang.Dependency.TVertex.Struct s' -> s = s')
+      type_ordering
+  in
+  let scope_structs =
+    List.map
+      (fun (s, _) -> Scopelang.Dependency.TVertex.Struct s)
+      (Dcalc.Ast.StructMap.bindings
+         (Dcalc.Ast.StructMap.filter (fun s _ -> not (is_in_type_ordering s)) ctx.ctx_structs))
+  in
   List.iter
     (fun struct_or_enum ->
       match struct_or_enum with
@@ -313,7 +327,7 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
       | Scopelang.Dependency.TVertex.Enum e ->
           Format.fprintf fmt "%a@\n@\n" format_enum_decl
             (e, Dcalc.Ast.EnumMap.find e ctx.Dcalc.Ast.ctx_enums))
-    type_ordering
+    (type_ordering @ scope_structs)
 
 let format_program (fmt : Format.formatter) (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
