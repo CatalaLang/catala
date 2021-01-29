@@ -459,11 +459,13 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
       let application_term = List.map (fun _ -> empty_thunked_term) taus in
       let to_interpret = (Ast.EApp (e, application_term), Pos.no_pos) in
       match Pos.unmark (evaluate_expr ctx to_interpret) with
-      | Ast.ETuple (args, None) ->
+      | Ast.ETuple (args, Some _) ->
           let vars, _ = Bindlib.unmbind binder in
           List.map2 (fun arg var -> (var, arg)) args (Array.to_list vars)
       | _ ->
-          Errors.raise_spanned_error "The interpretation of a program should always yield a tuple"
+          Errors.raise_spanned_error
+            "The interpretation of a program should always yield a struct corresponding to the \
+             scope variables"
             (Pos.get_position e) )
   | _ ->
       Errors.raise_spanned_error
