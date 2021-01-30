@@ -34,7 +34,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
-    (match k with KInt -> "!" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
+    (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
   match entry with
@@ -52,7 +52,7 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | And -> Format.fprintf fmt "%s" "&&"
   | Or -> Format.fprintf fmt "%s" "||"
   | Eq -> Format.fprintf fmt "%s" "="
-  | Neq -> Format.fprintf fmt "%s" "!="
+  | Neq -> Format.fprintf fmt "%s" "<>"
   | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
@@ -278,7 +278,9 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
-  | EAssert e' -> Format.fprintf fmt "@[<hov 2>assert@ (%a)@]" format_expr e'
+  | EAssert e' ->
+      Format.fprintf fmt "@[<hov 2>if @ (%a)@ then@ ()@ else@ raise@ AssertionFailed@]" format_expr
+        e'
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception exc
   | ECatch (e1, exc, e2) ->
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_expr e1 format_exception exc
@@ -331,7 +333,7 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
 
 let format_program (fmt : Format.formatter) (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  Format.fprintf fmt "open Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a"
+  Format.fprintf fmt "open Catala.Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a"
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")

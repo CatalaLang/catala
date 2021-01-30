@@ -14,8 +14,6 @@
 
 open Utils
 
-(** {1 Types} *)
-
 type money = Z.t
 
 type integer = Z.t
@@ -26,15 +24,27 @@ type date = CalendarLib.Date.t
 
 type duration = CalendarLib.Date.Period.t
 
-(**{1 Constructors} *)
-
 let money_of_cent_string (cents : string) : money = Z.of_string cents
 
 let money_of_units_integers (units : int) : money = Z.(of_int units * of_int 100)
 
+let money_to_float (m : money) : float = Z.to_float m /. 100.
+
 let decimal_of_string (d : string) : decimal = Q.of_string d
 
 let integer_of_string (i : string) : integer = Z.of_string i
+
+let integer_to_int (i : integer) : int = Z.to_int i
+
+let integer_of_int (i : int) : integer = Z.of_int i
+
+let date_of_calendar_date x = x
+
+let date_to_calendar_date x = x
+
+let duration_of_calendar_period x = x
+
+let duration_to_calendar_period x = x
 
 let date_of_numbers (year : int) (month : int) (day : int) : date =
   CalendarLib.Date.make year month day
@@ -44,12 +54,15 @@ let duration_of_numbers (year : int) (month : int) (day : int) : duration =
 
 let int_to_rat (i : integer) : decimal = Q.of_bigint i
 
-(**{1 Exceptions and defaults} *)
-
 exception EmptyError
 
-let error_empty : 'a. 'a -> 'a =
- fun x -> try x with EmptyError -> Errors.raise_error "empty value found!"
+exception AssertionFailed
+
+exception EmptyValue
+
+exception ConflictError
+
+let error_empty : 'a. 'a -> 'a = fun x -> try x with EmptyError -> raise EmptyValue
 
 let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =
  fun exceptions just cons ->
@@ -60,14 +73,12 @@ let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) ->
         match (acc, new_val) with
         | None, _ -> new_val
         | Some _, None -> acc
-        | Some _, Some _ -> Errors.raise_error "conflict!")
+        | Some _, Some _ -> raise ConflictError)
       None exceptions
   in
   match except with Some x -> x | None -> if just () then cons () else raise EmptyError
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
-
-(**{1 Operators} *)
 
 let ( *$ ) (i1 : money) (i2 : decimal) : money =
   let rat_result = Q.mul (Q.of_bigint i1) i2 in
@@ -96,15 +107,15 @@ let ( *! ) (i1 : integer) (i2 : integer) : integer = Z.mul i1 i2
 let ( /! ) (i1 : integer) (i2 : integer) : integer =
   if i2 <> Z.zero then Z.div i1 i2 else Errors.raise_error "division by zero at runtime"
 
-let ( +. ) (i1 : decimal) (i2 : decimal) : decimal = Q.add i1 i2
+let ( +& ) (i1 : decimal) (i2 : decimal) : decimal = Q.add i1 i2
 
-let ( -. ) (i1 : decimal) (i2 : decimal) : decimal = Q.sub i1 i2
+let ( -& ) (i1 : decimal) (i2 : decimal) : decimal = Q.sub i1 i2
 
-let ( ~-. ) (i1 : decimal) : decimal = Q.sub Q.zero i1
+let ( ~-& ) (i1 : decimal) : decimal = Q.sub Q.zero i1
 
-let ( *. ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
+let ( *& ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
 
-let ( /. ) (i1 : decimal) (i2 : decimal) : decimal =
+let ( /& ) (i1 : decimal) (i2 : decimal) : decimal =
   if i2 <> Q.zero then Q.div i1 i2 else Errors.raise_error "division by zero at runtime"
 
 let ( +@ ) (d1 : date) (d2 : duration) : date = CalendarLib.Date.add d1 d2

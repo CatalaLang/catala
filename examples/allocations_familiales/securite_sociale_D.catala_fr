@@ -350,7 +350,8 @@ champ d'application AllocationsFamiliales :
     montant_initial_majoration de enfant
   sous condition
     (droit_ouvert_majoration de enfant) et
-    prestations_familiales.régime_outre_mer_l751_1
+    prestations_familiales.régime_outre_mer_l751_1 et
+    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence égal à
     prestations_familiales.base_mensuelle *€
     (si enfant.âge >= 16 alors 5,67 % sinon 3,69 %)

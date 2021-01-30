@@ -148,9 +148,9 @@ tests: test_suite test_examples
 
 allocations_familiales_ml: 
 	$(MAKE) -C examples/allocations_familiales allocations_familiales.ml -B 
-	cp -f examples/allocations_familiales/allocations_familiales.ml src/catala_examples 
+	cp -f examples/allocations_familiales/allocations_familiales.ml src/french_law/law_source 
 	$(MAKE) -C ./ format
-	dune exec  src/catala_examples/driver.exe
+	dune exec  src/french_law/benchmark.exe
 
 
 ##########################################

@@ -1,0 +1,13 @@
+(executable
+ (name benchmark)
+ (modes native)
+ (package catala)
+ (modules benchmark)
+ (public_name benchmark)
+ (libraries catala french_law benchmark))
+
+(library
+ (name french_law)
+ (public_name catala.french_law)
+ (libraries catala law_source)
+ (modules wrapper))

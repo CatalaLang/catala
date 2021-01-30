@@ -106,4 +106,27 @@ champ d'application Test5:
   définition f.date_courante égal à |01/05/2020|
   définition f.résidence égal à Métropole
   assertion f.montant_versé = 0,00€
+
+déclaration champ d'application Test6:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test6:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |10/11/2009|
+    -- d_rémuneration_mensuelle: 439€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |25/09/2020|
+    -- d_rémuneration_mensuelle: 1949€
+    -- d_pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- d_garde_alternée: NonGardeUnique
+  }]
+  définition f.ressources_ménage égal à 78 830 €
+  définition f.date_courante égal à |01/05/2020|
+  définition f.résidence égal à Guadeloupe
+  assertion f.montant_versé = 132,49€
+
 */

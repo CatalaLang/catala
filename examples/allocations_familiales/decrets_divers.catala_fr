@@ -107,6 +107,7 @@ champ d'application Smic :
   définition brut_horaire sous condition 
     date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
       (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
       (résidence = Martinique) ou
       (résidence = LaRéunion) ou
@@ -141,6 +142,7 @@ champ d'application Smic :
   définition brut_horaire sous condition 
     date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
       (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
       (résidence = Martinique) ou
       (résidence = LaRéunion) ou
@@ -154,7 +156,7 @@ champ d'application Smic :
 /*
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,66 €

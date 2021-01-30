@@ -91,6 +91,10 @@ champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.ressources_ménage égal à ressources_ménage
   définition allocations_familiales.résidence égal à résidence
   définition montant_versé égal à allocations_familiales.montant_versé
+  assertion non (existe enfant dans enfants tel que 
+    enfant.d_garde_alternée != NonGardeUnique et 
+    enfant.d_pris_en_charge_par_services_sociaux != NonPriseEnChargeFamille
+  )
 */
 @@Fin métadonnées@@
 
