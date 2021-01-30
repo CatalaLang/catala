@@ -37,7 +37,7 @@ build:
 js_build:
 	dune build src/catala_web/catala_web.bc.js --profile release
 
-doc: 
+doc: generate_allocations_familiales_ml
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
@@ -146,9 +146,11 @@ tests: test_suite test_examples
 # Catala examples in OCaml
 ##########################################
 
-allocations_familiales_ml: 
+generate_allocations_familiales_ml:
 	$(MAKE) -C examples/allocations_familiales allocations_familiales.ml -B 
 	cp -f examples/allocations_familiales/allocations_familiales.ml src/french_law/law_source 
+
+allocations_familiales_ml: generate_allocations_familiales_ml
 	$(MAKE) -C ./ format
 	dune exec  src/french_law/benchmark.exe
 
