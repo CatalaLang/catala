@@ -355,16 +355,16 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           | None ->
               Errors.raise_spanned_error
                 (Format.asprintf
-                   "the tuple has %d components but the %i-th element was requested (should not \
+                   "The tuple has %d components but the %i-th element was requested (should not \
                     happen if the term was well-type)"
                    (List.length es) n)
                 (Pos.get_position e1) )
       | _ ->
           Errors.raise_spanned_error
             (Format.asprintf
-               "the expression should be a tuple with %d components but is not (should not happen \
-                if the term was well-typed)"
-               n)
+               "The expression %a should be a tuple with %d components but is not (should not \
+                happen if the term was well-typed)"
+               (Print.format_expr ctx) e n)
             (Pos.get_position e1) )
   | EInj (e1, n, en, ts) ->
       let e1' = evaluate_expr ctx e1 in
@@ -453,15 +453,21 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
 (** Interpret a program. This function expects an expression typed as a function whose argument are
     all thunked. The function is executed by providing for each argument a thunked empty default. *)
 let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
-    (Ast.Var.t * Ast.expr Pos.marked) list =
+    (Uid.MarkedString.info * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr ctx e) with
-  | Ast.EAbs (_, binder, taus) -> (
+  | Ast.EAbs (_, _, [ (Ast.TTuple (taus, Some s_in), _) ]) -> (
       let application_term = List.map (fun _ -> empty_thunked_term) taus in
-      let to_interpret = (Ast.EApp (e, application_term), Pos.no_pos) in
+      let to_interpret =
+        (Ast.EApp (e, [ (Ast.ETuple (application_term, Some s_in), Pos.no_pos) ]), Pos.no_pos)
+      in
       match Pos.unmark (evaluate_expr ctx to_interpret) with
-      | Ast.ETuple (args, Some _) ->
-          let vars, _ = Bindlib.unmbind binder in
-          List.map2 (fun arg var -> (var, arg)) args (Array.to_list vars)
+      | Ast.ETuple (args, Some s_out) ->
+          let s_out_fields =
+            List.map
+              (fun (f, _) -> Ast.StructFieldName.get_info f)
+              (Ast.StructMap.find s_out ctx.ctx_structs)
+          in
+          List.map2 (fun arg var -> (var, arg)) args s_out_fields
       | _ ->
           Errors.raise_spanned_error
             "The interpretation of a program should always yield a struct corresponding to the \

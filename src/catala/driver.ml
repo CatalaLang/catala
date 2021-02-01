@@ -144,8 +144,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let prgm, prgm_expr, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
         in
-        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr ctx)
-           prgm); *)
+        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr
+           prgm.decl_ctx) prgm_expr); *)
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgm_expr in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
@@ -154,18 +154,25 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
             let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgm_expr in
+            let out_regex = Re.Pcre.regexp "\\_out$" in
             let results =
-              List.sort
-                (fun (v1, _) (v2, _) -> String.compare (Bindlib.name_of v1) (Bindlib.name_of v2))
+              List.map
+                (fun ((v1, v1_pos), e1) ->
+                  let v1 = Re.Pcre.substitute ~rex:out_regex ~subst:(fun _ -> "") v1 in
+                  ((v1, v1_pos), e1))
                 results
             in
+            let results =
+              List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
+            in
+
             Cli.result_print
               (Format.asprintf "Computation successful!%s"
                  (if List.length results > 0 then " Results:" else ""));
             List.iter
-              (fun (var, result) ->
+              (fun ((var, _), result) ->
                 Cli.result_print
-                  (Format.asprintf "@[<hov 2>%s@ =@ %a@]" (Bindlib.name_of var)
+                  (Format.asprintf "@[<hov 2>%s@ =@ %a@]" var
                      (Dcalc.Print.format_expr prgm.decl_ctx)
                      result))
               results;

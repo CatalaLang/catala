@@ -82,7 +82,7 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter)
 let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
     (t2 : typ Pos.marked UnionFind.elem) : unit =
   let unify = unify ctx in
-  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" format_typ t1 format_typ t2); *)
+  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx) t2); *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let raise_type_error (t1_pos : Pos.t) (t2_pos : Pos.t) : 'a =
@@ -225,6 +225,7 @@ type env = typ Pos.marked UnionFind.elem A.VarMap.t
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.marked) :
     typ Pos.marked UnionFind.elem =
+  (* Cli.debug_print (Format.asprintf "Looking for type of %a" (Print.format_expr ctx) e); *)
   try
     let out =
       match Pos.unmark e with
@@ -339,7 +340,8 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
             es;
           UnionFind.make (Pos.same_pos_as (TArray cell_type) e)
     in
-    (* Cli.debug_print (Format.asprintf "Found type of %a: %a" Print.format_expr e format_typ out); *)
+    (* Cli.debug_print (Format.asprintf "Found type of %a: %a" (Print.format_expr ctx) e (format_typ
+       ctx) out); *)
     out
   with Errors.StructuredError (msg, err_pos) when List.length err_pos = 2 ->
     raise
@@ -351,7 +353,8 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.marked)
     (tau : typ Pos.marked UnionFind.elem) : unit =
-  (* Cli.debug_print (Format.asprintf "Typechecking %a : %a" Print.format_expr e format_typ tau); *)
+  (* Cli.debug_print (Format.asprintf "Typechecking %a : %a" (Print.format_expr ctx) e (format_typ
+     ctx) tau); *)
   try
     match Pos.unmark e with
     | EVar v -> (
