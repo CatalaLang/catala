@@ -49,6 +49,7 @@ val duration_of_calendar_period : CalendarLib.Date.Period.t -> duration
 val duration_to_calendar_period : duration -> CalendarLib.Date.Period.t
 
 val date_of_numbers : int -> int -> int -> date
+(** Usage: [date_of_numbers year month day] *)
 
 val duration_of_numbers : int -> int -> int -> duration
 

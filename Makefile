@@ -27,15 +27,15 @@ dependencies: dependencies-ocaml init-submodules
 ##########################################
 
 format:
-	dune build @fmt --auto-promote | true
+	dune build @fmt --auto-promote 2> /dev/null | true 
 
 build:
 	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
 	@$(MAKE) --no-print-directory format
-	dune build src/catala.exe
+	dune build src/catala/catala.exe
 
 js_build:
-	dune build src/catala_web/catala_web.bc.js --profile release
+	dune build src/catala/catala_web.bc.js --profile release
 
 doc: generate_allocations_familiales_ml
 	dune build @doc
@@ -143,17 +143,25 @@ test_examples: .FORCE
 tests: test_suite test_examples
 
 ##########################################
-# Catala examples in OCaml
+# French law library
 ##########################################
 
-generate_allocations_familiales_ml:
-	$(MAKE) -C examples/allocations_familiales allocations_familiales.ml -B 
-	cp -f examples/allocations_familiales/allocations_familiales.ml src/french_law/law_source 
+FRENCH_LAW_LIB_DIR=src/french_law
 
-allocations_familiales_ml: generate_allocations_familiales_ml
-	$(MAKE) -C ./ format
-	dune exec  src/french_law/benchmark.exe
+allocations_familiales_library:
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
+		$(FRENCH_LAW_LIB_DIR)/law_source 
 
+build_french_law_library: allocations_familiales_library format
+	dune build $(FRENCH_LAW_LIB_DIR)
+
+build_french_law_library_js: allocations_familiales_library format
+	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
+	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
+
+run_french_law_library_benchmark: allocations_familiales_library
+	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
 
 ##########################################
 # Website assets
@@ -163,7 +171,7 @@ grammar.html: src/catala/catala_surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: src/catala/utils/cli.ml
-	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
+	dune exec src/catala/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
 website-assets: doc literate_examples grammar.html catala.html js_build
