@@ -75,7 +75,7 @@ let _ =
                                OuiPartageAllocations ()
                              else OuiAllocataireUnique ()
                            else NonGardeUnique () );
-                         AF.d_pris_en_charge_par_services_sociaux =
+                         AF.d_prise_en_charge_par_services_sociaux =
                            ( if Js.to_bool child##.priseEnChargeServiceSociaux then
                              if Js.to_bool child##.allocationVerseeServiceSociaux then
                                OuiAllocationVerseeAuxServicesSociaux ()

@@ -149,14 +149,14 @@ tests: test_suite test_examples
 FRENCH_LAW_LIB_DIR=src/french_law
 
 allocations_familiales_library:
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml -B
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source 
 
-build_french_law_library: allocations_familiales_library format
+build_french_law_library: format
 	dune build $(FRENCH_LAW_LIB_DIR)
 
-build_french_law_library_js: allocations_familiales_library format
+build_french_law_library_js: format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
 	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
 

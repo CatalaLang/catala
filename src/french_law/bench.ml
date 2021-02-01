@@ -26,7 +26,7 @@ let random_children (id : int) =
       | 0 -> AF.NonGardeUnique ()
       | 1 -> AF.OuiPartageAllocations ()
       | _ -> AF.OuiAllocataireUnique () );
-    d_pris_en_charge_par_services_sociaux =
+    d_prise_en_charge_par_services_sociaux =
       ( match Random.int 3 with
       | 0 -> AF.OuiAllocationVerseeALaFamille ()
       | 1 -> AF.OuiAllocationVerseeAuxServicesSociaux ()
@@ -92,7 +92,7 @@ let run_test () =
                (CalendarLib.Printer.Date.to_string
                   (date_to_calendar_date child.AF.d_date_de_naissance))
                format_garde_alternee child.AF.d_garde_alternee format_services_sociaux
-               child.AF.d_pris_en_charge_par_services_sociaux))
+               child.AF.d_prise_en_charge_par_services_sociaux))
         (Array.to_list children) income
         (CalendarLib.Printer.Date.to_string current_date)
         format_residence residence;

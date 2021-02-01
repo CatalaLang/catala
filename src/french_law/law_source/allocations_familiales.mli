@@ -56,7 +56,7 @@ type enfant_entree = {
   d_remuneration_mensuelle : Catala.Runtime.money;
   d_date_de_naissance : Catala.Runtime.date;
   d_garde_alternee : garde_alternee;
-  d_pris_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  d_prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
 }
 
 type enfant = {
@@ -66,7 +66,7 @@ type enfant = {
   date_de_naissance : Catala.Runtime.date;
   age : Catala.Runtime.integer;
   garde_alternee : garde_alternee;
-  pris_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
 }
 
 type stockage_enfant = PasEnfant of unit | UnEnfant of enfant
