@@ -25,12 +25,12 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         (Pos.same_pos_as (Dcalc.Ast.LRat i) l)
   | LMoney e -> Format.fprintf fmt "money_of_cent_string@ \"%s\"" (Z.to_string e)
   | LDate d ->
-      Format.fprintf fmt "date_of_numbers (%d) (%d) (%d)" (CalendarLib.Date.year d)
+      Format.fprintf fmt "date_of_numbers %d %d %d" (CalendarLib.Date.year d)
         (CalendarLib.Date.int_of_month (CalendarLib.Date.month d))
         (CalendarLib.Date.day_of_month d)
   | LDuration d ->
       let years, months, days = CalendarLib.Date.Period.ymd d in
-      Format.fprintf fmt "duration_of_numbers (%d) (%d) (%d)" years months days
+      Format.fprintf fmt "duration_of_numbers %d %d %d" years months days
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
@@ -135,25 +135,28 @@ let format_enum_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumName.t) : unit 
 let format_enum_cons_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumConstructor.t) : unit =
   Format.fprintf fmt "%s" (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v))
 
+let typ_needs_parens (e : Dcalc.Ast.typ Pos.marked) : bool =
+  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
+
 let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : unit =
   let format_typ = format_typ in
   let format_typ_with_parens (fmt : Format.formatter) (t : Dcalc.Ast.typ Pos.marked) =
-    Format.fprintf fmt "(%a)" format_typ t
+    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
+    else Format.fprintf fmt "%a" format_typ t
   in
-  let format_typ = format_typ_with_parens in
   match Pos.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" Dcalc.Print.format_tlit l
   | TTuple (ts, None) ->
       Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-           (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
+           (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
         ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
   | TEnum (_, e) -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
-      Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ t2
-  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
+      Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ_with_parens t2
+  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
@@ -164,9 +167,13 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   let lowercase_name = to_ascii lowercase_name in
   if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
     Format.fprintf fmt "%s" lowercase_name
+  else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
-let needs_parens (_e : expr Pos.marked) : bool = true
+let needs_parens (e : expr Pos.marked) : bool =
+  match Pos.unmark e with
+  | EApp ((EAbs (_, _, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
+  | _ -> true
 
 let format_exception (fmt : Format.formatter) (exc : except) : unit =
   match exc with
@@ -181,27 +188,27 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
-  let format_expr = format_with_parens in
   match Pos.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
   | ETuple (es, None) ->
       Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
+           (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
         es
   | ETuple (es, Some s) ->
       Format.fprintf fmt "{@[<hov 2>%a@]}"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (e, struct_field) ->
-             Format.fprintf fmt "%a=@ %a" format_struct_field_name struct_field format_expr e))
+             Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
+               format_with_parens e))
         (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[|%a|]@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
+           (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
         es
   | ETupleAccess (e1, n, s, ts) -> (
       match s with
@@ -211,29 +218,29 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
                ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
                (fun fmt i -> Format.fprintf fmt "%s" (if i = n then "x" else "_")))
             (List.mapi (fun i _ -> i) ts)
-            format_expr e1
+            format_with_parens e1
       | Some s ->
-          Format.fprintf fmt "%a.%a" format_expr e1 format_struct_field_name
+          Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
             (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)) )
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
-        format_expr e
+        format_with_parens e
   | EMatch (e, es, e_name) ->
-      Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
+      Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "%a@ %a" format_enum_cons_name c
+             Format.fprintf fmt "%a %a" format_enum_cons_name c
                (fun fmt e ->
                  match Pos.unmark e with
                  | EAbs (_, binder, _) ->
                      let xs, body = Bindlib.unmbind binder in
-                     Format.fprintf fmt "(%a)@ ->@ %a"
+                     Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
                        (Format.pp_print_list
                           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
                           (fun fmt x -> Format.fprintf fmt "%a" format_var x))
-                       (Array.to_list xs) format_expr body
+                       (Array.to_list xs) format_with_parens body
                  | _ -> assert false
                  (* should not happen *))
                e))
@@ -243,13 +250,13 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
-      Format.fprintf fmt "@[%a%a@]"
+      Format.fprintf fmt "%a%a"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
            (fun fmt (x, tau, arg) ->
-             Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
-               format_typ tau format_expr arg))
-        xs_tau_arg format_expr body
+             Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n" format_var x format_typ
+               tau format_with_parens arg))
+        xs_tau_arg format_with_parens body
   | EAbs (_, binder, taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
@@ -265,26 +272,26 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_expr arg1
+  | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ") format_with_parens)
         args
   | EIfThenElse (e1, e2, e3) ->
       Format.fprintf fmt "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
-        format_expr e1 format_expr e2 format_expr e3
+        format_with_parens e1 format_with_parens e2 format_with_parens e3
   | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
-      Format.fprintf fmt "@[<hov 2>if @ (%a)@ then@ ()@ else@ raise@ AssertionFailed@]" format_expr
-        e'
+      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise@ AssertionFailed@]"
+        format_with_parens e'
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception exc
   | ECatch (e1, exc, e2) ->
-      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_expr e1 format_exception exc
-        format_expr e2
+      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens e1
+        format_exception exc format_with_parens e2
 
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
