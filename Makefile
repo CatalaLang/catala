@@ -37,7 +37,7 @@ build:
 js_build:
 	dune build src/catala/catala_web.bc.js --profile release
 
-doc: generate_allocations_familiales_ml
+doc:
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
