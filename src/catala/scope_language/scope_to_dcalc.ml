@@ -457,10 +457,12 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
       let next_e, new_ctx =
         translate_rules new_ctx rest (sigma_name, pos_sigma) sigma_return_struct_name
       in
-      let results_bindings, _ =
-        List.fold_right
-          (fun (_, tau, dvar) (acc, i) ->
-            let result_access =
+      let results_bindings =
+        let xs = Array.of_list (List.map (fun (_, _, v) -> v) all_subscope_vars_dcalc) in
+        let taus = List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc in
+        let e1s =
+          List.mapi
+            (fun i _ ->
               Bindlib.box_apply
                 (fun r ->
                   ( Dcalc.Ast.ETupleAccess
@@ -469,11 +471,10 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
                         Some called_scope_return_struct,
                         List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
                     pos_sigma ))
-                (Dcalc.Ast.make_var (result_tuple_var, pos_sigma))
-            in
-            (Dcalc.Ast.make_let_in dvar (tau, pos_sigma) result_access acc, i - 1))
-          all_subscope_vars_dcalc
-          (next_e, List.length all_subscope_vars_dcalc - 1)
+                (Dcalc.Ast.make_var (result_tuple_var, pos_sigma)))
+            all_subscope_vars_dcalc
+        in
+        Dcalc.Ast.make_multiple_let_in xs taus (Bindlib.box_list e1s) next_e
       in
       let result_tuple_typ =
         ( Dcalc.Ast.TTuple
@@ -529,10 +530,17 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
       scope_variables
   in
   (* first we create variables from the fields of the input struct *)
-  let rules, _ =
-    List.fold_right
-      (fun (_, tau, dvar) (acc, i) ->
-        let result_access =
+  let rules =
+    let xs = Array.of_list (List.map (fun (_, _, v) -> v) scope_variables) in
+    let taus =
+      List.map
+        (fun (_, tau, _) ->
+          (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
+        scope_variables
+    in
+    let e1s =
+      List.mapi
+        (fun i _ ->
           Bindlib.box_apply
             (fun r ->
               ( Dcalc.Ast.ETupleAccess
@@ -545,14 +553,10 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
                           pos_sigma ))
                       scope_variables ),
                 pos_sigma ))
-            (Dcalc.Ast.make_var (scope_input_var, pos_sigma))
-        in
-        ( Dcalc.Ast.make_let_in dvar
-            (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma)
-            result_access acc,
-          i - 1 ))
-      scope_variables
-      (rules, List.length scope_variables - 1)
+            (Dcalc.Ast.make_var (scope_input_var, pos_sigma)))
+        scope_variables
+    in
+    Dcalc.Ast.make_multiple_let_in xs taus (Bindlib.box_list e1s) rules
   in
   let scope_return_struct_fields =
     List.map

@@ -165,6 +165,17 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
        (Pos.get_position (Bindlib.unbox e2)))
     (Bindlib.box_list [ e1 ])
 
+let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
+    (e1 : expr Pos.marked list Bindlib.box) (e2 : expr Pos.marked Bindlib.box) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
+    (make_abs xs e2
+       (Pos.get_position (Bindlib.unbox e2))
+       taus
+       (Pos.get_position (Bindlib.unbox e2)))
+    e1
+
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
 type program = { decl_ctx : decl_ctx; scopes : (Var.t * expr Pos.marked) list }
