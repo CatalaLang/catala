@@ -62,7 +62,6 @@
 \newcommand{\synmid}{\synpunct{~$|$~}}
 \newcommand{\synemptydefault}{\synvar{\varnothing}}
 \newcommand{\synerror}{\synvar{\circledast}}
-\newcommand{\synmerge}{\synpunct{~$+\!+$~}}
 \newcommand{\synstar}{\synpunct{~$*$~}}
 \newcommand{\synvardef}{\synkeyword{definition~}}
 \newcommand{\synscopecall}{\synkeyword{scope\_call~}}
@@ -79,6 +78,11 @@
 \newcommand{\synmatch}{\synkeyword{match}~}
 \newcommand{\synwith}{~\synkeyword{with}~}
 \newcommand{\synoption}{\;\texttt{option}}
+\newcommand{\synraise}{\synkeyword{raise}\;}
+\newcommand{\synemptyerror}{\texttt{EmptyError}}
+\newcommand{\synconflicterror}{\texttt{ConflictError}}
+\newcommand{\syntry}{\synkeyword{try}\;}
+\newcommand{\synlist}{\;\texttt{list}}
 
 %% Typing
 \newcommand{\typctx}[1]{\textcolor{orange!90!black}{\ensuremath{#1}}}
@@ -324,13 +328,12 @@ currently being reduced.
     Values&\synvar{v}&\syndef&\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}&functions\\
                     &&\synalt&\syntrue\synalt\synfalse & booleans\\
                     &&\synalt&\synerror\synalt\synemptydefault&errors\\
-    Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt&function application evaluation\\
+    Evaluation &\synvar{C_\lambda}&\syndef&\synhole\;\synvar{e}\synalt\synvar{v}\;\synhole&function application evaluation\\
     contexts&&\synalt&\synlangle$[\synvar{v}^*]$\synmid\synhole\synjust\synvar{e}\synrangle&default justification evaluation\\
     &&\synalt&\synlangle$[\synvar{v}^*]$\synmid\syntrue\synjust\synhole \synrangle&default consequence evaluation\\
     &\synvar{C}&\syndef&\synvar{C_\lambda}&regular contexts\\  
     &&\synalt&\synlangle$[\synvar{v}^*]$\syncomma\synhole\syncomma$[\synvar{e}^*]$\synmid
        \synvar{e}\synjust\synvar{e}\synrangle&default exceptions evaluation\\
-    &&\synalt&\synvar{v}\;\synhole&function argument evaluation\\
   \end{tabular}
 \end{center}
 
@@ -717,10 +720,8 @@ sub-scope.
 }
 \end{mathpar}
 
-This rule is very similar to \TirName{T-DefScopeVar}, and actually simpler. It does not feature the 
-merge operator $\!\!\!\synmerge\!\!\!$, because sub-scope variables like 
-$\synvar{S'}_\synvar{n}$\synlsquare\synvar{a}\synrsquare{}
-are not part of the scope's argument. The premise $S\neq S'$ means that a scope 
+This rule is very similar to \TirName{T-DefScopeVar}, and actually simpler. 
+The premise $S\neq S'$ means that a scope 
 $S$ cannot have a recursive definition; it cannot call into itself and define 
 sub-scope variables of its own scope. Note that 
 $\synvar{S'}_\synvar{n}$\synlsquare\synvar{a}\synrsquare\redcolon\synunitt\synarrow\synvar{\tau}
@@ -820,38 +821,63 @@ all the variables from a list not present in \redctx{\Delta}.
 }
 \end{mathpar}
 
-\section{Compiling defaults away}
+\section{From default calculus to lambda calculus}
+
+\subsection{Using exceptions}
 
 The default calculus is a solid semantic foundation for the Catala language,
 but it is not a good compilation target since default logic cannot be shallowly
 embedded easily in mainstream programming languages. Hence, we propose a
 compilation scheme whose goal is to eliminate default terms and empty error 
 terms (\synemptydefault) from the default calculus, leaving us with a the semantics of a
-regular lambda calculus.
+regular lambda calculus. The conflict error term (\synerror) is less problematic 
+since its semantics correspond to an early exit from the program.
 
-While it is clear that defaults terms will be translated to conditionals,
-the empty error poses a challenge. Given the semantics of the empty error term
-propagation, it would be natural to compile the term to an exception raise, 
-exception which should be caught by the default term when counting of many 
-exceptions are triggered.
+In order to lower the default term to a lambda calculus term, we need to extend 
+the traditional lambda calculus with several classic extensions: algebraic 
+data types and recursive data types (lists). Indeed, we need an optional 
+accumulator to emulate the exception count that triggers rules like
+\TirName{D-DefaultExceptionsConflict} and \TirName{D-DefaultOneException}.
 
-However, compiling empty errors to catchable exceptions would require the 
-target language to support catchable exceptions at runtime. Because we wish 
-to target low-level languages like C that don't support catchable exceptions 
-natively, we chose instead another compilation scheme.
+The empty error term has a complex propagation rule (\TirName{D-ContextEmptyError})
+that naturally maps to a catchable exception. Hence, in this translation scheme,
+assume that the target lambda calculus has support for exceptions. Combining these 
+features, we propose a translation of the default term. This translation relies 
+on a small runtime function \texttt{process\_exceptions}, whose body 
+implements the semantics of the default calculus. 
 
-We propose to compile the default terms to expressions returning an option 
-value, the \verb|None| case corresponding to a \synemptydefault. 
-Since we will use an option type for this translation, we suppose that our 
-target lambda calculus has polymorphic algebraic data types associated with 
-a classic semantics. The translations judgments that we will use are: 
-\fbox{\synvar{e}\compiles\synvar{e'}} and \fbox{\synvar{\tau}\compiles\synvar{\tau'}}. 
+
+\begin{align*}
+  \texttt{process\_exceptions}\quad&\syntyped&&
+  \synlparen\synunitt\synarrow\synvar{\tau}\synrparen\synlist\synarrow\synvar{\tau}\synoption\\
+  \texttt{process\_exceptions}\quad&\triangleq&&
+  \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
+  \synvar{\tau}\synoption\synrparen\;
+  \synlparen\synvar{e'}\syntyped
+  \synunitt\synarrow\synvar{\tau}\synrparen\syndot\\
+  &&&\quad\synlet\synvar{e'}\syntyped\synvar{\tau}\synequal\syntry
+  \synsome\synlparen\synvar{e'}\synunit\synrparen
+  \synwith\synemptyerror\synarrow \synnone\synin\\
+  &&&\quad\synmatch\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\synwith\\
+  &&&\quad\quad\synmid\synlparen\synnone\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}\\
+  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synnone\synrparen\synarrow
+  \synsome\synvar{a}\\
+  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synsome
+  \synvar{e'}\synrparen\synarrow \synraise\synconflicterror \synrparen\;\synnone
+\end{align*}
+
+Note that the \synemptyerror{} exception is caught within \texttt{process\_exceptions};
+making it the only place in the output code where this exception can be caught.
+This is consistent with the evaluation context of the default exceptions, 
+which is the only evaluation context that belongs to $C$ but not to $C_\lambda$.
+
+We can now proceed to the formal translation rules defining the compilation 
+judgment $\fbox{\synvar{e}\compiles\synvar{e'}}$ where \synvar{e} is an 
+expression of the default calculus and $\synvar{e'}$ is an expression 
+of the target lambda calculus enriched with algebraic data types and exceptions.
 
 \begin{mathpar}
 \inferrule[C-Default]{
-  \typctx{\Gamma}\typvdash
-  \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_\mathrm{just}}
-  \synjust\synvar{e_\mathrm{cons}}\synrangle\typcolon\synvar{\tau}\\
   \synvar{e_1}\compiles\synvar{e_1'}\\
   \cdots\\
   \synvar{e_n}\compiles\synvar{e_n'}\\
@@ -859,231 +885,283 @@ a classic semantics. The translations judgments that we will use are:
   \synvar{e_\mathrm{cons}}\compiles\synvar{e_\mathrm{cons}'}\\
 }{
   \synlangle\synvar{e_1}\synellipsis\synvar{e_n}\synmid\synvar{e_\mathrm{just}}
-  \synjust\synvar{e_\mathrm{cons}}\synrangle\compiles
+  \synjust\synvar{e_\mathrm{cons}}\synrangle\compiles\\
   \synlet\synvar{r_\mathrm{exceptions}}\synequal
-  \texttt{process\_exceptions}\;\synlsquare\synvar{e_1'}
-  \synlistellipsis\synvar{e_n'}\synrsquare\synin\\\synmatch
+  \texttt{process\_exceptions}\;\synlsquare\synlambda\synvar{\_}\synarrow\synvar{e_1'}
+  \synlistellipsis\synvar{\_}\synarrow\synvar{e_n'}\synrsquare\synin\\\synmatch
   \synvar{r_\mathrm{exceptions}}\synwith\synsome\synvar{e'}\synarrow 
-  \synsome\synvar{e'}\synmid\synnone\synarrow\\
-  \synlparen\synmatch\synvar{e_\mathrm{just}'}\synwith\synsome\synvar{e_\mathrm{just}'}\synarrow 
-  \synlparen\synif\synvar{e_\mathrm{just}'}\synthen\synvar{e_\mathrm{cons}'}\synelse\synnone\synrparen
-  \synmid\synnone\synarrow\synnone\synrparen
+  \synvar{e'}\synmid\synnone\synarrow
+  \synif\synvar{e_\mathrm{just}'}\synthen\synvar{e_\mathrm{cons}'}\synelse\synraise\synemptyerror
 }
 
 \inferrule[C-EmptyError]{}{
-  \synemptydefault\compiles\synnone
+  \synemptydefault\compiles\synraise\synemptyerror
 }
-\end{mathpar}
-
-The \TirName{C-Default} rule relies on a helper function that accumulate a 
-value through the list of exceptions, implementing the semantics of 
-exception handling defined in \TirName{D-DefaultOneException} and
-\TirName{D-DefaultExceptionsConflict}:
-
-\begin{align*}
-  \texttt{process\_exceptions}\quad&\triangleq&&
-  \texttt{fold\_left}\;\synlparen\synlambda\synlparen\synvar{a}\syntyped
-  \synvar{\tau}\synoption\synrparen\;
-  \synlparen\synvar{e'}\syntyped
-  \synvar{\tau}\synoption\synrparen\syndot\\
-  &&&\quad\synkeyword{match}\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\synwith\\
-  &&&\quad\quad\synmid\synlparen\synnone\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}\\
-  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synnone\synrparen\synarrow
-  \synsome\synvar{a}\\
-  &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synsome
-  \synvar{e'}\synrparen\synarrow \synerror \synrparen\;\synnone
-\end{align*}
 
 
-These two rules \TirName{C-Default} and \TirName{C-EmptyError} 
-only address part of the translation: what to do with all the 
-other expressions, which are neither defaults nor empty error terms? To be 
-completely correct in all generality, we would have to apply the \synvar{\tau}
-to \synvar{\tau} \texttt{option} transformation to all terms in the 
-program. This would entail cumbersome pattern matching at each stage in order 
-to propagate the \verb|None| case faithfully to the \TirName{D-ContextEmptyError}
-rule. Here are the corresponding rules:
-
-\begin{mathpar}
+\inferrule[C-ConflictError]{}{
+  \synerror\compiles\synraise\synconflicterror
+}
 
 \inferrule[C-Var]{}{\synvar{x}\compiles\synvar{x}}
 
 \inferrule[C-Literal]{\synvar{e}\in\{\synunit,\;\syntrue,\;\synfalse\}}{
-  \synvar{e}\compiles\synsome\synvar{e}
+  \synvar{e}\compiles\synvar{e}
 }
 
 \inferrule[C-Abs]{
-  \synvar{e}\compiles\synvar{e'}\\
-  \synvar{\tau}\compiles\synvar{\tau'}
+  \synvar{e}\compiles\synvar{e'}
 }{
   \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e}\compiles 
-  \synsome\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau'}\synrparen\syndot\synvar{e'} 
+  \synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e'} 
 }
 
 \inferrule[C-App]{
   \synvar{e_1}\compiles\synvar{e_1'}\\
   \synvar{e_2}\compiles\synvar{e_2'}
 }{
-  \synvar{e_1}\;\synvar{e_2}\compiles\synmatch\synvar{e_1'}
-  \synwith\synsome\synvar{f}\synarrow \synvar{f}\;
-  \synvar{e_2'}\synmid\synnone\synarrow \synnone
+  \synvar{e_1}\;\synvar{e_2}\compiles\synvar{e_1'}\;\synvar{e_2'}
 }
+ 
 
-\inferrule[C-TArrow]{
-  \synvar{\tau_1}\compiles\synvar{\tau_1'}\\
-  \synvar{\tau_2}\compiles\synvar{\tau_2'}
-}{
-  \synvar{\tau_1}\synarrow\synvar{\tau_2}\compiles
-  \synlparen\synvar{\tau_1'}\synarrow\synvar{\tau_2'}\synrparen\synoption
-}
-
-\inferrule[C-TLit]{
- \synvar{\tau}\in\{\synbool,\;\synunitt\} 
-}{
-  \synvar{\tau}\compiles\synvar{\tau}\synoption
-}
 \end{mathpar}
 
-While perfectly correct, this maximalist translation scheme would entail 
-a lot of redundant branching in the generated code, which would hinder the 
-resulting program's performance. Because Catala aims at providing 
-production-ready high-performance code that can scale to computations 
-concerning millions of household, we need to be more clever to reduce the 
-number of generated branches. 
-
-Let's look back at the code of Fig.~\ref{fig:simpledefaultprogram}. One way 
-we can avoid having to propagate errors all the time in the program is to 
-contain empty error propagation inside each scope variable. Concretely,
-that means enforcing a crashing error each time a scope variable evaluates 
-to an empty error term. This gives us a new default calculus program, 
-Fig~\ref{fig:noerrordefaultprogram}, which differs 
-from Fig.~\ref{fig:simpledefaultprogram} by the addition of \syncrashifempty{}
-calls to wrap up each scope variable definition.
+We overload the \exeval{} notation as 
+the stepping judgment both in the default calculus and the target lambda 
+calculus. Similarly, we overload the typing judgment \typvdash. 
+We prove this theorem by induction on the default calculus expression \synvar{e} and start 
+by applying an inversion lemma on the judgment \synvar{e}\compiles\synvar{e'}. 
 
 
-\begin{figure}
-  \begin{Verbatim}[frame=lines,label=Simple default program without error propagation, numbers=left, framesep=10pt, samepage=true]
-  let X (a: unit -> int) (b: unit -> int) : (int * int) =
-    let a : int = crash_if_empty < a () | < true :- 0 >> in
-    let b : int = crash_if_empty < b () | < true :- a + 1 >> in 
-    (a, b)
+\paragraph{Theorem (type preservation)} \textit{If \synvar{e}\compiles\synvar{e'} 
+and \typempty\typvdash\synvar{e}\typcolon\synvar{\tau}, then 
+\typempty\typvdash\synvar{e'}\typcolon\synvar{\tau}}
+
+The proof can be carried out by induction on \synvar{e} without any trouble.
+The most difficult part is to check the correct typing of \texttt{process\_exceptions}
+in the lambda calculus $\blacksquare$
+
+\paragraph{Theorem (translation correctness)} \textit{If \synvar{e}\compiles\synvar{e'} 
+and \synvar{e}\exevalstar\synvar{v}, then 
+either $\synvar{v}=\synemptydefault$, $\synvar{v}=\synerror$  or 
+there exists a lambda calculus value \synvar{v'} such that 
+\synvar{v}\compiles\synvar{v'} and \synvar{e'}\exevalstar\synvar{v'}.}
+
+\begin{itemize}
+  \item Rules \TirName{C-EmptyError}, \TirName{C-ConflictError}, \TirName{C-Var} and 
+  \TirName{C-Literal} yield an immediate conclusion.
+  \item For rule \TirName{C-Abs} with
+   $\synvar{e}=\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_1}$,
+   we apply the induction hypothesis on \synvar{e_1} and conclude since functions 
+   are values ($\synvar{v'}=\synlambda\synlparen\synvar{x}\syntyped\synvar{\tau}\synrparen\syndot\synvar{e_1'}$).
+  \item For rule \TirName{C-App} with $\synvar{e} = \synvar{e_1}\;\synvar{e_2}$, we 
+  apply the induction hypothesis on \synvar{e_1} and \synvar{e_2}. If either 
+  \synvar{e_1} or \synvar{e_2} evaluate to \synemptydefault, we can apply 
+  \TirName{D-ContextEmptyError} and conclude. Similarly, if either 
+  \synvar{e_1} or \synvar{e_2} evaluate to \synerror, we can apply 
+  \TirName{D-ContextConflictError} and conclude. Let us now suppose that we are not 
+  in one of those cases, and that \synvar{e_1}\exevalstar\synvar{v_1} and 
+  \synvar{e_2}\exevalstar\synvar{v_2}. \synvar{v_1} and \synvar{v_2} are not 
+  error terms, so we can apply \TirName{C-Literal} or \TirName{C-Abs} to 
+  get \synvar{v_1'} and \synvar{v_2'} such that \synvar{v_1}\compiles\synvar{v_1'}
+  and \synvar{v_2}\compiles\synvar{v_2'}. By the induction hypothesis applied on 
+  \synvar{e_1} and \synvar{e_2}, we know that \synvar{e_1'}\exevalstar\synvar{v_1'}
+  and \synvar{e_2'}\exevalstar\synvar{v_2'}. 
+
+  To recap, we have $\synvar{e_1}\;\synvar{e_2}\exevalstar\synvar{v_1}\;\synvar{v_2}$,
+  $\synvar{e_1'}\;\synvar{e_2'}\exevalstar\synvar{v_1'}\;\synvar{v_2'}$ and 
+  by \TirName{C-App}, $\synvar{v_1}\;\synvar{v_2}\compiles\synvar{v_1'}\;\synvar{v_2'}$.
+  We also know that $\synvar{v_1}\;\synvar{v_2}\exevalstar\synvar{v}$ beginning 
+  by a $\beta$-reduction. We can then apply the induction hypothesis a third time 
+  on $\synvar{v_1}\;\synvar{v_2}$ to get the \synvar{v'} on which we conclude.
+
+  \item Let us consider now \TirName{C-Default} with $e=\synlangle\synvar{e_1}\synellipsis
+  \synvar{e_n}\synmid\synvar{e_\mathrm{just}}\synjust\synvar{e_\mathrm{cons}}\synrangle$.
+   If any of the sub-terms 
+  evaluates to \synerror{}, then $\synvar{e}$ evaluates to $\synerror$ 
+  (\TirName{D-ContextConflictError}) and we conclude. Now, we case analyse on the 
+  number of exceptions that don't evaluate to \synemptydefault{}.
+  \begin{itemize}
+    \item If more than one exception does not evaluate to \synemptydefault{}, 
+    then \synvar{e} evaluates to \synerror{} by \TirName{D-DefaultExceptionsConflict} 
+    and we conclude.
+    \item If one and only one exception $\synvar{e_i}$ does not evaluates to \synemptydefault{}, 
+    then we apply the induction hypothesis and get a couple $(\synvar{v_i},\synvar{v_i'})$ such 
+    that $\synvar{e_i}\exevalstar\synvar{v_i}$, $\synvar{e_i'}\exevalstar\synvar{v_i'}$
+    and $\synvar{v_i}\compiles\synvar{v_i}$. Then, we claim that the 
+    \synvar{r_\mathrm{exceptions}} result of \texttt{process\_exceptions} will 
+    evaluate to \synsome\synvar{v_i'} in the lambda calculus translation of \synvar{e}.
+    Indeed, along the $\texttt{fold\_left}$ the accumulator \synvar{a} will remain 
+    \synnone{} as it encounters all the \synvar{e_j'} that raise the \synemptyerror{}
+    caught inside the fold function. The accumulator will then encounter \synvar{e_i'},
+    that yields \synvar{v_i'} and pick up its value. By following the rest of the 
+    translated code, \synvar{e'} will evaluate to \synvar{v_i'} and we can 
+    conclude. 
+    \item If all exceptions evaluate to \synemptydefault{}, then we claim that 
+    the \synvar{r_\mathrm{exceptions}} result will 
+    evaluate to \synnone{}. Indeed, the accumulator will stay at its original 
+    \synnone{} value during the whole fold process of the exceptions.
+    We now look at the evaluation of \synvar{e_\mathrm{just}}. If it evaluates 
+    to \synemptydefault{} or \synerror{}, then the whole expression evaluates
+    to the error term (\TirName{D-ContextConflictError} and \TirName{D-ContextEmptyError}) 
+    and we conclude. By type safety of the default calculus, \synvar{e_\mathrm{just}} 
+    evaluates to either $\synvar{v_\mathrm{just}} =\syntrue{}$ or \synfalse{}. By type preservation of the 
+    translation \synvar{e_\mathrm{just}'} evaluates to 
+    either $\synvar{v_\mathrm{just'}} =\syntrue{}$ or \synfalse{}. By application of the induction hypothesis 
+    on \synvar{e_\mathrm{just}'}, we know that 
+    \synvar{v_\mathrm{just}}\compiles\synvar{v_\mathrm{just}'} and by 
+    inversion on the \compiles{} judgment, we conclude $\synvar{v_\mathrm{just}}=\synvar{v_\mathrm{just}'}$.
+    From there, if $\synvar{v_\mathrm{just'}} =\syntrue{}$, then we conclude 
+    by applying the induction hypothesis on \synvar{e_\mathrm{cons}}. If 
+    $\synvar{v_\mathrm{just'}} =\synfalse{}$, then the default evaluates to 
+    \synemptydefault{} and we conclude $\blacksquare$
+  \end{itemize}
+\end{itemize}
+
+
+
+% \subsection{An alternative compilation scheme}
+
+% While perfectly correct, this maximalist translation scheme would entail 
+% a lot of redundant branching in the generated code, which would hinder the 
+% resulting program's performance. Because Catala aims at providing 
+% production-ready high-performance code that can scale to computations 
+% concerning millions of household, we need to be more clever to reduce the 
+% number of generated branches. 
+
+% Let's look back at the code of Fig.~\ref{fig:simpledefaultprogram}. One way 
+% we can avoid having to propagate errors all the time in the program is to 
+% contain empty error propagation inside each scope variable. Concretely,
+% that means enforcing a crashing error each time a scope variable evaluates 
+% to an empty error term. This gives us a new default calculus program, 
+% Fig~\ref{fig:noerrordefaultprogram}, which differs 
+% from Fig.~\ref{fig:simpledefaultprogram} by the addition of \syncrashifempty{}
+% calls to wrap up each scope variable definition.
+
+
+% \begin{figure}
+%   \begin{Verbatim}[frame=lines,label=Simple default program without error propagation, numbers=left, framesep=10pt, samepage=true]
+%   let X (a: unit -> int) (b: unit -> int) : (int * int) =
+%     let a : int = crash_if_empty < a () | < true :- 0 >> in
+%     let b : int = crash_if_empty < b () | < true :- a + 1 >> in 
+%     (a, b)
   
-  let Y (c: unit -> bool) : bool = 
-    let X_1[a] : unit -> int = fun () -> < true :- 42 > in
-    let X_1[b] : unit -> int = fun () -> EmptyError in 
-    let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
-    let c : bool = crash_if_empty 
-      < c () | < X_1[b] != 43 :- false | X_1[b] == 43 :- true >>
-    in 
-    c 
-  \end{Verbatim}
-  \caption{Alternative to Fig.~\ref{fig:simpledefaultprogram} with error containment
-  \label{fig:noerrordefaultprogram}}
-  \end{figure}
+%   let Y (c: unit -> bool) : bool = 
+%     let X_1[a] : unit -> int = fun () -> < true :- 42 > in
+%     let X_1[b] : unit -> int = fun () -> EmptyError in 
+%     let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
+%     let c : bool = crash_if_empty 
+%       < c () | < X_1[b] != 43 :- false | X_1[b] == 43 :- true >>
+%     in 
+%     c 
+%   \end{Verbatim}
+%   \caption{Alternative to Fig.~\ref{fig:simpledefaultprogram} with error containment
+%   \label{fig:noerrordefaultprogram}}
+%   \end{figure}
 
-We can model \syncrashifempty{} as a special operator of the default 
-calculus governed by the following rules:
+% We can model \syncrashifempty{} as a special operator of the default 
+% calculus governed by the following rules:
 
-\begin{mathpar}
-\inferrule[T-CrashIfEmpty]{
-  \typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}
-}{
-  \typctx{\Gamma}\typvdash\syncrashifempty\;\synvar{e}\typcolon\synvar{\tau}
-}
+% \begin{mathpar}
+% \inferrule[T-CrashIfEmpty]{
+%   \typctx{\Gamma}\typvdash\synvar{e}\typcolon\synvar{\tau}
+% }{
+%   \typctx{\Gamma}\typvdash\syncrashifempty\;\synvar{e}\typcolon\synvar{\tau}
+% }
 
-\inferrule[D-CrashIfEmptyError]{}{
-  \syncrashifempty\;\synemptydefault\exeval\synerror
-}
+% \inferrule[D-CrashIfEmptyError]{}{
+%   \syncrashifempty\;\synemptydefault\exeval\synerror
+% }
 
-\inferrule[D-CrashIfEmptyOK]{
-  \synvar{e}\neq \synemptydefault
-}{
-  \syncrashifempty\;\synvar{e}\exeval \synvar{e}
-}
+% \inferrule[D-CrashIfEmptyOK]{
+%   \synvar{e}\neq \synemptydefault
+% }{
+%   \syncrashifempty\;\synvar{e}\exeval \synvar{e}
+% }
 
-\inferrule[C-CrashIfEmpty]{
-  \synvar{e}\compiles\synvar{e'}
-}{
-  \syncrashifempty\;\synvar{e}\compiles\synmatch\synvar{e'}\synwith
-  \synnone\;\synarrow\synerror\synmid\synsome\synvar{e'}\synarrow 
-  \synvar{e'}
-}
-\end{mathpar}
+% \inferrule[C-CrashIfEmpty]{
+%   \synvar{e}\compiles\synvar{e'}
+% }{
+%   \syncrashifempty\;\synvar{e}\compiles\synmatch\synvar{e'}\synwith
+%   \synnone\;\synarrow\synerror\synmid\synsome\synvar{e'}\synarrow 
+%   \synvar{e'}
+% }
+% \end{mathpar}
 
-The addition of \syncrashifempty{} to the default calculus allow us to prevent 
-\synemptydefault{} to leak beyond this special operator call. Hence, we can 
-apply our \synvar{\tau} to \synvar{\tau} \texttt{option} transformation scheme 
-locally rather than globally on all terms of the program. More specifically, 
-we can assume that after it has been defined, a scope variable has type 
-\synvar{\tau} rather than \synvar{\tau} \texttt{option} in our translated program.
+% The addition of \syncrashifempty{} to the default calculus allow us to prevent 
+% \synemptydefault{} to leak beyond this special operator call. Hence, we can 
+% apply our \synvar{\tau} to \synvar{\tau} \texttt{option} transformation scheme 
+% locally rather than globally on all terms of the program. More specifically, 
+% we can assume that after it has been defined, a scope variable has type 
+% \synvar{\tau} rather than \synvar{\tau} \texttt{option} in our translated program.
 
-\begin{figure}[htb]
-  \begin{Verbatim}[frame=lines,label=Simple lambda calculus program, numbers=left, framesep=10pt, samepage=true]
-  let crash_if_empty x = match x with Some x -> x | None -> raise Error 
+% \begin{figure}[htb]
+%   \begin{Verbatim}[frame=lines,label=Simple lambda calculus program, numbers=left, framesep=10pt, samepage=true]
+%   let crash_if_empty x = match x with Some x -> x | None -> raise Error 
   
-  let X (a: unit -> int option) (b: unit -> int option) : (int * int) =
-    let a : int = crash_if_empty (match a () with 
-      | Some x -> Some x
-      | None -> if true then Some 0 else None))
-    in
-    let b : int = crash_if_empty (match b () with 
-      | Some x -> Some x 
-      | None -> if true then Some (a + 1) else None)
-    in 
-    (a, b)
+%   let X (a: unit -> int option) (b: unit -> int option) : (int * int) =
+%     let a : int = crash_if_empty (match a () with 
+%       | Some x -> Some x
+%       | None -> if true then Some 0 else None))
+%     in
+%     let b : int = crash_if_empty (match b () with 
+%       | Some x -> Some x 
+%       | None -> if true then Some (a + 1) else None)
+%     in 
+%     (a, b)
   
-  let Y (c: unit -> bool option) : bool = 
-    let X_1[a] : unit -> int = fun () -> if true then Some 42 else None in
-    let X_1[b] : unit -> int = fun () -> None in 
-    let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
-    let c : bool = crash_if_empty (match c () with  
-      | Some x -> Some x 
-      | None -> (match (if X_1[b] != 43 then Some false else None) with 
-        | Some x -> Some x 
-        | None -> if X_1[b] == 43 then true else None))
-    in 
-    c 
-  \end{Verbatim}
-  \caption{Translation of Fig.~\ref{fig:noerrordefaultprogram} to lambda calculus
-  \label{fig:lambdaprogram}}
-  \end{figure}
+%   let Y (c: unit -> bool option) : bool = 
+%     let X_1[a] : unit -> int = fun () -> if true then Some 42 else None in
+%     let X_1[b] : unit -> int = fun () -> None in 
+%     let (X_1[a], X_1[b]) : int * int = X(X_1[a], X_1[b]) in 
+%     let c : bool = crash_if_empty (match c () with  
+%       | Some x -> Some x 
+%       | None -> (match (if X_1[b] != 43 then Some false else None) with 
+%         | Some x -> Some x 
+%         | None -> if X_1[b] == 43 then true else None))
+%     in 
+%     c 
+%   \end{Verbatim}
+%   \caption{Translation of Fig.~\ref{fig:noerrordefaultprogram} to lambda calculus
+%   \label{fig:lambdaprogram}}
+%   \end{figure}
 
-Fig.~\ref{fig:lambdaprogram} shows the result of the compilation of the code in
-Fig.~\ref{fig:noerrordefaultprogram} according to our locally-restricted 
-compilation scheme. The \texttt{process\_exceptions} functions has been 
-partially evaluated and specialized to the example for readability.
+% Fig.~\ref{fig:lambdaprogram} shows the result of the compilation of the code in
+% Fig.~\ref{fig:noerrordefaultprogram} according to our locally-restricted 
+% compilation scheme. The \texttt{process\_exceptions} functions has been 
+% partially evaluated and specialized to the example for readability.
 
-This compilation mode helps minimizing the number of branching required 
-at execution time, but comes a the price of being very specialized to the 
-exact shape of the programs that we wish to compile. Indeed, we had to 
-know which function parameter types to change from \synvar{\tau} to 
-\synvar{\tau} \texttt{option}: here, only the thunked arguments of the 
-scopes. We claim that the correctness of the local application of our compilation 
-scheme can be validated by a mere typechecking pass over the resulting 
-lambda-calculus program.
+% This compilation mode helps minimizing the number of branching required 
+% at execution time, but comes a the price of being very specialized to the 
+% exact shape of the programs that we wish to compile. Indeed, we had to 
+% know which function parameter types to change from \synvar{\tau} to 
+% \synvar{\tau} \texttt{option}: here, only the thunked arguments of the 
+% scopes. We claim that the correctness of the local application of our compilation 
+% scheme can be validated by a mere typechecking pass over the resulting 
+% lambda-calculus program.
 
-Last, we want to discuss further the insertion of \syncrashifempty{} calls. 
-Inserting these calls effectively changes the semantics of the default calculus 
-program. By preventing the \synemptydefault{} error to propagate and be later 
-caught by an exception of a default, we change the behavior of the program.
-Hence, it is the program of Fig.~\ref{fig:noerrordefaultprogram} that 
-should be taken as a reference, and not the program of 
-Fig.~\ref{fig:simpledefaultprogram}.
+% Last, we want to discuss further the insertion of \syncrashifempty{} calls. 
+% Inserting these calls effectively changes the semantics of the default calculus 
+% program. By preventing the \synemptydefault{} error to propagate and be later 
+% caught by an exception of a default, we change the behavior of the program.
+% Hence, it is the program of Fig.~\ref{fig:noerrordefaultprogram} that 
+% should be taken as a reference, and not the program of 
+% Fig.~\ref{fig:simpledefaultprogram}.
 
-We chose to insert the \syncrashifempty{} calls before each scope variable 
-definition because it corresponds to the following high-level behavior:
-each scope variable should be defined at execution time by one rule coming 
-from the source Catala program. Indeed, if no rules from the source 
-Catala program were to apply for a particular scope variable, then this 
-scope variable would evaluate to \synemptydefault{} in the default calculus.
+% We chose to insert the \syncrashifempty{} calls before each scope variable 
+% definition because it corresponds to the following high-level behavior:
+% each scope variable should be defined at execution time by one rule coming 
+% from the source Catala program. Indeed, if no rules from the source 
+% Catala program were to apply for a particular scope variable, then this 
+% scope variable would evaluate to \synemptydefault{} in the default calculus.
 
-Contrary to tax rules DSL like \cite{merigoux:hal-02936606} that have a special 
-\texttt{undefined} value (similar to \synemptydefault{} or the null pointer), 
-we wanted Catala not to reproduce the billion-dollar mistake and force the 
-programmer to rely on user-defined option types to deal with missing data 
-situations. Alternatively, the Catala programmer can also define an additional 
-base case rule in the source program defining a user-chosen default value 
-for a particular scope-variable. 
+% Contrary to tax rules DSL like \cite{merigoux:hal-02936606} that have a special 
+% \texttt{undefined} value (similar to \synemptydefault{} or the null pointer), 
+% we wanted Catala not to reproduce the billion-dollar mistake and force the 
+% programmer to rely on user-defined option types to deal with missing data 
+% situations. Alternatively, the Catala programmer can also define an additional 
+% base case rule in the source program defining a user-chosen default value 
+% for a particular scope-variable. 
 
 \printbibliography
 
