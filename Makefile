@@ -142,16 +142,35 @@ test_examples: .FORCE
 
 tests: test_suite test_examples
 
+tests_ml: run_french_law_library_tests
+
 ##########################################
 # French law library
 ##########################################
 
 FRENCH_LAW_LIB_DIR=src/french_law
 
-allocations_familiales_library:
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml -B
+$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source 
+
+french_law_library:\
+	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml
+
+run_french_law_library_benchmark: french_law_library
+	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
+
+$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
+	@$(MAKE) --no-print-directory -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
+	@cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
+		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
+
+french_law_library_tests: \
+	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+
+run_french_law_library_tests: french_law_library_tests
+	@dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 build_french_law_library: format
 	dune build $(FRENCH_LAW_LIB_DIR)
@@ -159,9 +178,6 @@ build_french_law_library: format
 build_french_law_library_js: format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
 	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
-
-run_french_law_library_benchmark: allocations_familiales_library
-	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
 
 ##########################################
 # Website assets

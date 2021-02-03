@@ -1,6 +1,6 @@
 open Catala.Runtime
 
-[@@@ocaml.warning "-26"]
+[@@@ocaml.warning "-26-27"]
 
 type garde_alternee =
   | OuiPartageAllocations of unit

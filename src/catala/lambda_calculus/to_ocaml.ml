@@ -197,13 +197,15 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
            (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
         es
   | ETuple (es, Some s) ->
-      Format.fprintf fmt "{@[<hov 2>%a@]}"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun fmt (e, struct_field) ->
-             Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
-               format_with_parens e))
-        (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+      if List.length es = 0 then Format.fprintf fmt "()"
+      else
+        Format.fprintf fmt "{@[<hov 2>%a@]}"
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+             (fun fmt (e, struct_field) ->
+               Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
+                 format_with_parens e))
+          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[|%a|]@]"
         (Format.pp_print_list
@@ -296,13 +298,16 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
-    Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" format_struct_name struct_name
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
-             struct_field_type))
-      struct_fields
+    if List.length struct_fields = 0 then
+      Format.fprintf fmt "type %a = unit" format_struct_name struct_name
+    else
+      Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" format_struct_name struct_name
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           (fun _fmt (struct_field, struct_field_type) ->
+             Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
+               struct_field_type))
+        struct_fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n" format_enum_name enum_name
@@ -340,7 +345,7 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
 
 let format_program (fmt : Format.formatter) (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  Format.fprintf fmt "open Catala.Runtime@\n@\n[@@@@@@ocaml.warning \"-26\"]@\n@\n%a@\n@\n%a"
+  Format.fprintf fmt "open Catala.Runtime@\n@\n[@@@@@@ocaml.warning \"-26-27\"]@\n@\n%a@\n@\n%a@?"
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
