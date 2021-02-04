@@ -175,7 +175,7 @@ run_french_law_library_tests: french_law_library_tests
 build_french_law_library: format
 	dune build $(FRENCH_LAW_LIB_DIR)
 
-build_french_law_library_js: format
+build_french_law_library_js: french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
 	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
 
@@ -190,7 +190,7 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc literate_examples grammar.html catala.html js_build
+website-assets: doc literate_examples grammar.html catala.html js_build build_french_law_library_js
 
 ##########################################
 # Misceallenous
