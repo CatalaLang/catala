@@ -129,4 +129,17 @@ champ d'application Test6:
   définition f.résidence égal à Guadeloupe
   assertion f.montant_versé = 132,49€
 
+déclaration champ d'application Test7:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+  contexte données champ d'application Données 
+
+champ d'application Test7:
+  définition f.enfants égal à 
+    [données.enfant1;données.enfant2;données.enfant3;données.enfant4]
+  définition f.ressources_ménage égal à 30 000 €
+  définition f.date_courante égal à |01/02/2021|
+  définition f.résidence égal à Métropole
+  assertion f.montant_versé = 417,51€
+
+
 */
