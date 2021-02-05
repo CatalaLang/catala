@@ -1,4 +1,7 @@
-module Catala.DefaultCalculus
+module Catala.LambdaCalculus
+
+
+module DCalc = Catala.DefaultCalculus
 
 (*** Syntax *)
 
@@ -6,12 +9,17 @@ type ty =
   | TBool : ty
   | TUnit : ty
   | TArrow : tin: ty -> tout: ty -> ty
+  | TList: elts:ty -> ty
+  | TOption: a: ty -> ty
 
-type var = int
+type var = DCalc.var
+
+type err =
+  | EmptyError : err
+  | ConflictError : err
 
 type lit =
-  | LEmptyError : lit
-  | LConflictError : lit
+  | LError : err:err -> lit
   | LTrue : lit
   | LFalse : lit
   | LUnit : lit
@@ -22,21 +30,33 @@ type exp =
   | EAbs : v: var -> vty: ty -> body: exp -> exp
   | ELit : l: lit -> exp
   | EIf : test: exp -> btrue: exp -> bfalse: exp -> exp
-  | EDefault : exceptions: list exp -> just: exp -> cons: exp -> exp
+  | ESome : s:exp -> exp
+  | ENone : exp
+  | EMatchOption : arg:exp -> tau_some: ty ->  none:exp -> some:exp -> exp
+  | EList : l:list exp -> exp
+  | ECatchEmptyError: to_try:exp -> catch_with:exp -> exp
+  | EFoldLeft : f:exp -> init:exp -> l:exp -> tau_elt:ty -> exp
 
 (*** Operational semantics *)
 
 (**** Helpers *)
 
-let c_err = ELit LConflictError
+let c_err = ELit (LError ConflictError)
 
-let e_err = ELit LEmptyError
+let e_err = ELit (LError EmptyError)
 
 val is_value: exp -> Tot bool
-let is_value e =
+let rec is_value e =
   match e with
-  | EAbs _ _ _ | ELit _ -> true
+  | EAbs _ _ _ | ELit _ | ENone -> true
+  | ESome e' -> is_value e'
+  | EList l -> is_value_list l
   | _ -> false
+and is_value_list (es: list exp) : Tot bool =
+  match es with
+  | [] -> true
+  | hd::tl -> is_value hd && is_value_list tl
+
 
 let rec subst (x: var) (e_x e: exp) : Tot exp (decreases e) =
   match e with
@@ -45,28 +65,19 @@ let rec subst (x: var) (e_x e: exp) : Tot exp (decreases e) =
   | EApp e1 e2 tau_arg -> EApp (subst x e_x e1) (subst x e_x e2) tau_arg
   | ELit l -> ELit l
   | EIf e1 e2 e3 -> EIf (subst x e_x e1) (subst x e_x e2) (subst x e_x e3)
-  | EDefault exceptions ejust econd ->
-    EDefault (subst_list x e_x exceptions) (subst x e_x ejust) (subst x e_x econd)
+  | ESome s -> ESome (subst x e_x s)
+  | ENone -> ENone
+  | EMatchOption arg tau_some none some ->
+    EMatchOption (subst x e_x arg) tau_some (subst x e_x none) (subst x e_x some)
+  | EList l -> EList (subst_list x e_x l)
+  | ECatchEmptyError to_try catch_with ->
+    ECatchEmptyError (subst x e_x to_try) (subst x e_x catch_with)
+  | EFoldLeft f init l tau_elt ->
+    EFoldLeft (subst x e_x f) (subst x e_x init) (subst x e_x l) tau_elt
 and subst_list (x: var) (e_x: exp) (subs: list exp) : Tot (list exp) (decreases subs) =
   match subs with
   | [] -> []
   | hd :: tl -> (subst x e_x hd) :: (subst_list x e_x tl)
-
-type empty_count_result =
-  | AllEmpty
-  | OneNonEmpty of exp
-  | Conflict
-
-let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_result (decreases l) =
-  match l with
-  | [] -> acc
-  | hd :: tl ->
-    match (hd, acc) with
-    | ELit LEmptyError, AllEmpty -> empty_count AllEmpty tl
-    | ELit LEmptyError, OneNonEmpty e -> empty_count (OneNonEmpty e) tl
-    | _, Conflict -> Conflict
-    | _, AllEmpty -> empty_count (OneNonEmpty hd) tl
-    | _ -> Conflict
 
 (**** Stepping judgment *)
 
@@ -75,14 +86,12 @@ let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau
   if is_value e1
   then
     match e1 with
-    | ELit LConflictError -> Some c_err (* D-ContextConflictError *)
-    | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
+    | ELit (LError err) -> Some (ELit (LError err))
     | _ ->
       if is_value e2
       then
         match e2 with
-        | ELit LConflictError -> Some c_err (* D-ContextConflictError *)
-        | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
+        | ELit (LError err) -> Some (ELit (LError err))
         | _ -> begin
           match e1 with
           | EAbs x t e' -> Some (subst x e2 e') (* D-Beta *)
@@ -102,84 +111,78 @@ and step_if (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (e3: exp{e3 << e})
   if is_value e1
   then
     match e1 with
-    | ELit LConflictError -> Some c_err  (* D-ContextConflictError *)
-    | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
-    | ELit LTrue -> Some e2 (* D-CondTrue *)
-    | ELit LFalse -> Some e3 (* D-CondFalse*)
+    | ELit (LError err) -> Some (ELit (LError err))
+    | ELit LTrue -> Some e2
+    | ELit LFalse -> Some e3
     | _ -> None
   else
     match (step e1) with
-    | Some e1' -> Some (EIf e1' e2 e3) (* D-Context *)
+    | Some e1' -> Some (EIf e1' e2 e3)
     | None -> None
 
-and step_exceptions_left_to_right
-      (e: exp)
-      (exceptions: list exp {exceptions << e})
-      (just: exp{just << e})
-      (cons: exp{cons << e})
-    : Tot (option exp) (decreases %[ e; 2; exceptions ]) =
-  match exceptions with
-  | [] -> None
-  | hd :: tl ->
-    if is_value hd
-    then
-      match step_exceptions_left_to_right e tl just cons with
-      | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-      | Some (EDefault tl' just cons) -> Some (EDefault (hd :: tl') just cons) (* D-Context *)
-      | _ -> None
+and step_match
+  (e: exp)
+  (arg: exp{arg << e})
+  (tau_some: ty)
+  (none: exp{none << e})
+  (some: exp{some << e})
+    : Tot (option exp) (decreases %[ e; 2 ]) =
+  if is_value arg
+  then
+    match arg with
+    | ENone -> Some none
+    | ESome s -> Some (EApp some s tau_some)
+    | ENone -> Some none
+    | _ -> None
+  else
+    match (step arg) with
+    | Some arg' -> Some (EMatchOption arg' tau_some none some) (* D-Context *)
+    | None -> None
+
+and step_list (e: exp) (l: list exp{l << e}) : Tot (option (list exp)) (decreases %[ e; 3; l ]) =
+  match l with
+  | [] -> Some []
+  | hd::tl -> begin
+    if is_value hd then
+      match step_list e tl with
+      | None -> None
+      | Some tl' -> Some (hd::tl')
     else
       match step hd with
-      | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-      | Some hd' -> Some (EDefault (hd' :: tl) just cons ) (* D-Context *)
-      | _ -> None
+      | None -> None
+      | Some hd' -> Some(hd'::tl)
+  end
 
-and step_exceptions
-      (e: exp)
-      (exceptions: list exp {exceptions << e})
-      (just: exp{just << e})
-      (cons: exp{cons << e})
-    : Tot (option exp) (decreases %[ e; 3 ]) =
-  if List.Tot.for_all (fun except -> is_value except) exceptions
-  then
-    match empty_count AllEmpty exceptions with
-    | AllEmpty -> None
-    | OneNonEmpty e' -> Some e' (* D-DefaultOneException *)
-    | Conflict -> Some (ELit LConflictError) (* D-DefaultExceptionConflict *)
-  else step_exceptions_left_to_right e exceptions just cons
-
-and step_default (e: exp) (exceptions: list exp {exceptions << e}) (just: exp{just << e}) (cons: exp{cons << e})
+and step_catch
+  (e: exp)
+  (to_try: exp{to_try << e})
+  (catch_with: exp{catch_with << e})
     : Tot (option exp) (decreases %[ e; 4 ]) =
-  match step_exceptions e exceptions just cons with
-  | Some e' -> Some e'
-  | None ->
-    if is_value just then
-      match just with
-      | ELit LConflictError -> Some c_err  (* D-ContextConflictError *)
-      | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
-      | _ ->
-        match just with
-        | ELit LTrue ->
-          if is_value cons
-          then Some cons
-          else
-            (match (step cons) with
-              | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-              | Some cons' -> Some (EDefault exceptions just cons') (* D-DefaultTrueNoExceptions*)
-              | None -> None)
-        | ELit LFalse -> Some e_err (* D-DefaultFalseNoExceptions *)
-        | _ -> None
+  if is_value to_try then
+    match to_try with
+    | ELit (LError EmptyError) -> Some catch_with
+    | _ -> Some to_try
   else
-    match (step just) with
-    | Some just' -> Some (EDefault exceptions just' cons)
-    | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-    | Some (ELit LEmptyError) -> Some e_err (* D-ContextEmptyError *)
+    match step to_try with
     | None -> None
+    | Some to_try' -> Some (ECatchEmptyError to_try' catch_with)
 
 and step (e: exp) : Tot (option exp) (decreases %[ e; 5 ]) =
   match e with
   | EApp e1 e2 tau_arg -> step_app e e1 e2 tau_arg
   | EIf e1 e2 e3 -> step_if e e1 e2 e3
-  | EDefault just cons subs -> step_default e just cons subs
+  | ESome e1 -> if is_value e1 then None else begin
+    match step e1 with
+    | None -> None
+    | Some (ELit (LError err)) -> Some (ELit (LError err))
+    | Some e1' -> Some (ESome e1')
+  end
+  | EMatchOption arg tau_some none some -> step_match e arg tau_some none some
+  | EList l -> begin match step_list e l with
+    | None -> None
+    | Some l' -> Some (EList l')
+  end
+  | ECatchEmptyError to_try catch_with -> step_catch e to_try catch_with
   | _ -> None
 
 (*** Typing *)
@@ -206,11 +209,34 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   | EApp e1 e2 tau_arg -> typing g e1 (TArrow tau_arg tau) && typing g e2 tau_arg
   | ELit LTrue -> tau = TBool
   | ELit LFalse -> tau = TBool
-  | ELit LEmptyError -> true
-  | ELit LConflictError -> true
+  | ELit (LError _) -> true
   | EIf e1 e2 e3 -> typing g e1 TBool && typing g e2 tau && typing g e3 tau
-  | EDefault exceptions ejust econs ->
-    typing_list g exceptions tau && typing g ejust TBool && typing g econs tau (* T-Default *)
+  | ESome e1 -> begin
+    match tau with
+    | TOption t' -> typing g e1 t'
+    | _ -> false
+  end
+  | ENone -> begin
+    match tau with
+    | TOption _ -> true
+    | _ -> false
+  end
+  | EMatchOption arg tau_some none some ->
+    typing g arg (TOption tau_some) &&
+    typing g none tau &&
+    typing g some (TArrow tau_some tau)
+  | EList l -> begin
+    match tau with
+    | TList tau' -> typing_list g l tau'
+    | _ -> false
+  end
+  | ECatchEmptyError to_try catch_with ->
+    typing g to_try tau &&
+    typing g catch_with tau
+  | EFoldLeft f init l tau_elt ->
+    typing g l (TList tau_elt) &&
+    typing g init tau &&
+    typing g f (TArrow tau (TArrow tau_elt tau))
   | _ -> false
 and typing_list (g: env) (subs: list exp) (tau: ty) : Tot bool (decreases (subs)) =
   match subs with
