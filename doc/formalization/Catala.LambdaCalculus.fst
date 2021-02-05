@@ -35,7 +35,7 @@ type exp =
   | EMatchOption : arg:exp -> tau_some: ty ->  none:exp -> some:exp -> exp
   | EList : l:list exp -> exp
   | ECatchEmptyError: to_try:exp -> catch_with:exp -> exp
-  | EFoldLeft : f:exp -> init:exp -> l:exp -> tau_elt:ty -> exp
+  | EFoldLeft : f:exp -> init:exp -> tau_init:ty -> l:exp -> tau_elt:ty -> exp
 
 (*** Operational semantics *)
 
@@ -72,8 +72,8 @@ let rec subst (x: var) (e_x e: exp) : Tot exp (decreases e) =
   | EList l -> EList (subst_list x e_x l)
   | ECatchEmptyError to_try catch_with ->
     ECatchEmptyError (subst x e_x to_try) (subst x e_x catch_with)
-  | EFoldLeft f init l tau_elt ->
-    EFoldLeft (subst x e_x f) (subst x e_x init) (subst x e_x l) tau_elt
+  | EFoldLeft f init tau_init l tau_elt ->
+    EFoldLeft (subst x e_x f) (subst x e_x init) tau_init (subst x e_x l) tau_elt
 and subst_list (x: var) (e_x: exp) (subs: list exp) : Tot (list exp) (decreases subs) =
   match subs with
   | [] -> []
@@ -132,7 +132,7 @@ and step_match
     match arg with
     | ENone -> Some none
     | ESome s -> Some (EApp some s tau_some)
-    | ENone -> Some none
+    | ELit (LError err) -> Some (ELit (LError err))
     | _ -> None
   else
     match (step arg) with
@@ -167,7 +167,46 @@ and step_catch
     | None -> None
     | Some to_try' -> Some (ECatchEmptyError to_try' catch_with)
 
-and step (e: exp) : Tot (option exp) (decreases %[ e; 5 ]) =
+and step_fold_left
+  (e: exp)
+  (f: exp{f << e})
+  (init: exp{init << e})
+  (tau_init: ty)
+  (l: exp{l << e})
+  (tau_elt: ty)
+    : Tot (option exp) (decreases %[ e; 5; l ]) =
+  match is_value f, is_value init, is_value l with
+  | false, _, _ -> begin
+    match step f with
+    | None -> None
+    | Some (ELit (LError err)) -> Some (ELit (LError err))
+    | Some f' -> Some (EFoldLeft f' init tau_init l tau_elt)
+  end
+  | true, false, _ -> begin
+    match step init with
+    | None -> None
+    | Some (ELit (LError err)) -> Some (ELit (LError err))
+    | Some init' -> Some (EFoldLeft f init' tau_init l tau_elt)
+  end
+  | true, true, false -> begin
+    match step l with
+    | None -> None
+    | Some (ELit (LError err)) -> Some (ELit (LError err))
+    | Some l' -> Some (EFoldLeft f init tau_init l' tau_elt)
+  end
+  | true, true, true -> begin
+    match l with
+    | EList [] -> Some init
+    | EList (hd::tl) ->
+      Some (EFoldLeft
+        f (EApp (EApp f init tau_init) hd tau_elt)
+        tau_init (EList tl) tau_elt
+      )
+    | ELit (LError err) -> Some (ELit (LError err))
+    | _ -> None
+  end
+
+and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
   match e with
   | EApp e1 e2 tau_arg -> step_app e e1 e2 tau_arg
   | EIf e1 e2 e3 -> step_if e e1 e2 e3
@@ -183,6 +222,7 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 5 ]) =
     | Some l' -> Some (EList l')
   end
   | ECatchEmptyError to_try catch_with -> step_catch e to_try catch_with
+  | EFoldLeft f init tau_init l tau_elt -> step_fold_left e f init tau_init l tau_elt
   | _ -> None
 
 (*** Typing *)
@@ -233,7 +273,8 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   | ECatchEmptyError to_try catch_with ->
     typing g to_try tau &&
     typing g catch_with tau
-  | EFoldLeft f init l tau_elt ->
+  | EFoldLeft f init tau_init l tau_elt ->
+    tau_init = tau &&
     typing g l (TList tau_elt) &&
     typing g init tau &&
     typing g f (TArrow tau (TArrow tau_elt tau))
@@ -261,11 +302,11 @@ let typing_conserved_by_list_reduction (g: env) (subs: list exp) (tau: ty)
 
 (**** Progress theorem *)
 
-#push-options "--fuel 2 --ifuel 1"
+#push-options "--fuel 3 --ifuel 1 --z3rlimit 20"
 let rec progress (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau))
       (ensures (is_value e \/ (Some? (step e))))
-      (decreases %[ e; 3 ]) =
+      (decreases %[e; 3]) =
   match e with
   | EApp e1 e2 tau_arg ->
     progress e1 (TArrow tau_arg tau);
@@ -275,29 +316,62 @@ let rec progress (e: exp) (tau: ty)
     progress e2 tau;
     progress e3 tau;
     if is_value e1 then is_bool_value_cannot_be_abs empty e1
-  | EDefault exceptions just cons -> progress_default e exceptions just cons tau
+  | ESome s -> begin
+    match tau with
+    | TOption tau' -> progress s tau'
+    | _ -> ()
+  end
+  | ENone -> ()
+  | EMatchOption arg tau_some none some -> begin
+    progress arg (TOption tau_some);
+    progress none tau;
+    progress some (TArrow tau_some tau);
+    if is_value arg then
+      match arg with
+      | ESome s ->
+        assume(EApp some s tau_some << e); // Could be proven with a certain size function
+        progress (EApp some s tau_some) tau
+      | _ -> ()
+    else ()
+  end
+  | EList l -> begin
+    match tau with
+    | TList tau' -> progress_list e l tau'
+    | _ -> ()
+  end
+  | ECatchEmptyError to_try catch_with ->
+    progress to_try tau;
+    progress catch_with tau
+  | EFoldLeft f init tau_init l tau_elt -> begin
+     match is_value f, is_value init, is_value l with
+     | false, _, _ -> progress f (TArrow tau_init (TArrow tau_elt tau_init))
+     | true, false, _ -> progress init tau_init
+     | true, true, false -> progress l (TList tau_elt)
+     | true, true, true -> begin
+       match l with
+       | EList [] -> ()
+       | EList (hd::tl) ->
+         let result_exp = EFoldLeft
+          f (EApp (EApp f init tau_init) hd tau_elt)
+          tau_init (EList tl) tau_elt
+         in
+         // Could be proven with a certain size function
+         assume(result_exp << e);
+         progress result_exp tau
+       | _ -> ()
+     end
+  end
   | _ -> ()
-and progress_default
-      (e: exp)
-      (exceptions: list exp {exceptions << e})
-      (just: exp{just << e})
-      (cons: exp{cons << e})
-      (tau: ty)
-    : Lemma (requires (~(is_value e) /\ e == EDefault exceptions just cons /\ (typing empty e tau)))
-      (ensures (Some? (step_default e exceptions just cons)))
-      (decreases %[ e; 2 ]) =
-  match step_exceptions e exceptions just cons with
-  | Some _ -> ()
-  | None ->
-    if is_value just then
-      (is_bool_value_cannot_be_abs empty just;
-        match just, cons with
-        | ELit LTrue, ELit LEmptyError -> ()
-        | ELit LTrue, _ -> progress cons tau
-        | ELit LFalse, _ ->  ()
-        | ELit LEmptyError, _ -> ()
-        | ELit LConflictError, _ -> ())
-    else progress just TBool
+
+and progress_list (e: exp) (l: list exp{l << e}) (tau: ty)
+    : Lemma (requires (typing_list empty l tau))
+      (ensures (is_value_list l \/ (Some? (step_list e l))))
+      (decreases %[e; 2; l])
+  =
+  match l with
+  | [] -> ()
+  | hd::tl ->
+    if is_value hd then progress_list e tl tau else progress hd tau
 #pop-options
 
 (*** Preservation *)
