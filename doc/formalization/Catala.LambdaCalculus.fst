@@ -603,35 +603,37 @@ let rec preservation (e: exp) (tau: ty)
           | _ -> ()
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
-  | _ -> admit()
-(*
-and preservation_exceptions_left_to_right
+  | ENone -> ()
+  | ESome s -> let TOption tau' = tau in if not (is_value s) then preservation s tau'
+  | EMatchOption arg tau_some none some ->
+    if not (is_value arg) then preservation arg (TOption tau_some)
+  | EList l -> let TList tau' = tau in preservation_list e l tau'
+  | ECatchEmptyError to_try catch_with -> if not (is_value to_try) then preservation to_try tau
+  | EFoldLeft f init tau_init l tau_elt -> begin
+    match is_value f, is_value init, is_value l with
+    | false, _, _ -> preservation f (TArrow tau_init (TArrow tau_elt tau_init))
+    | true, false, _ -> preservation init tau_init
+    | true, true, false -> preservation l (TList tau_elt)
+    | true, true, true -> ()
+  end
+and preservation_list
       (e: exp)
-      (exceptions: list exp {exceptions << e})
-      (just: exp{just << e})
-      (cons: exp{cons << e})
+      (l: list exp {l << e})
       (tau: ty)
     : Lemma
       (requires (
-        typing empty (EDefault exceptions just cons) tau /\
-        Some? (step_exceptions_left_to_right e exceptions just cons)
+        typing empty (EList l) (TList tau) /\
+        Some? (step_list e l)
       ))
       (ensures (
-        Nil? exceptions \/
-        typing empty (Some?.v (step_exceptions_left_to_right e exceptions just cons)) tau
+        typing_list empty (Some?.v (step_list e l)) tau
       ))
-      (decreases %[ exceptions ]) =
-  match exceptions with
+      (decreases %[ l ]) =
+  match l with
   | [] -> ()
   | hd :: tl ->
-    if is_value hd
-    then
-      (typing_conserved_by_list_reduction empty exceptions tau;
-        preservation_exceptions_left_to_right e tl just cons tau)
-    else
-      (preservation hd tau;
-        match step hd with
-        | Some (ELit LConflictError) -> ()
-        | Some hd' -> ())
-        *)
+    if is_value hd then begin
+      typing_conserved_by_list_reduction empty l tau;
+      preservation_list e tl tau
+    end else preservation hd tau
 #pop-options
