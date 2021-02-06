@@ -1,8 +1,5 @@
 module Catala.LambdaCalculus
 
-
-module DCalc = Catala.DefaultCalculus
-
 (*** Syntax *)
 
 type ty =
@@ -12,7 +9,7 @@ type ty =
   | TList: elts:ty -> ty
   | TOption: a: ty -> ty
 
-type var = DCalc.var
+type var = int
 
 type err =
   | EmptyError : err
@@ -329,8 +326,9 @@ let rec progress (e: exp) (tau: ty)
     if is_value arg then
       match arg with
       | ESome s ->
-        assume(EApp some s tau_some << e); // Could be proven with a certain size function
-        progress (EApp some s tau_some) tau
+        let result_exp = EApp some s tau_some in
+        assume(result_exp << e); // Could be proven with a certain size function
+        progress result_exp tau
       | _ -> ()
     else ()
   end
@@ -378,37 +376,16 @@ and progress_list (e: exp) (l: list exp{l << e}) (tau: ty)
 
 (**** Preservation helpers *)
 
-let rec empty_count_preserves_type (acc: empty_count_result) (subs: list exp) (g: env) (tau: ty)
-    : Lemma
-      (requires
-        (typing_list g subs tau /\
-          (match acc with
-            | OneNonEmpty e' -> typing g e' tau
-            | _ -> True)))
-      (ensures
-        (match empty_count acc subs with
-          | OneNonEmpty e' -> typing g e' tau
-          | _ -> True))
-      (decreases subs) =
-  match subs with
-  | [] -> ()
-  | hd :: tl ->
-    match (hd, acc) with
-    | ELit LEmptyError, AllEmpty -> empty_count_preserves_type AllEmpty tl g tau
-    | ELit LEmptyError, OneNonEmpty e -> empty_count_preserves_type (OneNonEmpty e) tl g tau
-    | _, Conflict -> ()
-    | _, AllEmpty -> empty_count_preserves_type (OneNonEmpty hd) tl g tau
-    | _ -> ()
-
 let rec appears_free_in (x: var) (e: exp) : Tot bool =
   match e with
   | EVar y -> x = y
-  | EApp e1 e2 tau_arg -> appears_free_in x e1 || appears_free_in x e2
+  | EApp e1 e2 _ | ECatchEmptyError e1 e2 -> appears_free_in x e1 || appears_free_in x e2
   | EAbs y _ e1 -> x <> y && appears_free_in x e1
-  | EIf e1 e2 e3 -> appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
-  | EDefault exceptions ejust econs ->
-    appears_free_in_list x exceptions || appears_free_in x ejust || appears_free_in x econs
-  | ELit _ -> false
+  | EIf e1 e2 e3 | EMatchOption e1 _ e2 e3 | EFoldLeft e1 e2 _ e3 _ ->
+    appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
+  | ESome e1 -> appears_free_in x e1
+  | EList e1 -> appears_free_in_list x e1
+  | ENone | ELit _ -> false
 and appears_free_in_list (x: var) (subs: list exp) : Tot bool =
   match subs with
   | [] -> false
@@ -430,10 +407,28 @@ let rec free_in_context (x: var) (e: exp) (g: env) (tau: ty)
     free_in_context x e1 g TBool;
     free_in_context x e2 g tau;
     free_in_context x e3 g tau
-  | EDefault exceptions ejust econs ->
-    free_in_context x ejust g TBool;
-    free_in_context x econs g tau;
-    free_in_context_list x exceptions g tau
+  | ESome e1 -> begin
+    match tau with
+    | TOption tau' -> free_in_context x e1 g tau'
+    | _ -> ()
+   end
+  | ENone -> ()
+  | EMatchOption arg tau_some none some ->
+    free_in_context x arg g (TOption tau_some);
+    free_in_context x none g tau;
+    free_in_context x some g (TArrow tau_some tau)
+  | EList l -> begin
+    match tau with
+    | TList tau' -> free_in_context_list x l g tau'
+    | _ -> ()
+  end
+  | ECatchEmptyError to_try catch_with ->
+    free_in_context x to_try g tau;
+    free_in_context x catch_with g tau
+  | EFoldLeft f init tau_init l tau_elt ->
+    free_in_context x init g tau_init;
+    free_in_context x l g (TList tau_elt);
+    free_in_context x f g (TArrow tau_init (TArrow tau_elt tau_init))
 and free_in_context_list (x: var) (subs: list exp) (g: env) (tau: ty)
     : Lemma (requires (typing_list g subs tau))
       (ensures (appears_free_in_list x subs ==> Some? (g x)))
@@ -448,7 +443,8 @@ and free_in_context_list (x: var) (subs: list exp) (g: env) (tau: ty)
 let typable_empty_closed (x: var) (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau))
       (ensures (not (appears_free_in x e)))
-      [SMTPat (appears_free_in x e); SMTPat (typing empty e tau)] = free_in_context x e empty tau
+      [SMTPat (appears_free_in x e); SMTPat (typing empty e tau)] =
+ free_in_context x e empty tau
 
 (**** Context invariance *)
 
@@ -476,10 +472,28 @@ let rec context_invariance (e: exp) (g g': env) (tau: ty)
     context_invariance e1 g g' TBool;
     context_invariance e2 g g' tau;
     context_invariance e3 g g' tau
-  | EDefault exceptions ejust econs ->
-    context_invariance ejust g g' TBool;
-    context_invariance econs g g' tau;
-    context_invariance_list exceptions g g' tau
+  | ESome e1 -> begin
+    match tau with
+    | TOption tau' -> context_invariance e1 g g' tau'
+    | _ -> ()
+   end
+  | ENone -> ()
+  | EMatchOption arg tau_some none some ->
+    context_invariance arg g g' (TOption tau_some);
+    context_invariance none g g' tau;
+    context_invariance some g g' (TArrow tau_some tau)
+  | EList l -> begin
+    match tau with
+    | TList tau' -> context_invariance_list l g g' tau'
+    | _ -> ()
+  end
+  | ECatchEmptyError to_try catch_with ->
+    context_invariance to_try g g' tau;
+    context_invariance catch_with g g' tau
+  | EFoldLeft f init tau_init l tau_elt ->
+    context_invariance init g g' tau_init;
+    context_invariance l g g' (TList tau_elt);
+    context_invariance f g g' (TArrow tau_init (TArrow tau_elt tau_init))
   | _ -> ()
 and context_invariance_list (exceptions: list exp) (g g': env) (tau: ty)
     : Lemma (requires (equalE_list exceptions g g'))
@@ -528,10 +542,26 @@ let rec substitution_preserves_typing (x: var) (tau_x: ty) (e v: exp) (g: env) (
             typing_extensional gxy gyx e1 tau_out;
             substitution_preserves_typing x tau_x e1 v gy tau_out
       | _ -> ())
-  | EDefault exceptions ejust econs ->
-    substitution_preserves_typing x tau_x ejust v g TBool;
-    substitution_preserves_typing x tau_x econs v g tau;
-    substitution_preserves_typing_list x tau_x exceptions v g tau
+  | ESome s ->
+    (match tau with
+    | TOption tau' -> substitution_preserves_typing x tau_x s v g tau'
+    | _ -> ())
+  | ENone -> ()
+  | EMatchOption arg tau_some none some ->
+    substitution_preserves_typing x tau_x arg v g (TOption tau_some);
+    substitution_preserves_typing x tau_x none v g tau;
+    substitution_preserves_typing x tau_x some v g (TArrow tau_some tau)
+  | EList l ->
+    (match tau with
+    | TList tau' -> substitution_preserves_typing_list x tau_x l v g tau'
+    | _ -> ())
+  | ECatchEmptyError to_try catch_with ->
+    substitution_preserves_typing x tau_x to_try v g tau;
+    substitution_preserves_typing x tau_x catch_with v g tau
+  | EFoldLeft f init tau_init l tau_elt ->
+    substitution_preserves_typing x tau_x f v g (TArrow tau_init (TArrow tau_elt tau_init));
+    substitution_preserves_typing x tau_x init v g tau_init;
+    substitution_preserves_typing x tau_x l v g (TList tau_elt)
 and substitution_preserves_typing_list
       (x: var)
       (tau_x: ty)
@@ -564,7 +594,7 @@ let rec preservation (e: exp) (tau: ty)
     if is_value e1
     then
       match e1 with
-      | ELit LConflictError | ELit LEmptyError -> ()
+      | ELit (LError _) -> ()
       | _ ->
         if is_value e2
         then
@@ -573,26 +603,8 @@ let rec preservation (e: exp) (tau: ty)
           | _ -> ()
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
-  | EDefault exceptions just cons ->
-    if List.Tot.for_all (fun except -> is_value except) exceptions then
-      match empty_count AllEmpty exceptions with
-      | AllEmpty ->
-        begin if not (is_value just) then preservation just TBool else match just with
-        | ELit LTrue -> if not (is_value cons) then preservation cons tau
-        | _ -> ()
-        end
-      | OneNonEmpty e' -> empty_count_preserves_type AllEmpty exceptions empty tau
-      | Conflict -> ()
-    else begin
-      match step_exceptions_left_to_right e exceptions just cons with
-      | None ->
-         begin if not (is_value just) then preservation just TBool else match just with
-        | ELit LTrue -> if not (is_value cons) then preservation cons tau
-        | _ -> ()
-        end
-      | Some e' -> preservation_exceptions_left_to_right e exceptions just cons tau
-    end
-  | _ -> ()
+  | _ -> admit()
+(*
 and preservation_exceptions_left_to_right
       (e: exp)
       (exceptions: list exp {exceptions << e})
@@ -621,4 +633,5 @@ and preservation_exceptions_left_to_right
         match step hd with
         | Some (ELit LConflictError) -> ()
         | Some hd' -> ())
+        *)
 #pop-options
