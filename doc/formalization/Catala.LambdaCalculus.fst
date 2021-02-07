@@ -1,4 +1,5 @@
 module Catala.LambdaCalculus
+open FStar.Mul
 
 (*** Syntax *)
 
@@ -299,11 +300,73 @@ let typing_conserved_by_list_reduction (g: env) (subs: list exp) (tau: ty)
 
 (**** Progress theorem *)
 
-#push-options "--fuel 3 --ifuel 1 --z3rlimit 20"
+let rec size_for_progress (e: exp) : Tot pos = match e with
+  | EVar _ -> 1
+  | EApp fn arg _ -> size_for_progress fn + size_for_progress arg + 1
+  | EAbs _ _ body -> size_for_progress body + 1
+  | ELit _ -> 1
+  | EIf e1 e2 e3 -> size_for_progress e1 + size_for_progress e2 + size_for_progress e3 + 1
+  | ESome s -> size_for_progress s + 1
+  | ENone -> 1
+  | EMatchOption arg _ none some ->
+    size_for_progress arg + size_for_progress none + size_for_progress some + 1
+  | EList l -> size_for_progress_list l + 1
+  | ECatchEmptyError e1 e2 -> size_for_progress e1 + size_for_progress e2 + 1
+  | EFoldLeft f init _ l _ ->
+    size_for_progress f + size_for_progress init + size_for_progress l +
+    (size_for_progress f) * (size_for_progress l) + 1
+and size_for_progress_list (e: list exp) : Tot nat = match e with
+  | [] -> 0
+  | hd::tl -> size_for_progress hd + size_for_progress_list tl + 10
+
+#push-options "--fuel 3 --ifuel 0 --z3rlimit 30"
+let lemma_size_fold_step (f init hd: exp) (tl: list exp) (tau_init tau_elt: ty) : Lemma (
+  size_for_progress (EFoldLeft f init tau_init (EList (hd::tl)) tau_elt) >
+  size_for_progress (EFoldLeft f
+    (EApp (EApp f init tau_init) hd tau_elt) tau_init (EList tl) tau_elt)
+) =
+  let e = EFoldLeft f init tau_init (EList (hd::tl)) tau_elt in
+  let e' = EFoldLeft f (EApp (EApp f init tau_init) hd tau_elt) tau_init (EList tl) tau_elt in
+  assert(size_for_progress e =
+    size_for_progress f +
+    size_for_progress init +
+    (size_for_progress hd + size_for_progress_list tl + 10 + 1) +
+    (size_for_progress f) * (size_for_progress hd + size_for_progress_list tl + 10 + 1) +
+    1);
+  assert(size_for_progress e' =
+    size_for_progress f +
+    (size_for_progress f + size_for_progress init + 1) +
+    (size_for_progress hd + 1) +
+    (size_for_progress_list tl + 1) +
+    (size_for_progress f) * (size_for_progress_list tl + 1) +
+    1);
+  assert(size_for_progress e - size_for_progress e' =
+    - size_for_progress f - 1 - size_for_progress hd - 1
+    + size_for_progress hd + 10
+    + (size_for_progress f) * (size_for_progress hd + 10)
+  )
+#pop-options
+
+let lemma_size_fold_f (f init l: exp) (tau_init tau_elt: ty)
+    : Lemma (size_for_progress (EFoldLeft f init tau_init l tau_elt) > size_for_progress f)
+  =
+  ()
+
+let lemma_size_fold_init (f init l: exp) (tau_init tau_elt: ty)
+    : Lemma (size_for_progress (EFoldLeft f init tau_init l tau_elt) > size_for_progress init)
+  =
+  ()
+
+let lemma_size_fold_l (f init l: exp) (tau_init tau_elt: ty)
+    : Lemma (size_for_progress (EFoldLeft f init tau_init l tau_elt) > size_for_progress l)
+  =
+  ()
+
+#push-options "--fuel 3 --ifuel 1 --z3rlimit 50"
 let rec progress (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau))
       (ensures (is_value e \/ (Some? (step e))))
-      (decreases %[e; 3]) =
+      (decreases %[size_for_progress e; 3]) =
   match e with
   | EApp e1 e2 tau_arg ->
     progress e1 (TArrow tau_arg tau);
@@ -327,14 +390,14 @@ let rec progress (e: exp) (tau: ty)
       match arg with
       | ESome s ->
         let result_exp = EApp some s tau_some in
-        assume(result_exp << e); // Could be proven with a certain size function
         progress result_exp tau
       | _ -> ()
     else ()
   end
   | EList l -> begin
     match tau with
-    | TList tau' -> progress_list e l tau'
+    | TList tau' ->
+      progress_list e l tau'
     | _ -> ()
   end
   | ECatchEmptyError to_try catch_with ->
@@ -342,9 +405,15 @@ let rec progress (e: exp) (tau: ty)
     progress catch_with tau
   | EFoldLeft f init tau_init l tau_elt -> begin
      match is_value f, is_value init, is_value l with
-     | false, _, _ -> progress f (TArrow tau_init (TArrow tau_elt tau_init))
-     | true, false, _ -> progress init tau_init
-     | true, true, false -> progress l (TList tau_elt)
+     | false, _, _ ->
+       lemma_size_fold_f f init l tau_init tau_elt;
+       progress f (TArrow tau_init (TArrow tau_elt tau_init))
+     | true, false, _ ->
+       lemma_size_fold_init f init l tau_init tau_elt;
+       progress init tau_init
+     | true, true, false ->
+       lemma_size_fold_l f init l tau_init tau_elt;
+       progress l (TList tau_elt)
      | true, true, true -> begin
        match l with
        | EList [] -> ()
@@ -353,18 +422,19 @@ let rec progress (e: exp) (tau: ty)
           f (EApp (EApp f init tau_init) hd tau_elt)
           tau_init (EList tl) tau_elt
          in
-         // Could be proven with a certain size function
-         assume(result_exp << e);
+         lemma_size_fold_step f init hd tl tau_init tau_elt;
          progress result_exp tau
        | _ -> ()
      end
   end
   | _ -> ()
 
-and progress_list (e: exp) (l: list exp{l << e}) (tau: ty)
+and progress_list
+  (e: exp)
+  (l: list exp{size_for_progress_list l < size_for_progress e /\ l << e}) (tau: ty)
     : Lemma (requires (typing_list empty l tau))
       (ensures (is_value_list l \/ (Some? (step_list e l))))
-      (decreases %[e; 2; l])
+      (decreases %[size_for_progress e; 2; l])
   =
   match l with
   | [] -> ()
