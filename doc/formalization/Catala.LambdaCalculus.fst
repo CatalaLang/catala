@@ -227,13 +227,13 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
 
 (**** Typing helpers *)
 
-type env = var -> Tot (option ty)
+type env = FunctionalExtensionality.restricted_t var (fun _ -> option ty)
 
 val empty:env
-let empty = fun _ -> None
+let empty = FunctionalExtensionality.on_dom var (fun _ -> None)
 
 val extend: env -> var -> ty -> Tot env
-let extend g x t = fun x' -> if x = x' then Some t else g x'
+let extend g x t = FunctionalExtensionality.on_dom var (fun x' -> if x = x' then Some t else g x')
 
 (**** Typing judgment *)
 
