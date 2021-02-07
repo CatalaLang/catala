@@ -20,6 +20,7 @@ let process_exceptions_f (tau: L.ty) : Tot L.exp =
   let e = 1 in
   let e' = 2 in
   let a' = 3 in
+  let e'' = 4 in
   L.EAbs a (L.TOption tau) (L.EAbs e (L.TArrow L.TUnit tau) (
     L.EApp (L.EAbs e' (L.TOption tau) (
       L.EMatchOption (L.EVar a) tau
@@ -27,24 +28,19 @@ let process_exceptions_f (tau: L.ty) : Tot L.exp =
         (L.EAbs a' tau (
           L.EMatchOption (L.EVar e') tau
             (L.EVar a)
-            (L.EAbs 4 tau (L.ELit (L.LError L.ConflictError)))
+            (L.EAbs e'' tau (L.ELit (L.LError L.ConflictError)))
         ))
     ))
     (L.ECatchEmptyError (L.ESome (L.EApp (L.EVar e) (L.ELit L.LUnit) L.TUnit)) L.ENone)
-    tau
+    (L.TOption tau)
   ))
 
 let typ_process_exceptions_f (tau: L.ty)
     : Lemma (L.typing L.empty (process_exceptions_f tau)
       (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
   =
-  let open FStar.Tactics in
-  assert(L.typing L.empty (process_exceptions_f tau)
-      (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau)))) by begin
-    compute ();
-    fail "Coucou"
-  end;
-  admit()
+  assert_norm(L.typing L.empty (process_exceptions_f tau)
+      (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
 
 let rec translate_exp (e: D.exp) : Tot L.exp = match e with
   | D.EVar x -> L.EVar x
@@ -52,4 +48,17 @@ let rec translate_exp (e: D.exp) : Tot L.exp = match e with
   | D.EAbs x ty body -> L.EAbs x (translate_ty ty) (translate_exp body)
   | D.ELit l -> L.ELit (translate_lit l)
   | D.EIf e1 e2 e3 -> L.EIf (translate_exp e1) (translate_exp e2) (translate_exp e3)
-  | _ -> admit()
+  | D.EDefault exceptions just cons tau ->
+    let tau' = translate_ty tau in
+    L.EMatchOption
+      (L.EFoldLeft
+        (process_exceptions_f tau')
+        L.ENone (L.TOption tau')
+        (L.EList (translate_exp_list exceptions)) tau')
+      tau'
+      (L.EIf (translate_exp just) (translate_exp cons) (L.ELit (L.LError L.EmptyError)))
+      (L.EAbs 0 tau' (L.EVar 0))
+
+and translate_exp_list (l: list D.exp) : Tot (list L.exp) = match l with
+  | [] -> []
+  | hd::tl -> (translate_exp hd)::(translate_exp_list tl)

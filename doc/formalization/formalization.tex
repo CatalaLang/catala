@@ -855,9 +855,11 @@ implements the semantics of the default calculus.
   \synvar{\tau}\synoption\synrparen\;
   \synlparen\synvar{e'}\syntyped
   \synunitt\synarrow\synvar{\tau}\synrparen\syndot\\
-  &&&\quad\synlet\synvar{e'}\syntyped\synvar{\tau}\synequal\syntry
+  &&&\quad\synlet\synvar{e'}\syntyped\synvar{\tau}\synoption\synequal\\
+  &&&\quad\quad\syntry
   \synsome\synlparen\synvar{e'}\synunit\synrparen
-  \synwith\synemptyerror\synarrow \synnone\synin\\
+  \synwith\synemptyerror\synarrow \synnone\\
+  &&&\quad\!\!\!\!\synin\\
   &&&\quad\synmatch\synlparen\synvar{a}\syncomma\;\synvar{e'}\synrparen\synwith\\
   &&&\quad\quad\synmid\synlparen\synnone\syncomma\;\synvar{e'}\synrparen\synarrow\synvar{e'}\\
   &&&\quad\quad\synmid\synlparen\synsome\synvar{a}\syncomma\;\synnone\synrparen\synarrow

@@ -247,6 +247,7 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   | EApp e1 e2 tau_arg -> typing g e1 (TArrow tau_arg tau) && typing g e2 tau_arg
   | ELit LTrue -> tau = TBool
   | ELit LFalse -> tau = TBool
+  | ELit LUnit -> tau = TUnit
   | ELit (LError _) -> true
   | EIf e1 e2 e3 -> typing g e1 TBool && typing g e2 tau && typing g e3 tau
   | ESome e1 -> begin
@@ -357,10 +358,12 @@ let lemma_size_fold_init (f init l: exp) (tau_init tau_elt: ty)
   =
   ()
 
+#push-options "--fuel 1 --ifuel 0 --z3rlimit 30"
 let lemma_size_fold_l (f init l: exp) (tau_init tau_elt: ty)
     : Lemma (size_for_progress (EFoldLeft f init tau_init l tau_elt) > size_for_progress l)
   =
   ()
+#pop-options
 
 #push-options "--fuel 3 --ifuel 1 --z3rlimit 50"
 let rec progress (e: exp) (tau: ty)
