@@ -246,6 +246,49 @@ let rec lift_multiple_l_steps
     else lift_multiple_l_steps e1' e2 (n-1) f
 #pop-options
 
+#push-options "--fuel 9 --ifuel 1"
+let process_exceptions_untouched_by_subst (x: L.var_name) (e: L.exp) (tau: L.ty) : Lemma
+    (L.subst x e (process_exceptions_f tau) == process_exceptions_f tau)
+  =
+  ()
+#pop-options
+
+#push-options "--fuel 3 --ifuel 1 --z3rlimit 50"
+let rec substitution_correctness (x: D.var) (e_x e: D.exp)
+    : Lemma (ensures (
+      translate_exp (D.subst x e_x e) == L.subst x (translate_exp e_x) (translate_exp e)))
+      (decreases %[e; 1])
+  =
+  match e with
+  | D.EVar y -> ()
+  | D.ELit _ -> ()
+  | D.EIf e1 e2 e3 ->
+    substitution_correctness x e_x e1;
+    substitution_correctness x e_x e2;
+    substitution_correctness x e_x e3
+  | D.EAbs _ _ body ->
+    substitution_correctness x e_x body
+  | D.EApp e1 e2 _ ->
+    substitution_correctness x e_x e1;
+    substitution_correctness x e_x e2
+  | D.EDefault exceptions just cons tau ->
+    substitution_correctness x e_x just;
+    substitution_correctness x e_x cons;
+    substitution_correctness_list x e_x e exceptions;
+    process_exceptions_untouched_by_subst x (translate_exp e_x) (translate_ty tau)
+and substitution_correctness_list (x: D.var) (e_x: D.exp) (e: D.exp) (l: list D.exp{l << e})
+    : Lemma (ensures (
+      translate_exp_list (D.subst_list x e_x l) ==
+      L.subst_list x (translate_exp e_x) (translate_exp_list l)))
+      (decreases %[e; 0; l])
+ =
+ match l with
+ | [] -> ()
+ | hd::tl ->
+   substitution_correctness x e_x hd;
+   substitution_correctness_list x e_x e tl
+#pop-options
+
 (**** Main theorems *)
 
 let translation_correctness_value (e: D.exp) : Lemma
@@ -265,17 +308,45 @@ let rec translation_correctness_step (e: D.exp) : Pure nat
   | D.ELit _ -> 0
   | D.EAbs _ _ _ -> 0
   | D.EIf e1 e2 e3 ->
+     let e1' = translate_exp e1 in
+     let e2' = translate_exp e2 in
+     let e3' = translate_exp e3 in
      if not (D.is_value e1) then begin
-       let e1' = translate_exp e1 in
-       let e2' = translate_exp e2 in
-       let e3' = translate_exp e3 in
        let stepped_e1 = Some?.v (D.step e1) in
        let stepped_e1' = translate_exp stepped_e1 in
        let n_e1 = translation_correctness_step e1 in
        lift_multiple_l_steps e1' stepped_e1' n_e1 (fun e1' -> L.EIf e1' e2' e3');
        n_e1
-     end else admit()
-  | _ -> admit()
+     end else 0
+  | D.EApp e1 e2 tau_arg ->
+    let e1' = translate_exp e1 in
+    let e2' = translate_exp e2 in
+    if not (D.is_value e1) then begin
+       let stepped_e1 = Some?.v (D.step e1) in
+       let stepped_e1' = translate_exp stepped_e1 in
+       let n_e1 = translation_correctness_step e1 in
+       lift_multiple_l_steps e1' stepped_e1' n_e1 (fun e1' -> L.EApp e1' e2' (translate_ty tau_arg));
+       n_e1
+    end else begin match e1 with
+      | D.ELit D.LConflictError -> 0
+      | D.ELit D.LEmptyError -> 0
+      | _ ->
+        if not (D.is_value e2) then begin
+        let stepped_e2 = Some?.v (D.step e2) in
+        let stepped_e2' = translate_exp stepped_e2 in
+        let n_e2 = translation_correctness_step e2 in
+        lift_multiple_l_steps e2' stepped_e2' n_e2 (fun e2' -> L.EApp e1' e2' (translate_ty tau_arg));
+        n_e2
+      end else begin
+        match e1, e2 with
+        | _, D.ELit D.LConflictError -> 0
+        | _, D.ELit D.LEmptyError -> 0
+        | D.EAbs x1 t1 body, e2 ->
+          substitution_correctness x1 e2 body;
+          0
+      end
+    end
+  | D.EDefault exceptions just cons tau -> admit()
 
 (*** Wrap-up theorem  *)
 
