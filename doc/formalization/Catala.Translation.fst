@@ -192,25 +192,38 @@ let multiple_l_steps (e1: L.exp) (e2: L.exp) (n: nat) =  l_step_rec e1 n = Some 
 let not_l_value = e:L.exp{not (L.is_value e)}
 
 let step_lift_commute_non_value (f:(L.exp -> not_l_value)) (e: L.exp) =
-  match L.step e, L.is_value e with
-  | None, false -> L.step (f e) = None
-  | Some e', false -> if L.is_value e' then true else L.step (f e) = Some (f e')
-  | _ -> true
+  if L.is_value e then true else
+  match L.step e with
+  | None -> L.step (f e) = None
+  | Some e' -> L.step (f e) = Some (f e')
 
 let is_stepping_agnostic_lift (f:(L.exp -> not_l_value)) = forall (e: L.exp).
   step_lift_commute_non_value f e
 
 let stepping_agnostic_lift = f:(L.exp -> not_l_value){is_stepping_agnostic_lift f}
 
-let if_lift (e2 e3: L.exp) : stepping_agnostic_lift =
-  let f : L.exp -> not_l_value = fun (e1: L.exp) -> L.EIf e1 e2 e3 in
-  let aux (e1: L.exp) : Lemma (step_lift_commute_non_value f e1) =
-    match L.step e1 with
-    | None -> ()
-    | Some e' -> ()
-  in
-  Classical.forall_intro aux;
-  f
+let rec l_values_dont_step (e: L.exp) : Lemma
+    (requires (L.is_value e))
+    (ensures (L.step e = None))
+    (decreases %[e; 1])
+  =
+  match e with
+  | L.EAbs _ _ _ -> ()
+  | L.ELit _ -> ()
+  | L.ENone -> ()
+  | L.EList [] -> ()
+  | L.EList l -> l_values_dont_step_list e l
+  | _ -> ()
+and l_values_dont_step_list (e: L.exp) (l: list L.exp{l << e /\ Cons? l}) : Lemma
+    (requires (L.is_value_list l))
+    (ensures (L.step_list e l = (if l = [] then Some [] else None)))
+    (decreases %[e; 0; l])
+  =
+  match l with
+  | [hd] -> l_values_dont_step hd
+  | hd::tl ->
+    l_values_dont_step hd;
+    l_values_dont_step_list e tl
 
 #push-options "--z3rlimit 50 --fuel 1 --ifuel 1"
 let rec lift_multiple_l_steps
@@ -226,12 +239,13 @@ let rec lift_multiple_l_steps
   match L.step e1 with
   | None -> ()
   | Some e1' ->
-    if L.is_value e1' then begin
-      admit()
+    if L.is_value e1 then begin
+      l_values_dont_step e1
     end else if n = 0 then
       assert(L.step (f e1) = Some (f e2))
     else lift_multiple_l_steps e1' e2 (n-1) f
 #pop-options
+
 (**** Main theorems *)
 
 let translation_correctness_value (e: D.exp) : Lemma

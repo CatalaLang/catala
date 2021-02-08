@@ -142,9 +142,16 @@ and step_match
     | Some arg' -> Some (EMatchOption arg' tau_some none some) (* D-Context *)
     | None -> None
 
-and step_list (e: exp) (l: list exp{l << e}) : Tot (option (list exp)) (decreases %[ e; 3; l ]) =
+and step_list
+  (e: exp)
+  (l: list exp{l << e /\ Cons? l})
+    : Tot (option (list exp)) (decreases %[ e; 3; l ]) =
   match l with
-  | [] -> Some []
+  | [hd] -> if is_value hd then None else begin
+    match step hd with
+    | None -> None
+    | Some hd' -> Some([hd'])
+  end
   | hd::tl -> begin
     if is_value hd then
       match step_list e tl with
@@ -220,6 +227,7 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
     | Some e1' -> Some (ESome e1')
   end
   | EMatchOption arg tau_some none some -> step_match e arg tau_some none some
+  | EList [] -> None
   | EList l -> begin match step_list e l with
     | None -> None
     | Some l' -> Some (EList l')
@@ -408,6 +416,7 @@ let rec progress (e: exp) (tau: ty)
       | _ -> ()
     else ()
   end
+  | EList [] -> ()
   | EList l -> begin
     match tau with
     | TList tau' ->
@@ -446,12 +455,12 @@ let rec progress (e: exp) (tau: ty)
 and progress_list
   (e: exp)
   (l: list exp{size_for_progress_list l < size_for_progress e /\ l << e}) (tau: ty)
-    : Lemma (requires (typing_list empty l tau))
+    : Lemma (requires (typing_list empty l tau /\ Cons? l))
       (ensures (is_value_list l \/ (Some? (step_list e l))))
       (decreases %[size_for_progress e; 2; l])
   =
   match l with
-  | [] -> ()
+  | [hd] -> if is_value hd then () else progress hd tau
   | hd::tl ->
     if is_value hd then progress_list e tl tau else progress hd tau
 #pop-options
@@ -701,6 +710,7 @@ let rec preservation (e: exp) (tau: ty)
   | ESome s -> let TOption tau' = tau in if not (is_value s) then preservation s tau'
   | EMatchOption arg tau_some none some ->
     if not (is_value arg) then preservation arg (TOption tau_some)
+  | EList [] -> ()
   | EList l -> let TList tau' = tau in preservation_list e l tau'
   | ECatchEmptyError to_try catch_with -> if not (is_value to_try) then preservation to_try tau
   | EFoldLeft f init tau_init l tau_elt -> begin
@@ -716,6 +726,7 @@ and preservation_list
       (tau: ty)
     : Lemma
       (requires (
+        Cons? l /\
         typing empty (EList l) (TList tau) /\
         Some? (step_list e l)
       ))
@@ -724,7 +735,7 @@ and preservation_list
       ))
       (decreases %[ l ]) =
   match l with
-  | [] -> ()
+  | [hd] -> if is_value hd then () else preservation hd tau
   | hd :: tl ->
     if is_value hd then begin
       typing_conserved_by_list_reduction empty l tau;
