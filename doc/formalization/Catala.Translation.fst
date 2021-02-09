@@ -49,6 +49,28 @@ let typ_process_exceptions_f (tau: L.ty)
 
 (**** Main translation *)
 
+let build_default_translation_aux
+  (e: D.exp)
+  (exceptions: list D.exp{exceptions << e})
+  (just: D.exp{just << e})
+  (cons: D.exp{cons << e})
+  (tau: D.ty)
+  (translate_exp: (e':D.exp{e' << e}) -> L.exp)
+  (translate_exp_list: (l:list D.exp{l << e}) -> list L.exp)
+  =
+  let tau' = translate_ty tau in
+  L.EMatchOption
+    (L.EFoldLeft
+      (process_exceptions_f tau')
+      L.ENone (L.TOption tau')
+      (L.EList (translate_exp_list exceptions)) (L.TArrow L.TUnit tau'))
+    tau'
+    (L.EIf
+      (translate_exp just)
+      (translate_exp cons)
+      (L.ELit (L.LError L.EmptyError)))
+    (L.EAbs (L.Named 0) tau' (L.EVar 0))
+
 let rec translate_exp (e: D.exp) : Tot L.exp = match e with
   | D.EVar x -> L.EVar x
   | D.EApp e1 e2 tau_arg ->
@@ -60,23 +82,30 @@ let rec translate_exp (e: D.exp) : Tot L.exp = match e with
     (translate_exp e2)
     (translate_exp e3)
   | D.EDefault exceptions just cons tau ->
-    let tau' = translate_ty tau in
-    L.EMatchOption
-      (L.EFoldLeft
-        (process_exceptions_f tau')
-        L.ENone (L.TOption tau')
-        (L.EList (translate_exp_list exceptions)) (L.TArrow L.TUnit tau'))
-      tau'
-      (L.EIf
-        (translate_exp just)
-        (translate_exp cons)
-        (L.ELit (L.LError L.EmptyError)))
-      (L.EAbs (L.Named 0) tau' (L.EVar 0))
-
+    build_default_translation_aux e exceptions just cons tau translate_exp translate_exp_list
 and translate_exp_list (l: list D.exp) : Tot (list L.exp) =
   match l with
   | [] -> []
   | hd::tl -> (L.EAbs L.Silent L.TUnit (translate_exp hd))::(translate_exp_list tl)
+
+let build_default_translation
+  (exceptions: list D.exp)
+  (just: D.exp)
+  (cons: D.exp)
+  (tau: D.ty)
+  =
+  let e = D.EDefault exceptions just cons tau in
+  assume(exceptions << e);
+  assume(just << e);
+  assume(cons << e);
+  build_default_translation_aux
+    e
+    exceptions
+    just
+    cons
+    tau
+    translate_exp
+    translate_exp_list
 
 let translate_env (g: D.env) : Tot L.env =
  FunctionalExtensionality.on_dom L.var_name
@@ -202,6 +231,56 @@ let is_stepping_agnostic_lift (f:(L.exp -> not_l_value)) = forall (e: L.exp).
 
 let stepping_agnostic_lift = f:(L.exp -> not_l_value){is_stepping_agnostic_lift f}
 
+#push-options "--fuel 15 --ifuel 2 --z3rlimit 30"
+let exceptions_lift
+  (hd: D.exp)
+  (just: D.exp)
+  (cons: D.exp)
+  (tau: D.ty)
+    : Tot stepping_agnostic_lift
+  =
+  let tau' = translate_ty tau in
+  let aux (tl: L.exp) : not_l_value =
+      L.EMatchOption
+       (L.EFoldLeft
+         (process_exceptions_f tau')
+         L.ENone (L.TOption tau')
+         (L.EList (match tl with
+          | L.EList l -> (translate_exp hd)::l
+          | _ -> [translate_exp hd;tl]
+         )) (L.TArrow L.TUnit tau'))
+      tau'
+        (L.EIf
+          (translate_exp just)
+          (translate_exp cons)
+        (L.ELit (L.LError L.EmptyError)))
+      (L.EAbs (L.Named 0) tau' (L.EVar 0))
+   in
+   let aux_lemma (e: L.exp) : Lemma (step_lift_commute_non_value aux e) =
+     if L.is_value e then () else
+     match e, L.step e with
+     | L.EList l, _ -> admit()
+     | _, None -> admit()
+     | _, Some e' -> admit()
+   in
+   Classical.forall_intro aux_lemma;
+   assert(is_stepping_agnostic_lift aux);
+   aux
+
+#push-options "--fuel 15 --ifuel 8 --z3rlimit 150"
+let exceptions_lift_lemma
+  (hd: D.exp)
+  (just: D.exp)
+  (cons: D.exp)
+  (tau: D.ty)
+  (tl: list D.exp)
+    : Lemma (
+      exceptions_lift hd just cons tau (build_default_translation tl just cons tau) ==
+      build_default_translation (hd::tl) just cons tau)
+  =
+  admit()
+#pop-options
+
 let rec l_values_dont_step (e: L.exp) : Lemma
     (requires (L.is_value e))
     (ensures (L.step e = None))
@@ -246,7 +325,7 @@ let rec lift_multiple_l_steps
     else lift_multiple_l_steps e1' e2 (n-1) f
 #pop-options
 
-#push-options "--fuel 9 --ifuel 1"
+#push-options "--fuel 9 --ifuel 0"
 let process_exceptions_untouched_by_subst (x: L.var_name) (e: L.exp) (tau: L.ty) : Lemma
     (L.subst x e (process_exceptions_f tau) == process_exceptions_f tau)
   =
@@ -299,6 +378,7 @@ let translation_correctness_value (e: D.exp) : Lemma
 let rec translation_correctness_step (e: D.exp) : Pure nat
     (requires (Some? (D.step e)))
     (ensures (fun n -> multiple_l_steps (translate_exp e) (translate_exp (Some?.v (D.step e))) n))
+    (decreases %[e; 2])
   =
   let e' = translate_exp e in
   let stepped_e = Some?.v (D.step e) in
@@ -346,7 +426,75 @@ let rec translation_correctness_step (e: D.exp) : Pure nat
           0
       end
     end
-  | D.EDefault exceptions just cons tau -> admit()
+  | D.EDefault exceptions just cons tau ->  begin
+    match D.step_exceptions e exceptions just cons tau with
+    | Some e' ->
+       translation_correctness_exceptions_step e exceptions just cons tau
+    | None -> admit()
+  end
+
+and translation_correctness_exceptions_step
+  (e: D.exp)
+  (exceptions: list D.exp {exceptions << e})
+  (just: D.exp{just << e})
+  (cons: D.exp{cons << e})
+  (tau: D.ty)
+    : Pure nat
+      (requires (
+        e == D.EDefault exceptions just cons tau /\ Some? (D.step e) /\
+        Some? (D.step_exceptions e exceptions just cons tau)
+      ))
+      (ensures (fun n -> multiple_l_steps (translate_exp e) (translate_exp (Some?.v (D.step e))) n))
+      (decreases %[e; 1])
+  =
+  if List.Tot.for_all (fun except -> D.is_value except) exceptions then
+    admit()
+  else translation_correctness_exceptions_left_to_right_step e exceptions just cons tau
+
+and translation_correctness_exceptions_left_to_right_step
+  (e: D.exp)
+  (exceptions: list D.exp {exceptions << e})
+  (just: D.exp{just << e})
+  (cons: D.exp{cons << e})
+  (tau: D.ty)
+    : Pure nat
+      (requires (
+        Some? (D.step_exceptions_left_to_right e exceptions just cons tau)
+      ))
+      (ensures (fun n ->
+        multiple_l_steps
+          (build_default_translation exceptions just cons tau)
+          (translate_exp
+            (Some?.v (D.step_exceptions_left_to_right e exceptions just cons tau))) n
+      ))
+      (decreases %[e; 0; exceptions])
+  =
+  match exceptions with
+  | [] -> 0
+  | hd::tl ->
+    if D.is_value hd then begin
+      match D.step_exceptions_left_to_right e tl just cons tau with
+      | Some (D.ELit D.LConflictError) -> admit()
+      | Some (D.EDefault tl' just' cons' tau') ->
+        assume(just = just' /\ cons = cons' /\ tau = tau');
+        let n_tl = translation_correctness_exceptions_left_to_right_step e tl just cons tau in
+        assert(multiple_l_steps
+          (build_default_translation tl just cons tau)
+          (build_default_translation tl' just cons tau) n_tl);
+        lift_multiple_l_steps
+          (build_default_translation tl just cons tau)
+          (build_default_translation tl' just cons tau)
+          n_tl (exceptions_lift hd cons just tau);
+        exceptions_lift_lemma hd just cons tau tl;
+        exceptions_lift_lemma hd just cons tau tl';
+        assert(multiple_l_steps
+          (build_default_translation (hd::tl) just cons tau)
+          (build_default_translation (hd::tl') just cons tau) n_tl);
+        n_tl
+      | None -> 0
+    end else begin
+      admit()
+    end
 
 (*** Wrap-up theorem  *)
 
