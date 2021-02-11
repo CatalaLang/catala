@@ -200,41 +200,71 @@ let multiple_l_steps (e1: L.exp) (e2: L.exp) (n: nat) =  l_step_rec e1 n = Some 
 
 let not_l_value = e:L.exp{not (L.is_value e)}
 
-let step_lift_commute_non_value (f:(L.exp -> not_l_value)) (e: L.exp) =
+let step_lift_commute_non_value (f:(L.exp -> not_l_value)) (e: L.exp) (n:nat) =
   if L.is_value e then true else
   match L.step e with
-  | None -> L.step (f e) = None
-  | Some e' -> L.step (f e) = Some (f e')
+  | None -> l_step_rec (f e) n = None
+  | Some e' -> l_step_rec (f e) n = Some (f e')
 
-let is_stepping_agnostic_lift (f:(L.exp -> not_l_value)) = forall (e: L.exp).
-  step_lift_commute_non_value f e
+let is_stepping_agnostic_lift (f:(L.exp -> not_l_value)) (n: nat) = forall (e: L.exp).
+  step_lift_commute_non_value f e n
 
-let stepping_agnostic_lift = f:(L.exp -> not_l_value){is_stepping_agnostic_lift f}
+let stepping_agnostic_lift (n: nat) = f:(L.exp -> not_l_value){is_stepping_agnostic_lift f n}
 
-#push-options "--fuel 4 --ifuel 1"
+#push-options "--fuel 10 --ifuel 3 --z3rlimit 30"
 let default_translation_head_lift
   (ltl: list L.exp)
   (ljust: L.exp)
   (lcons: L.exp)
   (ltau: L.ty)
-    : Tot stepping_agnostic_lift
+    : Tot (stepping_agnostic_lift 0)
   =
   let f : L.exp -> not_l_value = fun lhd ->
     build_default_translation ((L.EAbs L.Silent L.TUnit lhd)::ltl) ljust lcons ltau
   in
-  let aux (e: L.exp) : Lemma(step_lift_commute_non_value f e) =
+  let aux (e: L.exp) : Lemma(step_lift_commute_non_value f e 0) =
+    let open FStar.Tactics in
+    let fold_exp = (L.EFoldLeft
+          (process_exceptions_f ltau)
+          L.ENone (L.TOption ltau)
+          (L.EList (((L.EAbs L.Silent L.TUnit e)::ltl))) (L.TArrow L.TUnit ltau))
+    in
+    assert(f e ==
+      L.EMatchOption
+        fold_exp
+        ltau
+        (L.EIf
+          ljust lcons
+          (L.ELit (L.LError L.EmptyError)))
+        (L.EAbs (L.Named 0) ltau (L.EVar 0)));
+    assert(L.step fold_exp ==
+      L.step_fold_left fold_exp
+        (process_exceptions_f ltau)
+        L.ENone
+        (L.TOption ltau)
+        (L.EList (((L.EAbs L.Silent L.TUnit e)::ltl)))
+        (L.TArrow L.TUnit ltau));
+    assert(match L.is_value f, L.is_value L.ENone, L.is_value
+    assume(L.step (fold_exp) == Some (
+      (L.EFoldLeft
+          (process_exceptions_f ltau)
+          (L.EApp
+            (L.EApp (process_exceptions_f ltau) (L.ENone) (L.TOption ltau))
+            (L.EAbs L.Silent L.TUnit e) (L.TArrow L.TUnit ltau))
+          (L.TOption ltau)
+          (L.EList ((ltl)))
+          (L.TArrow L.TUnit ltau))));
     if L.is_value e then () else
     match L.step e with
     | None ->
-      let open FStar.Tactics in
-      // TODO: this is false with one step but true with multiple steps!
-      assume(L.step (f e) = None)
+
+      admit()
     | Some e' ->
       let open FStar.Tactics in
       assume(L.step (f e) = Some (f e'))
   in
   Classical.forall_intro aux;
-  assert(is_stepping_agnostic_lift f);
+  assert(is_stepping_agnostic_lift f 0);
   f
 #pop-options
 
@@ -266,7 +296,7 @@ let rec lift_multiple_l_steps
   (e1: L.exp)
   (e2: L.exp)
   (n: nat)
-  (f : stepping_agnostic_lift)
+  (f : stepping_agnostic_lift 0)
     : Lemma
       (requires (multiple_l_steps e1 e2 n))
       (ensures (multiple_l_steps (f e1) (f e2) n))
