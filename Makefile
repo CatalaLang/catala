@@ -30,7 +30,7 @@ format:
 	dune build @fmt --auto-promote 2> /dev/null | true 
 
 build:
-	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
+	@$(MAKE) --no-print-directory -C src/catala/surface parser_errors.ml
 	@$(MAKE) --no-print-directory format
 	dune build src/catala/catala.exe
 
