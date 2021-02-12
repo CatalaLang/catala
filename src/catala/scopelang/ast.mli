@@ -1,551 +1,136 @@
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
+   <denis.merigoux@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
+(** Abstract syntax tree of the scope language *)
+
+open Utils
+
+(** {1 Identifiers} *)
+
 module ScopeName = Dcalc.Ast.ScopeName
-module ScopeNameSet :
-  sig
-    type elt = ScopeName.t
-    type t
-    val empty : t
-    val is_empty : t -> bool
-    val mem : elt -> t -> bool
-    val add : elt -> t -> t
-    val singleton : elt -> t
-    val remove : elt -> t -> t
-    val union : t -> t -> t
-    val inter : t -> t -> t
-    val disjoint : t -> t -> bool
-    val diff : t -> t -> t
-    val compare : t -> t -> int
-    val equal : t -> t -> bool
-    val subset : t -> t -> bool
-    val iter : (elt -> unit) -> t -> unit
-    val map : (elt -> elt) -> t -> t
-    val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-    val for_all : (elt -> bool) -> t -> bool
-    val exists : (elt -> bool) -> t -> bool
-    val filter : (elt -> bool) -> t -> t
-    val filter_map : (elt -> elt option) -> t -> t
-    val partition : (elt -> bool) -> t -> t * t
-    val cardinal : t -> int
-    val elements : t -> elt list
-    val min_elt : t -> elt
-    val min_elt_opt : t -> elt option
-    val max_elt : t -> elt
-    val max_elt_opt : t -> elt option
-    val choose : t -> elt
-    val choose_opt : t -> elt option
-    val split : elt -> t -> t * bool * t
-    val find : elt -> t -> elt
-    val find_opt : elt -> t -> elt option
-    val find_first : (elt -> bool) -> t -> elt
-    val find_first_opt : (elt -> bool) -> t -> elt option
-    val find_last : (elt -> bool) -> t -> elt
-    val find_last_opt : (elt -> bool) -> t -> elt option
-    val of_list : elt list -> t
-    val to_seq_from : elt -> t -> elt Seq.t
-    val to_seq : t -> elt Seq.t
-    val add_seq : elt Seq.t -> t -> t
-    val of_seq : elt Seq.t -> t
-  end
-module ScopeMap :
-  sig
-    type key = ScopeName.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
-module SubScopeName :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module SubScopeNameSet :
-  sig
-    type elt = SubScopeName.t
-    type t
-    val empty : t
-    val is_empty : t -> bool
-    val mem : elt -> t -> bool
-    val add : elt -> t -> t
-    val singleton : elt -> t
-    val remove : elt -> t -> t
-    val union : t -> t -> t
-    val inter : t -> t -> t
-    val disjoint : t -> t -> bool
-    val diff : t -> t -> t
-    val compare : t -> t -> int
-    val equal : t -> t -> bool
-    val subset : t -> t -> bool
-    val iter : (elt -> unit) -> t -> unit
-    val map : (elt -> elt) -> t -> t
-    val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-    val for_all : (elt -> bool) -> t -> bool
-    val exists : (elt -> bool) -> t -> bool
-    val filter : (elt -> bool) -> t -> t
-    val filter_map : (elt -> elt option) -> t -> t
-    val partition : (elt -> bool) -> t -> t * t
-    val cardinal : t -> int
-    val elements : t -> elt list
-    val min_elt : t -> elt
-    val min_elt_opt : t -> elt option
-    val max_elt : t -> elt
-    val max_elt_opt : t -> elt option
-    val choose : t -> elt
-    val choose_opt : t -> elt option
-    val split : elt -> t -> t * bool * t
-    val find : elt -> t -> elt
-    val find_opt : elt -> t -> elt option
-    val find_first : (elt -> bool) -> t -> elt
-    val find_first_opt : (elt -> bool) -> t -> elt option
-    val find_last : (elt -> bool) -> t -> elt
-    val find_last_opt : (elt -> bool) -> t -> elt option
-    val of_list : elt list -> t
-    val to_seq_from : elt -> t -> elt Seq.t
-    val to_seq : t -> elt Seq.t
-    val add_seq : elt Seq.t -> t -> t
-    val of_seq : elt Seq.t -> t
-  end
-module SubScopeMap :
-  sig
-    type key = SubScopeName.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
-module ScopeVar :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module ScopeVarSet :
-  sig
-    type elt = ScopeVar.t
-    type t
-    val empty : t
-    val is_empty : t -> bool
-    val mem : elt -> t -> bool
-    val add : elt -> t -> t
-    val singleton : elt -> t
-    val remove : elt -> t -> t
-    val union : t -> t -> t
-    val inter : t -> t -> t
-    val disjoint : t -> t -> bool
-    val diff : t -> t -> t
-    val compare : t -> t -> int
-    val equal : t -> t -> bool
-    val subset : t -> t -> bool
-    val iter : (elt -> unit) -> t -> unit
-    val map : (elt -> elt) -> t -> t
-    val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-    val for_all : (elt -> bool) -> t -> bool
-    val exists : (elt -> bool) -> t -> bool
-    val filter : (elt -> bool) -> t -> t
-    val filter_map : (elt -> elt option) -> t -> t
-    val partition : (elt -> bool) -> t -> t * t
-    val cardinal : t -> int
-    val elements : t -> elt list
-    val min_elt : t -> elt
-    val min_elt_opt : t -> elt option
-    val max_elt : t -> elt
-    val max_elt_opt : t -> elt option
-    val choose : t -> elt
-    val choose_opt : t -> elt option
-    val split : elt -> t -> t * bool * t
-    val find : elt -> t -> elt
-    val find_opt : elt -> t -> elt option
-    val find_first : (elt -> bool) -> t -> elt
-    val find_first_opt : (elt -> bool) -> t -> elt option
-    val find_last : (elt -> bool) -> t -> elt
-    val find_last_opt : (elt -> bool) -> t -> elt option
-    val of_list : elt list -> t
-    val to_seq_from : elt -> t -> elt Seq.t
-    val to_seq : t -> elt Seq.t
-    val add_seq : elt Seq.t -> t -> t
-    val of_seq : elt Seq.t -> t
-  end
-module ScopeVarMap :
-  sig
-    type key = ScopeVar.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+
+module ScopeNameSet : Set.S with type elt = ScopeName.t
+
+module ScopeMap : Map.S with type key = ScopeName.t
+
+module SubScopeName : Uid.Id with type info = Uid.MarkedString.info
+
+module SubScopeNameSet : Set.S with type elt = SubScopeName.t
+
+module SubScopeMap : Map.S with type key = SubScopeName.t
+
+module ScopeVar : Uid.Id with type info = Uid.MarkedString.info
+
+module ScopeVarSet : Set.S with type elt = ScopeVar.t
+
+module ScopeVarMap : Map.S with type key = ScopeVar.t
+
 module StructName = Dcalc.Ast.StructName
+
 module StructMap = Dcalc.Ast.StructMap
+
 module StructFieldName = Dcalc.Ast.StructFieldName
-module StructFieldMap :
-  sig
-    type key = StructFieldName.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+
+module StructFieldMap : Map.S with type key = StructFieldName.t
+
 module EnumName = Dcalc.Ast.EnumName
+
 module EnumMap = Dcalc.Ast.EnumMap
+
 module EnumConstructor = Dcalc.Ast.EnumConstructor
-module EnumConstructorMap :
-  sig
-    type key = EnumConstructor.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+
+module EnumConstructorMap : Map.S with type key = EnumConstructor.t
+
 type location =
-    ScopeVar of ScopeVar.t Utils.Pos.marked
-  | SubScopeVar of ScopeName.t * SubScopeName.t Utils.Pos.marked *
-      ScopeVar.t Utils.Pos.marked
-module LocationSet :
-  sig
-    type elt = location Utils.Pos.marked
-    type t
-    val empty : t
-    val is_empty : t -> bool
-    val mem : elt -> t -> bool
-    val add : elt -> t -> t
-    val singleton : elt -> t
-    val remove : elt -> t -> t
-    val union : t -> t -> t
-    val inter : t -> t -> t
-    val disjoint : t -> t -> bool
-    val diff : t -> t -> t
-    val compare : t -> t -> int
-    val equal : t -> t -> bool
-    val subset : t -> t -> bool
-    val iter : (elt -> unit) -> t -> unit
-    val map : (elt -> elt) -> t -> t
-    val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-    val for_all : (elt -> bool) -> t -> bool
-    val exists : (elt -> bool) -> t -> bool
-    val filter : (elt -> bool) -> t -> t
-    val filter_map : (elt -> elt option) -> t -> t
-    val partition : (elt -> bool) -> t -> t * t
-    val cardinal : t -> int
-    val elements : t -> elt list
-    val min_elt : t -> elt
-    val min_elt_opt : t -> elt option
-    val max_elt : t -> elt
-    val max_elt_opt : t -> elt option
-    val choose : t -> elt
-    val choose_opt : t -> elt option
-    val split : elt -> t -> t * bool * t
-    val find : elt -> t -> elt
-    val find_opt : elt -> t -> elt option
-    val find_first : (elt -> bool) -> t -> elt
-    val find_first_opt : (elt -> bool) -> t -> elt option
-    val find_last : (elt -> bool) -> t -> elt
-    val find_last_opt : (elt -> bool) -> t -> elt option
-    val of_list : elt list -> t
-    val to_seq_from : elt -> t -> elt Seq.t
-    val to_seq : t -> elt Seq.t
-    val add_seq : elt Seq.t -> t -> t
-    val of_seq : elt Seq.t -> t
-  end
+  | ScopeVar of ScopeVar.t Pos.marked
+  | SubScopeVar of ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
+
+module LocationSet : Set.S with type elt = location Pos.marked
+
+
+(** {1 Abstract syntax tree} *)
+
 type typ =
-    TLit of Dcalc.Ast.typ_lit
+  | TLit of Dcalc.Ast.typ_lit
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TArrow of typ Utils.Pos.marked * typ Utils.Pos.marked
+  | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ
   | TAny
+
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
 type expr =
-    ELocation of location
-  | EVar of expr Bindlib.var Utils.Pos.marked
-  | EStruct of StructName.t * expr Utils.Pos.marked StructFieldMap.t
-  | EStructAccess of expr Utils.Pos.marked * StructFieldName.t * StructName.t
-  | EEnumInj of expr Utils.Pos.marked * EnumConstructor.t * EnumName.t
-  | EMatch of expr Utils.Pos.marked * EnumName.t *
-      expr Utils.Pos.marked EnumConstructorMap.t
+  | ELocation of location
+  | EVar of expr Bindlib.var Pos.marked
+  | EStruct of StructName.t * expr Pos.marked StructFieldMap.t
+  | EStructAccess of expr Pos.marked * StructFieldName.t * StructName.t
+  | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
+  | EMatch of expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of Utils.Pos.t * (expr, expr Utils.Pos.marked) Bindlib.mbinder *
-      typ Utils.Pos.marked list
-  | EApp of expr Utils.Pos.marked * expr Utils.Pos.marked list
+  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
-  | EDefault of expr Utils.Pos.marked list * expr Utils.Pos.marked *
-      expr Utils.Pos.marked
-  | EIfThenElse of expr Utils.Pos.marked * expr Utils.Pos.marked *
-      expr Utils.Pos.marked
-  | EArray of expr Utils.Pos.marked list
-val locations_used : expr Utils.Pos.marked -> LocationSet.t
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
+  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | EArray of expr Pos.marked list
+
+val locations_used : expr Pos.marked -> LocationSet.t
+
 type rule =
-    Definition of location Utils.Pos.marked * typ Utils.Pos.marked *
-      expr Utils.Pos.marked
-  | Assertion of expr Utils.Pos.marked
+  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
+
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : typ Utils.Pos.marked ScopeVarMap.t;
+  scope_sig : typ Pos.marked ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
-type struct_ctx = (StructFieldName.t * typ Utils.Pos.marked) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ Utils.Pos.marked) list EnumMap.t
+
+type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
+
+type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+
 type program = {
   program_scopes : scope_decl ScopeMap.t;
   program_enums : enum_ctx;
   program_structs : struct_ctx;
 }
-module Var :
-  sig
-    type t = expr Bindlib.var
-    val make : string Utils.Pos.marked -> t
-    val compare : 'a Bindlib.var -> 'b Bindlib.var -> int
-  end
+
+(** {1 Variable helpers} *)
+
+module Var : sig
+  type t = expr Bindlib.var
+  val make : string Pos.marked -> t
+  val compare : t -> t -> int
+end
+
+module VarMap : Map.S with type key = Var.t
+
 type vars = expr Bindlib.mvar
-val make_var : Var.t Utils.Pos.marked -> expr Utils.Pos.marked Bindlib.box
+
+val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+
 val make_abs :
-  vars ->
-  expr Utils.Pos.marked Bindlib.box ->
-  Utils.Pos.t ->
-  typ Utils.Pos.marked list ->
-  Utils.Pos.t -> expr Utils.Pos.marked Bindlib.box
+  vars -> expr Pos.marked Bindlib.box -> Pos.t -> typ Pos.marked list -> Pos.t ->
+  expr Pos.marked Bindlib.box
+
 val make_app :
-  expr Utils.Pos.marked Bindlib.box ->
-  expr Utils.Pos.marked Bindlib.box list ->
-  Utils.Pos.t -> expr Utils.Pos.marked Bindlib.box
+  expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box list -> Pos.t ->
+  expr Pos.marked Bindlib.box
+
 val make_let_in :
-  Var.t ->
-  typ Utils.Pos.marked ->
-  expr Utils.Pos.marked Bindlib.box ->
-  expr Utils.Pos.marked Bindlib.box -> expr Utils.Pos.marked Bindlib.box
-module VarMap :
-  sig
-    type key = Var.t
-    type 'a t = 'a Stdlib__map.Make(Var).t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+  Var.t -> typ Pos.marked -> expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box

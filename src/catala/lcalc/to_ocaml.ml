@@ -14,6 +14,7 @@
 
 open Utils
 open Ast
+module D = Dcalc.Ast
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with

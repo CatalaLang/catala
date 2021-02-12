@@ -1,25 +1,71 @@
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
+   <denis.merigoux@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
 type frontend_lang = [ `En | `Fr | `NonVerbose ]
+
 type backend_lang = [ `En | `Fr ]
+
 val to_backend_lang : frontend_lang -> backend_lang
+
+
+(** {2 Configuration globals} *)
+
+(** Source files to be compiled *)
 val source_files : string list ref
+
 val locale_lang : backend_lang ref
+
 val contents : string ref
+
 val debug_flag : bool ref
+
+(** Styles the terminal output *)
 val style_flag : bool ref
+
+(** Max number of digits to show for decimal results *)
 val max_prec_digits : int ref
+
 val trace_flag : bool ref
+
+
+(** {2 CLI terms} *)
+
 val file : string Cmdliner.Term.t
+
 val debug : bool Cmdliner.Term.t
+
 val unstyled : bool Cmdliner.Term.t
+
 val trace_opt : bool Cmdliner.Term.t
+
 val wrap_weaved_output : bool Cmdliner.Term.t
+
 val backend : string Cmdliner.Term.t
+
 type backend_option = Latex | Makefile | Html | Run | OCaml
+
 val language : string option Cmdliner.Term.t
+
 val max_prec_digits_opt : int option Cmdliner.Term.t
+
 val ex_scope : string option Cmdliner.Term.t
+
 val output : string option Cmdliner.Term.t
+
 val pygmentize_loc : string option Cmdliner.Term.t
+
+(** Main entry point *)
 val catala_t :
   (string ->
    bool ->
@@ -30,20 +76,37 @@ val catala_t :
    string option ->
    int option -> bool -> string option -> string option -> 'a) ->
   'a Cmdliner.Term.t
+
 val version : string
 val info : Cmdliner.Term.info
-val print_with_style :
-  ANSITerminal.style list -> ('a, unit, string) format -> 'a
+
+(**{1 Terminal formatting}*)
+
+(**{2 Markers}*)
+
+val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 val debug_marker : unit -> string
 val error_marker : unit -> string
 val warning_marker : unit -> string
 val result_marker : unit -> string
 val log_marker : unit -> string
+
+(**{2 Printers}*)
+
+(** All the printers below print their argument after the correct marker *)
+
 val concat_with_line_depending_prefix_and_suffix :
   (int -> string) -> (int -> string) -> string list -> string
+
+(** The int argument of the prefix corresponds to the line number, starting at 0 *)
 val add_prefix_to_each_line : string -> (int -> string) -> string
+
 val debug_print : string -> unit
+
 val error_print : string -> unit
+
 val warning_print : string -> unit
+
 val result_print : string -> unit
+
 val log_print : string -> unit

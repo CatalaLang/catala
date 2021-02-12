@@ -1,33 +1,24 @@
-module I = Parser.MenhirInterpreter
-val state : 'semantic_value I.env -> int
-val minimum : 'a -> 'a -> 'a -> 'a
-val levenshtein_distance : string -> string -> int
-val law_struct_list_to_tree :
-  Ast.program_item list -> Ast.program_item list
-val syntax_hints_style : ANSITerminal.style list
-val raise_parser_error :
-  Utils.Pos.t -> Utils.Pos.t option -> string -> string -> 'a
-val fail :
-  Sedlexing.lexbuf ->
-  'semantic_value I.env ->
-  (string * Parser.token) list -> 'semantic_value I.env option -> 'a
-val loop :
-  (unit -> Parser.token * Lexing.position * Lexing.position) ->
-  (string * Parser.token) list ->
-  Sedlexing.lexbuf ->
-  Ast.source_file_or_master I.env option ->
-  Ast.source_file_or_master I.checkpoint ->
-  Ast.source_file_or_master
-val sedlex_with_menhir :
-  (Sedlexing.lexbuf -> Parser.token) ->
-  (string * Parser.token) list ->
-  (Lexing.position -> Ast.source_file_or_master I.checkpoint) ->
-  Sedlexing.lexbuf -> Ast.source_file_or_master
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
+   <denis.merigoux@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
+(** Wrapping module around parser and lexer that offers the {!val: parse_source_file} API *)
+
+open Utils
+
+(** Parses a single source file *)
 val parse_source_file :
-  Utils.Pos.input_file -> Utils.Cli.frontend_lang -> Ast.program
-val expand_includes :
-  string ->
-  Ast.program_item list ->
-  Utils.Cli.frontend_lang -> Ast.program
+  Pos.input_file -> Cli.frontend_lang -> Ast.program
+
 val parse_top_level_file :
-  Utils.Pos.input_file -> Utils.Cli.frontend_lang -> Ast.program
+  Pos.input_file -> Cli.frontend_lang -> Ast.program

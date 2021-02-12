@@ -1,155 +1,54 @@
-module ScopeName :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module StructName :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module StructFieldName :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module StructMap :
-  sig
-    type key = StructName.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
-module EnumName :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module EnumConstructor :
-  sig
-    type t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-  end
-module EnumMap :
-  sig
-    type key = EnumName.t
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
+   <denis.merigoux@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
+open Utils
+
+module ScopeName : Uid.Id with type info = Uid.MarkedString.info
+
+module StructName : Uid.Id with type info = Uid.MarkedString.info
+
+module StructFieldName : Uid.Id with type info = Uid.MarkedString.info
+
+module StructMap : Map.S with type key = StructName.t
+
+module EnumName : Uid.Id with type info = Uid.MarkedString.info
+
+module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info
+
+module EnumMap : Map.S with type key = EnumName.t
+
+(** Abstract syntax tree for the default calculus *)
+
+(** {1 Abstract syntax tree} *)
+
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
+
+
 type typ =
-    TLit of typ_lit
-  | TTuple of typ Utils.Pos.marked list * StructName.t option
-  | TEnum of typ Utils.Pos.marked list * EnumName.t
-  | TArrow of typ Utils.Pos.marked * typ Utils.Pos.marked
-  | TArray of typ Utils.Pos.marked
+  | TLit of typ_lit
+  | TTuple of typ Pos.marked list * StructName.t option
+  | TEnum of typ Pos.marked list * EnumName.t
+  | TArrow of typ Pos.marked * typ Pos.marked
+  | TArray of typ Pos.marked
   | TAny
+
 type date = CalendarLib.Date.t
+
 type duration = CalendarLib.Date.Period.t
+
 type lit =
-    LBool of bool
+  | LBool of bool
   | LEmptyError
   | LInt of Z.t
   | LRat of Q.t
@@ -157,10 +56,18 @@ type lit =
   | LUnit
   | LDate of date
   | LDuration of duration
-type op_kind = KInt | KRat | KMoney | KDate | KDuration
+
+type op_kind =
+  | KInt
+  | KRat
+  | KMoney
+  | KDate
+  | KDuration  (** All ops don't have a Kdate and KDuration *)
+
 type ternop = Fold
+
 type binop =
-    And
+  | And
   | Or
   | Add of op_kind
   | Sub of op_kind
@@ -174,9 +81,11 @@ type binop =
   | Neq
   | Map
   | Filter
+
 type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
+
 type unop =
-    Not
+  | Not
   | Minus of op_kind
   | ErrorOnEmpty
   | Log of log_entry * Utils.Uid.MarkedString.info list
@@ -185,104 +94,71 @@ type unop =
   | GetDay
   | GetMonth
   | GetYear
+
 type operator = Ternop of ternop | Binop of binop | Unop of unop
+
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
 type expr =
-    EVar of expr Bindlib.var Utils.Pos.marked
-  | ETuple of expr Utils.Pos.marked list * StructName.t option
-  | ETupleAccess of expr Utils.Pos.marked * int * StructName.t option *
-      typ Utils.Pos.marked list
-  | EInj of expr Utils.Pos.marked * int * EnumName.t *
-      typ Utils.Pos.marked list
-  | EMatch of expr Utils.Pos.marked * expr Utils.Pos.marked list * EnumName.t
-  | EArray of expr Utils.Pos.marked list
+  | EVar of expr Bindlib.var Pos.marked
+  | ETuple of expr Pos.marked list * StructName.t option
+      (** The [MarkedString.info] is the former struct field name*)
+  | ETupleAccess of expr Pos.marked * int * StructName.t option * typ Pos.marked list
+      (** The [MarkedString.info] is the former struct field name *)
+  | EInj of expr Pos.marked * int * EnumName.t * typ Pos.marked list
+      (** The [MarkedString.info] is the former enum case name *)
+  | EMatch of expr Pos.marked * expr Pos.marked list * EnumName.t
+      (** The [MarkedString.info] is the former enum case name *)
+  | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of Utils.Pos.t * (expr, expr Utils.Pos.marked) Bindlib.mbinder *
-      typ Utils.Pos.marked list
-  | EApp of expr Utils.Pos.marked * expr Utils.Pos.marked list
-  | EAssert of expr Utils.Pos.marked
+  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EApp of expr Pos.marked * expr Pos.marked list
+  | EAssert of expr Pos.marked
   | EOp of operator
-  | EDefault of expr Utils.Pos.marked list * expr Utils.Pos.marked *
-      expr Utils.Pos.marked
-  | EIfThenElse of expr Utils.Pos.marked * expr Utils.Pos.marked *
-      expr Utils.Pos.marked
-type struct_ctx = (StructFieldName.t * typ Utils.Pos.marked) list StructMap.t
-type enum_ctx = (EnumConstructor.t * typ Utils.Pos.marked) list EnumMap.t
-type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx; }
-module Var :
-  sig
-    type t = expr Bindlib.var
-    val make : string Utils.Pos.marked -> t
-    val compare : 'a Bindlib.var -> 'b Bindlib.var -> int
-  end
-module VarMap :
-  sig
-    type key = Var.t
-    type 'a t = 'a Stdlib__map.Make(Var).t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val mem : key -> 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val update : key -> ('a option -> 'a option) -> 'a t -> 'a t
-    val singleton : key -> 'a -> 'a t
-    val remove : key -> 'a t -> 'a t
-    val merge :
-      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
-    val union : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val for_all : (key -> 'a -> bool) -> 'a t -> bool
-    val exists : (key -> 'a -> bool) -> 'a t -> bool
-    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
-    val filter_map : (key -> 'a -> 'b option) -> 'a t -> 'b t
-    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
-    val cardinal : 'a t -> int
-    val bindings : 'a t -> (key * 'a) list
-    val min_binding : 'a t -> key * 'a
-    val min_binding_opt : 'a t -> (key * 'a) option
-    val max_binding : 'a t -> key * 'a
-    val max_binding_opt : 'a t -> (key * 'a) option
-    val choose : 'a t -> key * 'a
-    val choose_opt : 'a t -> (key * 'a) option
-    val split : key -> 'a t -> 'a t * 'a option * 'a t
-    val find : key -> 'a t -> 'a
-    val find_opt : key -> 'a t -> 'a option
-    val find_first : (key -> bool) -> 'a t -> key * 'a
-    val find_first_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val find_last : (key -> bool) -> 'a t -> key * 'a
-    val find_last_opt : (key -> bool) -> 'a t -> (key * 'a) option
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val to_seq : 'a t -> (key * 'a) Seq.t
-    val to_seq_from : key -> 'a t -> (key * 'a) Seq.t
-    val add_seq : (key * 'a) Seq.t -> 'a t -> 'a t
-    val of_seq : (key * 'a) Seq.t -> 'a t
-  end
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
+  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+
+type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
+
+type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
+
+type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
+
+(** {1 Variable helpers} *)
+
+module Var : sig
+  type t = expr Bindlib.var
+  val make : string Pos.marked -> t
+  val compare : t -> t -> int
+end
+
+module VarMap : Map.S with type key = Var.t
+
 type vars = expr Bindlib.mvar
-val make_var : Var.t Utils.Pos.marked -> expr Utils.Pos.marked Bindlib.box
+
+val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+
 val make_abs :
-  vars ->
-  expr Utils.Pos.marked Bindlib.box ->
-  Utils.Pos.t ->
-  typ Utils.Pos.marked list ->
-  Utils.Pos.t -> expr Utils.Pos.marked Bindlib.box
+  vars -> expr Pos.marked Bindlib.box -> Pos.t -> typ Pos.marked list -> Pos.t ->
+  expr Pos.marked Bindlib.box
+
 val make_app :
-  expr Utils.Pos.marked Bindlib.box ->
-  expr Utils.Pos.marked Bindlib.box list ->
-  Utils.Pos.t -> expr Utils.Pos.marked Bindlib.box
+  expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box list -> Pos.t ->
+  expr Pos.marked Bindlib.box
+
 val make_let_in :
-  Var.t ->
-  typ Utils.Pos.marked ->
-  expr Utils.Pos.marked Bindlib.box ->
-  expr Utils.Pos.marked Bindlib.box -> expr Utils.Pos.marked Bindlib.box
+  Var.t -> typ Pos.marked -> expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
 val make_multiple_let_in :
-  Var.t array ->
-  typ Utils.Pos.marked list ->
-  expr Utils.Pos.marked list Bindlib.box ->
-  expr Utils.Pos.marked Bindlib.box -> expr Utils.Pos.marked Bindlib.box
-type binder = (expr, expr Utils.Pos.marked) Bindlib.binder
+  Var.t array -> typ Pos.marked list ->
+  expr Pos.marked list Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
+type binder = (expr, expr Pos.marked) Bindlib.binder
+
 type program = {
   decl_ctx : decl_ctx;
-  scopes : (Var.t * expr Utils.Pos.marked) list;
+  scopes : (Var.t * expr Pos.marked) list;
 }

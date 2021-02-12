@@ -1,185 +1,95 @@
-module Vertex :
-  sig
-    type t =
-        Var of Scopelang.Ast.ScopeVar.t
-      | SubScope of Scopelang.Ast.SubScopeName.t
-    val hash : t -> int
-    val compare : 'a -> 'a -> int
-    val equal : t -> t -> bool
-    val format_t : Format.formatter -> t -> unit
-  end
-module Edge :
-  sig
-    type t = Utils.Pos.t
-    val compare : 'a -> 'a -> int
-    val default : Utils.Pos.t
-  end
-module ScopeDependencies :
-  sig
-    type t =
-        Graph__Persistent.Digraph.ConcreteBidirectionalLabeled(Vertex)(Edge).t
-    module V :
-      sig
-        type t = Vertex.t
-        val compare : t -> t -> int
-        val hash : t -> int
-        val equal : t -> t -> bool
-        type label = Vertex.t
-        val create : label -> t
-        val label : t -> label
-      end
-    type vertex = V.t
-    module E :
-      sig
-        type t = Vertex.t * Edge.t * Vertex.t
-        val compare : t -> t -> int
-        type nonrec vertex = vertex
-        val src : t -> vertex
-        val dst : t -> vertex
-        type label = Edge.t
-        val create : vertex -> label -> vertex -> t
-        val label : t -> label
-      end
-    type edge = E.t
-    val is_directed : bool
-    val is_empty : t -> bool
-    val nb_vertex : t -> int
-    val nb_edges : t -> int
-    val out_degree : t -> vertex -> int
-    val in_degree : t -> vertex -> int
-    val mem_vertex : t -> vertex -> bool
-    val mem_edge : t -> vertex -> vertex -> bool
-    val mem_edge_e : t -> edge -> bool
-    val find_edge : t -> vertex -> vertex -> edge
-    val find_all_edges : t -> vertex -> vertex -> edge list
-    val succ : t -> vertex -> vertex list
-    val pred : t -> vertex -> vertex list
-    val succ_e : t -> vertex -> edge list
-    val pred_e : t -> vertex -> edge list
-    val iter_vertex : (vertex -> unit) -> t -> unit
-    val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
-    val iter_edges : (vertex -> vertex -> unit) -> t -> unit
-    val fold_edges : (vertex -> vertex -> 'a -> 'a) -> t -> 'a -> 'a
-    val iter_edges_e : (edge -> unit) -> t -> unit
-    val fold_edges_e : (edge -> 'a -> 'a) -> t -> 'a -> 'a
-    val map_vertex : (vertex -> vertex) -> t -> t
-    val iter_succ : (vertex -> unit) -> t -> vertex -> unit
-    val iter_pred : (vertex -> unit) -> t -> vertex -> unit
-    val fold_succ : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val fold_pred : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val iter_succ_e : (edge -> unit) -> t -> vertex -> unit
-    val fold_succ_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val iter_pred_e : (edge -> unit) -> t -> vertex -> unit
-    val fold_pred_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val empty : t
-    val add_vertex : t -> vertex -> t
-    val remove_vertex : t -> vertex -> t
-    val add_edge : t -> vertex -> vertex -> t
-    val add_edge_e : t -> edge -> t
-    val remove_edge : t -> vertex -> vertex -> t
-    val remove_edge_e : t -> edge -> t
-  end
-module TopologicalTraversal :
-  sig
-    val fold :
-      (ScopeDependencies.V.t -> 'a -> 'a) -> ScopeDependencies.t -> 'a -> 'a
-    val iter : (ScopeDependencies.V.t -> unit) -> ScopeDependencies.t -> unit
-  end
-module SCC :
-  sig
-    val scc : ScopeDependencies.t -> int * (ScopeDependencies.V.t -> int)
-    val scc_array : ScopeDependencies.t -> ScopeDependencies.V.t list array
-    val scc_list : ScopeDependencies.t -> ScopeDependencies.V.t list list
-  end
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020 Inria, contributor: Nicolas Chataing
+   <nicolas.chataing@ens.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
+(** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/} OCamlgraph} *)
+
+open Utils
+
+(** {1 Scope variables dependency graph} *)
+
+(** {2 Graph declaration} *)
+
+(** Vertices: scope variables or subscopes.
+
+    The vertices of the scope dependency graph are either :
+
+    - the variables of the scope ;
+    - the subscopes of the scope.
+
+    Indeed, during interpretation, subscopes are executed atomically. *)
+
+module Vertex : sig
+  type t =
+    | Var of Scopelang.Ast.ScopeVar.t
+    | SubScope of Scopelang.Ast.SubScopeName.t
+
+  val format_t : Format.formatter -> t -> unit
+
+  include Graph.Sig.COMPARABLE with type t := t
+end
+
+(** On the edges, the label is the position of the expression responsible for the use of the
+    variable. In the graph, [x -> y] if [x] is used in the definition of [y].*)
+module Edge : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t
+
+(** Module of the graph, provided by OCamlGraph *)
+module ScopeDependencies : Graph.Sig.P
+  with type V.t = Vertex.t
+   and type E.label = Edge.t
+
+(** Module of the topological traversal of the graph, provided by OCamlGraph *)
+module TopologicalTraversal : sig
+  val fold : (Vertex.t -> 'a -> 'a) -> ScopeDependencies.t -> 'a -> 'a
+  val iter : (Vertex.t -> unit) -> ScopeDependencies.t -> unit
+end
+
+(** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
+module SCC : sig
+  val scc : ScopeDependencies.t -> int * (Vertex.t -> int)
+  val scc_array : ScopeDependencies.t -> Vertex.t list array
+  val scc_list : ScopeDependencies.t -> Vertex.t list list
+end
+
+
+(** {2 Graph computations} *)
+
+(** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
+    computation *)
+
+(** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
+    computation *)
 val correct_computation_ordering : ScopeDependencies.t -> Vertex.t list
+
+(** Outputs an error in case of cycles. *)
 val check_for_cycle : Ast.scope -> ScopeDependencies.t -> unit
+
+(** Builds the dependency graph of a particular scope *)
 val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
-module ExceptionVertex :
-  sig
-    type t = Desugared__Ast.RuleName.t
-    type info = Utils.Uid.MarkedString.info
-    val fresh : info -> t
-    val get_info : t -> info
-    val compare : t -> t -> int
-    val format_t : Format.formatter -> t -> unit
-    val hash : t -> int
-    val equal : t -> t -> bool
-  end
-module ExceptionsDependencies :
-  sig
-    type t =
-        Graph__Persistent.Digraph.ConcreteBidirectionalLabeled(ExceptionVertex)(Edge).t
-    module V :
-      sig
-        type t = ExceptionVertex.t
-        val compare : t -> t -> int
-        val hash : t -> int
-        val equal : t -> t -> bool
-        type label = ExceptionVertex.t
-        val create : label -> t
-        val label : t -> label
-      end
-    type vertex = V.t
-    module E :
-      sig
-        type t = ExceptionVertex.t * Edge.t * ExceptionVertex.t
-        val compare : t -> t -> int
-        type nonrec vertex = vertex
-        val src : t -> vertex
-        val dst : t -> vertex
-        type label = Edge.t
-        val create : vertex -> label -> vertex -> t
-        val label : t -> label
-      end
-    type edge = E.t
-    val is_directed : bool
-    val is_empty : t -> bool
-    val nb_vertex : t -> int
-    val nb_edges : t -> int
-    val out_degree : t -> vertex -> int
-    val in_degree : t -> vertex -> int
-    val mem_vertex : t -> vertex -> bool
-    val mem_edge : t -> vertex -> vertex -> bool
-    val mem_edge_e : t -> edge -> bool
-    val find_edge : t -> vertex -> vertex -> edge
-    val find_all_edges : t -> vertex -> vertex -> edge list
-    val succ : t -> vertex -> vertex list
-    val pred : t -> vertex -> vertex list
-    val succ_e : t -> vertex -> edge list
-    val pred_e : t -> vertex -> edge list
-    val iter_vertex : (vertex -> unit) -> t -> unit
-    val fold_vertex : (vertex -> 'a -> 'a) -> t -> 'a -> 'a
-    val iter_edges : (vertex -> vertex -> unit) -> t -> unit
-    val fold_edges : (vertex -> vertex -> 'a -> 'a) -> t -> 'a -> 'a
-    val iter_edges_e : (edge -> unit) -> t -> unit
-    val fold_edges_e : (edge -> 'a -> 'a) -> t -> 'a -> 'a
-    val map_vertex : (vertex -> vertex) -> t -> t
-    val iter_succ : (vertex -> unit) -> t -> vertex -> unit
-    val iter_pred : (vertex -> unit) -> t -> vertex -> unit
-    val fold_succ : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val fold_pred : (vertex -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val iter_succ_e : (edge -> unit) -> t -> vertex -> unit
-    val fold_succ_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val iter_pred_e : (edge -> unit) -> t -> vertex -> unit
-    val fold_pred_e : (edge -> 'a -> 'a) -> t -> vertex -> 'a -> 'a
-    val empty : t
-    val add_vertex : t -> vertex -> t
-    val remove_vertex : t -> vertex -> t
-    val add_edge : t -> vertex -> vertex -> t
-    val add_edge_e : t -> edge -> t
-    val remove_edge : t -> vertex -> vertex -> t
-    val remove_edge_e : t -> edge -> t
-  end
-module ExceptionsSCC :
-  sig
-    val scc :
-      ExceptionsDependencies.t -> int * (ExceptionsDependencies.V.t -> int)
-    val scc_array :
-      ExceptionsDependencies.t -> ExceptionsDependencies.V.t list array
-    val scc_list :
-      ExceptionsDependencies.t -> ExceptionsDependencies.V.t list list
-  end
-val build_exceptions_graph :
-  Ast.rule Ast.RuleMap.t ->
-  Ast.ScopeDef.t -> ExceptionsDependencies.t
+
+
+(** {1 Exceptions dependency graph} *)
+
+module ExceptionsDependencies : Graph.Sig.P
+  with type V.t = Ast.RuleName.t
+   and type E.label = Edge.t
+
+module ExceptionsSCC : sig
+  val scc : ExceptionsDependencies.t -> int * (Ast.RuleName.t -> int)
+  val scc_array : ExceptionsDependencies.t -> Ast.RuleName.t list array
+  val scc_list : ExceptionsDependencies.t -> Ast.RuleName.t list list
+end
+
+val build_exceptions_graph : Ast.rule Ast.RuleMap.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
+
 val check_for_exception_cycle : ExceptionsDependencies.t -> unit

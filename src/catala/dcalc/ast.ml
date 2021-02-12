@@ -30,8 +30,6 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
-(** Abstract syntax tree for the default calculus *)
-
 (** {1 Abstract syntax tree} *)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
@@ -98,18 +96,12 @@ type unop =
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
-    higher-order abstract syntax*)
 type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list * StructName.t option
-      (** The [MarkedString.info] is the former struct field name*)
   | ETupleAccess of expr Pos.marked * int * StructName.t option * typ Pos.marked list
-      (** The [MarkedString.info] is the former struct field name *)
   | EInj of expr Pos.marked * int * EnumName.t * typ Pos.marked list
-      (** The [MarkedString.info] is the former enum case name *)
   | EMatch of expr Pos.marked * expr Pos.marked list * EnumName.t
-      (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
   | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
