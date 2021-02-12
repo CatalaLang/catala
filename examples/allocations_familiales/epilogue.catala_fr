@@ -18,7 +18,7 @@ champ d'application EnfantLePlusÂgé:
       -- date_de_naissance: |01/01/1900|
       -- âge: 0 
       -- garde_alternée: NonGardeUnique
-      -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+      -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
     } 
     pour potentiel_plus_âgé dans enfants de 
     potentiel_plus_âgé.âge
@@ -73,7 +73,7 @@ déclaration structure EnfantEntrée:
   donnée d_rémuneration_mensuelle contenu argent
   donnée d_date_de_naissance contenu date
   donnée d_garde_alternée contenu GardeAlternée
-  donnée d_pris_en_charge_par_services_sociaux contenu 
+  donnée d_prise_en_charge_par_services_sociaux contenu 
     PriseEnChargeServiceSociaux
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
@@ -91,6 +91,10 @@ champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.ressources_ménage égal à ressources_ménage
   définition allocations_familiales.résidence égal à résidence
   définition montant_versé égal à allocations_familiales.montant_versé
+  assertion non (existe enfant dans enfants tel que 
+    enfant.d_garde_alternée != NonGardeUnique et 
+    enfant.d_prise_en_charge_par_services_sociaux != NonPriseEnChargeFamille
+  )
 */
 @@Fin métadonnées@@
 
@@ -110,8 +114,8 @@ champ d'application InterfaceAllocationsFamiliales:
       -- identifiant : enfant.d_identifiant
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
-      -- pris_en_charge_par_services_sociaux : 
-        enfant.d_pris_en_charge_par_services_sociaux
+      -- prise_en_charge_par_services_sociaux : 
+        enfant.d_prise_en_charge_par_services_sociaux
       -- garde_alternée : enfant.d_garde_alternée
       -- âge: accès_année de 
         (|01/01/0000| +@ (date_courante -@ enfant.d_date_de_naissance))

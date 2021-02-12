@@ -26,7 +26,7 @@ déclaration structure Enfant :
   donnée date_de_naissance contenu date
   donnée âge contenu entier
   donnée garde_alternée contenu GardeAlternée
-  donnée pris_en_charge_par_services_sociaux contenu 
+  donnée prise_en_charge_par_services_sociaux contenu 
     PriseEnChargeServiceSociaux
 
 déclaration énumération Collectivité :

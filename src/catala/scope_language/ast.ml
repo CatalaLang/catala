@@ -18,7 +18,7 @@ open Utils
 
 (** {1 Identifiers} *)
 
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module ScopeName = Dcalc.Ast.ScopeName
 
 module ScopeNameSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
 

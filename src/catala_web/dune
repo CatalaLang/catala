@@ -1,9 +1,0 @@
-(executable
- (name catala_web)
- (modes byte js)
- (package catala)
- (public_name catala_web)
- (modules catala_web)
- (preprocess
-  (pps js_of_ocaml-ppx))
- (libraries catala js_of_ocaml))

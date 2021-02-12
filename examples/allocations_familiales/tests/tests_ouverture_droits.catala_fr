@@ -18,7 +18,7 @@ champ d'application Données:
     -- date_de_naissance: |01/01/2007|
     -- âge: 13
     -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
     -- garde_alternée: NonGardeUnique
   }
   définition enfant2 égal à Enfant {
@@ -27,7 +27,7 @@ champ d'application Données:
     -- date_de_naissance: |01/01/2003|
     -- âge: 18
     -- rémuneration_mensuelle: 1000€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
     -- garde_alternée: NonGardeUnique
   }
   définition enfant3 égal à Enfant {
@@ -36,7 +36,7 @@ champ d'application Données:
     -- date_de_naissance: |01/01/2003|
     -- âge: 18
     -- rémuneration_mensuelle: 400€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
     -- garde_alternée: NonGardeUnique
   }
   définition enfant4 égal à Enfant {
@@ -45,7 +45,7 @@ champ d'application Données:
     -- date_de_naissance: |01/01/1999|
     -- âge: 21
     -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
     -- garde_alternée: NonGardeUnique
   }
 

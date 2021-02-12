@@ -107,6 +107,7 @@ champ d'application Smic :
   définition brut_horaire sous condition 
     date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
       (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
       (résidence = Martinique) ou
       (résidence = LaRéunion) ou
@@ -141,6 +142,7 @@ champ d'application Smic :
   définition brut_horaire sous condition 
     date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
       (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
       (résidence = Martinique) ou
       (résidence = LaRéunion) ou
@@ -154,10 +156,46 @@ champ d'application Smic :
 /*
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,66 €
+*/
+
+@@Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance@@+
+
+@Article 1|JORFARTI000042677367@
+
+A compter du 1er janvier 2021, pour les catégories de travailleurs mentionnés à 
+l'article L. 2211-1 du code du travail, le montant du salaire minimum de 
+croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, 
+à Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, 
+son montant est porté à 10,25 € l'heure ;
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition 
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021| et (
+      (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 10,25 €
+*/
+2° A Mayotte, son montant est fixé à 7,74 € l'heure.
+/*
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 7,74 €
 */
 
 @@Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations@@+

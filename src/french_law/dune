@@ -1,0 +1,25 @@
+(executable
+ (name bench)
+ (modes native)
+ (package catala)
+ (modules bench)
+ (public_name benchmark_french_law)
+ (libraries catala french_law benchmark))
+
+(executable
+ (name api_web)
+ (modes byte js)
+ (package catala)
+ (modules api_web)
+ (public_name french_law_web)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries catala law_source js_of_ocaml))
+
+(library
+ (name french_law)
+ (public_name catala.french_law)
+ (synopsis
+   "A collection of functions for computing French taxes and benefits derived from Catala programs")
+ (libraries catala law_source)
+ (modules api))

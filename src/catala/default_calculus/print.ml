@@ -18,6 +18,18 @@ open Ast
 let typ_needs_parens (e : typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
+let is_uppercase (x : CamomileLibraryDefault.Camomile.UChar.t) : bool =
+  try
+    match CamomileLibraryDefault.Camomile.UCharInfo.general_category x with
+    | `Ll -> false
+    | `Lu -> true
+    | _ -> false
+  with _ -> true
+
+let begins_with_uppercase (s : string) : bool =
+  let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
+  is_uppercase first_letter
+
 let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
   Format.fprintf fmt "%a"
     (Format.pp_print_list
@@ -25,13 +37,7 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
        (fun fmt info ->
          Format.fprintf fmt "%s"
            (Utils.Cli.print_with_style
-              (let first_letter = CamomileLibraryDefault.Camomile.UTF8.get (Pos.unmark info) 0 in
-               try
-                 match CamomileLibraryDefault.Camomile.UCharInfo.general_category first_letter with
-                 | `Ll -> []
-                 | `Lu -> [ ANSITerminal.red ]
-                 | _ -> []
-               with _ -> [])
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else [])
               "%s"
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
@@ -39,7 +45,7 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   match l with
   | TUnit -> Format.fprintf fmt "unit"
-  | TBool -> Format.fprintf fmt "boolean"
+  | TBool -> Format.fprintf fmt "bool"
   | TInt -> Format.fprintf fmt "integer"
   | TRat -> Format.fprintf fmt "decimal"
   | TMoney -> Format.fprintf fmt "money"
@@ -55,7 +61,7 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
   match Pos.unmark typ with
   | TLit l -> Format.fprintf fmt "%a" format_tlit l
   | TTuple (ts, None) ->
-      Format.fprintf fmt "@[<hov 2>(%a)]"
+      Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
            (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
@@ -66,14 +72,14 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.StructFieldName.format_t f format_typ t))
-        (List.combine ts (Ast.StructMap.find s ctx.ctx_structs))
+        (List.combine ts (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
   | TEnum (ts, e) ->
       Format.fprintf fmt "%a [@[<hov 2>%a@]]" Ast.EnumName.format_t e
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (t, f) ->
              Format.fprintf fmt "%a:@ %a" Ast.EnumConstructor.format_t f format_typ t))
-        (List.combine ts (Ast.EnumMap.find e ctx.ctx_enums))
+        (List.combine ts (List.map fst (Ast.EnumMap.find e ctx.ctx_enums)))
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1 format_typ t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ t1
@@ -151,7 +157,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Div k -> Format.fprintf fmt "/%a" format_op_kind k
   | And -> Format.fprintf fmt "%s" "&&"
   | Or -> Format.fprintf fmt "%s" "||"
-  | Eq -> Format.fprintf fmt "%s" "=="
+  | Eq -> Format.fprintf fmt "%s" "="
   | Neq -> Format.fprintf fmt "%s" "!="
   | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
@@ -216,7 +222,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
            (fun fmt (e, struct_field) ->
              Format.fprintf fmt "\"%a\":@ %a" Ast.StructFieldName.format_t struct_field format_expr
                e))
-        (List.combine es (Ast.StructMap.find s ctx.ctx_structs))
+        (List.combine es (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[%a]@]"
         (Format.pp_print_list
@@ -228,10 +234,10 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
       | None -> Format.fprintf fmt "%a.%d" format_expr e1 n
       | Some s ->
           Format.fprintf fmt "%a.\"%a\"" format_expr e1 Ast.StructFieldName.format_t
-            (List.nth (Ast.StructMap.find s ctx.ctx_structs) n) )
+            (fst (List.nth (Ast.StructMap.find s ctx.ctx_structs) n)) )
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Ast.EnumConstructor.format_t
-        (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n)
+        (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
       Format.fprintf fmt "@[<hov 2>match@ %a@ with@ %a@]" format_expr e
@@ -239,7 +245,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
            (fun fmt (e, c) ->
              Format.fprintf fmt "%a@ %a" Ast.EnumConstructor.format_t c format_expr e))
-        (List.combine es (Ast.EnumMap.find e_name ctx.ctx_enums))
+        (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs (_, binder, taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
@@ -247,7 +253,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
       Format.fprintf fmt "@[%a%a@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
            (fun fmt (x, tau, arg) ->
              Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
                (format_typ ctx) tau format_expr arg))
