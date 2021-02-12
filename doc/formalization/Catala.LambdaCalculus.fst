@@ -83,6 +83,14 @@ and subst_list (x: var_name) (e_x: exp) (subs: list exp) : Tot (list exp) (decre
 
 (**** Stepping judgment *)
 
+type list_step_result =
+  | Good of list exp
+  | Error of exp
+  | Bad
+
+let is_not_bad (l: list_step_result) : bool = match l with
+  | Good _ | Error _ -> true | Bad -> false
+
 let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau_arg << e})
     : Tot (option exp) (decreases %[ e; 0 ]) =
   if is_value e1
@@ -145,22 +153,25 @@ and step_match
 and step_list
   (e: exp)
   (l: list exp{l << e /\ Cons? l})
-    : Tot (option (list exp)) (decreases %[ e; 3; l ]) =
+    : Tot (list_step_result) (decreases %[ e; 3; l ]) =
   match l with
-  | [hd] -> if is_value hd then None else begin
+  | [hd] -> if is_value hd then Bad else begin
     match step hd with
-    | None -> None
-    | Some hd' -> Some([hd'])
+    | None -> Bad
+    | Some (ELit (LError err)) -> Error (ELit (LError err))
+    | Some hd' -> Good([hd'])
   end
   | hd::tl -> begin
     if is_value hd then
       match step_list e tl with
-      | None -> None
-      | Some tl' -> Some (hd::tl')
+      | Bad -> Bad
+      | Error err -> Error err
+      | Good tl' -> Good (hd::tl')
     else
       match step hd with
-      | None -> None
-      | Some hd' -> Some(hd'::tl)
+      | None -> Bad
+      | Some (ELit (LError err)) -> Error (ELit (LError err))
+      | Some hd' -> Good (hd'::tl)
   end
 
 and step_catch
@@ -229,8 +240,9 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
   | EMatchOption arg tau_some none some -> step_match e arg tau_some none some
   | EList [] -> None
   | EList l -> begin match step_list e l with
-    | None -> None
-    | Some l' -> Some (EList l')
+    | Bad -> None
+    | Error err -> Some err
+    | Good l' -> Some (EList l')
   end
   | ECatchEmptyError to_try catch_with -> step_catch e to_try catch_with
   | EFoldLeft f init tau_init l tau_elt -> step_fold_left e f init tau_init l tau_elt
@@ -456,7 +468,7 @@ and progress_list
   (e: exp)
   (l: list exp{size_for_progress_list l < size_for_progress e /\ l << e}) (tau: ty)
     : Lemma (requires (typing_list empty l tau /\ Cons? l))
-      (ensures (is_value_list l \/ (Some? (step_list e l))))
+      (ensures (is_value_list l \/ (is_not_bad (step_list e l))))
       (decreases %[size_for_progress e; 2; l])
   =
   match l with
@@ -728,10 +740,12 @@ and preservation_list
       (requires (
         Cons? l /\
         typing empty (EList l) (TList tau) /\
-        Some? (step_list e l)
+        is_not_bad (step_list e l)
       ))
       (ensures (
-        typing_list empty (Some?.v (step_list e l)) tau
+        match step_list e l with
+        | Good l' -> typing_list empty l' tau
+        | Error err -> typing empty err (TList tau)
       ))
       (decreases %[ l ]) =
   match l with
