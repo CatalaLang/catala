@@ -31,46 +31,35 @@ type typ =
   | TArray of typ Pos.marked UnionFind.elem
   | TAny of Any.t
 
-val typ_needs_parens :
-  typ Utils.Pos.marked UnionFind.elem -> bool
+val typ_needs_parens : typ Utils.Pos.marked UnionFind.elem -> bool
 
-val format_typ :
-  Ast.decl_ctx -> Format.formatter -> typ Utils.Pos.marked UnionFind.elem -> unit
+val format_typ : Ast.decl_ctx -> Format.formatter -> typ Utils.Pos.marked UnionFind.elem -> unit
 
-(** Raises an error if unification cannot be performed *)
 val unify :
   Ast.decl_ctx -> typ Utils.Pos.marked UnionFind.elem -> typ Utils.Pos.marked UnionFind.elem -> unit
+(** Raises an error if unification cannot be performed *)
 
+val op_type : Ast.operator Utils.Pos.marked -> typ Utils.Pos.marked UnionFind.elem
 (** Operators have a single type, instead of being polymorphic with constraints. This allows us to
     have a simpler type system, while we argue the syntactic burden of operator annotations helps
     the programmer visualize the type flow in the code. *)
-val op_type :
-  Ast.operator Utils.Pos.marked -> typ Utils.Pos.marked UnionFind.elem
 
-val ast_to_typ :
-  Ast.typ -> typ
+val ast_to_typ : Ast.typ -> typ
 
-val typ_to_ast :
-  typ Utils.Pos.marked UnionFind.elem -> Ast.typ Utils.Pos.marked
+val typ_to_ast : typ Utils.Pos.marked UnionFind.elem -> Ast.typ Utils.Pos.marked
 
 (** {1 Double-directed typing} *)
 
 type env = typ Utils.Pos.marked UnionFind.elem Ast.VarMap.t
 
-(** Infers the most permissive type from an expression *)
 val typecheck_expr_bottom_up :
-  Ast.decl_ctx -> env -> Ast.expr Utils.Pos.marked ->
-  typ Utils.Pos.marked UnionFind.elem
+  Ast.decl_ctx -> env -> Ast.expr Utils.Pos.marked -> typ Utils.Pos.marked UnionFind.elem
+(** Infers the most permissive type from an expression *)
 
-(** Checks whether the expression can be typed with the provided type *)
 val typecheck_expr_top_down :
-  Ast.decl_ctx -> env -> Ast.expr Utils.Pos.marked -> typ Utils.Pos.marked UnionFind.elem ->
-  unit
+  Ast.decl_ctx -> env -> Ast.expr Utils.Pos.marked -> typ Utils.Pos.marked UnionFind.elem -> unit
+(** Checks whether the expression can be typed with the provided type *)
 
-val infer_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked ->
-  Ast.typ Utils.Pos.marked
+val infer_type : Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked
 
-val check_type :
-  Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked ->
-  unit
+val check_type : Ast.decl_ctx -> Ast.expr Utils.Pos.marked -> Ast.typ Utils.Pos.marked -> unit

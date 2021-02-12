@@ -34,7 +34,6 @@ module EnumMap : Map.S with type key = EnumName.t
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
-
 type typ =
   | TLit of typ_lit
   | TTuple of typ Pos.marked list * StructName.t option
@@ -128,7 +127,9 @@ type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
 module Var : sig
   type t = expr Bindlib.var
+
   val make : string Pos.marked -> t
+
   val compare : t -> t -> int
 end
 
@@ -139,26 +140,33 @@ type vars = expr Bindlib.mvar
 val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
 
 val make_abs :
-  vars -> expr Pos.marked Bindlib.box -> Pos.t -> typ Pos.marked list -> Pos.t ->
+  vars ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  typ Pos.marked list ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_app :
-  expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box list -> Pos.t ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_let_in :
-  Var.t -> typ Pos.marked -> expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box ->
+  Var.t ->
+  typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
 val make_multiple_let_in :
-  Var.t array -> typ Pos.marked list ->
+  Var.t array ->
+  typ Pos.marked list ->
   expr Pos.marked list Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = {
-  decl_ctx : decl_ctx;
-  scopes : (Var.t * expr Pos.marked) list;
-}
+type program = { decl_ctx : decl_ctx; scopes : (Var.t * expr Pos.marked) list }

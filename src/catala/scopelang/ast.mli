@@ -37,17 +37,13 @@ module ScopeVarSet : Set.S with type elt = ScopeVar.t
 module ScopeVarMap : Map.S with type key = ScopeVar.t
 
 module StructName = Dcalc.Ast.StructName
-
 module StructMap = Dcalc.Ast.StructMap
-
 module StructFieldName = Dcalc.Ast.StructFieldName
 
 module StructFieldMap : Map.S with type key = StructFieldName.t
 
 module EnumName = Dcalc.Ast.EnumName
-
 module EnumMap = Dcalc.Ast.EnumMap
-
 module EnumConstructor = Dcalc.Ast.EnumConstructor
 
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t
@@ -57,7 +53,6 @@ type location =
   | SubScopeVar of ScopeName.t * SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
 
 module LocationSet : Set.S with type elt = location Pos.marked
-
 
 (** {1 Abstract syntax tree} *)
 
@@ -113,7 +108,9 @@ type program = {
 
 module Var : sig
   type t = expr Bindlib.var
+
   val make : string Pos.marked -> t
+
   val compare : t -> t -> int
 end
 
@@ -124,13 +121,22 @@ type vars = expr Bindlib.mvar
 val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
 
 val make_abs :
-  vars -> expr Pos.marked Bindlib.box -> Pos.t -> typ Pos.marked list -> Pos.t ->
+  vars ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  typ Pos.marked list ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_app :
-  expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box list -> Pos.t ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_let_in :
-  Var.t -> typ Pos.marked -> expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box ->
+  Var.t ->
+  typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box

@@ -31,9 +31,13 @@ module ScopeDef : sig
   type t =
     | Var of Scopelang.Ast.ScopeVar.t
     | SubScopeVar of Scopelang.Ast.SubScopeName.t * Scopelang.Ast.ScopeVar.t
+
   val compare : t -> t -> int
+
   val get_position : t -> Pos.t
+
   val format_t : Format.formatter -> t -> unit
+
   val hash : t -> int
 end
 
@@ -50,11 +54,9 @@ type rule = {
   exception_to_rule : RuleName.t Pos.marked option;
 }
 
-val empty_rule :
-  Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
+val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
 
-val always_false_rule :
-  Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
+val always_false_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
 
 type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
 

@@ -16,9 +16,7 @@
 
 open Utils
 
+val parse_source_file : Pos.input_file -> Cli.frontend_lang -> Ast.program
 (** Parses a single source file *)
-val parse_source_file :
-  Pos.input_file -> Cli.frontend_lang -> Ast.program
 
-val parse_top_level_file :
-  Pos.input_file -> Cli.frontend_lang -> Ast.program
+val parse_top_level_file : Pos.input_file -> Cli.frontend_lang -> Ast.program

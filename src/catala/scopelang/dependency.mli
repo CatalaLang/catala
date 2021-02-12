@@ -17,21 +17,21 @@
 
 open Utils
 
-module SDependencies : Graph.Sig.P
-  with type V.t = Ast.ScopeName.t
-   and type E.label = Pos.t
 (** On the edges, the label is the expression responsible for the use of the function *)
-
+module SDependencies : Graph.Sig.P with type V.t = Ast.ScopeName.t and type E.label = Pos.t
 
 module STopologicalTraversal : sig
   val fold : (Ast.ScopeName.t -> 'a -> 'a) -> SDependencies.t -> 'a -> 'a
+
   val iter : (Ast.ScopeName.t -> unit) -> SDependencies.t -> unit
 end
 
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 module SSCC : sig
   val scc : SDependencies.t -> int * (Ast.ScopeName.t -> int)
+
   val scc_array : SDependencies.t -> Ast.ScopeName.t list array
+
   val scc_list : SDependencies.t -> Ast.ScopeName.t list list
 end
 
@@ -41,13 +41,11 @@ val check_for_cycle_in_scope : SDependencies.t -> unit
 
 val get_scope_ordering : SDependencies.t -> Ast.ScopeName.t list
 
-
 module TVertex : sig
-  type t =
-    | Struct of Ast.StructName.t
-    | Enum of Ast.EnumName.t
+  type t = Struct of Ast.StructName.t | Enum of Ast.EnumName.t
 
   val format_t : Format.formatter -> t -> unit
+
   val get_info : t -> Ast.StructName.info
 
   include Graph.Sig.COMPARABLE with type t := t
@@ -56,20 +54,20 @@ end
 module TVertexSet : Set.S with type elt = TVertex.t
 
 (** On the edges, the label is the expression responsible for the use of the function *)
-module TDependencies : Graph.Sig.P
-  with type V.t = TVertex.t
-   and type E.label = Pos.t
+module TDependencies : Graph.Sig.P with type V.t = TVertex.t and type E.label = Pos.t
 
 module TTopologicalTraversal : sig
   val fold : (TVertex.t -> 'a -> 'a) -> TDependencies.t -> 'a -> 'a
+
   val iter : (TVertex.t -> unit) -> TDependencies.t -> unit
 end
 
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
-module TSCC :
-sig
+module TSCC : sig
   val scc : TDependencies.t -> int * (TVertex.t -> int)
+
   val scc_array : TDependencies.t -> TVertex.t list array
+
   val scc_list : TDependencies.t -> TVertex.t list list
 end
 

@@ -14,35 +14,35 @@
 
 (** Concise syntax with English abbreviated keywords. *)
 
+val is_code : bool ref
 (** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
     code or law. *)
-val is_code : bool ref
 
+val code_string_acc : string ref
 (** Mutable string reference that accumulates the string representation of the body of code being
     lexed. This string representation is used in the literate programming backends to faithfully
     capture the spacing pattern of the original program *)
-val code_string_acc : string ref
 
-(** Updates {!val:code_string_acc} with the current lexeme *)
 val update_acc : Sedlexing.lexbuf -> unit
+(** Updates {!val:code_string_acc} with the current lexeme *)
 
-(** Error-generating helper *)
 val raise_lexer_error : Utils.Pos.t -> string -> 'a
+(** Error-generating helper *)
 
+val token_list_language_agnostic : (string * Parser.token) list
 (** Associative list matching each punctuation string part of the Catala syntax with its {!module:
     Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
-val token_list_language_agnostic : (string * Parser.token) list
 
+val token_list : (string * Parser.token) list
 (** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the input
     language. *)
-val token_list : (string * Parser.token) list
 
-(** Main lexing function used in a code block *)
 val lex_code : Sedlexing.lexbuf -> Parser.token
+(** Main lexing function used in a code block *)
 
-(** Main lexing function used outside code blocks *)
 val lex_law : Sedlexing.lexbuf -> Parser.token
+(** Main lexing function used outside code blocks *)
 
+val lexer : Sedlexing.lexbuf -> Parser.token
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
     is_code}. *)
-val lexer : Sedlexing.lexbuf -> Parser.token

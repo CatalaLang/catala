@@ -20,28 +20,30 @@ open Utils
 
 type rule_tree = Leaf of Ast.rule | Node of rule_tree list * Ast.rule
 
+val def_map_to_tree : Ast.ScopeDef.t -> Ast.rule Ast.RuleMap.t -> rule_tree list
 (** Transforms a flat list of rules into a tree, taking into account the priorities declared between
     rules *)
-val def_map_to_tree : Ast.ScopeDef.t -> Ast.rule Ast.RuleMap.t -> rule_tree list
 
+val rule_tree_to_expr :
+  toplevel:bool ->
+  Pos.t ->
+  Scopelang.Ast.Var.t option ->
+  rule_tree ->
+  Scopelang.Ast.expr Pos.marked Bindlib.box
 (** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault} expression in the
     scope language. The [~toplevel] parameter is used to know when to place the toplevel binding in
     the case of functions. *)
-val rule_tree_to_expr :
-  toplevel:bool -> Pos.t -> Scopelang.Ast.Var.t option -> rule_tree ->
-  Scopelang.Ast.expr Pos.marked Bindlib.box
-
 
 (** {1 AST translation} *)
 
-(** Translates a definition inside a scope, the resulting expression should be an {!constructor:
-    Dcalc.Ast.EDefault} *)
 val translate_def :
   Ast.ScopeDef.t ->
   Ast.rule Ast.RuleMap.t ->
   Scopelang.Ast.typ Pos.marked ->
   bool ->
   Scopelang.Ast.expr Pos.marked
+(** Translates a definition inside a scope, the resulting expression should be an {!constructor:
+    Dcalc.Ast.EDefault} *)
 
 val translate_scope : Ast.scope -> Scopelang.Ast.scope_decl
 

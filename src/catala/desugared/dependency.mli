@@ -30,63 +30,60 @@ open Utils
     Indeed, during interpretation, subscopes are executed atomically. *)
 
 module Vertex : sig
-  type t =
-    | Var of Scopelang.Ast.ScopeVar.t
-    | SubScope of Scopelang.Ast.SubScopeName.t
+  type t = Var of Scopelang.Ast.ScopeVar.t | SubScope of Scopelang.Ast.SubScopeName.t
 
   val format_t : Format.formatter -> t -> unit
 
   include Graph.Sig.COMPARABLE with type t := t
 end
 
+module Edge : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t
 (** On the edges, the label is the position of the expression responsible for the use of the
     variable. In the graph, [x -> y] if [x] is used in the definition of [y].*)
-module Edge : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t
 
 (** Module of the graph, provided by OCamlGraph *)
-module ScopeDependencies : Graph.Sig.P
-  with type V.t = Vertex.t
-   and type E.label = Edge.t
+module ScopeDependencies : Graph.Sig.P with type V.t = Vertex.t and type E.label = Edge.t
 
 (** Module of the topological traversal of the graph, provided by OCamlGraph *)
 module TopologicalTraversal : sig
   val fold : (Vertex.t -> 'a -> 'a) -> ScopeDependencies.t -> 'a -> 'a
+
   val iter : (Vertex.t -> unit) -> ScopeDependencies.t -> unit
 end
 
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 module SCC : sig
   val scc : ScopeDependencies.t -> int * (Vertex.t -> int)
+
   val scc_array : ScopeDependencies.t -> Vertex.t list array
+
   val scc_list : ScopeDependencies.t -> Vertex.t list list
 end
-
 
 (** {2 Graph computations} *)
 
 (** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
     computation *)
 
+val correct_computation_ordering : ScopeDependencies.t -> Vertex.t list
 (** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
     computation *)
-val correct_computation_ordering : ScopeDependencies.t -> Vertex.t list
 
-(** Outputs an error in case of cycles. *)
 val check_for_cycle : Ast.scope -> ScopeDependencies.t -> unit
+(** Outputs an error in case of cycles. *)
 
-(** Builds the dependency graph of a particular scope *)
 val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
-
+(** Builds the dependency graph of a particular scope *)
 
 (** {1 Exceptions dependency graph} *)
 
-module ExceptionsDependencies : Graph.Sig.P
-  with type V.t = Ast.RuleName.t
-   and type E.label = Edge.t
+module ExceptionsDependencies : Graph.Sig.P with type V.t = Ast.RuleName.t and type E.label = Edge.t
 
 module ExceptionsSCC : sig
   val scc : ExceptionsDependencies.t -> int * (Ast.RuleName.t -> int)
+
   val scc_array : ExceptionsDependencies.t -> Ast.RuleName.t list array
+
   val scc_list : ExceptionsDependencies.t -> Ast.RuleName.t list list
 end
 

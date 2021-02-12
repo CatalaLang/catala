@@ -20,10 +20,7 @@ val handle_default : Pos.t -> Ast.expr Pos.marked Bindlib.box
 
 val translate_lit : Dcalc.Ast.lit -> Ast.expr
 
-val thunk_expr :
-  Ast.expr Pos.marked Bindlib.box ->
-  Pos.t ->
-  Ast.expr Pos.marked Bindlib.box
+val thunk_expr : Ast.expr Pos.marked Bindlib.box -> Pos.t -> Ast.expr Pos.marked Bindlib.box
 
 val translate_default :
   ctx ->
@@ -33,7 +30,6 @@ val translate_default :
   Pos.t ->
   Ast.expr Pos.marked Bindlib.box
 
-val translate_expr :
-  ctx -> Dcalc.Ast.expr Pos.marked -> Ast.expr Pos.marked Bindlib.box
+val translate_expr : ctx -> Dcalc.Ast.expr Pos.marked -> Ast.expr Pos.marked Bindlib.box
 
 val translate_program : Dcalc.Ast.program -> Ast.program

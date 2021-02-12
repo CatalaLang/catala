@@ -12,16 +12,16 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+val token_list_fr : (string * Parser.token) list
 (** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
     French. *)
-val token_list_fr : (string * Parser.token) list
 
-(** Main lexing function used in code blocks *)
 val lex_code_fr : Sedlexing.lexbuf -> Parser.token
+(** Main lexing function used in code blocks *)
 
-(** Main lexing function used outside code blocks *)
 val lex_law_fr : Sedlexing.lexbuf -> Parser.token
+(** Main lexing function used outside code blocks *)
 
+val lexer_fr : Sedlexing.lexbuf -> Parser.token
 (** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
     {!val: Surface.Lexer.is_code}. *)
-val lexer_fr : Sedlexing.lexbuf -> Parser.token

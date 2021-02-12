@@ -18,11 +18,10 @@ type backend_lang = [ `En | `Fr ]
 
 val to_backend_lang : frontend_lang -> backend_lang
 
-
 (** {2 Configuration globals} *)
 
-(** Source files to be compiled *)
 val source_files : string list ref
+(** Source files to be compiled *)
 
 val locale_lang : backend_lang ref
 
@@ -30,14 +29,13 @@ val contents : string ref
 
 val debug_flag : bool ref
 
-(** Styles the terminal output *)
 val style_flag : bool ref
+(** Styles the terminal output *)
 
-(** Max number of digits to show for decimal results *)
 val max_prec_digits : int ref
+(** Max number of digits to show for decimal results *)
 
 val trace_flag : bool ref
-
 
 (** {2 CLI terms} *)
 
@@ -65,19 +63,24 @@ val output : string option Cmdliner.Term.t
 
 val pygmentize_loc : string option Cmdliner.Term.t
 
-(** Main entry point *)
 val catala_t :
   (string ->
-   bool ->
-   bool ->
-   bool ->
-   string option ->
-   string ->
-   string option ->
-   int option -> bool -> string option -> string option -> 'a) ->
+  bool ->
+  bool ->
+  bool ->
+  string option ->
+  string ->
+  string option ->
+  int option ->
+  bool ->
+  string option ->
+  string option ->
+  'a) ->
   'a Cmdliner.Term.t
+(** Main entry point *)
 
 val version : string
+
 val info : Cmdliner.Term.info
 
 (**{1 Terminal formatting}*)
@@ -85,10 +88,15 @@ val info : Cmdliner.Term.info
 (**{2 Markers}*)
 
 val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
+
 val debug_marker : unit -> string
+
 val error_marker : unit -> string
+
 val warning_marker : unit -> string
+
 val result_marker : unit -> string
+
 val log_marker : unit -> string
 
 (**{2 Printers}*)
@@ -98,8 +106,8 @@ val log_marker : unit -> string
 val concat_with_line_depending_prefix_and_suffix :
   (int -> string) -> (int -> string) -> string list -> string
 
-(** The int argument of the prefix corresponds to the line number, starting at 0 *)
 val add_prefix_to_each_line : string -> (int -> string) -> string
+(** The int argument of the prefix corresponds to the line number, starting at 0 *)
 
 val debug_print : string -> unit
 

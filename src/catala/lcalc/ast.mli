@@ -36,7 +36,8 @@ type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list * Dcalc.Ast.StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * Dcalc.Ast.StructName.t option * Dcalc.Ast.typ Pos.marked list
+  | ETupleAccess of
+      expr Pos.marked * int * Dcalc.Ast.StructName.t option * Dcalc.Ast.typ Pos.marked list
       (** The [MarkedString.info] is the former struct field name *)
   | EInj of expr Pos.marked * int * Dcalc.Ast.EnumName.t * Dcalc.Ast.typ Pos.marked list
       (** The [MarkedString.info] is the former enum case name *)
@@ -56,7 +57,9 @@ type expr =
 
 module Var : sig
   type t = expr Bindlib.var
+
   val make : string Pos.marked -> t
+
   val compare : t -> t -> int
 end
 
@@ -89,7 +92,4 @@ val make_let_in :
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = {
-  decl_ctx : Dcalc.Ast.decl_ctx;
-  scopes : (Var.t * expr Pos.marked) list;
-}
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : (Var.t * expr Pos.marked) list }

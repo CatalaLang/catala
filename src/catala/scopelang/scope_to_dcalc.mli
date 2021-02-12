@@ -33,7 +33,7 @@ type ctx = {
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-val empty_ctx : Ast.struct_ctx ->   Ast.enum_ctx -> scope_sigs_ctx -> Ast.ScopeName.t -> ctx
+val empty_ctx : Ast.struct_ctx -> Ast.enum_ctx -> scope_sigs_ctx -> Ast.ScopeName.t -> ctx
 
 type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
 
@@ -52,10 +52,7 @@ val tag_with_log_entry :
   Uid.MarkedString.info list ->
   Dcalc.Ast.expr Pos.marked Bindlib.box
 
-val translate_expr :
-  ctx ->
-  Ast.expr Pos.marked ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box
+val translate_expr : ctx -> Ast.expr Pos.marked -> Dcalc.Ast.expr Pos.marked Bindlib.box
 
 val translate_rule :
   ctx ->
@@ -83,10 +80,11 @@ val translate_scope_decl :
 val build_scope_typ_from_sig :
   (Ast.ScopeVar.t * Dcalc.Ast.typ) list ->
   Ast.StructName.t ->
-  Ast.StructName.t -> Pos.t -> Dcalc.Ast.typ Pos.marked
+  Ast.StructName.t ->
+  Pos.t ->
+  Dcalc.Ast.typ Pos.marked
 
 val translate_program :
   Ast.program ->
   Ast.ScopeName.t ->
-  Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked *
-  Dependency.TVertex.t list
+  Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked * Dependency.TVertex.t list

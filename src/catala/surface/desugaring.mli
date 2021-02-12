@@ -33,8 +33,7 @@ val translate_unop : Ast.unop -> Dcalc.Ast.unop
     parameters or pattern macthing bindings. *)
 module LiftStructFieldMap : sig
   val lift_box :
-    'a Bindlib.box Scopelang.Ast.StructFieldMap.t ->
-    'a Scopelang.Ast.StructFieldMap.t Bindlib.box
+    'a Bindlib.box Scopelang.Ast.StructFieldMap.t -> 'a Scopelang.Ast.StructFieldMap.t Bindlib.box
 end
 
 module LiftEnumConstructorMap : sig
@@ -49,34 +48,34 @@ val disambiguate_constructor :
   Pos.t ->
   Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t
 
-(** Usage: [translate_expr scope ctxt expr]
-
-    Translates [expr] into its desugared equivalent. [scope] is used to disambiguate the scope and
-    subscopes variables than occur in the expresion *)
 val translate_expr :
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
   Ast.expression Pos.marked ->
   Scopelang.Ast.expr Pos.marked Bindlib.box
+(** Usage: [translate_expr scope ctxt expr]
+
+    Translates [expr] into its desugared equivalent. [scope] is used to disambiguate the scope and
+    subscopes variables than occur in the expresion *)
 
 val disambiguate_match_and_build_expression :
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
   Ast.match_cases ->
-  Scopelang.Ast.expr Pos.marked Bindlib.box
-  Scopelang.Ast.EnumConstructorMap.t * Scopelang.Ast.EnumName.t
+  Scopelang.Ast.expr Pos.marked Bindlib.box Scopelang.Ast.EnumConstructorMap.t
+  * Scopelang.Ast.EnumName.t
 
 (** {1 Translating scope definitions} *)
 
-(** A scope use can be annotated with a pervasive precondition, in which case this precondition has
-    to be appended to the justifications of each definition in the subscope use. This is what this
-    function does. *)
 val merge_conditions :
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
-  Pos.t -> Scopelang.Ast.expr Pos.marked Bindlib.box
+  Pos.t ->
+  Scopelang.Ast.expr Pos.marked Bindlib.box
+(** A scope use can be annotated with a pervasive precondition, in which case this precondition has
+    to be appended to the justifications of each definition in the subscope use. This is what this
+    function does. *)
 
-(** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
 val process_default :
   Name_resolution.context ->
   Scopelang.Ast.ScopeName.t ->
@@ -85,54 +84,58 @@ val process_default :
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
   Desugared.Ast.RuleName.t Pos.marked option ->
   Ast.expression Pos.marked option ->
-  Ast.expression Pos.marked -> Desugared.Ast.rule
+  Ast.expression Pos.marked ->
+  Desugared.Ast.rule
+(** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
 
-(** Wrapper around {!val: process_default} that performs some name disambiguation *)
 val process_def :
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
-  Desugared.Ast.program -> Ast.definition -> Desugared.Ast.program
+  Desugared.Ast.program ->
+  Ast.definition ->
+  Desugared.Ast.program
+(** Wrapper around {!val: process_default} that performs some name disambiguation *)
 
-(** Translates a {!type: Surface.Ast.rule} into the corresponding {!type: Surface.Ast.definition} *)
 val rule_to_def : Ast.rule -> Ast.definition
+(** Translates a {!type: Surface.Ast.rule} into the corresponding {!type: Surface.Ast.definition} *)
 
-(** Translates a {!type: Surface.Ast.rule} from the surface language *)
 val process_rule :
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
-  Desugared.Ast.program -> Ast.rule -> Desugared.Ast.program
+  Desugared.Ast.program ->
+  Ast.rule ->
+  Desugared.Ast.program
+(** Translates a {!type: Surface.Ast.rule} from the surface language *)
 
-(** Translates assertions *)
 val process_assert :
   Scopelang.Ast.expr Pos.marked Bindlib.box option ->
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
-  Desugared.Ast.program -> Ast.assertion -> Desugared.Ast.program
+  Desugared.Ast.program ->
+  Ast.assertion ->
+  Desugared.Ast.program
+(** Translates assertions *)
 
-(** Translates a surface definition, rule or assertion *)
 val process_scope_use_item :
   Ast.expression Pos.marked option ->
   Scopelang.Ast.ScopeName.t ->
   Name_resolution.context ->
   Desugared.Ast.program ->
-  Ast.scope_use_item Pos.marked -> Desugared.Ast.program
+  Ast.scope_use_item Pos.marked ->
+  Desugared.Ast.program
+(** Translates a surface definition, rule or assertion *)
 
 (** {1 Translating top-level items} *)
 
-(** If this is an unlabeled exception, ensures that it has a unique default definition *)
 val check_unlabeled_exception :
-  Scopelang.Ast.ScopeName.t ->
-  Name_resolution.context ->
-  Ast.scope_use_item Pos.marked -> unit
+  Scopelang.Ast.ScopeName.t -> Name_resolution.context -> Ast.scope_use_item Pos.marked -> unit
+(** If this is an unlabeled exception, ensures that it has a unique default definition *)
 
-(** Translates a surface scope use, which is a bunch of definitions *)
 val process_scope_use :
-  Name_resolution.context ->
-  Desugared.Ast.program -> Ast.scope_use -> Desugared.Ast.program
+  Name_resolution.context -> Desugared.Ast.program -> Ast.scope_use -> Desugared.Ast.program
+(** Translates a surface scope use, which is a bunch of definitions *)
 
+val desugar_program : Name_resolution.context -> Ast.program -> Desugared.Ast.program
 (** Main function of this module *)
-val desugar_program :
-  Name_resolution.context ->
-  Ast.program -> Desugared.Ast.program
