@@ -19,9 +19,6 @@ open Utils
 
 (** {1 Helpers} *)
 
-val pre_latexify : string -> string
-(** Espaces various LaTeX-sensitive characters *)
-
 val wrap_latex :
   string list ->
   string option ->
@@ -32,19 +29,6 @@ val wrap_latex :
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
     Prints an LaTeX complete documùent structure around the [wrapped] content. *)
-
-val math_syms_replace : string -> string
-(** Replaces math operators by their nice unicode counterparts *)
-
-(** {1 Weaving} *)
-
-val law_article_item_to_latex :
-  Cli.backend_lang -> Format.formatter -> Surface.Ast.law_article_item -> unit
-
-val law_structure_to_latex :
-  Cli.backend_lang -> Format.formatter -> Surface.Ast.law_structure -> unit
-
-val program_item_to_latex : Cli.backend_lang -> Format.formatter -> Surface.Ast.program_item -> unit
 
 (** {1 API} *)
 

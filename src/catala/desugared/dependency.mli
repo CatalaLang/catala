@@ -44,22 +44,6 @@ module Edge : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t
 (** Module of the graph, provided by OCamlGraph *)
 module ScopeDependencies : Graph.Sig.P with type V.t = Vertex.t and type E.label = Edge.t
 
-(** Module of the topological traversal of the graph, provided by OCamlGraph *)
-module TopologicalTraversal : sig
-  val fold : (Vertex.t -> 'a -> 'a) -> ScopeDependencies.t -> 'a -> 'a
-
-  val iter : (Vertex.t -> unit) -> ScopeDependencies.t -> unit
-end
-
-(** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
-module SCC : sig
-  val scc : ScopeDependencies.t -> int * (Vertex.t -> int)
-
-  val scc_array : ScopeDependencies.t -> Vertex.t list array
-
-  val scc_list : ScopeDependencies.t -> Vertex.t list list
-end
-
 (** {2 Graph computations} *)
 
 (** Returns an ordering of the scope variables and subscope compatible with the dependencies of the
@@ -78,14 +62,6 @@ val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
 (** {1 Exceptions dependency graph} *)
 
 module ExceptionsDependencies : Graph.Sig.P with type V.t = Ast.RuleName.t and type E.label = Edge.t
-
-module ExceptionsSCC : sig
-  val scc : ExceptionsDependencies.t -> int * (Ast.RuleName.t -> int)
-
-  val scc_array : ExceptionsDependencies.t -> Ast.RuleName.t list array
-
-  val scc_list : ExceptionsDependencies.t -> Ast.RuleName.t list list
-end
 
 val build_exceptions_graph : Ast.rule Ast.RuleMap.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
 

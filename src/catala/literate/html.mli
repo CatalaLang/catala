@@ -19,12 +19,6 @@ open Utils
 
 (** {1 Helpers} *)
 
-val pre_html : string -> string
-(** Converts double lines into HTML newlines. *)
-
-val raise_failed_pygments : string -> int -> 'a
-(** Raise an error if pygments cannot be found *)
-
 val wrap_html :
   string list ->
   string option ->
@@ -35,20 +29,6 @@ val wrap_html :
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
-
-val pygmentize_code : string Pos.marked -> Cli.backend_lang -> string option -> string
-(** Performs syntax highlighting on a piece of code by using Pygments and the special Catala lexer. *)
-
-(** {1 Weaving} *)
-
-val law_article_item_to_html :
-  string option -> Cli.backend_lang -> Format.formatter -> Surface.Ast.law_article_item -> unit
-
-val law_structure_to_html :
-  string option -> Cli.backend_lang -> Format.formatter -> Surface.Ast.law_structure -> unit
-
-val program_item_to_html :
-  string option -> Cli.backend_lang -> Format.formatter -> Surface.Ast.program_item -> unit
 
 (** {1 API} *)
 

@@ -45,10 +45,6 @@ let empty_ctx (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx) (scopes_ct
     local_vars = Ast.VarMap.empty;
   }
 
-type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
-
-let hole_var : Dcalc.Ast.Var.t = Dcalc.Ast.Var.make ("·", Pos.no_pos)
-
 let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   Pos.same_pos_as
     ( match Pos.unmark t with

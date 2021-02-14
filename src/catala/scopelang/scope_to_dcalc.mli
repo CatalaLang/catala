@@ -14,77 +14,12 @@
 
 open Utils
 
-type scope_sigs_ctx =
-  (* list of scope variables with their types *)
-  ( (Ast.ScopeVar.t * Dcalc.Ast.typ) list
-  * (* var representing the scope *) Dcalc.Ast.Var.t
-  * (* var representing the scope input inside the scope func *) Dcalc.Ast.Var.t
-  * (* scope input *) Ast.StructName.t
-  * (* scope output *) Ast.StructName.t )
-  Ast.ScopeMap.t
-
-type ctx = {
-  structs : Ast.struct_ctx;
-  enums : Ast.enum_ctx;
-  scope_name : Ast.ScopeName.t;
-  scopes_parameters : scope_sigs_ctx;
-  scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t;
-  subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
-  local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
-}
-
-val empty_ctx : Ast.struct_ctx -> Ast.enum_ctx -> scope_sigs_ctx -> Ast.ScopeName.t -> ctx
-
-type scope_ctx = Dcalc.Ast.Var.t Ast.ScopeMap.t
-
-val hole_var : Dcalc.Ast.Var.t
-
-val translate_typ : ctx -> Ast.typ Pos.marked -> Dcalc.Ast.typ Pos.marked
-
-val merge_defaults :
-  Dcalc.Ast.expr Pos.marked Bindlib.box ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box
-
-val tag_with_log_entry :
-  Dcalc.Ast.expr Pos.marked Bindlib.box ->
-  Dcalc.Ast.log_entry ->
-  Uid.MarkedString.info list ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box
-
-val translate_expr : ctx -> Ast.expr Pos.marked -> Dcalc.Ast.expr Pos.marked Bindlib.box
-
-val translate_rule :
-  ctx ->
-  Ast.rule ->
-  Ast.rule list ->
-  Uid.MarkedString.info ->
-  Ast.StructName.t ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box * ctx
-
-val translate_rules :
-  ctx ->
-  Ast.rule list ->
-  Uid.MarkedString.info ->
-  Ast.StructName.t ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box * ctx
-
-val translate_scope_decl :
-  Ast.struct_ctx ->
-  Ast.enum_ctx ->
-  scope_sigs_ctx ->
-  Ast.ScopeName.t ->
-  Ast.scope_decl ->
-  Dcalc.Ast.expr Pos.marked Bindlib.box * Dcalc.Ast.struct_ctx
-
-val build_scope_typ_from_sig :
-  (Ast.ScopeVar.t * Dcalc.Ast.typ) list ->
-  Ast.StructName.t ->
-  Ast.StructName.t ->
-  Pos.t ->
-  Dcalc.Ast.typ Pos.marked
-
 val translate_program :
   Ast.program ->
   Ast.ScopeName.t ->
   Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked * Dependency.TVertex.t list
+(** Usage [translate_program p scope_name] returns a tuple [(new_program, new_expr, types_list)]
+    where [new_program] is the map of translated scopes, [new_expr] is the expression that bundles
+    the whole program and whose entry point is the function corresponding to [scope_name]. Finally,
+    [types_list] is a list of all types (structs and enums) used in the program, correctly ordered
+    with respect to inter-types dependency. *)
