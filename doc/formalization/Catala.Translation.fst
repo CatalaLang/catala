@@ -236,41 +236,26 @@ let stepping_context (tau tau': L.ty) = typed_l_exp tau -> not_l_value tau'
 let step_lift_commute_non_value
   (tau tau': L.ty)
   (f: stepping_context tau tau')
-  (n:nat)
-  (e: typed_l_exp tau{Some? (take_l_steps tau e n)})
+  (e: typed_l_exp tau)
     : prop
   =
-  take_l_steps tau' (f e) n == Some (f (Some?.v (take_l_steps tau e n)))
+  L.progress e tau;
+  if L.is_value e then true else begin
+    L.preservation e tau;
+    L.step (f e) == Some (f (Some?.v (L.step e)))
+  end
 
 let is_stepping_agnostic_lift
   (tau tau': L.ty)
   (f:stepping_context tau tau')
-  (n: nat)
     : prop
   =
-  forall (e: typed_l_exp tau{Some? (take_l_steps tau e n)}). step_lift_commute_non_value tau tau' f n e
+  forall (e: typed_l_exp tau). step_lift_commute_non_value tau tau' f e
 
 let stepping_agnostic_lift
   (tau tau': L.ty)
-  (n: nat)
   : Type
-  = f:(stepping_context tau tau'){is_stepping_agnostic_lift tau tau' f n}
-
-let lift_multiple_l_steps
-  (tau tau': L.ty)
-  (e1: not_l_value tau)
-  (e2: typed_l_exp tau)
-  (n: nat)
-  (f : stepping_agnostic_lift tau tau' n)
-    : Lemma
-      (requires (take_l_steps tau e1 n == Some e2))
-      (ensures (take_l_steps tau' (f e1) n == Some (f e2)))
-  =
-  assert(step_lift_commute_non_value tau tau' f n e1)
-
-
-(**** Other helpers *)
-
+  = f:(stepping_context tau tau'){is_stepping_agnostic_lift tau tau' f}
 
 let rec l_values_dont_step (e: L.exp) : Lemma
     (requires (L.is_value e))
@@ -294,6 +279,33 @@ and l_values_dont_step_list (e: L.exp) (l: list L.exp{l << e /\ Cons? l}) : Lemm
   | hd::tl ->
     l_values_dont_step hd;
     l_values_dont_step_list e tl
+
+#push-options "--z3rlimit 50 --fuel 2 --ifuel 1"
+let rec lift_multiple_l_steps
+  (tau tau': L.ty)
+  (e1: typed_l_exp tau)
+  (e2: typed_l_exp tau)
+  (n: nat)
+  (f : stepping_agnostic_lift tau tau')
+    : Lemma
+      (requires (take_l_steps tau e1 n == Some e2))
+      (ensures (take_l_steps tau' (f e1) n == Some (f e2)))
+      (decreases n)
+  =
+  match L.step e1 with
+  | None -> ()
+  | Some e1' ->
+    L.progress e1 tau;
+    L.preservation e1 tau;
+    if L.is_value e1 then
+      l_values_dont_step e1
+    else if n = 0 then
+      ()
+    else
+      lift_multiple_l_steps tau tau' e1' e2 (n-1) f
+#pop-options
+
+(**** Other helpers *)
 
 
 #push-options "--fuel 9 --ifuel 0"
@@ -349,32 +361,22 @@ let if_cond_lift'
   =
   fun e1 -> L.EIf e1 e2 e3
 
-#push-options "--fuel 2 --ifuel 1"
-let rec if_cond_lift_is_stepping_agnostic
+let if_cond_lift_is_stepping_agnostic
   (tau: L.ty)
   (e2 e3: typed_l_exp tau)
-  (n: nat)
-  (e: typed_l_exp L.TBool{Some? (take_l_steps L.TBool e n)})
+  (e: typed_l_exp L.TBool)
     : Lemma
       (requires (True))
-      (ensures (step_lift_commute_non_value L.TBool tau (if_cond_lift' tau e2 e3) n e))
-      (decreases n)
+      (ensures (step_lift_commute_non_value L.TBool tau (if_cond_lift' tau e2 e3) e))
   =
-    if n = 0 then () else begin
-      L.progress e L.TBool;
-      L.preservation e L.TBool;
-      let Some e' = L.step e in
-      if_cond_lift_is_stepping_agnostic tau e2 e3 (n-1) e'
-    end
-#pop-options
+  L.progress e L.TBool; if L.is_value e then () else L.preservation e L.TBool
 
 let if_cond_lift
   (tau: L.ty)
   (e2 e3: typed_l_exp tau)
-  (n: nat)
-    : stepping_agnostic_lift L.TBool tau n
+    : stepping_agnostic_lift L.TBool tau
   =
-  Classical.forall_intro (if_cond_lift_is_stepping_agnostic tau e2 e3 n);
+  Classical.forall_intro (if_cond_lift_is_stepping_agnostic tau e2 e3);
   if_cond_lift' tau e2 e3
 
 
@@ -385,33 +387,24 @@ let app_f_lift'
   =
   fun e1 -> L.EApp e1 e2 tau_arg
 
-#push-options "--fuel 2 --ifuel 1"
-let rec app_f_lift_is_stepping_agnostic
+let app_f_lift_is_stepping_agnostic
   (tau_arg tau: L.ty)
   (e2: typed_l_exp tau_arg)
-  (n: nat)
-  (e: typed_l_exp (L.TArrow tau_arg tau){Some? (take_l_steps (L.TArrow tau_arg tau) e n)})
+  (e: typed_l_exp (L.TArrow tau_arg tau))
     : Lemma
       (requires (True))
       (ensures (
-        step_lift_commute_non_value (L.TArrow tau_arg tau) tau (app_f_lift' tau_arg tau e2) n e))
-      (decreases n)
+        step_lift_commute_non_value (L.TArrow tau_arg tau) tau (app_f_lift' tau_arg tau e2) e))
   =
-  if n = 0 then () else begin
-    L.progress e (L.TArrow tau_arg tau);
-    L.preservation e (L.TArrow tau_arg tau);
-    let Some e' = L.step e in
-    app_f_lift_is_stepping_agnostic tau_arg tau e2 (n-1) e'
-  end
-#pop-options
+  L.progress e  (L.TArrow tau_arg tau);
+  if L.is_value e then () else L.preservation e  (L.TArrow tau_arg tau)
 
 let app_f_lift
   (tau_arg tau: L.ty)
   (e2: typed_l_exp tau_arg)
-  (n: nat)
-    : stepping_agnostic_lift (L.TArrow tau_arg tau) tau n
+    : stepping_agnostic_lift (L.TArrow tau_arg tau) tau
   =
-  Classical.forall_intro (app_f_lift_is_stepping_agnostic tau_arg tau e2 n);
+  Classical.forall_intro (app_f_lift_is_stepping_agnostic tau_arg tau e2);
   app_f_lift' tau_arg tau e2
 
 let app_arg_lift'
@@ -421,39 +414,27 @@ let app_arg_lift'
   =
   fun e2 -> L.EApp e1 e2 tau_arg
 
-#push-options "--fuel 3 --ifuel 2 --z3rlimit 30"
-let rec app_arg_lift_is_stepping_agnostic
+let app_arg_lift_is_stepping_agnostic
   (tau_arg tau: L.ty)
   (e1: l_value (L.TArrow tau_arg tau){match e1 with L.ELit (L.LError _) -> False | _ -> True})
-  (n: nat)
-  (e2: typed_l_exp tau_arg{Some? (take_l_steps tau_arg e2 n)})
+  (e2: typed_l_exp tau_arg)
     : Lemma
       (requires (True))
       (ensures (
-        step_lift_commute_non_value tau_arg tau (app_arg_lift' tau_arg tau e1) n e2))
-      (decreases n)
+        step_lift_commute_non_value tau_arg tau (app_arg_lift' tau_arg tau e1) e2))
   =
-  if n = 0 then () else begin
-    L.progress e2 tau_arg;
-    L.preservation e2 tau_arg;
-    let Some e2' = L.step e2 in
-    app_arg_lift_is_stepping_agnostic tau_arg tau e1 (n-1) e2';
-    let aux (_ : squash (L.is_value e2)) : Lemma (False) =
-      l_values_dont_step e2
-    in
-    Classical.impl_intro aux
-  end
-#pop-options
+  L.progress e2 tau_arg;
+  if L.is_value e2 then () else L.preservation e2 tau_arg
 
 let app_arg_lift
   (tau_arg tau: L.ty)
   (e1: l_value (L.TArrow tau_arg tau){match e1 with L.ELit (L.LError _) -> False | _ -> True})
-  (n: nat)
-    : stepping_agnostic_lift tau_arg tau n
+    : stepping_agnostic_lift tau_arg tau
   =
-  Classical.forall_intro (app_arg_lift_is_stepping_agnostic tau_arg tau e1 n);
+  Classical.forall_intro (app_arg_lift_is_stepping_agnostic tau_arg tau e1);
   app_arg_lift' tau_arg tau e1
 
+(*
 #push-options "--fuel 2 --ifuel 0"
 let exceptions_head_lift'
   (tau: L.ty)
@@ -496,7 +477,7 @@ let rec exceptions_head_lift_is_stepping_agnostic
     end
   end
 #pop-options
-
+*)
 (**** Main theorems *)
 
 let translation_correctness_value (e: D.exp) : Lemma
@@ -660,7 +641,7 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty) : Pure nat
        let n_e1 = translation_correctness_step de1 D.TBool in
        assert(take_l_steps L.TBool le1 n_e1 == Some le1');
        lift_multiple_l_steps L.TBool ltau le1 le1' n_e1
-         (if_cond_lift ltau le2 le3 n_e1);
+         (if_cond_lift ltau le2 le3);
        n_e1
      end else 1
   | D.EApp de1 de2 dtau_arg ->
@@ -673,7 +654,7 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty) : Pure nat
        let n_e1 = translation_correctness_step de1 (D.TArrow dtau_arg dtau) in
        assert(take_l_steps (L.TArrow ltau_arg ltau) le1 n_e1 == Some le1');
        lift_multiple_l_steps (L.TArrow ltau_arg ltau) ltau le1 le1' n_e1
-         (app_f_lift ltau_arg ltau le2 n_e1);
+         (app_f_lift ltau_arg ltau le2);
        n_e1
     end else begin match de1 with
       | D.ELit D.LConflictError -> 1
@@ -684,7 +665,7 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty) : Pure nat
         let le2' = translate_exp de2' in
         let n_e2 = translation_correctness_step de2 dtau_arg in
         lift_multiple_l_steps ltau_arg ltau le2 le2' n_e2
-          (app_arg_lift ltau_arg ltau le1 n_e2);
+          (app_arg_lift ltau_arg ltau le1);
         n_e2
       end else begin
         match de1, de2 with
