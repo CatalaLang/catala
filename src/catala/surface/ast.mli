@@ -16,10 +16,12 @@
 
 open Utils
 
-type constructor = (string[@opaque])
+(** {1 Type definitions} *)
+
+type constructor = string
 (** Constructors are CamelCase *)
 
-type ident = (string[@opaque])
+type ident = string
 (** Idents are snake_case *)
 
 type qident = ident Pos.marked list
@@ -245,6 +247,15 @@ type program = { program_items : program_item list; program_source_files : (stri
 type source_file_or_master =
   | SourceFile of program_item list
   | MasterFile of string Pos.marked list
+
+(** {1 Visitor classes for programs} *)
+
+(** To allow for quick traversal and/or modification of this AST structure, we provide a
+    {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design pattern}. This feature is
+    implemented via {{:https://gitlab.inria.fr/fpottier/visitors} François Pottier's OCaml visitors
+    library}. *)
+
+(** {2 Program map visitor} *)
 
 class virtual ['self] program_map :
   object ('self)
@@ -586,6 +597,8 @@ class virtual ['self] program_map :
 
     method visit_variation_typ : 'monomorphic. 'env -> variation_typ -> variation_typ
   end
+
+(** {2 Program iter visitor} *)
 
 class virtual ['self] program_iter :
   object ('self)

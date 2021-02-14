@@ -98,68 +98,13 @@ val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Pos.marked
 
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
 
-(** {1 Declarations pass} *)
-
-val process_subscope_decl :
-  Scopelang.Ast.ScopeName.t -> context -> Ast.scope_decl_context_scope -> context
-(** Process a subscope declaration *)
-
 val is_type_cond : Ast.typ Pos.marked -> bool
-
-val process_base_typ : context -> Ast.base_typ Pos.marked -> Scopelang.Ast.typ Pos.marked
-(** Process a basic type (all types except function types) *)
-
-val process_type : context -> Ast.typ Pos.marked -> Scopelang.Ast.typ Pos.marked
-(** Process a type (function or not) *)
-
-val process_data_decl :
-  Scopelang.Ast.ScopeName.t -> context -> Ast.scope_decl_context_data -> context
-
-val process_item_decl :
-  Scopelang.Ast.ScopeName.t -> context -> Ast.scope_decl_context_item -> context
 
 val add_def_local_var : context -> ident Pos.marked -> context * Scopelang.Ast.Var.t
 (** Adds a binding to the context *)
 
-val process_scope_decl : context -> Ast.scope_decl -> context
-
-val process_struct_decl : context -> Ast.struct_decl -> context
-
-val process_enum_decl : context -> Ast.enum_decl -> context
-
-val process_decl_item : context -> Ast.code_item Pos.marked -> context
-(** Process a code item that is a declaration *)
-
-val process_code_block :
-  context -> Ast.code_block -> (context -> Ast.code_item Pos.marked -> context) -> context
-
-val process_law_article_item :
-  context -> Ast.law_article_item -> (context -> Ast.code_item Pos.marked -> context) -> context
-(** Process a law article item, only considering the code blocks *)
-
-val process_law_structure :
-  context -> Ast.law_structure -> (context -> Ast.code_item Pos.marked -> context) -> context
-(** Process a law structure, only considering the code blocks *)
-
-val process_program_item :
-  context -> Ast.program_item -> (context -> Ast.code_item Pos.marked -> context) -> context
-(** Process a program item, only considering the code blocks *)
-
-(** {1 Scope uses pass} *)
-
 val get_def_key :
   Ast.qident -> Scopelang.Ast.ScopeName.t -> context -> Pos.t -> Desugared.Ast.ScopeDef.t
-
-val process_rule : context -> Scopelang.Ast.ScopeName.t -> Ast.rule -> context
-
-val process_definition : context -> Scopelang.Ast.ScopeName.t -> Ast.definition -> context
-
-val process_scope_use_item :
-  Scopelang.Ast.ScopeName.t -> context -> Ast.scope_use_item Pos.marked -> context
-
-val process_scope_use : context -> Ast.scope_use -> context
-
-val process_use_item : context -> Ast.code_item Pos.marked -> context
 
 (** {1 API} *)
 

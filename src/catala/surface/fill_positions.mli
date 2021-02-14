@@ -12,4 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Fills the position tags in the AST with info about the legislative article this position belongs
+    to. *)
+
 val fill_pos_with_legislative_info : Ast.program -> Ast.program
