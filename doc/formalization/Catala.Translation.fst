@@ -40,11 +40,11 @@ let process_exceptions_f (tau: L.ty) : Tot L.exp =
     (L.TOption tau)
   ))
 
-let typ_process_exceptions_f (tau: L.ty)
-    : Lemma (L.typing L.empty (process_exceptions_f tau)
+let typ_process_exceptions_f (g: L.env) (tau: L.ty)
+    : Lemma (L.typing g (process_exceptions_f tau)
       (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
   =
-  assert_norm(L.typing L.empty (process_exceptions_f tau)
+  assert_norm(L.typing g (process_exceptions_f tau)
       (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
 
 (**** Main translation *)
@@ -107,6 +107,24 @@ let translate_empty_is_empty () : Lemma (translate_env D.empty == L.empty) =
     (translate_env D.empty)
     L.empty
 
+#push-options "--fuel 1 --ifuel 0"
+let build_default_translation_typing
+  (exceptions: list L.exp)
+  (just: L.exp)
+  (cons: L.exp)
+  (tau: L.ty)
+  (g: L.env)
+    : Lemma
+      (requires (
+        L.typing_list g exceptions (L.TArrow L.TUnit tau) /\
+        L.typing g just L.TBool /\
+        L.typing g cons tau))
+      (ensures (L.typing g (build_default_translation exceptions just cons tau) tau))
+  =
+  typ_process_exceptions_f g tau;
+  assert_norm(L.typing g (build_default_translation exceptions just cons tau) tau)
+#pop-options
+
 (**** Typing preservation theorem *)
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 30"
@@ -138,7 +156,7 @@ let rec translation_preserves_typ (g: D.env) (e: D.exp) (tau: D.ty) : Lemma
     if tau = tau_out then begin
       let tau' = translate_ty tau in
       translation_preserves_typ_exceptions g e exceptions tau;
-      typ_process_exceptions_f tau';
+      typ_process_exceptions_f (translate_env g) tau';
       translation_preserves_typ g just D.TBool;
       translation_preserves_typ g cons tau;
       let result_exp = L.EMatchOption
@@ -379,12 +397,12 @@ let rec app_f_lift_is_stepping_agnostic
         step_lift_commute_non_value (L.TArrow tau_arg tau) tau (app_f_lift' tau_arg tau e2) n e))
       (decreases n)
   =
-    if n = 0 then () else begin
-      L.progress e (L.TArrow tau_arg tau);
-      L.preservation e (L.TArrow tau_arg tau);
-      let Some e' = L.step e in
-      app_f_lift_is_stepping_agnostic tau_arg tau e2 (n-1) e'
-    end
+  if n = 0 then () else begin
+    L.progress e (L.TArrow tau_arg tau);
+    L.preservation e (L.TArrow tau_arg tau);
+    let Some e' = L.step e in
+    app_f_lift_is_stepping_agnostic tau_arg tau e2 (n-1) e'
+  end
 #pop-options
 
 let app_f_lift
@@ -415,16 +433,16 @@ let rec app_arg_lift_is_stepping_agnostic
         step_lift_commute_non_value tau_arg tau (app_arg_lift' tau_arg tau e1) n e2))
       (decreases n)
   =
-    if n = 0 then () else begin
-      L.progress e2 tau_arg;
-      L.preservation e2 tau_arg;
-      let Some e2' = L.step e2 in
-      app_arg_lift_is_stepping_agnostic tau_arg tau e1 (n-1) e2';
-      let aux (_ : squash (L.is_value e2)) : Lemma (False) =
-        l_values_dont_step e2
-      in
-      Classical.impl_intro aux
-    end
+  if n = 0 then () else begin
+    L.progress e2 tau_arg;
+    L.preservation e2 tau_arg;
+    let Some e2' = L.step e2 in
+    app_arg_lift_is_stepping_agnostic tau_arg tau e1 (n-1) e2';
+    let aux (_ : squash (L.is_value e2)) : Lemma (False) =
+      l_values_dont_step e2
+    in
+    Classical.impl_intro aux
+  end
 #pop-options
 
 let app_arg_lift
@@ -436,6 +454,48 @@ let app_arg_lift
   Classical.forall_intro (app_arg_lift_is_stepping_agnostic tau_arg tau e1 n);
   app_arg_lift' tau_arg tau e1
 
+#push-options "--fuel 2 --ifuel 0"
+let exceptions_head_lift'
+  (tau: L.ty)
+  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
+  (just: (typed_l_exp L.TBool))
+  (cons: (typed_l_exp tau))
+  : stepping_context tau tau
+  =
+  fun (hd: typed_l_exp tau) ->
+    let out = build_default_translation ((L.EAbs L.Silent L.TUnit hd)::tl) just cons tau in
+    build_default_translation_typing ((L.EAbs L.Silent L.TUnit hd)::tl) just cons tau L.empty;
+    out
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 10"
+let rec exceptions_head_lift_is_stepping_agnostic
+  (tau: L.ty)
+  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
+  (just: (typed_l_exp L.TBool))
+  (cons: (typed_l_exp tau))
+  (n: nat)
+  (hd: typed_l_exp tau{Some? (take_l_steps tau hd n)})
+  : Lemma
+      (requires (True))
+      (ensures (
+        step_lift_commute_non_value
+          tau tau (exceptions_head_lift' tau tl just cons) n hd))
+      (decreases n)
+  =
+  if n = 0 then () else begin
+    L.progress hd tau;
+    L.preservation hd tau;
+    let Some hd' = L.step hd in
+    exceptions_head_lift_is_stepping_agnostic tau tl just cons (n-1) hd';
+    let open FStar.Tactics in
+    assert(take_l_steps tau (exceptions_head_lift' tau tl just cons hd) n ==
+      Some (exceptions_head_lift' tau tl just cons (Some?.v (take_l_steps tau hd n)))) by begin
+      compute ();
+      tadmit ()
+    end
+  end
+#pop-options
 
 (**** Main theorems *)
 
