@@ -9,7 +9,7 @@ declaration structure Period:
 declaration scope PeriodMerge:
   context periods1 content collection Period 
   context periods2 content collection Period 
-  context merged content collection Period
+  context output content collection Period
 
 scope PeriodMerge:
   # Placeholders, overwritten by caller
