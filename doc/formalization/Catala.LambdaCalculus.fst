@@ -51,6 +51,7 @@ val is_value: exp -> Tot bool
 let rec is_value e =
   match e with
   | EAbs _ _ _ | ELit _ | ENone -> true
+  | ESome (ELit (LError _)) -> false
   | ESome e' -> is_value e'
   | EList l -> is_value_list l
   | _ -> false
@@ -152,15 +153,10 @@ and step_match
 
 and step_list
   (e: exp)
-  (l: list exp{l << e /\ Cons? l})
+  (l: list exp{l << e})
     : Tot (list_step_result) (decreases %[ e; 3; l ]) =
   match l with
-  | [hd] -> if is_value hd then Bad else begin
-    match step hd with
-    | None -> Bad
-    | Some (ELit (LError err)) -> Error (ELit (LError err))
-    | Some hd' -> Good([hd'])
-  end
+  | [] -> Bad
   | hd::tl -> begin
     if is_value hd then
       match step_list e tl with
@@ -200,30 +196,29 @@ and step_fold_left
   | false, _, _ -> begin
     match step f with
     | None -> None
-    | Some (ELit (LError err)) -> Some (ELit (LError err))
     | Some f' -> Some (EFoldLeft f' init tau_init l tau_elt)
   end
   | true, false, _ -> begin
     match step init with
     | None -> None
-    | Some (ELit (LError err)) -> Some (ELit (LError err))
     | Some init' -> Some (EFoldLeft f init' tau_init l tau_elt)
   end
   | true, true, false -> begin
     match step l with
     | None -> None
-    | Some (ELit (LError err)) -> Some (ELit (LError err))
     | Some l' -> Some (EFoldLeft f init tau_init l' tau_elt)
   end
   | true, true, true -> begin
-    match l with
-    | EList [] -> Some init
-    | EList (hd::tl) ->
+    match f, init, l with
+    | ELit (LError err), _ , _
+    | _, ELit (LError err), _
+    | _, _, ELit (LError err) -> Some (ELit (LError err))
+    | _, _, EList [] -> Some init
+    | _, _, EList (hd::tl) ->
       Some (EFoldLeft
         f (EApp (EApp f init tau_init) hd tau_elt)
         tau_init (EList tl) tau_elt
       )
-    | ELit (LError err) -> Some (ELit (LError err))
     | _ -> None
   end
 
@@ -231,14 +226,17 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
   match e with
   | EApp e1 e2 tau_arg -> step_app e e1 e2 tau_arg
   | EIf e1 e2 e3 -> step_if e e1 e2 e3
-  | ESome e1 -> if is_value e1 then None else begin
-    match step e1 with
-    | None -> None
-    | Some (ELit (LError err)) -> Some (ELit (LError err))
-    | Some e1' -> Some (ESome e1')
-  end
+  | ESome e1 ->
+    if is_value e1 then
+      match e1 with
+      | ELit (LError err) -> Some (ELit (LError err))
+      | _ -> None
+    else begin
+      match step e1 with
+      | None -> None
+      | Some e1' -> Some (ESome e1')
+    end
   | EMatchOption arg tau_some none some -> step_match e arg tau_some none some
-  | EList [] -> None
   | EList l -> begin match step_list e l with
     | Bad -> None
     | Error err -> Some err
