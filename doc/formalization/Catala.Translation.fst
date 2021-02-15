@@ -783,6 +783,7 @@ let translation_correctness_exceptions_left_to_right_step
     let ltl = translate_exp_list dtl in
     let ltau = translate_ty dtau in
     let lhd = translate_exp dhd in
+    let lexceptions = translate_exp_list dexceptions in
     if D.is_value dhd then begin
       match D.step_exceptions_left_to_right de dtl djust dcons dtau with
       | Some (D.ELit D.LConflictError) -> admit()
@@ -828,9 +829,22 @@ let translation_correctness_exceptions_left_to_right_step
          translation_preserves_empty_typ djust D.TBool;
          translation_preserves_empty_typ dcons dtau;
          assert(take_l_steps ltau lhd n_hd == Some lhd');
-         assume(L.is_value_list ltl);
-         assume(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
+         translate_list_is_value_list dexceptions;
+         build_default_translation_typing_source dexceptions djust dcons dtau D.empty;
+         assert(L.is_value_list ltl);
+         translate_empty_is_empty ();
+         assert(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
          lift_multiple_l_steps_exceptions_head ltau ltl ljust lcons n_hd lhd lhd';
+         let target_lexp : typed_l_exp ltau = exceptions_head_lift ltau ltl ljust lcons lhd' in
+         assert(take_l_steps ltau (build_default_translation ((L.EAbs L.Silent L.TUnit lhd)::ltl)
+          ljust lcons ltau) (n_hd + 4) == Some target_lexp);
+         lift_multiple_l_steps_exceptions_head ltau ltl ljust lcons 0 lhd' lhd';
+         build_default_translation_typing ((L.EAbs L.Silent L.TUnit lhd')::ltl) ljust lcons ltau
+           L.empty;
+         assert(take_l_steps ltau (build_default_translation ((L.EAbs L.Silent L.TUnit lhd')::ltl)
+          ljust lcons ltau) 4 == Some target_lexp);
+         assert(take_l_steps ltau (build_default_translation lexceptions ljust lcons ltau)
+          (n_hd + 4) == take_l_steps ltau le' 4);
          admit()
     end
 #pop-options
