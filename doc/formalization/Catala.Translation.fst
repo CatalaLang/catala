@@ -367,6 +367,12 @@ and substitution_correctness_list (x: D.var) (e_x: D.exp) (e: D.exp) (l: list D.
    substitution_correctness_list x e_x e tl
 #pop-options
 
+let exceptions_smaller'
+  (e: D.exp{match e with D.EDefault _ _ _ _ -> True | _ -> False})
+    : Lemma(let D.EDefault exc _ _ _ = e in exc << e)
+  =
+  ()
+
 let exceptions_smaller
   (exceptions: list D.exp)
   (just: D.exp)
@@ -374,7 +380,7 @@ let exceptions_smaller
   (tau: D.ty)
     : Lemma(exceptions <<  (D.EDefault exceptions just cons tau))
   =
-  admit() // Dumb, shouldn't it be provable?
+  exceptions_smaller' (D.EDefault exceptions just cons tau)
 
 let build_default_translation_typing_source
   (exceptions: list D.exp)
