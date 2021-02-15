@@ -367,6 +367,56 @@ and substitution_correctness_list (x: D.var) (e_x: D.exp) (e: D.exp) (l: list D.
    substitution_correctness_list x e_x e tl
 #pop-options
 
+let exceptions_smaller
+  (exceptions: list D.exp)
+  (just: D.exp)
+  (cons: D.exp)
+  (tau: D.ty)
+    : Lemma(exceptions <<  (D.EDefault exceptions just cons tau))
+  =
+  admit() // Dumb, shouldn't it be provable?
+
+let build_default_translation_typing_source
+  (exceptions: list D.exp)
+  (just: D.exp)
+  (cons: D.exp)
+  (tau: D.ty)
+  (g: D.env)
+    : Lemma
+      (requires (
+        D.typing_list g exceptions tau /\
+        D.typing g just D.TBool /\
+        D.typing g cons tau))
+      (ensures (
+        L.typing (translate_env g) (build_default_translation
+          (translate_exp_list exceptions)
+          (translate_exp just)
+          (translate_exp cons)
+          (translate_ty tau)) (translate_ty tau) /\
+        L.typing_list
+          (translate_env g)
+          (translate_exp_list exceptions)
+          (L.TArrow L.TUnit (translate_ty tau))
+      ))
+  =
+  let e = D.EDefault exceptions just cons tau in
+  exceptions_smaller exceptions just cons tau;
+  translation_preserves_typ_exceptions g e exceptions tau;
+  translation_preserves_typ g just D.TBool;
+  translation_preserves_typ g cons tau;
+  build_default_translation_typing
+    (translate_exp_list exceptions)
+    (translate_exp just)
+    (translate_exp cons)
+    (translate_ty tau)
+    (translate_env g)
+
+let rec translate_list_is_value_list (l: list D.exp)
+    : Lemma(L.is_value_list (translate_exp_list l))
+  =
+  match l with
+  | [] -> ()
+  | _::tl -> translate_list_is_value_list tl
 
 (**** Lifts *)
 
@@ -514,7 +564,6 @@ let exceptions_head_lift
   Classical.forall_intro (exceptions_head_lift_is_stepping_agnostic tau tl just cons);
   exceptions_head_lift' tau tl just cons
 
-
 #push-options "--fuel 3 --ifuel 0"
 let exceptions_init_lift'
   (tau: L.ty)
@@ -636,6 +685,45 @@ let lift_multiple_l_steps_exceptions_head
     (exceptions_head_lift tau tl just cons hd) 4 n_hd
 #pop-options
 
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 40"
+let exceptions_head_lift_steps_to_error
+  (tau: L.ty)
+  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
+  (just: (typed_l_exp L.TBool))
+  (cons: (typed_l_exp tau))
+    : Lemma (take_l_steps tau
+      (exceptions_head_lift tau tl just cons (L.ELit (L.LError L.ConflictError))) 5 ==
+        Some (L.ELit (L.LError L.ConflictError)))
+  =
+  let e = exceptions_head_lift tau tl just cons (L.ELit (L.LError L.ConflictError)) in
+  let e_plus_3 : typed_l_exp tau =
+    exceptions_init_lift tau tl just cons (L.ELit (L.LError L.ConflictError))
+  in
+  let open FStar.Tactics in
+  assert(take_l_steps tau e 3 == Some e_plus_3) by begin
+    compute ();
+    smt ()
+  end;
+  let e_plus_4 : typed_l_exp tau = L.EMatchOption
+    (L.ELit (L.LError L.ConflictError))
+    tau
+    (L.EIf
+      just cons
+      (L.ELit (L.LError L.EmptyError)))
+    (L.EAbs (L.Named 0) tau (L.EVar 0))
+  in
+  assert(L.step e_plus_3 == Some e_plus_4) by begin
+    compute ();
+    smt ()
+  end;
+  L.preservation e_plus_3 tau;
+  assert(Some e_plus_4 == take_l_steps tau e_plus_3 1);
+  assert(L.step e_plus_4 ==  Some (L.ELit (L.LError L.ConflictError)));
+  assert(take_l_steps tau e_plus_4 1 == Some (L.ELit (L.LError L.ConflictError)));
+  take_l_steps_transitive tau e e_plus_3 3 1;
+  take_l_steps_transitive tau e e_plus_4 4 1
+#pop-options
+
 (**** Main theorems *)
 
 let translation_correctness_value (e: D.exp) : Lemma
@@ -712,26 +800,25 @@ let translation_correctness_exceptions_left_to_right_step
          translation_preserves_empty_typ dcons dtau;
          let l_err : typed_l_exp ltau = L.ELit (L.LError L.ConflictError) in
          assert(take_l_steps ltau lhd n_hd == Some l_err);
-         assume(L.is_value_list ltl);
-         assume(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
+         translate_list_is_value_list dexceptions;
+         build_default_translation_typing_source dexceptions djust dcons dtau D.empty;
+         translate_empty_is_empty ();
          lift_multiple_l_steps_exceptions_head ltau ltl ljust lcons n_hd lhd l_err;
-         build_default_translation_typing
-           ((L.EAbs L.Silent L.TUnit lhd)::ltl) ljust lcons ltau L.empty;
          assert(take_l_steps ltau (build_default_translation ((L.EAbs L.Silent L.TUnit lhd)::ltl)
           ljust lcons ltau) (n_hd + 4) == Some (exceptions_head_lift ltau ltl ljust lcons l_err));
-         let n_err = 5 in
-         assume(take_l_steps ltau (exceptions_head_lift ltau ltl ljust lcons l_err) n_err ==
+         exceptions_head_lift_steps_to_error ltau ltl ljust lcons;
+         assert(take_l_steps ltau (exceptions_head_lift ltau ltl ljust lcons l_err) 5 ==
            Some l_err);
          assert(le' == l_err);
          take_l_steps_transitive ltau
            (build_default_translation ((L.EAbs L.Silent L.TUnit lhd)::ltl) ljust lcons ltau)
            (exceptions_head_lift ltau ltl ljust lcons l_err)
            (n_hd + 4)
-           n_err;
+           5;
          let lexceptions = translate_exp_list dexceptions in
          assert(take_l_steps ltau (build_default_translation lexceptions ljust lcons ltau)
-            (n_hd + 4 + n_err) == Some le');
-         n_hd + 4 + n_err
+            (n_hd + 4 + 5) == Some le');
+         n_hd + 4 + 5
       | Some dhd' ->
          D.preservation dhd dtau;
          translation_preserves_empty_typ dhd dtau;
