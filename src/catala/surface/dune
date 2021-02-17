@@ -18,6 +18,11 @@
 
 (rule
  (with-stdout-to
+  parser.messages.new
+  (run menhir %{dep:parser.mly} --list-errors)))
+
+(rule
+ (with-stdout-to
   parser_errors.ml
   (run menhir %{dep:parser.mly} --compile-errors %{dep:parser.messages})))
 
@@ -30,3 +35,8 @@
  (alias update-parser-messages)
  (action
   (diff parser.messages parser.messages.updated)))
+
+(rule
+ (alias create-parser-messages)
+ (action
+  (diff parser.messages parser.messages.new)))
