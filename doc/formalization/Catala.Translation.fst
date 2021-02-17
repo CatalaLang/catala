@@ -787,19 +787,19 @@ let translation_correctness_exceptions_left_to_right_step
   translation_preserves_empty_typ de' dtau;
   let ltau = translate_ty dtau in
   let le' : typed_l_exp ltau = translate_exp de' in
+  let ljust = translate_exp djust in
+  let lcons = translate_exp dcons in
+  let lexceptions = translate_exp_list dexceptions in
   match dexceptions with
   | [] -> 0, le, 0
   | dhd::dtl ->
-    let ljust = translate_exp djust in
-    let lcons = translate_exp dcons in
     let ltl = translate_exp_list dtl in
     let lhd = translate_exp dhd in
-    let lexceptions = translate_exp_list dexceptions in
     if D.is_value dhd then begin
       match D.step_exceptions_left_to_right de dtl djust dcons dtau with
       | Some (D.ELit D.LConflictError) -> admit()
       | Some (D.EDefault dtl' djust' dcons' dtau') ->
-        assume(djust = djust' /\ dcons = dcons' /\ dtau = dtau');
+        assert(djust' == djust /\ dcons' == dcons /\ dtau' == dtau);
         admit()
     end else begin
       match D.step dhd with

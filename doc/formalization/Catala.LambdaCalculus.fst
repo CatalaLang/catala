@@ -157,6 +157,13 @@ and step_list
     : Tot (list_step_result) (decreases %[ e; 3; l ]) =
   match l with
   | [] -> Bad
+  | [hd] -> begin
+    if is_value hd then Bad else
+    match step hd with
+    | None -> Bad
+    | Some (ELit (LError err)) -> Error (ELit (LError err))
+    | Some hd' -> Good ([hd'])
+  end
   | hd::tl -> begin
     if is_value hd then
       match step_list e tl with
@@ -747,7 +754,7 @@ and preservation_list
       ))
       (decreases %[ l ]) =
   match l with
-  | [hd] -> if is_value hd then () else preservation hd tau
+  | [hd] -> begin if is_value hd then () else preservation hd tau end
   | hd :: tl ->
     if is_value hd then begin
       typing_conserved_by_list_reduction empty l tau;

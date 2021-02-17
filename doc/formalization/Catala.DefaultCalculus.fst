@@ -121,12 +121,18 @@ and step_exceptions_left_to_right
     : Tot (option exp) (decreases %[ e; 2; exceptions ]) =
   match exceptions with
   | [] -> None
+  | [hd] -> begin
+    match step hd with
+    | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
+    | Some hd' -> Some (EDefault ([hd']) just cons tau) (* D-Context *)
+    | _ -> None
+  end
   | hd :: tl ->
     if is_value hd
     then
       match step_exceptions_left_to_right e tl just cons tau with
       | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-      | Some (EDefault tl' just cons tau) -> Some (EDefault (hd :: tl') just cons tau) (* D-Context *)
+      | Some (EDefault tl' _ _ _) -> Some (EDefault (hd :: tl') just cons tau) (* D-Context *)
       | _ -> None
     else
       match step hd with
