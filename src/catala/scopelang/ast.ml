@@ -12,12 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Abstract syntax tree of the scope language *)
-
 open Utils
-
-(** {1 Identifiers} *)
-
 module ScopeName = Dcalc.Ast.ScopeName
 
 module ScopeNameSet : Set.S with type elt = ScopeName.t = Set.Make (ScopeName)
@@ -66,8 +61,6 @@ module LocationSet : Set.S with type elt = location Pos.marked = Set.Make (struc
     | SubScopeVar _, ScopeVar _ -> 1
 end)
 
-(** {1 Abstract syntax tree} *)
-
 type typ =
   | TLit of Dcalc.Ast.typ_lit
   | TStruct of StructName.t
@@ -76,8 +69,6 @@ type typ =
   | TArray of typ
   | TAny
 
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
-    higher-order abstract syntax*)
 type expr =
   | ELocation of location
   | EVar of expr Bindlib.var Pos.marked
@@ -145,8 +136,6 @@ type program = {
   program_enums : enum_ctx;
   program_structs : struct_ctx;
 }
-
-(** {1 Variable helpers} *)
 
 module Var = struct
   type t = expr Bindlib.var

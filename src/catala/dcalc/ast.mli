@@ -14,21 +14,19 @@
 
 open Utils
 
-module ScopeName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module ScopeName : Uid.Id with type info = Uid.MarkedString.info
 
-module StructName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module StructName : Uid.Id with type info = Uid.MarkedString.info
 
-module StructFieldName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module StructFieldName : Uid.Id with type info = Uid.MarkedString.info
 
-module StructMap : Map.S with type key = StructName.t = Map.Make (StructName)
+module StructMap : Map.S with type key = StructName.t
 
-module EnumName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module EnumName : Uid.Id with type info = Uid.MarkedString.info
 
-module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
+module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info
 
-module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
+module EnumMap : Map.S with type key = EnumName.t
 
 (** Abstract syntax tree for the default calculus *)
 
@@ -127,54 +125,47 @@ type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
 (** {1 Variable helpers} *)
 
-module Var = struct
+module Var : sig
   type t = expr Bindlib.var
 
-  let make (s : string Pos.marked) : t =
-    Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
-      (Pos.unmark s)
+  val make : string Pos.marked -> t
 
-  let compare x y = Bindlib.compare_vars x y
+  val compare : t -> t -> int
 end
 
-module VarMap = Map.Make (Var)
+module VarMap : Map.S with type key = Var.t
 
 type vars = expr Bindlib.mvar
 
-let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
+val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
 
-let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
-    (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
+val make_abs :
+  vars ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
 
-let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
-    : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+val make_app :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
 
-let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
-       (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
-       (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+val make_let_in :
+  Var.t ->
+  typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
 
-let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
-    (e1 : expr Pos.marked list Bindlib.box) (e2 : expr Pos.marked Bindlib.box) :
-    expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs xs e2
-       (Pos.get_position (Bindlib.unbox e2))
-       taus
-       (Pos.get_position (Bindlib.unbox e2)))
-    e1
+val make_multiple_let_in :
+  Var.t array ->
+  typ Pos.marked list ->
+  expr Pos.marked list Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 

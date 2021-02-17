@@ -57,7 +57,7 @@ scope Data:
 
   
 
-########################### Testing Section121a ################################
+####################### Testing Section121SinglePerson #########################
 
 declaration scope Test1:
   context scope121a scope Section121SinglePerson
@@ -111,10 +111,10 @@ scope Test4:
     [data_.period_two_years_middle; data_.period_one_year_recent]
   assertion scope121a.requirements_met
 
-########################### Testing Section121 ################################
+###################### Testing Section121TwoPersons ############################
 
 declaration scope Test5:
-    context scope121 scope Section121
+    context scope121 scope Section121TwoPersons
     context data_ scope Data
 
 scope Test5: 
@@ -126,7 +126,7 @@ scope Test5:
    assertion scope121.income_excluded_from_gross_income = $250,000
 
 declaration scope Test6:
-    context scope121 scope Section121
+    context scope121 scope Section121TwoPersons
     context data_ scope Data
 
 scope Test6: 

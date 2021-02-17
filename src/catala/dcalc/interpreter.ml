@@ -450,8 +450,6 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
 
 (** {1 API} *)
 
-(** Interpret a program. This function expects an expression typed as a function whose argument are
-    all thunked. The function is executed by providing for each argument a thunked empty default. *)
 let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
     (Uid.MarkedString.info * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr ctx e) with

@@ -15,13 +15,6 @@
 open Utils
 module D = Dcalc.Ast
 
-(** Abstract syntax tree for the lambda calculus *)
-
-(** {1 Abstract syntax tree} *)
-
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
-    higher-order abstract syntax*)
-
 type lit =
   | LBool of bool
   | LInt of Z.t
@@ -52,8 +45,6 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-
-(** {1 Variable helpers} *)
 
 module Var = struct
   type t = expr Bindlib.var

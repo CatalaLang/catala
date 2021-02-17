@@ -1,0 +1,42 @@
+(library
+ (name surface)
+ (libraries utils menhirLib sedlex re desugared scopelang zarith
+   zarith_stubs_js calendar)
+ (public_name catala.surface)
+ (preprocess
+  (pps sedlex.ppx visitors.ppx)))
+
+(menhir
+ (modules parser)
+ (flags --table))
+
+(documentation
+ (package catala)
+ (mld_files surface))
+
+;; No built-in support for Menhir's parser messages yet
+
+(rule
+ (with-stdout-to
+  parser.messages.new
+  (run menhir %{dep:parser.mly} --list-errors)))
+
+(rule
+ (with-stdout-to
+  parser_errors.ml
+  (run menhir %{dep:parser.mly} --compile-errors %{dep:parser.messages})))
+
+(rule
+ (with-stdout-to
+  parser.messages.updated
+  (run menhir %{dep:parser.mly} --update-errors %{dep:parser.messages})))
+
+(rule
+ (alias update-parser-messages)
+ (action
+  (diff parser.messages parser.messages.updated)))
+
+(rule
+ (alias create-parser-messages)
+ (action
+  (diff parser.messages parser.messages.new)))
