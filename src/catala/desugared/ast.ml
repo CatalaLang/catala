@@ -121,8 +121,6 @@ type program = {
   program_structs : Scopelang.Ast.struct_ctx;
 }
 
-(** {1 Helpers} *)
-
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : Scopelang.Ast.LocationSet.t) :
       Pos.t ScopeDefMap.t =

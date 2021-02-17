@@ -30,8 +30,6 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
-(** {1 Abstract syntax tree} *)
-
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
@@ -56,12 +54,7 @@ type lit =
   | LDate of date
   | LDuration of duration
 
-type op_kind =
-  | KInt
-  | KRat
-  | KMoney
-  | KDate
-  | KDuration  (** All ops don't have a Kdate and KDuration *)
+type op_kind = KInt | KRat | KMoney | KDate | KDuration
 
 type ternop = Fold
 
@@ -116,8 +109,6 @@ type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
-
-(** {1 Variable helpers} *)
 
 module Var = struct
   type t = expr Bindlib.var
