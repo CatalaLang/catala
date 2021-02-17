@@ -14,7 +14,7 @@ dependencies-ocaml:
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
 		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors
+		visitors benchmark
 
 init-submodules:
 	git submodule update --init
@@ -27,17 +27,17 @@ dependencies: dependencies-ocaml init-submodules
 ##########################################
 
 format:
-	dune build @fmt --auto-promote | true
+	dune build @fmt --auto-promote 2> /dev/null | true 
 
 build:
 	dune build @update-parser-messages
 	@$(MAKE) --no-print-directory format
-	dune build src/catala.exe
+	dune build src/catala/catala.exe
 
 js_build:
-	dune build src/catala_web/catala_web.bc.js --profile release
+	dune build src/catala/catala_web.bc.js --profile release
 
-doc: 
+doc:
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
@@ -142,18 +142,55 @@ test_examples: .FORCE
 
 tests: test_suite test_examples
 
+tests_ml: run_french_law_library_tests
+
+##########################################
+# French law library
+##########################################
+
+FRENCH_LAW_LIB_DIR=src/french_law
+
+$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
+		$(FRENCH_LAW_LIB_DIR)/law_source 
+
+french_law_library:\
+	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml
+
+run_french_law_library_benchmark: french_law_library
+	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
+
+$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
+	@$(MAKE) --no-print-directory -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
+	@cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
+		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
+
+french_law_library_tests: \
+	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+
+run_french_law_library_tests: french_law_library_tests
+	@dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
+
+build_french_law_library: format
+	dune build $(FRENCH_LAW_LIB_DIR)
+
+build_french_law_library_js: french_law_library format
+	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
+	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
+
 ##########################################
 # Website assets
 ##########################################
 
-grammar.html: src/catala/catala_surface/parser.mly
+grammar.html: src/catala/surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: src/catala/utils/cli.ml
-	dune exec src/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
+	dune exec src/catala/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
-website-assets: doc literate_examples grammar.html catala.html js_build
+website-assets: doc literate_examples grammar.html catala.html js_build build_french_law_library_js
 
 ##########################################
 # Misceallenous

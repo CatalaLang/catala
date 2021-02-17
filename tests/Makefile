@@ -15,7 +15,7 @@ RESET := $(shell tput -Txterm sgr0)
 
 CATALA_OPTS?=
 
-CATALA=dune exec --no-buffer --no-print-director ../src/catala.exe -- Interpret $(CATALA_OPTS)
+CATALA=dune exec --no-buffer --no-print-director ../src/catala/catala.exe -- Interpret $(CATALA_OPTS)
 
 pass_tests: $(wildcard */*/output/*.out)
 

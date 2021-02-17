@@ -35,7 +35,9 @@
    (ocamlgraph (>= 1.8.8))
    (calendar (>= 2.04))
    (visitors (>= 20200210))
+   (benchmark (>= 1.6))
  )
 )
 
 (using menhir 2.1)
+(allow_approximate_merlin) 
