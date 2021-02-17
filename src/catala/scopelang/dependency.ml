@@ -25,8 +25,6 @@ module SVertex = struct
   let compare = Ast.ScopeName.compare
 
   let equal x y = Ast.ScopeName.compare x y = 0
-
-  let format_t (fmt : Format.formatter) (x : t) : unit = Ast.ScopeName.format_t fmt x
 end
 
 (** On the edges, the label is the expression responsible for the use of the function *)

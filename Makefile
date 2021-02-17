@@ -30,7 +30,7 @@ format:
 	dune build @fmt --auto-promote 2> /dev/null | true 
 
 build:
-	@$(MAKE) --no-print-directory -C src/catala/catala_surface parser_errors.ml
+	@$(MAKE) --no-print-directory -C src/catala/surface parser_errors.ml
 	@$(MAKE) --no-print-directory format
 	dune build src/catala/catala.exe
 
@@ -183,7 +183,7 @@ build_french_law_library_js: french_law_library format
 # Website assets
 ##########################################
 
-grammar.html: src/catala/catala_surface/parser.mly
+grammar.html: src/catala/surface/parser.mly
 	obelisk html -o $@ $<
 
 catala.html: src/catala/utils/cli.ml

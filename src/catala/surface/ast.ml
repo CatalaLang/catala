@@ -14,21 +14,17 @@
 
 [@@@ocaml.warning "-7"]
 
-(** Abstract syntax tree built by the Catala parser *)
-
 open Utils
 
 type constructor = (string[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "constructor_map"; nude = true },
     visitors { variety = "iter"; name = "constructor_iter"; nude = true }]
-(** Constructors are CamelCase *)
 
 type ident = (string[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "ident_map"; nude = true },
     visitors { variety = "iter"; name = "ident_iter"; nude = true }]
-(** Idents are snake_case *)
 
 type qident = ident Pos.marked list
 [@@deriving
@@ -150,12 +146,7 @@ type match_case_pattern =
         name = "match_case_pattern_iter";
       }]
 
-type op_kind =
-  | KInt  (** No suffix *)
-  | KDec  (** Suffix: [.] *)
-  | KMoney  (** Suffix: [$] *)
-  | KDate  (** Suffix: [@] *)
-  | KDuration  (** Suffix: [^] *)
+type op_kind = KInt | KDec | KMoney | KDate | KDuration
 [@@deriving
   visitors { variety = "map"; name = "op_kind_map"; nude = true },
     visitors { variety = "iter"; name = "op_kind_iter"; nude = true }]
@@ -235,8 +226,8 @@ type literal =
 type aggregate_func =
   | AggregateSum of primitive_typ
   | AggregateCount
-  | AggregateExtremum of bool (* true if max *) * primitive_typ * expression Pos.marked
-  | AggregateArgExtremum of bool (* true if max *) * primitive_typ * expression Pos.marked
+  | AggregateExtremum of bool * primitive_typ * expression Pos.marked
+  | AggregateArgExtremum of bool * primitive_typ * expression Pos.marked
 
 and collection_op = Exists | Forall | Aggregate of aggregate_func | Map | Filter
 
@@ -266,7 +257,6 @@ and expression =
   | ArrayLit of expression Pos.marked list
   | Ident of ident
   | Dotted of expression Pos.marked * constructor Pos.marked option * ident Pos.marked
-      (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors
     {
