@@ -761,3 +761,14 @@ and preservation_list
       preservation_list e tl tau
     end else preservation hd tau
 #pop-options
+
+(**** Other lemmas *)
+
+let typing_empty_can_be_extended (e: exp) (tau: ty) (v: nat) (tau': ty)
+    : Lemma
+      (requires (typing empty e tau))
+      (ensures (typing (extend empty v tau') e tau))
+  =
+  context_invariance e empty (extend empty v tau') tau
+
+let is_error (e: exp) : bool = match e with ELit (LError _) -> true | _ -> false
