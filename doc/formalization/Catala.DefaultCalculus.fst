@@ -1,5 +1,7 @@
 module Catala.DefaultCalculus
 
+open FStar.StrongExcludedMiddle
+
 (*** Syntax *)
 
 type ty =
@@ -19,7 +21,7 @@ type lit =
 type exp =
   | EVar : v: var -> exp
   | EApp : fn: exp -> arg: exp -> tau_arg: ty -> exp
-  | EAbs : v: var -> vty: ty -> body: exp -> exp
+  | EAbs : vty: ty -> body: exp -> exp
   | ELit : l: lit -> exp
   | EIf : test: exp -> btrue: exp -> bfalse: exp -> exp
   | EDefault : exceptions: list exp -> just: exp -> cons: exp -> tau: ty -> exp
@@ -35,22 +37,47 @@ let e_err = ELit LEmptyError
 val is_value: exp -> Tot bool
 let is_value e =
   match e with
-  | EAbs _ _ _ | ELit _ -> true
+  | EAbs _ _ | ELit _ -> true
   | _ -> false
 
-let rec subst (x: var) (e_x e: exp) : Tot exp (decreases e) =
+let var_to_exp = var -> Tot exp
+
+let is_renaming_prop (s: var_to_exp) : prop = forall (x: var). EVar? (s x)
+
+let is_renaming_size (s: var_to_exp)
+    : GTot (n:int{(is_renaming_prop s) ==> n = 0 /\ (~(is_renaming_prop s) ==> n = 1)})
+  =
+  if strong_excluded_middle (is_renaming_prop s) then 0 else 1
+
+let increment : var_to_exp = fun y -> EVar (y + 1)
+
+let increment_is_renaming (_: unit) : Lemma (is_renaming_prop increment) = ()
+
+let is_var_size (e: exp) : int = if EVar? e then 0 else 1
+
+let rec subst (s: var_to_exp) (e: exp) : Pure exp
+      (requires True)
+      (ensures (fun e' -> (is_renaming_prop s /\ EVar? e) ==> EVar? e'))
+      (decreases %[is_var_size e; is_renaming_size s; 2; e])
+  =
   match e with
-  | EVar x' -> if x = x' then e_x else e
-  | EAbs x' t e1 -> EAbs x' t (if x = x' then e1 else (subst x e_x e1))
-  | EApp e1 e2 tau_arg -> EApp (subst x e_x e1) (subst x e_x e2) tau_arg
+  | EVar x -> s x
+  | EAbs t e1 -> EAbs t (subst (subst_abs s) e1)
+  | EApp e1 e2 tau_arg -> EApp (subst s e1) (subst s e2) tau_arg
   | ELit l -> ELit l
-  | EIf e1 e2 e3 -> EIf (subst x e_x e1) (subst x e_x e2) (subst x e_x e3)
+  | EIf e1 e2 e3 -> EIf (subst s e1) (subst s e2) (subst s e3)
   | EDefault exceptions ejust econd tau ->
-    EDefault (subst_list x e_x exceptions) (subst x e_x ejust) (subst x e_x econd) tau
-and subst_list (x: var) (e_x: exp) (subs: list exp) : Tot (list exp) (decreases subs) =
-  match subs with
+    EDefault (subst_list s e exceptions) (subst s ejust) (subst s econd) tau
+and subst_list (s: var_to_exp) (e: exp) (l: list exp{l << e}) : Tot (list exp)
+      (decreases %[is_var_size e; is_renaming_size s; 1; e; l]) =
+  match l with
   | [] -> []
-  | hd :: tl -> (subst x e_x hd) :: (subst_list x e_x tl)
+  | hd :: tl ->
+  (subst s hd) :: (subst_list s e tl)
+and subst_abs (s: var_to_exp) (y: var) : Tot (e':exp{is_renaming_prop s ==> EVar? e'})
+      (decreases %[1; is_renaming_size s; 0; EVar 0])
+  =
+  if y = 0 then EVar y else subst increment (s (y -1))
 
 type empty_count_result =
   | AllEmpty
