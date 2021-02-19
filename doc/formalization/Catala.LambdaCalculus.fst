@@ -1,6 +1,11 @@
 module Catala.LambdaCalculus
 open FStar.Mul
 
+module T = FStar.Tactics
+
+
+/// This whole proof is inspired by FStar/examples/metatheory/StlcStrongdbparsubst.fst
+
 (*** Syntax *)
 
 type ty =
@@ -10,11 +15,7 @@ type ty =
   | TList: elts:ty -> ty
   | TOption: a: ty -> ty
 
-type var_name = nat
-
-type var =
-  | Named of var_name
-  | Silent
+type var = nat
 
 type err =
   | EmptyError : err
@@ -27,9 +28,9 @@ type lit =
   | LUnit : lit
 
 type exp =
-  | EVar : v: var_name -> exp
+  | EVar : v: var -> exp
   | EApp : fn: exp -> arg: exp -> tau_arg: ty -> exp
-  | EAbs : v: var -> vty: ty -> body: exp -> exp
+  | EAbs : vty: ty -> body: exp -> exp
   | ELit : l: lit -> exp
   | EIf : test: exp -> btrue: exp -> bfalse: exp -> exp
   | ESome : s:exp -> exp
@@ -50,7 +51,7 @@ let e_err = ELit (LError EmptyError)
 val is_value: exp -> Tot bool
 let rec is_value e =
   match e with
-  | EAbs _ _ _ | ELit _ | ENone -> true
+  | EAbs _ _ | ELit _ | ENone -> true
   | ESome (ELit (LError _)) -> false
   | ESome e' -> is_value e'
   | EList l -> is_value_list l
@@ -61,26 +62,55 @@ and is_value_list (es: list exp) : Tot bool =
   | hd::tl -> is_value hd && is_value_list tl
 
 
-let rec subst (x: var_name) (e_x e: exp) : Tot exp (decreases e) =
+let var_to_exp = var -> Tot exp
+
+let is_renaming_prop (s: var_to_exp) : prop = forall (x: var). EVar? (s x)
+
+let is_renaming_size (s: var_to_exp)
+    : GTot (n:int{(is_renaming_prop s) ==> n = 0 /\ (~(is_renaming_prop s) ==> n = 1)})
+  =
+  if FStar.StrongExcludedMiddle.strong_excluded_middle (is_renaming_prop s) then 0 else 1
+
+let increment : var_to_exp = fun y -> EVar (y + 1)
+
+let increment_is_renaming (_: unit) : Lemma (is_renaming_prop increment) = ()
+
+let is_var_size (e: exp) : int = if EVar? e then 0 else 1
+
+
+let rec subst (s: var_to_exp) (e: exp) : Pure exp
+      (requires True)
+      (ensures (fun e' -> (is_renaming_prop s /\ EVar? e) ==> EVar? e'))
+      (decreases %[is_var_size e; is_renaming_size s; 1; e])
+  =
   match e with
-  | EVar x' -> if x = x' then e_x else e
-  | EAbs x' t e1 -> EAbs x' t (if Named x = x' then e1 else (subst x e_x e1))
-  | EApp e1 e2 tau_arg -> EApp (subst x e_x e1) (subst x e_x e2) tau_arg
+  | EVar x -> s x
+  | EAbs t e1 -> EAbs t (subst (subst_abs s) e1)
+  | EApp e1 e2 tau_arg -> EApp (subst s e1) (subst s e2) tau_arg
   | ELit l -> ELit l
-  | EIf e1 e2 e3 -> EIf (subst x e_x e1) (subst x e_x e2) (subst x e_x e3)
-  | ESome s -> ESome (subst x e_x s)
+  | EIf e1 e2 e3 -> EIf (subst s e1) (subst s e2) (subst s e3)
+  | ESome e1 -> ESome (subst s e1)
   | ENone -> ENone
   | EMatchOption arg tau_some none some ->
-    EMatchOption (subst x e_x arg) tau_some (subst x e_x none) (subst x e_x some)
-  | EList l -> EList (subst_list x e_x l)
+    EMatchOption (subst s arg) tau_some (subst s none) (subst s some)
+  | EList l -> EList (subst_list s l)
   | ECatchEmptyError to_try catch_with ->
-    ECatchEmptyError (subst x e_x to_try) (subst x e_x catch_with)
+    ECatchEmptyError (subst s to_try) (subst s catch_with)
   | EFoldLeft f init tau_init l tau_elt ->
-    EFoldLeft (subst x e_x f) (subst x e_x init) tau_init (subst x e_x l) tau_elt
-and subst_list (x: var_name) (e_x: exp) (subs: list exp) : Tot (list exp) (decreases subs) =
-  match subs with
+    EFoldLeft (subst s f) (subst s init) tau_init (subst s l) tau_elt
+and subst_list (s: var_to_exp) (l: list exp) : Tot (list exp)
+      (decreases %[1; is_renaming_size s; 1; l]) =
+  match l with
   | [] -> []
-  | hd :: tl -> (subst x e_x hd) :: (subst_list x e_x tl)
+  | hd :: tl -> (subst s hd) :: (subst_list s tl)
+and subst_abs (s: var_to_exp) (y: var) : Tot (e':exp{is_renaming_prop s ==> EVar? e'})
+      (decreases %[1; is_renaming_size s; 0])
+  =
+  if y = 0 then EVar y else subst increment (s (y -1))
+
+let var_to_exp_beta (v: exp) : Tot var_to_exp = fun y ->
+  if y = 0 then v else (EVar (y - 1))
+
 
 (**** Stepping judgment *)
 
@@ -105,8 +135,7 @@ let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau
         | ELit (LError err) -> Some (ELit (LError err))
         | _ -> begin
           match e1 with
-          | EAbs (Named x) t e' -> Some (subst x e2 e') (* D-Beta *)
-          | EAbs Silent t e' -> Some e' (* D-Beta *)
+          | EAbs t e' -> Some (subst (var_to_exp_beta e2) e') (* D-Beta *)
           | _ -> None
         end
       else
@@ -257,24 +286,24 @@ and step (e: exp) : Tot (option exp) (decreases %[ e; 6 ]) =
 
 (**** Typing helpers *)
 
-type env = FunctionalExtensionality.restricted_t var_name (fun _ -> option ty)
+type env = FunctionalExtensionality.restricted_t var (fun _ -> option ty)
 
 val empty:env
-let empty = FunctionalExtensionality.on_dom var_name (fun _ -> None)
+let empty = FunctionalExtensionality.on_dom var (fun _ -> None)
 
-val extend: env -> var_name -> ty -> Tot env
-let extend g x t = FunctionalExtensionality.on_dom var_name
-  (fun x' -> if x = x' then Some t else g x')
+val extend: env -> ty -> Tot env
+let extend g t = FunctionalExtensionality.on_dom var
+  (fun x' -> if 0 = x' then Some t else g (x' - 1))
 
 (**** Typing judgment *)
 
 let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   match e with
   | EVar x -> g x = Some tau
-  | EAbs x t e1 ->
+  | EAbs t e1 ->
     (match tau with
       | TArrow tau_in tau_out -> t = tau_in &&
-        typing (match x with Named x -> extend g x t | Silent -> g) e1 tau_out
+        typing (extend g t) e1 tau_out
       | _ -> false)
   | EApp e1 e2 tau_arg -> typing g e1 (TArrow tau_arg tau) && typing g e2 tau_arg
   | ELit LTrue -> tau = TBool
@@ -336,7 +365,7 @@ let typing_conserved_by_list_reduction (g: env) (subs: list exp) (tau: ty)
 let rec size_for_progress (e: exp) : Tot pos = match e with
   | EVar _ -> 1
   | EApp fn arg _ -> size_for_progress fn + size_for_progress arg + 1
-  | EAbs _ _ body -> size_for_progress body + 1
+  | EAbs _ body -> size_for_progress body + 1
   | ELit _ -> 1
   | EIf e1 e2 e3 -> size_for_progress e1 + size_for_progress e2 + size_for_progress e3 + 1
   | ESome s -> size_for_progress s + 1
@@ -486,217 +515,153 @@ and progress_list
 
 (**** Preservation helpers *)
 
-let rec appears_free_in (x: var_name) (e: exp) : Tot bool =
+
+let rec substitution_extensionnal
+  (s1: var_to_exp)
+  (s2: var_to_exp{FStar.FunctionalExtensionality.feq s1 s2})
+  (e: exp)
+    : Lemma
+      (requires (True))
+      (ensures (subst s1 e == subst s2 e))
+      [SMTPat (subst s1 e); SMTPat (subst s2 e)]
+  =
   match e with
-  | EVar y -> x = y
-  | EApp e1 e2 _ | ECatchEmptyError e1 e2 -> appears_free_in x e1 || appears_free_in x e2
-  | EAbs y _ e1 -> Named x <> y && appears_free_in x e1
-  | EIf e1 e2 e3 | EMatchOption e1 _ e2 e3 | EFoldLeft e1 e2 _ e3 _ ->
-    appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
-  | ESome e1 -> appears_free_in x e1
-  | EList e1 -> appears_free_in_list x e1
-  | ENone | ELit _ -> false
-and appears_free_in_list (x: var_name) (subs: list exp) : Tot bool =
-  match subs with
-  | [] -> false
-  | hd :: tl -> appears_free_in x hd || appears_free_in_list x tl
-
-#push-options "--fuel 2 --ifuel 1"
-let rec free_in_context (x: var_name) (e: exp) (g: env) (tau: ty)
-    : Lemma (requires (typing g e tau))
-      (ensures (appears_free_in x e ==> Some? (g x)))
-      (decreases e) =
-  match e with
-  | EVar _ | ELit _ -> ()
-  | EAbs y t e1 ->
-    (match tau with | TArrow _ tau_out ->
-      free_in_context x e1 (match y with Named y -> extend g y t | Silent -> g) tau_out)
-  | EApp e1 e2 tau_arg ->
-    free_in_context x e1 g (TArrow tau_arg tau);
-    free_in_context x e2 g tau_arg
-  | EIf e1 e2 e3 ->
-    free_in_context x e1 g TBool;
-    free_in_context x e2 g tau;
-    free_in_context x e3 g tau
-  | ESome e1 -> begin
-    match tau with
-    | TOption tau' -> free_in_context x e1 g tau'
-    | _ -> ()
-   end
-  | ENone -> ()
-  | EMatchOption arg tau_some none some ->
-    free_in_context x arg g (TOption tau_some);
-    free_in_context x none g tau;
-    free_in_context x some g (TArrow tau_some tau)
-  | EList l -> begin
-    match tau with
-    | TList tau' -> free_in_context_list x l g tau'
-    | _ -> ()
-  end
-  | ECatchEmptyError to_try catch_with ->
-    free_in_context x to_try g tau;
-    free_in_context x catch_with g tau
-  | EFoldLeft f init tau_init l tau_elt ->
-    free_in_context x init g tau_init;
-    free_in_context x l g (TList tau_elt);
-    free_in_context x f g (TArrow tau_init (TArrow tau_elt tau_init))
-and free_in_context_list (x: var_name) (subs: list exp) (g: env) (tau: ty)
-    : Lemma (requires (typing_list g subs tau))
-      (ensures (appears_free_in_list x subs ==> Some? (g x)))
-      (decreases subs) =
-  match subs with
-  | [] -> ()
-  | hd :: tl ->
-    free_in_context x hd g tau;
-    free_in_context_list x tl g tau
-#pop-options
-
-let typable_empty_closed (x: var_name) (e: exp) (tau: ty)
-    : Lemma (requires (typing empty e tau))
-      (ensures (not (appears_free_in x e)))
-      [SMTPat (appears_free_in x e); SMTPat (typing empty e tau)] =
- free_in_context x e empty tau
-
-(**** Context invariance *)
-
-type equal (g1: env) (g2: env) = forall (x: var_name). g1 x = g2 x
-
-type equalE (e: exp) (g1: env) (g2: env) = forall (x: var_name). appears_free_in x e ==> g1 x = g2 x
-
-type equalE_list (subs: list exp) (g1: env) (g2: env) =
-  forall (x: var_name). appears_free_in_list x subs ==> g1 x = g2 x
-
-#push-options "--fuel 2 --ifuel 1"
-let rec context_invariance (e: exp) (g g': env) (tau: ty)
-    : Lemma (requires (equalE e g g'))
-      (ensures (typing g e tau <==> typing g' e tau))
-      (decreases %[ e ]) =
-  match e with
-  | EAbs x t e1 ->
-    (match tau with
-      | TArrow _ tau_out -> begin
-        match x with
-        | Named x -> context_invariance e1 (extend g x t) (extend g' x t) tau_out
-        | Silent -> context_invariance e1 g g' tau_out
-      end
-      | _ -> ())
-  | EApp e1 e2 tau_arg ->
-    context_invariance e1 g g' (TArrow tau_arg tau);
-    context_invariance e2 g g' tau_arg
-  | EIf e1 e2 e3 ->
-    context_invariance e1 g g' TBool;
-    context_invariance e2 g g' tau;
-    context_invariance e3 g g' tau
-  | ESome e1 -> begin
-    match tau with
-    | TOption tau' -> context_invariance e1 g g' tau'
-    | _ -> ()
-   end
-  | ENone -> ()
-  | EMatchOption arg tau_some none some ->
-    context_invariance arg g g' (TOption tau_some);
-    context_invariance none g g' tau;
-    context_invariance some g g' (TArrow tau_some tau)
-  | EList l -> begin
-    match tau with
-    | TList tau' -> context_invariance_list l g g' tau'
-    | _ -> ()
-  end
-  | ECatchEmptyError to_try catch_with ->
-    context_invariance to_try g g' tau;
-    context_invariance catch_with g g' tau
-  | EFoldLeft f init tau_init l tau_elt ->
-    context_invariance init g g' tau_init;
-    context_invariance l g g' (TList tau_elt);
-    context_invariance f g g' (TArrow tau_init (TArrow tau_elt tau_init))
-  | _ -> ()
-and context_invariance_list (exceptions: list exp) (g g': env) (tau: ty)
-    : Lemma (requires (equalE_list exceptions g g'))
-      (ensures (typing_list g exceptions tau <==> typing_list g' exceptions tau))
-      (decreases %[ exceptions ]) =
-  match exceptions with
-  | [] -> ()
-  | hd :: tl ->
-    context_invariance hd g g' tau;
-    context_invariance_list tl g g' tau
-#pop-options
-
-let typing_extensional (g g': env) (e: exp) (tau: ty)
-    : Lemma (requires (equal g g')) (ensures (typing g e tau <==> typing g' e tau)) =
-  context_invariance e g g' tau
-
-(**** Substitution preservation *)
-
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 10"
-let rec substitution_preserves_typing (x: var_name) (tau_x: ty) (e v: exp) (g: env) (tau: ty)
-    : Lemma (requires (typing empty v tau_x /\ typing (extend g x tau_x) e tau))
-      (ensures (typing g (subst x v e) tau))
-      (decreases %[ e ]) =
-  let gx = extend g x tau_x in
-  match e with
+  | EVar _ -> ()
   | ELit _ -> ()
-  | EVar y -> if x = y then context_invariance v empty g tau else context_invariance e gx g tau
-  | EApp e1 e2 tau_arg ->
-    substitution_preserves_typing x tau_x e1 v g (TArrow tau_arg tau);
-    substitution_preserves_typing x tau_x e2 v g tau_arg
+  | EAbs t e1 ->
+    assert (subst s1 (EAbs t e1) == EAbs t (subst (subst_abs s1) e1))
+      by (T.norm [zeta; iota; delta_only [`%subst]]);
+    assert (subst s2 (EAbs t e1) == EAbs t (subst (subst_abs s2) e1))
+      by (T.norm [zeta; iota; delta_only [`%subst]]; T.smt ());
+    substitution_extensionnal (subst_abs s1) (subst_abs s2) e1
+  | EApp e1 e2 _ ->
+    substitution_extensionnal s1 s2 e1;
+    substitution_extensionnal s1 s2 e2
   | EIf e1 e2 e3 ->
-    substitution_preserves_typing x tau_x e1 v g TBool;
-    substitution_preserves_typing x tau_x e2 v g tau;
-    substitution_preserves_typing x tau_x e3 v g tau
-  | EAbs y t_y e1 ->
-    (match tau with
-      | TArrow tau_in tau_out ->
-        if tau_in = t_y
-        then begin
-          match y with
-          | Named y ->
-            let gxy = extend gx y t_y in
-            let gy = extend g y t_y in
-            if x = y
-            then typing_extensional gxy gy e1 tau_out
-            else
-              let gyx = extend gy x tau_x in
-              typing_extensional gxy gyx e1 tau_out;
-              substitution_preserves_typing x tau_x e1 v gy tau_out
-          | Silent -> substitution_preserves_typing x tau_x e1 v g tau_out
-        end
-      | _ -> ())
-  | ESome s ->
-    (match tau with
-    | TOption tau' -> substitution_preserves_typing x tau_x s v g tau'
-    | _ -> ())
+    substitution_extensionnal s1 s2 e1;
+    substitution_extensionnal s1 s2 e2;
+    substitution_extensionnal s1 s2 e3
+  | ESome e1 -> substitution_extensionnal s1 s2 e1
+  | ENone -> ()
+  | EMatchOption arg _ none some ->
+    substitution_extensionnal s1 s2 arg;
+    substitution_extensionnal s1 s2 none;
+    substitution_extensionnal s1 s2 some
+  | EList l -> substitution_extensionnal_list s1 s2 l
+  | ECatchEmptyError to_try catch_with ->
+    substitution_extensionnal s1 s2 to_try;
+    substitution_extensionnal s1 s2 catch_with
+  | EFoldLeft f init _ l _ ->
+    substitution_extensionnal s1 s2 f;
+    substitution_extensionnal s1 s2 init;
+    substitution_extensionnal s1 s2 l
+and substitution_extensionnal_list
+  (s1: var_to_exp)
+  (s2: var_to_exp{FStar.FunctionalExtensionality.feq s1 s2})
+  (l: list exp)
+    : Lemma
+      (requires (True))
+      (ensures (subst_list s1 l == subst_list s2 l))
+  =
+  match l with
+  | [] -> ()
+  | hd::tl ->
+    substitution_extensionnal s1 s2 hd;
+    substitution_extensionnal_list s1 s2 tl
+
+let subst_typing (s: var_to_exp) (g1: env) (g2: env) =
+  (x:var) ->  Lemma
+      (requires (Some? (g1 x)))
+      (ensures (typing g2 (s x) (Some?.v (g1 x))))
+
+let rec substitution_preserves_typing
+  (g1: env)
+  (e: exp)
+  (t: ty)
+  (s: var_to_exp)
+  (g2: env)
+  (s_lemma: subst_typing s g1 g2)
+    : Lemma
+      (requires (typing g1 e t))
+      (ensures (typing g2 (subst s e) t))
+      (decreases %[is_var_size e; is_renaming_size s; e])
+  =
+  match e with
+  | EVar x -> s_lemma x
+  | EApp e1 e2 t_arg ->
+    substitution_preserves_typing g1 e1 (TArrow t_arg t) s g2 s_lemma;
+    substitution_preserves_typing g1 e2 t_arg s g2 s_lemma
+  | EAbs t_arg e1 -> begin
+    match t with
+    | TArrow t_arg' t_out ->
+      if t_arg' <> t_arg then () else
+      let s_lemma' : subst_typing increment g2 (extend g2 t_arg) = fun x -> () in
+      let s_lemma'' : subst_typing (subst_abs s) (extend g1 t_arg) (extend g2 t_arg) = fun y ->
+        if y = 0 then () else
+        let n: var = y - 1 in
+        s_lemma n;
+        assert(typing g2 (s n) (Some?.v (g1 n)));
+        substitution_preserves_typing
+          g2
+          (s n)
+          (Some?.v (g1 n))
+          increment
+          (extend g2 t_arg)
+          s_lemma'
+      in
+      substitution_preserves_typing
+        (extend g1 t_arg)
+        e1
+        t_out
+        (subst_abs s)
+        (extend g2 t_arg)
+        s_lemma''
+    | _ -> ()
+  end
+  | ELit _ -> ()
+  | EIf e1 e2 e3 ->
+    substitution_preserves_typing g1 e1 TBool s g2 s_lemma;
+    substitution_preserves_typing g1 e2 t s g2 s_lemma;
+    substitution_preserves_typing g1 e3 t s g2 s_lemma
+  | ESome e1 -> begin
+    match t with
+    | TOption t' ->  substitution_preserves_typing g1 e1 t' s g2 s_lemma
+    | _ -> ()
+  end
   | ENone -> ()
   | EMatchOption arg tau_some none some ->
-    substitution_preserves_typing x tau_x arg v g (TOption tau_some);
-    substitution_preserves_typing x tau_x none v g tau;
-    substitution_preserves_typing x tau_x some v g (TArrow tau_some tau)
-  | EList l ->
-    (match tau with
-    | TList tau' -> substitution_preserves_typing_list x tau_x l v g tau'
-    | _ -> ())
+    substitution_preserves_typing g1 arg (TOption tau_some) s g2 s_lemma;
+    substitution_preserves_typing g1 none t s g2 s_lemma;
+    substitution_preserves_typing g1 some (TArrow tau_some t) s g2 s_lemma
+  | EList l -> begin
+    match t with
+    | TList t' -> substitution_preserves_typing_list g1 l t' s g2 s_lemma
+    | _ -> ()
+  end
   | ECatchEmptyError to_try catch_with ->
-    substitution_preserves_typing x tau_x to_try v g tau;
-    substitution_preserves_typing x tau_x catch_with v g tau
+    substitution_preserves_typing g1 to_try t s g2 s_lemma;
+    substitution_preserves_typing g1 catch_with t s g2 s_lemma
   | EFoldLeft f init tau_init l tau_elt ->
-    substitution_preserves_typing x tau_x f v g (TArrow tau_init (TArrow tau_elt tau_init));
-    substitution_preserves_typing x tau_x init v g tau_init;
-    substitution_preserves_typing x tau_x l v g (TList tau_elt)
+    substitution_preserves_typing g1 f (TArrow tau_init (TArrow tau_elt tau_init)) s g2 s_lemma ;
+    substitution_preserves_typing g1 init tau_init s g2 s_lemma;
+    substitution_preserves_typing g1 l (TList tau_elt) s g2 s_lemma
 and substitution_preserves_typing_list
-      (x: var_name)
-      (tau_x: ty)
-      (exceptions: list exp)
-      (v: exp)
-      (g: env)
-      (tau: ty)
-    : Lemma (requires (typing empty v tau_x /\ typing_list (extend g x tau_x) exceptions tau))
-      (ensures (typing_list g (subst_list x v exceptions) tau))
-      (decreases (%[ exceptions ])) =
-  match exceptions with
+  (g1: env)
+  (l: list exp)
+  (t: ty)
+  (s: var_to_exp)
+  (g2: env)
+  (s_lemma: subst_typing s g1 g2)
+    : Lemma
+      (requires (typing_list g1 l t))
+      (ensures (typing_list g2 (subst_list s l) t))
+      (decreases %[1; is_renaming_size s; l])
+  =
+  match l with
   | [] -> ()
-  | hd :: tl ->
-    substitution_preserves_typing x tau_x hd v g tau;
-    substitution_preserves_typing_list x tau_x tl v g tau
-#pop-options
+  | hd::tl ->
+    substitution_preserves_typing g1 hd t s g2 s_lemma;
+    substitution_preserves_typing_list g1 tl t s g2 s_lemma
 
 (**** Preservation theorem *)
 
@@ -718,8 +683,12 @@ let rec preservation (e: exp) (tau: ty)
         if is_value e2
         then
           match e1 with
-          | EAbs (Named x) _ ebody -> substitution_preserves_typing x tau_arg ebody e2 empty tau
-          | EAbs Silent _ ebody -> ()
+          | EAbs  _ ebody ->
+            let s_lemma : subst_typing (var_to_exp_beta e2) (extend empty tau_arg) empty =
+              fun x -> ()
+            in
+            substitution_preserves_typing (extend empty tau_arg) ebody tau
+              (var_to_exp_beta e2) empty s_lemma
           | _ -> ()
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
@@ -764,11 +733,11 @@ and preservation_list
 
 (**** Other lemmas *)
 
-let typing_empty_can_be_extended (e: exp) (tau: ty) (v: nat) (tau': ty)
+let typing_empty_can_be_extended (e: exp) (tau: ty)  (tau': ty)
     : Lemma
       (requires (typing empty e tau))
-      (ensures (typing (extend empty v tau') e tau))
+      (ensures (typing (extend empty tau') e tau))
   =
-  context_invariance e empty (extend empty v tau') tau
+  admit()
 
 let is_error (e: exp) : bool = match e with ELit (LError _) -> true | _ -> false
