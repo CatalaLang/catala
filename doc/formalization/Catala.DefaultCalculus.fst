@@ -3,6 +3,8 @@ module Catala.DefaultCalculus
 open FStar.StrongExcludedMiddle
 module T = FStar.Tactics
 
+/// This whole proof is inspired by FStar/examples/metatheory/StlcStrongdbparsubst.fst
+
 (*** Syntax *)
 
 type ty =
@@ -235,7 +237,7 @@ val empty:env
 let empty = FunctionalExtensionality.on_dom var (fun _ -> None)
 
 val extend: env -> ty -> Tot env
-let extend g t = FunctionalExtensionality.on_dom var (fun x' -> if 0 = x' then Some t else g x')
+let extend g t = FunctionalExtensionality.on_dom var (fun x' -> if 0 = x' then Some t else g (x' - 1))
 
 (**** Typing judgment *)
 
@@ -391,6 +393,83 @@ and substitution_extensionnal_list
     substitution_extensionnal s1 s2 hd;
     substitution_extensionnal_list s1 s2 tl
 
+let subst_typing (s: var_to_exp) (g1: env) (g2: env) =
+  (x:var) ->  Lemma
+      (requires (Some? (g1 x)))
+      (ensures (typing g2 (s x) (Some?.v (g1 x))))
+
+let rec substitution_preserves_typing
+  (g1: env)
+  (e: exp)
+  (t: ty)
+  (s: var_to_exp)
+  (g2: env)
+  (s_lemma: subst_typing s g1 g2)
+    : Lemma
+      (requires (typing g1 e t))
+      (ensures (typing g2 (subst s e) t))
+      (decreases %[is_var_size e; is_renaming_size s; e])
+  =
+  match e with
+  | EVar x -> s_lemma x
+  | EApp e1 e2 t_arg ->
+    substitution_preserves_typing g1 e1 (TArrow t_arg t) s g2 s_lemma;
+    substitution_preserves_typing g1 e2 t_arg s g2 s_lemma
+  | EAbs t_arg e1 -> begin
+    match t with
+    | TArrow t_arg' t_out ->
+      if t_arg' <> t_arg then () else
+      let s_lemma' : subst_typing increment g2 (extend g2 t_arg) = fun x -> () in
+      let s_lemma'' : subst_typing (subst_abs s) (extend g1 t_arg) (extend g2 t_arg) = fun y ->
+        if y = 0 then () else
+        let n: var = y - 1 in
+        s_lemma n;
+        assert(typing g2 (s n) (Some?.v (g1 n)));
+        substitution_preserves_typing
+          g2
+          (s n)
+          (Some?.v (g1 n))
+          increment
+          (extend g2 t_arg)
+          s_lemma'
+      in
+      substitution_preserves_typing
+        (extend g1 t_arg)
+        e1
+        t_out
+        (subst_abs s)
+        (extend g2 t_arg)
+        s_lemma''
+    | _ -> ()
+  end
+  | ELit _ -> ()
+  | EIf e1 e2 e3 ->
+    substitution_preserves_typing g1 e1 TBool s g2 s_lemma;
+    substitution_preserves_typing g1 e2 t s g2 s_lemma;
+    substitution_preserves_typing g1 e3 t s g2 s_lemma
+  | EDefault exceptions just cons tau ->
+    if tau <> t then () else
+    substitution_preserves_typing_list g1 exceptions t s g2 s_lemma;
+    substitution_preserves_typing g1 just TBool s g2 s_lemma;
+    substitution_preserves_typing g1 cons t s g2 s_lemma
+and substitution_preserves_typing_list
+  (g1: env)
+  (l: list exp)
+  (t: ty)
+  (s: var_to_exp)
+  (g2: env)
+  (s_lemma: subst_typing s g1 g2)
+    : Lemma
+      (requires (typing_list g1 l t))
+      (ensures (typing_list g2 (subst_list s l) t))
+      (decreases %[1; is_renaming_size s; l])
+  =
+  match l with
+  | [] -> ()
+  | hd::tl ->
+    substitution_preserves_typing g1 hd t s g2 s_lemma;
+    substitution_preserves_typing_list g1 tl t s g2 s_lemma
+
 (**** Preservation theorem *)
 
 #push-options "--fuel 3 --ifuel 1 --z3rlimit 20"
@@ -411,7 +490,12 @@ let rec preservation (e: exp) (tau: ty)
         if is_value e2
         then
           match e1 with
-          | EAbs x _ ebody -> substitution_preserves_typing x tau_arg ebody e2 empty tau
+          | EAbs _ ebody ->
+            let s_lemma : subst_typing (var_to_exp_beta e2) (extend empty tau_arg) empty =
+              fun x -> ()
+            in
+            substitution_preserves_typing (extend empty tau_arg) ebody tau
+              (var_to_exp_beta e2) empty s_lemma
           | _ -> ()
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
