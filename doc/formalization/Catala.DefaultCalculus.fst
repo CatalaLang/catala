@@ -1,6 +1,7 @@
 module Catala.DefaultCalculus
 
 open FStar.StrongExcludedMiddle
+module T = FStar.Tactics
 
 (*** Syntax *)
 
@@ -58,7 +59,7 @@ let is_var_size (e: exp) : int = if EVar? e then 0 else 1
 let rec subst (s: var_to_exp) (e: exp) : Pure exp
       (requires True)
       (ensures (fun e' -> (is_renaming_prop s /\ EVar? e) ==> EVar? e'))
-      (decreases %[is_var_size e; is_renaming_size s; 2; e])
+      (decreases %[is_var_size e; is_renaming_size s; 1; e])
   =
   match e with
   | EVar x -> s x
@@ -67,17 +68,19 @@ let rec subst (s: var_to_exp) (e: exp) : Pure exp
   | ELit l -> ELit l
   | EIf e1 e2 e3 -> EIf (subst s e1) (subst s e2) (subst s e3)
   | EDefault exceptions ejust econd tau ->
-    EDefault (subst_list s e exceptions) (subst s ejust) (subst s econd) tau
-and subst_list (s: var_to_exp) (e: exp) (l: list exp{l << e}) : Tot (list exp)
-      (decreases %[is_var_size e; is_renaming_size s; 1; e; l]) =
+    EDefault (subst_list s exceptions) (subst s ejust) (subst s econd) tau
+and subst_list (s: var_to_exp) (l: list exp) : Tot (list exp)
+      (decreases %[1; is_renaming_size s; 1; l]) =
   match l with
   | [] -> []
-  | hd :: tl ->
-  (subst s hd) :: (subst_list s e tl)
+  | hd :: tl -> (subst s hd) :: (subst_list s tl)
 and subst_abs (s: var_to_exp) (y: var) : Tot (e':exp{is_renaming_prop s ==> EVar? e'})
-      (decreases %[1; is_renaming_size s; 0; EVar 0])
+      (decreases %[1; is_renaming_size s; 0])
   =
   if y = 0 then EVar y else subst increment (s (y -1))
+
+let var_to_exp_beta (v: exp) : Tot var_to_exp = fun y ->
+  if y = 0 then v else (EVar (y - 1))
 
 type empty_count_result =
   | AllEmpty
@@ -112,7 +115,7 @@ let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau
         | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
         | _ -> begin
           match e1 with
-          | EAbs x t e' -> Some (subst x e2 e') (* D-Beta *)
+          | EAbs t e1' -> Some (subst (var_to_exp_beta e2) e1') (* D-Beta *)
           | _ -> None
         end
       else
@@ -231,17 +234,17 @@ type env = FunctionalExtensionality.restricted_t var (fun _ -> option ty)
 val empty:env
 let empty = FunctionalExtensionality.on_dom var (fun _ -> None)
 
-val extend: env -> var -> ty -> Tot env
-let extend g x t = FunctionalExtensionality.on_dom var (fun x' -> if x = x' then Some t else g x')
+val extend: env -> ty -> Tot env
+let extend g t = FunctionalExtensionality.on_dom var (fun x' -> if 0 = x' then Some t else g x')
 
 (**** Typing judgment *)
 
 let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
   match e with
   | EVar x -> g x = Some tau
-  | EAbs x t e1 ->
+  | EAbs t e1 ->
     (match tau with
-      | TArrow tau_in tau_out -> t = tau_in && typing (extend g x t) e1 tau_out
+      | TArrow tau_in tau_out -> t = tau_in && typing (extend g t) e1 tau_out
       | _ -> false)
   | EApp e1 e2 tau_arg -> typing g e1 (TArrow tau_arg tau) && typing g e2 tau_arg
   | ELit LTrue -> tau = TBool
@@ -345,154 +348,48 @@ let rec empty_count_preserves_type (acc: empty_count_result) (subs: list exp) (g
     | _, AllEmpty -> empty_count_preserves_type (OneNonEmpty hd) tl g tau
     | _ -> ()
 
-let rec appears_free_in (x: var) (e: exp) : Tot bool =
+let rec substitution_extensionnal
+  (s1: var_to_exp)
+  (s2: var_to_exp{FStar.FunctionalExtensionality.feq s1 s2})
+  (e: exp)
+    : Lemma
+      (requires (True))
+      (ensures (subst s1 e == subst s2 e))
+      [SMTPat (subst s1 e); SMTPat (subst s2 e)]
+  =
   match e with
-  | EVar y -> x = y
-  | EApp e1 e2 tau_arg -> appears_free_in x e1 || appears_free_in x e2
-  | EAbs y _ e1 -> x <> y && appears_free_in x e1
-  | EIf e1 e2 e3 -> appears_free_in x e1 || appears_free_in x e2 || appears_free_in x e3
-  | EDefault exceptions ejust econs _ ->
-    appears_free_in_list x exceptions || appears_free_in x ejust || appears_free_in x econs
-  | ELit _ -> false
-and appears_free_in_list (x: var) (subs: list exp) : Tot bool =
-  match subs with
-  | [] -> false
-  | hd :: tl -> appears_free_in x hd || appears_free_in_list x tl
-
-#push-options "--fuel 2 --ifuel 1"
-let rec free_in_context (x: var) (e: exp) (g: env) (tau: ty)
-    : Lemma (requires (typing g e tau))
-      (ensures (appears_free_in x e ==> Some? (g x)))
-      (decreases e) =
-  match e with
-  | EVar _ | ELit _ -> ()
-  | EAbs y t e1 ->
-    (match tau with | TArrow _ tau_out -> free_in_context x e1 (extend g y t) tau_out)
-  | EApp e1 e2 tau_arg ->
-    free_in_context x e1 g (TArrow tau_arg tau);
-    free_in_context x e2 g tau_arg
-  | EIf e1 e2 e3 ->
-    free_in_context x e1 g TBool;
-    free_in_context x e2 g tau;
-    free_in_context x e3 g tau
-  | EDefault exceptions ejust econs _ ->
-    free_in_context x ejust g TBool;
-    free_in_context x econs g tau;
-    free_in_context_list x exceptions g tau
-and free_in_context_list (x: var) (subs: list exp) (g: env) (tau: ty)
-    : Lemma (requires (typing_list g subs tau))
-      (ensures (appears_free_in_list x subs ==> Some? (g x)))
-      (decreases subs) =
-  match subs with
-  | [] -> ()
-  | hd :: tl ->
-    free_in_context x hd g tau;
-    free_in_context_list x tl g tau
-#pop-options
-
-let typable_empty_closed (x: var) (e: exp) (tau: ty)
-    : Lemma (requires (typing empty e tau))
-      (ensures (not (appears_free_in x e)))
-      [SMTPat (appears_free_in x e); SMTPat (typing empty e tau)] = free_in_context x e empty tau
-
-(**** Context invariance *)
-
-type equal (g1: env) (g2: env) = forall (x: var). g1 x = g2 x
-
-type equalE (e: exp) (g1: env) (g2: env) = forall (x: var). appears_free_in x e ==> g1 x = g2 x
-
-type equalE_list (subs: list exp) (g1: env) (g2: env) =
-  forall (x: var). appears_free_in_list x subs ==> g1 x = g2 x
-
-#push-options "--fuel 2 --ifuel 1"
-let rec context_invariance (e: exp) (g g': env) (tau: ty)
-    : Lemma (requires (equalE e g g'))
-      (ensures (typing g e tau <==> typing g' e tau))
-      (decreases %[ e ]) =
-  match e with
-  | EAbs x t e1 ->
-    (match tau with
-      | TArrow _ tau_out -> context_invariance e1 (extend g x t) (extend g' x t) tau_out
-      | _ -> ())
-  | EApp e1 e2 tau_arg ->
-    context_invariance e1 g g' (TArrow tau_arg tau);
-    context_invariance e2 g g' tau_arg
-  | EIf e1 e2 e3 ->
-    context_invariance e1 g g' TBool;
-    context_invariance e2 g g' tau;
-    context_invariance e3 g g' tau
-  | EDefault exceptions ejust econs _ ->
-    context_invariance ejust g g' TBool;
-    context_invariance econs g g' tau;
-    context_invariance_list exceptions g g' tau
-  | _ -> ()
-and context_invariance_list (exceptions: list exp) (g g': env) (tau: ty)
-    : Lemma (requires (equalE_list exceptions g g'))
-      (ensures (typing_list g exceptions tau <==> typing_list g' exceptions tau))
-      (decreases %[ exceptions ]) =
-  match exceptions with
-  | [] -> ()
-  | hd :: tl ->
-    context_invariance hd g g' tau;
-    context_invariance_list tl g g' tau
-#pop-options
-
-let typing_extensional (g g': env) (e: exp) (tau: ty)
-    : Lemma (requires (equal g g')) (ensures (typing g e tau <==> typing g' e tau)) =
-  context_invariance e g g' tau
-
-(**** Substitution preservation *)
-
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 10"
-let rec substitution_preserves_typing (x: var) (tau_x: ty) (e v: exp) (g: env) (tau: ty)
-    : Lemma (requires (typing empty v tau_x /\ typing (extend g x tau_x) e tau))
-      (ensures (typing g (subst x v e) tau))
-      (decreases %[ e ]) =
-  let gx = extend g x tau_x in
-  match e with
+  | EVar _ -> ()
   | ELit _ -> ()
-  | EVar y -> if x = y then context_invariance v empty g tau else context_invariance e gx g tau
-  | EApp e1 e2 tau_arg ->
-    substitution_preserves_typing x tau_x e1 v g (TArrow tau_arg tau);
-    substitution_preserves_typing x tau_x e2 v g tau_arg
+  | EAbs t e1 ->
+    assert (subst s1 (EAbs t e1) == EAbs t (subst (subst_abs s1) e1))
+      by (T.norm [zeta; iota; delta_only [`%subst]]);
+    assert (subst s2 (EAbs t e1) == EAbs t (subst (subst_abs s2) e1))
+      by (T.norm [zeta; iota; delta_only [`%subst]]; T.smt ());
+    substitution_extensionnal (subst_abs s1) (subst_abs s2) e1
+  | EApp e1 e2 _ ->
+    substitution_extensionnal s1 s2 e1;
+    substitution_extensionnal s1 s2 e2
   | EIf e1 e2 e3 ->
-    substitution_preserves_typing x tau_x e1 v g TBool;
-    substitution_preserves_typing x tau_x e2 v g tau;
-    substitution_preserves_typing x tau_x e3 v g tau
-  | EAbs y t_y e1 ->
-    (match tau with
-      | TArrow tau_in tau_out ->
-        if tau_in = t_y
-        then
-          let gxy = extend gx y t_y in
-          let gy = extend g y t_y in
-          if x = y
-          then typing_extensional gxy gy e1 tau_out
-          else
-            let gyx = extend gy x tau_x in
-            typing_extensional gxy gyx e1 tau_out;
-            substitution_preserves_typing x tau_x e1 v gy tau_out
-      | _ -> ())
-  | EDefault exceptions ejust econs _ ->
-    substitution_preserves_typing x tau_x ejust v g TBool;
-    substitution_preserves_typing x tau_x econs v g tau;
-    substitution_preserves_typing_list x tau_x exceptions v g tau
-and substitution_preserves_typing_list
-      (x: var)
-      (tau_x: ty)
-      (exceptions: list exp)
-      (v: exp)
-      (g: env)
-      (tau: ty)
-    : Lemma (requires (typing empty v tau_x /\ typing_list (extend g x tau_x) exceptions tau))
-      (ensures (typing_list g (subst_list x v exceptions) tau))
-      (decreases (%[ exceptions ])) =
-  match exceptions with
+    substitution_extensionnal s1 s2 e1;
+    substitution_extensionnal s1 s2 e2;
+    substitution_extensionnal s1 s2 e3
+  | EDefault exceptions just cons _ ->
+    substitution_extensionnal_list s1 s2 exceptions;
+    substitution_extensionnal s1 s2 just;
+    substitution_extensionnal s1 s2 cons
+and substitution_extensionnal_list
+  (s1: var_to_exp)
+  (s2: var_to_exp{FStar.FunctionalExtensionality.feq s1 s2})
+  (l: list exp)
+    : Lemma
+      (requires (True))
+      (ensures (subst_list s1 l == subst_list s2 l))
+  =
+  match l with
   | [] -> ()
-  | hd :: tl ->
-    substitution_preserves_typing x tau_x hd v g tau;
-    substitution_preserves_typing_list x tau_x tl v g tau
-#pop-options
+  | hd::tl ->
+    substitution_extensionnal s1 s2 hd;
+    substitution_extensionnal_list s1 s2 tl
 
 (**** Preservation theorem *)
 
