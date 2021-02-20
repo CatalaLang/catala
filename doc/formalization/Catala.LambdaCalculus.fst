@@ -31,6 +31,7 @@ type exp =
   | EVar : v: var -> exp
   | EApp : fn: exp -> arg: exp -> tau_arg: ty -> exp
   | EAbs : vty: ty -> body: exp -> exp
+  | EThunk : body:exp -> exp
   | ELit : l: lit -> exp
   | EIf : test: exp -> btrue: exp -> bfalse: exp -> exp
   | ESome : s:exp -> exp
@@ -51,7 +52,7 @@ let e_err = ELit (LError EmptyError)
 val is_value: exp -> Tot bool
 let rec is_value e =
   match e with
-  | EAbs _ _ | ELit _ | ENone -> true
+  | EAbs _ _ | EThunk _ | ELit _ | ENone -> true
   | ESome (ELit (LError _)) -> false
   | ESome e' -> is_value e'
   | EList l -> is_value_list l
@@ -86,6 +87,7 @@ let rec subst (s: var_to_exp) (e: exp) : Pure exp
   match e with
   | EVar x -> s x
   | EAbs t e1 -> EAbs t (subst (subst_abs s) e1)
+  | EThunk e1 -> EThunk (subst s e1)
   | EApp e1 e2 tau_arg -> EApp (subst s e1) (subst s e2) tau_arg
   | ELit l -> ELit l
   | EIf e1 e2 e3 -> EIf (subst s e1) (subst s e2) (subst s e3)
@@ -136,6 +138,7 @@ let rec step_app (e: exp) (e1: exp{e1 << e}) (e2: exp{e2 << e}) (tau_arg: ty{tau
         | _ -> begin
           match e1 with
           | EAbs t e' -> Some (subst (var_to_exp_beta e2) e') (* D-Beta *)
+          | EThunk e' -> Some e'
           | _ -> None
         end
       else
@@ -305,6 +308,10 @@ let rec typing (g: env) (e: exp) (tau: ty) : Tot bool (decreases (e)) =
       | TArrow tau_in tau_out -> t = tau_in &&
         typing (extend g t) e1 tau_out
       | _ -> false)
+  | EThunk e1 ->
+    (match tau with
+      | TArrow TUnit tau_out -> typing g e1 tau_out
+      | _ -> false)
   | EApp e1 e2 tau_arg -> typing g e1 (TArrow tau_arg tau) && typing g e2 tau_arg
   | ELit LTrue -> tau = TBool
   | ELit LFalse -> tau = TBool
@@ -362,10 +369,12 @@ let typing_conserved_by_list_reduction (g: env) (subs: list exp) (tau: ty)
 
 (**** Progress theorem *)
 
-let rec size_for_progress (e: exp) : Tot pos = match e with
+let rec size_for_progress (e: exp) : Tot pos =
+  match e with
   | EVar _ -> 1
   | EApp fn arg _ -> size_for_progress fn + size_for_progress arg + 1
   | EAbs _ body -> size_for_progress body + 1
+  | EThunk body -> size_for_progress body + 1
   | ELit _ -> 1
   | EIf e1 e2 e3 -> size_for_progress e1 + size_for_progress e2 + size_for_progress e3 + 1
   | ESome s -> size_for_progress s + 1
@@ -497,7 +506,6 @@ let rec progress (e: exp) (tau: ty)
      end
   end
   | _ -> ()
-
 and progress_list
   (e: exp)
   (l: list exp{size_for_progress_list l < size_for_progress e /\ l << e}) (tau: ty)
@@ -528,6 +536,7 @@ let rec substitution_extensionnal
   match e with
   | EVar _ -> ()
   | ELit _ -> ()
+  | EThunk e1 -> substitution_extensionnal s1 s2 e1
   | EAbs t e1 ->
     assert (subst s1 (EAbs t e1) == EAbs t (subst (subst_abs s1) e1))
       by (T.norm [zeta; iota; delta_only [`%subst]]);
@@ -591,6 +600,12 @@ let rec substitution_preserves_typing
   | EApp e1 e2 t_arg ->
     substitution_preserves_typing g1 e1 (TArrow t_arg t) s g2 s_lemma;
     substitution_preserves_typing g1 e2 t_arg s g2 s_lemma
+  | EThunk e1 -> begin
+    match t with
+    | TArrow TUnit t_out ->
+      substitution_preserves_typing g1 e1 t_out s g2 s_lemma
+    | _ -> ()
+  end
   | EAbs t_arg e1 -> begin
     match t with
     | TArrow t_arg' t_out ->
@@ -736,22 +751,24 @@ and preservation_list
 let identity_var_to_exp : var_to_exp = fun x -> EVar x
 
 let rec subst_by_identity_is_identity (e: exp) : Lemma (subst identity_var_to_exp e == e) =
-  match e with 
+  match e with
   | EVar _ -> ()
   | ELit _ -> ()
-  | EApp e1 e2 _ -> 
+  | EApp e1 e2 _ ->
     subst_by_identity_is_identity e1;
     subst_by_identity_is_identity e2
+  | EThunk e1 ->
+    subst_by_identity_is_identity e1
   | EAbs t e1 ->
     subst_by_identity_is_identity e1
   | ENone -> ()
-  | ESome e1 -> 
+  | ESome e1 ->
     subst_by_identity_is_identity e1
   | EIf e1 e2 e3 ->
     subst_by_identity_is_identity e1;
     subst_by_identity_is_identity e2;
     subst_by_identity_is_identity e3
-  | EList l -> 
+  | EList l ->
     subst_by_identity_is_identity_list l
   | ECatchEmptyError to_try catch_with ->
     subst_by_identity_is_identity to_try;
@@ -766,7 +783,7 @@ let rec subst_by_identity_is_identity (e: exp) : Lemma (subst identity_var_to_ex
     subst_by_identity_is_identity some
 and subst_by_identity_is_identity_list (l: list exp) : Lemma (subst_list identity_var_to_exp l == l)
   =
-  match l with 
+  match l with
   | [] -> ()
   | hd::tl ->
     subst_by_identity_is_identity hd;
@@ -779,7 +796,7 @@ let typing_empty_can_be_extended (e: exp) (tau: ty)  (tau': ty)
       (ensures (typing (extend empty tau') e tau))
   =
   subst_by_identity_is_identity e;
-  let s_lemma : subst_typing identity_var_to_exp empty (extend empty tau') = fun x -> () in 
+  let s_lemma : subst_typing identity_var_to_exp empty (extend empty tau') = fun x -> () in
   substitution_preserves_typing empty e tau identity_var_to_exp (extend empty tau') s_lemma
 
 let is_error (e: exp) : bool = match e with ELit (LError _) -> true | _ -> false

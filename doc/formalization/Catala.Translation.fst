@@ -82,7 +82,7 @@ let rec translate_exp (e: D.exp) : Tot L.exp = match e with
 and translate_exp_list (l: list D.exp) : Tot (list L.exp) =
   match l with
   | [] -> []
-  | hd::tl -> (L.EAbs L.TUnit (L.subst L.increment (translate_exp hd)))::(translate_exp_list tl)
+  | hd::tl -> (L.EThunk (translate_exp hd))::(translate_exp_list tl)
 
 let translate_env (g: D.env) : Tot L.env =
  FunctionalExtensionality.on_dom L.var
@@ -201,9 +201,7 @@ and translation_preserves_typ_exceptions
     let thunked_tau' = L.TArrow L.TUnit tau' in
     assert(L.typing_list g' tl' thunked_tau');
     assert(L.typing g' hd' tau');
-    assert(L.typing g' hd' tau');
-    L.substitution_preserves_typing g' hd' tau' L.increment (L.extend g' L.TUnit) (fun x -> ());
-    assert(L.typing g' (L.EAbs L.TUnit (L.subst L.increment hd')) thunked_tau')
+    assert(L.typing g' (L.EThunk hd') thunked_tau')
 #pop-options
 
 let translation_preserves_empty_typ (e: D.exp) (tau: D.ty) : Lemma
@@ -281,6 +279,7 @@ let rec l_values_dont_step (e: L.exp) : Lemma
   =
   match e with
   | L.EAbs _ _ -> ()
+  | L.EThunk _ -> ()
   | L.ELit _ -> ()
   | L.ENone -> ()
   | L.EList [] -> ()
@@ -334,98 +333,6 @@ let process_exceptions_untouched_by_subst (s: L.var_to_exp) (tau: L.ty) : Lemma
 
 let translate_var_to_exp (s: D.var_to_exp) : Tot L.var_to_exp = fun x -> translate_exp (s x)
 
-let double_increment : L.var_to_exp = fun y -> L.EVar (y + 2)
-
-let subst_abs_increment (x: L.var) =
-  if x = 0 then L.EVar 0 else L.EVar (x + 1)
-
-let dual_substitution_commutation_weakened
-  (s : L.var_to_exp{s 0 == L.EVar 0})
-  (e: L.exp)
-    : Lemma (L.subst subst_abs_increment (L.subst s e) ==
-      L.subst (L.subst_abs s) (L.subst subst_abs_increment e))
-  =
-  admit() // TODO
-
-let substitution_commutation_bonanza
-  (s: L.var_to_exp)
-  (e: L.exp)
-    : Lemma (L.subst (L.subst_abs L.increment) (L.subst (L.subst_abs s) e) ==
-      L.subst (L.subst_abs (L.subst_abs s)) (L.subst (L.subst_abs L.increment) e))
-  =
-  let aux (x: L.var) : Lemma ((L.subst_abs L.increment) x == subst_abs_increment x) = () in
-  Classical.forall_intro aux;
-  dual_substitution_commutation_weakened (L.subst_abs s) e
-
-#push-options "--fuel 3 --ifuel 1 --z3rlimit 40"
-let rec substitution_correctness_for_exception_thunking
-  (s: L.var_to_exp)
-  (e: L.exp)
-    : Lemma (
-      (L.EAbs L.TUnit (L.subst L.increment (L.subst s e))) ==
-      (L.subst s (L.EAbs L.TUnit (L.subst L.increment e)))
-    )
-  =
-  match e with
-  | L.EVar _ -> ()
-  | L.EAbs t body ->
-    // Top to down
-    assert(L.subst s e == L.EAbs t (L.subst (L.subst_abs s) body));
-    assert(L.subst L.increment (L.subst s e) ==
-      L.EAbs t (L.subst (L.subst_abs L.increment) (L.subst (L.subst_abs s) body)));
-    assert(L.EAbs L.TUnit (L.subst L.increment (L.subst s e)) ==
-      L.EAbs L.TUnit
-        (L.EAbs t (L.subst (L.subst_abs L.increment) (L.subst (L.subst_abs s) body))));
-    // Down to top
-    assert(L.subst L.increment e == L.EAbs t (L.subst (L.subst_abs L.increment) body));
-    assert(L.EAbs L.TUnit (L.subst L.increment e) ==
-      L.EAbs L.TUnit (L.EAbs t (L.subst (L.subst_abs L.increment) body)));
-    assert(L.subst s (L.EAbs L.TUnit (L.subst L.increment e)) ==
-      L.EAbs L.TUnit
-        (L.subst (L.subst_abs s) (L.EAbs t (L.subst (L.subst_abs L.increment) body))));
-    assert(L.subst s (L.EAbs L.TUnit (L.subst L.increment e)) ==
-      L.EAbs L.TUnit
-        (L.EAbs t
-          (L.subst (L.subst_abs (L.subst_abs s)) (L.subst (L.subst_abs L.increment) body))));
-    substitution_commutation_bonanza s body
-  | L.EApp e1 e2 _ ->
-    substitution_correctness_for_exception_thunking s e1;
-    substitution_correctness_for_exception_thunking s e2
-  | L.ELit _ -> ()
-  | L.EIf e1 e2 e3 ->
-    substitution_correctness_for_exception_thunking s e1;
-    substitution_correctness_for_exception_thunking s e2;
-    substitution_correctness_for_exception_thunking s e3
-  | L.ESome e1 -> substitution_correctness_for_exception_thunking s e1
-  | L.ENone -> ()
-  | L.EMatchOption e1 _ e2 e3 ->
-    substitution_correctness_for_exception_thunking s e1;
-    substitution_correctness_for_exception_thunking s e2;
-    substitution_correctness_for_exception_thunking s e3
-  | L.ECatchEmptyError e1 e2 ->
-    substitution_correctness_for_exception_thunking s e1;
-    substitution_correctness_for_exception_thunking s e2
-  | L.EFoldLeft e1 e2 _ e3 _ ->
-    substitution_correctness_for_exception_thunking s e1;
-    substitution_correctness_for_exception_thunking s e2;
-    substitution_correctness_for_exception_thunking s e3
-  | L.EList l ->
-    substitution_correctness_for_exception_thunking_list s l
-and substitution_correctness_for_exception_thunking_list
-  (s: L.var_to_exp)
-  (l: list L.exp)
-    : Lemma (
-      (L.EAbs L.TUnit (L.subst L.increment (L.subst s (L.EList l)))) ==
-      (L.subst s (L.EAbs L.TUnit (L.subst L.increment (L.EList l))))
-    )
-  =
-  match l with
-  | [] -> ()
-  | hd::tl ->
-    substitution_correctness_for_exception_thunking s hd;
-    substitution_correctness_for_exception_thunking_list s tl
-#pop-options
-
 #push-options "--fuel 3 --ifuel 1 --z3rlimit 50"
 let rec substitution_correctness (s: D.var_to_exp) (e: D.exp)
     : Lemma (ensures (
@@ -462,8 +369,7 @@ and substitution_correctness_list (s: D.var_to_exp) (l: list D.exp)
  | hd::tl ->
    let s' = translate_var_to_exp s in
    substitution_correctness_list s tl;
-   substitution_correctness s hd;
-   substitution_correctness_for_exception_thunking s' (translate_exp hd)
+   substitution_correctness s hd
 and translate_var_to_exp_abs_commute (s: D.var_to_exp)
     : Lemma
       (ensures (
@@ -789,10 +695,6 @@ let process_exceptions_applied_stepping
     : Lemma (take_l_steps (L.TOption tau) (process_exceptions_applied tau acc hd) 3 ==
       Some (process_exceptions_applied_stepped tau acc hd))
   =
-  let e = 1 in
-  let e' = 2 in
-  let a' = 3 in
-  let e'' = 4 in
   let e1 : L.exp =
     L.EApp
       (L.EAbs (L.TArrow L.TUnit tau) (
@@ -805,11 +707,11 @@ let process_exceptions_applied_stepping
             (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
         ))
     ))
-    (L.ECatchEmptyError (L.ESome (L.EApp (L.EVar e) (L.ELit L.LUnit) L.TUnit)) L.ENone)
+    (L.ECatchEmptyError (L.ESome (L.EApp (L.EVar 0) (L.ELit L.LUnit) L.TUnit)) L.ENone)
     (L.TOption tau)
   )
       )
-      (L.EAbs L.TUnit hd) (L.TArrow L.TUnit tau)
+      (L.EThunk hd) (L.TArrow L.TUnit tau)
   in
   let e2 =
     L.EApp (L.EAbs (L.TOption tau) (
@@ -821,12 +723,12 @@ let process_exceptions_applied_stepping
             (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
         ))
     ))
-    (L.ECatchEmptyError (L.ESome (L.EApp (L.EAbs L.TUnit hd) (L.ELit L.LUnit) L.TUnit)) L.ENone)
+    (L.ECatchEmptyError (L.ESome (L.EApp (L.EThunk hd) (L.ELit L.LUnit) L.TUnit)) L.ENone)
     (L.TOption tau)
 
   in
   assume(L.step (process_exceptions_applied tau acc hd) == Some e1);
-  assume(L.step e1 == Some e2);
+  assert(L.step e1 == Some e2);
   admit()
 #pop-options
 
@@ -843,16 +745,14 @@ let lift_multiple_l_steps_exceptions_head
     : Lemma
       (requires (take_l_steps tau hd n_hd == Some final_hd /\ L.is_value acc))
       (ensures (
-        L.typing_empty_can_be_extended hd tau L.TUnit;
         build_default_translation_typing
-          ((L.EAbs L.TUnit hd)::tl) acc just cons tau L.empty;
+          ((L.EThunk hd)::tl) acc just cons tau L.empty;
         take_l_steps tau
-          (build_default_translation ((L.EAbs L.TUnit hd)::tl) acc just cons tau)
+          (build_default_translation ((L.EThunk hd)::tl) acc just cons tau)
           (n_hd + 4) ==
             Some (exceptions_head_lift tau tl acc just cons final_hd)))
   =
-  L.typing_empty_can_be_extended hd tau L.TUnit;
-  build_default_translation_typing ((L.EAbs L.TUnit hd)::tl) acc just cons tau L.empty;
+  build_default_translation_typing ((L.EThunk hd)::tl) acc just cons tau L.empty;
   let e' = 2 in
   let a' = 3 in
   let e'' = 4 in
@@ -866,10 +766,10 @@ let lift_multiple_l_steps_exceptions_head
   in
   let init = L.EApp
     (L.EApp (process_exceptions_f tau) acc (L.TOption tau))
-    (L.EAbs L.TUnit hd) (L.TArrow L.TUnit tau)
+    (L.EThunk hd) (L.TArrow L.TUnit tau)
   in
-  let open FStar.Tactics in
   admit();
+  let open FStar.Tactics in
   assert(take_l_steps (L.TOption tau) init 3 == Some init_stepped) by begin
     compute ()
   end;
@@ -1016,6 +916,7 @@ let rec translation_correctness_exceptions_left_to_right_step
         let ltau = translate_ty dtau in
         translation_preserves_empty_typ de' dtau;
         admit();
+        build_default_translation_typing lcurrent L.ENone ljust lcons ltau L.empty;
         take_l_steps ltau (build_default_translation lcurrent L.ENone ljust lcons ltau)
           n1 == Some target_e /\
         take_l_steps ltau le' n2 == Some target_e
