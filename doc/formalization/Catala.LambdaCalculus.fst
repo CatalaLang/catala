@@ -733,11 +733,53 @@ and preservation_list
 
 (**** Other lemmas *)
 
+let identity_var_to_exp : var_to_exp = fun x -> EVar x
+
+let rec subst_by_identity_is_identity (e: exp) : Lemma (subst identity_var_to_exp e == e) =
+  match e with 
+  | EVar _ -> ()
+  | ELit _ -> ()
+  | EApp e1 e2 _ -> 
+    subst_by_identity_is_identity e1;
+    subst_by_identity_is_identity e2
+  | EAbs t e1 ->
+    subst_by_identity_is_identity e1
+  | ENone -> ()
+  | ESome e1 -> 
+    subst_by_identity_is_identity e1
+  | EIf e1 e2 e3 ->
+    subst_by_identity_is_identity e1;
+    subst_by_identity_is_identity e2;
+    subst_by_identity_is_identity e3
+  | EList l -> 
+    subst_by_identity_is_identity_list l
+  | ECatchEmptyError to_try catch_with ->
+    subst_by_identity_is_identity to_try;
+    subst_by_identity_is_identity catch_with
+  | EFoldLeft f init _ l _ ->
+    subst_by_identity_is_identity f;
+    subst_by_identity_is_identity init;
+    subst_by_identity_is_identity l
+  | EMatchOption arg _ none some ->
+    subst_by_identity_is_identity arg;
+    subst_by_identity_is_identity none;
+    subst_by_identity_is_identity some
+and subst_by_identity_is_identity_list (l: list exp) : Lemma (subst_list identity_var_to_exp l == l)
+  =
+  match l with 
+  | [] -> ()
+  | hd::tl ->
+    subst_by_identity_is_identity hd;
+    subst_by_identity_is_identity_list tl
+
+
 let typing_empty_can_be_extended (e: exp) (tau: ty)  (tau': ty)
     : Lemma
       (requires (typing empty e tau))
       (ensures (typing (extend empty tau') e tau))
   =
-  admit()
+  subst_by_identity_is_identity e;
+  let s_lemma : subst_typing identity_var_to_exp empty (extend empty tau') = fun x -> () in 
+  substitution_preserves_typing empty e tau identity_var_to_exp (extend empty tau') s_lemma
 
 let is_error (e: exp) : bool = match e with ELit (LError _) -> true | _ -> false
