@@ -790,13 +790,13 @@ and subst_by_identity_is_identity_list (l: list exp) : Lemma (subst_list identit
     subst_by_identity_is_identity_list tl
 
 
-let typing_empty_can_be_extended (e: exp) (tau: ty)  (tau': ty)
+let typing_empty_can_be_extended (e: exp) (tau: ty) (g: env)
     : Lemma
       (requires (typing empty e tau))
-      (ensures (typing (extend empty tau') e tau))
+      (ensures (typing g e tau))
   =
   subst_by_identity_is_identity e;
-  let s_lemma : subst_typing identity_var_to_exp empty (extend empty tau') = fun x -> () in
-  substitution_preserves_typing empty e tau identity_var_to_exp (extend empty tau') s_lemma
+  let s_lemma : subst_typing identity_var_to_exp empty g = fun x -> () in
+  substitution_preserves_typing empty e tau identity_var_to_exp g s_lemma
 
 let is_error (e: exp) : bool = match e with ELit (LError _) -> true | _ -> false

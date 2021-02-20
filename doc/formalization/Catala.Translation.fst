@@ -548,7 +548,9 @@ let exceptions_head_lift'
   =
   fun (hd: typed_l_exp tau) ->
     typ_process_exceptions_f L.empty tau;
-    L.typing_empty_can_be_extended acc (L.TOption tau) (L.TOption tau);
+    L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
+    L.typing_empty_can_be_extended acc (L.TOption tau)
+    (L.extend (L.extend L.empty (L.TOption tau)) tau);
     L.EMatchOption
     (L.EFoldLeft
       (process_exceptions_f tau)
@@ -558,7 +560,7 @@ let exceptions_head_lift'
             (L.EVar 0)
             (L.EAbs tau (
               L.EMatchOption (L.EVar 1) tau
-                L.ENone
+                acc
                 (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
             ))
          ))
@@ -661,10 +663,10 @@ let process_exceptions_applied
     : Tot (typed_l_exp (L.TOption tau))
   =
   typ_process_exceptions_f L.empty tau;
-  L.typing_empty_can_be_extended hd tau L.TUnit;
+  L.typing_empty_can_be_extended hd tau (L.extend L.empty L.TUnit);
   L.EApp
    (L.EApp (process_exceptions_f tau) acc (L.TOption tau))
-   (L.EAbs L.TUnit hd) (L.TArrow L.TUnit tau)
+   (L.EThunk hd) (L.TArrow L.TUnit tau)
 
 
 #push-options "--fuel 7 --ifuel 2"
@@ -674,20 +676,19 @@ let process_exceptions_applied_stepped
   (hd: typed_l_exp tau)
     : Tot (typed_l_exp (L.TOption tau))
   =
-  let e' = 2 in
-  let a' = 3 in
-  let e'' = 4 in
-  L.typing_empty_can_be_extended acc (L.TOption tau) (L.TOption tau);
+  L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
+  L.typing_empty_can_be_extended acc (L.TOption tau)
+   (L.extend (L.extend L.empty (L.TOption tau)) tau);
   L.EApp (L.EAbs (L.TOption tau) (
     L.EMatchOption acc tau (L.EVar 0) (L.EAbs tau (
-      L.EMatchOption (L.EVar 1) tau L.ENone (L.EAbs  tau
+      L.EMatchOption (L.EVar 1) tau acc (L.EAbs  tau
         (L.ELit (L.LError L.ConflictError))
       )
     ))))
     (L.ECatchEmptyError (L.ESome hd) L.ENone) (L.TOption tau)
 #pop-options
 
-#push-options "--fuel 9 --ifuel 2 --z3rlimit 70"
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 50"
 let process_exceptions_applied_stepping
   (tau: L.ty)
   (acc: typed_l_exp (L.TOption tau){L.is_value acc /\ not (L.is_error acc)})
@@ -727,8 +728,25 @@ let process_exceptions_applied_stepping
     (L.TOption tau)
 
   in
-  assume(L.step (process_exceptions_applied tau acc hd) == Some e1);
-  assert(L.step e1 == Some e2);
+  assume(forall (s: L.var_to_exp). {:pattern (L.subst s acc) } L.subst s acc == acc);
+  assume(forall (s: L.var_to_exp). {:pattern (L.subst s (L.EThunk hd)) } L.subst s (L.EThunk hd) == (L.EThunk hd));
+  assert_norm(L.step (process_exceptions_applied tau acc hd) == Some e1);
+  assume(L.step e1 == Some e2);
+  let e3 =
+    L.EApp (L.EAbs (L.TOption tau) (
+      L.EMatchOption acc tau
+        (L.EVar 0)
+        (L.EAbs tau (
+          L.EMatchOption (L.EVar 1) tau
+            acc
+            (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
+        ))
+    ))
+    (L.ECatchEmptyError (L.ESome hd) L.ENone)
+    (L.TOption tau)
+  in
+  assert_norm(L.step e2 == Some e3);
+  // Mostly proven?
   admit()
 #pop-options
 
@@ -756,9 +774,12 @@ let lift_multiple_l_steps_exceptions_head
   let e' = 2 in
   let a' = 3 in
   let e'' = 4 in
-  let init_stepped = L.EApp (L.EAbs (L.TOption tau) (
+  L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
+  L.typing_empty_can_be_extended acc (L.TOption tau)
+   (L.extend (L.extend L.empty (L.TOption tau)) tau);
+  let init_stepped : typed_l_exp (L.TOption tau) = L.EApp (L.EAbs (L.TOption tau) (
     L.EMatchOption acc tau (L.EVar 0) (L.EAbs tau (
-      L.EMatchOption (L.EVar 1) tau L.ENone (L.EAbs tau
+      L.EMatchOption (L.EVar 1) tau acc (L.EAbs tau
         (L.ELit (L.LError L.ConflictError))
       )
     ))))
@@ -768,14 +789,13 @@ let lift_multiple_l_steps_exceptions_head
     (L.EApp (process_exceptions_f tau) acc (L.TOption tau))
     (L.EThunk hd) (L.TArrow L.TUnit tau)
   in
-  admit();
   let open FStar.Tactics in
   assert(take_l_steps (L.TOption tau) init 3 == Some init_stepped) by begin
-    compute ()
+    compute ();
+    tadmit ()
   end;
-  admit();
   let default_translation: typed_l_exp tau =
-    build_default_translation ((L.EAbs L.TUnit hd)::tl) acc just cons tau
+    build_default_translation ((L.EThunk hd)::tl) acc just cons tau
   in
   let default_translation_stepped = L.EMatchOption
     (L.EFoldLeft
@@ -789,9 +809,10 @@ let lift_multiple_l_steps_exceptions_head
     (L.EAbs tau (L.EVar 0))
   in
   assert(take_l_steps tau default_translation 1 == Some default_translation_stepped);
+  admit();
   assert(default_translation_stepped == exceptions_init_lift tau tl just cons
     (L.EApp (L.EApp (process_exceptions_f tau) L.ENone (L.TOption tau))
-      (L.EAbs L.TUnit hd) (L.TArrow L.TUnit tau)));
+      (L.EThunk hd) (L.TArrow L.TUnit tau)));
   lift_multiple_l_steps (L.TOption tau) tau init init_stepped 3
     (exceptions_init_lift tau tl just cons);
   assert(take_l_steps tau default_translation_stepped 3 ==
