@@ -629,6 +629,70 @@ let rec translation_correctness_exceptions_left_to_right_step
     end
 #pop-options
 
+let dacc_lacc_sync
+  (dtau: D.ty)
+  (dacc: D.empty_count_result)
+  (lacc: typed_l_exp (L.TOption (translate_ty dtau)))
+    : Tot prop
+  =
+  match dacc, lacc with
+  | D.AllEmpty, L.ENone -> True
+  | D.OneNonEmpty de', L.ESome le' -> le' == translate_exp de'
+  | D.Conflict, L.ELit (L.LError L.ConflictError) -> True
+  | _ -> False
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
+let rec translation_correctness_exceptions_empty_count_exception_triggered
+  (de: D.exp)
+  (dexceptions: list D.exp {dexceptions << de})
+  (djust: D.exp{djust << de})
+  (dcons: D.exp{dcons << de})
+  (dtau: D.ty)
+  (dacc: D.empty_count_result)
+  (lacc: typed_l_exp (L.TOption (translate_ty dtau)))
+  (rec_lemma: rec_correctness_step_type de)
+    : Pure (nat & typed_l_exp (translate_ty dtau))
+      (requires (
+        D.typing D.empty de dtau /\
+        D.typing_list D.empty dexceptions dtau /\
+        D.typing D.empty djust D.TBool /\
+        D.typing D.empty dcons dtau /\
+        dacc_lacc_sync dtau dacc lacc /\
+        Some? (D.step de) /\
+        List.Tot.for_all (fun except -> D.is_value except) dexceptions /\
+        (D.step de == (match D.empty_count dacc dexceptions with
+          | D.AllEmpty -> None
+          | D.OneNonEmpty e' -> Some e'
+          | D.Conflict -> Some (D.ELit D.LConflictError)))
+      ))
+      (ensures (fun (n, target_e) ->
+        translate_empty_is_empty ();
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        translation_preserves_empty_typ djust D.TBool;
+        translation_preserves_empty_typ dcons dtau;
+        let Some de' = D.step de in
+        D.preservation de dtau;
+        translation_preserves_empty_typ de' dtau;
+        let le' = translate_exp de' in
+        let lexceptions = translate_exp_list dexceptions in
+        let ljust = translate_exp djust in
+        let lcons = translate_exp dcons in
+        let ltau = translate_ty dtau in
+        let l_err : typed_l_exp ltau = L.ELit (L.LError L.ConflictError) in
+        build_default_translation_typing lexceptions lacc ljust lcons ltau L.empty;
+        take_l_steps ltau (build_default_translation lexceptions lacc ljust lcons ltau) n
+          == Some target_e /\
+        (match D.empty_count dacc dexceptions with
+          | D.AllEmpty -> False
+          | D.OneNonEmpty e' -> translate_exp e' == target_e
+          | D.Conflict -> l_err == target_e)
+      ))
+      (decreases dexceptions)
+  =
+  match dexceptions with
+  | [] -> admit()
+  | dhd::dtl -> admit()
+#pop-options
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 50"
 let translation_correctness_exceptions_step
@@ -660,9 +724,12 @@ let translation_correctness_exceptions_step
       take_l_steps ltau le' n2 == Some target_e
       ))
   =
-  if List.Tot.for_all (fun except -> D.is_value except) dexceptions then
-    admit()
-  else
+  if List.Tot.for_all (fun except -> D.is_value except) dexceptions then begin
+    let n1, target_e = translation_correctness_exceptions_empty_count_exception_triggered
+      de dexceptions djust dcons dtau D.AllEmpty L.ENone rec_lemma
+    in
+    n1, target_e, 0
+  end else
     translation_correctness_exceptions_left_to_right_step
       de dexceptions djust dcons dtau L.ENone rec_lemma
 
