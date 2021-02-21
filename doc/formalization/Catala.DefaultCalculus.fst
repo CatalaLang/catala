@@ -89,6 +89,11 @@ type empty_count_result =
   | OneNonEmpty of exp
   | Conflict
 
+type exceptions_count_result =
+  | NoStep
+  | IllFormed
+  | SomeStep of exp
+
 let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_result (decreases l) =
   match l with
   | [] -> acc
@@ -178,14 +183,17 @@ and step_exceptions
       (just: exp{just << e})
       (cons: exp{cons << e})
       (tau: ty)
-    : Tot (option exp) (decreases %[ e; 3 ]) =
-  if List.Tot.for_all (fun except -> is_value except) exceptions
+    : Tot exceptions_count_result (decreases %[ e; 3 ]) =
+  if List.Tot.for_all is_value exceptions
   then
     match empty_count AllEmpty exceptions with
-    | AllEmpty -> None
-    | OneNonEmpty e' -> Some e' (* D-DefaultOneException *)
-    | Conflict -> Some (ELit LConflictError) (* D-DefaultExceptionConflict *)
-  else step_exceptions_left_to_right e exceptions just cons tau
+    | AllEmpty -> NoStep
+    | OneNonEmpty e' -> SomeStep e' (* D-DefaultOneException *)
+    | Conflict -> SomeStep (ELit LConflictError) (* D-DefaultExceptionConflict *)
+  else
+    match step_exceptions_left_to_right e exceptions just cons tau with
+    | None -> IllFormed
+    | Some e' -> SomeStep e'
 
 and step_default
   (e: exp)
@@ -195,22 +203,16 @@ and step_default
   (tau: ty)
     : Tot (option exp) (decreases %[ e; 4 ]) =
   match step_exceptions e exceptions just cons tau with
-  | Some e' -> Some e'
-  | None ->
+  | IllFormed -> None
+  | SomeStep e' -> Some e'
+  | NoStep ->
     if is_value just then
       match just with
       | ELit LConflictError -> Some c_err  (* D-ContextConflictError *)
       | ELit LEmptyError -> Some e_err (* D-ContextEmptyError *)
       | _ ->
         match just with
-        | ELit LTrue ->
-          if is_value cons
-          then Some cons
-          else
-            (match (step cons) with
-              | Some (ELit LConflictError) -> Some c_err  (* D-ContextConflictError *)
-              | Some cons' -> Some (EDefault exceptions just cons' tau) (* D-DefaultTrueNoExceptions*)
-              | None -> None)
+        | ELit LTrue -> Some cons (* D-DefaultTrueNoExceptions*)
         | ELit LFalse -> Some e_err (* D-DefaultFalseNoExceptions *)
         | _ -> None
   else
@@ -282,7 +284,7 @@ let typing_conserved_by_list_reduction (g: env) (subs: list exp) (tau: ty)
 
 (**** Progress theorem *)
 
-#push-options "--fuel 2 --ifuel 1"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 20"
 let rec progress (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau))
       (ensures (is_value e \/ (Some? (step e))))
@@ -305,14 +307,17 @@ and progress_default
       (cons: exp{cons << e})
       (tau: ty)
     : Lemma (requires (
-        ~(is_value e) /\
         e == EDefault exceptions just cons tau /\ (typing empty e tau)
       ))
       (ensures (Some? (step_default e exceptions just cons tau)))
       (decreases %[ e; 2 ]) =
   match step_exceptions e exceptions just cons tau with
-  | Some _ -> ()
-  | None ->
+  | IllFormed ->
+    assert(step_exceptions_left_to_right e exceptions just cons tau == None);
+    assert(~(List.Tot.for_all is_value exceptions));
+    progress_default_exceptions e exceptions just cons tau
+  | SomeStep _ -> ()
+  | NoStep ->
     if is_value just then
       (is_bool_value_cannot_be_abs empty just;
         match just, cons with
@@ -322,6 +327,27 @@ and progress_default
         | ELit LEmptyError, _ -> ()
         | ELit LConflictError, _ -> ())
     else progress just TBool
+and progress_default_exceptions
+      (e: exp)
+      (exceptions: list exp {exceptions << e})
+      (just: exp{just << e})
+      (cons: exp{cons << e})
+      (tau: ty)
+    : Lemma (requires (
+        typing_list empty exceptions tau /\
+        step_exceptions_left_to_right e exceptions just cons tau == None /\
+        ~(List.Tot.for_all is_value exceptions)
+      ))
+      (ensures (False))
+      (decreases %[ e; 1; exceptions ])
+  =
+  match exceptions with
+  | [] -> ()
+  | hd::tl ->
+    progress hd tau;
+    if is_value hd then begin
+      progress_default_exceptions e tl just cons tau
+    end else ()
 #pop-options
 
 (*** Preservation *)
@@ -504,7 +530,7 @@ let rec preservation (e: exp) (tau: ty)
       match empty_count AllEmpty exceptions with
       | AllEmpty ->
         begin if not (is_value just) then preservation just TBool else match just with
-        | ELit LTrue -> if not (is_value cons) then preservation cons tau
+        | ELit LTrue -> ()
         | _ -> ()
         end
       | OneNonEmpty e' -> empty_count_preserves_type AllEmpty exceptions empty tau

@@ -810,14 +810,16 @@ let translation_correctness_exceptions_step
         Some? (D.step de) /\
         de == D.EDefault dexceptions djust dcons dtau /\
         D.typing D.empty de dtau /\
-        D.step de == D.step_exceptions de dexceptions djust dcons dtau
+        (match D.step de, D.step_exceptions de dexceptions djust dcons dtau with
+         | Some de', D.SomeStep de'' -> de' == de''
+         | _ -> False)
       ))
       (ensures (fun (n1, target_e, n2) ->
       translation_preserves_empty_typ de dtau;
       let lexceptions = translate_exp_list dexceptions in
       let ljust = translate_exp djust in
       let lcons = translate_exp dcons in
-      let Some de' = D.step_exceptions de dexceptions djust dcons dtau in
+      let D.SomeStep de' = D.step_exceptions de dexceptions djust dcons dtau in
       let le' = translate_exp de' in
       D.preservation de dtau;
       let ltau = translate_ty dtau in
@@ -835,7 +837,49 @@ let translation_correctness_exceptions_step
   end else
     translation_correctness_exceptions_left_to_right_step
       de dexceptions djust dcons dtau L.ENone rec_lemma
+#pop-options
 
+let final_default_subexp
+  (tau: L.ty)
+  (just: typed_l_exp L.TBool) (cons: typed_l_exp tau)
+    : Tot (typed_l_exp tau)
+  =
+  L.EIf just cons (L.ELit (L.LError L.EmptyError))
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 150"
+let translation_correctness_exceptions_no_exceptions_triggered
+  (de: D.exp)
+  (dexceptions: list D.exp {dexceptions << de})
+  (djust: D.exp{djust << de})
+  (dcons: D.exp{dcons << de})
+  (dtau: D.ty)
+    : Pure nat
+      (requires (
+        D.typing D.empty de dtau /\
+        D.typing_list D.empty dexceptions dtau /\
+        D.typing D.empty djust D.TBool /\
+        D.typing D.empty dcons dtau /\
+        List.Tot.for_all D.is_value dexceptions /\
+        (D.step de == D.step_default de dexceptions djust dcons dtau) /\
+        (D.step_exceptions de dexceptions djust dcons dtau == D.NoStep)
+      ))
+      (ensures (fun n ->
+        translate_empty_is_empty ();
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        translation_preserves_empty_typ djust D.TBool;
+        translation_preserves_empty_typ dcons dtau;
+        let lexceptions = translate_exp_list dexceptions in
+        let ljust = translate_exp djust in
+        let lcons = translate_exp dcons in
+        let ltau = translate_ty dtau in
+        let l_err : typed_l_exp ltau = L.ELit (L.LError L.ConflictError) in
+        build_default_translation_typing lexceptions L.ENone ljust lcons ltau L.empty;
+        take_l_steps ltau (build_default_translation lexceptions L.ENone ljust lcons ltau) n
+          == Some (final_default_subexp ltau ljust lcons)
+      ))
+      (decreases dexceptions)
+  =
+  admit()
 #pop-options
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 50"
@@ -864,41 +908,41 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty)
   | D.ELit _ -> 0, le, 0
   | D.EAbs _ _ -> 0, le, 0
   | D.EIf de1 de2 de3 ->
-     let le1 = translate_exp de1 in
-     let le2 = translate_exp de2 in
-     let le3 = translate_exp de3 in
-     if not (D.is_value de1) then begin
-       let de1' = Some?.v (D.step de1) in
-       D.preservation de1 D.TBool;
-       translation_preserves_empty_typ de1 D.TBool;
-       translation_preserves_empty_typ de2 dtau;
-       translation_preserves_empty_typ de3 dtau;
-       translation_preserves_empty_typ de1' D.TBool;
-       let le1' : typed_l_exp L.TBool = translate_exp de1' in
-       let n1_e1, target_e1, n2_e1 = translation_correctness_step de1 D.TBool in
-       assert(take_l_steps L.TBool le1 n1_e1 == Some target_e1);
-       assert(take_l_steps L.TBool le1' n2_e1 == Some target_e1);
-       lift_multiple_l_steps L.TBool ltau le1 target_e1 n1_e1
-         (if_cond_lift ltau le2 le3);
-       lift_multiple_l_steps L.TBool ltau le1' target_e1 n2_e1
-         (if_cond_lift ltau le2 le3);
-       n1_e1, if_cond_lift ltau le2 le3 target_e1, n2_e1
-     end else (1, le', 0)
+    let le1 = translate_exp de1 in
+    let le2 = translate_exp de2 in
+    let le3 = translate_exp de3 in
+    if not (D.is_value de1) then begin
+      let de1' = Some?.v (D.step de1) in
+      D.preservation de1 D.TBool;
+      translation_preserves_empty_typ de1 D.TBool;
+      translation_preserves_empty_typ de2 dtau;
+      translation_preserves_empty_typ de3 dtau;
+      translation_preserves_empty_typ de1' D.TBool;
+      let le1' : typed_l_exp L.TBool = translate_exp de1' in
+      let n1_e1, target_e1, n2_e1 = translation_correctness_step de1 D.TBool in
+      assert(take_l_steps L.TBool le1 n1_e1 == Some target_e1);
+      assert(take_l_steps L.TBool le1' n2_e1 == Some target_e1);
+      lift_multiple_l_steps L.TBool ltau le1 target_e1 n1_e1
+        (if_cond_lift ltau le2 le3);
+      lift_multiple_l_steps L.TBool ltau le1' target_e1 n2_e1
+        (if_cond_lift ltau le2 le3);
+      n1_e1, if_cond_lift ltau le2 le3 target_e1, n2_e1
+    end else (1, le', 0)
   | D.EApp de1 de2 dtau_arg ->
     let le1 = translate_exp de1 in
     let le2 = translate_exp de2 in
     let ltau_arg = translate_ty dtau_arg in
     if not (D.is_value de1) then begin
-       let de1' = Some?.v (D.step de1) in
-       let le1' = translate_exp de1' in
-       let n1_e1, target_e1, n2_e1 = translation_correctness_step de1 (D.TArrow dtau_arg dtau) in
-       assert(take_l_steps (L.TArrow ltau_arg ltau) le1 n1_e1 == Some target_e1);
-       assert(take_l_steps (L.TArrow ltau_arg ltau) le1' n2_e1 == Some target_e1);
-       lift_multiple_l_steps (L.TArrow ltau_arg ltau) ltau le1 target_e1 n1_e1
-         (app_f_lift ltau_arg ltau le2);
-       lift_multiple_l_steps (L.TArrow ltau_arg ltau) ltau le1' target_e1 n2_e1
-         (app_f_lift ltau_arg ltau le2);
-       n1_e1, app_f_lift ltau_arg ltau le2 target_e1, n2_e1
+      let de1' = Some?.v (D.step de1) in
+      let le1' = translate_exp de1' in
+      let n1_e1, target_e1, n2_e1 = translation_correctness_step de1 (D.TArrow dtau_arg dtau) in
+      assert(take_l_steps (L.TArrow ltau_arg ltau) le1 n1_e1 == Some target_e1);
+      assert(take_l_steps (L.TArrow ltau_arg ltau) le1' n2_e1 == Some target_e1);
+      lift_multiple_l_steps (L.TArrow ltau_arg ltau) ltau le1 target_e1 n1_e1
+        (app_f_lift ltau_arg ltau le2);
+      lift_multiple_l_steps (L.TArrow ltau_arg ltau) ltau le1' target_e1 n2_e1
+        (app_f_lift ltau_arg ltau le2);
+      n1_e1, app_f_lift ltau_arg ltau le2 target_e1, n2_e1
     end else begin match de1 with
       | D.ELit D.LConflictError -> 1, le', 0
       | D.ELit D.LEmptyError -> 1, le', 0
@@ -924,10 +968,61 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty)
   | D.EDefault dexceptions djust dcons dtau' ->
     if dtau' <> dtau then 0, le', 0 else begin
     match D.step_exceptions de dexceptions djust dcons dtau with
-    | Some _ ->
+    | D.SomeStep _ ->
       translation_correctness_exceptions_step de dexceptions djust dcons dtau
         (fun df tf -> translation_correctness_step df tf)
-    | None -> admit()
+    | D.NoStep ->
+      let n1_final =
+        translation_correctness_exceptions_no_exceptions_triggered
+          de dexceptions djust dcons dtau
+      in
+      let ltau = translate_ty dtau in
+      let ljust = translate_exp djust in
+      let lcons = translate_exp dcons in
+      let l_err = L.ELit (L.LError L.EmptyError) in
+      assert(take_l_steps ltau le n1_final = Some (final_default_subexp ltau ljust lcons));
+      if not (D.is_value djust) then begin
+       let djust' = Some?.v (D.step djust) in
+       D.preservation djust D.TBool;
+       translation_preserves_empty_typ djust D.TBool;
+       translation_preserves_empty_typ dcons dtau;
+       translation_preserves_empty_typ djust' D.TBool;
+       let ljust' : typed_l_exp L.TBool = translate_exp djust' in
+       let n1_just, target_just, n2_just = translation_correctness_step djust D.TBool in
+       assert(take_l_steps L.TBool ljust n1_just == Some target_just);
+       assert(take_l_steps L.TBool ljust' n2_just == Some target_just);
+       lift_multiple_l_steps L.TBool ltau ljust target_just n1_just
+         (if_cond_lift ltau lcons l_err);
+       lift_multiple_l_steps L.TBool ltau ljust' target_just n2_just
+         (if_cond_lift ltau lcons l_err);
+       take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final n1_just;
+       assert(take_l_steps ltau le (n1_final + n1_just) == Some (L.EIf target_just lcons l_err));
+       assert(de' == D.EDefault dexceptions djust' dcons dtau);
+       assume(D.step_exceptions de dexceptions djust dcons dtau ==
+         D.step_exceptions de' dexceptions djust' dcons dtau);
+       // Should be easy enough, djust does not influence the result
+       let n2_final =
+        translation_correctness_exceptions_no_exceptions_triggered
+          de' dexceptions djust' dcons dtau
+       in
+       take_l_steps_transitive ltau le' (final_default_subexp ltau ljust' lcons) n2_final n2_just;
+       n1_final + n1_just, L.EIf target_just lcons l_err, n2_final + n2_just
+     end else begin
+       D.is_bool_value_cannot_be_abs D.empty djust;
+       match djust with
+       | D.ELit D.LTrue ->
+         take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final 1;
+         n1_final + 1, lcons, 0
+       | D.ELit D.LFalse ->
+         take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final 1;
+         n1_final + 1, l_err, 0
+       | D.ELit D.LConflictError ->
+         take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final 1;
+         n1_final + 1, L.ELit (L.LError L.ConflictError), 0
+       | D.ELit D.LEmptyError ->
+         take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final 1;
+         n1_final + 1, l_err, 0
+     end
   end
 
 (*** Wrap-up theorem  *)
