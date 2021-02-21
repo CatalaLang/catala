@@ -864,20 +864,6 @@ let exceptions_head_lift_steps_to_error
   take_l_steps_transitive tau e e_plus_4 4 1
 #pop-options
 
-let step_exceptions_head_value
-  (tau: L.ty)
-  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (hd: (typed_l_exp tau))
-    : Pure (typed_l_exp (L.TOption tau) & nat)
-      (requires (True))
-      (ensures (fun (new_acc, n) ->
-        take_l_steps tau (exceptions_head_lift tau tl L.ENone just cons hd) n ==
-          Some (exceptions_init_lift tau tl just cons new_acc)
-      ))
-  =
-  admit()
 
 (**** Main theorems *)
 
@@ -1062,6 +1048,24 @@ let step_exceptions_left_to_right_result_shape
   ()
 #pop-options
 
+
+let step_exceptions_head_value
+  (tau: L.ty)
+  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
+  (acc: (typed_l_exp (L.TOption tau)))
+  (just: (typed_l_exp L.TBool))
+  (cons: (typed_l_exp tau))
+  (hd: (typed_l_exp tau))
+    : Pure (typed_l_exp (L.TOption tau) & nat)
+      (requires (True))
+      (ensures (fun (new_acc, n) ->
+        L.is_value new_acc /\
+        take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
+          Some (exceptions_init_lift tau tl just cons new_acc)
+      ))
+  =
+  admit()
+
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
 let rec translation_correctness_exceptions_left_to_right_step
   (de: D.exp)
@@ -1142,23 +1146,28 @@ let rec translation_correctness_exceptions_left_to_right_step
         lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons 0 lhd lhd;
         assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau) 4 ==
           Some (exceptions_head_lift ltau ltl acc ljust lcons lhd));
-        let detl = D.EDefault dtl djust dcons dtau in
-        exceptions_smaller dtl djust dcons dtau;
-        admit();
-        assume(Some? (D.step detl));
-        assume(D.step detl == D.step_exceptions_left_to_right detl dtl djust dcons dtau);
-        admit();
-        let detl' = Some?.v (D.step detl) in
-        D.preservation detl dtau;
-        translation_preserves_empty_typ detl' dtau;
-        let letl' : typed_l_exp ltau = translate_exp detl' in
-        assert(letl' == l_err);
+        let new_acc, n_to_tl = step_exceptions_head_value ltau ltl acc ljust lcons lhd in
+        assert(take_l_steps ltau (exceptions_head_lift ltau ltl acc ljust lcons lhd) n_to_tl ==
+          Some (exceptions_init_lift ltau ltl ljust lcons new_acc));
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions acc ljust lcons ltau)
+          (exceptions_head_lift ltau ltl acc ljust lcons lhd)
+          4 n_to_tl;
+        assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
+          (4 + n_to_tl) == Some (exceptions_init_lift ltau ltl ljust lcons new_acc));
+        assert(exceptions_init_lift ltau ltl ljust lcons new_acc ==
+          build_default_translation ltl new_acc ljust lcons ltau);
         let n1_tl, target_tl, n2_tl = translation_correctness_exceptions_left_to_right_step
-          detl dtl djust dcons dtau acc rec_lemma
+          de dtl djust dcons dtau new_acc rec_lemma
         in
-        let n = 6 in
-        assume(take_l_steps ltau le n == Some l_err);
-        n, le', 0
+        assert(take_l_steps ltau (build_default_translation ltl new_acc ljust lcons ltau) n1_tl ==
+          Some target_tl);
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions acc ljust lcons ltau)
+          (exceptions_init_lift ltau ltl ljust lcons new_acc)
+          (4 + n_to_tl)
+          n1_tl;
+        4 + n_to_tl + n1_tl, l_err, 0
       | Some (D.EDefault dtl' djust' dcons' dtau') ->
         admit();
         assert(djust' == djust /\ dcons' == dcons /\ dtau' == dtau);
