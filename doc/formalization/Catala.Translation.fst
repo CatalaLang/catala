@@ -2,11 +2,9 @@ module Catala.Translation
 
 module L = Catala.LambdaCalculus
 module D = Catala.DefaultCalculus
+open Catala.Translation.Helpers
 
 (*** Translation definitions *)
-
-
-(**** Helpers *)
 
 let rec translate_ty (ty: D.ty) : Tot L.ty = match ty with
   | D.TBool -> L.TBool
@@ -19,48 +17,6 @@ let translate_lit (l: D.lit) : Tot L.lit = match l with
   | D.LUnit -> L.LUnit
   | D.LEmptyError -> L.LError L.EmptyError
   | D.LConflictError -> L.LError L.ConflictError
-
-let process_exceptions_f (tau: L.ty) : Tot L.exp =
-  L.EAbs (L.TOption tau) (L.EAbs (L.TArrow L.TUnit tau) (
-    L.EApp (L.EAbs (L.TOption tau) (
-      L.EMatchOption (L.EVar 2) tau
-        (L.EVar 0)
-        (L.EAbs tau (
-          L.EMatchOption (L.EVar 1) tau
-            (L.EVar 3)
-            (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
-        ))
-    ))
-    (L.ECatchEmptyError (L.ESome (L.EApp (L.EVar 0) (L.ELit L.LUnit) L.TUnit)) L.ENone)
-    (L.TOption tau)
-  ))
-
-let typ_process_exceptions_f (g: L.env) (tau: L.ty)
-    : Lemma (L.typing g (process_exceptions_f tau)
-      (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
-  =
-  assert_norm(L.typing g (process_exceptions_f tau)
-      (L.TArrow (L.TOption tau) (L.TArrow (L.TArrow L.TUnit tau) (L.TOption tau))))
-
-(**** Main translation *)
-
-let build_default_translation
-  (exceptions: list L.exp)
-  (acc: L.exp)
-  (just: L.exp)
-  (cons: L.exp)
-  (tau: L.ty)
-  =
-  L.EMatchOption
-    (L.EFoldLeft
-      (process_exceptions_f tau)
-      acc (L.TOption tau)
-      (L.EList exceptions) (L.TArrow L.TUnit tau))
-    tau
-    (L.EIf
-      just cons
-      (L.ELit (L.LError L.EmptyError)))
-    (L.EAbs tau (L.EVar 0))
 
 let rec translate_exp (e: D.exp) : Tot L.exp = match e with
   | D.EVar x -> L.EVar x
@@ -103,26 +59,6 @@ let translate_empty_is_empty () : Lemma (translate_env D.empty == L.empty) =
   FunctionalExtensionality.extensionality L.var (fun _ -> option L.ty)
     (translate_env D.empty)
     L.empty
-
-#push-options "--fuel 1 --ifuel 0"
-let build_default_translation_typing
-  (exceptions: list L.exp)
-  (acc: L.exp)
-  (just: L.exp)
-  (cons: L.exp)
-  (tau: L.ty)
-  (g: L.env)
-    : Lemma
-      (requires (
-        L.typing_list g exceptions (L.TArrow L.TUnit tau) /\
-        L.typing g acc (L.TOption tau) /\
-        L.typing g just L.TBool /\
-        L.typing g cons tau))
-      (ensures (L.typing g (build_default_translation exceptions acc just cons tau) tau))
-  =
-  typ_process_exceptions_f g tau;
-  assert_norm(L.typing g (build_default_translation exceptions acc just cons tau) tau)
-#pop-options
 
 (**** Typing preservation theorem *)
 
@@ -213,123 +149,7 @@ let translation_preserves_empty_typ (e: D.exp) (tau: D.ty) : Lemma
 
 (*** Translation correctness *)
 
-(**** Step lifting framework *)
-
-let typed_l_exp (tau: L.ty) = e:L.exp{L.typing L.empty e tau}
-
-let rec take_l_steps (tau: L.ty) (e: typed_l_exp tau) (fuel: nat)
-    : Tot (option (typed_l_exp tau))
-      (decreases fuel) =
-  if fuel = 0 then Some e else
-  match L.step e with
-  | None -> None
-  | Some e' ->
-    L.preservation e tau;
-    take_l_steps tau e' (fuel - 1)
-
-#push-options "--fuel 2 --ifuel 1"
-let rec take_l_steps_transitive (tau: L.ty) (e1 e2: typed_l_exp tau) (n1 n2: nat)
-    : Lemma
-      (requires (take_l_steps tau e1 n1 == Some e2))
-      (ensures (take_l_steps tau e1 (n1 + n2) == take_l_steps tau e2 n2))
-      (decreases n1)
-  =
-  if n1 = 0 then () else begin
-    match L.step e1 with
-      | None -> ()
-      | Some e1' ->
-        L.preservation e1 tau;
-        take_l_steps_transitive tau e1' e2 (n1 - 1) n2
-  end
-#pop-options
-
-let not_l_value (tau: L.ty) = e:L.exp{not (L.is_value e) /\ L.typing L.empty e tau}
-let l_value (tau: L.ty) = e:L.exp{L.is_value e /\ L.typing L.empty e tau}
-
-let stepping_context (tau tau': L.ty) = typed_l_exp tau -> not_l_value tau'
-
-let step_lift_commute_non_value
-  (tau tau': L.ty)
-  (f: stepping_context tau tau')
-  (e: typed_l_exp tau)
-    : prop
-  =
-  L.progress e tau;
-  if L.is_value e then true else begin
-    L.preservation e tau;
-    L.step (f e) == Some (f (Some?.v (L.step e)))
-  end
-
-let is_stepping_agnostic_lift
-  (tau tau': L.ty)
-  (f:stepping_context tau tau')
-    : prop
-  =
-  forall (e: typed_l_exp tau). step_lift_commute_non_value tau tau' f e
-
-let stepping_agnostic_lift
-  (tau tau': L.ty)
-  : Type
-  = f:(stepping_context tau tau'){is_stepping_agnostic_lift tau tau' f}
-
-let rec l_values_dont_step (e: L.exp) : Lemma
-    (requires (L.is_value e))
-    (ensures (L.step e = None))
-    (decreases %[e; 1])
-  =
-  match e with
-  | L.EAbs _ _ -> ()
-  | L.EThunk _ -> ()
-  | L.ELit _ -> ()
-  | L.ENone -> ()
-  | L.EList [] -> ()
-  | L.EList l -> l_values_dont_step_list e l
-  | _ -> ()
-and l_values_dont_step_list (e: L.exp) (l: list L.exp{l << e /\ Cons? l}) : Lemma
-    (requires (L.is_value_list l))
-    (ensures (L.step_list e l = L.Bad))
-    (decreases %[e; 0; l])
-  =
-  match l with
-  | [hd] -> l_values_dont_step hd
-  | hd::tl ->
-    l_values_dont_step hd;
-    l_values_dont_step_list e tl
-
-#push-options "--z3rlimit 50 --fuel 2 --ifuel 1"
-let rec lift_multiple_l_steps
-  (tau tau': L.ty)
-  (e1: typed_l_exp tau)
-  (e2: typed_l_exp tau)
-  (n: nat)
-  (f : stepping_agnostic_lift tau tau')
-    : Lemma
-      (requires (take_l_steps tau e1 n == Some e2))
-      (ensures (take_l_steps tau' (f e1) n == Some (f e2)))
-      (decreases n)
-  =
-  match L.step e1 with
-  | None -> ()
-  | Some e1' ->
-    L.progress e1 tau;
-    L.preservation e1 tau;
-    if L.is_value e1 then
-      l_values_dont_step e1
-    else if n = 0 then
-      ()
-    else
-      lift_multiple_l_steps tau tau' e1' e2 (n-1) f
-#pop-options
-
-(**** Other helpers *)
-
-
-#push-options "--fuel 9 --ifuel 0"
-let process_exceptions_untouched_by_subst (s: L.var_to_exp) (tau: L.ty) : Lemma
-    (L.subst s (process_exceptions_f tau) == process_exceptions_f tau)
-  =
-  ()
-#pop-options
+(**** Helpers *)
 
 let translate_var_to_exp (s: D.var_to_exp) : Tot L.var_to_exp = fun x -> translate_exp (s x)
 
@@ -455,422 +275,11 @@ let rec translate_list_is_value_list (l: list D.exp)
   | [] -> ()
   | _::tl -> translate_list_is_value_list tl
 
-(**** Lifts *)
-
-let if_cond_lift'
-  (tau: L.ty)
-  (e2 e3: typed_l_exp tau)
-    : stepping_context L.TBool tau
-  =
-  fun e1 -> L.EIf e1 e2 e3
-
-let if_cond_lift_is_stepping_agnostic
-  (tau: L.ty)
-  (e2 e3: typed_l_exp tau)
-  (e: typed_l_exp L.TBool)
-    : Lemma
-      (requires (True))
-      (ensures (step_lift_commute_non_value L.TBool tau (if_cond_lift' tau e2 e3) e))
-  =
-  L.progress e L.TBool; if L.is_value e then () else L.preservation e L.TBool
-
-let if_cond_lift
-  (tau: L.ty)
-  (e2 e3: typed_l_exp tau)
-    : stepping_agnostic_lift L.TBool tau
-  =
-  Classical.forall_intro (if_cond_lift_is_stepping_agnostic tau e2 e3);
-  if_cond_lift' tau e2 e3
-
-
-let app_f_lift'
-  (tau_arg tau: L.ty)
-  (e2: typed_l_exp tau_arg)
-    : stepping_context (L.TArrow tau_arg tau) tau
-  =
-  fun e1 -> L.EApp e1 e2 tau_arg
-
-let app_f_lift_is_stepping_agnostic
-  (tau_arg tau: L.ty)
-  (e2: typed_l_exp tau_arg)
-  (e: typed_l_exp (L.TArrow tau_arg tau))
-    : Lemma
-      (requires (True))
-      (ensures (
-        step_lift_commute_non_value (L.TArrow tau_arg tau) tau (app_f_lift' tau_arg tau e2) e))
-  =
-  L.progress e  (L.TArrow tau_arg tau);
-  if L.is_value e then () else L.preservation e  (L.TArrow tau_arg tau)
-
-let app_f_lift
-  (tau_arg tau: L.ty)
-  (e2: typed_l_exp tau_arg)
-    : stepping_agnostic_lift (L.TArrow tau_arg tau) tau
-  =
-  Classical.forall_intro (app_f_lift_is_stepping_agnostic tau_arg tau e2);
-  app_f_lift' tau_arg tau e2
-
-let app_arg_lift'
-  (tau_arg tau: L.ty)
-  (e1: l_value (L.TArrow tau_arg tau))
-    : stepping_context tau_arg tau
-  =
-  fun e2 -> L.EApp e1 e2 tau_arg
-
-let app_arg_lift_is_stepping_agnostic
-  (tau_arg tau: L.ty)
-  (e1: l_value (L.TArrow tau_arg tau){match e1 with L.ELit (L.LError _) -> False | _ -> True})
-  (e2: typed_l_exp tau_arg)
-    : Lemma
-      (requires (True))
-      (ensures (
-        step_lift_commute_non_value tau_arg tau (app_arg_lift' tau_arg tau e1) e2))
-  =
-  L.progress e2 tau_arg;
-  if L.is_value e2 then () else L.preservation e2 tau_arg
-
-let app_arg_lift
-  (tau_arg tau: L.ty)
-  (e1: l_value (L.TArrow tau_arg tau){match e1 with L.ELit (L.LError _) -> False | _ -> True})
-    : stepping_agnostic_lift tau_arg tau
-  =
-  Classical.forall_intro (app_arg_lift_is_stepping_agnostic tau_arg tau e1);
-  app_arg_lift' tau_arg tau e1
-
-#push-options "--fuel 9 --ifuel 2 --z3rlimit 30"
-let exceptions_head_lift'
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (acc: typed_l_exp (L.TOption tau))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  : stepping_context tau tau
-  =
-  fun (hd: typed_l_exp tau) ->
-    typ_process_exceptions_f L.empty tau;
-    L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
-    L.typing_empty_can_be_extended acc (L.TOption tau)
-    (L.extend (L.extend L.empty (L.TOption tau)) tau);
-    L.EMatchOption
-    (L.EFoldLeft
-      (process_exceptions_f tau)
-      (L.EApp
-        (L.EAbs (L.TOption tau) (
-          L.EMatchOption acc tau
-            (L.EVar 0)
-            (L.EAbs tau (
-              L.EMatchOption (L.EVar 1) tau
-                acc
-                (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
-            ))
-         ))
-         (L.ECatchEmptyError
-           (L.ESome hd) L.ENone)
-         (L.TOption tau)
-      )
-      (L.TOption tau)
-      (L.EList tl) (L.TArrow L.TUnit tau))
-    tau
-    (L.EIf
-      just cons
-      (L.ELit (L.LError L.EmptyError)))
-    (L.EAbs tau (L.EVar 0))
-#pop-options
-
-let exceptions_head_lift_is_stepping_agnostic
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (acc: typed_l_exp (L.TOption tau))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (hd: typed_l_exp tau)
-    : Lemma (step_lift_commute_non_value tau tau (exceptions_head_lift' tau tl acc just cons) hd)
-  =
-  L.progress hd tau;
-  if L.is_value hd then () else begin
-    L.preservation hd tau;
-    assert_norm(L.step (exceptions_head_lift' tau tl acc just cons hd) == Some
-      (exceptions_head_lift' tau tl acc just cons (Some?.v (L.step hd))))
-  end
-
-let exceptions_head_lift
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (acc: typed_l_exp (L.TOption tau))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  : stepping_agnostic_lift tau tau
-  =
-  Classical.forall_intro (exceptions_head_lift_is_stepping_agnostic tau tl acc just cons);
-  exceptions_head_lift' tau tl acc just cons
-
-#push-options "--fuel 3 --ifuel 0"
-let exceptions_init_lift'
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  : stepping_context (L.TOption tau) tau
-  =
-  fun (init: typed_l_exp (L.TOption tau)) ->
-    typ_process_exceptions_f L.empty tau;
-    L.EMatchOption
-    (L.EFoldLeft
-      (process_exceptions_f tau)
-      init
-      (L.TOption tau)
-      (L.EList tl) (L.TArrow L.TUnit tau))
-    tau
-    (L.EIf
-      just cons
-      (L.ELit (L.LError L.EmptyError)))
-    (L.EAbs tau (L.EVar 0))
-#pop-options
-
-let exceptions_init_lift_is_stepping_agnostic
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (init: typed_l_exp (L.TOption tau))
-    : Lemma (
-      step_lift_commute_non_value (L.TOption tau) tau (exceptions_init_lift' tau tl just cons) init)
-  =
-  L.progress init (L.TOption tau);
-  if L.is_value init then () else begin
-    L.preservation init (L.TOption tau);
-    assert_norm(L.step (exceptions_init_lift' tau tl just cons init) == Some
-      (exceptions_init_lift' tau tl just cons (Some?.v (L.step init))))
-  end
-
-let exceptions_init_lift
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  : stepping_agnostic_lift (L.TOption tau) tau
-  =
-  Classical.forall_intro (exceptions_init_lift_is_stepping_agnostic tau tl just cons);
-  exceptions_init_lift' tau tl just cons
-
-
-(**** Other helpers *)
-
-let process_exceptions_applied
-  (tau: L.ty)
-  (acc: typed_l_exp (L.TOption tau))
-  (hd: typed_l_exp tau)
-    : Tot (typed_l_exp (L.TOption tau))
-  =
-  typ_process_exceptions_f L.empty tau;
-  L.typing_empty_can_be_extended hd tau (L.extend L.empty L.TUnit);
-  L.EApp
-   (L.EApp (process_exceptions_f tau) acc (L.TOption tau))
-   (L.EThunk hd) (L.TArrow L.TUnit tau)
-
-
-#push-options "--fuel 7 --ifuel 2"
-let process_exceptions_applied_stepped
-  (tau: L.ty)
-  (acc: typed_l_exp (L.TOption tau))
-  (hd: typed_l_exp tau)
-    : Tot (typed_l_exp (L.TOption tau))
-  =
-  L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
-  L.typing_empty_can_be_extended acc (L.TOption tau)
-   (L.extend (L.extend L.empty (L.TOption tau)) tau);
-  L.EApp (L.EAbs (L.TOption tau) (
-    L.EMatchOption acc tau (L.EVar 0) (L.EAbs tau (
-      L.EMatchOption (L.EVar 1) tau acc (L.EAbs  tau
-        (L.ELit (L.LError L.ConflictError))
-      )
-    ))))
-    (L.ECatchEmptyError (L.ESome hd) L.ENone) (L.TOption tau)
-#pop-options
-
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 50"
-let process_exceptions_applied_stepping
-  (tau: L.ty)
-  (acc: typed_l_exp (L.TOption tau){L.is_value acc /\ not (L.is_error acc)})
-  (hd: typed_l_exp tau)
-    : Lemma (take_l_steps (L.TOption tau) (process_exceptions_applied tau acc hd) 3 ==
-      Some (process_exceptions_applied_stepped tau acc hd))
-  =
-  let e1 : L.exp =
-    L.EApp
-      (L.EAbs (L.TArrow L.TUnit tau) (
-    L.EApp (L.EAbs (L.TOption tau) (
-      L.EMatchOption acc tau
-        (L.EVar 0)
-        (L.EAbs  tau (
-          L.EMatchOption (L.EVar 1) tau
-            acc
-            (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
-        ))
-    ))
-    (L.ECatchEmptyError (L.ESome (L.EApp (L.EVar 0) (L.ELit L.LUnit) L.TUnit)) L.ENone)
-    (L.TOption tau)
-  )
-      )
-      (L.EThunk hd) (L.TArrow L.TUnit tau)
-  in
-  let e2 =
-    L.EApp (L.EAbs (L.TOption tau) (
-      L.EMatchOption acc tau
-        (L.EVar 0)
-        (L.EAbs tau (
-          L.EMatchOption (L.EVar 1) tau
-            acc
-            (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
-        ))
-    ))
-    (L.ECatchEmptyError (L.ESome (L.EApp (L.EThunk hd) (L.ELit L.LUnit) L.TUnit)) L.ENone)
-    (L.TOption tau)
-
-  in
-  assume(forall (s: L.var_to_exp). {:pattern (L.subst s acc) } L.subst s acc == acc);
-  assume(forall (s: L.var_to_exp). {:pattern (L.subst s (L.EThunk hd)) } L.subst s (L.EThunk hd) == (L.EThunk hd));
-  assert_norm(L.step (process_exceptions_applied tau acc hd) == Some e1);
-  assume(L.step e1 == Some e2);
-  let e3 =
-    L.EApp (L.EAbs (L.TOption tau) (
-      L.EMatchOption acc tau
-        (L.EVar 0)
-        (L.EAbs tau (
-          L.EMatchOption (L.EVar 1) tau
-            acc
-            (L.EAbs tau (L.ELit (L.LError L.ConflictError)))
-        ))
-    ))
-    (L.ECatchEmptyError (L.ESome hd) L.ENone)
-    (L.TOption tau)
-  in
-  assert_norm(L.step e2 == Some e3);
-  // Mostly proven?
-  admit()
-#pop-options
-
-#push-options "--fuel 7 --ifuel 2 --z3rlimit 50"
-let lift_multiple_l_steps_exceptions_head
-  (tau: L.ty)
-  (tl: list L.exp{L.typing_list L.empty tl (L.TArrow L.TUnit tau) /\ L.is_value_list tl})
-  (acc: typed_l_exp (L.TOption tau))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (n_hd: nat)
-  (hd: typed_l_exp tau)
-  (final_hd: typed_l_exp tau)
-    : Lemma
-      (requires (take_l_steps tau hd n_hd == Some final_hd /\ L.is_value acc))
-      (ensures (
-        build_default_translation_typing
-          ((L.EThunk hd)::tl) acc just cons tau L.empty;
-        take_l_steps tau
-          (build_default_translation ((L.EThunk hd)::tl) acc just cons tau)
-          (n_hd + 4) ==
-            Some (exceptions_head_lift tau tl acc just cons final_hd)))
-  =
-  build_default_translation_typing ((L.EThunk hd)::tl) acc just cons tau L.empty;
-  L.typing_empty_can_be_extended acc (L.TOption tau) (L.extend L.empty (L.TOption tau));
-  L.typing_empty_can_be_extended acc (L.TOption tau)
-   (L.extend (L.extend L.empty (L.TOption tau)) tau);
-  let init_stepped : typed_l_exp (L.TOption tau) = L.EApp (L.EAbs (L.TOption tau) (
-    L.EMatchOption acc tau (L.EVar 0) (L.EAbs tau (
-      L.EMatchOption (L.EVar 1) tau acc (L.EAbs tau
-        (L.ELit (L.LError L.ConflictError))
-      )
-    ))))
-    (L.ECatchEmptyError (L.ESome hd) L.ENone) (L.TOption tau)
-  in
-  let init = L.EApp
-    (L.EApp (process_exceptions_f tau) acc (L.TOption tau))
-    (L.EThunk hd) (L.TArrow L.TUnit tau)
-  in
-  let open FStar.Tactics in
-  assert(take_l_steps (L.TOption tau) init 3 == Some init_stepped) by begin
-    compute ();
-    tadmit ()
-  end;
-  let default_translation: typed_l_exp tau =
-    build_default_translation ((L.EThunk hd)::tl) acc just cons tau
-  in
-  let default_translation_stepped = L.EMatchOption
-    (L.EFoldLeft
-      (process_exceptions_f tau)
-      init (L.TOption tau)
-      (L.EList tl) (L.TArrow L.TUnit tau))
-    tau
-    (L.EIf
-      just cons
-      (L.ELit (L.LError L.EmptyError)))
-    (L.EAbs tau (L.EVar 0))
-  in
-  assert(take_l_steps tau default_translation 1 == Some default_translation_stepped);
-  admit();
-  assert(default_translation_stepped == exceptions_init_lift tau tl just cons
-    (L.EApp (L.EApp (process_exceptions_f tau) L.ENone (L.TOption tau))
-      (L.EThunk hd) (L.TArrow L.TUnit tau)));
-  lift_multiple_l_steps (L.TOption tau) tau init init_stepped 3
-    (exceptions_init_lift tau tl just cons);
-  assert(take_l_steps tau default_translation_stepped 3 ==
-    Some (exceptions_head_lift tau tl acc just cons hd));
-  take_l_steps_transitive tau default_translation default_translation_stepped 1 3;
-  assert(take_l_steps tau default_translation 4 ==
-    Some (exceptions_head_lift tau tl acc just cons hd));
-  lift_multiple_l_steps tau tau hd final_hd n_hd (exceptions_head_lift tau tl acc just cons);
-  assert(take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n_hd ==
-    Some (exceptions_head_lift tau tl acc just cons final_hd));
-  take_l_steps_transitive tau default_translation
-    (exceptions_head_lift tau tl acc just cons hd) 4 n_hd
-#pop-options
-
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 40"
-let exceptions_head_lift_steps_to_error
-  (tau: L.ty)
-  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (acc: typed_l_exp (L.TOption tau){L.is_value acc})
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-    : Lemma (take_l_steps tau
-      (exceptions_head_lift tau tl acc just cons (L.ELit (L.LError L.ConflictError))) 5 ==
-        Some (L.ELit (L.LError L.ConflictError)))
-  =
-  let e = exceptions_head_lift tau tl acc just cons (L.ELit (L.LError L.ConflictError)) in
-  let e_plus_3 : typed_l_exp tau =
-    exceptions_init_lift tau tl just cons (L.ELit (L.LError L.ConflictError))
-  in
-  let open FStar.Tactics in
-  assert(take_l_steps tau e 3 == Some e_plus_3) by begin
-    compute ();
-    smt ()
-  end;
-  let e_plus_4 : typed_l_exp tau = L.EMatchOption
-    (L.ELit (L.LError L.ConflictError))
-    tau
-    (L.EIf
-      just cons
-      (L.ELit (L.LError L.EmptyError)))
-    (L.EAbs tau (L.EVar 0))
-  in
-  assert(L.step e_plus_3 == Some e_plus_4) by begin
-    compute ();
-    smt ()
-  end;
-  L.preservation e_plus_3 tau;
-  assert(Some e_plus_4 == take_l_steps tau e_plus_3 1);
-  assert(L.step e_plus_4 ==  Some (L.ELit (L.LError L.ConflictError)));
-  assert(take_l_steps tau e_plus_4 1 == Some (L.ELit (L.LError L.ConflictError)));
-  take_l_steps_transitive tau e e_plus_3 3 1;
-  take_l_steps_transitive tau e e_plus_4 4 1
-#pop-options
-
-
 (**** Main theorems *)
 
 let translation_correctness_value (e: D.exp) : Lemma
     ((D.is_value e) <==> (L.is_value (translate_exp e)))
   = ()
-
 
 let rec_correctness_step_type (de: D.exp) : Type =
   (df: D.exp{df << de}) -> (dtau_f:D.ty) ->
@@ -885,14 +294,6 @@ let rec_correctness_step_type (de: D.exp) : Type =
         take_l_steps (translate_ty dtau_f) (translate_exp df') n2 == Some target_f
       ))
       (decreases df)
-
-let rec_lemma_works_for_smaller
-  (de: D.exp)
-  (de': D.exp{de' << de})
-  (lemma: rec_correctness_step_type de)
-    : Tot (rec_correctness_step_type de')
-  =
-  lemma
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
 let translation_correctness_exceptions_left_to_right_step_head_not_value
@@ -1048,41 +449,6 @@ let step_exceptions_left_to_right_result_shape
   ()
 #pop-options
 
-
-let step_exceptions_head_value
-  (tau: L.ty)
-  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (acc: (typed_l_exp (L.TOption tau)))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (hd: (typed_l_exp tau))
-    : Pure (typed_l_exp (L.TOption tau) & nat)
-      (requires (True))
-      (ensures (fun (new_acc, n) ->
-        L.is_value new_acc /\
-        take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
-          Some (exceptions_init_lift tau tl just cons new_acc)
-      ))
-  =
-  admit()
-
-let step_exceptions_head_value_same_acc_result
-  (tau: L.ty)
-  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
-  (tl': list L.exp{L.is_value_list tl' /\ L.typing_list L.empty tl' (L.TArrow L.TUnit tau)})
-  (acc: (typed_l_exp (L.TOption tau)))
-  (just: (typed_l_exp L.TBool))
-  (cons: (typed_l_exp tau))
-  (hd: (typed_l_exp tau))
-    : Lemma (
-      let new_acc, _ = step_exceptions_head_value tau tl acc just cons hd in
-      let new_acc', _ = step_exceptions_head_value tau tl' acc just cons hd in
-      new_acc == new_acc'
-    )
-  =
-  admit()
-
-
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
 let rec translation_correctness_exceptions_left_to_right_step
   (de: D.exp)
@@ -1177,8 +543,8 @@ let rec translation_correctness_exceptions_left_to_right_step
         let n1_tl, target_tl, n2_tl = translation_correctness_exceptions_left_to_right_step
           de dtl djust dcons dtau new_acc rec_lemma
         in
-        assert(take_l_steps ltau (build_default_translation ltl new_acc ljust lcons ltau) n1_tl ==
-          Some target_tl);
+        assert(take_l_steps ltau (build_default_translation ltl new_acc ljust lcons ltau)
+          n1_tl == Some target_tl);
         take_l_steps_transitive ltau
           (build_default_translation lexceptions acc ljust lcons ltau)
           (exceptions_init_lift ltau ltl ljust lcons new_acc)
@@ -1195,9 +561,11 @@ let rec translation_correctness_exceptions_left_to_right_step
         assert(L.is_value_list ltl);
         translation_preserves_empty_typ dhd dtau;
         lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons 0 lhd lhd;
-        let stepped_le_1 : typed_l_exp ltau = exceptions_head_lift ltau ltl acc ljust lcons lhd in
-        assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau) 4 ==
-          Some stepped_le_1);
+        let stepped_le_1 : typed_l_exp ltau =
+          exceptions_head_lift ltau ltl acc ljust lcons lhd
+        in
+        assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
+          4 == Some stepped_le_1);
         let new_acc, n_to_tl = step_exceptions_head_value ltau ltl acc ljust lcons lhd in
         take_l_steps_transitive ltau
           (build_default_translation lexceptions acc ljust lcons ltau)
@@ -1225,8 +593,8 @@ let rec translation_correctness_exceptions_left_to_right_step
         let stepped_le_1' : typed_l_exp ltau =
           exceptions_head_lift ltau ltl' acc ljust lcons lhd
         in
-        assert(take_l_steps ltau (build_default_translation lexceptions' acc ljust lcons ltau) 4
-          == Some stepped_le_1');
+        assert(take_l_steps ltau (build_default_translation lexceptions' acc ljust lcons ltau)
+          4 == Some stepped_le_1');
         let new_acc', n_to_tl' = step_exceptions_head_value ltau ltl' acc ljust lcons lhd in
         take_l_steps_transitive ltau
           (build_default_translation lexceptions' acc ljust lcons ltau)
