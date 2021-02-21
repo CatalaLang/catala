@@ -53,7 +53,6 @@ val is_value: exp -> Tot bool
 let rec is_value e =
   match e with
   | EAbs _ _ | EThunk _ | ELit _ | ENone -> true
-  | ESome (ELit (LError _)) -> false
   | ESome e' -> is_value e'
   | EList l -> is_value_list l
   | _ -> false
@@ -750,6 +749,7 @@ and preservation_list
 
 let identity_var_to_exp : var_to_exp = fun x -> EVar x
 
+#push-options "--fuel 3 --ifuel 2"
 let rec subst_by_identity_is_identity (e: exp) : Lemma (subst identity_var_to_exp e == e) =
   match e with
   | EVar _ -> ()
@@ -788,7 +788,7 @@ and subst_by_identity_is_identity_list (l: list exp) : Lemma (subst_list identit
   | hd::tl ->
     subst_by_identity_is_identity hd;
     subst_by_identity_is_identity_list tl
-
+#pop-options
 
 let typing_empty_can_be_extended (e: exp) (tau: ty) (g: env)
     : Lemma

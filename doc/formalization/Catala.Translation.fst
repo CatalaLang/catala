@@ -637,7 +637,7 @@ let dacc_lacc_sync
   =
   match dacc, lacc with
   | D.AllEmpty, L.ENone -> True
-  | D.OneNonEmpty de', L.ESome le' -> le' == translate_exp de'
+  | D.OneNonEmpty de', L.ESome le' -> le' == translate_exp de' /\ L.is_value le'
   | D.Conflict, L.ELit (L.LError L.ConflictError) -> True
   | _ -> False
 
@@ -689,8 +689,24 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
       ))
       (decreases dexceptions)
   =
+  translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+  translation_preserves_empty_typ djust D.TBool;
+  translation_preserves_empty_typ dcons dtau;
+  let ljust = translate_exp djust in
+  let lcons = translate_exp dcons in
+  let ltau = translate_ty dtau in
+  let l_err : typed_l_exp ltau = L.ELit (L.LError L.ConflictError) in
   match dexceptions with
-  | [] -> admit()
+  | [] -> begin
+    match lacc with
+    | L.ELit (L.LError L.ConflictError) ->
+      let n_err = step_exceptions_empty_conflict_error ltau ljust lcons in
+      n_err, l_err
+    | L.ESome lacc_inner ->
+      assert(L.is_value lacc_inner);
+      let n = step_exceptions_empty_some_acc ltau ljust lcons lacc_inner in
+      n, lacc_inner
+  end
   | dhd::dtl -> admit()
 #pop-options
 

@@ -1,6 +1,7 @@
 module Catala.Translation.Helpers
 
 open Catala.LambdaCalculus
+module T = FStar.Tactics
 
 (*** Default translation *)
 
@@ -623,3 +624,54 @@ let step_exceptions_head_value_same_acc_result
     )
   =
   admit()
+
+let step_exceptions_empty_conflict_error
+  (tau: ty)
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+    : Pure nat
+      (requires (True))
+      (ensures (fun n ->
+      build_default_translation_typing [] (ELit (LError ConflictError)) just cons tau empty;
+        take_l_steps tau
+          (build_default_translation [] (ELit (LError ConflictError)) just cons tau) n ==
+            Some (ELit (LError ConflictError))))
+  =
+  build_default_translation_typing [] (ELit (LError ConflictError)) just cons tau empty;
+  assert_norm(take_l_steps tau
+          (build_default_translation [] (ELit (LError ConflictError)) just cons tau) 2 ==
+            Some (ELit (LError ConflictError)));
+  2
+
+#push-options "--fuel 4 --ifuel 1 --z3rlimit 40"
+let step_exceptions_empty_some_acc
+  (tau: ty)
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+  (acc: (typed_l_exp tau))
+    : Pure nat
+      (requires (is_value acc))
+      (ensures (fun n ->
+      build_default_translation_typing [] (ESome acc) just cons tau empty;
+        take_l_steps tau
+          (build_default_translation [] (ESome acc) just cons tau) n ==
+            Some acc))
+  =
+  let one_step : typed_l_exp tau =
+    EMatchOption (ESome acc) tau
+              (EIf just cons (ELit (LError (EmptyError))))
+              (EAbs tau (EVar 0))
+  in
+  build_default_translation_typing [] (ESome acc) just cons tau empty;
+  assert(take_l_steps tau
+          (build_default_translation [] (ESome acc) just cons tau) 1 ==
+            Some one_step);
+  let two_step : typed_l_exp tau =
+    EApp (EAbs tau (EVar 0)) acc tau
+  in
+  assert(take_l_steps tau one_step 1 == Some two_step);
+  assert(take_l_steps tau two_step 1 == Some acc);
+  take_l_steps_transitive tau (build_default_translation [] (ESome acc) just cons tau) one_step 1 1;
+  take_l_steps_transitive tau (build_default_translation [] (ESome acc) just cons tau) two_step 2 1;
+  3
+#pop-options
