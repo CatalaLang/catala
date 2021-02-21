@@ -1066,6 +1066,23 @@ let step_exceptions_head_value
   =
   admit()
 
+let step_exceptions_head_value_same_acc_result
+  (tau: L.ty)
+  (tl: list L.exp{L.is_value_list tl /\ L.typing_list L.empty tl (L.TArrow L.TUnit tau)})
+  (tl': list L.exp{L.is_value_list tl' /\ L.typing_list L.empty tl' (L.TArrow L.TUnit tau)})
+  (acc: (typed_l_exp (L.TOption tau)))
+  (just: (typed_l_exp L.TBool))
+  (cons: (typed_l_exp tau))
+  (hd: (typed_l_exp tau))
+    : Lemma (
+      let new_acc, _ = step_exceptions_head_value tau tl acc just cons hd in
+      let new_acc', _ = step_exceptions_head_value tau tl' acc just cons hd in
+      new_acc == new_acc'
+    )
+  =
+  admit()
+
+
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
 let rec translation_correctness_exceptions_left_to_right_step
   (de: D.exp)
@@ -1169,9 +1186,75 @@ let rec translation_correctness_exceptions_left_to_right_step
           n1_tl;
         4 + n_to_tl + n1_tl, l_err, 0
       | Some (D.EDefault dtl' djust' dcons' dtau') ->
-        admit();
+        // Left side
         assert(djust' == djust /\ dcons' == dcons /\ dtau' == dtau);
-        admit()
+        translate_list_is_value_list dexceptions;
+        build_default_translation_typing_source dexceptions acc djust dcons dtau D.empty;
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        assert(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
+        assert(L.is_value_list ltl);
+        translation_preserves_empty_typ dhd dtau;
+        lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons 0 lhd lhd;
+        let stepped_le_1 : typed_l_exp ltau = exceptions_head_lift ltau ltl acc ljust lcons lhd in
+        assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau) 4 ==
+          Some stepped_le_1);
+        let new_acc, n_to_tl = step_exceptions_head_value ltau ltl acc ljust lcons lhd in
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions acc ljust lcons ltau)
+          stepped_le_1
+          4
+          n_to_tl;
+        let stepped_le_2 : typed_l_exp ltau =
+          exceptions_init_lift ltau ltl ljust lcons new_acc
+        in
+        assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
+          (4 + n_to_tl) == Some stepped_le_2);
+        // Right side
+        let dexceptions' = dhd::dtl' in
+        let lexceptions' = translate_exp_list dexceptions' in
+        let ltl' = translate_exp_list dtl' in
+        build_default_translation_typing_source dexceptions' acc djust dcons dtau D.empty;
+        exceptions_smaller dexceptions' djust dcons dtau;
+        translation_preserves_typ_exceptions D.empty
+          (D.EDefault dexceptions' djust dcons dtau)
+          dexceptions' dtau;
+        translate_list_is_value_list dexceptions';
+        assert(L.typing_list L.empty ltl' (L.TArrow L.TUnit ltau));
+        assert(L.is_value_list ltl');
+        lift_multiple_l_steps_exceptions_head ltau ltl' acc ljust lcons 0 lhd lhd;
+        let stepped_le_1' : typed_l_exp ltau =
+          exceptions_head_lift ltau ltl' acc ljust lcons lhd
+        in
+        assert(take_l_steps ltau (build_default_translation lexceptions' acc ljust lcons ltau) 4
+          == Some stepped_le_1');
+        let new_acc', n_to_tl' = step_exceptions_head_value ltau ltl' acc ljust lcons lhd in
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions' acc ljust lcons ltau)
+          stepped_le_1'
+          4
+          n_to_tl';
+        let stepped_le_2' : typed_l_exp ltau =
+          exceptions_init_lift ltau ltl' ljust lcons new_acc'
+        in
+        assert(take_l_steps ltau (build_default_translation lexceptions' acc ljust lcons ltau)
+          (4 + n_to_tl') == Some stepped_le_2');
+        // Both
+        step_exceptions_head_value_same_acc_result ltau ltl ltl' acc ljust lcons lhd;
+        let n1_tl, target_tl, n2_tl =
+          translation_correctness_exceptions_left_to_right_step
+            de dtl djust dcons dtau new_acc rec_lemma
+        in
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions acc ljust lcons ltau)
+          stepped_le_2
+          (4 + n_to_tl)
+          n1_tl;
+        take_l_steps_transitive ltau
+          (build_default_translation lexceptions' acc ljust lcons ltau)
+          stepped_le_2'
+          (4 + n_to_tl')
+          n2_tl;
+        4 + n_to_tl + n1_tl, target_tl, 4 + n_to_tl' + n2_tl
     end else begin
       translation_correctness_exceptions_left_to_right_step_head_not_value
         de dexceptions djust dcons dtau acc rec_lemma
