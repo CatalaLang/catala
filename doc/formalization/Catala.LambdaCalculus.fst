@@ -53,6 +53,7 @@ val is_value: exp -> Tot bool
 let rec is_value e =
   match e with
   | EAbs _ _ | EThunk _ | ELit _ | ENone -> true
+  | ESome (ELit (LError _)) -> false
   | ESome e' -> is_value e'
   | EList l -> is_value_list l
   | _ -> false

@@ -141,6 +141,7 @@ let rec l_values_dont_step (e: exp) : Lemma
   | EThunk _ -> ()
   | ELit _ -> ()
   | ENone -> ()
+  | ESome e' -> l_values_dont_step e'
   | EList [] -> ()
   | EList l -> l_values_dont_step_list e l
   | _ -> ()
@@ -600,7 +601,7 @@ let step_exceptions_head_value
   (cons: (typed_l_exp tau))
   (hd: (typed_l_exp tau))
     : Pure (typed_l_exp (TOption tau) & nat)
-      (requires (True))
+      (requires (is_value hd))
       (ensures (fun (new_acc, n) ->
         is_value new_acc /\
         take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
@@ -616,7 +617,7 @@ let step_exceptions_head_value_same_acc_result
   (acc: (typed_l_exp (TOption tau)))
   (just: (typed_l_exp TBool))
   (cons: (typed_l_exp tau))
-  (hd: (typed_l_exp tau))
+  (hd: (typed_l_exp tau){is_value hd})
     : Lemma (
       let new_acc, _ = step_exceptions_head_value tau tl acc just cons hd in
       let new_acc', _ = step_exceptions_head_value tau tl' acc just cons hd in
@@ -650,7 +651,7 @@ let step_exceptions_empty_some_acc
   (cons: (typed_l_exp tau))
   (acc: (typed_l_exp tau))
     : Pure nat
-      (requires (is_value acc))
+      (requires (is_value acc /\ not (is_error acc)))
       (ensures (fun n ->
       build_default_translation_typing [] (ESome acc) just cons tau empty;
         take_l_steps tau

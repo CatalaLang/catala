@@ -703,6 +703,7 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
         D.typing D.empty dcons dtau /\
         dacc_lacc_sync (translate_ty dtau) dacc lacc /\
         Some? (D.step de) /\
+        L.is_value lacc /\
         List.Tot.for_all D.is_value dexceptions /\
         (D.step de == (match D.empty_count dacc dexceptions with
           | D.AllEmpty -> None
@@ -748,6 +749,7 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
       n_err, l_err
     | L.ESome lacc_inner ->
       assert(L.is_value lacc_inner);
+      assert(not (L.is_error lacc_inner));
       let n = step_exceptions_empty_some_acc ltau ljust lcons lacc_inner in
       n, lacc_inner
   end
