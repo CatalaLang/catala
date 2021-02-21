@@ -98,7 +98,7 @@ let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_re
     | ELit LEmptyError, OneNonEmpty e -> empty_count (OneNonEmpty e) tl
     | _, Conflict -> Conflict
     | _, AllEmpty -> empty_count (OneNonEmpty hd) tl
-    | _ -> Conflict
+    | _, OneNonEmpty _ -> Conflict
 
 (**** Stepping judgment *)
 

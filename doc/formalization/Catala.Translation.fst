@@ -630,9 +630,9 @@ let rec translation_correctness_exceptions_left_to_right_step
 #pop-options
 
 let dacc_lacc_sync
-  (dtau: D.ty)
+  (ltau: L.ty)
   (dacc: D.empty_count_result)
-  (lacc: typed_l_exp (L.TOption (translate_ty dtau)))
+  (lacc: typed_l_exp (L.TOption ltau))
     : Tot prop
   =
   match dacc, lacc with
@@ -641,7 +641,51 @@ let dacc_lacc_sync
   | D.Conflict, L.ELit (L.LError L.ConflictError) -> True
   | _ -> False
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 70"
+#push-options "--fuel 3 --ifuel 2 --z3rlimit 40"
+let step_exceptions_head_value_source_acc_synced_dacc
+  (dtau: D.ty)
+  (ltl: list L.exp{
+    L.is_value_list ltl /\ L.typing_list L.empty ltl (L.TArrow L.TUnit (translate_ty dtau))
+  })
+  (dacc: D.empty_count_result)
+  (lacc: (typed_l_exp (L.TOption (translate_ty dtau))))
+  (ljust: typed_l_exp L.TBool)
+  (lcons: typed_l_exp (translate_ty dtau))
+  (dhd: D.exp)
+    : Pure (D.empty_count_result)
+      (requires (
+        dacc_lacc_sync (translate_ty dtau) dacc lacc /\
+        D.typing D.empty dhd dtau /\ D.is_value dhd /\
+        dacc <> D.Conflict
+      ))
+      (ensures (fun new_dacc ->
+        translate_empty_is_empty ();
+        translation_preserves_empty_typ dhd dtau;
+        let ltau = translate_ty dtau in
+        let new_lacc, _ =
+          step_exceptions_head_value ltau ltl lacc ljust lcons (translate_exp dhd)
+        in
+        dacc_lacc_sync ltau new_dacc new_lacc
+      ))
+  =
+  let new_dacc =
+    match dhd, dacc with
+    | D.ELit D.LEmptyError, D.AllEmpty -> D.AllEmpty
+    | D.ELit D.LEmptyError, D.OneNonEmpty e -> D.OneNonEmpty e
+    | _, D.AllEmpty -> D.OneNonEmpty dhd
+    | _, D.OneNonEmpty _ -> D.Conflict
+  in
+  translate_empty_is_empty ();
+  translation_preserves_empty_typ dhd dtau;
+  let ltau = translate_ty dtau in
+  let new_lacc, _ =
+  step_exceptions_head_value ltau ltl lacc ljust lcons (translate_exp dhd)
+  in
+  assume(dacc_lacc_sync ltau new_dacc new_lacc);
+  new_dacc
+#pop-options
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
 let rec translation_correctness_exceptions_empty_count_exception_triggered
   (de: D.exp)
   (dexceptions: list D.exp {dexceptions << de})
@@ -657,9 +701,9 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
         D.typing_list D.empty dexceptions dtau /\
         D.typing D.empty djust D.TBool /\
         D.typing D.empty dcons dtau /\
-        dacc_lacc_sync dtau dacc lacc /\
+        dacc_lacc_sync (translate_ty dtau) dacc lacc /\
         Some? (D.step de) /\
-        List.Tot.for_all (fun except -> D.is_value except) dexceptions /\
+        List.Tot.for_all D.is_value dexceptions /\
         (D.step de == (match D.empty_count dacc dexceptions with
           | D.AllEmpty -> None
           | D.OneNonEmpty e' -> Some e'
@@ -708,7 +752,7 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
       n, lacc_inner
   end
   | dhd::dtl -> begin
-    FStar.List.Tot.Base.for_all_mem (fun except -> D.is_value except) dexceptions;
+    FStar.List.Tot.Base.for_all_mem D.is_value dexceptions;
     translate_empty_is_empty ();
     translation_preserves_typ_exceptions D.empty de dexceptions dtau;
     translate_list_is_value_list dtl;
@@ -716,12 +760,38 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
     translation_correctness_value dhd;
     let ltl = translate_exp_list dtl in
     let lhd : typed_l_exp ltau = translate_exp dhd in
-    match lacc with
-    | L.ELit (L.LError L.ConflictError) ->
+    match dacc with
+    | D.Conflict ->
       let n_err = step_exceptions_cons_conflict_error ltau ljust lcons lhd ltl in
       n_err, l_err
-    | L.ESome lacc_inner -> admit()
-    | L.ENone -> admit()
+    | _ ->
+      lift_multiple_l_steps_exceptions_head ltau ltl lacc ljust lcons 0 lhd lhd;
+      let new_lacc, n_acc = step_exceptions_head_value ltau ltl lacc ljust lcons lhd in
+      let new_dacc = step_exceptions_head_value_source_acc_synced_dacc
+        dtau ltl dacc lacc ljust lcons dhd
+      in
+      let n_final, target_e =
+        translation_correctness_exceptions_empty_count_exception_triggered
+          de dtl djust dcons dtau new_dacc new_lacc rec_lemma
+      in
+      let lexceptions = translate_exp_list dexceptions in
+      build_default_translation_typing lexceptions lacc ljust lcons ltau L.empty;
+      take_l_steps_transitive ltau
+        (build_default_translation lexceptions lacc ljust lcons ltau)
+        (exceptions_head_lift ltau ltl lacc ljust lcons lhd)
+        4 n_acc;
+      let intermediate_e : typed_l_exp ltau =
+        exceptions_init_lift ltau ltl ljust lcons new_lacc
+      in
+      assert(take_l_steps ltau (build_default_translation lexceptions lacc ljust lcons ltau)
+        (n_acc + 4) == Some intermediate_e);
+      assert(intermediate_e == (build_default_translation ltl new_lacc ljust lcons ltau));
+      take_l_steps_transitive ltau
+        (build_default_translation lexceptions lacc ljust lcons ltau)
+        intermediate_e
+        (4 + n_acc)
+        n_final;
+      4 + n_acc + n_final, target_e
   end
 #pop-options
 
