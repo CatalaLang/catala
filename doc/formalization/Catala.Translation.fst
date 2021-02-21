@@ -641,7 +641,7 @@ let dacc_lacc_sync
   | D.Conflict, L.ELit (L.LError L.ConflictError) -> True
   | _ -> False
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 70"
 let rec translation_correctness_exceptions_empty_count_exception_triggered
   (de: D.exp)
   (dexceptions: list D.exp {dexceptions << de})
@@ -707,7 +707,22 @@ let rec translation_correctness_exceptions_empty_count_exception_triggered
       let n = step_exceptions_empty_some_acc ltau ljust lcons lacc_inner in
       n, lacc_inner
   end
-  | dhd::dtl -> admit()
+  | dhd::dtl -> begin
+    FStar.List.Tot.Base.for_all_mem (fun except -> D.is_value except) dexceptions;
+    translate_empty_is_empty ();
+    translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+    translate_list_is_value_list dtl;
+    assert(D.is_value dhd);
+    translation_correctness_value dhd;
+    let ltl = translate_exp_list dtl in
+    let lhd : typed_l_exp ltau = translate_exp dhd in
+    match lacc with
+    | L.ELit (L.LError L.ConflictError) ->
+      let n_err = step_exceptions_cons_conflict_error ltau ljust lcons lhd ltl in
+      n_err, l_err
+    | L.ESome lacc_inner -> admit()
+    | L.ENone -> admit()
+  end
 #pop-options
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 50"
