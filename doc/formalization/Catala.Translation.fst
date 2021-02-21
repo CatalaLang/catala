@@ -919,26 +919,28 @@ let rec translation_correctness_exceptions_left_to_right_step
   (rec_lemma: rec_correctness_step_type de)
     : Pure (nat & typed_l_exp (translate_ty dtau) & nat)
       (requires (
-        Some? (D.step de) /\
-        de == D.EDefault dexceptions djust dcons dtau /\
-        D.typing D.empty de dtau /\
+        D.typing_list D.empty dexceptions dtau /\
+        D.typing D.empty djust D.TBool /\
+        D.typing D.empty dcons dtau /\
         L.is_value acc /\
-        D.step de == D.step_exceptions_left_to_right de dexceptions djust dcons dtau
+        Some? (D.step_exceptions_left_to_right de dexceptions djust dcons dtau)
       ))
       (ensures (fun (n1, target_e, n2) ->
-        translation_preserves_empty_typ de dtau;
+        translate_empty_is_empty ();
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        translation_preserves_empty_typ djust D.TBool;
+        translation_preserves_empty_typ dcons dtau;
         let lexceptions = translate_exp_list dexceptions in
         let ljust = translate_exp djust in
         let lcons = translate_exp dcons in
         let Some de' = D.step_exceptions_left_to_right de dexceptions djust dcons dtau in
         let ltau = translate_ty dtau in
         translation_preserves_typ_exceptions D.empty de dexceptions dtau;
-        translate_empty_is_empty ();
         build_default_translation_typing lexceptions acc ljust lcons ltau L.empty;
         take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
           n1 == Some target_e /\
         begin
-          D.preservation de dtau;
+          D.preservation_exceptions_left_to_right de dexceptions djust dcons dtau;
           translation_preserves_empty_typ de' dtau;
           let le' = translate_exp de' in
           match de' with
@@ -954,9 +956,12 @@ let rec translation_correctness_exceptions_left_to_right_step
   =
   let Some de' = D.step_exceptions_left_to_right de dexceptions djust dcons dtau in
   let le = translate_exp de in
-  D.preservation de dtau;
+  D.preservation_exceptions_left_to_right de dexceptions djust dcons dtau;
+  translate_empty_is_empty ();
+  translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+  translation_preserves_empty_typ djust D.TBool;
+  translation_preserves_empty_typ dcons dtau;
   translation_preserves_empty_typ de' dtau;
-  translation_preserves_empty_typ de dtau;
   let ltau = translate_ty dtau in
   let le' : typed_l_exp ltau = translate_exp de' in
   let ljust = translate_exp djust in
@@ -974,7 +979,6 @@ let rec translation_correctness_exceptions_left_to_right_step
         assert(le' == L.ELit (L.LError (L.ConflictError)));
         let l_err : typed_l_exp ltau = L.ELit (L.LError (L.ConflictError)) in
         translate_list_is_value_list dexceptions;
-                translate_empty_is_empty ();
         build_default_translation_typing_source dexceptions acc djust dcons dtau D.empty;
         translation_preserves_typ_exceptions D.empty de dexceptions dtau;
         assert(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
@@ -1016,7 +1020,6 @@ let rec translation_correctness_exceptions_left_to_right_step
          assert(n2_hd == 0 /\ target_hd  == l_err);
          assert(take_l_steps ltau lhd n1_hd == Some l_err);
          translate_list_is_value_list dexceptions;
-         translate_empty_is_empty ();
          build_default_translation_typing_source dexceptions acc djust dcons dtau D.empty;
          lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons n1_hd lhd l_err;
          assert(take_l_steps ltau
@@ -1049,7 +1052,6 @@ let rec translation_correctness_exceptions_left_to_right_step
          translate_empty_is_empty ();
          build_default_translation_typing_source dexceptions acc djust dcons dtau D.empty;
          assert(L.is_value_list ltl);
-         translate_empty_is_empty ();
          assert(L.typing_list L.empty ltl (L.TArrow L.TUnit ltau));
          lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons n1_hd lhd target_hd;
          lift_multiple_l_steps_exceptions_head ltau ltl acc ljust lcons n2_hd lhd' target_hd;
