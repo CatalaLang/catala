@@ -882,6 +882,95 @@ let translation_correctness_exceptions_no_exceptions_triggered
   admit()
 #pop-options
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let rec step_exceptions_left_to_right_does_not_depend_on_condition
+  (de de': D.exp) (dexceptions: list D.exp{dexceptions << de /\ dexceptions << de'})
+  (djust: D.exp{djust << de}) (djust': D.exp{djust' << de'})
+  (dcons: D.exp{dcons << de /\ dcons << de'})
+  (dtau: D.ty)
+    : Lemma (
+      match
+        D.step_exceptions_left_to_right de dexceptions djust dcons dtau,
+        D.step_exceptions_left_to_right de' dexceptions djust' dcons dtau
+      with
+      | None, None | Some _, Some _ -> True
+      | _ -> False
+    )
+  =
+  let e1 = D.step_exceptions_left_to_right de dexceptions djust dcons dtau in
+  let e2 = D.step_exceptions_left_to_right de' dexceptions djust' dcons dtau in
+  match dexceptions with
+  | [] ->
+    assert(e1 == None);
+    assert(e2 == None)
+  | [hd] -> begin
+    match D.step hd with
+    | Some (D.ELit D.LConflictError) ->
+      assert(e1 == Some D.c_err);
+      assert(e2 == Some D.c_err)
+    | Some hd ->
+      assert(e1 == Some ((D.EDefault ([hd]) djust dcons dtau)));
+      assert(e2 == Some ((D.EDefault ([hd]) djust' dcons dtau)))
+    | _ ->
+      assert(e1 == None);
+      assert(e2 == None)
+  end
+  | hd::tl ->
+    if D.is_value hd then begin
+      step_exceptions_left_to_right_does_not_depend_on_condition
+        de de' tl djust djust' dcons dtau;
+      match
+        D.step_exceptions_left_to_right de tl djust dcons dtau,
+        D.step_exceptions_left_to_right de' tl djust' dcons dtau
+      with
+      | Some _, Some _ -> ()
+      | None, None -> ()
+    end else begin
+      match D.step hd with
+      | Some (D.ELit D.LConflictError) ->
+        assert(e1 == Some D.c_err);
+        assert(e2 == Some D.c_err)
+      | Some hd ->
+        assert(e1 == Some ((D.EDefault (hd::tl) djust dcons dtau)));
+        assert(e2 == Some ((D.EDefault (hd::tl) djust' dcons dtau)))
+      | _ ->
+        assert(e1 == None);
+        assert(e2 == None)
+    end
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1"
+let step_exceptions_does_not_depend_on_condition
+  (de de': D.exp) (dexceptions: list D.exp{dexceptions << de /\ dexceptions << de'})
+  (djust: D.exp{djust << de}) (djust': D.exp{djust' << de'})
+  (dcons: D.exp{dcons << de /\ dcons << de'})
+  (dtau: D.ty)
+    : Lemma (
+      match
+        D.step_exceptions de dexceptions djust dcons dtau,
+        D.step_exceptions de' dexceptions djust' dcons dtau
+      with
+      | D.NoStep, D.NoStep | D.IllFormed, D.IllFormed | D.SomeStep _, D.SomeStep _ -> True
+      | _ -> False
+    )
+ =
+ if List.Tot.for_all D.is_value dexceptions then begin
+   match D.empty_count D.AllEmpty dexceptions with
+   | D.AllEmpty -> ()
+   | D.OneNonEmpty _ -> ()
+   | D.Conflict -> ()
+ end else begin
+   step_exceptions_left_to_right_does_not_depend_on_condition
+     de de' dexceptions djust djust' dcons dtau;
+   match
+     D.step_exceptions_left_to_right de dexceptions djust dcons dtau,
+     D.step_exceptions_left_to_right de' dexceptions djust' dcons dtau
+   with
+   | None, None -> ()
+   | Some _, Some _ -> ()
+end
+#pop-options
+
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 50"
 let rec translation_correctness_step (de: D.exp) (dtau: D.ty)
     : Pure (nat & typed_l_exp (translate_ty dtau) & nat)
@@ -998,9 +1087,10 @@ let rec translation_correctness_step (de: D.exp) (dtau: D.ty)
        take_l_steps_transitive ltau le (final_default_subexp ltau ljust lcons) n1_final n1_just;
        assert(take_l_steps ltau le (n1_final + n1_just) == Some (L.EIf target_just lcons l_err));
        assert(de' == D.EDefault dexceptions djust' dcons dtau);
-       assume(D.step_exceptions de dexceptions djust dcons dtau ==
-         D.step_exceptions de' dexceptions djust' dcons dtau);
-       // Should be easy enough, djust does not influence the result
+       exceptions_smaller dexceptions djust dcons dtau;
+       exceptions_smaller dexceptions djust' dcons dtau;
+       step_exceptions_does_not_depend_on_condition
+        de de' dexceptions djust djust' dcons dtau;
        let n2_final =
         translation_correctness_exceptions_no_exceptions_triggered
           de' dexceptions djust' dcons dtau
