@@ -846,8 +846,21 @@ let final_default_subexp
   =
   L.EIf just cons (L.ELit (L.LError L.EmptyError))
 
+let rec empty_count_non_all_empty_if_one
+  (e: D.exp)
+  (l: list D.exp)
+    : Lemma (D.empty_count (D.OneNonEmpty e) l <> D.AllEmpty)
+  =
+  match l with
+  | [] -> ()
+  | hd::tl -> begin
+    match hd with
+    | D.ELit D.LEmptyError -> empty_count_non_all_empty_if_one e tl
+    | _ -> ()
+  end
+
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 150"
-let translation_correctness_exceptions_no_exceptions_triggered
+let rec translation_correctness_exceptions_no_exceptions_triggered
   (de: D.exp)
   (dexceptions: list D.exp {dexceptions << de})
   (djust: D.exp{djust << de})
@@ -860,7 +873,6 @@ let translation_correctness_exceptions_no_exceptions_triggered
         D.typing D.empty djust D.TBool /\
         D.typing D.empty dcons dtau /\
         List.Tot.for_all D.is_value dexceptions /\
-        (D.step de == D.step_default de dexceptions djust dcons dtau) /\
         (D.step_exceptions de dexceptions djust dcons dtau == D.NoStep)
       ))
       (ensures (fun n ->
@@ -879,7 +891,50 @@ let translation_correctness_exceptions_no_exceptions_triggered
       ))
       (decreases dexceptions)
   =
-  admit()
+  translate_empty_is_empty ();
+  translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+  translation_preserves_empty_typ djust D.TBool;
+  translation_preserves_empty_typ dcons dtau;
+  let lexceptions = translate_exp_list dexceptions in
+  let ljust = translate_exp djust in
+  let lcons = translate_exp dcons in
+  let ltau = translate_ty dtau in
+  match dexceptions with
+  | [] ->
+    let n1 = step_exceptions_empty_none ltau ljust lcons in n1
+  | dhd::dtl ->
+    assert(D.is_value dhd);
+    assert(dhd <> D.ELit D.LConflictError);
+    let aux (_ : squash (dhd <> D.ELit D.LEmptyError)) : Lemma (False) =
+      assert(D.empty_count D.AllEmpty dexceptions == D.empty_count (D.OneNonEmpty dhd) dtl);
+      empty_count_non_all_empty_if_one dhd dtl
+    in
+    Classical.impl_intro aux;
+    translation_preserves_typ_exceptions D.empty de dtl dtau;
+    translation_preserves_empty_typ dhd dtau;
+    translate_list_is_value_list dtl;
+    let ltl = translate_exp_list dtl in
+    let lhd = translate_exp dhd in
+    let lemp = L.ELit (L.LError L.EmptyError) in
+    assert(lhd == lemp);
+    lift_multiple_l_steps_exceptions_head ltau ltl L.ENone ljust lcons 0 lemp lemp;
+    build_default_translation_typing lexceptions L.ENone ljust lcons ltau L.empty;
+    assert(take_l_steps ltau (build_default_translation lexceptions L.ENone ljust lcons ltau) 4 ==
+      Some (exceptions_head_lift ltau ltl L.ENone ljust lcons lemp));
+    let _, n = step_exceptions_head_value ltau ltl L.ENone ljust lcons lemp in
+    step_exceptions_head_value_go_through ltau ltl ljust lcons;
+    take_l_steps_transitive ltau
+      (build_default_translation lexceptions L.ENone ljust lcons ltau)
+      (exceptions_head_lift ltau ltl L.ENone ljust lcons lemp)
+      4 n;
+    assert(take_l_steps ltau (build_default_translation lexceptions L.ENone ljust lcons ltau)
+      (4 + n) == Some (build_default_translation ltl L.ENone ljust lcons ltau));
+    let n' = translation_correctness_exceptions_no_exceptions_triggered de dtl djust dcons dtau in
+    take_l_steps_transitive ltau
+      (build_default_translation lexceptions L.ENone ljust lcons ltau)
+      (build_default_translation ltl L.ENone ljust lcons ltau)
+      (4 + n) n';
+    4 + n + n'
 #pop-options
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 50"

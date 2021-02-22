@@ -626,6 +626,20 @@ let step_exceptions_head_value_same_acc_result
   =
   admit()
 
+let step_exceptions_head_value_go_through
+  (tau: ty)
+  (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+
+    : Lemma (
+      let new_acc, _ =
+        step_exceptions_head_value tau tl ENone just cons (ELit (LError EmptyError)) in
+      new_acc = ENone
+    )
+  =
+  admit()
+
 let step_exceptions_empty_conflict_error
   (tau: ty)
   (just: (typed_l_exp TBool))
@@ -676,6 +690,37 @@ let step_exceptions_empty_some_acc
   take_l_steps_transitive tau (build_default_translation [] (ESome acc) just cons tau) two_step 2 1;
   3
 #pop-options
+
+#push-options "--fuel 4 --ifuel 1 --z3rlimit 40"
+let step_exceptions_empty_none
+  (tau: ty)
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+    : Pure nat
+      (requires (True))
+      (ensures (fun n ->
+      build_default_translation_typing [] ENone just cons tau empty;
+        take_l_steps tau
+          (build_default_translation [] ENone just cons tau) n ==
+            Some (EIf just cons (ELit (LError (EmptyError))))))
+  =
+  let one_step : typed_l_exp tau =
+    EMatchOption ENone tau
+              (EIf just cons (ELit (LError (EmptyError))))
+              (EAbs tau (EVar 0))
+  in
+  build_default_translation_typing [] ENone just cons tau empty;
+  assert(take_l_steps tau
+          (build_default_translation [] ENone just cons tau) 1 ==
+            Some one_step);
+  let two_step : typed_l_exp tau =
+    (EIf just cons (ELit (LError (EmptyError))))
+  in
+  assert(take_l_steps tau one_step 1 == Some two_step);
+  take_l_steps_transitive tau (build_default_translation [] ENone just cons tau) one_step 1 1;
+  2
+#pop-options
+
 
 #push-options "--fuel 4 --ifuel 1 --z3rlimit 40"
 let step_exceptions_cons_conflict_error

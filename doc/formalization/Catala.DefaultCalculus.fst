@@ -101,6 +101,7 @@ let rec empty_count (acc: empty_count_result) (l: list exp) : Tot empty_count_re
     match (hd, acc) with
     | ELit LEmptyError, AllEmpty -> empty_count AllEmpty tl
     | ELit LEmptyError, OneNonEmpty e -> empty_count (OneNonEmpty e) tl
+    | ELit LConflictError, _ -> Conflict
     | _, Conflict -> Conflict
     | _, AllEmpty -> empty_count (OneNonEmpty hd) tl
     | _, OneNonEmpty _ -> Conflict
