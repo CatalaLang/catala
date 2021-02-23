@@ -4,12 +4,6 @@
 	branch = master
   ignore = dirty
 
-[submodule "syntax_highlighting/en/pygments/pygments"]
-	path = syntax_highlighting/en/pygments/pygments
-	url = https://github.com/pygments/pygments.git
-	branch = master
-  ignore = dirty
-
 [submodule "syntax_highlighting/nv/pygments/pygments"]
 	path = syntax_highlighting/nv/pygments/pygments
 	url = https://github.com/pygments/pygments.git
