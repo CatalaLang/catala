@@ -27,7 +27,7 @@ dependencies: dependencies-ocaml init-submodules
 ##########################################
 
 format:
-	dune build @fmt --auto-promote 2> /dev/null | true 
+	dune build @fmt --auto-promote 2> /dev/null | true
 
 build:
 	dune build @update-parser-messages
@@ -49,21 +49,17 @@ install:
 ##########################################
 
 SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
-PYGMENTS_DIR_FR=$(SYNTAX_HIGHLIGHTING_FR)/pygments
-PYGMENTIZE_FR=$(PYGMENTS_DIR_FR)/pygments/env/bin/pygmentize
 SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
-PYGMENTS_DIR_EN=$(SYNTAX_HIGHLIGHTING_EN)/pygments
-PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
+pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
 	chmod +x $<
 	$<
 
-$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
+pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
 	chmod +x $<
 	$<
 
-pygments: $(PYGMENTIZE_FR) $(PYGMENTIZE_EN)
+pygments: pygmentize_fr pygmentize_en
 
 atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	chmod +x $<
@@ -137,7 +133,7 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 test_suite: .FORCE
 	@$(MAKE) --no-print-directory -C tests pass_tests
 
-test_examples: .FORCE 
+test_examples: .FORCE
 	@$(MAKE) --no-print-directory -C examples tests
 
 tests: test_suite test_examples
@@ -153,7 +149,7 @@ FRENCH_LAW_LIB_DIR=src/french_law
 $(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
-		$(FRENCH_LAW_LIB_DIR)/law_source 
+		$(FRENCH_LAW_LIB_DIR)/law_source
 
 french_law_library:\
 	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml
@@ -214,4 +210,4 @@ inspect:
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
-	catala.html 
+	catala.html
