@@ -133,11 +133,23 @@ let info =
 
 (**{2 Markers}*)
 
+let time : float ref = ref (Unix.gettimeofday ())
+
+let time_marker () =
+  let new_time = Unix.gettimeofday () in
+  let old_time = !time in
+  time := new_time;
+  let delta = (new_time -. old_time) *. 1000. in
+  if delta > 50. then
+    ANSITerminal.printf [ ANSITerminal.Bold; ANSITerminal.black ] "[TIME] %.0f ms\n" delta
+
 let print_with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
-let debug_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
+let debug_marker () =
+  time_marker ();
+  print_with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
 
 (** Prints [\[ERROR\]] in red on the terminal error output *)
 let error_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "

@@ -165,7 +165,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             let results =
               List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
             in
-
+            Cli.debug_print "End of interpretation";
             Cli.result_print
               (Format.asprintf "Computation successful!%s"
                  (if List.length results > 0 then " Results:" else ""));
