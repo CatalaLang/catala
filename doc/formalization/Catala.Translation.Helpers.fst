@@ -72,6 +72,15 @@ let process_exceptions_untouched_by_subst (s: var_to_exp) (tau: ty) : Lemma
   ()
 #pop-options
 
+(*** Lambda calculus stepping lemmas *)
+
+let well_typed_terms_invariant_by_subst (s: var_to_exp) (e: exp) (tau: ty) : Lemma
+  (requires (typing empty e tau))
+  (ensures (subst s e == e))
+  =
+  (* Classic lambda calculus result for terms that do not contain free variables *)
+  admit()
+
 (*** Step lifting framework *)
 
 let typed_l_exp (tau: ty) = e:exp{typing empty e tau}
@@ -405,7 +414,12 @@ let lift_multiple_l_steps_exceptions_head
   typing_empty_can_be_extended acc (TOption tau) (extend empty (TOption tau));
   typing_empty_can_be_extended acc (TOption tau)
    (extend (extend empty (TOption tau)) tau);
-  let init_stepped : typed_l_exp (TOption tau) = EApp (EAbs (TOption tau) (
+  typ_process_exceptions_f empty tau;
+  let init0 : typed_l_exp (TOption tau) = EApp
+    (EApp (process_exceptions_f tau) acc (TOption tau))
+    (EThunk hd) (TArrow TUnit tau)
+  in
+  let init3 : typed_l_exp (TOption tau) = EApp (EAbs (TOption tau) (
     EMatchOption acc tau (EVar 0) (EAbs tau (
       EMatchOption (EVar 1) tau acc (EAbs tau
         (ELit (LError ConflictError))
@@ -413,22 +427,16 @@ let lift_multiple_l_steps_exceptions_head
     ))))
     (ECatchEmptyError (ESome hd) ENone) (TOption tau)
   in
-  let init = EApp
-    (EApp (process_exceptions_f tau) acc (TOption tau))
-    (EThunk hd) (TArrow TUnit tau)
-  in
-  let open FStar.Tactics in
-  assert(take_l_steps (TOption tau) init 3 == Some init_stepped) by begin
-    compute ();
-    tadmit ()
-  end;
-  let default_translation: typed_l_exp tau =
+  assume(take_l_steps (TOption tau) init0 3 == Some init3);
+  (* F* cannot prove these rather trivial substitutions automatically, might have to do it
+    manually. This proof will use well_typed_terms_invariant_by_subst *)
+  let default_translation0 : typed_l_exp tau =
     build_default_translation ((EThunk hd)::tl) acc just cons tau
   in
-  let default_translation_stepped = EMatchOption
+  let default_translation1 : typed_l_exp tau = EMatchOption
     (EFoldLeft
       (process_exceptions_f tau)
-      init (TOption tau)
+      init0 (TOption tau)
       (EList tl) (TArrow TUnit tau))
     tau
     (EIf
@@ -436,27 +444,20 @@ let lift_multiple_l_steps_exceptions_head
       (ELit (LError EmptyError)))
     (EAbs tau (EVar 0))
   in
-  assert(take_l_steps tau default_translation 1 == Some default_translation_stepped);
-  admit();
-  assert(default_translation_stepped == exceptions_init_lift tau tl just cons
-    (EApp (EApp (process_exceptions_f tau) ENone (TOption tau))
-      (EThunk hd) (TArrow TUnit tau)));
-  lift_multiple_l_steps (TOption tau) tau init init_stepped 3
+  assert(take_l_steps tau default_translation0 1 == Some default_translation1);
+  assert(default_translation1 == exceptions_init_lift tau tl just cons init0);
+  lift_multiple_l_steps (TOption tau) tau init0 init3 3
     (exceptions_init_lift tau tl just cons);
-  assert(take_l_steps tau default_translation_stepped 3 ==
-    Some (exceptions_head_lift tau tl acc just cons hd));
-  take_l_steps_transitive tau default_translation default_translation_stepped 1 3;
-  assert(take_l_steps tau default_translation 4 ==
-    Some (exceptions_head_lift tau tl acc just cons hd));
+  take_l_steps_transitive tau default_translation0 default_translation1 1 3;
+  assert(take_l_steps tau default_translation0 4 ==
+    Some (exceptions_init_lift tau tl just cons init3));
+  assert(exceptions_init_lift tau tl just cons init3 ==
+    exceptions_head_lift tau tl acc just cons hd);
   lift_multiple_l_steps tau tau hd final_hd n_hd (exceptions_head_lift tau tl acc just cons);
-  assert(take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n_hd ==
-    Some (exceptions_head_lift tau tl acc just cons final_hd));
-  take_l_steps_transitive tau default_translation
+  take_l_steps_transitive tau default_translation0
     (exceptions_head_lift tau tl acc just cons hd) 4 n_hd
-#pop-options
 
 (*** Various lambda calculus steps *)
-
 
 let process_exceptions_applied
   (tau: ty)
