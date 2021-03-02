@@ -53,11 +53,11 @@ SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
 
 pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
 	chmod +x $<
-	$<
+	sudo $<
 
 pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
 	chmod +x $<
-	$<
+	sudo $<
 
 pygments: pygmentize_fr pygmentize_en
 
@@ -101,27 +101,27 @@ TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 
 
-literate_allocations_familiales: pygments build
+literate_allocations_familiales: build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
-literate_code_general_impots: pygments build
+literate_code_general_impots: build
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
-literate_us_tax_code: pygments build
+literate_us_tax_code: build
 	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
 	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
-literate_tutorial_en: pygments build
+literate_tutorial_en: build
 	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
 	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
 
-literate_tutoriel_fr: pygments build
+literate_tutoriel_fr: build
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
-literate_examples: literate_allocations_familiales literate_code_general_impots \
+literate_examples: pygments literate_allocations_familiales literate_code_general_impots \
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
 
 ##########################################

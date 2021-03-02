@@ -20,17 +20,11 @@ open Utils
 (** {1 Helpers} *)
 
 val wrap_html :
-  string list ->
-  string option ->
-  Cli.backend_lang ->
-  Format.formatter ->
-  (Format.formatter -> unit) ->
-  unit
-(** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
+  string list -> Cli.backend_lang -> Format.formatter -> (Format.formatter -> unit) -> unit
+(** Usage: [wrap_html source_files language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
 
 (** {1 API} *)
 
-val ast_to_html :
-  string option -> Cli.backend_lang -> Format.formatter -> Surface.Ast.program -> unit
+val ast_to_html : Cli.backend_lang -> Format.formatter -> Surface.Ast.program -> unit

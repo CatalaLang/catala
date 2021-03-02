@@ -61,14 +61,11 @@ val ex_scope : string option Cmdliner.Term.t
 
 val output : string option Cmdliner.Term.t
 
-val pygmentize_loc : string option Cmdliner.Term.t
-
 val catala_t :
   (string ->
   bool ->
   bool ->
   bool ->
-  string option ->
   string ->
   string option ->
   int option ->
@@ -77,7 +74,9 @@ val catala_t :
   string option ->
   'a) ->
   'a Cmdliner.Term.t
-(** Main entry point *)
+(** Main entry point:
+    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt
+    ex_scope output] *)
 
 val version : string
 
