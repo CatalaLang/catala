@@ -427,6 +427,13 @@ let lift_multiple_l_steps_exceptions_head
     ))))
     (ECatchEmptyError (ESome hd) ENone) (TOption tau)
   in
+  let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
+    well_typed_terms_invariant_by_subst s acc (TOption tau)
+  in
+  let hd_invariant (s: var_to_exp) : Lemma (subst s hd == hd)
+    [SMTPat (subst s hd)] =
+    well_typed_terms_invariant_by_subst s hd tau
+  in
   assume(take_l_steps (TOption tau) init0 3 == Some init3);
   (* F* cannot prove these rather trivial substitutions automatically, might have to do it
     manually. This proof will use well_typed_terms_invariant_by_subst *)
@@ -596,16 +603,127 @@ let exception_init_lift_conflict_error
   take_l_steps_transitive tau e0 e1 1 1
 #pop-options
 
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 150"
-let step_exceptions_head_value
+let is_option_value_non_error (g: env) (e: exp) (tau: ty)
+    : Lemma (requires (is_value e /\ not (is_error e) /\ (typing g e (TOption tau))))
+      (ensures
+        (match e with
+          | ESome _ -> True
+          | ENone -> True
+          | _ -> False)) = ()
+
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 80"
+let step_exceptions_head_value_error
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
   (acc: (typed_l_exp (TOption tau)))
   (just: (typed_l_exp TBool))
   (cons: (typed_l_exp tau))
-  (hd: (typed_l_exp tau))
+  (hd_err: err)
     : Pure (typed_l_exp (TOption tau) & nat)
-      (requires (is_value hd /\ is_value acc))
+      (requires (is_value acc /\ not (is_error acc)))
+      (ensures (fun (new_acc, n) ->
+        is_value new_acc /\
+        take_l_steps tau (exceptions_head_lift tau tl acc just cons (ELit (LError hd_err))) n ==
+          Some (exceptions_init_lift tau tl just cons new_acc)
+      ))
+  =
+  typ_process_exceptions_f empty tau;
+  typing_empty_can_be_extended acc (TOption tau) (extend empty (TOption tau));
+  typing_empty_can_be_extended acc (TOption tau)
+    (extend (extend empty (TOption tau)) tau);
+  let hd = ELit (LError hd_err) in
+  let init0 : typed_l_exp (TOption tau) = EApp (EAbs (TOption tau) (
+    EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
+      ELit (LError ConflictError))))))) (ECatchEmptyError (ESome hd) ENone) (TOption tau)
+  in
+  let match_arg0  =
+    EFoldLeft (process_exceptions_f tau) init0 (TOption tau) (EList tl) (TArrow TUnit tau)
+  in
+  let c_err = ELit (LError ConflictError) in
+  let match_none0 = EIf just cons (ELit (LError EmptyError)) in
+  let match_some0 = EAbs tau (EVar 0) in
+  assert(exceptions_head_lift tau tl acc just cons hd ==
+    EMatchOption match_arg0 tau match_none0 match_some0);
+  assert(exceptions_head_lift tau tl acc just cons hd ==
+    exceptions_init_lift tau tl just cons init0);
+  let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
+    well_typed_terms_invariant_by_subst s acc (TOption tau)
+  in
+  let init1 = EApp (EAbs (TOption tau) (
+    EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
+      ELit (LError ConflictError))))))) (ECatchEmptyError hd ENone) (TOption tau)
+  in
+  assert(step init0 == Some init1);
+  match hd_err with
+  | ConflictError ->
+    let init2 = EApp (EAbs (TOption tau) (
+      EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
+        ELit (LError ConflictError))))))) hd (TOption tau)
+    in
+    assert(step init1 == Some init2); assert(step init2 == Some c_err);
+    preservation init0 (TOption tau); preservation init1 (TOption tau);
+    preservation init2 (TOption tau);
+    take_l_steps_transitive (TOption tau) init0 init1 1 1;
+    take_l_steps_transitive (TOption tau) init0 init2 2 1;
+    lift_multiple_l_steps (TOption tau) tau init0 c_err 3
+      (exceptions_init_lift tau tl just cons);
+    exception_init_lift_conflict_error tau tl just cons;
+    c_err, 3
+  | EmptyError ->
+    let init2 = EApp (EAbs (TOption tau) (
+      EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
+        ELit (LError ConflictError))))))) ENone (TOption tau)
+    in
+    assert(step init1 == Some init2);
+    let init3 = EMatchOption acc tau ENone (EAbs tau (EMatchOption ENone tau acc (EAbs tau (
+      ELit (LError ConflictError)))))
+    in
+    assert(step init2 == Some init3);
+    is_option_value_non_error empty acc tau;
+    match acc with
+    | ENone ->
+      assert(step init3 == Some ENone);
+      preservation init0 (TOption tau); preservation init1 (TOption tau);
+      preservation init2 (TOption tau); preservation init3 (TOption tau);
+      take_l_steps_transitive (TOption tau) init0 init1 1 1;
+      take_l_steps_transitive (TOption tau) init0 init2 2 1;
+      take_l_steps_transitive (TOption tau) init0 init3 3 1;
+      lift_multiple_l_steps (TOption tau) tau init0 ENone 4
+        (exceptions_init_lift tau tl just cons);
+      ENone, 4
+    | ESome acc_inner ->
+       let init4 = (EApp (EAbs tau (EMatchOption ENone tau acc (EAbs tau (
+         ELit (LError ConflictError))))) acc_inner tau)
+       in
+       assert(step init3 == Some init4);
+       let init5 = EMatchOption ENone tau acc (EAbs tau (
+         ELit (LError ConflictError)))
+       in
+       assert(step init4 == Some init5);
+       assert(step init5 == Some acc);
+       preservation init0 (TOption tau); preservation init1 (TOption tau);
+       preservation init2 (TOption tau); preservation init3 (TOption tau);
+       preservation init4 (TOption tau); preservation init5 (TOption tau);
+       take_l_steps_transitive (TOption tau) init0 init1 1 1;
+       take_l_steps_transitive (TOption tau) init0 init2 2 1;
+       take_l_steps_transitive (TOption tau) init0 init3 3 1;
+       take_l_steps_transitive (TOption tau) init0 init4 4 1;
+       take_l_steps_transitive (TOption tau) init0 init5 5 1;
+       lift_multiple_l_steps (TOption tau) tau init0 acc 6
+        (exceptions_init_lift tau tl just cons);
+       acc, 6
+#pop-options
+
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 90"
+let step_exceptions_head_value_non_error
+  (tau: ty)
+  (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
+  (acc: (typed_l_exp (TOption tau)))
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+  (hd: typed_l_exp tau)
+    : Pure (typed_l_exp (TOption tau) & nat)
+      (requires (is_value hd /\ not (is_error hd) /\ is_value acc /\ not (is_error acc)))
       (ensures (fun (new_acc, n) ->
         is_value new_acc /\
         take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
@@ -633,54 +751,79 @@ let step_exceptions_head_value
   let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
     well_typed_terms_invariant_by_subst s acc (TOption tau)
   in
-  match hd with
-  | ELit (LError err) ->
-    let init1 = EApp (EAbs (TOption tau) (
-      EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
-        ELit (LError ConflictError))))))) (ECatchEmptyError hd ENone) (TOption tau)
+  let some_hd_invariant (s: var_to_exp) : Lemma (subst s (ESome hd) == ESome hd)
+      [SMTPat (subst s (ESome hd))]
+    =
+    well_typed_terms_invariant_by_subst s (ESome hd) (TOption tau)
+  in
+  let init1 = EApp (EAbs (TOption tau) (
+    EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
+      ELit (LError ConflictError))))))) (ESome hd) (TOption tau)
+  in
+  assert(step init0 == Some init1);
+  let init2 = EMatchOption acc tau (ESome hd) (EAbs tau (EMatchOption (ESome hd) tau acc (EAbs tau (
+    ELit (LError ConflictError)))))
+  in
+  assert(step init1 == Some init2);
+  is_option_value_non_error empty acc tau;
+  match acc with
+  | ENone ->
+    assert(step init2 == Some (ESome hd));
+    preservation init0 (TOption tau); preservation init1 (TOption tau);
+    preservation init2 (TOption tau);
+    take_l_steps_transitive (TOption tau) init0 init1 1 1;
+    take_l_steps_transitive (TOption tau) init0 init2 2 1;
+    lift_multiple_l_steps (TOption tau) tau init0 (ESome hd) 3
+      (exceptions_init_lift tau tl just cons);
+    ESome hd, 3
+  | ESome acc_inner ->
+    let init3 = EApp (EAbs tau (EMatchOption (ESome hd) tau acc
+      (EAbs tau (ELit (LError ConflictError))))) acc_inner tau
     in
-    assert(step init0 == Some init1);
-    begin match err with
-    | ConflictError ->
-      let init2 = EApp (EAbs (TOption tau) (
-        EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
-          ELit (LError ConflictError))))))) hd (TOption tau)
-      in
-      assert(step init1 == Some init2);
-      assert(step init2 == Some c_err);
-      preservation init0 (TOption tau);
-      preservation init1 (TOption tau);
-      preservation init2 (TOption tau);
-      take_l_steps_transitive (TOption tau) init0 init1 1 1;
-      take_l_steps_transitive (TOption tau) init0 init2 2 1;
-      assert(take_l_steps (TOption tau) init0 3 == Some c_err);
-      lift_multiple_l_steps (TOption tau) tau init0 c_err 3
-        (exceptions_init_lift tau tl just cons);
-      assert(take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) 3 ==
-        Some (exceptions_init_lift tau tl just cons c_err));
-      exception_init_lift_conflict_error tau tl just cons;
-      c_err, 3
-    | EmptyError ->
-      let init2 = EApp (EAbs (TOption tau) (
-        EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (
-          ELit (LError ConflictError))))))) ENone (TOption tau)
-      in
-      assert(step init1 == Some init2);
-      let init3 =
-        EMatchOption acc tau ENone (EAbs tau (EMatchOption ENone tau acc (EAbs tau (
-          ELit (LError ConflictError)))))
-      in
-      assert(step init2 == Some init3);
-      admit()
-    end
-  | _ -> admit()
+    assert(step init2 == Some init3);
+    let init4 = EMatchOption (ESome hd) tau acc (EAbs tau (ELit (LError ConflictError))) in
+    assert(step init3 == Some init4);
+    let init5 = EApp (EAbs tau (ELit (LError ConflictError))) hd tau in
+    assert(step init4 == Some init5);
+    let c_err = ELit (LError ConflictError) in
+    assert(step init5 == Some c_err);
+    preservation init0 (TOption tau); preservation init1 (TOption tau);
+    preservation init2 (TOption tau); preservation init3 (TOption tau);
+    preservation init4 (TOption tau); preservation init5 (TOption tau);
+    take_l_steps_transitive (TOption tau) init0 init1 1 1;
+    take_l_steps_transitive (TOption tau) init0 init2 2 1;
+    take_l_steps_transitive (TOption tau) init0 init3 3 1;
+    take_l_steps_transitive (TOption tau) init0 init4 4 1;
+    take_l_steps_transitive (TOption tau) init0 init5 5 1;
+    lift_multiple_l_steps (TOption tau) tau init0 c_err 6
+     (exceptions_init_lift tau tl just cons);
+    c_err, 6
 #pop-options
+
+let step_exceptions_head_value
+  (tau: ty)
+  (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
+  (acc: (typed_l_exp (TOption tau)))
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+  (hd: (typed_l_exp tau))
+    : Pure (typed_l_exp (TOption tau) & nat)
+      (requires (is_value hd /\ is_value acc /\ not (is_error acc)))
+      (ensures (fun (new_acc, n) ->
+        is_value new_acc /\
+        take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
+          Some (exceptions_init_lift tau tl just cons new_acc)
+      ))
+  =
+  match hd with
+  | ELit (LError hd_err) -> step_exceptions_head_value_error tau tl acc just cons hd_err
+  | _ -> step_exceptions_head_value_non_error tau tl acc just cons hd
 
 let step_exceptions_head_value_same_acc_result
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
   (tl': list exp{is_value_list tl' /\ typing_list empty tl' (TArrow TUnit tau)})
-  (acc: typed_l_exp (TOption tau){is_value acc})
+  (acc: typed_l_exp (TOption tau){is_value acc /\ not (is_error acc)})
   (just: (typed_l_exp TBool))
   (cons: (typed_l_exp tau))
   (hd: (typed_l_exp tau){is_value hd})
