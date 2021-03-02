@@ -656,6 +656,7 @@ let step_exceptions_head_value_source_acc_synced_dacc
       (requires (
         dacc_lacc_sync (translate_ty dtau) dacc lacc /\
         D.typing D.empty dhd dtau /\ D.is_value dhd /\
+        L.is_value lacc /\
         dacc <> D.Conflict
       ))
       (ensures (fun new_dacc ->
