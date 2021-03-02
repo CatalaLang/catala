@@ -491,7 +491,7 @@ let process_exceptions_applied_stepped
     (ECatchEmptyError (ESome hd) ENone) (TOption tau)
 #pop-options
 
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 50"
+#push-options "--fuel 9 --ifuel 2 --z3rlimit 80"
 let process_exceptions_applied_stepping
   (tau: ty)
   (acc: typed_l_exp (TOption tau){is_value acc /\ not (is_error acc)})
@@ -499,58 +499,41 @@ let process_exceptions_applied_stepping
     : Lemma (take_l_steps (TOption tau) (process_exceptions_applied tau acc hd) 3 ==
       Some (process_exceptions_applied_stepped tau acc hd))
   =
-  let e1 : exp =
-    EApp
-      (EAbs (TArrow TUnit tau) (
-    EApp (EAbs (TOption tau) (
-      EMatchOption acc tau
-        (EVar 0)
-        (EAbs  tau (
-          EMatchOption (EVar 1) tau
-            acc
-            (EAbs tau (ELit (LError ConflictError)))
-        ))
-    ))
-    (ECatchEmptyError (ESome (EApp (EVar 0) (ELit LUnit) TUnit)) ENone)
-    (TOption tau)
-  )
-      )
-      (EThunk hd) (TArrow TUnit tau)
+  let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
+    well_typed_terms_invariant_by_subst s acc (TOption tau)
   in
-  let e2 =
-    EApp (EAbs (TOption tau) (
-      EMatchOption acc tau
-        (EVar 0)
-        (EAbs tau (
-          EMatchOption (EVar 1) tau
-            acc
-            (EAbs tau (ELit (LError ConflictError)))
-        ))
-    ))
-    (ECatchEmptyError (ESome (EApp (EThunk hd) (ELit LUnit) TUnit)) ENone)
+  [@inline_let]
+  let inner_process_exceptions0 (hd: exp) = EApp
+    (EAbs (TOption tau) (EMatchOption acc tau (EVar 0) (EAbs tau (
+        EMatchOption (EVar 1) tau acc (EAbs tau (ELit (LError ConflictError)))))))
+    (ECatchEmptyError (ESome (EApp hd (ELit LUnit) TUnit)) ENone)
     (TOption tau)
-
   in
-  assume(forall (s: var_to_exp). {:pattern (subst s acc) } subst s acc == acc);
-  assume(forall (s: var_to_exp). {:pattern (subst s (EThunk hd)) } subst s (EThunk hd) == (EThunk hd));
+  let e1 = EApp
+    (EAbs (TArrow TUnit tau) (inner_process_exceptions0 (EVar 0)))
+    (EThunk hd) (TArrow TUnit tau)
+  in
+  let e2 = inner_process_exceptions0 (EThunk hd) in
   assert_norm(step (process_exceptions_applied tau acc hd) == Some e1);
-  assume(step e1 == Some e2);
-  let e3 =
-    EApp (EAbs (TOption tau) (
-      EMatchOption acc tau
-        (EVar 0)
-        (EAbs tau (
-          EMatchOption (EVar 1) tau
-            acc
-            (EAbs tau (ELit (LError ConflictError)))
-        ))
-    ))
+  assert(step e1 == Some e2);
+  let hd0 = (ECatchEmptyError (ESome (EApp (EThunk hd) (ELit LUnit) TUnit)) ENone) in
+  let hd1 = (ECatchEmptyError (ESome hd) ENone) in
+  assert(step hd0 == Some hd1);
+  [@inline_let]
+  let inner_process_exceptions1 = EApp
+    (EAbs (TOption tau) (EMatchOption acc tau (EVar 0) (EAbs tau (
+        EMatchOption (EVar 1) tau acc (EAbs tau (ELit (LError ConflictError)))))))
     (ECatchEmptyError (ESome hd) ENone)
     (TOption tau)
   in
+  let e3 = inner_process_exceptions1 in
   assert_norm(step e2 == Some e3);
-  // Mostly proven?
-  admit()
+  assert(e3 == process_exceptions_applied_stepped tau acc hd);
+  preservation (process_exceptions_applied tau acc hd) (TOption tau);
+  preservation e1 (TOption tau);
+  preservation e2 (TOption tau);
+  take_l_steps_transitive (TOption tau) (process_exceptions_applied tau acc hd) e1 1 1;
+  take_l_steps_transitive (TOption tau) (process_exceptions_applied tau acc hd) e2 2 1
 #pop-options
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 40"
