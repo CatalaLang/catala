@@ -20,13 +20,8 @@ open Utils
 (** {1 Helpers} *)
 
 val wrap_latex :
-  string list ->
-  string option ->
-  Cli.backend_lang ->
-  Format.formatter ->
-  (Format.formatter -> unit) ->
-  unit
-(** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
+  string list -> Cli.backend_lang -> Format.formatter -> (Format.formatter -> unit) -> unit
+(** Usage: [wrap_latex source_files language fmt wrapped]
 
     Prints an LaTeX complete documùent structure around the [wrapped] content. *)
 

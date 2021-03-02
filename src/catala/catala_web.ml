@@ -8,7 +8,7 @@ let _ =
            (language : Js.js_string Js.t) (trace : bool) =
          driver
            (Contents (Js.to_string contents))
-           false false false None "Interpret"
+           false false false "Interpret"
            (Some (Js.to_string language))
            None trace
            (Some (Js.to_string scope))

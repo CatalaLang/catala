@@ -92,16 +92,9 @@ let output =
         ~doc:
           "$(i, OUTPUT) is the file that will contain the extracted output (for compiler backends)")
 
-let pygmentize_loc =
-  Arg.(
-    value
-    & opt (some string) None
-    & info [ "pygmentize" ] ~docv:"PYGMENTIZE"
-        ~doc:"Location of a custom pygmentize executable for LaTeX source code highlighting")
-
 let catala_t f =
   Term.(
-    const f $ file $ debug $ unstyled $ wrap_weaved_output $ pygmentize_loc $ backend $ language
+    const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ ex_scope $ output)
 
 let version = "0.2.0"

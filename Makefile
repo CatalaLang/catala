@@ -27,7 +27,7 @@ dependencies: dependencies-ocaml init-submodules
 ##########################################
 
 format:
-	dune build @fmt --auto-promote 2> /dev/null | true 
+	dune build @fmt --auto-promote 2> /dev/null | true
 
 build:
 	dune build @update-parser-messages
@@ -49,21 +49,17 @@ install:
 ##########################################
 
 SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
-PYGMENTS_DIR_FR=$(SYNTAX_HIGHLIGHTING_FR)/pygments
-PYGMENTIZE_FR=$(PYGMENTS_DIR_FR)/pygments/env/bin/pygmentize
 SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
-PYGMENTS_DIR_EN=$(SYNTAX_HIGHLIGHTING_EN)/pygments
-PYGMENTIZE_EN=$(PYGMENTS_DIR_EN)/pygments/env/bin/pygmentize
 
-$(PYGMENTIZE_FR): $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh $(PYGMENTS_DIR_FR)/catala_fr.py
+pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
 	chmod +x $<
-	$<
+	sudo $<
 
-$(PYGMENTIZE_EN): $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh $(PYGMENTS_DIR_EN)/catala_en.py
+pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
 	chmod +x $<
-	$<
+	sudo $<
 
-pygments: $(PYGMENTIZE_FR) $(PYGMENTIZE_EN)
+pygments: pygmentize_fr pygmentize_en
 
 atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	chmod +x $<
@@ -105,27 +101,27 @@ TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 
 
-literate_allocations_familiales: pygments build
+literate_allocations_familiales: build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
-literate_code_general_impots: pygments build
+literate_code_general_impots: build
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
-literate_us_tax_code: pygments build
+literate_us_tax_code: build
 	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
 	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
-literate_tutorial_en: pygments build
+literate_tutorial_en: build
 	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
 	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
 
-literate_tutoriel_fr: pygments build
+literate_tutoriel_fr: build
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
-literate_examples: literate_allocations_familiales literate_code_general_impots \
+literate_examples: pygments literate_allocations_familiales literate_code_general_impots \
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
 
 ##########################################
@@ -137,7 +133,7 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 test_suite: .FORCE
 	@$(MAKE) --no-print-directory -C tests pass_tests
 
-test_examples: .FORCE 
+test_examples: .FORCE
 	@$(MAKE) --no-print-directory -C examples tests
 
 tests: test_suite test_examples
@@ -153,7 +149,7 @@ FRENCH_LAW_LIB_DIR=src/french_law
 $(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
-		$(FRENCH_LAW_LIB_DIR)/law_source 
+		$(FRENCH_LAW_LIB_DIR)/law_source
 
 french_law_library:\
 	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml
@@ -214,4 +210,4 @@ inspect:
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
-	catala.html 
+	catala.html

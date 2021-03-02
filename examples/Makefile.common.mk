@@ -4,18 +4,8 @@
 
 LATEXMK=latexmk
 
-PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
-PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
-
 CATALA=dune exec --no-print-director ../../src/catala/catala.exe -- \
 	$(CATALA_OPTS) --language=$(CATALA_LANG)
-
-ifeq ($(CATALA_LANG),fr)
-	PYGMENTIZE=$(PYGMENTIZE_FR)
-endif
-ifeq ($(CATALA_LANG),en)
-	PYGMENTIZE=$(PYGMENTIZE_EN)
-endif
 
 ##########################################
 # Targets
@@ -39,7 +29,6 @@ endif
 	@$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
-		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
 
@@ -47,7 +36,6 @@ endif
 	@$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
-	--pygmentize=$(PYGMENTIZE) \
 	HTML \
 	$<
 

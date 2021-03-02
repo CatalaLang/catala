@@ -37,8 +37,8 @@ let pre_latexify (s : string) =
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
     Prints an LaTeX complete documùent structure around the [wrapped] content. *)
-let wrap_latex (source_files : string list) (custom_pygments : string option)
-    (language : C.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) =
+let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : Format.formatter)
+    (wrapped : Format.formatter -> unit) =
   Format.fprintf fmt
     "\\documentclass[11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
@@ -48,7 +48,6 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
      \\usepackage{minted}\n\
      \\usepackage{amssymb}\n\
      \\usepackage{newunicodechar}\n\
-     %s\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
@@ -80,9 +79,6 @@ let wrap_latex (source_files : string list) (custom_pygments : string option)
      \\begin{itemize}%s\\end{itemize}\n\n\
      \\[\\star\\star\\star\\]\\\\\n"
     (match language with `Fr -> "french" | `En -> "english")
-    ( match custom_pygments with
-    | None -> ""
-    | Some p -> Printf.sprintf "\\renewcommand{\\MintedPygmentize}{%s}" p )
     ( match language with
     | `Fr -> "Implémentation de texte législatif"
     | `En -> "Legislative text implementation" )

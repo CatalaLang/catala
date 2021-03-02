@@ -18,9 +18,9 @@ module Pos = Utils.Pos
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
-    (wrap_weaved_output : bool) (pygmentize_loc : string option) (backend : string)
-    (language : string option) (max_prec_digits : int option) (trace : bool)
-    (ex_scope : string option) (output_file : string option) : int =
+    (wrap_weaved_output : bool) (backend : string) (language : string option)
+    (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
+    (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
@@ -104,7 +104,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let weave_output =
           match backend with
           | Cli.Latex -> Literate.Latex.ast_to_latex language
-          | Cli.Html -> Literate.Html.ast_to_html pygmentize_loc language
+          | Cli.Html -> Literate.Html.ast_to_html language
           | _ -> assert false
           (* should not happen *)
         in
@@ -113,11 +113,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         if wrap_weaved_output then
           match backend with
           | Cli.Latex ->
-              Literate.Latex.wrap_latex program.Surface.Ast.program_source_files pygmentize_loc
-                language fmt (fun fmt -> weave_output fmt program)
+              Literate.Latex.wrap_latex program.Surface.Ast.program_source_files language fmt
+                (fun fmt -> weave_output fmt program)
           | Cli.Html ->
-              Literate.Html.wrap_html program.Surface.Ast.program_source_files pygmentize_loc
-                language fmt (fun fmt -> weave_output fmt program)
+              Literate.Html.wrap_html program.Surface.Ast.program_source_files language fmt
+                (fun fmt -> weave_output fmt program)
           | _ -> assert false (* should not happen *)
         else weave_output fmt program;
         close_out oc;
