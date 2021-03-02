@@ -70,6 +70,7 @@ scope Test1:
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
   definition scope121a.property_usage_as_principal_residence equals
      [data_.period_four_years_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion scope121a.requirements_met
 
 declaration scope Test2:
@@ -83,6 +84,7 @@ scope Test2:
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
   definition scope121a.property_usage_as_principal_residence equals 
     [data_.period_one_year_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion not scope121a.requirements_met
 
 declaration scope Test3:
@@ -96,6 +98,7 @@ scope Test3:
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
   definition scope121a.property_usage_as_principal_residence equals 
     [data_.period_two_years_middle]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion not scope121a.requirements_met
 
 declaration scope Test4:
@@ -109,6 +112,7 @@ scope Test4:
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
   definition scope121a.property_usage_as_principal_residence equals 
     [data_.period_two_years_middle; data_.period_one_year_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion scope121a.requirements_met
 
 ###################### Testing Section121TwoPersons ############################

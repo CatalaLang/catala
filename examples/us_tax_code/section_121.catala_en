@@ -21,6 +21,15 @@ scope PeriodMerge:
   # that the output covers both input date ranges.
   definition output equals []
 
+declaration structure PreviousSaleWhereSection121aApplied:
+  data date_of_sale_or_exchange content date
+
+
+declaration enumeration OtherSection121aSale:
+  -- NoOtherSaleWhereSection121aApplied 
+  -- MostRecentSaleWhereSection121aApplied content 
+    PreviousSaleWhereSection121aApplied
+
 declaration scope Section121SinglePerson:
   context requirements_met condition 
   context requirements_ownership_met condition 
@@ -37,14 +46,8 @@ declaration scope Section121SinglePerson:
   context gain_from_sale_or_exchange_of_property content money
   context income_excluded_from_gross_income_uncapped content money
   context income_excluded_from_gross_income content money
-
-declaration structure PreviousSaleWhereSection121aApplied:
-  data date_of_sale_or_exchange content date
-
-declaration enumeration OtherSection121aSale:
-  -- NoOtherSaleWhereSection121aApplied 
-  -- MostRecentSaleWhereSection121aApplied content 
-    PreviousSaleWhereSection121aApplied
+  context section_121_b_3_applies condition 
+  context other_section_121a_sale content OtherSection121aSale
 
 declaration structure PersonalData:
   data property_ownage content collection Period
@@ -72,8 +75,6 @@ declaration scope Section121TwoPersons:
   context person2 content PersonalData
   context section121Person2 scope Section121SinglePerson
   context section121a_requirements_met condition
-  context section_121_b_3_applies content boolean 
-    depends on OtherSection121aSale
   context section_121_b_2_A_condition condition
   context gain_cap_person_1 content money 
   context gain_cap_person_2 content money
@@ -117,6 +118,12 @@ scope Section121TwoPersons:
     gain_from_sale_or_exchange_of_property
   definition section121Person2.gain_from_sale_or_exchange_of_property equals 
     gain_from_sale_or_exchange_of_property
+
+  definition section121Person1.other_section_121a_sale equals 
+    person1.other_section_121a_sale
+
+  definition section121Person2.other_section_121a_sale equals
+    person2.other_section_121a_sale
 
   definition gain_cap_person_1 equals section121Person1.gain_cap 
   definition gain_cap_person_2 equals section121Person2.gain_cap
@@ -273,11 +280,9 @@ scope Section121TwoPersons:
      section121Person2.requirements_usage_met)
   # iii)
   and
-  (not (
-      section_121_b_3_applies of data_couple.person1.other_section_121a_sale))
+  (not (section121Person1.section_121_b_3_applies))
   and 
-  (not (
-      section_121_b_3_applies of data_couple.person2.other_section_121a_sale)) 
+  (not (section121Person2.section_121_b_3_applies)) 
   consequence fulfilled
     
   exception
@@ -335,11 +340,17 @@ Subsection (a) shall not apply to any sale or exchange by the taxpayer if,
 during the 2-year period ending on the date of such sale or exchange, there 
 was any other sale or exchange by the taxpayer to which subsection (a) applied.
 /*
-scope Section121TwoPersons: 
-  definition section_121_b_3_applies of other_section_121a_sale equals 
+scope Section121SinglePerson: 
+  rule section_121_b_3_applies under condition 
     (other_section_121a_sale with pattern 
        MostRecentSaleWhereSection121aApplied of other_sale) and
     date_of_sale_or_exchange -@ other_sale.date_of_sale_or_exchange <=^ 2 year
+  consequence fulfilled
+
+  exception 
+  definition income_excluded_from_gross_income_uncapped under condition 
+    section_121_b_3_applies
+  consequence equals $0 
 */
 
 @(4) Special rule for certain sales by surviving spouses@
@@ -358,16 +369,27 @@ scope Section121TwoPasses under condition
   return_type with pattern SingleReturnSurvivingSpouse of single_data and 
   single_data.date_of_spouse_death <@ date_of_sale_or_exchange and
   date_of_sale_or_exchange <=@ single_data.date_of_spouse_death +@ 2 year 
-  # So here we have to reexecute the scope Section121 using 
-  # single_data.date_of_spouse_death instead of date_of_sale_or_exchange
   :
   
-  definition second_pass.date_of_sale_or_exchange equals 
+  definition first_pass.date_of_sale_or_exchange equals 
     match return_type with pattern
     -- SingleReturnSurvivingSpouse of single_data: single_data.date_of_spouse_death
     -- SingleReturn of return: date_of_sale_or_exchange # does not happen
     -- JointReturn of return: date_of_sale_or_exchange # does not happen
-  definition second_pass.gain_cap equals $500,000
+
+  definition first_pass.return_type equals
+    match return_type with pattern 
+      -- SingleReturnSurvivingSpouse of single_data: 
+        JointReturn content (JointReturn {
+          -- person1: single_data.return
+          -- person2: single_data.death_spouse_info_at_time_of_death
+        })
+      -- SingleReturn of return: SingleReturn content return # does not happen
+      -- JointReturn of return: JointReturn content return # does not happen
+  
+  definition second_pass.gain_cap under condition 
+     first_pass.section_121_b_2_A_condition
+  consequence equals $500,000
 */
 
 @@(5) Exclusion of gain allocated to nonqualified use@@++
