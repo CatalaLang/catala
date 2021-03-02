@@ -39,10 +39,9 @@ let raise_failed_pygments (command : string) (error_code : int) : 'a =
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
-let wrap_html (source_files : string list) (custom_pygments : string option)
-    (language : Cli.backend_lang) (fmt : Format.formatter) (wrapped : Format.formatter -> unit) :
-    unit =
-  let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
+let wrap_html (source_files : string list) (language : Cli.backend_lang) (fmt : Format.formatter)
+    (wrapped : Format.formatter -> unit) : unit =
+  let pygments = "pygmentize" in
   let css_file = Filename.temp_file "catala_css_pygments" "" in
   let pygments_args = [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |] in
   let cmd =
@@ -95,15 +94,14 @@ let wrap_html (source_files : string list) (custom_pygments : string option)
   wrapped fmt
 
 (** Performs syntax highlighting on a piece of code by using Pygments and the special Catala lexer. *)
-let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
-    (custom_pygments : string option) : string =
+let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string =
   C.debug_print (Printf.sprintf "Pygmenting the code chunk %s" (Pos.to_string (Pos.get_position c)));
   let temp_file_in = Filename.temp_file "catala_html_pygments" "in" in
   let temp_file_out = Filename.temp_file "catala_html_pygments" "out" in
   let oc = open_out temp_file_in in
   Printf.fprintf oc "%s" (Pos.unmark c);
   close_out oc;
-  let pygments = match custom_pygments with Some p -> p | None -> "pygmentize" in
+  let pygments = "pygmentize" in
   let pygments_lexer = match language with `Fr -> "catala_fr" | `En -> "catala_en" in
   let pygments_args =
     [|
@@ -131,8 +129,8 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang)
 
 (** {1 Weaving} *)
 
-let law_article_item_to_html (custom_pygments : string option) (language : C.backend_lang)
-    (fmt : Format.formatter) (i : A.law_article_item) : unit =
+let law_article_item_to_html (language : C.backend_lang) (fmt : Format.formatter)
+    (i : A.law_article_item) : unit =
   match i with
   | A.LawText t ->
       let t = pre_html t in
@@ -153,10 +151,10 @@ let law_article_item_to_html (custom_pygments : string option) (language : C.bac
       let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
       Format.fprintf fmt "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c) language custom_pygments)
+        (pygmentize_code (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c) language)
 
-let rec law_structure_to_html (custom_pygments : string option) (language : C.backend_lang)
-    (fmt : Format.formatter) (i : A.law_structure) : unit =
+let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatter)
+    (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
       let h_number = heading.law_heading_precedence + 2 in
@@ -165,8 +163,7 @@ let rec law_structure_to_html (custom_pygments : string option) (language : C.ba
         h_number;
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-        (law_structure_to_html custom_pygments language)
-        fmt children
+        (law_structure_to_html language) fmt children
   | A.LawInclude _ -> ()
   | A.LawArticle (a, children) ->
       Format.fprintf fmt
@@ -180,24 +177,21 @@ let rec law_structure_to_html (custom_pygments : string option) (language : C.ba
         (pre_html (Pos.unmark a.law_article_name));
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-        (law_article_item_to_html custom_pygments language)
+        (law_article_item_to_html language)
         fmt children;
       Format.fprintf fmt "\n</div>"
-  | A.MetadataBlock (b, c) ->
-      law_article_item_to_html custom_pygments language fmt (A.CodeBlock (b, c))
+  | A.MetadataBlock (b, c) -> law_article_item_to_html language fmt (A.CodeBlock (b, c))
   | A.IntermediateText t ->
       let t = pre_html t in
       if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
 
-let program_item_to_html (custom_pygments : string option) (language : C.backend_lang)
-    (fmt : Format.formatter) (i : A.program_item) : unit =
-  match i with A.LawStructure s -> law_structure_to_html custom_pygments language fmt s
+let program_item_to_html (language : C.backend_lang) (fmt : Format.formatter) (i : A.program_item) :
+    unit =
+  match i with A.LawStructure s -> law_structure_to_html language fmt s
 
 (** {1 API} *)
 
-let ast_to_html (custom_pygments : string option) (language : C.backend_lang)
-    (fmt : Format.formatter) (program : A.program) : unit =
+let ast_to_html (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (program_item_to_html custom_pygments language)
-    fmt program.program_items
+    (program_item_to_html language) fmt program.program_items
