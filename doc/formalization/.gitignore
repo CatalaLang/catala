@@ -10,7 +10,10 @@ _minted*
 *.toc
 formalization.pdf
 *.run.xml
-*.bbl 
+*.bbl
 *.bcf
 *.blg
 *~
+_cache/
+.depend
+_output/
