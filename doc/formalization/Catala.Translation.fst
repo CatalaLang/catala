@@ -309,7 +309,7 @@ let translation_correctness_exceptions_left_to_right_step_head_not_value
         D.typing_list D.empty dexceptions dtau /\
         D.typing D.empty djust D.TBool /\
         D.typing D.empty dcons dtau /\
-        L.is_value acc /\
+        L.is_value acc /\ not (L.is_error acc) /\
         Some? (D.step_exceptions_left_to_right de dexceptions djust dcons dtau) /\
         (match dexceptions with hd::tl -> not (D.is_value hd) | _ -> False)
       ))
@@ -449,21 +449,20 @@ let step_exceptions_left_to_right_result_shape
   ()
 #pop-options
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 1500"
-let rec translation_correctness_exceptions_left_to_right_step
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 150"
+let translation_correctness_exceptions_left_to_right_step_error
   (de: D.exp)
   (dexceptions: list D.exp {dexceptions << de})
   (djust: D.exp{djust << de})
   (dcons: D.exp{dcons << de})
   (dtau: D.ty)
   (acc: typed_l_exp (L.TOption (translate_ty dtau)))
-  (rec_lemma: rec_correctness_step_type de)
     : Pure (nat & typed_l_exp (translate_ty dtau) & nat)
       (requires (
         D.typing_list D.empty dexceptions dtau /\
         D.typing D.empty djust D.TBool /\
         D.typing D.empty dcons dtau /\
-        L.is_value acc /\
+        L.is_value acc /\ L.is_error acc /\  acc <> L.ELit (L.LError L.EmptyError) /\
         Some? (D.step_exceptions_left_to_right de dexceptions djust dcons dtau)
       ))
       (ensures (fun (n1, target_e, n2) ->
@@ -508,7 +507,95 @@ let rec translation_correctness_exceptions_left_to_right_step
   let ljust = translate_exp djust in
   let lcons = translate_exp dcons in
   let lexceptions = translate_exp_list dexceptions in
-  match dexceptions with
+  let c_err : typed_l_exp ltau = L.ELit (L.LError L.ConflictError) in
+  let aux () : Lemma (acc == c_err) =
+    match acc with
+    | L.ELit (L.LError _) -> ()
+    | _ -> ()
+  in
+  aux ();
+   translate_list_is_value_list dexceptions;
+  let n1 = step_exceptions_general_conflict_error ltau ljust lcons lexceptions in
+  build_default_translation_typing lexceptions c_err ljust lcons ltau L.empty;
+  assert(take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
+          n1 == Some c_err);
+  D.preservation_exceptions_left_to_right de dexceptions djust dcons dtau;
+  translation_preserves_empty_typ de' dtau;
+  match de' with
+  | D.ELit D.LConflictError -> n1, c_err, 0
+  | D.EDefault dexceptions' djust' dcons' dtau' ->
+     let lexceptions' = translate_exp_list dexceptions' in
+     translate_list_is_value_list dexceptions';
+     assert(djust' == djust /\ dcons' == dcons /\ dtau' == dtau);
+     translation_preserves_typ_exceptions D.empty de' dexceptions' dtau';
+     build_default_translation_typing lexceptions' acc ljust lcons ltau L.empty;
+     let n2 = step_exceptions_general_conflict_error ltau ljust lcons lexceptions' in
+     n1, c_err, n2
+#pop-options
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 1500"
+let rec translation_correctness_exceptions_left_to_right_step
+  (de: D.exp)
+  (dexceptions: list D.exp {dexceptions << de})
+  (djust: D.exp{djust << de})
+  (dcons: D.exp{dcons << de})
+  (dtau: D.ty)
+  (acc: typed_l_exp (L.TOption (translate_ty dtau)))
+  (rec_lemma: rec_correctness_step_type de)
+    : Pure (nat & typed_l_exp (translate_ty dtau) & nat)
+      (requires (
+        D.typing_list D.empty dexceptions dtau /\
+        D.typing D.empty djust D.TBool /\
+        D.typing D.empty dcons dtau /\
+        L.is_value acc /\  acc <> L.ELit (L.LError L.EmptyError) /\
+        Some? (D.step_exceptions_left_to_right de dexceptions djust dcons dtau)
+      ))
+      (ensures (fun (n1, target_e, n2) ->
+        translate_empty_is_empty ();
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        translation_preserves_empty_typ djust D.TBool;
+        translation_preserves_empty_typ dcons dtau;
+        let lexceptions = translate_exp_list dexceptions in
+        let ljust = translate_exp djust in
+        let lcons = translate_exp dcons in
+        let Some de' = D.step_exceptions_left_to_right de dexceptions djust dcons dtau in
+        let ltau = translate_ty dtau in
+        translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+        build_default_translation_typing lexceptions acc ljust lcons ltau L.empty;
+        take_l_steps ltau (build_default_translation lexceptions acc ljust lcons ltau)
+          n1 == Some target_e /\
+        begin
+          D.preservation_exceptions_left_to_right de dexceptions djust dcons dtau;
+          translation_preserves_empty_typ de' dtau;
+          let le' = translate_exp de' in
+          match de' with
+          | D.ELit D.LConflictError -> take_l_steps ltau le' n2 == Some target_e
+          | D.EDefault dexceptions' djust' dcons' dtau' ->
+            assert(djust' == djust /\ dcons' == dcons /\ dtau' == dtau);
+            let lexceptions' = translate_exp_list dexceptions' in
+            take_l_steps ltau (build_default_translation lexceptions' acc ljust lcons ltau)
+              n2 == Some target_e
+        end
+      ))
+      (decreases dexceptions)
+  =
+  let Some de' = D.step_exceptions_left_to_right de dexceptions djust dcons dtau in
+  let le = translate_exp de in
+  D.preservation_exceptions_left_to_right de dexceptions djust dcons dtau;
+  translate_empty_is_empty ();
+  translation_preserves_typ_exceptions D.empty de dexceptions dtau;
+  translation_preserves_empty_typ djust D.TBool;
+  translation_preserves_empty_typ dcons dtau;
+  translation_preserves_empty_typ de' dtau;
+  let ltau = translate_ty dtau in
+  let le' : typed_l_exp ltau = translate_exp de' in
+  let ljust = translate_exp djust in
+  let lcons = translate_exp dcons in
+  let lexceptions = translate_exp_list dexceptions in
+  if L.is_error acc then
+    translation_correctness_exceptions_left_to_right_step_error
+      de dexceptions djust dcons dtau acc
+  else match dexceptions with
   | [] ->  0, le, 0
   | dhd::dtl ->
     let ltl = translate_exp_list dtl in

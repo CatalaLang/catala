@@ -389,6 +389,78 @@ let exceptions_init_lift
   Classical.forall_intro (exceptions_init_lift_is_stepping_agnostic tau tl just cons);
   exceptions_init_lift' tau tl just cons
 
+#push-options "--fuel 10 --ifuel 2 --z3rlimit 80"
+let stepping_lemma
+  (tau: ty)
+  (acc: typed_l_exp (TOption tau){is_value acc /\ not (is_error acc)})
+  (hd: typed_l_exp tau)
+    : Lemma (
+      typ_process_exceptions_f empty tau;
+      typing_empty_can_be_extended acc (TOption tau) (extend empty (TOption tau));
+      typing_empty_can_be_extended acc (TOption tau)
+        (extend (extend empty (TOption tau)) tau);
+      let e_final =
+        EApp (EAbs (TOption tau) (EMatchOption acc tau (EVar 0)
+            (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (ELit (LError ConflictError)))))))
+            (ECatchEmptyError (ESome (EApp (EThunk hd) (ELit LUnit) TUnit)) ENone) (TOption tau)
+      in
+      take_l_steps (TOption tau) (EApp
+        (EApp (process_exceptions_f tau) acc (TOption tau)) (EThunk hd) (TArrow TUnit tau)) 2 ==
+          Some e_final)
+  =
+  typ_process_exceptions_f empty tau;
+  typing_empty_can_be_extended acc (TOption tau) (extend empty (TOption tau));
+  typing_empty_can_be_extended acc (TOption tau)
+    (extend (extend empty (TOption tau)) tau);
+  let e0 =
+    EApp (EApp (process_exceptions_f tau) acc (TOption tau)) (EThunk hd) (TArrow TUnit tau)
+  in
+  let e0' =
+    (EApp (subst (var_to_exp_beta acc) (EAbs (TArrow (TUnit) tau) (EApp (EAbs (TOption tau)
+       (EMatchOption (EVar 2) tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau (EVar 3)
+         (EAbs tau (ELit (LError (ConflictError))))))))
+         (ECatchEmptyError (ESome (EApp (EVar 0) (ELit (LUnit)) (TUnit))) (ENone))
+    (TOption tau)))) (EThunk hd) (TArrow (TUnit) tau))
+  in
+  let e1 =
+    EApp (
+      EAbs (TArrow TUnit tau) (
+      EApp (EAbs (TOption tau) (
+        EMatchOption acc tau
+          (EVar 0)
+          (EAbs tau (
+            EMatchOption (EVar 1) tau
+              acc
+              (EAbs tau (ELit (LError ConflictError)))
+          ))
+      ))
+      (ECatchEmptyError (ESome (EApp (EVar 0) (ELit LUnit) TUnit)) ENone)
+      (TOption tau)
+    )) (EThunk hd) (TArrow TUnit tau)
+  in
+  let e2 =
+    EApp (EAbs (TOption tau) (EMatchOption acc tau (EVar 0)
+     (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau (ELit (LError ConflictError)))))))
+     (ECatchEmptyError (ESome (EApp (EThunk hd) (ELit LUnit) TUnit)) ENone) (TOption tau)
+  in
+  let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
+    well_typed_terms_invariant_by_subst s acc (TOption tau)
+  in
+  assert(step e0 == Some e0') by (
+    T.norm [delta_only [
+      "Catala.Translation.Helpers.process_exceptions_f";
+      "Catala.LambdaCalculus.step";
+      "Catala.LambdaCalculus.step_app";
+      "Catala.LambdaCalculus.is_value";
+    ]; zeta; iota];
+    T.smt ()
+  );
+  assert(e0' == e1);
+  assert(step e1 == Some e2);
+  preservation e0 (TOption tau);
+  preservation e1 (TOption tau);
+  take_l_steps_transitive (TOption tau) e0 e1 1 1
+#pop-options
 
 #push-options "--fuel 7 --ifuel 2 --z3rlimit 80"
 let lift_multiple_l_steps_exceptions_head
@@ -401,7 +473,7 @@ let lift_multiple_l_steps_exceptions_head
   (hd: typed_l_exp tau)
   (final_hd: typed_l_exp tau)
     : Lemma
-      (requires (take_l_steps tau hd n_hd == Some final_hd /\ is_value acc))
+      (requires (take_l_steps tau hd n_hd == Some final_hd /\ is_value acc /\ not (is_error acc)))
       (ensures (
         build_default_translation_typing
           ((EThunk hd)::tl) acc just cons tau empty;
@@ -433,16 +505,8 @@ let lift_multiple_l_steps_exceptions_head
     ))))
     (ECatchEmptyError (ESome hd) ENone) (TOption tau)
   in
-  let acc_invariant (s: var_to_exp) : Lemma (subst s acc == acc) [SMTPat (subst s acc)] =
-    well_typed_terms_invariant_by_subst s acc (TOption tau)
-  in
-  let hd_invariant (s: var_to_exp) : Lemma (subst s hd == hd)
-    [SMTPat (subst s hd)] =
-    well_typed_terms_invariant_by_subst s hd tau
-  in
-  assume(take_l_steps (TOption tau) init0 2 == Some init2);
-  (* F* cannot prove these rather trivial substitutions automatically, might have to do it
-    manually. This proof should use the acc_invariant and hd_invariant above *)
+  stepping_lemma tau acc hd;
+  assert(take_l_steps (TOption tau) init0 2 == Some init2);
   assert(step init2 == Some init3);
   preservation init2 (TOption tau);
   take_l_steps_transitive (TOption tau) init0 init2 2 1;
@@ -631,9 +695,9 @@ let step_exceptions_head_value_error
   (cons: (typed_l_exp tau))
   (hd_err: err)
     : Pure (typed_l_exp (TOption tau) & nat)
-      (requires (is_value acc))
+      (requires (is_value acc /\ acc <> ELit (LError EmptyError)))
       (ensures (fun (new_acc, n) ->
-        is_value new_acc /\
+        is_value new_acc /\ new_acc <> ELit (LError EmptyError) /\
         take_l_steps tau (exceptions_head_lift tau tl acc just cons (ELit (LError hd_err))) n ==
           Some (exceptions_init_lift tau tl just cons new_acc)
       ))
@@ -740,7 +804,7 @@ let step_exceptions_head_value_error
        acc, 6
 #pop-options
 
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 150"
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 1500"
 let step_exceptions_head_value_non_error
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
@@ -749,9 +813,9 @@ let step_exceptions_head_value_non_error
   (cons: (typed_l_exp tau))
   (hd: typed_l_exp tau)
     : Pure (typed_l_exp (TOption tau) & nat)
-      (requires (is_value hd /\ not (is_error hd) /\ is_value acc))
+      (requires (is_value hd /\ not (is_error hd) /\ is_value acc /\ acc <> ELit (LError EmptyError)))
       (ensures (fun (new_acc, n) ->
-        is_value new_acc /\
+        is_value new_acc /\ new_acc <> ELit (LError EmptyError) /\
         take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
           Some (exceptions_init_lift tau tl just cons new_acc)
       ))
@@ -847,9 +911,9 @@ let step_exceptions_head_value
   (cons: (typed_l_exp tau))
   (hd: (typed_l_exp tau))
     : Pure (typed_l_exp (TOption tau) & nat)
-      (requires (is_value hd /\ is_value acc))
+      (requires (is_value hd /\ is_value acc /\ acc <> ELit (LError EmptyError)))
       (ensures (fun (new_acc, n) ->
-        is_value new_acc /\
+        is_value new_acc /\ new_acc <> ELit (LError EmptyError) /\
         take_l_steps tau (exceptions_head_lift tau tl acc just cons hd) n ==
           Some (exceptions_init_lift tau tl just cons new_acc)
       ))
@@ -862,7 +926,7 @@ let step_exceptions_head_value_same_acc_result
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
   (tl': list exp{is_value_list tl' /\ typing_list empty tl' (TArrow TUnit tau)})
-  (acc: typed_l_exp (TOption tau){is_value acc})
+  (acc: typed_l_exp (TOption tau){is_value acc /\ acc <> ELit (LError EmptyError)})
   (just: (typed_l_exp TBool))
   (cons: (typed_l_exp tau))
   (hd: (typed_l_exp tau){is_value hd})
@@ -1002,6 +1066,41 @@ let step_exceptions_cons_conflict_error
   assert(take_l_steps tau one_step 1 == Some l_err');
   take_l_steps_transitive tau
      (build_default_translation ((EThunk hd)::tl) (ELit (LError ConflictError)) just cons tau)
+     one_step 1 1;
+  2
+#pop-options
+
+#push-options "--fuel 4 --ifuel 1 --z3rlimit 40"
+let step_exceptions_general_conflict_error
+  (tau: ty)
+  (just: (typed_l_exp TBool))
+  (cons: (typed_l_exp tau))
+  (exceptions: list exp)
+    : Pure nat
+      (requires (is_value_list exceptions /\ typing_list empty exceptions (TArrow TUnit tau)))
+      (ensures (fun n ->
+      build_default_translation_typing
+        exceptions (ELit (LError ConflictError)) just cons tau empty;
+      take_l_steps tau
+        (build_default_translation exceptions (ELit (LError ConflictError)) just cons tau) n
+          == Some (ELit (LError ConflictError))))
+  =
+  let l_err: typed_l_exp (TOption tau) = (ELit (LError ConflictError)) in
+  build_default_translation_typing
+    exceptions
+    (ELit (LError ConflictError)) just cons tau empty;
+  let one_step : typed_l_exp tau =
+    EMatchOption l_err tau
+              (EIf just cons (ELit (LError (EmptyError))))
+              (EAbs tau (EVar 0))
+  in
+  assert(take_l_steps tau
+    (build_default_translation exceptions (ELit (LError ConflictError)) just cons tau) 1 ==
+      Some one_step);
+  let l_err': typed_l_exp tau = (ELit (LError ConflictError)) in
+  assert(take_l_steps tau one_step 1 == Some l_err');
+  take_l_steps_transitive tau
+     (build_default_translation exceptions (ELit (LError ConflictError)) just cons tau)
      one_step 1 1;
   2
 #pop-options

@@ -1,5 +1,5 @@
 [
-  "qº#AÉlïD7õû&Pì\u0001ñ",
+  "i*™û!d\u000bÅYö\u0001\u0005\u000f\u0017yi",
   [
     [
       "Catala.Translation.Helpers.typ_process_exceptions_f",
@@ -29,7 +29,7 @@
         "typing_Tm_abs_683fecef0f32ab9df689545bd34ec676"
       ],
       0,
-      "2edf83af09d8dcaa2f5c3391c1f3adbc"
+      "f4621b9177ba8510238ce22175c67eb6"
     ],
     [
       "Catala.Translation.Helpers.build_default_translation_typing",
@@ -85,7 +85,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "3ea949f9ef394472f74f9c5b107b7d6f"
+      "7a3913649f012fb3c414cf909eafd41c"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_untouched_by_subst",
@@ -161,7 +161,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "bf7815f067f902608855453b949b0b44"
+      "3653a502e2c84a85da3971009003c3e6"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps",
@@ -195,7 +195,7 @@
         "typing_Catala.LambdaCalculus.step", "well-founded-ordering-on-nat"
       ],
       0,
-      "68c107cceb12c57800ad3cb4c196ed6e"
+      "5bcda4dd84f1df6ea161b597dcf9de2b"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps_transitive",
@@ -205,11 +205,11 @@
       [
         "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
         "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
-        "refinement_interpretation_Tm_refine_2d1d82d8e7b45c4b826c650f2ee22c70",
+        "refinement_interpretation_Tm_refine_506891b7f1b4542ed9ee2fd85986009e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "0b3d76ed2a16dd06dabf94238d320c16"
+      "1cfbbe940ee4c4c17f160e56608752f6"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps_transitive",
@@ -256,7 +256,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "8e96e7b0924e81bbf046eb6bbf941539"
+      "a9c81e863bb135dcf216d9c8d5c5530d"
     ],
     [
       "Catala.Translation.Helpers.step_lift_commute_non_value",
@@ -277,7 +277,7 @@
         "typing_tok_Prims.T@tok"
       ],
       0,
-      "b235cccadbdad66e4074b17f14697888"
+      "f566661da55618dcbe2b2ec400423480"
     ],
     [
       "Catala.Translation.Helpers.is_stepping_agnostic_lift",
@@ -291,7 +291,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "ad321fa1494a804d279c773f1a6213ce"
+      "1b0eee8a73a0f9faa887c4b21d775649"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -305,7 +305,7 @@
         "kinding_Catala.LambdaCalculus.exp@tok"
       ],
       0,
-      "e413d2c5c92e95efe10551540a296e75"
+      "907ff2bc00df5eef887aaa695cf54c25"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -366,7 +366,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "8fb45b08d292e4a8166c68ea06b72eb0"
+      "9809adc742f341e861abeee3b4d313ec"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -380,7 +380,7 @@
         "kinding_Catala.LambdaCalculus.exp@tok"
       ],
       0,
-      "a929282455a2affd79c59167186b5759"
+      "fc5e06d5b11f113a89f5f1f1693e37f6"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -420,7 +420,7 @@
         "typing_Catala.LambdaCalculus.is_value_list"
       ],
       0,
-      "b98cf1de997d744d901aa4f0de3f4c9b"
+      "41a331c575f7077efc0abf1a4a0e95b2"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps",
@@ -429,7 +429,7 @@
       1,
       [ "@query" ],
       0,
-      "f593ecd59533fa9a1c64a1f3522f44da"
+      "4fbc059703e5ebe675959304f95bf436"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps",
@@ -487,7 +487,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "399d201270c934078d58d947d72362a2"
+      "676edb28716d4ddaf236fff80c7de179"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift'",
@@ -517,7 +517,7 @@
         "typing_tok_Catala.LambdaCalculus.TBool@tok"
       ],
       0,
-      "215eb5d188544d37d334642ce0e94f45"
+      "d0702c3be1b49defcc01981a79d1e355"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift_is_stepping_agnostic",
@@ -555,7 +555,7 @@
         "typing_Catala.Translation.Helpers.if_cond_lift_"
       ],
       0,
-      "b5ca086aa4a55df624f63e4af5df3827"
+      "13e37e1bf89473a14dee08ad2d3af5ad"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift",
@@ -567,7 +567,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "45f58d68b0b0e9c165e5709171684918"
+      "411cef90d7ae00fc18b7d94ad4c947bf"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift'",
@@ -593,7 +593,7 @@
         "typing_Catala.LambdaCalculus.empty"
       ],
       0,
-      "9e8a070ff6e2a2882a6fb1e1b787fd9a"
+      "769f3842b338720df48a3c861c21c62d"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift_is_stepping_agnostic",
@@ -633,7 +633,7 @@
         "typing_Catala.Translation.Helpers.app_f_lift_"
       ],
       0,
-      "f7800b065d4fd5859f56feb788f3f643"
+      "4bc94208324dbce77be874e2930d0be4"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift",
@@ -645,7 +645,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "d467fb34fec1e775431fa01e920944c2"
+      "649aac82175906a9cdf671184ceadaab"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift'",
@@ -676,7 +676,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "9952cf20fc2c9b9f275123f5baf43b8c"
+      "d4e9f4c8c23dd689d28644180d524f7b"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift_is_stepping_agnostic",
@@ -721,7 +721,7 @@
         "true_interp", "typing_Tm_abs_e963bfe47364f5aa72ea70ed36eb1677"
       ],
       0,
-      "79ca7a99789aec1167cf8741f04fb3b4"
+      "45a1006bef4bcc60e5d92678ebd96983"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift",
@@ -733,7 +733,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "3af9d20c50d7036b3678b58bc16ac4ae"
+      "41c6a2646b2f71dc22f6c57553606171"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift'",
@@ -857,7 +857,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "661cff8766567058f1d1c31a49883376"
+      "35bda88bfa3fb4a50b7db24ff68df574"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_is_stepping_agnostic",
@@ -910,7 +910,7 @@
         "true_interp", "typing_Catala.LambdaCalculus.step"
       ],
       0,
-      "c172ea30152a33d31c5c48eecd709d12"
+      "8fbe8b9d58576e2b35cc1e3dd584ee53"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift",
@@ -922,7 +922,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "cc4e02c75b1299b6bfce6cff170613fe"
+      "b2ad2061e7913cc685915a5c8c2c27ed"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift'",
@@ -1019,7 +1019,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "eeb079d2ee0039f145fe30d198b0410a"
+      "86a935521dec34e9e48d641f00b6eabe"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift_is_stepping_agnostic",
@@ -1078,7 +1078,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "19cbdab4143b930319528feec50e0b0c"
+      "492599b9aabaa6fbfd51e4af80e70e8d"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift",
@@ -1090,7 +1090,187 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "e2341b547eb2f60d8b69e2b0f2c62a12"
+      "b91b94fd1fad3ebbae3b18dd0290fc71"
+    ],
+    [
+      "Catala.Translation.Helpers.stepping_lemma",
+      1,
+      10,
+      2,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.step.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.subst.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "@fuel_correspondence_Catala.Translation.Helpers.take_l_steps.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.subst.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "@query",
+        "Catala.LambdaCalculus_interpretation_Tm_arrow_0afe855ee0dd04a9f1572a7d68b10fa7",
+        "Catala.LambdaCalculus_interpretation_Tm_arrow_732ef78b9bfa783d08279e5be1df507c",
+        "Catala.LambdaCalculus_interpretation_Tm_arrow_ed0c592d82dfd5a47d39e42cf9d52a55",
+        "Catala.LambdaCalculus_pretyping_8ab521cb5d1069fb182eea898efa7c42",
+        "Catala.LambdaCalculus_pretyping_fabd258754d8bab26d9bc0ad1a882a83",
+        "FStar.FunctionalExtensionality_interpretation_Tm_arrow_a7d5cc170be69663c495e8582d2bc62a",
+        "Prims_interpretation_Tm_arrow_2eaa01e78f73e9bab5d0955fc1a662da",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "constructor_distinct_Catala.LambdaCalculus.EAbs",
+        "constructor_distinct_Catala.LambdaCalculus.EApp",
+        "constructor_distinct_Catala.LambdaCalculus.ECatchEmptyError",
+        "constructor_distinct_Catala.LambdaCalculus.EFoldLeft",
+        "constructor_distinct_Catala.LambdaCalculus.EIf",
+        "constructor_distinct_Catala.LambdaCalculus.EList",
+        "constructor_distinct_Catala.LambdaCalculus.ELit",
+        "constructor_distinct_Catala.LambdaCalculus.EMatchOption",
+        "constructor_distinct_Catala.LambdaCalculus.ENone",
+        "constructor_distinct_Catala.LambdaCalculus.ESome",
+        "constructor_distinct_Catala.LambdaCalculus.EThunk",
+        "constructor_distinct_Catala.LambdaCalculus.EVar",
+        "constructor_distinct_Catala.LambdaCalculus.LError",
+        "constructor_distinct_Catala.LambdaCalculus.LUnit",
+        "constructor_distinct_Catala.LambdaCalculus.TArrow",
+        "constructor_distinct_Catala.LambdaCalculus.TOption",
+        "constructor_distinct_Catala.LambdaCalculus.TUnit",
+        "constructor_distinct_FStar.Pervasives.Native.None",
+        "constructor_distinct_FStar.Pervasives.Native.Some",
+        "constructor_distinct_Tm_unit",
+        "data_elim_Catala.LambdaCalculus.EAbs",
+        "data_elim_Catala.LambdaCalculus.EVar",
+        "data_typing_intro_Catala.LambdaCalculus.EAbs@tok",
+        "data_typing_intro_Catala.LambdaCalculus.EApp@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ECatchEmptyError@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ELit@tok",
+        "data_typing_intro_Catala.LambdaCalculus.EMatchOption@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ENone@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ESome@tok",
+        "data_typing_intro_Catala.LambdaCalculus.EThunk@tok",
+        "data_typing_intro_Catala.LambdaCalculus.EVar@tok",
+        "data_typing_intro_Catala.LambdaCalculus.LError@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TArrow@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TOption@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TUnit@tok",
+        "disc_equation_Catala.LambdaCalculus.EVar",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "equality_tok_Catala.LambdaCalculus.ConflictError@tok",
+        "equality_tok_Catala.LambdaCalculus.ENone@tok",
+        "equality_tok_Catala.LambdaCalculus.LUnit@tok",
+        "equality_tok_Catala.LambdaCalculus.TUnit@tok",
+        "equation_Catala.LambdaCalculus.empty",
+        "equation_Catala.LambdaCalculus.extend",
+        "equation_Catala.LambdaCalculus.increment",
+        "equation_Catala.LambdaCalculus.is_error",
+        "equation_Catala.LambdaCalculus.is_renaming_prop",
+        "equation_Catala.LambdaCalculus.var",
+        "equation_Catala.LambdaCalculus.var_to_exp",
+        "equation_Catala.LambdaCalculus.var_to_exp_beta",
+        "equation_Catala.Translation.Helpers.process_exceptions_f",
+        "equation_Catala.Translation.Helpers.typed_l_exp",
+        "equation_FStar.FunctionalExtensionality.feq", "equation_Prims.nat",
+        "equation_with_fuel_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.step.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.step_app.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.subst.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.subst_abs.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "equation_with_fuel_Catala.Translation.Helpers.take_l_steps.fuel_instrumented",
+        "fuel_token_correspondence_Catala.LambdaCalculus.subst_abs.fuel_instrumented_token",
+        "function_token_typing_Prims.__cache_version_number__",
+        "int_inversion", "int_typing",
+        "interpretation_Tm_abs_1312e4782c558ee50ab7a5e0bfd49851",
+        "interpretation_Tm_abs_44e059f7416b8cb4267e0f7a598f0380",
+        "interpretation_Tm_abs_591e432507f9fc0b2baad4ac5bad3427",
+        "interpretation_Tm_abs_683fecef0f32ab9df689545bd34ec676",
+        "kinding_Catala.LambdaCalculus.exp@tok",
+        "lemma_FStar.FunctionalExtensionality.feq_on_domain",
+        "lemma_FStar.Pervasives.invertOption", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_Subtraction",
+        "proj_equation_FStar.Pervasives.Native.Some_v",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Catala.LambdaCalculus.EAbs_body",
+        "projection_inverse_Catala.LambdaCalculus.EAbs_vty",
+        "projection_inverse_Catala.LambdaCalculus.EApp_arg",
+        "projection_inverse_Catala.LambdaCalculus.EApp_fn",
+        "projection_inverse_Catala.LambdaCalculus.EApp_tau_arg",
+        "projection_inverse_Catala.LambdaCalculus.ECatchEmptyError_catch_with",
+        "projection_inverse_Catala.LambdaCalculus.ECatchEmptyError_to_try",
+        "projection_inverse_Catala.LambdaCalculus.ELit_l",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_arg",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_none",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_some",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_tau_some",
+        "projection_inverse_Catala.LambdaCalculus.ESome_s",
+        "projection_inverse_Catala.LambdaCalculus.EThunk_body",
+        "projection_inverse_Catala.LambdaCalculus.EVar_v",
+        "projection_inverse_Catala.LambdaCalculus.LError_err",
+        "projection_inverse_Catala.LambdaCalculus.TArrow_tin",
+        "projection_inverse_Catala.LambdaCalculus.TArrow_tout",
+        "projection_inverse_Catala.LambdaCalculus.TOption_a",
+        "projection_inverse_FStar.Pervasives.Native.Some_a",
+        "projection_inverse_FStar.Pervasives.Native.Some_v",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_66a04fe873406083a229e09b1c833909",
+        "refinement_interpretation_Tm_refine_8572abaf58b0908690b4c77b9bd5038b",
+        "refinement_interpretation_Tm_refine_9d7619fada7e7cc3e29055f7763724da",
+        "refinement_interpretation_Tm_refine_a392bfba80da306fafdb3d849a464ab4",
+        "refinement_interpretation_Tm_refine_d5485f8c94130f85952cddf1019830bb",
+        "refinement_interpretation_Tm_refine_d8dd43e05db2d11a4a14435baf3ab736",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "subterm_ordering_Catala.LambdaCalculus.EApp",
+        "token_correspondence_Catala.LambdaCalculus.subst.fuel_instrumented",
+        "token_correspondence_Catala.LambdaCalculus.subst_abs.fuel_instrumented",
+        "token_correspondence_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "true_interp", "typing_Catala.LambdaCalculus.empty",
+        "typing_Catala.LambdaCalculus.extend",
+        "typing_Catala.LambdaCalculus.increment",
+        "typing_Catala.LambdaCalculus.is_error",
+        "typing_Catala.LambdaCalculus.is_value",
+        "typing_Catala.LambdaCalculus.step",
+        "typing_Catala.LambdaCalculus.typing",
+        "typing_Catala.LambdaCalculus.var_to_exp_beta",
+        "typing_Catala.Translation.Helpers.process_exceptions_f",
+        "typing_Tm_abs_1312e4782c558ee50ab7a5e0bfd49851",
+        "typing_Tm_abs_44e059f7416b8cb4267e0f7a598f0380",
+        "typing_Tm_abs_683fecef0f32ab9df689545bd34ec676",
+        "typing_tok_Catala.LambdaCalculus.ConflictError@tok",
+        "typing_tok_Catala.LambdaCalculus.ENone@tok",
+        "typing_tok_Catala.LambdaCalculus.LUnit@tok",
+        "typing_tok_Catala.LambdaCalculus.TUnit@tok"
+      ],
+      0,
+      "2d4523fe4dd3278ce6b10025809816e6"
+    ],
+    [
+      "Catala.Translation.Helpers.stepping_lemma",
+      2,
+      10,
+      2,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.is_value_list.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.is_value_list.fuel_instrumented",
+        "@query", "bool_inversion",
+        "constructor_distinct_FStar.Pervasives.Native.Some",
+        "equation_Catala.LambdaCalculus.empty",
+        "equation_Catala.LambdaCalculus.is_error",
+        "equation_Catala.Translation.Helpers.typed_l_exp",
+        "equation_with_fuel_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "projection_inverse_FStar.Pervasives.Native.Some_a",
+        "projection_inverse_FStar.Pervasives.Native.Some_v",
+        "refinement_interpretation_Tm_refine_d5485f8c94130f85952cddf1019830bb",
+        "refinement_interpretation_Tm_refine_d8dd43e05db2d11a4a14435baf3ab736",
+        "typing_Catala.LambdaCalculus.empty",
+        "typing_Catala.LambdaCalculus.is_error",
+        "typing_Catala.LambdaCalculus.is_value",
+        "typing_Catala.LambdaCalculus.typing"
+      ],
+      0,
+      "3ed1297ee869d570f516e7c2b3ad888d"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps_exceptions_head",
@@ -1278,7 +1458,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "882b4cac9a5f424e2873ba6ae8c84c65"
+      "981a7d2637cb254881caed2de02cd2a7"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied",
@@ -1328,7 +1508,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "88a65dd59e0cfec5c03ab0cf334aebb5"
+      "3849a64803205c5d1a8e60dafc926b96"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied_stepped",
@@ -1421,7 +1601,7 @@
         "typing_tok_Catala.LambdaCalculus.ENone@tok"
       ],
       0,
-      "4ec1ab3a48a377b7ff87c4799a9fed73"
+      "62020cd2d20cc66d0148059df648558c"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied_stepping",
@@ -1560,7 +1740,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "5765d7e37939ef7254346bc87bfdbf42"
+      "fa2d818f44d65d7ad08f22e6a677e972"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_steps_to_error",
@@ -1634,7 +1814,7 @@
         "typing_tok_Catala.LambdaCalculus.ConflictError@tok"
       ],
       0,
-      "a551d5f1e445aab12d54e8bd54eaa56a"
+      "3cd481ad9d8981e3d18c835a620846a9"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_steps_to_error",
@@ -1666,7 +1846,7 @@
         "typing_Catala.LambdaCalculus.is_value_list"
       ],
       0,
-      "c8a2a0a85550ad76442f841213c540c5"
+      "8c30f8c2b95b0bfe3334b181da5b60b8"
     ],
     [
       "Catala.Translation.Helpers.exception_init_lift_conflict_error",
@@ -1763,7 +1943,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "60968358f53c4a497e35a04523f5271f"
+      "6ef9ec9f5de17cb2fbcb9cc7febb8b17"
     ],
     [
       "Catala.Translation.Helpers.is_option_value",
@@ -1792,7 +1972,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "1087c146b298ad597834dce5591f8b6f"
+      "74eab4cade48e13ee20bc17393d4f558"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_error",
@@ -1818,7 +1998,8 @@
         "Catala.LambdaCalculus_pretyping_fabd258754d8bab26d9bc0ad1a882a83",
         "FStar.FunctionalExtensionality_interpretation_Tm_arrow_a7d5cc170be69663c495e8582d2bc62a",
         "Prims_interpretation_Tm_arrow_2eaa01e78f73e9bab5d0955fc1a662da",
-        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565",
+        "assumption_Catala.LambdaCalculus.exp__uu___haseq", "bool_inversion",
         "constructor_distinct_Catala.LambdaCalculus.ConflictError",
         "constructor_distinct_Catala.LambdaCalculus.EAbs",
         "constructor_distinct_Catala.LambdaCalculus.EApp",
@@ -1971,7 +2152,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "2eed85a8ad7fc2a3f0d9e47a327312f4"
+      "ac20c8e8310d0bbbaaeecf755c7ea3a0"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_non_error",
@@ -2003,7 +2184,9 @@
         "Catala.LambdaCalculus_pretyping_fabd258754d8bab26d9bc0ad1a882a83",
         "FStar.FunctionalExtensionality_interpretation_Tm_arrow_a7d5cc170be69663c495e8582d2bc62a",
         "Prims_interpretation_Tm_arrow_2eaa01e78f73e9bab5d0955fc1a662da",
-        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565",
+        "assumption_Catala.LambdaCalculus.exp__uu___haseq", "bool_inversion",
+        "constructor_distinct_Catala.LambdaCalculus.ConflictError",
         "constructor_distinct_Catala.LambdaCalculus.EAbs",
         "constructor_distinct_Catala.LambdaCalculus.EApp",
         "constructor_distinct_Catala.LambdaCalculus.ECatchEmptyError",
@@ -2015,6 +2198,7 @@
         "constructor_distinct_Catala.LambdaCalculus.ENone",
         "constructor_distinct_Catala.LambdaCalculus.ESome",
         "constructor_distinct_Catala.LambdaCalculus.EVar",
+        "constructor_distinct_Catala.LambdaCalculus.EmptyError",
         "constructor_distinct_Catala.LambdaCalculus.LError",
         "constructor_distinct_Catala.LambdaCalculus.TArrow",
         "constructor_distinct_Catala.LambdaCalculus.TBool",
@@ -2045,6 +2229,7 @@
         "disc_equation_FStar.Pervasives.Native.Some",
         "equality_tok_Catala.LambdaCalculus.ConflictError@tok",
         "equality_tok_Catala.LambdaCalculus.ENone@tok",
+        "equality_tok_Catala.LambdaCalculus.EmptyError@tok",
         "equality_tok_Catala.LambdaCalculus.TBool@tok",
         "equality_tok_Catala.LambdaCalculus.TUnit@tok",
         "equation_Catala.LambdaCalculus.empty",
@@ -2071,6 +2256,7 @@
         "equation_with_fuel_Catala.LambdaCalculus.subst_abs.fuel_instrumented",
         "equation_with_fuel_Catala.LambdaCalculus.typing.fuel_instrumented",
         "equation_with_fuel_Catala.Translation.Helpers.take_l_steps.fuel_instrumented",
+        "fuel_guarded_inversion_Catala.LambdaCalculus.err",
         "fuel_guarded_inversion_Catala.LambdaCalculus.exp",
         "fuel_guarded_inversion_FStar.Pervasives.Native.option",
         "fuel_token_correspondence_Catala.LambdaCalculus.subst_abs.fuel_instrumented_token",
@@ -2156,7 +2342,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "132369e46a5baeb4fd10999b9a765746"
+      "30b7e2c2a9e22714e15d77296a1b524a"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value",
@@ -2166,8 +2352,8 @@
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Catala.LambdaCalculus.is_value_list.fuel_instrumented",
-        "@query", "bool_inversion",
-        "disc_equation_Catala.LambdaCalculus.ELit",
+        "@query", "assumption_Catala.LambdaCalculus.exp__uu___haseq",
+        "bool_inversion", "disc_equation_Catala.LambdaCalculus.ELit",
         "disc_equation_Catala.LambdaCalculus.LError",
         "equation_Catala.LambdaCalculus.is_error",
         "equation_Catala.Translation.Helpers.typed_l_exp",
@@ -2181,11 +2367,20 @@
         "typing_Catala.LambdaCalculus.uu___is_ELit"
       ],
       0,
-      "0aa106b2c506e7d36e4992ac9bdf892f"
+      "f999de9dee37dbccaf3667a1c037299d"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_same_acc_result",
       1,
+      7,
+      2,
+      [ "@query", "assumption_Catala.LambdaCalculus.exp__uu___haseq" ],
+      0,
+      "b423bad682a96e9426b1247ad0b5fbe1"
+    ],
+    [
+      "Catala.Translation.Helpers.step_exceptions_head_value_same_acc_result",
+      2,
       7,
       2,
       [
@@ -2193,11 +2388,11 @@
         "equation_Catala.Translation.Helpers.step_exceptions_head_value",
         "equation_Catala.Translation.Helpers.step_exceptions_head_value_error",
         "equation_Catala.Translation.Helpers.step_exceptions_head_value_non_error",
-        "refinement_interpretation_Tm_refine_c959619bd6335065d0fb704c226b7c3c",
+        "refinement_interpretation_Tm_refine_490a77d8724dba478516c70d0d037b5b",
         "refinement_interpretation_Tm_refine_cdbe32eb48421474d9b70d61150eebfe"
       ],
       0,
-      "e7fbf44dd176673a65431866bf6a9161"
+      "3705c047eb2ca8352d94938e68b9424e"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_go_through",
@@ -2239,7 +2434,7 @@
         "typing_tok_Catala.LambdaCalculus.EmptyError@tok"
       ],
       0,
-      "d06a0e62b0b32544dac04ba67047e57e"
+      "17e6b22a20160daf0e9d0208217c1ae4"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_conflict_error",
@@ -2280,7 +2475,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "a3b5a124983e46ae58828d33a2088da9"
+      "cde6bc6eff2b3d58efe321fc0bccf691"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_some_acc",
@@ -2425,7 +2620,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "70046712f89393f0a06b6291b148683f"
+      "5ab7e1ff6226204dffb925a44caf5c9e"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_none",
@@ -2553,7 +2748,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "1e3445c421fd52ac45e88862bbe439b4"
+      "6965fd115a1073ab65424aa723c9725e"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_cons_conflict_error",
@@ -2666,7 +2861,104 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "679f3bb29dcc4b5e21a86fc780598e7c"
+      "d3ecb1e3753adefb6cd64231fab0c603"
+    ],
+    [
+      "Catala.Translation.Helpers.step_exceptions_general_conflict_error",
+      1,
+      4,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.is_value_list.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.step.fuel_instrumented",
+        "@fuel_correspondence_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "@fuel_correspondence_Catala.Translation.Helpers.take_l_steps.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.is_value_list.fuel_instrumented",
+        "@fuel_irrelevance_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "@query",
+        "Catala.LambdaCalculus_pretyping_8ab521cb5d1069fb182eea898efa7c42",
+        "Catala.LambdaCalculus_pretyping_fabd258754d8bab26d9bc0ad1a882a83",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565",
+        "Prims_pretyping_f537159ed795b314b4e58c260361ae86", "bool_inversion",
+        "bool_typing", "constructor_distinct_Catala.LambdaCalculus.EAbs",
+        "constructor_distinct_Catala.LambdaCalculus.EFoldLeft",
+        "constructor_distinct_Catala.LambdaCalculus.EList",
+        "constructor_distinct_Catala.LambdaCalculus.ELit",
+        "constructor_distinct_Catala.LambdaCalculus.EMatchOption",
+        "constructor_distinct_Catala.LambdaCalculus.LError",
+        "constructor_distinct_FStar.Pervasives.Native.Some",
+        "constructor_distinct_Tm_unit",
+        "data_elim_Catala.LambdaCalculus.EMatchOption",
+        "data_typing_intro_Catala.LambdaCalculus.EList@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ELit@tok",
+        "data_typing_intro_Catala.LambdaCalculus.EMatchOption@tok",
+        "data_typing_intro_Catala.LambdaCalculus.ENone@tok",
+        "data_typing_intro_Catala.LambdaCalculus.LError@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TArrow@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TOption@tok",
+        "data_typing_intro_Catala.LambdaCalculus.TUnit@tok",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "equality_tok_Catala.LambdaCalculus.ConflictError@tok",
+        "equality_tok_Catala.LambdaCalculus.TBool@tok",
+        "equality_tok_Catala.LambdaCalculus.TUnit@tok",
+        "equation_Catala.LambdaCalculus.empty",
+        "equation_Catala.Translation.Helpers.build_default_translation",
+        "equation_Catala.Translation.Helpers.process_exceptions_f",
+        "equation_Catala.Translation.Helpers.typed_l_exp",
+        "equation_Prims.nat",
+        "equation_with_fuel_Catala.LambdaCalculus.is_value.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.step.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.step_fold_left.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.step_match.fuel_instrumented",
+        "equation_with_fuel_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "equation_with_fuel_Catala.Translation.Helpers.take_l_steps.fuel_instrumented",
+        "fuel_guarded_inversion_FStar.Pervasives.Native.option",
+        "function_token_typing_Prims.__cache_version_number__", "int_typing",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Catala.LambdaCalculus.EAbs_body",
+        "projection_inverse_Catala.LambdaCalculus.EAbs_vty",
+        "projection_inverse_Catala.LambdaCalculus.EFoldLeft_f",
+        "projection_inverse_Catala.LambdaCalculus.EFoldLeft_init",
+        "projection_inverse_Catala.LambdaCalculus.EFoldLeft_l",
+        "projection_inverse_Catala.LambdaCalculus.EFoldLeft_tau_elt",
+        "projection_inverse_Catala.LambdaCalculus.EFoldLeft_tau_init",
+        "projection_inverse_Catala.LambdaCalculus.EList_l",
+        "projection_inverse_Catala.LambdaCalculus.ELit_l",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_arg",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_none",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_some",
+        "projection_inverse_Catala.LambdaCalculus.EMatchOption_tau_some",
+        "projection_inverse_Catala.LambdaCalculus.LError_err",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple3__1",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple3__2",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple3__3",
+        "projection_inverse_FStar.Pervasives.Native.Some_a",
+        "projection_inverse_FStar.Pervasives.Native.Some_v",
+        "refinement_interpretation_Tm_refine_1ce4cf8402ca4362b3cefd5b2138fe7c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_8572abaf58b0908690b4c77b9bd5038b",
+        "refinement_interpretation_Tm_refine_d5485f8c94130f85952cddf1019830bb",
+        "subterm_ordering_Catala.LambdaCalculus.EFoldLeft",
+        "subterm_ordering_Catala.LambdaCalculus.EMatchOption",
+        "token_correspondence_Catala.LambdaCalculus.step.fuel_instrumented",
+        "token_correspondence_Catala.LambdaCalculus.typing.fuel_instrumented",
+        "typing_Catala.LambdaCalculus.empty",
+        "typing_Catala.LambdaCalculus.is_value_list",
+        "typing_Catala.LambdaCalculus.step",
+        "typing_Catala.LambdaCalculus.typing",
+        "typing_Catala.Translation.Helpers.build_default_translation",
+        "typing_Catala.Translation.Helpers.process_exceptions_f",
+        "typing_tok_Catala.LambdaCalculus.ConflictError@tok",
+        "typing_tok_Catala.LambdaCalculus.TBool@tok",
+        "typing_tok_Catala.LambdaCalculus.TUnit@tok"
+      ],
+      0,
+      "cf84291cad1827ed516563b11f2acc1d"
     ]
   ]
 ]
