@@ -390,7 +390,9 @@ and size_for_progress_list (e: list exp) : Tot nat = match e with
   | [] -> 0
   | hd::tl -> size_for_progress hd + size_for_progress_list tl + 10
 
-#push-options "--fuel 3 --ifuel 0 --z3rlimit 30"
+#restart-solver
+
+#push-options "--fuel 3 --ifuel 0 --z3rlimit 30 --quake 10/1"
 let lemma_size_fold_step (f init hd: exp) (tl: list exp) (tau_init tau_elt: ty) : Lemma (
   size_for_progress (EFoldLeft f init tau_init (EList (hd::tl)) tau_elt) >
   size_for_progress (EFoldLeft f
@@ -415,7 +417,12 @@ let lemma_size_fold_step (f init hd: exp) (tl: list exp) (tau_init tau_elt: ty) 
     - size_for_progress f - 1 - size_for_progress hd - 1
     + size_for_progress hd + 10
     + (size_for_progress f) * (size_for_progress hd + 10)
-  )
+  );
+  assert(size_for_progress e - size_for_progress e' >
+  - size_for_progress f + 7
+    + (size_for_progress f) * (size_for_progress hd + 10));
+  assert(size_for_progress e - size_for_progress e' > 7
+    + (size_for_progress f) * (size_for_progress hd + 9))
 #pop-options
 
 #push-options "--fuel 1 --ifuel 0 --z3rlimit 30"

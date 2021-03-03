@@ -449,7 +449,7 @@ let step_exceptions_left_to_right_result_shape
   ()
 #pop-options
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 70"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 1500"
 let rec translation_correctness_exceptions_left_to_right_step
   (de: D.exp)
   (dexceptions: list D.exp {dexceptions << de})
