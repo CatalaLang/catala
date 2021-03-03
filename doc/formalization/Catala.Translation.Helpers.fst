@@ -72,7 +72,7 @@ let process_exceptions_untouched_by_subst (s: var_to_exp) (tau: ty) : Lemma
   ()
 #pop-options
 
-(*** Lambda calculus stepping lemmas *)
+(*** Lambda calculus stepping lemma *)
 
 let well_typed_terms_invariant_by_subst (s: var_to_exp) (e: exp) (tau: ty) : Lemma
   (requires (typing empty e tau))
@@ -390,7 +390,7 @@ let exceptions_init_lift
   exceptions_init_lift' tau tl just cons
 
 
-#push-options "--fuel 7 --ifuel 2 --z3rlimit 50"
+#push-options "--fuel 7 --ifuel 2 --z3rlimit 80"
 let lift_multiple_l_steps_exceptions_head
   (tau: ty)
   (tl: list exp{typing_list empty tl (TArrow TUnit tau) /\ is_value_list tl})
@@ -419,7 +419,13 @@ let lift_multiple_l_steps_exceptions_head
     (EApp (process_exceptions_f tau) acc (TOption tau))
     (EThunk hd) (TArrow TUnit tau)
   in
-  let init3 : typed_l_exp (TOption tau) = EApp (EAbs (TOption tau) (
+  let init2 : typed_l_exp (TOption tau) = EApp
+    (EAbs (TOption tau) (
+      EMatchOption acc tau (EVar 0) (EAbs tau (EMatchOption (EVar 1) tau acc (EAbs tau
+        (ELit (LError ConflictError)))))))
+    (ECatchEmptyError (ESome (EApp (EThunk hd) (ELit LUnit) TUnit)) ENone) (TOption tau)
+  in
+  let init3 = EApp (EAbs (TOption tau) (
     EMatchOption acc tau (EVar 0) (EAbs tau (
       EMatchOption (EVar 1) tau acc (EAbs tau
         (ELit (LError ConflictError))
@@ -434,13 +440,16 @@ let lift_multiple_l_steps_exceptions_head
     [SMTPat (subst s hd)] =
     well_typed_terms_invariant_by_subst s hd tau
   in
-  assume(take_l_steps (TOption tau) init0 3 == Some init3);
+  assume(take_l_steps (TOption tau) init0 2 == Some init2);
   (* F* cannot prove these rather trivial substitutions automatically, might have to do it
-    manually. This proof will use well_typed_terms_invariant_by_subst *)
+    manually. This proof should use the acc_invariant and hd_invariant above *)
+  assert(step init2 == Some init3);
+  preservation init2 (TOption tau);
+  take_l_steps_transitive (TOption tau) init0 init2 2 1;
   let default_translation0 : typed_l_exp tau =
     build_default_translation ((EThunk hd)::tl) acc just cons tau
   in
-  let default_translation1 : typed_l_exp tau = EMatchOption
+  let default_translation1 = EMatchOption
     (EFoldLeft
       (process_exceptions_f tau)
       init0 (TOption tau)
@@ -451,6 +460,7 @@ let lift_multiple_l_steps_exceptions_head
       (ELit (LError EmptyError)))
     (EAbs tau (EVar 0))
   in
+  preservation default_translation0 tau;
   assert(take_l_steps tau default_translation0 1 == Some default_translation1);
   assert(default_translation1 == exceptions_init_lift tau tl just cons init0);
   lift_multiple_l_steps (TOption tau) tau init0 init3 3
@@ -833,7 +843,7 @@ let step_exceptions_head_value_same_acc_result
       new_acc == new_acc'
     )
   =
-  admit()
+  ()
 
 let step_exceptions_head_value_go_through
   (tau: ty)
@@ -847,7 +857,7 @@ let step_exceptions_head_value_go_through
       new_acc = ENone
     )
   =
-  admit()
+  ()
 
 let step_exceptions_empty_conflict_error
   (tau: ty)

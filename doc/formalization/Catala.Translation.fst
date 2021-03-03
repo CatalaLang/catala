@@ -673,6 +673,7 @@ let step_exceptions_head_value_source_acc_synced_dacc
     match dhd, dacc with
     | D.ELit D.LEmptyError, D.AllEmpty -> D.AllEmpty
     | D.ELit D.LEmptyError, D.OneNonEmpty e -> D.OneNonEmpty e
+    | D.ELit D.LConflictError, _ -> D.Conflict
     | _, D.AllEmpty -> D.OneNonEmpty dhd
     | _, D.OneNonEmpty _ -> D.Conflict
   in
@@ -682,7 +683,16 @@ let step_exceptions_head_value_source_acc_synced_dacc
   let new_lacc, _ =
   step_exceptions_head_value ltau ltl lacc ljust lcons (translate_exp dhd)
   in
-  assume(dacc_lacc_sync ltau new_dacc new_lacc);
+  let lhd = translate_exp dhd in
+  let aux () : Lemma (dacc_lacc_sync ltau new_dacc new_lacc) =
+    match dhd, dacc with
+    | D.ELit D.LEmptyError, D.AllEmpty -> ()
+    | D.ELit D.LEmptyError, D.OneNonEmpty e -> ()
+    | D.ELit D.LConflictError, _ -> ()
+    | _, D.AllEmpty -> ()
+    | _, D.OneNonEmpty _ -> ()
+  in
+  aux ();
   new_dacc
 #pop-options
 
