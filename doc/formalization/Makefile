@@ -1,6 +1,3 @@
-%.tex:
-	latexmk -pdf -halt-on-error -shell-escape -pvc $@
-
 FSTAR_HOME?=~/FStar
 include $(FSTAR_HOME)/ulib/gmake/z3.mk
 include $(FSTAR_HOME)/ulib/gmake/fstar.mk
