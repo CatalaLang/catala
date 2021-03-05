@@ -1,3 +1,7 @@
+# The Catala formalization
+
+The formalization of Catala is presented in the paper [Catala: A Programming Language for the Law](https://arxiv.org/abs/2103.03198).
+
 # Certification of a critical Catala compilation step
 
 ## Presentation
