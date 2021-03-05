@@ -15,7 +15,7 @@
 module Allocations_familiales = Law_source.Allocations_familiales
 
 val compute_allocations_familiales :
-  current_date:CalendarLib.Date.t ->
+  current_date:Runtime.date ->
   children:Allocations_familiales.enfant_entree array ->
   income:int ->
   residence:Allocations_familiales.collectivite ->

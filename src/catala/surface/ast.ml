@@ -187,7 +187,9 @@ type literal_date = {
   visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "literal_date_map" },
     visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "literal_date_iter" }]
 
-type literal_number = Int of (Z.t[@opaque]) | Dec of (Z.t[@opaque]) * (Z.t[@opaque])
+type literal_number =
+  | Int of (Runtime.integer[@opaque])
+  | Dec of (Runtime.integer[@opaque]) * (Runtime.integer[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "literal_number_map"; nude = true },
     visitors { variety = "iter"; name = "literal_number_iter"; nude = true }]
@@ -197,7 +199,10 @@ type literal_unit = Percent | Year | Month | Day
   visitors { variety = "map"; name = "literal_unit_map"; nude = true },
     visitors { variety = "iter"; name = "literal_unit_iter"; nude = true }]
 
-type money_amount = { money_amount_units : (Z.t[@opaque]); money_amount_cents : (Z.t[@opaque]) }
+type money_amount = {
+  money_amount_units : (Runtime.integer[@opaque]);
+  money_amount_cents : (Runtime.integer[@opaque]);
+}
 [@@deriving
   visitors { variety = "map"; name = "money_amount_map"; nude = true },
     visitors { variety = "iter"; name = "money_amount_iter"; nude = true }]

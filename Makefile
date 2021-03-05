@@ -19,6 +19,7 @@ dependencies-ocaml:
 init-submodules:
 	git submodule update --init
 
+#> dependencies				: Install the Catala OCaml and Git dependencies 
 dependencies: dependencies-ocaml init-submodules
 
 
@@ -29,14 +30,17 @@ dependencies: dependencies-ocaml init-submodules
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
 
+#> build					: Builds the Catala compiler
 build:
 	dune build @update-parser-messages
 	@$(MAKE) --no-print-directory format
 	dune build src/catala/catala.exe
 
+#> js_build				: Builds the Web-compatible JS version of the Catala compiler
 js_build:
 	dune build src/catala/catala_web.bc.js --profile release
 
+#> doc					: Generates the HTML OCaml documentation
 doc:
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
@@ -59,6 +63,7 @@ pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
 	chmod +x $<
 	sudo $<
 
+#> pygments				: Extends your pygmentize executable with Catala lexers
 pygments: pygmentize_fr pygmentize_en
 
 atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
@@ -73,6 +78,7 @@ atom_nv: ${CURDIR}/syntax_highlighting/nv/setup_atom.sh
 	chmod +x $<
 	$<
 
+#> atom					: Installs Catala syntax highlighting for Atom
 atom: atom_fr atom_en atom_nv
 
 vscode_fr: ${CURDIR}/syntax_highlighting/fr/setup_vscode.sh
@@ -87,6 +93,7 @@ vscode_nv: ${CURDIR}/syntax_highlighting/nv/setup_vscode.sh
 	chmod +x $<
 	$<
 
+#> vscode					: Installs Catala syntax highlighting for VSCode
 vscode: vscode_fr vscode_en vscode_nv
 
 ##########################################
@@ -121,7 +128,8 @@ literate_tutoriel_fr: build
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
-literate_examples: pygments literate_allocations_familiales literate_code_general_impots \
+#> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.		
+literate_examples: literate_allocations_familiales literate_code_general_impots \
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
 
 ##########################################
@@ -136,8 +144,10 @@ test_suite: .FORCE
 test_examples: .FORCE
 	@$(MAKE) --no-print-directory -C examples tests
 
+#> tests					: Run interpreter tests
 tests: test_suite test_examples
 
+#> tests_ml				: Run OCaml unit tests for the Catala-generated code
 tests_ml: run_french_law_library_tests
 
 ##########################################
@@ -151,26 +161,26 @@ $(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source
 
-french_law_library:\
-	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml
-
-run_french_law_library_benchmark: french_law_library
-	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
-
 $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
-	@$(MAKE) --no-print-directory -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
-	@cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
+	$(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
 
-french_law_library_tests: \
+generate_french_law_library:\
+	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml \
 	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
 
-run_french_law_library_tests: french_law_library_tests
-	@dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
-
-build_french_law_library: format
+#> build_french_law_library		: Builds the OCaml French law library
+build_french_law_library: generate_french_law_library format
 	dune build $(FRENCH_LAW_LIB_DIR)
 
+run_french_law_library_benchmark: build_french_law_library
+	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
+
+run_french_law_library_tests: build_french_law_library
+	dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
+
+#> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
 	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
@@ -186,14 +196,16 @@ catala.html: src/catala/utils/cli.ml
 	dune exec src/catala/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
+#> website-assets				: Builds all the assets necessary for the Catala website
 website-assets: doc literate_examples grammar.html catala.html js_build build_french_law_library_js
 
 ##########################################
 # Misceallenous
 ##########################################
 
-all: dependencies build doc tests literate_examples website-assets
+all: dependencies build doc tests literate_examples website-assets build_french_law_library
 
+#> clean					: Clean build artifacts
 clean:
 	dune clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
@@ -210,4 +222,7 @@ inspect:
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
-	catala.html
+	catala.html help
+
+help : Makefile
+	@sed -n 's/^#> //p' $<

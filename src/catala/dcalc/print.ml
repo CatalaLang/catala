@@ -88,62 +88,18 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Format.fprintf fmt "%b" b
-  | LInt i -> Format.fprintf fmt "%s" (Z.to_string i)
+  | LInt i -> Format.fprintf fmt "%s" (Runtime.integer_to_string i)
   | LEmptyError -> Format.fprintf fmt "∅"
   | LUnit -> Format.fprintf fmt "()"
   | LRat i ->
-      let sign = Q.sign i in
-      let n = Z.abs (Q.num i) in
-      let d = Z.abs (Q.den i) in
-      let int_part = Z.ediv n d in
-      let n = ref (Z.erem n d) in
-      let digits = ref [] in
-      let leading_zeroes (digits : Z.t list) : int =
-        match
-          List.fold_right
-            (fun digit num_leading_zeroes ->
-              match num_leading_zeroes with
-              | `End _ -> num_leading_zeroes
-              | `Begin i -> if Z.(digit = zero) then `Begin (i + 1) else `End i)
-            digits (`Begin 0)
-        with
-        | `End i -> i
-        | `Begin i -> i
-      in
-      while
-        !n <> Z.zero && List.length !digits - leading_zeroes !digits < !Utils.Cli.max_prec_digits
-      do
-        n := Z.mul !n (Z.of_int 10);
-        digits := Z.ediv !n d :: !digits;
-        n := Z.erem !n d
-      done;
-      Format.fprintf fmt "%s%a.%a%s"
-        (if sign < 0 then "-" else "")
-        Z.pp_print int_part
-        (Format.pp_print_list
-           ~pp_sep:(fun _fmt () -> ())
-           (fun fmt digit -> Format.fprintf fmt "%a" Z.pp_print digit))
-        (List.rev !digits)
-        ( if List.length !digits - leading_zeroes !digits = !Utils.Cli.max_prec_digits then "…"
-        else "" )
+      Format.fprintf fmt "%s"
+        (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
-      | `En -> Format.fprintf fmt "$%.2f" Q.(to_float (of_bigint e / of_int 100))
-      | `Fr -> Format.fprintf fmt "%.2f €" Q.(to_float (of_bigint e / of_int 100)) )
-  | LDate d -> Format.fprintf fmt "%s" (CalendarLib.Printer.Date.to_string d)
-  | LDuration d -> (
-      let x, y, z = CalendarLib.Date.Period.ymd d in
-      let to_print =
-        List.filter (fun (a, _) -> a <> 0) [ (x, "years"); (y, "months"); (z, "days") ]
-      in
-      match to_print with
-      | [] -> Format.fprintf fmt "empty duration"
-      | _ ->
-          Format.fprintf fmt "%a"
-            (Format.pp_print_list
-               ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-               (fun fmt (d, l) -> Format.fprintf fmt "%d %s" d l))
-            to_print )
+      | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
+      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e) )
+  | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
+  | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 
 let format_op_kind (fmt : Format.formatter) (k : op_kind) =
   Format.fprintf fmt "%s"

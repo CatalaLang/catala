@@ -28,10 +28,10 @@
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
-%token<Z.t> INT_LITERAL
+%token<Runtime.integer> INT_LITERAL
 %token TRUE FALSE
-%token<Z.t * Z.t> DECIMAL_LITERAL
-%token<Z.t * Z.t> MONEY_AMOUNT
+%token<Runtime.integer * Runtime.integer> DECIMAL_LITERAL
+%token<Runtime.integer * Runtime.integer> MONEY_AMOUNT
 %token BEGIN_CODE TEXT MASTER_FILE
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
@@ -171,7 +171,7 @@ unit_literal:
 | DAY { (Day, Pos.from_lpos $sloc) }
 
 date_int:
-| d = INT_LITERAL { (Z.to_int d, Pos.from_lpos $sloc) }
+| d = INT_LITERAL { (Runtime.integer_to_int d, Pos.from_lpos $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {

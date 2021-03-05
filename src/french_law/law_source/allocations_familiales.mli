@@ -37,7 +37,7 @@ type prise_en_compte_evaluation_montant = Complete of unit | Partagee of unit
 
 type versement_allocations = Normal of unit | AllocationVerseeAuxServicesSociaux of unit
 
-type age_alternatif = Absent of unit | Present of Catala.Runtime.integer
+type age_alternatif = Absent of unit | Present of Runtime.integer
 
 type element_prestations_familiales =
   | PrestationAccueilJeuneEnfant of unit
@@ -49,22 +49,22 @@ type element_prestations_familiales =
   | AllocationRentreeScolaire of unit
   | AllocationJournalierePresenceParentale of unit
 
-type personne = { numero_securite_sociale : Catala.Runtime.integer }
+type personne = { numero_securite_sociale : Runtime.integer }
 
 type enfant_entree = {
-  d_identifiant : Catala.Runtime.integer;
-  d_remuneration_mensuelle : Catala.Runtime.money;
-  d_date_de_naissance : Catala.Runtime.date;
+  d_identifiant : Runtime.integer;
+  d_remuneration_mensuelle : Runtime.money;
+  d_date_de_naissance : Runtime.date;
   d_garde_alternee : garde_alternee;
   d_prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
 }
 
 type enfant = {
-  identifiant : Catala.Runtime.integer;
-  fin_obligation_scolaire : Catala.Runtime.date;
-  remuneration_mensuelle : Catala.Runtime.money;
-  date_de_naissance : Catala.Runtime.date;
-  age : Catala.Runtime.integer;
+  identifiant : Runtime.integer;
+  fin_obligation_scolaire : Runtime.date;
+  remuneration_mensuelle : Runtime.money;
+  date_de_naissance : Runtime.date;
+  age : Runtime.integer;
   garde_alternee : garde_alternee;
   prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
 }
@@ -72,21 +72,21 @@ type enfant = {
 type stockage_enfant = PasEnfant of unit | UnEnfant of enfant
 
 type interface_allocations_familiales_out = {
-  date_courante_out : Catala.Runtime.date;
+  date_courante_out : Runtime.date;
   enfants_out : enfant_entree array;
   enfants_a_charge_out : enfant array;
-  ressources_menage_out : Catala.Runtime.money;
+  ressources_menage_out : Runtime.money;
   residence_out : collectivite;
-  montant_verse_out : Catala.Runtime.money;
+  montant_verse_out : Runtime.money;
 }
 
 type interface_allocations_familiales_in = {
-  date_courante_in : unit -> Catala.Runtime.date;
+  date_courante_in : unit -> Runtime.date;
   enfants_in : unit -> enfant_entree array;
   enfants_a_charge_in : unit -> enfant array;
-  ressources_menage_in : unit -> Catala.Runtime.money;
+  ressources_menage_in : unit -> Runtime.money;
   residence_in : unit -> collectivite;
-  montant_verse_in : unit -> Catala.Runtime.money;
+  montant_verse_in : unit -> Runtime.money;
 }
 
 val interface_allocations_familiales :

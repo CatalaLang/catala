@@ -98,11 +98,16 @@ type literal_date = {
   literal_date_year : (int[@opaque]) Pos.marked;
 }
 
-type literal_number = Int of (Z.t[@opaque]) | Dec of (Z.t[@opaque]) * (Z.t[@opaque])
+type literal_number =
+  | Int of (Runtime.integer[@opaque])
+  | Dec of (Runtime.integer[@opaque]) * (Runtime.integer[@opaque])
 
 type literal_unit = Percent | Year | Month | Day
 
-type money_amount = { money_amount_units : (Z.t[@opaque]); money_amount_cents : (Z.t[@opaque]) }
+type money_amount = {
+  money_amount_units : (Runtime.integer[@opaque]);
+  money_amount_cents : (Runtime.integer[@opaque]);
+}
 
 type literal =
   | LNumber of literal_number Pos.marked * literal_unit Pos.marked option
@@ -316,7 +321,7 @@ class virtual ['self] program_map :
 
     method visit_Day : 'monomorphic. 'env -> literal_unit
 
-    method visit_Dec : 'monomorphic. 'env -> Z.t -> Z.t -> literal_number
+    method visit_Dec : 'monomorphic. 'env -> Runtime.integer -> Runtime.integer -> literal_number
 
     method visit_Decimal : 'monomorphic. 'env -> primitive_typ
 
@@ -377,7 +382,7 @@ class virtual ['self] program_map :
 
     method visit_Increasing : 'monomorphic. 'env -> variation_typ
 
-    method visit_Int : 'monomorphic. 'env -> Z.t -> literal_number
+    method visit_Int : 'monomorphic. 'env -> Runtime.integer -> literal_number
 
     method visit_IntToDec : 'monomorphic. 'env -> builtin_expression
 
@@ -656,7 +661,7 @@ class virtual ['self] program_iter :
 
     method visit_Day : 'monomorphic. 'env -> unit
 
-    method visit_Dec : 'monomorphic. 'env -> Z.t -> Z.t -> unit
+    method visit_Dec : 'monomorphic. 'env -> Runtime.integer -> Runtime.integer -> unit
 
     method visit_Decimal : 'monomorphic. 'env -> unit
 
@@ -716,7 +721,7 @@ class virtual ['self] program_iter :
 
     method visit_Increasing : 'monomorphic. 'env -> unit
 
-    method visit_Int : 'monomorphic. 'env -> Z.t -> unit
+    method visit_Int : 'monomorphic. 'env -> Runtime.integer -> unit
 
     method visit_IntToDec : 'monomorphic. 'env -> unit
 

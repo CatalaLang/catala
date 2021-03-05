@@ -17,12 +17,12 @@ module D = Dcalc.Ast
 
 type lit =
   | LBool of bool
-  | LInt of Z.t
-  | LRat of Q.t
-  | LMoney of Z.t
+  | LInt of Runtime.integer
+  | LRat of Runtime.decimal
+  | LMoney of Runtime.money
   | LUnit
-  | LDate of D.date
-  | LDuration of D.duration
+  | LDate of Runtime.date
+  | LDuration of Runtime.duration
 
 type except = ConflictError | EmptyError | Crash
 

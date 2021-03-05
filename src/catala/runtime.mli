@@ -24,64 +24,119 @@ type date
 
 type duration
 
-(**{1 Constructors and conversions} *)
-
-val money_of_cent_string : string -> money
-
-val money_of_units_integers : int -> money
-
-val money_to_float : money -> float
-
-val decimal_of_string : string -> decimal
-
-val integer_of_string : string -> integer
-
-val integer_to_int : integer -> int
-
-val integer_of_int : int -> integer
-
-val date_of_calendar_date : CalendarLib.Date.t -> date
-
-val date_to_calendar_date : date -> CalendarLib.Date.t
-
-val duration_of_calendar_period : CalendarLib.Date.Period.t -> duration
-
-val duration_to_calendar_period : duration -> CalendarLib.Date.Period.t
-
-val date_of_numbers : int -> int -> int -> date
-(** Usage: [date_of_numbers year month day] *)
-
-val duration_of_numbers : int -> int -> int -> duration
-
-val int_to_rat : integer -> decimal
-
-(**{1 Exceptions and defaults} *)
+(** {1 Exceptions} *)
 
 exception EmptyError
 
 exception AssertionFailed
 
-exception EmptyValue
-
 exception ConflictError
+
+exception UncomparableDurations
+
+exception ImpossibleDate
+
+(**{1 Constructors and conversions} *)
+
+(**{2 Money}*)
+
+val money_of_cents_string : string -> money
+
+val money_of_units_int : int -> money
+
+val money_of_cents_integer : integer -> money
+
+val money_to_float : money -> float
+
+val money_to_string : money -> string
+
+val money_to_cents : money -> integer
+
+(** {2 Decimals} *)
+
+val decimal_of_string : string -> decimal
+
+val decimal_to_string : max_prec_digits:int -> decimal -> string
+
+val decimal_of_integer : integer -> decimal
+
+val decimal_of_float : float -> decimal
+
+val decimal_to_float : decimal -> float
+
+(**{2 Integers} *)
+
+val integer_of_string : string -> integer
+
+val integer_to_string : integer -> string
+
+val integer_to_int : integer -> int
+
+val integer_of_int : int -> integer
+
+val integer_log2 : integer -> int
+
+val integer_exponentiation : integer -> int -> integer
+
+(**{2 Dates} *)
+
+val day_of_month_of_date : date -> integer
+
+val month_number_of_date : date -> integer
+
+val year_of_date : date -> integer
+
+val date_to_string : date -> string
+
+val date_of_numbers : int -> int -> int -> date
+(** Usage: [date_of_numbers year month day]
+
+    @raise ImpossibleDate *)
+
+(**{2 Durations} *)
+
+val duration_of_numbers : int -> int -> int -> duration
+
+val duration_to_days_months_years : duration -> int * int * int
+
+val duration_to_string : duration -> string
+
+(**{1 Defaults} *)
 
 val error_empty : 'a -> 'a
 
 val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
+(** @raise EmptyError
+    @raise ConflictError *)
 
 val no_input : unit -> 'a
 
 (**{1 Operators} *)
 
+(**{ 2 Money} *)
+
 val ( *$ ) : money -> decimal -> money
 
 val ( /$ ) : money -> money -> decimal
+(** @raise Division_by_zero *)
 
 val ( +$ ) : money -> money -> money
 
 val ( -$ ) : money -> money -> money
 
 val ( ~-$ ) : money -> money
+
+val ( =$ ) : money -> money -> bool
+
+val ( <=$ ) : money -> money -> bool
+
+val ( >=$ ) : money -> money -> bool
+
+val ( <$ ) : money -> money -> bool
+
+val ( >$ ) : money -> money -> bool
+
+(**{2 Integers} *)
 
 val ( +! ) : integer -> integer -> integer
 
@@ -92,6 +147,19 @@ val ( ~-! ) : integer -> integer
 val ( *! ) : integer -> integer -> integer
 
 val ( /! ) : integer -> integer -> integer
+(** @raise Division_by_zero *)
+
+val ( =! ) : integer -> integer -> bool
+
+val ( >=! ) : integer -> integer -> bool
+
+val ( <=! ) : integer -> integer -> bool
+
+val ( >! ) : integer -> integer -> bool
+
+val ( <! ) : integer -> integer -> bool
+
+(** {2 Decimals} *)
 
 val ( +& ) : decimal -> decimal -> decimal
 
@@ -102,30 +170,25 @@ val ( ~-& ) : decimal -> decimal
 val ( *& ) : decimal -> decimal -> decimal
 
 val ( /& ) : decimal -> decimal -> decimal
+(** @raise Division_by_zero *)
+
+val ( =& ) : decimal -> decimal -> bool
+
+val ( >=& ) : decimal -> decimal -> bool
+
+val ( <=& ) : decimal -> decimal -> bool
+
+val ( >& ) : decimal -> decimal -> bool
+
+val ( <& ) : decimal -> decimal -> bool
+
+(** {2 Dates} *)
 
 val ( +@ ) : date -> duration -> date
 
 val ( -@ ) : date -> date -> duration
 
-val ( +^ ) : duration -> duration -> duration
-
-val ( -^ ) : duration -> duration -> duration
-
-val ( <=$ ) : money -> money -> bool
-
-val ( >=$ ) : money -> money -> bool
-
-val ( <$ ) : money -> money -> bool
-
-val ( >$ ) : money -> money -> bool
-
-val ( >=! ) : integer -> integer -> bool
-
-val ( <=! ) : integer -> integer -> bool
-
-val ( >! ) : integer -> integer -> bool
-
-val ( <! ) : integer -> integer -> bool
+val ( =@ ) : date -> date -> bool
 
 val ( >=@ ) : date -> date -> bool
 
@@ -135,20 +198,30 @@ val ( >@ ) : date -> date -> bool
 
 val ( <@ ) : date -> date -> bool
 
+(** {2 Durations} *)
+
+val ( +^ ) : duration -> duration -> duration
+
+val ( -^ ) : duration -> duration -> duration
+
+val ( ~-^ ) : duration -> duration
+
+val ( =^ ) : duration -> duration -> bool
+
 val ( >=^ ) : duration -> duration -> bool
+(** @raise UncomparableDurations *)
 
 val ( <=^ ) : duration -> duration -> bool
+(** @raise UncomparableDurations *)
 
 val ( >^ ) : duration -> duration -> bool
+(** @raise UncomparableDurations *)
 
 val ( <^ ) : duration -> duration -> bool
+(** @raise UncomparableDurations *)
+
+(** {2 Arrays} *)
 
 val array_filter : ('a -> bool) -> 'a array -> 'a array
 
 val array_length : 'a array -> integer
-
-val get_year : date -> integer
-
-val get_month : date -> integer
-
-val get_day : date -> integer

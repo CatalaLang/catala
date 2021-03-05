@@ -14,7 +14,7 @@
 
 module Allocations_familiales = Law_source.Allocations_familiales
 module AF = Allocations_familiales
-open Catala.Runtime
+open Runtime
 open Js_of_ocaml
 
 class type enfant_entree =
@@ -82,11 +82,11 @@ let _ =
                              else OuiAllocationVerseeALaFamille ()
                            else NonPriseEnChargeFamille () );
                          AF.d_remuneration_mensuelle =
-                           money_of_units_integers child##.remunerationMensuelle;
+                           money_of_units_int child##.remunerationMensuelle;
                        })
                      (Js.to_array input##.children));
                AF.enfants_a_charge_in = no_input;
-               AF.ressources_menage_in = (fun _ -> money_of_units_integers input##.income);
+               AF.ressources_menage_in = (fun _ -> money_of_units_int input##.income);
                AF.residence_in =
                  (fun _ ->
                    match Js.to_string input##.residence with

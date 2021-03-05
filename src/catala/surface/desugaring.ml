@@ -158,38 +158,47 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         match l with
         | LNumber ((Int i, _), None) -> Scopelang.Ast.ELit (Dcalc.Ast.LInt i)
         | LNumber ((Int i, _), Some (Percent, _)) ->
-            Scopelang.Ast.ELit (Dcalc.Ast.LRat (Q.div (Q.of_bigint i) (Q.of_int 100)))
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LRat Runtime.(decimal_of_integer i /& decimal_of_string "100"))
         | LNumber ((Dec (i, f), _), None) ->
             let digits_f =
-              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              try int_of_float (ceil (float_of_int (Runtime.integer_log2 f) *. log 2.0 /. log 10.0))
               with Invalid_argument _ -> 0
             in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
-                 Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f))))
+                 Runtime.(
+                   decimal_of_integer i
+                   +& decimal_of_integer f
+                      /& decimal_of_integer (integer_exponentiation (integer_of_int 10) digits_f)))
         | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
             let digits_f =
-              try int_of_float (ceil (float_of_int (Z.log2 f) *. log 2.0 /. log 10.0))
+              try int_of_float (ceil (float_of_int (Runtime.integer_log2 f) *. log 2.0 /. log 10.0))
               with Invalid_argument _ -> 0
             in
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
-                 (Q.div
-                    Q.(of_bigint i + (of_bigint f / of_bigint (Z.pow (Z.of_int 10) digits_f)))
-                    (Q.of_int 100)))
+                 Runtime.(
+                   ( decimal_of_integer i
+                   +& decimal_of_integer f
+                      /& decimal_of_integer (integer_exponentiation (integer_of_int 10) digits_f) )
+                   /& decimal_of_string "100"))
         | LBool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | LMoneyAmount i ->
             Scopelang.Ast.ELit
-              (Dcalc.Ast.LMoney Z.((i.money_amount_units * of_int 100) + i.money_amount_cents))
+              (Dcalc.Ast.LMoney
+                 Runtime.(
+                   money_of_cents_integer
+                     ((i.money_amount_units *! integer_of_int 100) +! i.money_amount_cents)))
         | LNumber ((Int i, _), Some (Year, _)) ->
             Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~year:(Z.to_int i) ()))
+              (Dcalc.Ast.LDuration (Runtime.duration_of_numbers (Runtime.integer_to_int i) 0 0))
         | LNumber ((Int i, _), Some (Month, _)) ->
             Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~month:(Z.to_int i) ()))
+              (Dcalc.Ast.LDuration (Runtime.duration_of_numbers 0 (Runtime.integer_to_int i) 0))
         | LNumber ((Int i, _), Some (Day, _)) ->
             Scopelang.Ast.ELit
-              (Dcalc.Ast.LDuration (CalendarLib.Date.Period.lmake ~day:(Z.to_int i) ()))
+              (Dcalc.Ast.LDuration (Runtime.duration_of_numbers 0 0 (Runtime.integer_to_int i)))
         | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
             Errors.raise_spanned_error
               "Impossible to specify decimal amounts of days, months or years" pos
@@ -200,17 +209,14 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             if Pos.unmark date.literal_date_day > 31 then
               Errors.raise_spanned_error "Month number bigger than 31"
                 (Pos.get_position date.literal_date_day);
-            let date =
-              try
-                CalendarLib.Date.lmake
-                  ~year:(Pos.unmark date.literal_date_year)
-                  ~day:(Pos.unmark date.literal_date_day)
-                  ~month:(Pos.unmark date.literal_date_month)
-                  ()
-              with CalendarLib.Date.Out_of_bounds | CalendarLib.Date.Undefined ->
-                Errors.raise_spanned_error "Invalid date" pos
-            in
-            Scopelang.Ast.ELit (Dcalc.Ast.LDate date)
+            Scopelang.Ast.ELit
+              (Dcalc.Ast.LDate
+                 ( try
+                     Runtime.date_of_numbers
+                       (Pos.unmark date.literal_date_year)
+                       (Pos.unmark date.literal_date_month)
+                       (Pos.unmark date.literal_date_day)
+                   with Runtime.ImpossibleDate -> Errors.raise_spanned_error "Invalid date" pos ))
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
@@ -522,14 +528,20 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), Pos.get_position op')
         | Ast.Forall -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Integer) ->
-            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+            Bindlib.box
+              (Scopelang.Ast.ELit (Dcalc.Ast.LInt (Runtime.integer_of_int 0)), Pos.get_position op')
         | Ast.Aggregate (Ast.AggregateSum Ast.Decimal) ->
-            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LRat Q.zero), Pos.get_position op')
+            Bindlib.box
+              ( Scopelang.Ast.ELit (Dcalc.Ast.LRat (Runtime.decimal_of_string "0")),
+                Pos.get_position op' )
         | Ast.Aggregate (Ast.AggregateSum Ast.Money) ->
-            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LMoney Z.zero), Pos.get_position op')
+            Bindlib.box
+              ( Scopelang.Ast.ELit
+                  (Dcalc.Ast.LMoney (Runtime.money_of_cents_integer (Runtime.integer_of_int 0))),
+                Pos.get_position op' )
         | Ast.Aggregate (Ast.AggregateSum Ast.Duration) ->
             Bindlib.box
-              ( Scopelang.Ast.ELit (Dcalc.Ast.LDuration CalendarLib.Date.Period.empty),
+              ( Scopelang.Ast.ELit (Dcalc.Ast.LDuration (Runtime.duration_of_numbers 0 0 0)),
                 Pos.get_position op' )
         | Ast.Aggregate (Ast.AggregateSum t) ->
             Errors.raise_spanned_error
@@ -538,7 +550,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               pos
         | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
         | Ast.Aggregate Ast.AggregateCount ->
-            Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.zero), Pos.get_position op')
+            Bindlib.box
+              (Scopelang.Ast.ELit (Dcalc.Ast.LInt (Runtime.integer_of_int 0)), Pos.get_position op')
       in
       let acc_var = Scopelang.Ast.Var.make ("acc", Pos.get_position param') in
       let acc = Scopelang.Ast.make_var (acc_var, Pos.get_position param') in
@@ -608,7 +621,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                               Pos.get_position op' ),
                             [
                               acc;
-                              (Scopelang.Ast.ELit (Dcalc.Ast.LInt Z.one), Pos.get_position predicate);
+                              ( Scopelang.Ast.ELit (Dcalc.Ast.LInt (Runtime.integer_of_int 1)),
+                                Pos.get_position predicate );
                             ] ),
                         pos ),
                       acc ),

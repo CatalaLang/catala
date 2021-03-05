@@ -6,7 +6,7 @@ let try_test msg test =
     Format.printf "%s %s\n"
       (ANSITerminal.sprintf [ ANSITerminal.green ] "PASS")
       (ANSITerminal.sprintf [ ANSITerminal.magenta ] msg)
-  with Catala.Runtime.AssertionFailed ->
+  with Runtime.AssertionFailed ->
     failure := true;
     Format.printf "%s %s\n"
       (ANSITerminal.sprintf [ ANSITerminal.red ] "FAIL")

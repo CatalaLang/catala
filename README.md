@@ -1,4 +1,3 @@
-
 <center>
 <img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="100"/>
 </center>
@@ -7,7 +6,7 @@
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
-about the language and its features, you can jump right to the official 
+about the language and its features, you can jump right to the official
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
 
 Join the Catala community on Zulip: https://zulip.catala-lang.org/!
@@ -16,13 +15,13 @@ Join the Catala community on Zulip: https://zulip.catala-lang.org/!
 
 Catala is a programming language adapted for socio-fiscal legislative literate
 programming. By annotating each line of the legislative text with its meaning
-in terms of code, one can derive an implementation of complex socio-fiscal 
-mechanisms that enjoys a high level of assurance regarding the code-law 
+in terms of code, one can derive an implementation of complex socio-fiscal
+mechanisms that enjoys a high level of assurance regarding the code-law
 faithfulness.
 
-Concretely, you have to first gather all the laws, executive orders, previous 
-cases, etc. that contain information about the socio-fiscal mechanism that 
-you want to implement. Then, you can proceed to annotate the text article by 
+Concretely, you have to first gather all the laws, executive orders, previous
+cases, etc. that contain information about the socio-fiscal mechanism that
+you want to implement. Then, you can proceed to annotate the text article by
 article, in your favorite text editor :
 
 <center>
@@ -42,11 +41,11 @@ are in this case lawyers and not programmers.
 
 The Catala language is special because its logical structure mimics
 the logical structure of the law. Indeed, the core concept of
-"definition-under-conditions" that builds on default logic has been formalized 
-by Professor of Law Sarah Lawsky in her article 
-[A Logic for Statutes](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3088206). 
-The Catala language is the only programming language to our knowledge that 
-embeds default logic as a first-class feature, which is why it is the only 
+"definition-under-conditions" that builds on default logic has been formalized
+by Professor of Law Sarah Lawsky in her article
+[A Logic for Statutes](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3088206).
+The Catala language is the only programming language to our knowledge that
+embeds default logic as a first-class feature, which is why it is the only
 language perfectly adapted to literate legislative programming.
 
 ## Building and installation
@@ -55,8 +54,13 @@ See [the dedicated readme](INSTALL.md).
 
 ## Usage
 
-Use `catala --help` to get more information about the command line 
+Use `catala --help` to get more information about the command line
 options available.
+
+The top-level `Makefile` contains a lot of useful targets to run. To display
+them, use
+
+        make help
 
 ## Examples
 
@@ -72,15 +76,15 @@ See [the dedicated readme](tests/README.md).
 
 ## Documentation
 
-### Formal semantics 
+### Formal semantics
 
 See [the dedicated readme](doc/formalization/README.md).
 
 ### Compiler documentation
 
-The compiler documentation is auto-generated from its source code using 
-`dune` and `odoc`. Use 
-    
+The compiler documentation is auto-generated from its source code using
+`dune` and `odoc`. Use
+
     make doc
 
 to generate the documentation, then open the `doc/odoc.html` file in any browser.
@@ -92,8 +96,8 @@ The library is released under the [Apache license (version 2)](LICENSE.txt).
 ## Limitations and disclaimer
 
 Catala is a research project from Inria, the French National
-Research Institute for Computer Science. The compiler is yet 
-unstable and lacks some of its features. 
+Research Institute for Computer Science. The compiler is yet
+unstable and lacks some of its features.
 
 ## Pierre Catala
 

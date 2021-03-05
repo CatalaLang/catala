@@ -13,12 +13,12 @@
    the License. *)
 
 module AF = French_law.Api.Allocations_familiales
-open Catala.Runtime
+open Runtime
 
 let random_children (id : int) =
   {
     AF.d_identifiant = integer_of_int id;
-    d_remuneration_mensuelle = money_of_units_integers (Random.int 2000);
+    d_remuneration_mensuelle = money_of_units_int (Random.int 2000);
     d_date_de_naissance =
       date_of_numbers (2020 - Random.int 22) (1 + Random.int 12) (1 + Random.int 28);
     d_garde_alternee =
@@ -69,7 +69,7 @@ let run_test () =
   let num_children = Random.int 7 in
   let children = Array.init num_children random_children in
   let income = Random.int 100000 in
-  let current_date = CalendarLib.Date.make 2020 05 01 in
+  let current_date = Runtime.date_of_numbers 2020 05 01 in
   let residence = if Random.bool () then AF.Metropole () else AF.Guadeloupe () in
   try
     let amount =
@@ -89,12 +89,11 @@ let run_test () =
                \  services sociaux: %a"
                (integer_to_int child.AF.d_identifiant)
                (money_to_float child.AF.d_remuneration_mensuelle)
-               (CalendarLib.Printer.Date.to_string
-                  (date_to_calendar_date child.AF.d_date_de_naissance))
+               (Runtime.date_to_string child.AF.d_date_de_naissance)
                format_garde_alternee child.AF.d_garde_alternee format_services_sociaux
                child.AF.d_prise_en_charge_par_services_sociaux))
         (Array.to_list children) income
-        (CalendarLib.Printer.Date.to_string current_date)
+        (Runtime.date_to_string current_date)
         format_residence residence;
       exit (-1)
   | AssertionFailed -> ()

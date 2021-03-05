@@ -40,16 +40,16 @@ type typ =
   | TArray of typ Pos.marked
   | TAny
 
-type date = CalendarLib.Date.t
+type date = Runtime.date
 
-type duration = CalendarLib.Date.Period.t
+type duration = Runtime.duration
 
 type lit =
   | LBool of bool
   | LEmptyError
-  | LInt of Z.t
-  | LRat of Q.t
-  | LMoney of Z.t
+  | LInt of Runtime.integer
+  | LRat of Runtime.decimal
+  | LMoney of Runtime.money
   | LUnit
   | LDate of date
   | LDuration of duration
