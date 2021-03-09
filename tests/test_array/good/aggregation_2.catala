@@ -1,12 +1,12 @@
-@Article@
+## [Article]
 
-/*
-new struct S: 
-  data id content int 
+```catala
+new struct S:
+  data id content int
   data income content money
 
 new scope A:
-   param x content set S 
+   param x content set S
 
 scope A:
    def x := [
@@ -16,11 +16,11 @@ scope A:
    ]
 
 new scope B:
-   param a scope A 
+   param a scope A
    param argmax content S
    param argmin content S
 
 scope B:
    def argmax := content maximum money init S { -- id: -1 --income: $0 } for m in a.x of (m.income *$ 2.0)
    def argmin := content minimum money init  S { -- id: -1 --income: $20 } for m in a.x of (m.income +$ $5)
-*/
+```

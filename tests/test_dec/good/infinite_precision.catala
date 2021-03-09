@@ -1,9 +1,9 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new scope A:
-  param x content dec 
-  param y content dec 
+  param x content dec
+  param y content dec
   param z content dec
   param a content dec
 
@@ -12,4 +12,4 @@ scope A:
   def y := -. 4.36829778705320654980
   def z := 654265429805103220650980650.5705405106540
   def a := x /. y *. (x +. y) *. (x *. x *. z *. z)
-*/
+```

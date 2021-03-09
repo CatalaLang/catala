@@ -1,15 +1,15 @@
-@Test@
+## [Test]
 
-/*
+```catala
 new scope A:
   param x content int
 
 scope A:
   def x := 0
-*/
+```
 
-/*
+```catala
 scope A:
   exception
   def x := 1
-*/
+```

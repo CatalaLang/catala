@@ -1,9 +1,9 @@
-@ Article @
+## [ Article ]
 
-/* 
+```catala
 new scope A:
   param b scope B
-  param x content int 
+  param x content int
 
 new scope B:
   param a scope A
@@ -14,4 +14,4 @@ scope A:
 
 scope B:
   def y := a.x
-*/
+```

@@ -1,6 +1,6 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new enum E:
   -- Case1
 
@@ -19,4 +19,4 @@ scope A:
   def x := match f with
     -- F.Case1 of i : i
     -- Case2 : 3
-*/
+```

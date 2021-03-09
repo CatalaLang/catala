@@ -1,10 +1,10 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new scope A:
   param x content int
   param y content bool
 
 scope A:
   def x := 1
-*/
+```

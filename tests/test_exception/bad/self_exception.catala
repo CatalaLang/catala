@@ -1,11 +1,11 @@
-@Test@
+## [Test]
 
-/*
+```catala
 new scope A:
   param y content int
 
 scope A:
-  label base_y 
+  label base_y
   exception base_y
   def y := 0
-*/
+```

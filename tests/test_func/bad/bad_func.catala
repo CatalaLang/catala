@@ -1,6 +1,6 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new scope S:
   param f content int fun of int
   param b content bool
@@ -17,6 +17,6 @@ scope S:
   def out := f of 5
 
 scope R:
-  def s.f of x := x + x * x 
+  def s.f of x := x + x * x
   def r := s.out
-*/
+```
