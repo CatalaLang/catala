@@ -511,6 +511,7 @@ type law_article = {
   law_article_name : (string[@opaque]) Pos.marked;
   law_article_id : (string[@opaque]) option;
   law_article_expiration_date : (string[@opaque]) option;
+  law_article_precedence : (int[@opaque]);
 }
 [@@deriving
   visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_article_map" },

@@ -493,6 +493,9 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
 
 (** Main lexing function used outside code blocks *)
 let lex_law_fr (lexbuf : lexbuf) : token =
+  (* -2 because both [LAW_ARTICLE] and [LAW_HEADING] start with at least "##" and the number of '#'
+     remaining corresponds to the precedence. *)
+  let calc_precedence (matched_regex : string) : int = String.length matched_regex - 2 in
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
@@ -528,18 +531,26 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       else if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | "####", Star white_space, '[', Star white_space, Plus (Compl ']'), Star white_space, ']', '\n'
-    ->
+  | ( '#',
+      Plus '#',
+      Star white_space,
+      '[',
+      Star white_space,
+      Plus (Compl ']'),
+      Star white_space,
+      ']',
+      '\n' ) ->
       let extract_article_title =
         R.regexp
-          "####\\s*\\[\\s*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
+          "([#]+)\\s*\\[\\s*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
       in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
       in
-      let title = try get_substring 2 with Not_found -> get_substring 1 in
-      let article_id = try Some (get_substring 4) with Not_found -> None in
-      let article_expiration_date = try Some (get_substring 7) with Not_found -> None in
+      let title = try get_substring 3 with Not_found -> get_substring 2 in
+      let article_id = try Some (get_substring 5) with Not_found -> None in
+      let article_expiration_date = try Some (get_substring 8) with Not_found -> None in
+      let precedence = calc_precedence (get_substring 1) in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
@@ -549,7 +560,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
         new_line lexbuf
       done;
 
-      LAW_ARTICLE (title, article_id, article_expiration_date)
+      LAW_ARTICLE (title, article_id, article_expiration_date, precedence)
   | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
       let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
@@ -561,7 +572,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
         new_line lexbuf
       done;
       let law_title = get_match 2 in
-      let precedence = String.length (get_match 1) - 1 in
+      let precedence = calc_precedence (get_match 1) in
 
       LAW_HEADING (law_title, precedence)
   | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)

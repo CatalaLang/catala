@@ -587,7 +587,7 @@ let lex_law (lexbuf : lexbuf) : token =
         new_line lexbuf
       done;
 
-      LAW_ARTICLE (title, None, None)
+      LAW_ARTICLE (title, None, None, 1)
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
