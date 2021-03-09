@@ -19,8 +19,8 @@ declaration structure Offense:
 declaration scope Defendant:
   context offense content Offense
   context priors content collection Offense
-  context number_priors_same_offense content collection integer
-  context age content duration
+  # Only a number of years...
+  context age content integer
 
 declaration scope Penalty286_136:
 
@@ -29,10 +29,12 @@ declaration scope Penalty286_136:
   context fine content money
   context days content duration
   context loses_right_to_drive_until_18 condition
-
-  context defendant content Defendant
+  context offense content Offense
+  context defendant scope Defendant
 
   # Internal:
+
+  context priors_same_offense content integer
 
   context max_fine content money
   context min_fine content money
@@ -58,7 +60,7 @@ scope Penalty286_136:
   rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
   consequence fulfilled
 
-  rule days_ok under condition days <=$ max_days
+  rule days_ok under condition days <=^ max_days
   consequence fulfilled
 
   rule ok under condition fine_ok and days_ok
@@ -74,13 +76,14 @@ fined not more than $1,000.
 /*
 scope Penalty286_136:
 
+  definition min_fine equals $0
   definition max_fine equals $1000
-  definition max_days equals 30
+  definition max_days equals 30 day
 
   exception definition max_days under condition
     # TODO: sugar "is"?
     offense.violation with pattern Other
-  consequence equals 0
+  consequence equals 0 day
 */
 
 Under subsection (b) (1996), it is the date the defendant committed the current
@@ -93,13 +96,9 @@ scope Penalty286_136:
 
   # TODO: need to figure out how years are defined
   definition priors_same_offense equals
-    sum integer for offense in priors of (
-      if prior.violation = offense.violation and
-        prior.date_of <=@ offense.date_of -@ 5 year
-      then
-        0
-      else
-        1
+    number for prior in defendant.priors of (
+     prior.violation = offense.violation and
+        prior.date_of +@ 5 year <=@ offense.date_of
     )
 */
 
@@ -133,13 +132,13 @@ scope Penalty286_136:
   rule paragraph_c_applies under condition
     # TODO: check what happens if the offense is committed on the day of the
     # birthday
-    defendant.age <@ 18 year
+    defendant.age < 18
   consequence fulfilled
 
   exception rule paragraph_b_applies under condition paragraph_c_applies
   consequence not fulfilled
 
-  # Is that even valid? I'd rather do this than manually encode an implication.
+  # TODO: Is this an exclusive or? Or an and/or?
   exception definition fine_ok under condition paragraph_c_applies
-  consequence equals (fine = $500 xor loses_right_to_drive_until_18)
+  consequence equals (fine = $500 or loses_right_to_drive_until_18)
 */

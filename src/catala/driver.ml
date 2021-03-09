@@ -144,8 +144,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let prgm, prgm_expr, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
         in
-        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr
-           prgm.decl_ctx) prgm_expr); *)
+        Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr
+           prgm.decl_ctx) prgm_expr);
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgm_expr in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
