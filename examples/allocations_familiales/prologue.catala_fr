@@ -1,11 +1,12 @@
-@@Prologue@@
+## Prologue
 
-Avant de présenter les textes réglementaires qui régissent le calcul des 
+Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
-@@Début métadonnées@@
-/*
+> # Début métadonnées
+
+```catala
 déclaration structure Personne:
   donnée numéro_sécurité_sociale contenu entier
 
@@ -26,7 +27,7 @@ déclaration structure Enfant :
   donnée date_de_naissance contenu date
   donnée âge contenu entier
   donnée garde_alternée contenu GardeAlternée
-  donnée prise_en_charge_par_services_sociaux contenu 
+  donnée prise_en_charge_par_services_sociaux contenu
     PriseEnChargeServiceSociaux
 
 déclaration énumération Collectivité :
@@ -49,28 +50,28 @@ déclaration énumération PriseEnCompteÉvaluationMontant:
   -- Complète
   -- Partagée
 
-déclaration énumération VersementAllocations: 
+déclaration énumération VersementAllocations:
   -- Normal
   -- AllocationVerséeAuxServicesSociaux
 
 déclaration énumération ÂgeAlternatif:
-  -- Absent 
+  -- Absent
   -- Présent contenu entier
 
 déclaration énumération ÉlémentPrestationsFamiliales:
   -- PrestationAccueilJeuneEnfant
   -- AllocationsFamiliales
-  -- ComplémentFamilial 
+  -- ComplémentFamilial
   -- AllocationLogement
   -- AllocationÉducationEnfantHandicapé
   -- AllocationSoutienFamilial
-  -- AllocationRentréeScolaire 
+  -- AllocationRentréeScolaire
   -- AllocationJournalièrePresenceParentale
 
 déclaration champ d'application PrestationsFamiliales:
   contexte droit_ouvert condition dépend de Enfant
   contexte conditions_hors_âge condition dépend de Enfant
-  contexte plafond_l512_3_2 contenu argent 
+  contexte plafond_l512_3_2 contenu argent
   contexte âge_l512_3_2 contenu entier
   contexte âge_l512_3_2_alternatif contenu ÂgeAlternatif
   contexte régime_outre_mer_l751_1 condition
@@ -88,23 +89,23 @@ déclaration champ d'application AllocationFamilialesAvril2008:
   contexte âge_limite_alinéa_1_l521_3 contenu entier
 
 déclaration énumération StockageEnfant:
-  -- PasEnfant 
+  -- PasEnfant
   -- UnEnfant contenu Enfant
 
 déclaration champ d'application EnfantLePlusÂgé:
-  contexte enfants contenu collection Enfant 
-  contexte le_plus_âgé contenu Enfant  
+  contexte enfants contenu collection Enfant
+  contexte le_plus_âgé contenu Enfant
 
 déclaration champ d'application AllocationsFamiliales:
-  contexte enfants_à_charge contenu collection Enfant 
-  contexte enfants_à_charge_droit_ouvert_prestation_familiale 
+  contexte enfants_à_charge contenu collection Enfant
+  contexte enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
   contexte date_courante contenu date
   contexte résidence contenu Collectivité
   contexte ressources_ménage contenu argent
-  contexte prise_en_compte contenu 
+  contexte prise_en_compte contenu
     PriseEnCompteÉvaluationMontant dépend de Enfant
-  contexte versement contenu 
+  contexte versement contenu
     VersementAllocations dépend de Enfant
 
   contexte montant_versé contenu argent
@@ -114,14 +115,14 @@ déclaration champ d'application AllocationsFamiliales:
   contexte montant_versé_base contenu argent
   contexte montant_avec_garde_alternée_base contenu argent
   contexte montant_initial_base contenu argent
-  contexte montant_initial_base_premier_enfant contenu argent 
-  contexte montant_initial_base_deuxième_enfant contenu argent 
+  contexte montant_initial_base_premier_enfant contenu argent
+  contexte montant_initial_base_deuxième_enfant contenu argent
   contexte montant_initial_base_troisième_enfant_et_plus contenu argent
   contexte rapport_enfants_total_moyen contenu décimal
   contexte nombre_moyen_enfants contenu décimal
   contexte nombre_total_enfants contenu décimal
 
-  contexte droit_ouvert_forfaitaire condition dépend de Enfant 
+  contexte droit_ouvert_forfaitaire condition dépend de Enfant
   contexte montant_versé_forfaitaire contenu argent
 
   contexte montant_versé_majoration contenu argent
@@ -147,12 +148,13 @@ déclaration champ d'application AllocationsFamiliales:
   contexte plafond_II_d521_3 contenu argent
 
 champ d'application AllocationsFamiliales:
-  définition prestations_familiales.prestation_courante égal à 
+  définition prestations_familiales.prestation_courante égal à
     AllocationsFamiliales
-  définition prestations_familiales.date_courante égal à 
+  définition prestations_familiales.date_courante égal à
     date_courante
-  définition prestations_familiales.résidence égal à 
+  définition prestations_familiales.résidence égal à
     résidence
 
-*/
-@@Fin métadonnées@@
+```
+
+> # Fin métadonnées
