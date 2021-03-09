@@ -547,4 +547,7 @@ let lex_law_en (lexbuf : lexbuf) : token =
   | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-let lexer_en lexbuf = if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf
+(** Entry point of the lexer, distributes to {!val: lex_code_en} or {!val: lex_law_en} depending of
+    {!val: Surface.Lexer.is_code}. *)
+let lexer_en (lexbuf : lexbuf) : token =
+  if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf

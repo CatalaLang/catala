@@ -23,7 +23,7 @@ module L = Lexer
    '#' remaining corresponds to the precedence. *)
 let calc_precedence (matched_regex : string) : int = String.length matched_regex - 2
 
-(* Gets the [LAW_HEADING] token from the current [lexbuf] *)
+(* Gets the [LAW_HEADING] token from the current {!val: lexbuf} *)
 let get_law_heading (lexbuf : lexbuf) : token =
   let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
   let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
