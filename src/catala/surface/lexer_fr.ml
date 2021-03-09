@@ -568,7 +568,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       let precedence = String.length (get_match 1) - 1 in
 
       LAW_HEADING (law_title, precedence)
-  | Plus (Compl ('@' | '/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
