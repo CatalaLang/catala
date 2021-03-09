@@ -509,16 +509,18 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       BEGIN_METADATA
   | '>', Star white_space, '#', Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es" ->
       END_METADATA
-  | ( "@@",
+  | ( '>',
+      Star white_space,
+      '#',
       Star white_space,
       "Inclusion:",
       Star white_space,
-      Plus (Compl '@'),
+      Plus (Compl ('@' | '\n')),
       Star white_space,
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
-      "@@" ) ->
+      '\n' ) ->
       let extract_components =
-        R.regexp "@@\\s*Inclusion\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp ">\\s*#\\s*Inclusion\\:\\s*([^@\\n]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)"
       in
       let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
       let jorftext = R.regexp "JORFTEXT\\d{12}" in
