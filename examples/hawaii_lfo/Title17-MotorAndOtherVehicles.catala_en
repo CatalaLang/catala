@@ -1,0 +1,145 @@
+@@Title17@@
+
+@@Begin metadata@@
+/*
+declaration enumeration Violation:
+  -- Section286_102
+  -- Section286_122
+  -- Section286_130
+  -- Section286_131
+  -- Section286_132
+  -- Section286_133
+  -- Section286_134
+  -- Other
+
+declaration structure Offense:
+  data date_of content date
+  data violation content Violation
+
+declaration scope Defendant:
+  context offense content Offense
+  context priors content collection Offense
+  context number_priors_same_offense content collection integer
+  context age content duration
+
+declaration scope Penalty286_136:
+
+  # Inputs:
+
+  context fine content money
+  context days content duration
+  context loses_right_to_drive_until_18 condition
+
+  context defendant content Defendant
+
+  # Internal:
+
+  context max_fine content money
+  context min_fine content money
+  context max_days content duration
+
+  context paragraph_b_applies condition
+  context paragraph_c_applies condition
+
+  context fine_ok condition
+  context days_ok condition
+
+  # Outcomes:
+
+  context ok condition
+*/
+@@End metadata@@
+
+@§286-136 Penalty@
+
+/*
+scope Penalty286_136:
+
+  rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
+  consequence fulfilled
+
+  rule days_ok under condition days <=$ max_days
+  consequence fulfilled
+
+  rule ok under condition fine_ok and days_ok
+  consequence fulfilled
+*/
+
+§(a) Except as provided in subsection (b), any person who
+violates section 286-102, 286-122, 286-130, 286-131, 286-132, 286-133, or
+286-134 shall be fined not more than $1,000 or imprisoned not more than thirty
+days, or both. Any person who violates any other section in this part shall be
+fined not more than $1,000.
+
+/*
+scope Penalty286_136:
+
+  definition max_fine equals $1000
+  definition max_days equals 30
+
+  exception definition max_days under condition
+    # TODO: sugar "is"?
+    offense.violation with pattern Other
+  consequence equals 0
+*/
+
+Under subsection (b) (1996), it is the date the defendant committed the current
+offense for which he or she is being prosecuted that is used to determine
+whether the defendant has two or more prior convictions for the same offense in
+the preceding five-year period. 118 H. 259 (App.), 188 P.3d 773 (2008).
+
+/*
+scope Penalty286_136:
+
+  # TODO: need to figure out how years are defined
+  definition priors_same_offense equals
+    sum integer for offense in priors of (
+      if prior.violation = offense.violation and
+        prior.date_of <=@ offense.date_of -@ 5 year
+      then
+        0
+      else
+        1
+    )
+*/
+
+(b) Any person who is convicted of violating section 286-102, 286-122, 286-130,
+286-131, 286-132, 286-133, or 286-134 shall be subject to a minimum fine of $500
+and a maximum fine of $1,000, or imprisoned not more than one year, or both, if
+the person has two or more prior convictions for the same offense in the
+preceding five-year period.
+
+/*
+scope Penalty286_136:
+
+  rule paragraph_b_applies under condition
+    (not (offense.violation with pattern Other)) and
+    priors_same_offense >= 2
+  consequence fulfilled
+
+  exception definition min_fine under condition paragraph_b_applies consequence equals $500
+  exception definition max_days under condition paragraph_b_applies consequence equals 1 year
+*/
+
+(c) Notwithstanding subsections (a) and (b), a minor under the age of eighteen
+under the jurisdiction of the family court who is subject to this section shall
+either lose the right to drive a motor vehicle until the age of eighteen or be
+subject to a fine of $500. [L 1967, c 214, pt of §2; HRS §286-136; am L 1993, c
+214, §7; am L 1996, c 169, §3; am L 2003, c 69, §5]
+
+/*
+scope Penalty286_136:
+
+  rule paragraph_c_applies under condition
+    # TODO: check what happens if the offense is committed on the day of the
+    # birthday
+    defendant.age <@ 18 year
+  consequence fulfilled
+
+  exception rule paragraph_b_applies under condition paragraph_c_applies
+  consequence not fulfilled
+
+  # Is that even valid? I'd rather do this than manually encode an implication.
+  exception definition fine_ok under condition paragraph_c_applies
+  consequence equals (fine = $500 xor loses_right_to_drive_until_18)
+*/
