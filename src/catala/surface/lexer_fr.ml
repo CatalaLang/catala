@@ -94,7 +94,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       (* Comments *)
       L.update_acc lexbuf;
       lex_code_fr lexbuf
-  | "*/" ->
+  | "```" ->
       (* End of code section *)
       L.is_code := false;
       END_CODE !L.code_string_acc
@@ -496,9 +496,10 @@ let lex_law_fr (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
-  | "/*" ->
+  | "```catala" ->
       L.is_code := true;
       L.code_string_acc := "";
+
       BEGIN_CODE
   | eof -> EOF
   | "@@", Star white_space, "Fichier ma", 0x00EE, "tre", Star white_space, "@@" ->
@@ -566,6 +567,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
   | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus (Compl ('@' | '/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
