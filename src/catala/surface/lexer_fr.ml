@@ -15,6 +15,7 @@
 open Parser
 open Sedlexing
 open Utils
+open Lexer_common
 module L = Lexer
 module R = Re.Pcre
 
@@ -493,9 +494,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
 
 (** Main lexing function used outside code blocks *)
 let lex_law_fr (lexbuf : lexbuf) : token =
-  (* -2 because both [LAW_ARTICLE] and [LAW_HEADING] start with at least "##" and the number of '#'
-     remaining corresponds to the precedence. *)
-  let calc_precedence (matched_regex : string) : int = String.length matched_regex - 2 in
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
@@ -562,19 +560,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, article_id, article_expiration_date, precedence)
   | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
-      let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
-      let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
-      let get_new_lines = R.regexp "\n" in
-      let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
-      in
-      for _i = 1 to new_lines_count do
-        new_line lexbuf
-      done;
-      let law_title = get_match 2 in
-      let precedence = calc_precedence (get_match 1) in
-
-      LAW_HEADING (law_title, precedence)
+      get_law_heading lexbuf
   | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
