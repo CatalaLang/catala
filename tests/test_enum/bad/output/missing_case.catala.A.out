@@ -1,11 +1,11 @@
 [ERROR] The constructor Case3 of enum E is missing from this pattern matching
-[ERROR] 
+[ERROR]
 [ERROR]   --> test_enum/bad/missing_case.catala
-[ERROR]    | 
-[ERROR] 14 |   def out := match e with 
-[ERROR]    |              ^^^^^^^^^^^^
+[ERROR]    |
+[ERROR] 14 |   def out := match e with
+[ERROR]    |              ^^^^^^^^^^^
 [ERROR] 15 |     -- Case1 of i : i = 0
 [ERROR]    |     ^^^^^^^^^^^^^^^^^^^^^
-[ERROR] 16 |     -- Case2 of b : b  
+[ERROR] 16 |     -- Case2 of b : b
 [ERROR]    |     ^^^^^^^^^^^^^^^^^^
 [ERROR]    + Article
