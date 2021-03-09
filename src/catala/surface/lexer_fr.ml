@@ -505,10 +505,9 @@ let lex_law_fr (lexbuf : lexbuf) : token =
   | "@@", Star white_space, "Fichier ma", 0x00EE, "tre", Star white_space, "@@" ->
       (* 0x00EE is î *)
       MASTER_FILE
-  | "@@", Star white_space, "D", 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@"
-    ->
+  | '>', Star white_space, '#', Star white_space, 'D', 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es" ->
       BEGIN_METADATA
-  | "@@", Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es", Star white_space, "@@" ->
+  | '>', Star white_space, '#', Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es" ->
       END_METADATA
   | ( "@@",
       Star white_space,
