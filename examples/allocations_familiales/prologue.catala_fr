@@ -4,7 +4,7 @@ Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
-> # Début métadonnées
+> Début métadonnées
 
 ```catala
 déclaration structure Personne:
@@ -157,4 +157,4 @@ champ d'application AllocationsFamiliales:
 
 ```
 
-> # Fin métadonnées
+> Fin métadonnées

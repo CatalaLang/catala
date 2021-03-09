@@ -7,7 +7,7 @@ kécessaires au calcul. Cependant, certaines règles de calcul sont implicites
 dans ces textes et doivent être explicitées pour le calcul informatique. C'est
 la fonction du bloc de code ci-dessous.
 
-> # Début métadonnées
+> Début métadonnées
 
 ```catala
 champ d'application EnfantLePlusÂgé:
@@ -57,7 +57,7 @@ champ d'application AllocationsFamiliales:
     sinon 0€
 ```
 
-> # Fin métadonnées
+> Fin métadonnées
 
 ### Interface du programme
 
@@ -68,7 +68,7 @@ naissance. Le but du block ci-dessous est d'encoder ces dépendances, de telle
 sorte que l'utilisateur puisse ne doive saisir que le nombre minimal
 d'informations sur les enfants à charge.
 
-> # Début métadonnées
+> Début métadonnées
 
 ```catala
 déclaration structure EnfantEntrée:
@@ -99,7 +99,8 @@ champ d'application InterfaceAllocationsFamiliales:
     enfant.d_prise_en_charge_par_services_sociaux != NonPriseEnChargeFamille
   )
 ```
-> # Fin métadonnées
+
+> Fin métadonnées
 
 #### Code de l'éducation
 
