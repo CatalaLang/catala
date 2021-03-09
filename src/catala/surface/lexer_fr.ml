@@ -530,20 +530,6 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       else if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | "@@", Plus (Compl '@'), "@@", Star '+' ->
-      let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
-      let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
-      let get_new_lines = R.regexp "\n" in
-      let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
-      in
-      for _i = 1 to new_lines_count do
-        new_line lexbuf
-      done;
-      let law_title = get_match 1 in
-      let precedence = String.length (get_match 2) in
-
-      LAW_HEADING (law_title, precedence)
   | "@", Plus (Compl '@'), "@" ->
       let extract_article_title =
         R.regexp
@@ -565,7 +551,20 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       done;
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
-  | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
+      let extract_code_title = R.regexp "([#]+)[' ']*([^#\n]+)\n" in
+      let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
+      let get_new_lines = R.regexp "\n" in
+      let new_lines_count =
+        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
+      in
+      for _i = 1 to new_lines_count do
+        new_line lexbuf
+      done;
+      let law_title = get_match 2 in
+      let precedence = String.length (get_match 1) - 1 in
+
+      LAW_HEADING (law_title, precedence)
   | Plus (Compl ('@' | '/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
