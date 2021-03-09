@@ -534,8 +534,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
     ->
       let extract_article_title =
         R.regexp
-          "####[' ']*\\[[' \
-           ']*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
+          "####\\s*\\[\\s*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
       in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
@@ -554,7 +553,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
   | Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
-      let extract_code_title = R.regexp "([#]+)[' ']*([^#\n]+)\n" in
+      let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
