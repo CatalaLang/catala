@@ -15,9 +15,8 @@
 open Parser
 open Sedlexing
 module R = Re.Pcre
-module L = Lexer
 
-(* Calculates the precedence according a matched regex of the form : '[#]+'.
+(* Calculates the precedence according a {!val: matched_regex} of the form : '[#]+'.
 
    @note -2 because both [LAW_ARTICLE] and [LAW_HEADING] start with at least "##" and the number of
    '#' remaining corresponds to the precedence. *)
