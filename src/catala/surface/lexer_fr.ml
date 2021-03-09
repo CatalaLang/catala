@@ -502,7 +502,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
 
       BEGIN_CODE
   | eof -> EOF
-  | "@@", Star white_space, "Fichier ma", 0x00EE, "tre", Star white_space, "@@" ->
+  | '#', Star white_space, "Fichier ma", 0x00EE, "tre" ->
       (* 0x00EE is î *)
       MASTER_FILE
   | '>', Star white_space, '#', Star white_space, 'D', 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es" ->
@@ -530,7 +530,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       else if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | "####", Star white_space, '[', Star white_space, Plus (Compl '#'), Star white_space, ']', '\n'
+  | "####", Star white_space, '[', Star white_space, Plus (Compl ']'), Star white_space, ']', '\n'
     ->
       let extract_article_title =
         R.regexp
@@ -552,7 +552,7 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       done;
 
       LAW_ARTICLE (title, article_id, article_expiration_date)
-  | Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
+  | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
       let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
       let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       let get_new_lines = R.regexp "\n" in
