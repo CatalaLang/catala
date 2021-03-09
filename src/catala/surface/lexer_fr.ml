@@ -530,10 +530,12 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       else if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | "@", Plus (Compl '@'), "@" ->
+  | "####", Star white_space, '[', Star white_space, Plus (Compl '#'), Star white_space, ']', '\n'
+    ->
       let extract_article_title =
         R.regexp
-          "\\@(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\@"
+          "####[' ']*\\[[' \
+           ']*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
       in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
