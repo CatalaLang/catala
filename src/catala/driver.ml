@@ -42,7 +42,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
       let backend = String.lowercase_ascii backend in
-      if backend = "Makefile" then Cli.Makefile
+      if backend = "makefile" then Cli.Makefile
       else if backend = "lateX" then Cli.Latex
       else if backend = "html" then Cli.Html
       else if backend = "interpret" then Cli.Run
