@@ -103,7 +103,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
             "main__1": [
                 {
                     "token": "markup.heading.title",
-                    "regex": "(@@[\\+]*)",
+                    "regex": "(\n)",
                     "next": "pop"
                 },
                 {
@@ -117,7 +117,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
             "main__2": [
                 {
                     "token": "markup.heading.subtitle",
-                    "regex": "(@)",
+                    "regex": "(\n)",
                     "next": "pop"
                 },
                 {
