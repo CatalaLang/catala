@@ -113,7 +113,7 @@ val no_input : unit -> 'a
 
 (**{1 Operators} *)
 
-(**{ 2 Money} *)
+(**{2 Money} *)
 
 val ( *$ ) : money -> decimal -> money
 
