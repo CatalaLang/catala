@@ -36,7 +36,7 @@ and articles markers:
 ```markdown
 ## Heading
 
-### Sub-heading (the more +, the less important)
+### Sub-heading (the more '#', the less important)
 
 #### [Legislative atom]
 ```
