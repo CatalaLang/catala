@@ -14,15 +14,15 @@ class CatalaFrLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (u'(@@)', bygroups(Generic.Heading), 'main__1'),
-            (u'(@)', bygroups(Generic.Heading), 'main__2'),
-            (u'([^\\/\\n\\r])', bygroups(Text)),
-            (u'(\\/\\*)', bygroups(Text), 'code'),
+            (u'([\#]+)', bygroups(Generic.Heading), 'main__1'),
+            (u'([\#]+\s*\[[^\]]\s*])', bygroups(Generic.Heading), 'main__2'),
+            (u'([^`\\n\\r])', bygroups(Text)),
+            (u'(```)', bygroups(Text), 'code'),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
         'code': [
-            (u'(\\*\\/)', bygroups(Text), 'root'),
+            (u'(```)', bygroups(Text), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
             (u'(contexte)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\']*)',
              bygroups(Keyword.Declaration, String, Name.Variable)),
@@ -44,13 +44,13 @@ class CatalaFrLexer(RegexLexer):
             ('.', Text),
         ],
         'main__1': [
-            (u'(@@)', bygroups(Generic.Heading), 'root'),
+            (u'(\n)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
         'main__2': [
-            (u'(@)', bygroups(Generic.Heading), 'root'),
+            (u'(\n)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),

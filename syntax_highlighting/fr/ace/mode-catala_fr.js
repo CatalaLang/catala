@@ -13,21 +13,21 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
             "start": [
                 {
                     "token": "markup.heading.title",
-                    "regex": "(@@)",
+                    "regex": "([\#]+)",
                     "push": "main__1"
                 },
                 {
                     "token": "markup.heading.subtitle",
-                    "regex": "(@)",
+                    "regex": "([\#]+\s*\[[^\]]\s*])",
                     "push": "main__2"
                 },
                 {
                     "token": "entity.law",
-                    "regex": "([^\\/])"
+                    "regex": "([^`])"
                 },
                 {
                     "token": "comment.block.documentation",
-                    "regex": "(\\/\\*)",
+                    "regex": "(```catala)",
                     "push": "code"
                 },
                 {
@@ -37,7 +37,7 @@ ace.define("ace/mode/catala_fr_highlighting_rules", ["require", "exports", "modu
             "code": [
                 {
                     "token": "comment.block.documentation",
-                    "regex": "(\\*\\/)",
+                    "regex": "(```)",
                     "next": "pop"
                 },
                 {
