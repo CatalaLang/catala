@@ -43,7 +43,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     let backend =
       let backend = String.lowercase_ascii backend in
       if backend = "makefile" then Cli.Makefile
-      else if backend = "lateX" then Cli.Latex
+      else if backend = "latex" then Cli.Latex
       else if backend = "html" then Cli.Html
       else if backend = "interpret" then Cli.Run
       else if backend = "ocaml" then Cli.OCaml
