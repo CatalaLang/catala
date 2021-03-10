@@ -43,10 +43,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     let backend =
       let backend = String.lowercase_ascii backend in
       if backend = "Makefile" then Cli.Makefile
-      else if backend = "LaTeX" then Cli.Latex
-      else if backend = "HTML" then Cli.Html
-      else if backend = "Interpret" then Cli.Run
-      else if backend = "OCaml" then Cli.OCaml
+      else if backend = "lateX" then Cli.Latex
+      else if backend = "html" then Cli.Html
+      else if backend = "interpret" then Cli.Run
+      else if backend = "oCaml" then Cli.OCaml
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
