@@ -1,25 +1,32 @@
-@@Code général des impôts@@
-@@Livre premier : Assiette et liquidation de l'impôt@@+
-@@Première Partie : Impôts d'État@@++
-@@Titre premier : Impôts directs et taxes assimilées@@+++
-@@Chapitre premier : Impôt sur le revenu@@++++
-@@Section I : Dispositions générales@@+++++
-@@0I : Définition du revenu net global@@++++++
-@Article 1 A@
+## Code général des impôts
 
-Il est établi un impôt annuel unique sur le revenu des personnes physiques 
-désigné sous le nom d'impôt sur le revenu. Cet impôt frappe le revenu net 
-global du contribuable déterminé conformément aux dispositions des 
+### Livre premier : Assiette et liquidation de l'impôt
+
+#### Première Partie : Impôts d'État
+
+##### Titre premier : Impôts directs et taxes assimilées
+
+###### Chapitre premier : Impôt sur le revenu
+
+####### Section I : Dispositions générales
+
+######## 0I : Définition du revenu net global
+
+######### [Article 1 A]
+
+Il est établi un impôt annuel unique sur le revenu des personnes physiques
+désigné sous le nom d'impôt sur le revenu. Cet impôt frappe le revenu net
+global du contribuable déterminé conformément aux dispositions des
 articles 156 à 168.
 
-Ce revenu net global est constitué par le total des revenus nets des 
+Ce revenu net global est constitué par le total des revenus nets des
 catégories suivantes :
 
 – Revenus fonciers ;
 
 – Bénéfices industriels et commerciaux ;
 
-– Rémunérations, d'une part, des gérants majoritaires des sociétés à 
+– Rémunérations, d'une part, des gérants majoritaires des sociétés à
 responsabilité limitée n'ayant pas opté pour le régime fiscal des sociétés de personnes dans les conditions prévues au IV de l'article 3 du décret n° 55-594 du 20 mai 1955 modifié et des gérants des sociétés en commandite par actions et, d'autre part, des associés en nom des sociétés de personnes et des membres des sociétés en participation lorsque ces sociétés ont opté pour le régime fiscal des sociétés de capitaux ;
 
 – Bénéfices de l'exploitation agricole ;
@@ -30,11 +37,11 @@ responsabilité limitée n'ayant pas opté pour le régime fiscal des sociétés
 
 – Revenus de capitaux mobiliers ;
 
-– Plus-values de cession à titre onéreux de biens ou de droits de toute 
-nature, déterminés conformément aux dispositions des articles 14 à 155, 
+– Plus-values de cession à titre onéreux de biens ou de droits de toute
+nature, déterminés conformément aux dispositions des articles 14 à 155,
 total dont sont retranchées les charges énumérées à l'article 156.
 
-/*
+```catala
 déclaration structure RevenuNetGlobal:
 donnée revenus_fonciers contenu argent
 donnée bénéfices_industriels_commerciaux contenu argent
@@ -55,17 +62,17 @@ champ d'application CalculImpotSurLeRevenu:
     + revenu_net_global.rémunérations_dirigeants + revenu_net_global.bénéfices_agricoles
     + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
     + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
-*/
+```
 
-@@0I : Définition du revenu net global@@++++++
+######## 0I : Définition du revenu net global
 
-@Article 4 A@
+######### [Article 4 A]
 
 Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt sur le revenu en raison de l'ensemble de leurs revenus.
 
 Celles dont le domicile fiscal est situé hors de France sont passibles de cet impôt en raison de leurs seuls revenus de source française.
 
-/*
+```catala
 déclaration énumération DomicileFiscal:
 -- France
 -- HorsDeFrance
@@ -77,16 +84,16 @@ déclaration structure MontantsSourcesRevenus:
 déclaration structure Personne:
   donnée domicile_fiscal contenu DomicileFiscal
   donnée revenus contenu argent
-  donnée montants_sources_revenus contenu MontantsSourcesRevenus 
+  donnée montants_sources_revenus contenu MontantsSourcesRevenus
 
 déclaration champ d'application CalculImpotSurLeRevenu :
   contexte personne contenu Personne
 
 champ d'application CalculImpotSurLeRevenu:
-  définition personne.revenus égal à 
+  définition personne.revenus égal à
   si personne.domicileFiscal = France alors
   montants_sources_revenus.source_française +€ montants_sources_revenus.source_étrangère
-  sinon 
+  sinon
   montants_sources_revenus.source_française
 
-*/
+```
