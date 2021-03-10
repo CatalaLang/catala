@@ -151,10 +151,10 @@ contexts [] {
 main : context {
 
    : inline_push {
-      regex          \= (@@)
+      regex          \= ([\#]+)
       styles []       = .law_title;
       : pop {
-         regex       \= (@@[\+]*)
+         regex       \= (\n)
          styles []    = .law_title;
       }
       : pattern {
@@ -164,10 +164,10 @@ main : context {
    }
 
    : inline_push {
-      regex          \= (@)
+      regex          \= ([\#]+\s*\[[^\]]\s*])
       styles []       = .law_subtitle;
       : pop {
-         regex       \= (@)
+         regex       \= (\n)
          styles []    = .law_subtitle;
       }
       : pattern {
@@ -177,12 +177,12 @@ main : context {
    }
 
    : pattern {
-     regex \= ([^\/])
+     regex \= ([^`])
      styles [] = .law;
    }
 
    : push {
-      regex          \= (\/\*)
+      regex          \= (```catala)
       styles []       = .code_delimiter;
       context []       = code;
    }
@@ -193,7 +193,7 @@ main : context {
 code : context {
 
   : pop {
-    regex       \= (\*\/)
+    regex       \= (```)
     styles []    = .code_delimiter;
   }
 

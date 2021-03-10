@@ -13,7 +13,7 @@
   'main' : {
     'patterns' : [
       {
-        'begin' : '(@@)'
+        'begin' : '([\#]+)'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_nv'
@@ -24,7 +24,7 @@
             'include' : '#main__1'
           }
         ]
-        'end' : '(@@[\\+]*)'
+        'end' : '(\n)'
         'endCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_nv'
@@ -32,7 +32,7 @@
         }
       }
       {
-        'begin' : '(@)'
+        'begin' : '([\#]+\s*\[[^\]]\s*\])'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_nv'
@@ -43,7 +43,7 @@
             'include' : '#main__2'
           }
         ]
-        'end' : '(@)'
+        'end' : '(\n)'
         'endCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_nv'
@@ -51,11 +51,11 @@
         }
       }
       {
-        'match' : '([^\\/])'
+        'match' : '([^`])'
         'name' : 'entity.law.catala_nv'
       }
       {
-        'begin' : '(\\/\\*)'
+        'begin' : '(```catala)'
         'beginCaptures' : {
           '1' : {
             'name' : 'comment.block.documentation.catala_nv'
@@ -66,7 +66,7 @@
             'include' : '#code'
           }
         ]
-        'end' : '(\\*\\/)'
+        'end' : '(```)'
         'endCaptures' : {
           '1' : {
             'name' : 'comment.block.documentation.catala_nv'
