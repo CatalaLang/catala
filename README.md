@@ -36,7 +36,7 @@ can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
 <center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="500"/>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" width="100%"/>
 </center>
 
 The Catala language is special because its logical structure mimics
