@@ -2,7 +2,7 @@
 
 @@Begin metadata@@
 /*
-declaration enumeration Violation:
+declaration enumeration Violation_83_135:
   -- Section286_102
   -- Section286_122
   -- Section286_130
@@ -10,19 +10,18 @@ declaration enumeration Violation:
   -- Section286_132
   -- Section286_133
   -- Section286_134
-  -- Other
+  -- Other_83_135
 
 declaration structure Offense:
   data date_of content date
-  data violation content Violation
+  data violation content Violation_83_135
 
 declaration scope Defendant:
-  context offense content Offense
   context priors content collection Offense
   # Only a number of years...
   context age content integer
 
-declaration scope Penalty286_136:
+declaration scope Penalty286_83_135:
 
   # Inputs:
 
@@ -40,6 +39,7 @@ declaration scope Penalty286_136:
   context min_fine content money
   context max_days content duration
 
+  context paragraph_a_applies condition
   context paragraph_b_applies condition
   context paragraph_c_applies condition
 
@@ -55,7 +55,7 @@ declaration scope Penalty286_136:
 @§286-136 Penalty@
 
 /*
-scope Penalty286_136:
+scope Penalty286_83_135:
 
   rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
   consequence fulfilled
@@ -74,32 +74,33 @@ days, or both. Any person who violates any other section in this part shall be
 fined not more than $1,000.
 
 /*
-scope Penalty286_136:
+scope Penalty286_83_135:
 
-  definition min_fine equals $0
+  rule paragraph_a_applies under condition
+    (not paragraph_b_applies) and
+    (not paragraph_c_applies)
+  consequence fulfilled
+
+  definition min_fine under condition
+    paragraph_a_applies
+  consequence equals $0
+
   definition max_fine equals $1000
-  definition max_days equals 30 day
+
+  definition max_days under condition
+    paragraph_a_applies
+  consequence equals 0 day
 
   exception definition max_days under condition
-    # TODO: sugar "is"?
-    offense.violation with pattern Other
-  consequence equals 0 day
-*/
-
-Under subsection (b) (1996), it is the date the defendant committed the current
-offense for which he or she is being prosecuted that is used to determine
-whether the defendant has two or more prior convictions for the same offense in
-the preceding five-year period. 118 H. 259 (App.), 188 P.3d 773 (2008).
-
-/*
-scope Penalty286_136:
-
-  # TODO: need to figure out how years are defined
-  definition priors_same_offense equals
-    number for prior in defendant.priors of (
-     prior.violation = offense.violation and
-        prior.date_of +@ 5 year <=@ offense.date_of
-    )
+    paragraph_a_applies and
+    offense.violation with pattern Section286_102 or
+    offense.violation with pattern Section286_122 or
+    offense.violation with pattern Section286_130 or
+    offense.violation with pattern Section286_131 or
+    offense.violation with pattern Section286_132 or
+    offense.violation with pattern Section286_133 or
+    offense.violation with pattern Section286_134
+  consequence equals 30 day
 */
 
 (b) Any person who is convicted of violating section 286-102, 286-122, 286-130,
@@ -109,15 +110,33 @@ the person has two or more prior convictions for the same offense in the
 preceding five-year period.
 
 /*
-scope Penalty286_136:
+scope Penalty286_83_135:
+
+  # Under subsection (b) (1996), it is the date the defendant committed the current
+  # offense for which he or she is being prosecuted that is used to determine
+  # whether the defendant has two or more prior convictions for the same offense in
+  # the preceding five-year period. 118 H. 259 (App.), 188 P.3d 773 (2008).
+
+  # TODO: need to figure out how years are defined
+  definition priors_same_offense equals
+    number for prior in defendant.priors of (
+     prior.violation = offense.violation and
+        prior.date_of +@ 5 year <=@ offense.date_of
+    )
 
   rule paragraph_b_applies under condition
-    (not (offense.violation with pattern Other)) and
-    priors_same_offense >= 2
+    (not (offense.violation with pattern Other_83_135)) and
+    priors_same_offense >= 2 and
+    not paragraph_c_applies
   consequence fulfilled
 
-  exception definition min_fine under condition paragraph_b_applies consequence equals $500
-  exception definition max_days under condition paragraph_b_applies consequence equals 1 year
+  definition min_fine under condition
+    paragraph_b_applies
+  consequence equals $500
+
+  definition max_days under condition
+    paragraph_b_applies
+  consequence equals 1 year
 */
 
 (c) Notwithstanding subsections (a) and (b), a minor under the age of eighteen
@@ -127,18 +146,15 @@ subject to a fine of $500. [L 1967, c 214, pt of §2; HRS §286-136; am L 1993, 
 214, §7; am L 1996, c 169, §3; am L 2003, c 69, §5]
 
 /*
-scope Penalty286_136:
+scope Penalty286_83_135:
 
   rule paragraph_c_applies under condition
     # TODO: check what happens if the offense is committed on the day of the
     # birthday
-    defendant.age < 18
+    defendant.age < 18 # and minor and under the jurisdiction etc.
   consequence fulfilled
-
-  exception rule paragraph_b_applies under condition paragraph_c_applies
-  consequence not fulfilled
 
   # TODO: Is this an exclusive or? Or an and/or?
   exception definition fine_ok under condition paragraph_c_applies
-  consequence equals (fine = $500 or loses_right_to_drive_until_18)
+  consequence equals (fine = $500 xor loses_right_to_drive_until_18)
 */
