@@ -557,7 +557,6 @@ let lex_law_fr (lexbuf : lexbuf) : token =
       for _i = 1 to new_lines_count - 1 do
         new_line lexbuf
       done;
-
       LAW_ARTICLE (title, article_id, article_expiration_date, precedence)
   | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
       get_law_heading lexbuf

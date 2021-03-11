@@ -528,7 +528,7 @@ let lex_law_en (lexbuf : lexbuf) : token =
       Star white_space,
       ']',
       '\n' ) ->
-        let extract_article_title = R.regexp "([#]+)\\s*\\[([^\\]]+)\\]" in
+      let extract_article_title = R.regexp "([#]+)\\s*\\[([^\\]]+)\\]" in
       let get_substring =
         R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
       in
