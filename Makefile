@@ -19,7 +19,7 @@ dependencies-ocaml:
 init-submodules:
 	git submodule update --init
 
-#> dependencies				: Install the Catala OCaml and Git dependencies 
+#> dependencies				: Install the Catala OCaml and Git dependencies
 dependencies: dependencies-ocaml init-submodules
 
 
@@ -128,7 +128,7 @@ literate_tutoriel_fr: build
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
-#> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.		
+#> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
 literate_examples: literate_allocations_familiales literate_code_general_impots \
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
 
@@ -183,7 +183,7 @@ run_french_law_library_tests: build_french_law_library
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
-	ln -sf $(PWD)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js javascript/french_law.js
+	cd javascript && ln -sf ../_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law.js
 
 ##########################################
 # Website assets
