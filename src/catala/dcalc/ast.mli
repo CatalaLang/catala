@@ -169,4 +169,4 @@ val make_multiple_let_in :
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = { decl_ctx : decl_ctx; scopes : (Var.t * expr Pos.marked) list }
+type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * Var.t * expr Pos.marked) list }

@@ -161,4 +161,4 @@ let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = { decl_ctx : decl_ctx; scopes : (Var.t * expr Pos.marked) list }
+type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * Var.t * expr Pos.marked) list }

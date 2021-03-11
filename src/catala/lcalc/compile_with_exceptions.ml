@@ -115,7 +115,7 @@ let translate_program (prgm : D.program) : A.program =
     scopes =
       (let acc, _ =
          List.fold_left
-           (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (n, e) ->
+           (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (_, n, e) ->
              let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
              let new_acc =
                ( new_n,
