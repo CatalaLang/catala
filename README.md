@@ -25,7 +25,7 @@ you want to implement. Then, you can proceed to annotate the text article by
 article, in your favorite text editor :
 
 <center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="500"/>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="450"/>
 </center>
 
 Once your code is complete and tested, you can use the Catala
@@ -36,7 +36,7 @@ can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
 <center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="500"/>
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="400"/>
 </center>
 
 The Catala language is special because its logical structure mimics

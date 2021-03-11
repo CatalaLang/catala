@@ -1,84 +1,87 @@
-@@Épilogue@@
+## Épilogue
 
-@@Règles diverses@@+
+### Règles diverses
 
 Les textes législatifs et règlementaires contiennent toutes les informations
-nécessaires au calcul. Cependant, certaines règles de calcul sont implicites 
-dans ces textes et doivent être explicitées pour le calcul informatique. C'est 
+kécessaires au calcul. Cependant, certaines règles de calcul sont implicites
+dans ces textes et doivent être explicitées pour le calcul informatique. C'est
 la fonction du bloc de code ci-dessous.
 
-@@Début métadonnées@@
-/*
+> Début métadonnées
+
+```catala
 champ d'application EnfantLePlusÂgé:
-  définition le_plus_âgé  égal à 
+  définition le_plus_âgé  égal à
     contenu maximum entier initial Enfant {
       -- identifiant: -1
       -- fin_obligation_scolaire: |01/01/1900|
       -- rémuneration_mensuelle: 0€
       -- date_de_naissance: |01/01/1900|
-      -- âge: 0 
+      -- âge: 0
       -- garde_alternée: NonGardeUnique
       -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    } 
-    pour potentiel_plus_âgé dans enfants de 
+    }
+    pour potentiel_plus_âgé dans enfants de
     potentiel_plus_âgé.âge
 
 
-champ d'application PrestationsFamiliales: 
+champ d'application PrestationsFamiliales:
   définition âge_l512_3_2_alternatif égal à Absent
 
 champ d'application AllocationsFamiliales:
-  définition montant_initial_majoration de enfant sous condition 
+  définition montant_initial_majoration de enfant sous condition
     non (droit_ouvert_majoration de enfant)
   conséquence égal à 0 €
 
   règle droit_ouvert_complément rempli
 
-  définition enfant_le_plus_âgé.enfants égal à enfants_à_charge 
-  définition est_enfant_le_plus_âgé de enfant égal à 
+  définition enfant_le_plus_âgé.enfants égal à enfants_à_charge
+  définition est_enfant_le_plus_âgé de enfant égal à
     enfant_le_plus_âgé.le_plus_âgé = enfant
 
-  définition montant_versé_base égal à 
+  définition montant_versé_base égal à
     si droit_ouvert_base alors montant_avec_garde_alternée_base sinon 0€
-  définition montant_versé_majoration égal à 
+  définition montant_versé_majoration égal à
     si droit_ouvert_base alors
-      somme argent pour enfant dans enfants_à_charge de 
-        montant_avec_garde_alternée_majoration de enfant 
+      somme argent pour enfant dans enfants_à_charge de
+        montant_avec_garde_alternée_majoration de enfant
     sinon 0€
 
-  définition montant_versé égal à 
+  définition montant_versé égal à
     si droit_ouvert_base alors
       montant_versé_base +€
       montant_versé_majoration +€
       montant_versé_forfaitaire +€
       montant_versé_complément_pour_base_et_majoration +€
-      montant_versé_complément_pour_forfaitaire 
+      montant_versé_complément_pour_forfaitaire
     sinon 0€
-*/
-@@Fin métadonnées@@
+```
 
-@@Interface du programme@@+
+> Fin métadonnées
 
-Le calcul des allocations familiales nécessite un certain nombre d'informations 
-sur les enfants à charge. Certaines de ces informations sont dépendantes les 
-unes des autres : par exemple, l'âge de l'enfant se déduit de sa date de 
-naissance. Le but du block ci-dessous est d'encoder ces dépendances, de telle 
-sorte que l'utilisateur puisse ne doive saisir que le nombre minimal 
-d'informations sur les enfants à charge. 
+### Interface du programme
 
-@@Début métadonnées@@
-/*
-déclaration structure EnfantEntrée: 
+Le calcul des allocations familiales nécessite un certain nombre d'informations
+sur les enfants à charge. Certaines de ces informations sont dépendantes les
+unes des autres : par exemple, l'âge de l'enfant se déduit de sa date de
+naissance. Le but du block ci-dessous est d'encoder ces dépendances, de telle
+sorte que l'utilisateur puisse ne doive saisir que le nombre minimal
+d'informations sur les enfants à charge.
+
+> Début métadonnées
+
+```catala
+déclaration structure EnfantEntrée:
   donnée d_identifiant contenu entier
   donnée d_rémuneration_mensuelle contenu argent
   donnée d_date_de_naissance contenu date
   donnée d_garde_alternée contenu GardeAlternée
-  donnée d_prise_en_charge_par_services_sociaux contenu 
+  donnée d_prise_en_charge_par_services_sociaux contenu
     PriseEnChargeServiceSociaux
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
   contexte date_courante contenu date
-  contexte enfants contenu collection EnfantEntrée 
+  contexte enfants contenu collection EnfantEntrée
   contexte enfants_à_charge contenu collection Enfant
   contexte allocations_familiales champ d'application AllocationsFamiliales
   contexte ressources_ménage contenu argent
@@ -86,39 +89,41 @@ déclaration champ d'application InterfaceAllocationsFamiliales:
   contexte montant_versé contenu argent
 
 champ d'application InterfaceAllocationsFamiliales:
-  définition allocations_familiales.date_courante égal à date_courante 
+  définition allocations_familiales.date_courante égal à date_courante
   définition allocations_familiales.enfants_à_charge égal à enfants_à_charge
   définition allocations_familiales.ressources_ménage égal à ressources_ménage
   définition allocations_familiales.résidence égal à résidence
   définition montant_versé égal à allocations_familiales.montant_versé
-  assertion non (existe enfant dans enfants tel que 
-    enfant.d_garde_alternée != NonGardeUnique et 
+  assertion non (existe enfant dans enfants tel que
+    enfant.d_garde_alternée != NonGardeUnique et
     enfant.d_prise_en_charge_par_services_sociaux != NonPriseEnChargeFamille
   )
-*/
-@@Fin métadonnées@@
+```
 
-@@Code de l'éducation@@++
+> Fin métadonnées
 
-@Article L131-1|LEGIARTI000038901859@
+#### Code de l'éducation
 
-L'instruction est obligatoire pour chaque enfant dès l'âge de trois ans et 
+#### [Article L131-1|LEGIARTI000038901859]
+
+L'instruction est obligatoire pour chaque enfant dès l'âge de trois ans et
 jusqu'à l'âge de seize ans.
 
-La présente disposition ne fait pas obstacle à l'application des prescriptions 
+La présente disposition ne fait pas obstacle à l'application des prescriptions
 particulières imposant une scolarité plus longue.
-/* 
+
+```catala
 champ d'application InterfaceAllocationsFamiliales:
-  définition enfants_à_charge égal à application pour enfant dans enfants de 
+  définition enfants_à_charge égal à application pour enfant dans enfants de
     Enfant {
       -- identifiant : enfant.d_identifiant
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
-      -- prise_en_charge_par_services_sociaux : 
+      -- prise_en_charge_par_services_sociaux :
         enfant.d_prise_en_charge_par_services_sociaux
       -- garde_alternée : enfant.d_garde_alternée
-      -- âge: accès_année de 
+      -- âge: accès_année de
         (|01/01/0000| +@ (date_courante -@ enfant.d_date_de_naissance))
       -- fin_obligation_scolaire : enfant.d_date_de_naissance +@ 16 an
     }
-*/
+```

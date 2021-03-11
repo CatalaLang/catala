@@ -59,6 +59,8 @@ let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : F
      \\newunicodechar{≥}{$\\geqslant$}\n\
      \\newunicodechar{→}{$\\rightarrow$}\n\
      \\newunicodechar{≠}{$\\neq$}\n\n\
+     \\newcommand*\\FancyVerbStartString{```catala}\n\
+     \\newcommand*\\FancyVerbStopString{```}\n\n\
      \\fvset{\n\
      numbers=left,\n\
      frame=lines,\n\
@@ -129,7 +131,7 @@ let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatte
   | A.CodeBlock (_, c) ->
       Format.fprintf fmt
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-         /*%s*/\n\
+         ```catala%s```\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) - 1)
@@ -173,7 +175,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
          \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
-         /*%s*/\n\
+         ```catala%s```\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
         metadata_title metadata_title

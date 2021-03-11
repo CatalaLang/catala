@@ -1,6 +1,6 @@
-@Test@
+## [Test]
 
-/*
+```catala
 new scope A:
   param x content int
 
@@ -14,6 +14,6 @@ scope A:
   def x := 1
 
   label exception_exception_x
-  exception exception_x 
+  exception exception_x
   def x := 2
-*/
+```

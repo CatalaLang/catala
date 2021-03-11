@@ -151,7 +151,7 @@ contexts [] {
 main : context {
 
    : inline_push {
-      regex          \= (@@)
+      regex          \= (\#\#)
       styles []       = .law_title;
       : pop {
          regex       \= (@@[\+]*)
@@ -177,12 +177,12 @@ main : context {
    }
 
    : pattern {
-     regex \= ([^\/])
+     regex \= ([^`])
      styles [] = .law;
    }
 
    : push {
-      regex          \= (\/\*)
+      regex          \= (```catala)
       styles []       = .code_delimiter;
       context []       = code;
    }
@@ -193,7 +193,7 @@ main : context {
 code : context {
 
   : pop {
-    regex       \= (\*\/)
+    regex       \= (```)
     styles []    = .code_delimiter;
   }
 

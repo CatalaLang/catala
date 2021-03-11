@@ -1,14 +1,14 @@
-@@Include: ../tutorial_en.catala_en@@
+> Include: ../tutorial_en.catala_en
 
-@Test@
+## [Test]
 
-/*
+```catala
 declaration scope UnitTest1:
   context tax_computation scope NewIncomeTaxComputation
 
 scope UnitTest1:
   definition
-    tax_computation.individual 
+    tax_computation.individual
   equals
     Individual {
       -- income: $230,000
@@ -26,4 +26,4 @@ scope UnitTest2:
   }
 
   assertion tax_computation.income_tax = $0.00
-*/
+```
