@@ -264,49 +264,15 @@ let add_def_local_var (ctxt : context) (name : ident Pos.marked) : context * Sco
 
 (** Process a scope declaration *)
 let process_scope_decl (ctxt : context) (decl : Ast.scope_decl) : context =
-  let name, pos = decl.scope_decl_name in
-  (* Checks if the name is already used *)
-  match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-  | Some use ->
-      Errors.raise_multispanned_error
-        (Format.asprintf "scope name \"%s\" already used"
-           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
-        [
-          (Some "first use", Pos.get_position (Scopelang.Ast.ScopeName.get_info use));
-          (Some "second use", pos);
-        ]
-  | None ->
-      let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
-      let ctxt =
-        {
-          ctxt with
-          scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
-          scopes =
-            Scopelang.Ast.ScopeMap.add scope_uid
-              {
-                var_idmap = Desugared.Ast.IdentMap.empty;
-                label_idmap = Desugared.Ast.IdentMap.empty;
-                default_rulemap = Desugared.Ast.ScopeDefMap.empty;
-                sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
-                sub_scopes = Scopelang.Ast.SubScopeMap.empty;
-              }
-              ctxt.scopes;
-        }
-      in
-      List.fold_left
-        (fun ctxt item -> process_item_decl scope_uid ctxt (Pos.unmark item))
-        ctxt decl.scope_decl_context
+  let name, _ = decl.scope_decl_name in
+  let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
+  List.fold_left
+    (fun ctxt item -> process_item_decl scope_uid ctxt (Pos.unmark item))
+    ctxt decl.scope_decl_context
 
 (** Process a struct declaration *)
 let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
-  let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
-  let ctxt =
-    {
-      ctxt with
-      struct_idmap =
-        Desugared.Ast.IdentMap.add (Pos.unmark sdecl.struct_decl_name) s_uid ctxt.struct_idmap;
-    }
-  in
+  let s_uid = Desugared.Ast.IdentMap.find (fst sdecl.struct_decl_name) ctxt.struct_idmap in
   List.fold_left
     (fun ctxt (fdecl, _) ->
       let f_uid = Scopelang.Ast.StructFieldName.fresh fdecl.Ast.struct_decl_field_name in
@@ -344,14 +310,7 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
 
 (** Process an enum declaration *)
 let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
-  let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
-  let ctxt =
-    {
-      ctxt with
-      enum_idmap =
-        Desugared.Ast.IdentMap.add (Pos.unmark edecl.enum_decl_name) e_uid ctxt.enum_idmap;
-    }
-  in
+  let e_uid = Desugared.Ast.IdentMap.find (fst edecl.enum_decl_name) ctxt.enum_idmap in
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
       let c_uid = Scopelang.Ast.EnumConstructor.fresh cdecl.Ast.enum_decl_case_name in
@@ -384,6 +343,64 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
             ctxt.enums;
       })
     ctxt edecl.enum_decl_cases
+
+(** Process the names of all declaration items *)
+let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
+  let raise_already_defined_error use name pos msg =
+    Errors.raise_multispanned_error
+      (Format.asprintf "%s name \"%s\" already defined" msg
+         (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
+      [
+        (Some "first definition", Pos.get_position (Scopelang.Ast.ScopeName.get_info use));
+        (Some "second definition", pos);
+      ]
+  in
+  match Pos.unmark item with
+  | ScopeDecl decl -> (
+      let name, pos = decl.scope_decl_name in
+      (* Checks if the name is already used *)
+      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
+      | Some use -> raise_already_defined_error use name pos "scope"
+      | None ->
+          let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
+          {
+            ctxt with
+            scope_idmap = Desugared.Ast.IdentMap.add name scope_uid ctxt.scope_idmap;
+            scopes =
+              Scopelang.Ast.ScopeMap.add scope_uid
+                {
+                  var_idmap = Desugared.Ast.IdentMap.empty;
+                  label_idmap = Desugared.Ast.IdentMap.empty;
+                  default_rulemap = Desugared.Ast.ScopeDefMap.empty;
+                  sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
+                  sub_scopes = Scopelang.Ast.SubScopeMap.empty;
+                }
+                ctxt.scopes;
+          } )
+  | StructDecl sdecl -> (
+      let name, pos = sdecl.struct_decl_name in
+      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
+      | Some use -> raise_already_defined_error use name pos "struct"
+      | None ->
+          let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
+          {
+            ctxt with
+            struct_idmap =
+              Desugared.Ast.IdentMap.add (Pos.unmark sdecl.struct_decl_name) s_uid ctxt.struct_idmap;
+          } )
+  | EnumDecl edecl -> (
+      let name, pos = edecl.enum_decl_name in
+      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
+      | Some use -> raise_already_defined_error use name pos "enum"
+      | None ->
+          let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
+
+          {
+            ctxt with
+            enum_idmap =
+              Desugared.Ast.IdentMap.add (Pos.unmark edecl.enum_decl_name) e_uid ctxt.enum_idmap;
+          } )
+  | ScopeUse _ -> ctxt
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
@@ -608,8 +625,13 @@ let form_context (prgm : Ast.program) : context =
   in
   let ctxt =
     List.fold_left
-      (fun ctxt item -> process_program_item ctxt item process_decl_item)
+      (fun ctxt item -> process_program_item ctxt item process_name_item)
       empty_ctxt prgm.program_items
+  in
+  let ctxt =
+    List.fold_left
+      (fun ctxt item -> process_program_item ctxt item process_decl_item)
+      ctxt prgm.program_items
   in
   let ctxt =
     List.fold_left
