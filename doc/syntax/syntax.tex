@@ -1,0 +1,462 @@
+\documentclass[a3paper,landscape]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1cm,right=1cm,top=1cm,bottom=1cm]{geometry}
+\usepackage{multicol}
+\usepackage{bookman}
+\usepackage{booktabs}
+\usepackage{minted}
+
+\newcommand{\li}[1]{\texttt{#1}}
+\begin{document}
+\begin{center}
+\Huge\bfseries\sffamily
+Catala Syntax Cheat Sheet
+\end{center}
+
+\begin{multicols*}{2}
+
+
+
+
+
+\section*{Literate programming}
+\begin{center}
+\begin{tabular}{p{0.15\columnwidth}p{0.275\columnwidth}p{0.275\columnwidth}}
+\toprule
+Feature&English syntax&French syntax\\\midrule
+Heading&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+## Foo
+### Bar
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+## Foo
+### Bar
+\end{minted}
+\vspace*{-1.7em}
+\\
+Article&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+## [Foo]
+### [Bar]
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+## [Foo]
+### [Bar]
+\end{minted}
+\vspace*{-1.7em}
+\\
+Code block&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Metadata block&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+> Begin metadata
+
+> End metadata
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+> Début métadonnées
+
+> Fin métadonnées
+\end{minted}
+\vspace*{-1.7em}
+\\
+File inclusion&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+> Include: foo.catala_en
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+> Inclusion: foo.catala_fr
+\end{minted}
+\vspace*{-1.7em}
+\\
+Master file\newline (only inclusions)&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+> Master file
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+> Fichier maître
+\end{minted}
+\vspace*{-1.7em}
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+\newcommand*\FancyVerbStartString{```catala}
+\newcommand*\FancyVerbStopString{```}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section*{Metadata declaration}
+\begin{tabular}{p{0.22\columnwidth}p{0.3\columnwidth}p{0.425\columnwidth}}
+\toprule
+Feature&English syntax&French syntax\\\midrule
+Structure declaration&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+declaration structure Foo:
+  data bar content integer
+  data baz condition
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+déclaration structure Foo:
+  donnée bar contenu entier
+  donnée baz condition
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Enumeration declaration&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+declaration enumeration Foo:
+  -- Bar content integer
+  -- Baz condition
+  -- Fizz
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+déclaration énumeration Foo:
+  -- Bar contenu entier
+  -- Baz condition
+  -- Fizz
+```
+\end{minted}
+\vspace*{-1.7em}\\
+Scope declaration&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+declaration scope Foo:
+  context bar content integer
+  context baz condition
+  context fizz scope Buzz
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+déclaration champ d'application Foo:
+  contexte bar contenu entier
+  contexte baz condition
+  contexte fizz champ d'application Buzz
+```
+\end{minted}
+\vspace*{-1.7em}\\
+\bottomrule
+\end{tabular}
+
+
+
+
+
+
+
+
+
+
+
+\section*{Base types}
+\begin{center}
+\begin{tabular}{p{0.175\columnwidth}p{0.175\columnwidth}p{0.175\columnwidth}}
+\toprule
+Feature&English syntax&French syntax\\\midrule
+Natural integers&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+integer
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+entier
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Rational numbers&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+decimal
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+décimal
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Booleans&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+boolean
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+booléen
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Money&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+money
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+argent
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Date&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+date
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+date
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Duration&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+duration
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+durée
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+
+
+
+
+
+
+
+
+\section*{Scope use and related items}
+\begin{center}
+\begin{tabular}{p{0.22\columnwidth}p{0.35\columnwidth}p{0.35\columnwidth}}
+\toprule
+Feature&English syntax&French syntax\\\midrule
+Scope use&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+scope Foo:
+  ...
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+champ d'application Foo:
+  ...
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Use-wide condition&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+scope Foo
+  under condition bar:
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+champ d'application Foo
+  sous condition bar:
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Unconditional definition&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+definition foo equals bar
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+définition foo égal à bar
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Conditional definition&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+definition foo under condition
+  bar consequence equals baz
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+définition foo sous condition
+  bar conséquence égal à baz
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Rule\newline(definition for conditions)&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+rule foo under condition
+  bar consequence fulfilled
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+règle foo sous condition
+  bar conséquence rempli
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+Negative rule&
+\vspace*{-1.7em}
+\begin{minted}{catala_en}
+```catala
+rule foo under condition
+  bar consequence not fulfilled
+```
+\end{minted}
+\vspace*{-1.7em}
+&
+\vspace*{-1.7em}
+\begin{minted}{catala_fr}
+```catala
+règle foo sous condition
+  bar conséquence non rempli
+```
+\end{minted}
+\vspace*{-1.7em}
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{multicols*}
+\end{document}
