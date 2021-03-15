@@ -50,7 +50,7 @@
 %token MINUSDATE PLUSDATE PLUSDURATION MINUSDURATION
 %token MATCH WITH VARIES WITH_V
 %token FOR ALL WE_HAVE INCREASING DECREASING
-%token NOT BOOLEAN PERCENT ARROW DURATION
+%token NOT BOOLEAN PERCENT DURATION
 %token SCOPE FILLED NOT_EQUAL DEFINITION
 %token STRUCT CONTENT IF THEN DEPENDS DECLARATION
 %token CONTEXT ENUM ELSE DATE SUM
@@ -104,9 +104,6 @@ atomic_expression:
 
 small_expression:
 | e = atomic_expression { e }
-| e = small_expression ARROW c = constructor {
-  (EnumProject (e, c), Pos.from_lpos $sloc)
-}
 | e = small_expression DOT c = option(terminated(constructor,DOT)) i = ident {
   (Dotted (e, c, i), Pos.from_lpos $sloc)
 }

@@ -42,7 +42,6 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
     Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 let token_list_language_agnostic : (string * token) list =
   [
-    ("->", ARROW);
     (".", DOT);
     ("<=", LESSER_EQUAL);
     (">=", GREATER_EQUAL);
@@ -364,9 +363,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
       update_acc lexbuf;
       DECIMAL_LITERAL
         (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
-  | "->" ->
-      update_acc lexbuf;
-      ARROW
   | "<=@" ->
       update_acc lexbuf;
       LESSER_EQUAL_DATE
