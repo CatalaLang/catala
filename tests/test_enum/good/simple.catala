@@ -1,17 +1,17 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new enum E:
   -- Case1 content int
   -- Case2
 
 new scope A:
   param x content E
-  param y content int 
+  param y content int
 
 scope A:
   def x := Case1 content 2
-  def y := match x with 
+  def y := match x with
     -- Case1 of i : 42
     -- Case2 : 43
-*/
+```

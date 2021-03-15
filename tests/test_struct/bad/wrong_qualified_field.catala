@@ -1,6 +1,6 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new struct Foo:
   data f content int
 
@@ -14,6 +14,6 @@ new scope A:
 
 scope A:
   def x := Foo { -- f: 1 }
-  def y := x.Foo.g 
+  def y := x.Foo.g
 
-*/
+```

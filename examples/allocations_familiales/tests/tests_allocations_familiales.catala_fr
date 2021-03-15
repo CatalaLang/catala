@@ -1,14 +1,14 @@
-@@Inclusion: ../allocations_familiales.catala_fr@@
+> Inclusion: ../allocations_familiales.catala_fr
 
-@@Tests@@
+## Tests
 
-@Tests@
+### [Tests]
 
-/*
+```catala
 déclaration champ d'application Données:
-  contexte enfant1 contenu EnfantEntrée 
+  contexte enfant1 contenu EnfantEntrée
   contexte enfant2 contenu EnfantEntrée
-  contexte enfant3 contenu EnfantEntrée 
+  contexte enfant3 contenu EnfantEntrée
   contexte enfant4 contenu EnfantEntrée
   contexte enfant5 contenu EnfantEntrée
 
@@ -51,10 +51,10 @@ champ d'application Données:
 
 déclaration champ d'application Test1:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test1:
-  définition f.enfants égal à 
+  définition f.enfants égal à
     [données.enfant1;données.enfant2;données.enfant3;données.enfant4]
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |01/05/2020|
@@ -63,10 +63,10 @@ champ d'application Test1:
 
 déclaration champ d'application Test2:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test2:
-  définition f.enfants égal à 
+  définition f.enfants égal à
     [données.enfant1;données.enfant2;données.enfant5]
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |01/05/2020|
@@ -76,7 +76,7 @@ champ d'application Test2:
 
 déclaration champ d'application Test3:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test3:
   définition f.enfants égal à [données.enfant1]
@@ -87,7 +87,7 @@ champ d'application Test3:
 
 déclaration champ d'application Test4:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test4:
   définition f.enfants égal à [données.enfant1; données.enfant3]
@@ -98,7 +98,7 @@ champ d'application Test4:
 
 déclaration champ d'application Test5:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test5:
   définition f.enfants égal à [données.enfant1]
@@ -131,10 +131,10 @@ champ d'application Test6:
 
 déclaration champ d'application Test7:
   contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données 
+  contexte données champ d'application Données
 
 champ d'application Test7:
-  définition f.enfants égal à 
+  définition f.enfants égal à
     [données.enfant1;données.enfant2;données.enfant3;données.enfant4]
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |01/02/2021|
@@ -142,4 +142,4 @@ champ d'application Test7:
   assertion f.montant_versé = 417,51€
 
 
-*/
+```

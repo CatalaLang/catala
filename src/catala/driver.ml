@@ -17,7 +17,7 @@ module Errors = Utils.Errors
 module Pos = Utils.Pos
 
 (** Entry function for the executable. Returns a negative number in case of error. *)
-let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
+let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
     (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
     (output_file : string option) : int =
@@ -41,11 +41,12 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     in
     Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
-      if backend = "Makefile" then Cli.Makefile
-      else if backend = "LaTeX" then Cli.Latex
-      else if backend = "HTML" then Cli.Html
-      else if backend = "Interpret" then Cli.Run
-      else if backend = "OCaml" then Cli.OCaml
+      let backend = String.lowercase_ascii backend in
+      if backend = "makefile" then Cli.Makefile
+      else if backend = "latex" then Cli.Latex
+      else if backend = "html" then Cli.Html
+      else if backend = "interpret" then Cli.Run
+      else if backend = "ocaml" then Cli.OCaml
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -144,8 +145,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let prgm, prgm_expr, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
         in
-        (* Cli.debug_print (Format.asprintf "Output program:@\n%a" (Dcalc.Print.format_expr
-              prgm.decl_ctx) prgm_expr); *)
+        if dcalc then begin
+          Format.printf "%a\n"
+            (Dcalc.Print.format_expr prgm.decl_ctx)
+            (let _, _, e = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
+             e);
+          exit 0
+        end;
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgm_expr in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ

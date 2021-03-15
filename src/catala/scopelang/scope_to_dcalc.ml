@@ -690,7 +690,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
           }
         in
         ( Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc,
-          (dvar, Bindlib.unbox scope_expr) :: scopes,
+          (scope_name, dvar, Bindlib.unbox scope_expr) :: scopes,
           decl_ctx ))
       scope_ordering (acc, [], decl_ctx)
   in

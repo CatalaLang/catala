@@ -14,15 +14,15 @@ class CatalaEnLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (u'(@@)', bygroups(Generic.Heading), 'main__1'),
-            (u'(@)', bygroups(Generic.Heading), 'main__2'),
-            (u'([^\\/\\n\\r])', bygroups(Text)),
-            (u'(\\/\\*)', bygroups(Text), 'code'),
+            (u'([\#]+)', bygroups(Generic.Heading), 'main__1'),
+            (u'([\#]+\s*\[[^\]]\s*])', bygroups(Generic.Heading), 'main__2'),
+            (u'([^`\\n\\r])', bygroups(Text)),
+            (u'(```catala)', bygroups(Text), 'code'),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
         'code': [
-            (u'(\\*\\/)', bygroups(Text), 'root'),
+            (u'(```)', bygroups(Text), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
             (u'(context)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)',
              bygroups(Keyword.Declaration, Text, Name.Variable)),
@@ -34,7 +34,7 @@ class CatalaEnLexer(RegexLexer):
             (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})', bygroups(
                 Operator)),
             (u'(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|not|or|and|\\$|%|year|month|day)', bygroups(Operator)),
-            (u'\\b(integer|boolean|date|money|text|decimal|number|sum)\\b',
+            (u'\\b(integer|boolean|date|duration|money|text|decimal|number|sum)\\b',
              bygroups(Keyword.Type)),
             (u'\\b([A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)\\b', bygroups(Name.Class, Operator, Name.Variable)),
             (u'\\b([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\'\\.]*)\\b', bygroups(Name.Variable, Operator, Text)),
@@ -44,13 +44,13 @@ class CatalaEnLexer(RegexLexer):
             ('.', Text),
         ],
         'main__1': [
-            (u'(@@)', bygroups(Generic.Heading), 'root'),
+            (u'(\n)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
         ],
         'main__2': [
-            (u'(@)', bygroups(Generic.Heading), 'root'),
+            (u'(\n)', bygroups(Generic.Heading), 'root'),
             (u'(.)', bygroups(Generic.Heading)),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),

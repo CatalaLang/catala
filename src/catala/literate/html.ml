@@ -151,7 +151,7 @@ let law_article_item_to_html (language : C.backend_lang) (fmt : Format.formatter
       let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
       Format.fprintf fmt "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("/*" ^ pprinted_c ^ "*/") c) language)
+        (pygmentize_code (Pos.same_pos_as ("```catala" ^ pprinted_c ^ "```") c) language)
 
 let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_structure) : unit =

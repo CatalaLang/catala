@@ -144,7 +144,6 @@ and expression =
   | Literal of literal
   | EnumInject of
       constructor Pos.marked option * constructor Pos.marked * expression Pos.marked option
-  | EnumProject of expression Pos.marked * constructor Pos.marked
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list
   | Ident of ident
@@ -227,6 +226,7 @@ type law_article = {
   law_article_name : (string[@opaque]) Pos.marked;
   law_article_id : (string[@opaque]) option;
   law_article_expiration_date : (string[@opaque]) option;
+  law_article_precedence : (int[@opaque]);
 }
 
 type law_include =
@@ -342,9 +342,6 @@ class virtual ['self] program_map :
     method visit_EnumInject :
       'monomorphic. 'env -> constructor Pos.marked option -> constructor Pos.marked ->
       expression Pos.marked option -> expression
-
-    method visit_EnumProject :
-      'monomorphic. 'env -> expression Pos.marked -> constructor Pos.marked -> expression
 
     method visit_Eq : 'monomorphic. 'env -> binop
 
@@ -682,9 +679,6 @@ class virtual ['self] program_iter :
     method visit_EnumInject :
       'monomorphic. 'env -> constructor Pos.marked option -> constructor Pos.marked ->
       expression Pos.marked option -> unit
-
-    method visit_EnumProject :
-      'monomorphic. 'env -> expression Pos.marked -> constructor Pos.marked -> unit
 
     method visit_Eq : 'monomorphic. 'env -> unit
 

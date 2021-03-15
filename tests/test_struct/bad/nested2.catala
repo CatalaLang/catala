@@ -1,11 +1,14 @@
-@Article@
+## [Article]
 
-/*
+```catala
 new struct S:
-  data x content E 
+  data x content E
   data y content int
 
 new enum E:
   -- Case1 content bool
   -- Case2 content S
-*/
+
+new scope A:
+  param x content E
+```

@@ -66,6 +66,7 @@ val catala_t :
   bool ->
   bool ->
   bool ->
+  bool ->
   string ->
   string option ->
   int option ->

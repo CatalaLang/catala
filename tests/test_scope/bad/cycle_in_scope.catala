@@ -1,10 +1,10 @@
-@ Article @
+## [ Article ]
 
-/* 
+```catala
 new scope A :
-  param x content int 
-  param y content int 
-  param z content int 
+  param x content int
+  param y content int
+  param z content int
 
 scope A:
   def y [|x < 0|] := - x
@@ -12,4 +12,4 @@ scope A:
   def z [|y >= 1|] := 10 / y
   def z [|y < 1|] := y
   def x := z
-*/
+```

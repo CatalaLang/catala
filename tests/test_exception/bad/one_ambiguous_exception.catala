@@ -1,6 +1,6 @@
-@Test@
+## [Test]
 
-/*
+```catala
 new scope A:
   param x content int
   param y content int
@@ -8,7 +8,7 @@ new scope A:
 scope A:
   def x := 0
 
-  exception 
+  exception
   def x := 1
 
   def y := 2
@@ -17,4 +17,4 @@ scope A:
 
   exception
   def y := 3
-*/
+```

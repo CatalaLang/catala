@@ -1,15 +1,15 @@
-@@Inclusion: ../allocations_familiales.catala_fr@@
+> Inclusion: ../allocations_familiales.catala_fr
 
-@@Tests@@
+## Tests
 
-@Tests@
+### [Tests]
 
-/*
+```catala
 déclaration champ d'application Données:
-  contexte enfant1 contenu Enfant 
-  contexte enfant2 contenu Enfant 
-  contexte enfant3 contenu Enfant 
-  contexte enfant4 contenu Enfant 
+  contexte enfant1 contenu Enfant
+  contexte enfant2 contenu Enfant
+  contexte enfant3 contenu Enfant
+  contexte enfant4 contenu Enfant
 
 champ d'application Données:
   définition enfant1 égal à Enfant {
@@ -55,11 +55,11 @@ déclaration champ d'application Test1:
 
 champ d'application Test1:
   définition f.âge_l512_3_2_alternatif égal à Absent
-  définition f.date_courante égal à |01/05/2020| 
+  définition f.date_courante égal à |01/05/2020|
   définition f.prestation_courante égal à AllocationsFamiliales
   définition f.résidence égal à Métropole
   assertion (f.droit_ouvert de données.enfant1)
   assertion (non (f.droit_ouvert de données.enfant2))
   assertion (f.droit_ouvert de données.enfant3)
   assertion (non (f.droit_ouvert de données.enfant4))
-*/
+```

@@ -1,1 +1,1 @@
-/home/denis/catala/_build/default/src/french_law/api_web.bc.js
+../_build/default/src/french_law/api_web.bc.js

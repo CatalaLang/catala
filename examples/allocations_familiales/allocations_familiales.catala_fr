@@ -1,13 +1,13 @@
-@@Fichier maître@@
+# Fichier maître
 
-@@Inclusion: prologue.catala_fr@@
+> Inclusion: prologue.catala_fr
 
-@@Inclusion: securite_sociale_L.catala_fr@@
+> Inclusion: securite_sociale_L.catala_fr
 
-@@Inclusion: securite_sociale_R.catala_fr@@
+> Inclusion: securite_sociale_R.catala_fr
 
-@@Inclusion: securite_sociale_D.catala_fr@@
+> Inclusion: securite_sociale_D.catala_fr
 
-@@Inclusion: decrets_divers.catala_fr@@
+> Inclusion: decrets_divers.catala_fr
 
-@@Inclusion: epilogue.catala_fr@@
+> Inclusion: epilogue.catala_fr

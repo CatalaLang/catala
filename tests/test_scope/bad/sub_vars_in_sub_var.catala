@@ -1,14 +1,14 @@
-@ Article @
+## [ Article ]
 
-/*
+```catala
 new scope A:
-  param x content bool 
+  param x content bool
   param y content int
 
 new scope B:
-  param a scope A 
+  param a scope A
 
 scope B:
-  def a.x := true 
-  def a.y := if a.x then 0 else 1 
-*/
+  def a.x := true
+  def a.y := if a.x then 0 else 1
+```

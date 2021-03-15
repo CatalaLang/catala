@@ -17,6 +17,7 @@
 open Parser
 open Sedlexing
 open Utils
+open Lexer_common
 module R = Re.Pcre
 
 (** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
@@ -41,7 +42,6 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
     Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 let token_list_language_agnostic : (string * token) list =
   [
-    ("->", ARROW);
     (".", DOT);
     ("<=", LESSER_EQUAL);
     (">=", GREATER_EQUAL);
@@ -142,7 +142,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* Comments *)
       update_acc lexbuf;
       lex_code lexbuf
-  | "*/" ->
+  | "```" ->
       (* End of code section *)
       is_code := false;
       END_CODE !code_string_acc
@@ -363,9 +363,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
       update_acc lexbuf;
       DECIMAL_LITERAL
         (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
-  | "->" ->
-      update_acc lexbuf;
-      ARROW
   | "<=@" ->
       update_acc lexbuf;
       LESSER_EQUAL_DATE
@@ -535,24 +532,24 @@ let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
-  | "/*" ->
+  | "```catala" ->
       is_code := true;
       code_string_acc := "";
       BEGIN_CODE
   | eof -> EOF
-  | "@@", Star white_space, "Master file", Star white_space, "@@" -> MASTER_FILE
-  | "@@", Star white_space, "Begin metadata", Star white_space, "@@" -> BEGIN_METADATA
-  | "@@", Star white_space, "End metadata", Star white_space, "@@" -> END_METADATA
-  | ( "@@",
+  | '#', Star white_space, "Master file" -> MASTER_FILE
+  | '>', Star white_space, "Begin metadata" -> BEGIN_METADATA
+  | '>', Star white_space, "End metadata" -> END_METADATA
+  | ( '>',
       Star white_space,
       "Include:",
       Star white_space,
-      Plus (Compl '@'),
+      Plus (Compl ('@' | '\n')),
       Star white_space,
       Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
-      "@@" ) ->
+      '\n' ) ->
       let extract_components =
-        R.regexp "@@\\s*Include\\:\\s*([^@]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)@@"
+        R.regexp ">\\s*Include\\:\\s*([^@\\n]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)"
       in
       let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
       let name = get_component 1 in
@@ -561,23 +558,22 @@ let lex_law (lexbuf : lexbuf) : token =
       if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | "@@", Plus (Compl '@'), "@@", Star '+' ->
-      let extract_code_title = R.regexp "@@([^@]+)@@([\\+]*)" in
-      let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
-      let get_new_lines = R.regexp "\n" in
-      let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
+  | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
+      get_law_heading lexbuf
+  | ( '#',
+      Plus '#',
+      Star white_space,
+      '[',
+      Star white_space,
+      Plus (Compl ']'),
+      Star white_space,
+      ']',
+      '\n' ) ->
+      let extract_article_title = R.regexp "([#]+)\\s*\\[([^@]+)\\]" in
+      let get_substring =
+        R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
       in
-      for _i = 1 to new_lines_count do
-        new_line lexbuf
-      done;
-      let law_title = get_match 1 in
-      let precedence = String.length (get_match 2) in
-
-      LAW_HEADING (law_title, precedence)
-  | "@", Plus (Compl '@'), "@" ->
-      let extract_article_title = R.regexp "@([^@]+)@" in
-      let title = R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf)) 1 in
+      let title = get_substring 2 in
       let get_new_lines = R.regexp "\n" in
       let new_lines_count =
         try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
@@ -586,11 +582,12 @@ let lex_law (lexbuf : lexbuf) : token =
       for _i = 1 to new_lines_count - 1 do
         new_line lexbuf
       done;
+      let precedence = calc_precedence (get_substring 1) in
 
-      LAW_ARTICLE (title, None, None)
-  | Plus (Compl ('@' | '/')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+      LAW_ARTICLE (title, None, None, precedence)
+  | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
     is_code}. *)
-let lexer lexbuf = if !is_code then lex_code lexbuf else lex_law lexbuf
+let lexer (lexbuf : lexbuf) : token = if !is_code then lex_code lexbuf else lex_law lexbuf

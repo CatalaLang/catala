@@ -1,6 +1,6 @@
-@Test@
+## [Test]
 
-/*
+```catala
 new enum E:
 -- Case1
 -- Case2
@@ -15,4 +15,4 @@ param y content bool
 scope A:
 def x := Case1
 def y := x with Case3
-*/
+```
