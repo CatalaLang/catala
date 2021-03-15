@@ -245,7 +245,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(int|bool|date|money|text|decimal|number|sum)\b
+    regex \= \b(int|bool|date|duration|money|text|decimal|number|sum)\b
     styles [] = .primitive;
   }
 

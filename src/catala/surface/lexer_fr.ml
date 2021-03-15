@@ -325,9 +325,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       DECIMAL_LITERAL
         (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
-  | "->" ->
-      L.update_acc lexbuf;
-      ARROW
   | "<=@" ->
       L.update_acc lexbuf;
       LESSER_EQUAL_DATE

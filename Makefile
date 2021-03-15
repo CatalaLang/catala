@@ -32,7 +32,7 @@ format:
 
 #> build					: Builds the Catala compiler
 build:
-	dune build @update-parser-messages
+	dune build @update-parser-messages --auto-promote | true
 	@$(MAKE) --no-print-directory format
 	dune build src/catala/catala.exe
 

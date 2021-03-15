@@ -257,7 +257,6 @@ and expression =
   | Literal of literal
   | EnumInject of
       constructor Pos.marked option * constructor Pos.marked * expression Pos.marked option
-  | EnumProject of expression Pos.marked * constructor Pos.marked
   | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list
   | Ident of ident

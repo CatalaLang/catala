@@ -124,7 +124,7 @@
         'name' : 'keyword.operator.catala_en'
       }
       {
-        'match' : '\\b(integer|boolean|date|money|text|decimal|number|sum)\\b'
+        'match' : '\\b(integer|boolean|date|duration|money|text|decimal|number|sum)\\b'
         'name' : 'support.type.catala_en'
       }
       {

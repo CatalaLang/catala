@@ -34,7 +34,7 @@ class CatalaFrLexer(RegexLexer):
             (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})', bygroups(
                 Operator)),
             (u'(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\u20ac|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\u20ac|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\u20ac|\\*|/\\.|/\\@|/\\^|/\u20ac|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\u20ac|>=\u20ac|<=\u20ac|<\u20ac|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|non|ou|et|\u20ac|%|an|mois|jour)', bygroups(Operator)),
-            (u'\\b(entier|bool\xe9en|date|argent|texte|d\xe9cimal|d\xe9cret|loi|nombre|somme)\\b',
+            (u'\\b(entier|bool\xe9en|date|dur\xe9e|argent|texte|d\xe9cimal|d\xe9cret|loi|nombre|somme)\\b',
              bygroups(Keyword.Type)),
             (u'\\b([A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\']*)\\b', bygroups(Name.Class, Operator, Name.Variable)),
             (u'\\b([a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\']*)(\\.)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xf4\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xd4\xca\u0152\xc70-9_\\\'\\.]*)\\b', bygroups(Name.Variable, Operator, Text)),
