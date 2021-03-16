@@ -1,7 +1,8 @@
-@@Title17@@
+## Title17
 
-@@Begin metadata@@
-/*
+> Begin metadata
+
+```catala
 declaration enumeration Violation_83_135:
   -- Section286_102
   -- Section286_122
@@ -49,12 +50,12 @@ declaration scope Penalty286_83_135:
   # Outcomes:
 
   context ok condition
-*/
-@@End metadata@@
+```
+> End metadata
 
-@§286-136 Penalty@
+## [286-136 Penalty]
 
-/*
+```catala
 scope Penalty286_83_135:
 
   rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
@@ -65,7 +66,7 @@ scope Penalty286_83_135:
 
   rule ok under condition fine_ok and days_ok
   consequence fulfilled
-*/
+```
 
 §(a) Except as provided in subsection (b), any person who
 violates section 286-102, 286-122, 286-130, 286-131, 286-132, 286-133, or
@@ -73,7 +74,7 @@ violates section 286-102, 286-122, 286-130, 286-131, 286-132, 286-133, or
 days, or both. Any person who violates any other section in this part shall be
 fined not more than $1,000.
 
-/*
+```catala
 scope Penalty286_83_135:
 
   rule paragraph_a_applies under condition
@@ -87,11 +88,12 @@ scope Penalty286_83_135:
 
   definition max_fine equals $1000
 
+  label max_days_a
   definition max_days under condition
     paragraph_a_applies
   consequence equals 0 day
 
-  exception definition max_days under condition
+  exception max_days_a definition max_days under condition
     paragraph_a_applies and
     offense.violation with pattern Section286_102 or
     offense.violation with pattern Section286_122 or
@@ -101,7 +103,7 @@ scope Penalty286_83_135:
     offense.violation with pattern Section286_133 or
     offense.violation with pattern Section286_134
   consequence equals 30 day
-*/
+```
 
 (b) Any person who is convicted of violating section 286-102, 286-122, 286-130,
 286-131, 286-132, 286-133, or 286-134 shall be subject to a minimum fine of $500
@@ -109,7 +111,7 @@ and a maximum fine of $1,000, or imprisoned not more than one year, or both, if
 the person has two or more prior convictions for the same offense in the
 preceding five-year period.
 
-/*
+```catala
 scope Penalty286_83_135:
 
   # Under subsection (b) (1996), it is the date the defendant committed the current
@@ -137,7 +139,7 @@ scope Penalty286_83_135:
   definition max_days under condition
     paragraph_b_applies
   consequence equals 1 year
-*/
+```
 
 (c) Notwithstanding subsections (a) and (b), a minor under the age of eighteen
 under the jurisdiction of the family court who is subject to this section shall
@@ -145,7 +147,7 @@ either lose the right to drive a motor vehicle until the age of eighteen or be
 subject to a fine of $500. [L 1967, c 214, pt of §2; HRS §286-136; am L 1993, c
 214, §7; am L 1996, c 169, §3; am L 2003, c 69, §5]
 
-/*
+```catala
 scope Penalty286_83_135:
 
   rule paragraph_c_applies under condition
@@ -154,7 +156,9 @@ scope Penalty286_83_135:
     defendant.age < 18 # and minor and under the jurisdiction etc.
   consequence fulfilled
 
-  # TODO: Is this an exclusive or? Or an and/or?
+  # TODO: use a boolean xor
   exception definition fine_ok under condition paragraph_c_applies
-  consequence equals (fine = $500 xor loses_right_to_drive_until_18)
-*/
+  # TODO: = and != are usually left-associative
+  consequence equals ((fine = $500) != loses_right_to_drive_until_18)
+
+```
