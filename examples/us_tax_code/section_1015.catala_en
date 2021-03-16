@@ -51,7 +51,7 @@ scope BasisOfGift:
       transferor.basis
 
   definition basis under condition
-    acquisition.moment > |12/31/1920| and
+    acquisition.moment > |1920-31-12| and
     acquisition.method = Gift
   consequence equals basis_subsection_a
 ```
@@ -68,7 +68,7 @@ scope BasisOfGift:
 
 ```catala
 scope BasisOfGift under condition
-  acquisition.moment > |01/31/1920| and
+  acquisition.moment > |1920-31-01| and
   acquisition.method = Gift:
 
   definition transferor.basis equals
@@ -88,7 +88,7 @@ made.
 
 ```catala
 scope BasisOfGift under condition
-  acquisition.moment > |01/31/1920| and
+  acquisition.moment > |1920-31-01| and
   acquisition.method = Trust:
 
   definition basis equals
@@ -102,7 +102,7 @@ If the property was acquired by gift or transfer in trust on or before December
 of such acquisition.
 
 ```catala
-scope BasisOfGift under condition acquisition.moment <= |01/31/1920|:
+scope BasisOfGift under condition acquisition.moment <= |1920-31-01|:
   definition basis equals
     value.fair_market of acquisition.moment
 ```
@@ -117,7 +117,7 @@ amount of gift tax paid with respect to such gift, or
 
 ```catala
 scope BasisOfGift under condition
-  acquisition.moment >= |09/02/1958| and
+  acquisition.moment >= |1958-02-09| and
   acquisition.method = Gift:
 
   definition basis equals
@@ -139,7 +139,7 @@ gift.
 
 ```catala
 scope BasisOfGift under condition
-  acquisition.moment < |09/02/1958| and
+  acquisition.moment < |1958-02-09| and
   acquisition.method = Gift and
   acquisition.no_sale_or_exchange_before:
 
@@ -222,7 +222,7 @@ bears the same ratio to the amount of tax so paid as—
 
 ```catala
 scope BasisOfGift under condition
-  acquisition.moment > |09/02/1976| and
+  acquisition.moment > |1976-02-09| and
   acquisition.method = Gift:
 
   definition basis_bonus_after_1976 equals
