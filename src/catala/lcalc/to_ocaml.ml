@@ -56,7 +56,7 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | And -> Format.fprintf fmt "%s" "&&"
   | Or -> Format.fprintf fmt "%s" "||"
   | Eq -> Format.fprintf fmt "%s" "="
-  | Neq -> Format.fprintf fmt "%s" "<>"
+  | Neq | Xor -> Format.fprintf fmt "%s" "<>"
   | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
@@ -245,7 +245,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             format_with_parens e1
       | Some s ->
           Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)) )
+            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)))
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))

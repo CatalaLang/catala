@@ -288,6 +288,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "||" ->
       update_acc lexbuf;
       OR
+  | "xor" ->
+      update_acc lexbuf;
+      XOR
   | "not" ->
       update_acc lexbuf;
       NOT
