@@ -12,28 +12,28 @@ CATALA=dune exec --no-print-director ../../src/catala/catala.exe -- \
 ##########################################
 
 %.run: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
-	@$(CATALA) \
+	$(CATALA) Makefile $<
+	$(CATALA) \
 		Interpret \
 		-s $(SCOPE) \
 		$<
 
 %.ml: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
-	@$(CATALA) \
+	$(CATALA) Makefile $<
+	$(CATALA) \
 		OCaml \
 		$<
 
 
 %.tex: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
 		LaTeX \
 		$<
 
 %.html: %.catala_$(CATALA_LANG) 
-	@$(CATALA) Makefile $<
+	$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
 	HTML \

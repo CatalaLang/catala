@@ -50,6 +50,34 @@ declaration scope Section121SinglePerson:
   context section_121_b_3_applies condition
   context other_section_121a_sale content OtherSection121aSale
 
+  # Moving on to data needed by 5.
+  # 5. refines everything before by introducing a notion of qualified gain,
+  # which is what (surprise!) everything before should have been referring to.
+  # Example: 350k of gain, gain cap is 250k, taxpayer used the property only 2/3
+  # of the time as their principal residence -- the taxpayer still gets to
+  # exclude 250k from their income (NOT 250k * 2/3)
+
+  # SL, JP: we do not bother with (b)(5)(C) and assume that the taxpayer will
+  # already provide a set of time periods where their use of the residence is
+  # "nonqualified" -- the rationale is that it's too onerous to have them tick
+  # boxes for each time period to try to determine whether it's a nonqualified
+  # use
+  # SL, JP: also not worth bothering with periods of nonqualified use when the
+  # property was not owned -- if the taxpayer lived at the same place without
+  # owning it, that's a corner case and we will request "periods of nonqualified
+  # use following the purchase of the main residence".
+  # TODO: is this ok seeing that for aggregate_periods_from_last_five_years the
+  # approach is slightly different?
+  # TODO: figure out whether all references to gain_from_sale_or_exchange_of_property
+  # have been suitably transformed into references to qualified_gain_from_sale_or_exchange_of_property
+  # input:
+  context periods_of_nonqualified_use_while_property_was_owned content collection Period
+  # internal:
+  context non_qualified_to_qualified_ratio content decimal
+  context days_of_nonqualified_use_while_property_was_owned content duration
+  # output:
+  context qualified_gain_from_sale_or_exchange_of_property content money
+
 declaration structure PersonalData:
   data property_ownage content collection Period
   data property_usage_as_principal_residence
@@ -83,7 +111,7 @@ declaration scope Section121TwoPersons:
   context return_type content ReturnType
   context return_date content date
   context date_of_sale_or_exchange content date
-  context gain_from_sale_or_exchange_of_property content money
+  context qualified_gain_from_sale_or_exchange_of_property content money
   context income_excluded_from_gross_income_uncapped content money
   context income_excluded_from_gross_income content money
   context period_merge scope PeriodMerge
@@ -115,10 +143,10 @@ scope Section121TwoPersons:
   definition section121Person2.property_usage_as_principal_residence equals
     person1.property_usage_as_principal_residence
 
-  definition section121Person1.gain_from_sale_or_exchange_of_property equals
-    gain_from_sale_or_exchange_of_property
-  definition section121Person2.gain_from_sale_or_exchange_of_property equals
-    gain_from_sale_or_exchange_of_property
+  definition section121Person1.qualified_gain_from_sale_or_exchange_of_property equals
+    qualified_gain_from_sale_or_exchange_of_property
+  definition section121Person2.qualified_gain_from_sale_or_exchange_of_property equals
+    qualified_gain_from_sale_or_exchange_of_property
 
   definition section121Person1.other_section_121a_sale equals
     person1.other_section_121a_sale
@@ -135,7 +163,7 @@ declaration scope Section121TwoPasses:
   context return_type content ReturnType
   context return_date content date
   context date_of_sale_or_exchange content date
-  context gain_from_sale_or_exchange_of_property content money
+  context qualified_gain_from_sale_or_exchange_of_property content money
   context period_merge scope PeriodMerge
   context income_excluded_from_gross_income content money
 
@@ -147,10 +175,10 @@ scope Section121TwoPasses:
   definition first_pass.return_date equals return_date
   definition second_pass.return_date equals return_date
 
-  definition first_pass.gain_from_sale_or_exchange_of_property equals
-    gain_from_sale_or_exchange_of_property
-  definition second_pass.gain_from_sale_or_exchange_of_property equals
-    gain_from_sale_or_exchange_of_property
+  definition first_pass.qualified_gain_from_sale_or_exchange_of_property equals
+    qualified_gain_from_sale_or_exchange_of_property
+  definition second_pass.qualified_gain_from_sale_or_exchange_of_property equals
+    qualified_gain_from_sale_or_exchange_of_property
 
   definition first_pass.date_of_sale_or_exchange equals date_of_sale_or_exchange
   definition second_pass.date_of_sale_or_exchange equals date_of_sale_or_exchange
@@ -203,7 +231,7 @@ scope Section121SinglePerson:
   consequence fulfilled
 
   definition income_excluded_from_gross_income_uncapped equals
-    if requirements_met then gain_from_sale_or_exchange_of_property
+    if requirements_met then qualified_gain_from_sale_or_exchange_of_property
     else $0
 
 scope Section121TwoPersons:
@@ -407,6 +435,19 @@ scope Section121TwoPasses under condition
 Subsection (a) shall not apply to so much of the gain from the sale or exchange
 of property as is allocated to periods of nonqualified use.
 
+```catala
+scope Section121SinglePerson:
+
+  # JP, SL: this can be computed either using days or months; one might be more
+  # optimal than the other for the taxpayer; but the IRS has published a
+  # worksheet that uses days; so we decide, for now, to follow that, and leave a
+  # mechanism to offer a choice of days vs. months to later
+  definition days_of_nonqualified_use_while_property_was_owned equals
+    sum duration for period in periods_of_nonqualified_use_while_property_was_owned of (
+      period.end -@ period.begin
+    )
+```
+
 ##### [(B) Gain allocated to periods of nonqualified use]
 
 For purposes of subparagraph (A), gain shall be allocated to periods of
@@ -416,6 +457,19 @@ nonqualified use based on the ratio which—
 was owned by the taxpayer, bears to
 
 (ii) the period such property was owned by the taxpayer.
+
+
+```catala
+scope Section121SinglePerson:
+
+  definition non_qualified_to_qualified_ratio equals
+    # TODO: no division operator for durations!
+    days_of_nonqualified_use_while_property_was_owned /^
+    aggregate_periods_from_last_five_years
+
+  definition qualified_gain_from_sale_or_exchange_of_property equals
+    gain_from_sale_or_exchange_of_property *$ (1 - non_qualified_to_qualified_ratio)
+```
 
 ##### (C) Period of nonqualified use
 
@@ -431,6 +485,11 @@ spouse.
 ###### [(ii) Exceptions]
 
 The term “period of nonqualified use” does not include—
+
+```catala
+# basically, the time between moving out and closing on the sale does not count
+# as nonqualified use
+```
 
 (I) any portion of the 5-year period described in subsection (a) which is after
 the last date that such property is used as the principal residence of the
