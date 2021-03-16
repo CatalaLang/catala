@@ -294,7 +294,7 @@ struct_or_enum_inject:
   logical_op:
   | AND { (And, Pos.from_lpos $sloc) }
   | OR { (Or, Pos.from_lpos $sloc) }
-  | XOR { (Neq, Pos.from_lpos $sloc) }
+  | XOR { (Xor, Pos.from_lpos $sloc) }
 
   logical_unop:
   | NOT { (Not, Pos.from_lpos $sloc) }

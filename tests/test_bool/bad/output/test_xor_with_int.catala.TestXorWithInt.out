@@ -1,15 +1,12 @@
 [ERROR] Error during typechecking, incompatible types:
-[ERROR] --> integer
 [ERROR] --> bool
+[ERROR] --> integer
 [ERROR]
 [ERROR] Error coming from typechecking the following expression:
-[ERROR] No position information
-[ERROR]
-[ERROR] Type integer coming from expression:
 [ERROR]  --> test_bool/bad/test_xor_with_int.catala
 [ERROR]   |
-[ERROR] 4 | new scope TestXorWithInt :
-[ERROR]   |           ^^^^^^^^^^^^^^
+[ERROR] 8 |   def test_var := 10 xor 20
+[ERROR]   |                   ^^^^^^^^^
 [ERROR]   + 'xor' should be a boolean operator
 [ERROR]
 [ERROR] Type bool coming from expression:
@@ -17,4 +14,11 @@
 [ERROR]   |
 [ERROR] 8 |   def test_var := 10 xor 20
 [ERROR]   |                      ^^^
+[ERROR]   + 'xor' should be a boolean operator
+[ERROR]
+[ERROR] Type integer coming from expression:
+[ERROR]  --> test_bool/bad/test_xor_with_int.catala
+[ERROR]   |
+[ERROR] 8 |   def test_var := 10 xor 20
+[ERROR]   |                   ^^
 [ERROR]   + 'xor' should be a boolean operator
