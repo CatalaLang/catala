@@ -14,9 +14,9 @@ champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé  égal à
     contenu maximum entier initial Enfant {
       -- identifiant: -1
-      -- fin_obligation_scolaire: |01/01/1900|
+      -- fin_obligation_scolaire: |1900-01-01|
       -- rémuneration_mensuelle: 0€
-      -- date_de_naissance: |01/01/1900|
+      -- date_de_naissance: |1900-01-01|
       -- âge: 0
       -- garde_alternée: NonGardeUnique
       -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
@@ -123,7 +123,7 @@ champ d'application InterfaceAllocationsFamiliales:
         enfant.d_prise_en_charge_par_services_sociaux
       -- garde_alternée : enfant.d_garde_alternée
       -- âge: accès_année de
-        (|01/01/0000| +@ (date_courante -@ enfant.d_date_de_naissance))
+        (|0000-01-01| +@ (date_courante -@ enfant.d_date_de_naissance))
       -- fin_obligation_scolaire : enfant.d_date_de_naissance +@ 16 an
     }
 ```

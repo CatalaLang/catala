@@ -7,7 +7,7 @@ new scope A:
   param z content duration
 
 scope A:
-  def x := |01/01/2019|
-  def y := |09/30/2002|
+  def x := |2019-01-01|
+  def y := |2002-09-30|
   def z := x -@ y
 ```
