@@ -22,12 +22,12 @@ declaration scope Defendant:
   # A number of years
   context age content integer
 
-declaration struct PenaltyTimeAndDays:
+declaration structure PenaltyTimeAndDays:
   data min_fine content money
   data max_fine content money
   data max_days content duration
 
-declaration enum Penalty:
+declaration enumeration Penalty:
   -- TimeAndDays content PenaltyTimeAndDays
   -- Fine500OrLoseRightToDriveUntil18
 
@@ -35,12 +35,14 @@ declaration scope Penalty286_83_135:
 
   # Inputs:
 
-  context fine content money
-  context days content duration
   context offense content Offense
   context defendant scope Defendant
 
   # Internal:
+
+  context max_fine content money
+  context min_fine content money
+  context max_days content duration
 
   context priors_same_offense content integer
 
@@ -73,16 +75,20 @@ scope Penalty286_83_135:
 
   definition min_fine equals $0
   definition max_fine equals $1000
-  definition max_days equals 30
+  label max_days_paragraph_a
+  definition max_days under condition
+    paragraph_a_applies
+  consequence equals
+    30 day
 
   definition penalty equals
-    PenaltyTimeAndDays {
+    TimeAndDays content (PenaltyTimeAndDays {
       -- min_fine: min_fine
       -- max_fine: max_fine
       -- max_days: max_days
-    }
+    })
 
-  exception definition max_days under condition
+  exception max_days_paragraph_a definition max_days under condition
     paragraph_a_applies and
     offense.violation with pattern Section286_102 or
     offense.violation with pattern Section286_122 or
@@ -145,6 +151,7 @@ scope Penalty286_83_135:
     defendant.age < 18 # and minor and under the jurisdiction etc.
   consequence fulfilled
 
-  exception definition penalty under condition paragraph_c_applies equals
+  exception definition penalty under condition paragraph_c_applies
+  consequence equals
     Fine500OrLoseRightToDriveUntil18
 ```
