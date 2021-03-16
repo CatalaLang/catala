@@ -75,7 +75,7 @@ champ d'application AllocationFamilialesAvril2008:
 
 champ d'application AllocationsFamiliales :
   définition âge_limite_alinéa_1_l521_3 de enfant
-  sous condition (enfant.date_de_naissance +@ 11 an <=@ |30/04/2008|)
+  sous condition (enfant.date_de_naissance +@ 11 an <=@ |2008-04-30|)
   conséquence égal à
     version_avril_2008.âge_limite_alinéa_1_l521_3
 ```

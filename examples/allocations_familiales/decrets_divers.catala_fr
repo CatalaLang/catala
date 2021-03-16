@@ -22,8 +22,8 @@ familiales, est ainsi porté de 411,92 € à 413,16 € au 1er avril 2019.
 champ d'application PrestationsFamiliales :
   définition base_mensuelle
   sous condition
-    date_courante >=@ |01/04/2019| et
-    date_courante <@ |01/04/2020|
+    date_courante >=@ |2019-04-01| et
+    date_courante <@ |2020-04-01|
   conséquence égal à 413,16 €
 ```
 
@@ -46,8 +46,8 @@ est ainsi porté de 413,16 € à 414,4 € au 1er avril 2020.
 champ d'application PrestationsFamiliales :
   définition base_mensuelle
   sous condition
-    date_courante >=@ |01/04/2020| et
-    date_courante <@ |01/04/2021|
+    date_courante >=@ |2020-04-01| et
+    date_courante <@ |2021-04-01|
   conséquence égal à 414,4 €
 ```
 
@@ -75,14 +75,14 @@ tranche est celle dont les revenus sont supérieurs au plafond de base de
 champ d'application AllocationsFamiliales :
   exception
   définition plafond_I_d521_3 sous condition
-    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
+    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à 57 759 € +€
     5 775 € *€ (entier_vers_décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 
   exception
   définition plafond_II_d521_3 sous condition
-    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020|
+    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à 80 831 € +€
     5 775 € *€ (entier_vers_décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
@@ -105,7 +105,7 @@ son montant est porté à 10,03 € l'heure.
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -123,7 +123,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2019| et date_courante <=@ |31/12/2019| et (
+    date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,57 €
@@ -144,7 +144,7 @@ son montant est porté à 10,15 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
+    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -162,7 +162,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2020| et date_courante <=@ |31/12/2020| et (
+    date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,66 €
@@ -183,7 +183,7 @@ son montant est porté à 10,25 € l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021| et (
+    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -201,7 +201,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021| et (
+    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31| et (
       (résidence = Mayotte)
     )
   conséquence égal à 7,74 €
@@ -221,7 +221,7 @@ décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
 champ d'application AllocationsFamiliales :
   exception
   définition plafond_I_d521_3 sous condition
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31|
   conséquence égal à 58 279 € +€
     5 827 € *€ (entier_vers_décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
@@ -237,7 +237,7 @@ décembre 2021. Il est majoré de 5 827 euros par enfant à charge.
 champ d'application AllocationsFamiliales :
   exception
   définition plafond_II_d521_3 sous condition
-    date_courante >=@ |01/01/2021| et date_courante <=@ |31/12/2021|
+    date_courante >=@ |2021-01-01| et date_courante <=@ |2021-12-31|
   conséquence égal à 81 558 € +€
     5 827 € *€ (entier_vers_décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))

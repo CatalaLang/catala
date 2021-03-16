@@ -16,20 +16,20 @@ declaration scope Data:
   context person_ko_2 content PersonalData
 
 scope Data:
-  definition date_of_sale_or_exchange equals |01/01/2021|
-  definition return_date equals |01/01/2021|
+  definition date_of_sale_or_exchange equals |2021-01-01|
+  definition return_date equals |2021-01-01|
   definition gain_from_sale_or_exchange_of_property equals $350,000
   definition period_four_years_recent equals Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2021|
+    -- begin: |2017-01-01|
+    -- end: |2021-01-01|
   }
   definition period_one_year_recent equals Period {
-    -- begin: |01/01/2019|
-    -- end: |01/01/2020|
+    -- begin: |2019-01-01|
+    -- end: |2020-01-01|
   }
   definition period_two_years_middle equals Period {
-    -- begin: |01/01/2015|
-    -- end: |01/02/2017|
+    -- begin: |2015-01-01|
+    -- end: |2017-01-02|
   }
   definition person_ok_1 equals PersonalData {
     -- property_ownage: [period_four_years_recent]
