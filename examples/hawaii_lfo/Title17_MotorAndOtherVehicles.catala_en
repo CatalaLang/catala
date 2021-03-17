@@ -17,10 +17,10 @@ declaration structure Offense:
   data date_of content date
   data violation content Violation_83_135
 
-declaration scope Defendant:
-  context priors content collection Offense
+declaration structure Defendant:
+  data priors content collection Offense
   # A number of years
-  context age content integer
+  data age content integer
 
 declaration structure PenaltyTimeAndDays:
   data min_fine content money
@@ -36,7 +36,7 @@ declaration scope Penalty286_83_135:
   # Inputs:
 
   context offense content Offense
-  context defendant scope Defendant
+  context defendant content Defendant
 
   # Internal:
 
