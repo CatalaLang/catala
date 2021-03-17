@@ -21,16 +21,14 @@ let random_children (id : int) =
     d_remuneration_mensuelle = money_of_units_int (Random.int 2000);
     d_date_de_naissance =
       date_of_numbers (2020 - Random.int 22) (1 + Random.int 12) (1 + Random.int 28);
-    d_garde_alternee =
-      ( match Random.int 3 with
-      | 0 -> AF.NonGardeUnique ()
-      | 1 -> AF.OuiPartageAllocations ()
-      | _ -> AF.OuiAllocataireUnique () );
-    d_prise_en_charge_par_services_sociaux =
-      ( match Random.int 3 with
-      | 0 -> AF.OuiAllocationVerseeALaFamille ()
-      | 1 -> AF.OuiAllocationVerseeAuxServicesSociaux ()
-      | _ -> AF.NonPriseEnChargeFamille () );
+    d_prise_en_charge =
+      ( match Random.int 5 with
+      | 0 -> AF.EffectiveEtPermanente ()
+      | 1 -> AF.GardeAlterneePartageAllocations ()
+      | 2 -> AF.GardeAlterneeAllocataireUnique ()
+      | 3 -> AF.ServicesSociauxAllocationVerseeALaFamille ()
+      | _ -> AF.ServicesSociauxAllocationVerseeAuxServicesSociaux () );
+    d_a_deja_ouvert_droit_aux_allocations_familiales = true;
   }
 
 let format_residence (fmt : Format.formatter) (r : AF.collectivite) : unit =
@@ -46,20 +44,15 @@ let format_residence (fmt : Format.formatter) (r : AF.collectivite) : unit =
     | AF.SaintMartin _ -> "Saint Martin"
     | AF.Mayotte _ -> "Mayotte" )
 
-let format_garde_alternee (fmt : Format.formatter) (g : AF.garde_alternee) : unit =
+let format_prise_en_charge (fmt : Format.formatter) (g : AF.prise_en_charge) : unit =
   Format.fprintf fmt "%s"
     ( match g with
-    | AF.NonGardeUnique _ -> "Non"
-    | AF.OuiPartageAllocations _ -> "Oui, allocations partagée"
-    | AF.OuiAllocataireUnique _ -> "Oui, allocataire unique" )
-
-let format_services_sociaux (fmt : Format.formatter) (g : AF.prise_en_charge_service_sociaux) : unit
-    =
-  Format.fprintf fmt "%s"
-    ( match g with
-    | AF.OuiAllocationVerseeALaFamille _ -> "Oui, allocations versée à la famille"
-    | AF.OuiAllocationVerseeAuxServicesSociaux _ -> "Oui, allocations versée aux services sociaux"
-    | AF.NonPriseEnChargeFamille _ -> "Non" )
+    | AF.EffectiveEtPermanente _ -> "Effective et permanente"
+    | AF.GardeAlterneePartageAllocations _ -> "Garde alternée, allocations partagée"
+    | AF.GardeAlterneeAllocataireUnique _ -> "Garde alternée, allocataire unique"
+    | AF.ServicesSociauxAllocationVerseeALaFamille _ -> "Oui, allocations versée à la famille"
+    | AF.ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
+        "Oui, allocations versée aux services sociaux" )
 
 let num_successful = ref 0
 
@@ -74,24 +67,20 @@ let run_test () =
   try
     let amount =
       French_law.Api.compute_allocations_familiales ~current_date ~income ~residence ~children
+        ~is_parent:true ~fills_title_I:true
     in
     incr num_successful;
     total_amount := Float.add !total_amount amount
   with
-  | EmptyError ->
-      Format.printf "Empty error reached!\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
+  | NoValueProvided ->
+      Format.printf
+        "No value provided somewhere!\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
         (Format.pp_print_list (fun fmt child ->
-             Format.fprintf fmt
-               "Child %d:\n\
-               \  income: %.2f\n\
-               \  birth date: %s\n\
-               \  garde alternée: %a\n\
-               \  services sociaux: %a"
+             Format.fprintf fmt "Child %d:\n  income: %.2f\n  birth date: %s\n  prise en charge: %a"
                (integer_to_int child.AF.d_identifiant)
                (money_to_float child.AF.d_remuneration_mensuelle)
                (Runtime.date_to_string child.AF.d_date_de_naissance)
-               format_garde_alternee child.AF.d_garde_alternee format_services_sociaux
-               child.AF.d_prise_en_charge_par_services_sociaux))
+               format_prise_en_charge child.AF.d_prise_en_charge))
         (Array.to_list children) income
         (Runtime.date_to_string current_date)
         format_residence residence;

@@ -71,7 +71,7 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   match Pos.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
-  | ErrorOnEmpty -> Format.fprintf fmt "%s" "error_empty"
+  | ErrorOnEmpty -> assert false (* should not happen *)
   | Log (entry, infos) ->
       Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
         (Format.pp_print_list
@@ -296,6 +296,9 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
+  | EApp ((EOp (Unop D.ErrorOnEmpty), _), [ arg1 ]) ->
+      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ EmptyError ->@ raise NoValueProvided@]"
+        format_with_parens arg1
   | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1

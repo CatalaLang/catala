@@ -24,6 +24,8 @@ type duration = CalendarLib.Date.Period.t
 
 exception EmptyError
 
+exception NoValueProvided
+
 exception AssertionFailed
 
 exception ConflictError
@@ -126,8 +128,6 @@ let duration_to_string (d : duration) : string =
         to_print
 
 let duration_to_days_months_years (d : duration) : int * int * int = CalendarLib.Date.Period.ymd d
-
-let error_empty : 'a. 'a -> 'a = fun x -> x
 
 let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =
  fun exceptions just cons ->

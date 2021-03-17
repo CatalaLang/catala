@@ -17,7 +17,8 @@ module AF = Allocations_familiales
 open Runtime
 
 let compute_allocations_familiales ~(current_date : Runtime.date)
-    ~(children : AF.enfant_entree array) ~(income : int) ~(residence : AF.collectivite) : float =
+    ~(children : AF.enfant_entree array) ~(income : int) ~(residence : AF.collectivite)
+    ~(is_parent : bool) ~(fills_title_I : bool) : float =
   let result =
     AF.interface_allocations_familiales
       {
@@ -27,6 +28,8 @@ let compute_allocations_familiales ~(current_date : Runtime.date)
         AF.ressources_menage_in = (fun _ -> money_of_units_int income);
         AF.residence_in = (fun _ -> residence);
         AF.montant_verse_in = no_input;
+        AF.personne_charge_effective_permanente_est_parent_in = (fun _ -> is_parent);
+        AF.personne_charge_effective_permanente_remplit_titre_I_in = (fun _ -> fills_title_I);
       }
   in
   money_to_float result.AF.montant_verse_out

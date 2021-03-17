@@ -19,5 +19,7 @@ val compute_allocations_familiales :
   children:Allocations_familiales.enfant_entree array ->
   income:int ->
   residence:Allocations_familiales.collectivite ->
+  is_parent:bool ->
+  fills_title_I:bool ->
   float
 (** Usage *)

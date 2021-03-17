@@ -370,8 +370,8 @@ partir de onze ans et à 5,67 p. 100 à partir de seize ans.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  exception base_âge_limite_alinéa_1_l521_3
-  définition âge_limite_alinéa_1_l521_3 de enfant
+  exception decret_2008_âge_minimum_alinéa_1_l521_3
+  définition âge_minimum_alinéa_1_l521_3 de enfant
   sous condition prestations_familiales.régime_outre_mer_l751_1
   conséquence égal à 11
 

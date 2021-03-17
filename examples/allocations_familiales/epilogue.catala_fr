@@ -14,19 +14,15 @@ champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé  égal à
     contenu maximum entier initial Enfant {
       -- identifiant: -1
-      -- fin_obligation_scolaire: |1900-01-01|
+      -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
       -- date_de_naissance: |1900-01-01|
       -- âge: 0
-      -- garde_alternée: NonGardeUnique
-      -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
+      -- prise_en_charge: EffectiveEtPermanente
+      -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
     }
-    pour potentiel_plus_âgé dans enfants de
-    potentiel_plus_âgé.âge
+    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.âge
 
-
-champ d'application PrestationsFamiliales:
-  définition âge_l512_3_2_alternatif égal à Absent
 
 champ d'application AllocationsFamiliales:
   définition montant_initial_majoration de enfant sous condition
@@ -75,9 +71,8 @@ déclaration structure EnfantEntrée:
   donnée d_identifiant contenu entier
   donnée d_rémuneration_mensuelle contenu argent
   donnée d_date_de_naissance contenu date
-  donnée d_garde_alternée contenu GardeAlternée
-  donnée d_prise_en_charge_par_services_sociaux contenu
-    PriseEnChargeServiceSociaux
+  donnée d_prise_en_charge contenu PriseEnCharge
+  donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
   contexte date_courante contenu date
@@ -87,6 +82,8 @@ déclaration champ d'application InterfaceAllocationsFamiliales:
   contexte ressources_ménage contenu argent
   contexte résidence contenu Collectivité
   contexte montant_versé contenu argent
+  contexte personne_charge_effective_permanente_est_parent condition
+  contexte personne_charge_effective_permanente_remplit_titre_I condition
 
 champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.date_courante égal à date_courante
@@ -94,10 +91,12 @@ champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.ressources_ménage égal à ressources_ménage
   définition allocations_familiales.résidence égal à résidence
   définition montant_versé égal à allocations_familiales.montant_versé
-  assertion non (existe enfant dans enfants tel que
-    enfant.d_garde_alternée != NonGardeUnique et
-    enfant.d_prise_en_charge_par_services_sociaux != NonPriseEnChargeFamille
-  )
+  règle allocations_familiales.personne_charge_effective_permanente_est_parent
+    sous condition personne_charge_effective_permanente_est_parent conséquence
+    rempli
+  règle allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
+    sous condition personne_charge_effective_permanente_remplit_titre_I conséquence
+    rempli
 ```
 
 > Fin métadonnées
@@ -119,11 +118,16 @@ champ d'application InterfaceAllocationsFamiliales:
       -- identifiant : enfant.d_identifiant
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
-      -- prise_en_charge_par_services_sociaux :
-        enfant.d_prise_en_charge_par_services_sociaux
-      -- garde_alternée : enfant.d_garde_alternée
+      -- prise_en_charge : enfant.d_prise_en_charge
       -- âge: accès_année de
         (|0000-01-01| +@ (date_courante -@ enfant.d_date_de_naissance))
-      -- fin_obligation_scolaire : enfant.d_date_de_naissance +@ 16 an
+      -- obligation_scolaire :
+        (si enfant.d_date_de_naissance +@ 3 an >=@ date_courante alors
+          Avant
+        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ date_courante alors
+          Pendant
+        sinon Après))
+      -- a_déjà_ouvert_droit_aux_allocations_familiales:
+        enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
     }
 ```

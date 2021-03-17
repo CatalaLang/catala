@@ -19,6 +19,6 @@
 [ERROR] Type money coming from expression:
 [ERROR]  --> test_money/bad/no_mingle.catala
 [ERROR]   | 
-[ERROR] 6 |   param y content money 
+[ERROR] 6 |   param y content money
 [ERROR]   |                   ^^^^^
 [ERROR]   + Article

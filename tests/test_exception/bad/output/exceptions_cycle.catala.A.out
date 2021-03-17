@@ -10,7 +10,7 @@
 [ERROR] Used here in the definition of another cycle exception exception_x:
 [ERROR]   --> test_exception/bad/exceptions_cycle.catala
 [ERROR]    | 
-[ERROR] 17 |   exception exception_x 
+[ERROR] 17 |   exception exception_x
 [ERROR]    |             ^^^^^^^^^^^
 [ERROR]    + Test
 [ERROR] 

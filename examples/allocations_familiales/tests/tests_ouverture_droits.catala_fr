@@ -14,39 +14,39 @@ déclaration champ d'application Données:
 champ d'application Données:
   définition enfant1 égal à Enfant {
     -- identifiant: 1
-    -- fin_obligation_scolaire : |2023-08-01|
+    -- obligation_scolaire : Pendant
     -- date_de_naissance: |2007-01-01|
     -- âge: 13
     -- rémuneration_mensuelle: 0€
-    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant2 égal à Enfant {
     -- identifiant: 2
-    -- fin_obligation_scolaire : |2019-08-01|
+    -- obligation_scolaire : Après
     -- date_de_naissance: |2003-01-01|
     -- âge: 18
     -- rémuneration_mensuelle: 1000€
-    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant3 égal à Enfant {
     -- identifiant: 3
-    -- fin_obligation_scolaire : |2019-08-01|
+    -- obligation_scolaire : Après
     -- date_de_naissance: |2003-01-01|
     -- âge: 18
     -- rémuneration_mensuelle: 400€
-    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant4 égal à Enfant {
     -- identifiant: 4
-    -- fin_obligation_scolaire : |2016-08-01|
+    -- obligation_scolaire : Après
     -- date_de_naissance: |1999-01-01|
     -- âge: 21
     -- rémuneration_mensuelle: 0€
-    -- prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
 
 déclaration champ d'application Test1:
@@ -54,7 +54,6 @@ déclaration champ d'application Test1:
   contexte f champ d'application PrestationsFamiliales
 
 champ d'application Test1:
-  définition f.âge_l512_3_2_alternatif égal à Absent
   définition f.date_courante égal à |2020-05-01|
   définition f.prestation_courante égal à AllocationsFamiliales
   définition f.résidence égal à Métropole

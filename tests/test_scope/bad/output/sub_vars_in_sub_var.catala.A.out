@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_scope/bad/sub_vars_in_sub_var.catala
 [ERROR]    | 
-[ERROR] 13 |   def a.y := if a.x then 0 else 1 
+[ERROR] 13 |   def a.y := if a.x then 0 else 1
 [ERROR]    |                 ^^^
 [ERROR]    +  Article 

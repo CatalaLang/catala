@@ -36,6 +36,8 @@ exception UncomparableDurations
 
 exception ImpossibleDate
 
+exception NoValueProvided
+
 (**{1 Constructors and conversions} *)
 
 (**{2 Money}*)
@@ -102,8 +104,6 @@ val duration_to_days_months_years : duration -> int * int * int
 val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
-
-val error_empty : 'a -> 'a
 
 val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
 (** @raise EmptyError

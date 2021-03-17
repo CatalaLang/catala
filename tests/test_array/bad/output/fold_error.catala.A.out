@@ -5,14 +5,14 @@
 [ERROR] Error coming from typechecking the following expression:
 [ERROR]   --> test_array/bad/fold_error.catala
 [ERROR]    | 
-[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7) 
+[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7)
 [ERROR]    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [ERROR]    + Article
 [ERROR] 
 [ERROR] Type money coming from expression:
 [ERROR]   --> test_array/bad/fold_error.catala
 [ERROR]    | 
-[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7) 
+[ERROR] 10 |   def list_high_count := number for m in list of (m >=$ $7)
 [ERROR]    |                                                     ^^^
 [ERROR]    + Article
 [ERROR] 
