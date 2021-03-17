@@ -69,6 +69,7 @@ let token_list_en : (string * token) list =
     ("that", THAT);
     ("and", AND);
     ("or", OR);
+    ("xor", XOR);
     ("not", NOT);
     ("maximum", MAXIMUM);
     ("minimum", MINIMUM);
@@ -246,6 +247,9 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "or" ->
       L.update_acc lexbuf;
       OR
+  | "xor" ->
+      L.update_acc lexbuf;
+      XOR
   | "not" ->
       L.update_acc lexbuf;
       NOT
