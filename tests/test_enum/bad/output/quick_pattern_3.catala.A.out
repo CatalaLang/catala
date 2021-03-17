@@ -1,6 +1,6 @@
 [ERROR] Error during typechecking, incompatible types:
-[ERROR] --> F [Case3: any[19] | Case4: any[20]]
-[ERROR] --> E [Case1: unit | Case2: unit]
+[ERROR] --> F
+[ERROR] --> E
 [ERROR] 
 [ERROR] Error coming from typechecking the following expression:
 [ERROR]   --> test_enum/bad/quick_pattern_3.catala
@@ -9,14 +9,14 @@
 [ERROR]    |          ^
 [ERROR]    + Article
 [ERROR] 
-[ERROR] Type F [Case3: any[19] | Case4: any[20]] coming from expression:
+[ERROR] Type F coming from expression:
 [ERROR]   --> test_enum/bad/quick_pattern_3.catala
 [ERROR]    | 
 [ERROR] 18 | def y := x with Case3
 [ERROR]    |          ^
 [ERROR]    + Article
 [ERROR] 
-[ERROR] Type E [Case1: unit | Case2: unit] coming from expression:
+[ERROR] Type E coming from expression:
 [ERROR]   --> test_enum/bad/quick_pattern_3.catala
 [ERROR]    | 
 [ERROR] 13 | param x content E
