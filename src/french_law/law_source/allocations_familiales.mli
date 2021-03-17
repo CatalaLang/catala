@@ -12,15 +12,16 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type garde_alternee =
-  | OuiPartageAllocations of unit
-  | OuiAllocataireUnique of unit
-  | NonGardeUnique of unit
+open Runtime
 
-type prise_en_charge_service_sociaux =
-  | OuiAllocationVerseeALaFamille of unit
-  | OuiAllocationVerseeAuxServicesSociaux of unit
-  | NonPriseEnChargeFamille of unit
+type prise_en_charge =
+  | GardeAlterneePartageAllocations of unit
+  | GardeAlterneeAllocataireUnique of unit
+  | EffectiveEtPermanente of unit
+  | ServicesSociauxAllocationVerseeALaFamille of unit
+  | ServicesSociauxAllocationVerseeAuxServicesSociaux of unit
+
+type situation_obligation_scolaire = Avant of unit | Pendant of unit | Apres of unit
 
 type collectivite =
   | Guadeloupe of unit
@@ -33,12 +34,6 @@ type collectivite =
   | SaintPierreEtMiquelon of unit
   | Mayotte of unit
 
-type prise_en_compte_evaluation_montant = Complete of unit | Partagee of unit
-
-type versement_allocations = Normal of unit | AllocationVerseeAuxServicesSociaux of unit
-
-type age_alternatif = Absent of unit | Present of Runtime.integer
-
 type element_prestations_familiales =
   | PrestationAccueilJeuneEnfant of unit
   | AllocationsFamiliales of unit
@@ -49,44 +44,44 @@ type element_prestations_familiales =
   | AllocationRentreeScolaire of unit
   | AllocationJournalierePresenceParentale of unit
 
-type personne = { numero_securite_sociale : Runtime.integer }
-
 type enfant_entree = {
-  d_identifiant : Runtime.integer;
-  d_remuneration_mensuelle : Runtime.money;
-  d_date_de_naissance : Runtime.date;
-  d_garde_alternee : garde_alternee;
-  d_prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  d_identifiant : integer;
+  d_remuneration_mensuelle : money;
+  d_date_de_naissance : date;
+  d_prise_en_charge : prise_en_charge;
+  d_a_deja_ouvert_droit_aux_allocations_familiales : bool;
 }
 
 type enfant = {
-  identifiant : Runtime.integer;
-  fin_obligation_scolaire : Runtime.date;
-  remuneration_mensuelle : Runtime.money;
-  date_de_naissance : Runtime.date;
-  age : Runtime.integer;
-  garde_alternee : garde_alternee;
-  prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  identifiant : integer;
+  obligation_scolaire : situation_obligation_scolaire;
+  remuneration_mensuelle : money;
+  date_de_naissance : date;
+  age : integer;
+  prise_en_charge : prise_en_charge;
+  a_deja_ouvert_droit_aux_allocations_familiales : bool;
 }
 
-type stockage_enfant = PasEnfant of unit | UnEnfant of enfant
-
 type interface_allocations_familiales_out = {
-  date_courante_out : Runtime.date;
+  date_courante_out : date;
   enfants_out : enfant_entree array;
   enfants_a_charge_out : enfant array;
-  ressources_menage_out : Runtime.money;
+  ressources_menage_out : money;
   residence_out : collectivite;
-  montant_verse_out : Runtime.money;
+  montant_verse_out : money;
+  personne_charge_effective_permanente_est_parent_out : bool;
+  personne_charge_effective_permanente_remplit_titre_I_out : bool;
 }
 
 type interface_allocations_familiales_in = {
-  date_courante_in : unit -> Runtime.date;
+  date_courante_in : unit -> date;
   enfants_in : unit -> enfant_entree array;
   enfants_a_charge_in : unit -> enfant array;
-  ressources_menage_in : unit -> Runtime.money;
+  ressources_menage_in : unit -> money;
   residence_in : unit -> collectivite;
-  montant_verse_in : unit -> Runtime.money;
+  montant_verse_in : unit -> money;
+  personne_charge_effective_permanente_est_parent_in : unit -> bool;
+  personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
 }
 
 val interface_allocations_familiales :

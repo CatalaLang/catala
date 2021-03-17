@@ -143,6 +143,10 @@ champ d'application AllocationsFamiliales :
       selon (prise_en_compte de enfant) sous forme
       -- Complète : 1,0
       -- Partagée : 0,5
+      # Pas directement dans cet arricle de loi, mais concerne le
+      # cas où l'enfant est pris en charge par les services sociaux et
+      # la part de l'allocation va également au service social
+      -- Zéro: 0,0
     )
 ```
 
@@ -179,6 +183,10 @@ champ d'application AllocationsFamiliales :
     selon (prise_en_compte de enfant) sous forme
     -- Complète : 100%
     -- Partagée : 50%
+    # Pas directement dans cet arricle de loi, mais concerne le
+    # cas où l'enfant est pris en charge par les services sociaux et
+    # la part de l'allocation va également au service social
+    -- Zéro: 0%
   )
 ```
 

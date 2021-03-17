@@ -252,12 +252,23 @@ champ d'application AllocationsFamiliales :
  définition prise_en_compte de enfant sous condition
     enfant.prise_en_charge sous forme
       ServicesSociauxAllocationVerséeAuxServicesSociaux
-  conséquence égal à PriseEnCompte.Complète
+  conséquence égal à PriseEnCompte.Zéro
 
   définition versement de enfant sous condition
     enfant.prise_en_charge sous forme
       ServicesSociauxAllocationVerséeAuxServicesSociaux
   conséquence égal à VersementAllocations.AllocationVerséeAuxServicesSociaux
+
+  définition prise_en_compte de enfant sous condition
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeÀLaFamille
+  conséquence égal à PriseEnCompte.Complète
+
+
+  définition versement de enfant sous condition
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeÀLaFamille
+  conséquence égal à VersementAllocations.Normal
 ```
 
 Un décret en Conseil d'Etat fixe les conditions d'application du présent

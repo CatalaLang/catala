@@ -4,15 +4,14 @@ open Runtime
 
 [@@@ocaml.warning "-26-27"]
 
-type garde_alternee =
-  | OuiPartageAllocations of unit
-  | OuiAllocataireUnique of unit
-  | NonGardeUnique of unit
+type prise_en_charge =
+  | GardeAlterneePartageAllocations of unit
+  | GardeAlterneeAllocataireUnique of unit
+  | EffectiveEtPermanente of unit
+  | ServicesSociauxAllocationVerseeALaFamille of unit
+  | ServicesSociauxAllocationVerseeAuxServicesSociaux of unit
 
-type prise_en_charge_service_sociaux =
-  | OuiAllocationVerseeALaFamille of unit
-  | OuiAllocationVerseeAuxServicesSociaux of unit
-  | NonPriseEnChargeFamille of unit
+type situation_obligation_scolaire = Avant of unit | Pendant of unit | Apres of unit
 
 type collectivite =
   | Guadeloupe of unit
@@ -25,11 +24,9 @@ type collectivite =
   | SaintPierreEtMiquelon of unit
   | Mayotte of unit
 
-type prise_en_compte_evaluation_montant = Complete of unit | Partagee of unit
+type prise_en_compte = Complete of unit | Partagee of unit | Zero of unit
 
 type versement_allocations = Normal of unit | AllocationVerseeAuxServicesSociaux of unit
-
-type age_alternatif = Absent of unit | Present of integer
 
 type element_prestations_familiales =
   | PrestationAccueilJeuneEnfant of unit
@@ -41,27 +38,23 @@ type element_prestations_familiales =
   | AllocationRentreeScolaire of unit
   | AllocationJournalierePresenceParentale of unit
 
-type personne = { numero_securite_sociale : integer }
-
 type enfant_entree = {
   d_identifiant : integer;
   d_remuneration_mensuelle : money;
   d_date_de_naissance : date;
-  d_garde_alternee : garde_alternee;
-  d_prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  d_prise_en_charge : prise_en_charge;
+  d_a_deja_ouvert_droit_aux_allocations_familiales : bool;
 }
 
 type enfant = {
   identifiant : integer;
-  fin_obligation_scolaire : date;
+  obligation_scolaire : situation_obligation_scolaire;
   remuneration_mensuelle : money;
   date_de_naissance : date;
   age : integer;
-  garde_alternee : garde_alternee;
-  prise_en_charge_par_services_sociaux : prise_en_charge_service_sociaux;
+  prise_en_charge : prise_en_charge;
+  a_deja_ouvert_droit_aux_allocations_familiales : bool;
 }
-
-type stockage_enfant = PasEnfant of unit | UnEnfant of enfant
 
 type smic_out = { date_courante_out : date; residence_out : collectivite; brut_horaire_out : money }
 
@@ -76,7 +69,6 @@ type prestations_familiales_out = {
   conditions_hors_age_out : enfant -> bool;
   plafond_l512_3_2_out : money;
   age_l512_3_2_out : integer;
-  age_l512_3_2_alternatif_out : age_alternatif;
   regime_outre_mer_l751_1_out : bool;
   date_courante_out : date;
   prestation_courante_out : element_prestations_familiales;
@@ -89,7 +81,6 @@ type prestations_familiales_in = {
   conditions_hors_age_in : unit -> enfant -> bool;
   plafond_l512_3_2_in : unit -> money;
   age_l512_3_2_in : unit -> integer;
-  age_l512_3_2_alternatif_in : unit -> age_alternatif;
   regime_outre_mer_l751_1_in : unit -> bool;
   date_courante_in : unit -> date;
   prestation_courante_in : unit -> element_prestations_familiales;
@@ -97,25 +88,26 @@ type prestations_familiales_in = {
   base_mensuelle_in : unit -> money;
 }
 
-type allocation_familiales_avril2008_out = { age_limite_alinea_1_l521_3_out : integer }
+type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_out : integer }
 
-type allocation_familiales_avril2008_in = { age_limite_alinea_1_l521_3_in : unit -> integer }
+type allocation_familiales_avril2008_in = { age_minimum_alinea_1_l521_3_in : unit -> integer }
 
 type enfant_le_plus_age_out = { enfants_out : enfant array; le_plus_age_out : enfant }
 
 type enfant_le_plus_age_in = { enfants_in : unit -> enfant array; le_plus_age_in : unit -> enfant }
 
 type allocations_familiales_out = {
+  personne_charge_effective_permanente_est_parent_out : bool;
+  personne_charge_effective_permanente_remplit_titre_I_out : bool;
+  ressources_menage_out : money;
+  residence_out : collectivite;
+  date_courante_out : date;
   enfants_a_charge_out : enfant array;
   enfants_a_charge_droit_ouvert_prestation_familiale_out : enfant array;
-  date_courante_out : date;
-  residence_out : collectivite;
-  ressources_menage_out : money;
-  prise_en_compte_out : enfant -> prise_en_compte_evaluation_montant;
+  prise_en_compte_out : enfant -> prise_en_compte;
   versement_out : enfant -> versement_allocations;
   montant_verse_out : money;
   droit_ouvert_base_out : bool;
-  droit_ouvert_majoration_out : enfant -> bool;
   montant_verse_base_out : money;
   montant_avec_garde_alternee_base_out : money;
   montant_initial_base_out : money;
@@ -127,6 +119,7 @@ type allocations_familiales_out = {
   nombre_total_enfants_out : decimal;
   droit_ouvert_forfaitaire_out : enfant -> bool;
   montant_verse_forfaitaire_out : money;
+  droit_ouvert_majoration_out : enfant -> bool;
   montant_verse_majoration_out : money;
   montant_avec_garde_alternee_majoration_out : enfant -> money;
   montant_initial_majoration_out : enfant -> money;
@@ -135,9 +128,8 @@ type allocations_familiales_out = {
   montant_base_complement_pour_base_et_majoration_out : money;
   montant_verse_complement_pour_forfaitaire_out : money;
   depassement_plafond_ressources_out : money -> money;
-  conditions_hors_age_out : enfant -> bool;
   nombre_enfants_l521_1_out : integer;
-  age_limite_alinea_1_l521_3_out : enfant -> integer;
+  age_minimum_alinea_1_l521_3_out : enfant -> integer;
   nombre_enfants_alinea_2_l521_3_out : integer;
   est_enfant_le_plus_age_out : enfant -> bool;
   plafond_I_d521_3_out : money;
@@ -145,16 +137,17 @@ type allocations_familiales_out = {
 }
 
 type allocations_familiales_in = {
+  personne_charge_effective_permanente_est_parent_in : unit -> bool;
+  personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
+  ressources_menage_in : unit -> money;
+  residence_in : unit -> collectivite;
+  date_courante_in : unit -> date;
   enfants_a_charge_in : unit -> enfant array;
   enfants_a_charge_droit_ouvert_prestation_familiale_in : unit -> enfant array;
-  date_courante_in : unit -> date;
-  residence_in : unit -> collectivite;
-  ressources_menage_in : unit -> money;
-  prise_en_compte_in : unit -> enfant -> prise_en_compte_evaluation_montant;
+  prise_en_compte_in : unit -> enfant -> prise_en_compte;
   versement_in : unit -> enfant -> versement_allocations;
   montant_verse_in : unit -> money;
   droit_ouvert_base_in : unit -> bool;
-  droit_ouvert_majoration_in : unit -> enfant -> bool;
   montant_verse_base_in : unit -> money;
   montant_avec_garde_alternee_base_in : unit -> money;
   montant_initial_base_in : unit -> money;
@@ -166,6 +159,7 @@ type allocations_familiales_in = {
   nombre_total_enfants_in : unit -> decimal;
   droit_ouvert_forfaitaire_in : unit -> enfant -> bool;
   montant_verse_forfaitaire_in : unit -> money;
+  droit_ouvert_majoration_in : unit -> enfant -> bool;
   montant_verse_majoration_in : unit -> money;
   montant_avec_garde_alternee_majoration_in : unit -> enfant -> money;
   montant_initial_majoration_in : unit -> enfant -> money;
@@ -174,9 +168,8 @@ type allocations_familiales_in = {
   montant_base_complement_pour_base_et_majoration_in : unit -> money;
   montant_verse_complement_pour_forfaitaire_in : unit -> money;
   depassement_plafond_ressources_in : unit -> money -> money;
-  conditions_hors_age_in : unit -> enfant -> bool;
   nombre_enfants_l521_1_in : unit -> integer;
-  age_limite_alinea_1_l521_3_in : unit -> enfant -> integer;
+  age_minimum_alinea_1_l521_3_in : unit -> enfant -> integer;
   nombre_enfants_alinea_2_l521_3_in : unit -> integer;
   est_enfant_le_plus_age_in : unit -> enfant -> bool;
   plafond_I_d521_3_in : unit -> money;
@@ -190,6 +183,8 @@ type interface_allocations_familiales_out = {
   ressources_menage_out : money;
   residence_out : collectivite;
   montant_verse_out : money;
+  personne_charge_effective_permanente_est_parent_out : bool;
+  personne_charge_effective_permanente_remplit_titre_I_out : bool;
 }
 
 type interface_allocations_familiales_in = {
@@ -199,6 +194,8 @@ type interface_allocations_familiales_in = {
   ressources_menage_in : unit -> money;
   residence_in : unit -> collectivite;
   montant_verse_in : unit -> money;
+  personne_charge_effective_permanente_est_parent_in : unit -> bool;
+  personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
 }
 
 let smic (smic_in : smic_in) =
@@ -206,86 +203,89 @@ let smic (smic_in : smic_in) =
   let residence_ : unit -> collectivite = smic_in.residence_in in
   let brut_horaire_ : unit -> money = smic_in.brut_horaire_in in
   let date_courante_ : date =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> date_courante_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> date_courante_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let residence_ : collectivite =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> residence_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> residence_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let brut_horaire_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> brut_horaire_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2021 1 1
-                     && date_courante_ <=@ date_of_numbers 2021 12 31
-                     && residence_ = Mayotte ())
-                   (fun (_ : _) -> money_of_cents_string "774"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2021 1 1
-                     && date_courante_ <=@ date_of_numbers 2021 12 31
-                     && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                        || residence_ = Guyane () || residence_ = Martinique ()
-                        || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon () ))
-                   (fun (_ : _) -> money_of_cents_string "1025"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2020 1 1
-                     && date_courante_ <=@ date_of_numbers 2020 12 31
-                     && residence_ = Mayotte ())
-                   (fun (_ : _) -> money_of_cents_string "766"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2020 1 1
-                     && date_courante_ <=@ date_of_numbers 2020 12 31
-                     && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                        || residence_ = Guyane () || residence_ = Martinique ()
-                        || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon () ))
-                   (fun (_ : _) -> money_of_cents_string "1015"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2019 1 1
-                     && date_courante_ <=@ date_of_numbers 2019 12 31
-                     && residence_ = Mayotte ())
-                   (fun (_ : _) -> money_of_cents_string "757"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2019 1 1
-                     && date_courante_ <=@ date_of_numbers 2019 12 31
-                     && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                        || residence_ = Guyane () || residence_ = Martinique ()
-                        || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                        || residence_ = SaintMartin ()
-                        || residence_ = SaintPierreEtMiquelon () ))
-                   (fun (_ : _) -> money_of_cents_string "1003"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> brut_horaire_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2021 1 1
+                    && date_courante_ <=@ date_of_numbers 2021 12 31
+                    && residence_ = Mayotte ())
+                  (fun (_ : _) -> money_of_cents_string "774"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2021 1 1
+                    && date_courante_ <=@ date_of_numbers 2021 12 31
+                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon () ))
+                  (fun (_ : _) -> money_of_cents_string "1025"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2020 1 1
+                    && date_courante_ <=@ date_of_numbers 2020 12 31
+                    && residence_ = Mayotte ())
+                  (fun (_ : _) -> money_of_cents_string "766"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2020 1 1
+                    && date_courante_ <=@ date_of_numbers 2020 12 31
+                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon () ))
+                  (fun (_ : _) -> money_of_cents_string "1015"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2019 1 1
+                    && date_courante_ <=@ date_of_numbers 2019 12 31
+                    && residence_ = Mayotte ())
+                  (fun (_ : _) -> money_of_cents_string "757"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2019 1 1
+                    && date_courante_ <=@ date_of_numbers 2019 12 31
+                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon () ))
+                  (fun (_ : _) -> money_of_cents_string "1003"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   {
     date_courante_out = date_courante_;
@@ -295,67 +295,68 @@ let smic (smic_in : smic_in) =
 
 let allocation_familiales_avril2008
     (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) =
-  let age_limite_alinea_1_l521_3_ : unit -> integer =
-    allocation_familiales_avril2008_in.age_limite_alinea_1_l521_3_in
+  let age_minimum_alinea_1_l521_3_ : unit -> integer =
+    allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_in
   in
-  let age_limite_alinea_1_l521_3_ : integer =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> age_limite_alinea_1_l521_3_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "16"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+  let age_minimum_alinea_1_l521_3_ : integer =
+    try
+      handle_default
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "16"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
-  { age_limite_alinea_1_l521_3_out = age_limite_alinea_1_l521_3_ }
+  { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   let enfants_ : unit -> enfant array = enfant_le_plus_age_in.enfants_in in
   let le_plus_age_ : unit -> enfant = enfant_le_plus_age_in.le_plus_age_in in
   let enfants_ : enfant array =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> enfants_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> enfants_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let le_plus_age_ : enfant =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> le_plus_age_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     let predicate_ : _ =
-                      fun (potentiel_plus_age_ : _) -> potentiel_plus_age_.age
-                     in
-                     Array.fold_left
-                       (fun (acc_ : _) (item_ : _) ->
-                         if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
-                       {
-                         identifiant = ~-!(integer_of_string "1");
-                         fin_obligation_scolaire = date_of_numbers 1900 1 1;
-                         remuneration_mensuelle = money_of_cents_string "0";
-                         date_de_naissance = date_of_numbers 1900 1 1;
-                         age = integer_of_string "0";
-                         garde_alternee = NonGardeUnique ();
-                         prise_en_charge_par_services_sociaux = NonPriseEnChargeFamille ();
-                       }
-                       enfants_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> le_plus_age_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    let predicate_ : _ = fun (potentiel_plus_age_ : _) -> potentiel_plus_age_.age in
+                    Array.fold_left
+                      (fun (acc_ : _) (item_ : _) ->
+                        if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
+                      {
+                        identifiant = ~-!(integer_of_string "1");
+                        obligation_scolaire = Pendant ();
+                        remuneration_mensuelle = money_of_cents_string "0";
+                        date_de_naissance = date_of_numbers 1900 1 1;
+                        age = integer_of_string "0";
+                        prise_en_charge = EffectiveEtPermanente ();
+                        a_deja_ouvert_droit_aux_allocations_familiales = false;
+                      }
+                      enfants_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   { enfants_out = enfants_; le_plus_age_out = le_plus_age_ }
 
@@ -366,9 +367,6 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   in
   let plafond_l512_3_2_ : unit -> money = prestations_familiales_in.plafond_l512_3_2_in in
   let age_l512_3_2_ : unit -> integer = prestations_familiales_in.age_l512_3_2_in in
-  let age_l512_3_2_alternatif_ : unit -> age_alternatif =
-    prestations_familiales_in.age_l512_3_2_alternatif_in
-  in
   let regime_outre_mer_l751_1_ : unit -> bool =
     prestations_familiales_in.regime_outre_mer_l751_1_in
   in
@@ -378,90 +376,72 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   in
   let residence_ : unit -> collectivite = prestations_familiales_in.residence_in in
   let base_mensuelle_ : unit -> money = prestations_familiales_in.base_mensuelle_in in
-  let age_l512_3_2_alternatif_ : age_alternatif =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> age_l512_3_2_alternatif_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> Absent ()));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+  let age_l512_3_2_ : integer =
+    try
+      handle_default
+        [| (fun (_ : _) -> age_l512_3_2_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "20"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let date_courante_ : date =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> date_courante_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> date_courante_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let prestation_courante_ : element_prestations_familiales =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> prestation_courante_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> prestation_courante_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let residence_ : collectivite =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> residence_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> residence_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let base_mensuelle_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> base_mensuelle_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2020 4 1
-                     && date_courante_ <@ date_of_numbers 2021 4 1)
-                   (fun (_ : _) -> money_of_cents_string "41404"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     date_courante_ >=@ date_of_numbers 2019 4 1
-                     && date_courante_ <@ date_of_numbers 2020 4 1)
-                   (fun (_ : _) -> money_of_cents_string "41316"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
-  in
-  let age_l512_3_2_ : integer =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> age_l512_3_2_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "20"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     (match age_l512_3_2_alternatif_ with Absent _ -> false | Present _ -> true)
-                     && ( prestation_courante_ = ComplementFamilial ()
-                        || prestation_courante_ = AllocationLogement () ))
-                   (fun (_ : _) ->
-                     match age_l512_3_2_alternatif_ with
-                     | Absent _ -> integer_of_string "0"
-                     | Present age_ -> age_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> base_mensuelle_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2020 4 1
+                    && date_courante_ <@ date_of_numbers 2021 4 1)
+                  (fun (_ : _) -> money_of_cents_string "41404"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    date_courante_ >=@ date_of_numbers 2019 4 1
+                    && date_courante_ <@ date_of_numbers 2020 4 1)
+                  (fun (_ : _) -> money_of_cents_string "41316"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let smic_dot_date_courante_ : unit -> date =
    fun (_ : unit) ->
@@ -491,97 +471,126 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let smic_dot_residence_ : collectivite = result_.residence_out in
   let smic_dot_brut_horaire_ : money = result_.brut_horaire_out in
   let regime_outre_mer_l751_1_ : bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> regime_outre_mer_l751_1_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     residence_ = Guadeloupe () || residence_ = Guyane ()
-                     || residence_ = Martinique () || residence_ = LaReunion ()
-                     || residence_ = SaintBarthelemy () || residence_ = SaintMartin ())
-                   (fun (_ : _) -> true));
-             |]
-             (fun (_ : _) -> true)
-             (fun (_ : _) -> false)))
+    try
+      handle_default
+        [| (fun (_ : _) -> regime_outre_mer_l751_1_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    residence_ = Guadeloupe () || residence_ = Guyane ()
+                    || residence_ = Martinique () || residence_ = LaReunion ()
+                    || residence_ = SaintBarthelemy () || residence_ = SaintMartin ())
+                  (fun (_ : _) -> true));
+            |]
+            (fun (_ : _) -> true)
+            (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
   in
   let plafond_l512_3_2_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> plafond_l512_3_2_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) -> regime_outre_mer_l751_1_)
-                         (fun (_ : _) ->
-                           smic_dot_brut_horaire_ *$ decimal_of_string "0.55"
-                           *$ decimal_of_string "169."));
-                   |]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> plafond_l512_3_2_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) -> regime_outre_mer_l751_1_)
+                        (fun (_ : _) ->
+                          smic_dot_brut_horaire_ *$ decimal_of_string "0.55"
+                          *$ decimal_of_string "169."));
+                  |]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let conditions_hors_age_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> conditions_hors_age_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        date_courante_ <=@ param_.fin_obligation_scolaire
-                        || param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
-                      (fun (_ : _) -> true));
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> false))))
+    try
+      handle_default
+        [| (fun (_ : _) -> conditions_hors_age_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      ( match param_.obligation_scolaire with
+                      | Avant _ -> true
+                      | Pendant _ -> false
+                      | Apres _ -> false )
+                      || ( match param_.obligation_scolaire with
+                         | Avant _ -> false
+                         | Pendant _ -> true
+                         | Apres _ -> false )
+                      || ( match param_.obligation_scolaire with
+                         | Avant _ -> false
+                         | Pendant _ -> false
+                         | Apres _ -> true )
+                         && param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
+                    (fun (_ : _) -> true));
+              |]
+              (fun (_ : _) -> true)
+              (fun (_ : _) -> false)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> droit_ouvert_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        date_courante_ >@ param_.fin_obligation_scolaire
-                        && conditions_hors_age_ param_ && param_.age <! age_l512_3_2_)
-                      (fun (_ : _) -> true));
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) -> date_courante_ <=@ param_.fin_obligation_scolaire)
-                      (fun (_ : _) -> true));
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> false))))
+    try
+      handle_default
+        [| (fun (_ : _) -> droit_ouvert_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      ( match param_.obligation_scolaire with
+                      | Avant _ -> false
+                      | Pendant _ -> false
+                      | Apres _ -> true )
+                      && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
+                      && param_.age <! age_l512_3_2_)
+                    (fun (_ : _) -> true));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      ( match param_.obligation_scolaire with
+                      | Avant _ -> true
+                      | Pendant _ -> false
+                      | Apres _ -> false )
+                      ||
+                      match param_.obligation_scolaire with
+                      | Avant _ -> false
+                      | Pendant _ -> true
+                      | Apres _ -> false)
+                    (fun (_ : _) -> true));
+              |]
+              (fun (_ : _) -> true)
+              (fun (_ : _) -> false)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   {
     droit_ouvert_out = droit_ouvert_;
     conditions_hors_age_out = conditions_hors_age_;
     plafond_l512_3_2_out = plafond_l512_3_2_;
     age_l512_3_2_out = age_l512_3_2_;
-    age_l512_3_2_alternatif_out = age_l512_3_2_alternatif_;
     regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_;
     date_courante_out = date_courante_;
     prestation_courante_out = prestation_courante_;
@@ -590,14 +599,20 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   }
 
 let allocations_familiales (allocations_familiales_in : allocations_familiales_in) =
+  let personne_charge_effective_permanente_est_parent_ : unit -> bool =
+    allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
+  in
+  let personne_charge_effective_permanente_remplit_titre__i_ : unit -> bool =
+    allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
+  in
+  let ressources_menage_ : unit -> money = allocations_familiales_in.ressources_menage_in in
+  let residence_ : unit -> collectivite = allocations_familiales_in.residence_in in
+  let date_courante_ : unit -> date = allocations_familiales_in.date_courante_in in
   let enfants_a_charge_ : unit -> enfant array = allocations_familiales_in.enfants_a_charge_in in
   let enfants_a_charge_droit_ouvert_prestation_familiale_ : unit -> enfant array =
     allocations_familiales_in.enfants_a_charge_droit_ouvert_prestation_familiale_in
   in
-  let date_courante_ : unit -> date = allocations_familiales_in.date_courante_in in
-  let residence_ : unit -> collectivite = allocations_familiales_in.residence_in in
-  let ressources_menage_ : unit -> money = allocations_familiales_in.ressources_menage_in in
-  let prise_en_compte_ : unit -> enfant -> prise_en_compte_evaluation_montant =
+  let prise_en_compte_ : unit -> enfant -> prise_en_compte =
     allocations_familiales_in.prise_en_compte_in
   in
   let versement_ : unit -> enfant -> versement_allocations =
@@ -605,9 +620,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let montant_verse_ : unit -> money = allocations_familiales_in.montant_verse_in in
   let droit_ouvert_base_ : unit -> bool = allocations_familiales_in.droit_ouvert_base_in in
-  let droit_ouvert_majoration_ : unit -> enfant -> bool =
-    allocations_familiales_in.droit_ouvert_majoration_in
-  in
   let montant_verse_base_ : unit -> money = allocations_familiales_in.montant_verse_base_in in
   let montant_avec_garde_alternee_base_ : unit -> money =
     allocations_familiales_in.montant_avec_garde_alternee_base_in
@@ -633,6 +645,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_forfaitaire_ : unit -> money =
     allocations_familiales_in.montant_verse_forfaitaire_in
   in
+  let droit_ouvert_majoration_ : unit -> enfant -> bool =
+    allocations_familiales_in.droit_ouvert_majoration_in
+  in
   let montant_verse_majoration_ : unit -> money =
     allocations_familiales_in.montant_verse_majoration_in
   in
@@ -657,14 +672,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let depassement_plafond_ressources_ : unit -> money -> money =
     allocations_familiales_in.depassement_plafond_ressources_in
   in
-  let conditions_hors_age_ : unit -> enfant -> bool =
-    allocations_familiales_in.conditions_hors_age_in
-  in
   let nombre_enfants_l521_1_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_l521_1_in
   in
-  let age_limite_alinea_1_l521_3_ : unit -> enfant -> integer =
-    allocations_familiales_in.age_limite_alinea_1_l521_3_in
+  let age_minimum_alinea_1_l521_3_ : unit -> enfant -> integer =
+    allocations_familiales_in.age_minimum_alinea_1_l521_3_in
   in
   let nombre_enfants_alinea_2_l521_3_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_alinea_2_l521_3_in
@@ -674,170 +686,225 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let plafond__i_d521_3_ : unit -> money = allocations_familiales_in.plafond_I_d521_3_in in
   let plafond__i_i_d521_3_ : unit -> money = allocations_familiales_in.plafond_II_d521_3_in in
-  let enfants_a_charge_ : enfant array =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> enfants_a_charge_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+  let personne_charge_effective_permanente_est_parent_ : bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> personne_charge_effective_permanente_est_parent_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
   in
-  let date_courante_ : date =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> date_courante_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
-  in
-  let residence_ : collectivite =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> residence_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+  let personne_charge_effective_permanente_remplit_titre__i_ : bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> personne_charge_effective_permanente_remplit_titre__i_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
   in
   let ressources_menage_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> ressources_menage_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> ressources_menage_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
-  let prise_en_compte_ : enfant -> prise_en_compte_evaluation_montant =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> prise_en_compte_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              match param_.garde_alternee with
-                              | OuiPartageAllocations _ -> true
-                              | OuiAllocataireUnique _ -> false
-                              | NonGardeUnique _ -> false)
-                            (fun (_ : _) -> Partagee ()));
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              match param_.garde_alternee with
-                              | OuiPartageAllocations _ -> false
-                              | OuiAllocataireUnique _ -> true
-                              | NonGardeUnique _ -> false)
-                            (fun (_ : _) -> Complete ()));
-                      |]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) -> Complete ()));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+  let residence_ : collectivite =
+    try
+      handle_default
+        [| (fun (_ : _) -> residence_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let date_courante_ : date =
+    try
+      handle_default
+        [| (fun (_ : _) -> date_courante_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let enfants_a_charge_ : enfant array =
+    try
+      handle_default
+        [| (fun (_ : _) -> enfants_a_charge_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let prise_en_compte_ : enfant -> prise_en_compte =
+    try
+      handle_default
+        [| (fun (_ : _) -> prise_en_compte_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> true
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Complete ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> true)
+                    (fun (_ : _) -> Zero ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> true
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Partagee ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> true
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Complete ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> true
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Complete ()));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let versement_ : enfant -> versement_allocations =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> versement_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              match param_.prise_en_charge_par_services_sociaux with
-                              | OuiAllocationVerseeALaFamille _ -> false
-                              | OuiAllocationVerseeAuxServicesSociaux _ -> true
-                              | NonPriseEnChargeFamille _ -> false)
-                            (fun (_ : _) -> AllocationVerseeAuxServicesSociaux ()));
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              match param_.garde_alternee with
-                              | OuiPartageAllocations _ -> true
-                              | OuiAllocataireUnique _ -> false
-                              | NonGardeUnique _ -> false)
-                            (fun (_ : _) -> Normal ()));
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              match param_.garde_alternee with
-                              | OuiPartageAllocations _ -> false
-                              | OuiAllocataireUnique _ -> true
-                              | NonGardeUnique _ -> false)
-                            (fun (_ : _) -> Normal ()));
-                      |]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) -> Normal ()));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+    try
+      handle_default
+        [| (fun (_ : _) -> versement_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> true
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Normal ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> true)
+                    (fun (_ : _) -> AllocationVerseeAuxServicesSociaux ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> true
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Normal ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> true
+                      | EffectiveEtPermanente _ -> false
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Normal ()));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      match param_.prise_en_charge with
+                      | GardeAlterneePartageAllocations _ -> false
+                      | GardeAlterneeAllocataireUnique _ -> false
+                      | EffectiveEtPermanente _ -> true
+                      | ServicesSociauxAllocationVerseeALaFamille _ -> false
+                      | ServicesSociauxAllocationVerseeAuxServicesSociaux _ -> false)
+                    (fun (_ : _) -> Normal ()));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let nombre_enfants_l521_1_ : integer =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> nombre_enfants_l521_1_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "3"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> nombre_enfants_l521_1_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "3"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let nombre_enfants_alinea_2_l521_3_ : integer =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> nombre_enfants_alinea_2_l521_3_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "3"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> nombre_enfants_alinea_2_l521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "3"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let result_ : allocation_familiales_avril2008_out =
     allocation_familiales_avril2008
-      { age_limite_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError) }
+      { age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError) }
   in
-  let version_avril_2008_dot_age_limite_alinea_1_l521_3_ : integer =
-    result_.age_limite_alinea_1_l521_3_out
+  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_ : integer =
+    result_.age_minimum_alinea_1_l521_3_out
   in
-  let enfant_le_plus_age_dot_enfants_ : unit -> enfant array =
-   fun (_ : unit) ->
-    handle_default
-      [|
-        (fun (_ : _) ->
-          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> enfants_a_charge_));
-      |]
-      (fun (_ : _) -> false)
-      (fun (_ : _) -> raise EmptyError)
-  in
-  let result_ : enfant_le_plus_age_out =
-    enfant_le_plus_age
-      {
-        enfants_in = enfant_le_plus_age_dot_enfants_;
-        le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
-      }
-  in
-  let enfant_le_plus_age_dot_enfants_ : enfant array = result_.enfants_out in
-  let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
   let prestations_familiales_dot_date_courante_ : unit -> date =
    fun (_ : unit) ->
     handle_default
@@ -871,7 +938,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
         conditions_hors_age_in = (fun (_ : unit) -> raise EmptyError);
         plafond_l512_3_2_in = (fun (_ : unit) -> raise EmptyError);
         age_l512_3_2_in = (fun (_ : unit) -> raise EmptyError);
-        age_l512_3_2_alternatif_in = (fun (_ : unit) -> raise EmptyError);
         regime_outre_mer_l751_1_in = (fun (_ : unit) -> raise EmptyError);
         date_courante_in = prestations_familiales_dot_date_courante_;
         prestation_courante_in = prestations_familiales_dot_prestation_courante_;
@@ -885,9 +951,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let prestations_familiales_dot_plafond_l512_3_2_ : money = result_.plafond_l512_3_2_out in
   let prestations_familiales_dot_age_l512_3_2_ : integer = result_.age_l512_3_2_out in
-  let prestations_familiales_dot_age_l512_3_2_alternatif_ : age_alternatif =
-    result_.age_l512_3_2_alternatif_out
-  in
   let prestations_familiales_dot_regime_outre_mer_l751_1_ : bool =
     result_.regime_outre_mer_l751_1_out
   in
@@ -897,825 +960,873 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let prestations_familiales_dot_residence_ : collectivite = result_.residence_out in
   let prestations_familiales_dot_base_mensuelle_ : money = result_.base_mensuelle_out in
-  let est_enfant_le_plus_age_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> est_enfant_le_plus_age_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) -> enfant_le_plus_age_dot_le_plus_age_ = param_));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+  let enfant_le_plus_age_dot_enfants_ : unit -> enfant array =
+   fun (_ : unit) ->
+    handle_default
+      [|
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> enfants_a_charge_));
+      |]
+      (fun (_ : _) -> false)
+      (fun (_ : _) -> raise EmptyError)
   in
-  let age_limite_alinea_1_l521_3_ : enfant -> integer =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> age_limite_alinea_1_l521_3_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
+  let result_ : enfant_le_plus_age_out =
+    enfant_le_plus_age
+      {
+        enfants_in = enfant_le_plus_age_dot_enfants_;
+        le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
+      }
+  in
+  let enfant_le_plus_age_dot_enfants_ : enfant array = result_.enfants_out in
+  let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
+  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
+    try
+      handle_default
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default
+                    [|
                       (fun (_ : _) ->
-                        param_.date_de_naissance +@ duration_of_numbers 11 0 0
-                        <=@ date_of_numbers 2008 4 30)
-                      (fun (_ : _) -> version_avril_2008_dot_age_limite_alinea_1_l521_3_));
-                  (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) -> prestations_familiales_dot_regime_outre_mer_l751_1_)
-                            (fun (_ : _) -> integer_of_string "11"));
-                      |]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) -> integer_of_string "14"));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
-  in
-  let conditions_hors_age_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> conditions_hors_age_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) -> prestations_familiales_dot_conditions_hors_age_ param_)
-                      (fun (_ : _) -> true));
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> false))))
+                        handle_default
+                          [|
+                            (fun (_ : _) ->
+                              handle_default [||]
+                                (fun (_ : _) -> prestations_familiales_dot_regime_outre_mer_l751_1_)
+                                (fun (_ : _) -> integer_of_string "11"));
+                          |]
+                          (fun (_ : _) ->
+                            param_.date_de_naissance +@ duration_of_numbers 11 0 0
+                            <=@ date_of_numbers 2008 4 30)
+                          (fun (_ : _) -> version_avril_2008_dot_age_minimum_alinea_1_l521_3_));
+                    |]
+                    (fun (_ : _) -> true)
+                    (fun (_ : _) -> integer_of_string "14"));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> enfants_a_charge_droit_ouvert_prestation_familiale_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     array_filter
-                       (fun (enfant_ : _) -> prestations_familiales_dot_droit_ouvert_ enfant_)
-                       enfants_a_charge_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> enfants_a_charge_droit_ouvert_prestation_familiale_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    array_filter
+                      (fun (enfant_ : _) -> prestations_familiales_dot_droit_ouvert_ enfant_)
+                      enfants_a_charge_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let est_enfant_le_plus_age_ : enfant -> bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> est_enfant_le_plus_age_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) -> true)
+                    (fun (_ : _) -> enfant_le_plus_age_dot_le_plus_age_ = param_));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let plafond__i_i_d521_3_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> plafond__i_i_d521_3_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           date_courante_ >=@ date_of_numbers 2021 1 1
-                           && date_courante_ <=@ date_of_numbers 2021 12 31)
-                         (fun (_ : _) ->
-                           money_of_cents_string "8155800"
-                           +$ money_of_cents_string "582700"
-                              *$ decimal_of_integer
-                                   (array_length
-                                      enfants_a_charge_droit_ouvert_prestation_familiale_)));
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           date_courante_ >=@ date_of_numbers 2020 1 1
-                           && date_courante_ <=@ date_of_numbers 2020 12 31)
-                         (fun (_ : _) ->
-                           money_of_cents_string "8083100"
-                           +$ money_of_cents_string "577500"
-                              *$ decimal_of_integer
-                                   (array_length
-                                      enfants_a_charge_droit_ouvert_prestation_familiale_)));
-                   |]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     money_of_cents_string "7830000"
-                     +$ money_of_cents_string "559500"
-                        *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> plafond__i_i_d521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          date_courante_ >=@ date_of_numbers 2021 1 1
+                          && date_courante_ <=@ date_of_numbers 2021 12 31)
+                        (fun (_ : _) ->
+                          money_of_cents_string "8155800"
+                          +$ money_of_cents_string "582700"
+                             *$ decimal_of_integer
+                                  (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          date_courante_ >=@ date_of_numbers 2020 1 1
+                          && date_courante_ <=@ date_of_numbers 2020 12 31)
+                        (fun (_ : _) ->
+                          money_of_cents_string "8083100"
+                          +$ money_of_cents_string "577500"
+                             *$ decimal_of_integer
+                                  (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+                  |]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    money_of_cents_string "7830000"
+                    +$ money_of_cents_string "559500"
+                       *$ decimal_of_integer
+                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let plafond__i_d521_3_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> plafond__i_d521_3_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           date_courante_ >=@ date_of_numbers 2021 1 1
-                           && date_courante_ <=@ date_of_numbers 2021 12 31)
-                         (fun (_ : _) ->
-                           money_of_cents_string "5827900"
-                           +$ money_of_cents_string "582700"
-                              *$ decimal_of_integer
-                                   (array_length
-                                      enfants_a_charge_droit_ouvert_prestation_familiale_)));
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           date_courante_ >=@ date_of_numbers 2020 1 1
-                           && date_courante_ <=@ date_of_numbers 2020 12 31)
-                         (fun (_ : _) ->
-                           money_of_cents_string "5775900"
-                           +$ money_of_cents_string "577500"
-                              *$ decimal_of_integer
-                                   (array_length
-                                      enfants_a_charge_droit_ouvert_prestation_familiale_)));
-                   |]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     money_of_cents_string "5595000"
-                     +$ money_of_cents_string "559500"
-                        *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> plafond__i_d521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          date_courante_ >=@ date_of_numbers 2021 1 1
+                          && date_courante_ <=@ date_of_numbers 2021 12 31)
+                        (fun (_ : _) ->
+                          money_of_cents_string "5827900"
+                          +$ money_of_cents_string "582700"
+                             *$ decimal_of_integer
+                                  (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          date_courante_ >=@ date_of_numbers 2020 1 1
+                          && date_courante_ <=@ date_of_numbers 2020 12 31)
+                        (fun (_ : _) ->
+                          money_of_cents_string "5775900"
+                          +$ money_of_cents_string "577500"
+                             *$ decimal_of_integer
+                                  (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+                  |]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    money_of_cents_string "5595000"
+                    +$ money_of_cents_string "559500"
+                       *$ decimal_of_integer
+                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_complement_ : bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> droit_ouvert_complement_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           prestations_familiales_dot_regime_outre_mer_l751_1_
-                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                              = integer_of_string "1")
-                         (fun (_ : _) -> false));
-                   |]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) -> true));
-             |]
-             (fun (_ : _) -> true)
-             (fun (_ : _) -> false)))
+    try
+      handle_default
+        [| (fun (_ : _) -> droit_ouvert_complement_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          prestations_familiales_dot_regime_outre_mer_l751_1_
+                          && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                             = integer_of_string "1")
+                        (fun (_ : _) -> false));
+                  |]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) -> true));
+            |]
+            (fun (_ : _) -> true)
+            (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_forfaitaire_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> droit_ouvert_forfaitaire_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              prestations_familiales_dot_regime_outre_mer_l751_1_
-                              && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                                 = integer_of_string "1")
-                            (fun (_ : _) -> false));
-                      |]
+    try
+      handle_default
+        [| (fun (_ : _) -> droit_ouvert_forfaitaire_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default
+                    [|
                       (fun (_ : _) ->
-                        array_length enfants_a_charge_ >=! nombre_enfants_l521_1_
-                        && param_.age = prestations_familiales_dot_age_l512_3_2_
-                        && conditions_hors_age_ param_)
-                      (fun (_ : _) -> true));
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> false))))
+                        handle_default [||]
+                          (fun (_ : _) ->
+                            prestations_familiales_dot_regime_outre_mer_l751_1_
+                            && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                               = integer_of_string "1")
+                          (fun (_ : _) -> false));
+                    |]
+                    (fun (_ : _) ->
+                      array_length enfants_a_charge_ >=! nombre_enfants_alinea_2_l521_3_
+                      && param_.age = prestations_familiales_dot_age_l512_3_2_
+                      && param_.a_deja_ouvert_droit_aux_allocations_familiales
+                      && prestations_familiales_dot_conditions_hors_age_ param_)
+                    (fun (_ : _) -> true));
+              |]
+              (fun (_ : _) -> true)
+              (fun (_ : _) -> false)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let nombre_total_enfants_ : decimal =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> nombre_total_enfants_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     decimal_of_integer
-                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> nombre_total_enfants_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    decimal_of_integer
+                      (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let nombre_moyen_enfants_ : decimal =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> nombre_moyen_enfants_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     Array.fold_left
-                       (fun (acc_ : decimal) (enfant_ : _) ->
-                         acc_
-                         +&
-                         match prise_en_compte_ enfant_ with
-                         | Complete _ -> decimal_of_string "1."
-                         | Partagee _ -> decimal_of_string "0.5")
-                       (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
-  in
-  let droit_ouvert_majoration_ : enfant -> bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> droit_ouvert_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
+    try
+      handle_default
+        [| (fun (_ : _) -> nombre_moyen_enfants_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
                   (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                              >=! nombre_enfants_alinea_2_l521_3_
-                              && param_.age >=! age_limite_alinea_1_l521_3_ param_)
-                            (fun (_ : _) -> true));
-                      |]
-                      (fun (_ : _) ->
-                        (not (est_enfant_le_plus_age_ param_))
-                        && param_.age >=! age_limite_alinea_1_l521_3_ param_)
-                      (fun (_ : _) -> true));
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> false))))
+                    Array.fold_left
+                      (fun (acc_ : decimal) (enfant_ : _) ->
+                        acc_
+                        +&
+                        match prise_en_compte_ enfant_ with
+                        | Complete _ -> decimal_of_string "1."
+                        | Partagee _ -> decimal_of_string "0.5"
+                        | Zero _ -> decimal_of_string "0.")
+                      (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_base_ : bool =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> droit_ouvert_base_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           prestations_familiales_dot_regime_outre_mer_l751_1_
-                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                              >=! integer_of_string "1")
-                         (fun (_ : _) -> true));
-                   |]
-                   (fun (_ : _) ->
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "2")
-                   (fun (_ : _) -> true));
-             |]
-             (fun (_ : _) -> true)
-             (fun (_ : _) -> false)))
+    try
+      handle_default
+        [| (fun (_ : _) -> droit_ouvert_base_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          prestations_familiales_dot_regime_outre_mer_l751_1_
+                          && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                             >=! integer_of_string "1")
+                        (fun (_ : _) -> true));
+                  |]
+                  (fun (_ : _) ->
+                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                    >=! integer_of_string "2")
+                  (fun (_ : _) -> true));
+            |]
+            (fun (_ : _) -> true)
+            (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
+  in
+  let droit_ouvert_majoration_ : enfant -> bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> droit_ouvert_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default
+                    [|
+                      (fun (_ : _) ->
+                        handle_default [||]
+                          (fun (_ : _) ->
+                            array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                            >=! nombre_enfants_alinea_2_l521_3_
+                            && param_.age >=! age_minimum_alinea_1_l521_3_ param_)
+                          (fun (_ : _) -> true));
+                    |]
+                    (fun (_ : _) ->
+                      (not (est_enfant_le_plus_age_ param_))
+                      && param_.age >=! age_minimum_alinea_1_l521_3_ param_)
+                    (fun (_ : _) -> true));
+              |]
+              (fun (_ : _) -> true)
+              (fun (_ : _) -> false)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let depassement_plafond_ressources_ : money -> money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> depassement_plafond_ressources_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : money) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default
-                      [|
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              ressources_menage_ >$ plafond__i_i_d521_3_
-                              && ressources_menage_
-                                 <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
-                            (fun (_ : _) ->
-                              plafond__i_i_d521_3_
-                              +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
-                        (fun (_ : _) ->
-                          handle_default [||]
-                            (fun (_ : _) ->
-                              ressources_menage_ >$ plafond__i_d521_3_
-                              && ressources_menage_
-                                 <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
-                            (fun (_ : _) ->
-                              plafond__i_d521_3_
-                              +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
-                      |]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) -> money_of_cents_string "0"));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+    try
+      handle_default
+        [| (fun (_ : _) -> depassement_plafond_ressources_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : money) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default
+                    [|
+                      (fun (_ : _) ->
+                        handle_default [||]
+                          (fun (_ : _) ->
+                            ressources_menage_ >$ plafond__i_i_d521_3_
+                            && ressources_menage_
+                               <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
+                          (fun (_ : _) ->
+                            plafond__i_i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
+                      (fun (_ : _) ->
+                        handle_default [||]
+                          (fun (_ : _) ->
+                            ressources_menage_ >$ plafond__i_d521_3_
+                            && ressources_menage_
+                               <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
+                          (fun (_ : _) ->
+                            plafond__i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
+                    |]
+                    (fun (_ : _) -> true)
+                    (fun (_ : _) -> money_of_cents_string "0"));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_initial_base_troisieme_enfant_et_plus_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "3"
-                     then
-                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
-                       *$ decimal_of_integer
-                            ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                            -! integer_of_string "2" )
-                     else money_of_cents_string "0"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "3"
-                     then
-                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
-                       *$ decimal_of_integer
-                            ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                            -! integer_of_string "2" )
-                     else money_of_cents_string "0"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "3"
-                     then
-                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
-                       *$ decimal_of_integer
-                            ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                            -! integer_of_string "2" )
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_initial_base_troisieme_enfant_et_plus_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "3"
+                    then
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
+                      *$ decimal_of_integer
+                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2" )
+                    else money_of_cents_string "0"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ >$ plafond__i_d521_3_
+                    && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "3"
+                    then
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
+                      *$ decimal_of_integer
+                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2" )
+                    else money_of_cents_string "0"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "3"
+                    then
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
+                      *$ decimal_of_integer
+                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2" )
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_deuxieme_enfant_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_initial_base_deuxieme_enfant_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "2"
-                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
-                     else money_of_cents_string "0"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "2"
-                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
-                     else money_of_cents_string "0"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
-                   (fun (_ : _) ->
-                     if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                       >=! integer_of_string "2"
-                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_initial_base_deuxieme_enfant_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "2"
+                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
+                    else money_of_cents_string "0"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ >$ plafond__i_d521_3_
+                    && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "2"
+                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
+                    else money_of_cents_string "0"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
+                  (fun (_ : _) ->
+                    if
+                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                      >=! integer_of_string "2"
+                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_premier_enfant_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_initial_base_premier_enfant_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ >$ plafond__i_i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                     *$ decimal_of_string "0.25"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                     *$ decimal_of_string "0.5"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ <=$ plafond__i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     <> integer_of_string "1")
-                   (fun (_ : _) -> money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_initial_base_premier_enfant_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ >$ plafond__i_i_d521_3_
+                    && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       = integer_of_string "1")
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+                    *$ decimal_of_string "0.25"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ >$ plafond__i_d521_3_
+                    && ressources_menage_ <=$ plafond__i_i_d521_3_
+                    && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       = integer_of_string "1")
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+                    *$ decimal_of_string "0.5"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ <=$ plafond__i_d521_3_
+                    && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       = integer_of_string "1")
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                    <> integer_of_string "1")
+                  (fun (_ : _) -> money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_forfaitaire_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_forfaitaire_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
-                     *$ decimal_of_integer
-                          (Array.fold_left
-                             (fun (acc_ : integer) (enfant_ : _) ->
-                               if droit_ouvert_forfaitaire_ enfant_ then
-                                 acc_ +! integer_of_string "1"
-                               else acc_)
-                             (integer_of_string "0") enfants_a_charge_)));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) ->
-                     ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
-                     *$ decimal_of_integer
-                          (Array.fold_left
-                             (fun (acc_ : integer) (enfant_ : _) ->
-                               if droit_ouvert_forfaitaire_ enfant_ then
-                                 acc_ +! integer_of_string "1"
-                               else acc_)
-                             (integer_of_string "0") enfants_a_charge_)));
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
-                   (fun (_ : _) ->
-                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
-                     *$ decimal_of_integer
-                          (Array.fold_left
-                             (fun (acc_ : integer) (enfant_ : _) ->
-                               if droit_ouvert_forfaitaire_ enfant_ then
-                                 acc_ +! integer_of_string "1"
-                               else acc_)
-                             (integer_of_string "0") enfants_a_charge_)));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_forfaitaire_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ >$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
+                    *$ decimal_of_integer
+                         (Array.fold_left
+                            (fun (acc_ : integer) (enfant_ : _) ->
+                              if droit_ouvert_forfaitaire_ enfant_ then
+                                acc_ +! integer_of_string "1"
+                              else acc_)
+                            (integer_of_string "0") enfants_a_charge_)));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) ->
+                    ressources_menage_ >$ plafond__i_d521_3_
+                    && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
+                    *$ decimal_of_integer
+                         (Array.fold_left
+                            (fun (acc_ : integer) (enfant_ : _) ->
+                              if droit_ouvert_forfaitaire_ enfant_ then
+                                acc_ +! integer_of_string "1"
+                              else acc_)
+                            (integer_of_string "0") enfants_a_charge_)));
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> ressources_menage_ <=$ plafond__i_d521_3_)
+                  (fun (_ : _) ->
+                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
+                    *$ decimal_of_integer
+                         (Array.fold_left
+                            (fun (acc_ : integer) (enfant_ : _) ->
+                              if droit_ouvert_forfaitaire_ enfant_ then
+                                acc_ +! integer_of_string "1"
+                              else acc_)
+                            (integer_of_string "0") enfants_a_charge_)));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let rapport_enfants_total_moyen_ : decimal =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> rapport_enfants_total_moyen_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
-                     else nombre_moyen_enfants_ /& nombre_total_enfants_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> rapport_enfants_total_moyen_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
+                    else nombre_moyen_enfants_ /& nombre_total_enfants_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_initial_majoration_ : enfant -> money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_initial_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) -> not (droit_ouvert_majoration_ param_))
-                      (fun (_ : _) -> money_of_cents_string "0"));
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        droit_ouvert_majoration_ param_
-                        && prestations_familiales_dot_regime_outre_mer_l751_1_
-                        && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           = integer_of_string "1")
-                      (fun (_ : _) ->
-                        prestations_familiales_dot_base_mensuelle_
-                        *$
-                        if param_.age >=! integer_of_string "16" then decimal_of_string "0.0567"
-                        else decimal_of_string "0.0369"));
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        droit_ouvert_majoration_ param_
-                        && ressources_menage_ >$ plafond__i_i_d521_3_
-                        && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           >=! integer_of_string "2")
-                      (fun (_ : _) ->
-                        prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.04"));
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        droit_ouvert_majoration_ param_
-                        && ressources_menage_ >$ plafond__i_d521_3_
-                        && ressources_menage_ <=$ plafond__i_i_d521_3_
-                        && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           >=! integer_of_string "2")
-                      (fun (_ : _) ->
-                        prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"));
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) ->
-                        droit_ouvert_majoration_ param_
-                        && ressources_menage_ <=$ plafond__i_d521_3_
-                        && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           >=! integer_of_string "2")
-                      (fun (_ : _) ->
-                        prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_initial_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) -> not (droit_ouvert_majoration_ param_))
+                    (fun (_ : _) -> money_of_cents_string "0"));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      droit_ouvert_majoration_ param_
+                      && prestations_familiales_dot_regime_outre_mer_l751_1_
+                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                         = integer_of_string "1")
+                    (fun (_ : _) ->
+                      prestations_familiales_dot_base_mensuelle_
+                      *$
+                      if param_.age >=! integer_of_string "16" then decimal_of_string "0.0567"
+                      else decimal_of_string "0.0369"));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      droit_ouvert_majoration_ param_
+                      && ressources_menage_ >$ plafond__i_i_d521_3_
+                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                         >=! integer_of_string "2")
+                    (fun (_ : _) ->
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.04"));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      droit_ouvert_majoration_ param_
+                      && ressources_menage_ >$ plafond__i_d521_3_
+                      && ressources_menage_ <=$ plafond__i_i_d521_3_
+                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                         >=! integer_of_string "2")
+                    (fun (_ : _) ->
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"));
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) ->
+                      droit_ouvert_majoration_ param_
+                      && ressources_menage_ <=$ plafond__i_d521_3_
+                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                         >=! integer_of_string "2")
+                    (fun (_ : _) ->
+                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_initial_base_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default
-                   [|
-                     (fun (_ : _) ->
-                       handle_default [||]
-                         (fun (_ : _) ->
-                           prestations_familiales_dot_regime_outre_mer_l751_1_
-                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                              = integer_of_string "1")
-                         (fun (_ : _) -> montant_initial_base_premier_enfant_));
-                   |]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     montant_initial_base_deuxieme_enfant_
-                     +$ montant_initial_base_troisieme_enfant_et_plus_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_initial_base_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default
+                  [|
+                    (fun (_ : _) ->
+                      handle_default [||]
+                        (fun (_ : _) ->
+                          prestations_familiales_dot_regime_outre_mer_l751_1_
+                          && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                             = integer_of_string "1")
+                        (fun (_ : _) -> montant_initial_base_premier_enfant_));
+                  |]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    montant_initial_base_deuxieme_enfant_
+                    +$ montant_initial_base_troisieme_enfant_et_plus_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_complement_pour_forfaitaire_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_complement_pour_forfaitaire_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if droit_ouvert_complement_ then
-                       depassement_plafond_ressources_ montant_verse_forfaitaire_
-                       *$ (decimal_of_string "1." /& decimal_of_string "12.")
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_complement_pour_forfaitaire_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if droit_ouvert_complement_ then
+                      depassement_plafond_ressources_ montant_verse_forfaitaire_
+                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_avec_garde_alternee_majoration_ : enfant -> money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_avec_garde_alternee_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) (param_ : enfant) ->
-           error_empty
-             (handle_default
-                [|
-                  (fun (_ : _) ->
-                    handle_default [||]
-                      (fun (_ : _) -> true)
-                      (fun (_ : _) ->
-                        montant_initial_majoration_ param_
-                        *$
-                        match prise_en_compte_ param_ with
-                        | Complete _ -> decimal_of_string "1."
-                        | Partagee _ -> decimal_of_string "0.5"));
-                |]
-                (fun (_ : _) -> false)
-                (fun (_ : _) -> raise EmptyError))))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_avec_garde_alternee_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||]
+                    (fun (_ : _) -> true)
+                    (fun (_ : _) ->
+                      montant_initial_majoration_ param_
+                      *$
+                      match prise_en_compte_ param_ with
+                      | Complete _ -> decimal_of_string "1."
+                      | Partagee _ -> decimal_of_string "0.5"
+                      | Zero _ -> decimal_of_string "0."));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
   in
   let montant_avec_garde_alternee_base_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_avec_garde_alternee_base_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) -> montant_initial_base_ *$ rapport_enfants_total_moyen_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_avec_garde_alternee_base_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) -> montant_initial_base_ *$ rapport_enfants_total_moyen_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_majoration_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if droit_ouvert_base_ then
-                       Array.fold_left
-                         (fun (acc_ : money) (enfant_ : _) ->
-                           acc_ +$ montant_avec_garde_alternee_majoration_ enfant_)
-                         (money_of_cents_string "0") enfants_a_charge_
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if droit_ouvert_base_ then
+                      Array.fold_left
+                        (fun (acc_ : money) (enfant_ : _) ->
+                          acc_ +$ montant_avec_garde_alternee_majoration_ enfant_)
+                        (money_of_cents_string "0") enfants_a_charge_
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_base_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_base_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if droit_ouvert_base_ then montant_avec_garde_alternee_base_
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_base_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if droit_ouvert_base_ then montant_avec_garde_alternee_base_
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_base_complement_pour_base_et_majoration_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_base_complement_pour_base_et_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) -> montant_verse_base_ +$ montant_verse_majoration_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_base_complement_pour_base_et_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) -> montant_verse_base_ +$ montant_verse_majoration_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_complement_pour_base_et_majoration_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_complement_pour_base_et_majoration_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if droit_ouvert_complement_ then
-                       depassement_plafond_ressources_
-                         montant_base_complement_pour_base_et_majoration_
-                       *$ (decimal_of_string "1." /& decimal_of_string "12.")
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_complement_pour_base_et_majoration_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if droit_ouvert_complement_ then
+                      depassement_plafond_ressources_
+                        montant_base_complement_pour_base_et_majoration_
+                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let montant_verse_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     if droit_ouvert_base_ then
-                       montant_verse_base_
-                       +$ ( montant_verse_majoration_
-                          +$ ( montant_verse_forfaitaire_
-                             +$ ( montant_verse_complement_pour_base_et_majoration_
-                                +$ montant_verse_complement_pour_forfaitaire_ ) ) )
-                     else money_of_cents_string "0"));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    if droit_ouvert_base_ then
+                      montant_verse_base_
+                      +$ ( montant_verse_majoration_
+                         +$ ( montant_verse_forfaitaire_
+                            +$ ( montant_verse_complement_pour_base_et_majoration_
+                               +$ montant_verse_complement_pour_forfaitaire_ ) ) )
+                    else money_of_cents_string "0"));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let (_ : unit) =
+    if
+      personne_charge_effective_permanente_est_parent_
+      || (not personne_charge_effective_permanente_est_parent_)
+         && personne_charge_effective_permanente_remplit_titre__i_
+    then ()
+    else raise AssertionFailed
   in
   {
+    personne_charge_effective_permanente_est_parent_out =
+      personne_charge_effective_permanente_est_parent_;
+    personne_charge_effective_permanente_remplit_titre_I_out =
+      personne_charge_effective_permanente_remplit_titre__i_;
+    ressources_menage_out = ressources_menage_;
+    residence_out = residence_;
+    date_courante_out = date_courante_;
     enfants_a_charge_out = enfants_a_charge_;
     enfants_a_charge_droit_ouvert_prestation_familiale_out =
       enfants_a_charge_droit_ouvert_prestation_familiale_;
-    date_courante_out = date_courante_;
-    residence_out = residence_;
-    ressources_menage_out = ressources_menage_;
     prise_en_compte_out = prise_en_compte_;
     versement_out = versement_;
     montant_verse_out = montant_verse_;
     droit_ouvert_base_out = droit_ouvert_base_;
-    droit_ouvert_majoration_out = droit_ouvert_majoration_;
     montant_verse_base_out = montant_verse_base_;
     montant_avec_garde_alternee_base_out = montant_avec_garde_alternee_base_;
     montant_initial_base_out = montant_initial_base_;
@@ -1728,6 +1839,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     nombre_total_enfants_out = nombre_total_enfants_;
     droit_ouvert_forfaitaire_out = droit_ouvert_forfaitaire_;
     montant_verse_forfaitaire_out = montant_verse_forfaitaire_;
+    droit_ouvert_majoration_out = droit_ouvert_majoration_;
     montant_verse_majoration_out = montant_verse_majoration_;
     montant_avec_garde_alternee_majoration_out = montant_avec_garde_alternee_majoration_;
     montant_initial_majoration_out = montant_initial_majoration_;
@@ -1738,9 +1850,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       montant_base_complement_pour_base_et_majoration_;
     montant_verse_complement_pour_forfaitaire_out = montant_verse_complement_pour_forfaitaire_;
     depassement_plafond_ressources_out = depassement_plafond_ressources_;
-    conditions_hors_age_out = conditions_hors_age_;
     nombre_enfants_l521_1_out = nombre_enfants_l521_1_;
-    age_limite_alinea_1_l521_3_out = age_limite_alinea_1_l521_3_;
+    age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_;
     nombre_enfants_alinea_2_l521_3_out = nombre_enfants_alinea_2_l521_3_;
     est_enfant_le_plus_age_out = est_enfant_le_plus_age_;
     plafond_I_d521_3_out = plafond__i_d521_3_;
@@ -1759,78 +1870,145 @@ let interface_allocations_familiales
   in
   let residence_ : unit -> collectivite = interface_allocations_familiales_in.residence_in in
   let montant_verse_ : unit -> money = interface_allocations_familiales_in.montant_verse_in in
+  let personne_charge_effective_permanente_est_parent_ : unit -> bool =
+    interface_allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
+  in
+  let personne_charge_effective_permanente_remplit_titre__i_ : unit -> bool =
+    interface_allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
+  in
   let date_courante_ : date =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> date_courante_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> date_courante_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let enfants_ : enfant_entree array =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> enfants_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> enfants_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let ressources_menage_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> ressources_menage_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> ressources_menage_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   let residence_ : collectivite =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> residence_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> residence_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> false) (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
+  in
+  let personne_charge_effective_permanente_est_parent_ : bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> personne_charge_effective_permanente_est_parent_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
+  in
+  let personne_charge_effective_permanente_remplit_titre__i_ : bool =
+    try
+      handle_default
+        [| (fun (_ : _) -> personne_charge_effective_permanente_remplit_titre__i_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> false))
+    with EmptyError -> raise NoValueProvided
   in
   let enfants_a_charge_ : enfant array =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> enfants_a_charge_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) ->
-                     Array.map
-                       (fun (enfant_ : _) ->
-                         {
-                           identifiant = enfant_.d_identifiant;
-                           fin_obligation_scolaire =
-                             enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0;
-                           remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
-                           date_de_naissance = enfant_.d_date_de_naissance;
-                           age =
-                             year_of_date
-                               ( date_of_numbers 0 1 1
-                               +@ (date_courante_ -@ enfant_.d_date_de_naissance) );
-                           garde_alternee = enfant_.d_garde_alternee;
-                           prise_en_charge_par_services_sociaux =
-                             enfant_.d_prise_en_charge_par_services_sociaux;
-                         })
-                       enfants_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
+    try
+      handle_default
+        [| (fun (_ : _) -> enfants_a_charge_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) ->
+                    Array.map
+                      (fun (enfant_ : _) ->
+                        {
+                          identifiant = enfant_.d_identifiant;
+                          obligation_scolaire =
+                            ( if
+                              enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0
+                              >=@ date_courante_
+                            then Avant ()
+                            else if
+                            enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0
+                            >=@ date_courante_
+                          then Pendant ()
+                            else Apres () );
+                          remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
+                          date_de_naissance = enfant_.d_date_de_naissance;
+                          age =
+                            year_of_date
+                              ( date_of_numbers 0 1 1
+                              +@ (date_courante_ -@ enfant_.d_date_de_naissance) );
+                          prise_en_charge = enfant_.d_prise_en_charge;
+                          a_deja_ouvert_droit_aux_allocations_familiales =
+                            enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
+                        })
+                      enfants_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
-  let allocations_familiales_dot_enfants_a_charge_ : unit -> enfant array =
+  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : unit -> bool =
    fun (_ : unit) ->
     handle_default
       [|
         (fun (_ : _) ->
-          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> enfants_a_charge_));
+          handle_default [||]
+            (fun (_ : _) -> personne_charge_effective_permanente_est_parent_)
+            (fun (_ : _) -> true));
       |]
+      (fun (_ : _) -> true)
+      (fun (_ : _) -> false)
+  in
+  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ :
+      unit -> bool =
+   fun (_ : unit) ->
+    handle_default
+      [|
+        (fun (_ : _) ->
+          handle_default [||]
+            (fun (_ : _) -> personne_charge_effective_permanente_remplit_titre__i_)
+            (fun (_ : _) -> true));
+      |]
+      (fun (_ : _) -> true)
+      (fun (_ : _) -> false)
+  in
+  let allocations_familiales_dot_ressources_menage_ : unit -> money =
+   fun (_ : unit) ->
+    handle_default
+      [|
+        (fun (_ : _) ->
+          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> ressources_menage_));
+      |]
+      (fun (_ : _) -> false)
+      (fun (_ : _) -> raise EmptyError)
+  in
+  let allocations_familiales_dot_residence_ : unit -> collectivite =
+   fun (_ : unit) ->
+    handle_default
+      [| (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> residence_)) |]
       (fun (_ : _) -> false)
       (fun (_ : _) -> raise EmptyError)
   in
@@ -1843,19 +2021,12 @@ let interface_allocations_familiales
       (fun (_ : _) -> false)
       (fun (_ : _) -> raise EmptyError)
   in
-  let allocations_familiales_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    handle_default
-      [| (fun (_ : _) -> handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> residence_)) |]
-      (fun (_ : _) -> false)
-      (fun (_ : _) -> raise EmptyError)
-  in
-  let allocations_familiales_dot_ressources_menage_ : unit -> money =
+  let allocations_familiales_dot_enfants_a_charge_ : unit -> enfant array =
    fun (_ : unit) ->
     handle_default
       [|
         (fun (_ : _) ->
-          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> ressources_menage_));
+          handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> enfants_a_charge_));
       |]
       (fun (_ : _) -> false)
       (fun (_ : _) -> raise EmptyError)
@@ -1863,16 +2034,19 @@ let interface_allocations_familiales
   let result_ : allocations_familiales_out =
     allocations_familiales
       {
+        personne_charge_effective_permanente_est_parent_in =
+          allocations_familiales_dot_personne_charge_effective_permanente_est_parent_;
+        personne_charge_effective_permanente_remplit_titre_I_in =
+          allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_;
+        ressources_menage_in = allocations_familiales_dot_ressources_menage_;
+        residence_in = allocations_familiales_dot_residence_;
+        date_courante_in = allocations_familiales_dot_date_courante_;
         enfants_a_charge_in = allocations_familiales_dot_enfants_a_charge_;
         enfants_a_charge_droit_ouvert_prestation_familiale_in = (fun (_ : unit) -> raise EmptyError);
-        date_courante_in = allocations_familiales_dot_date_courante_;
-        residence_in = allocations_familiales_dot_residence_;
-        ressources_menage_in = allocations_familiales_dot_ressources_menage_;
         prise_en_compte_in = (fun (_ : unit) -> raise EmptyError);
         versement_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_in = (fun (_ : unit) -> raise EmptyError);
         droit_ouvert_base_in = (fun (_ : unit) -> raise EmptyError);
-        droit_ouvert_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_base_in = (fun (_ : unit) -> raise EmptyError);
         montant_avec_garde_alternee_base_in = (fun (_ : unit) -> raise EmptyError);
         montant_initial_base_in = (fun (_ : unit) -> raise EmptyError);
@@ -1884,6 +2058,7 @@ let interface_allocations_familiales
         nombre_total_enfants_in = (fun (_ : unit) -> raise EmptyError);
         droit_ouvert_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
+        droit_ouvert_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_avec_garde_alternee_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_initial_majoration_in = (fun (_ : unit) -> raise EmptyError);
@@ -1892,24 +2067,29 @@ let interface_allocations_familiales
         montant_base_complement_pour_base_et_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_complement_pour_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
         depassement_plafond_ressources_in = (fun (_ : unit) -> raise EmptyError);
-        conditions_hors_age_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_l521_1_in = (fun (_ : unit) -> raise EmptyError);
-        age_limite_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
+        age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_alinea_2_l521_3_in = (fun (_ : unit) -> raise EmptyError);
         est_enfant_le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
         plafond_I_d521_3_in = (fun (_ : unit) -> raise EmptyError);
         plafond_II_d521_3_in = (fun (_ : unit) -> raise EmptyError);
       }
   in
+  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : bool =
+    result_.personne_charge_effective_permanente_est_parent_out
+  in
+  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ : bool =
+    result_.personne_charge_effective_permanente_remplit_titre_I_out
+  in
+  let allocations_familiales_dot_ressources_menage_ : money = result_.ressources_menage_out in
+  let allocations_familiales_dot_residence_ : collectivite = result_.residence_out in
+  let allocations_familiales_dot_date_courante_ : date = result_.date_courante_out in
   let allocations_familiales_dot_enfants_a_charge_ : enfant array = result_.enfants_a_charge_out in
   let allocations_familiales_dot_enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array
       =
     result_.enfants_a_charge_droit_ouvert_prestation_familiale_out
   in
-  let allocations_familiales_dot_date_courante_ : date = result_.date_courante_out in
-  let allocations_familiales_dot_residence_ : collectivite = result_.residence_out in
-  let allocations_familiales_dot_ressources_menage_ : money = result_.ressources_menage_out in
-  let allocations_familiales_dot_prise_en_compte_ : enfant -> prise_en_compte_evaluation_montant =
+  let allocations_familiales_dot_prise_en_compte_ : enfant -> prise_en_compte =
     result_.prise_en_compte_out
   in
   let allocations_familiales_dot_versement_ : enfant -> versement_allocations =
@@ -1917,9 +2097,6 @@ let interface_allocations_familiales
   in
   let allocations_familiales_dot_montant_verse_ : money = result_.montant_verse_out in
   let allocations_familiales_dot_droit_ouvert_base_ : bool = result_.droit_ouvert_base_out in
-  let allocations_familiales_dot_droit_ouvert_majoration_ : enfant -> bool =
-    result_.droit_ouvert_majoration_out
-  in
   let allocations_familiales_dot_montant_verse_base_ : money = result_.montant_verse_base_out in
   let allocations_familiales_dot_montant_avec_garde_alternee_base_ : money =
     result_.montant_avec_garde_alternee_base_out
@@ -1949,6 +2126,9 @@ let interface_allocations_familiales
   let allocations_familiales_dot_montant_verse_forfaitaire_ : money =
     result_.montant_verse_forfaitaire_out
   in
+  let allocations_familiales_dot_droit_ouvert_majoration_ : enfant -> bool =
+    result_.droit_ouvert_majoration_out
+  in
   let allocations_familiales_dot_montant_verse_majoration_ : money =
     result_.montant_verse_majoration_out
   in
@@ -1973,14 +2153,11 @@ let interface_allocations_familiales
   let allocations_familiales_dot_depassement_plafond_ressources_ : money -> money =
     result_.depassement_plafond_ressources_out
   in
-  let allocations_familiales_dot_conditions_hors_age_ : enfant -> bool =
-    result_.conditions_hors_age_out
-  in
   let allocations_familiales_dot_nombre_enfants_l521_1_ : integer =
     result_.nombre_enfants_l521_1_out
   in
-  let allocations_familiales_dot_age_limite_alinea_1_l521_3_ : enfant -> integer =
-    result_.age_limite_alinea_1_l521_3_out
+  let allocations_familiales_dot_age_minimum_alinea_1_l521_3_ : enfant -> integer =
+    result_.age_minimum_alinea_1_l521_3_out
   in
   let allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_ : integer =
     result_.nombre_enfants_alinea_2_l521_3_out
@@ -1991,32 +2168,21 @@ let interface_allocations_familiales
   let allocations_familiales_dot_plafond__i_d521_3_ : money = result_.plafond_I_d521_3_out in
   let allocations_familiales_dot_plafond__i_i_d521_3_ : money = result_.plafond_II_d521_3_out in
   let montant_verse_ : money =
-    error_empty
-      (handle_default
-         [| (fun (_ : _) -> montant_verse_ ()) |]
-         (fun (_ : _) -> true)
-         (fun (_ : _) ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 handle_default [||]
-                   (fun (_ : _) -> true)
-                   (fun (_ : _) -> allocations_familiales_dot_montant_verse_));
-             |]
-             (fun (_ : _) -> false)
-             (fun (_ : _) -> raise EmptyError)))
-  in
-  let (_ : unit) =
-    if
-      not
-        (Array.fold_left
-           (fun (acc_ : bool) (enfant_ : _) ->
-             acc_
-             || enfant_.d_garde_alternee <> NonGardeUnique ()
-                && enfant_.d_prise_en_charge_par_services_sociaux <> NonPriseEnChargeFamille ())
-           false enfants_)
-    then ()
-    else raise AssertionFailed
+    try
+      handle_default
+        [| (fun (_ : _) -> montant_verse_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) ->
+          handle_default
+            [|
+              (fun (_ : _) ->
+                handle_default [||]
+                  (fun (_ : _) -> true)
+                  (fun (_ : _) -> allocations_familiales_dot_montant_verse_));
+            |]
+            (fun (_ : _) -> false)
+            (fun (_ : _) -> raise EmptyError))
+    with EmptyError -> raise NoValueProvided
   in
   {
     date_courante_out = date_courante_;
@@ -2025,4 +2191,8 @@ let interface_allocations_familiales
     ressources_menage_out = ressources_menage_;
     residence_out = residence_;
     montant_verse_out = montant_verse_;
+    personne_charge_effective_permanente_est_parent_out =
+      personne_charge_effective_permanente_est_parent_;
+    personne_charge_effective_permanente_remplit_titre_I_out =
+      personne_charge_effective_permanente_remplit_titre__i_;
   }

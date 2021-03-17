@@ -6,9 +6,6 @@ informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
 > Début métadonnées
 ```catala
-déclaration structure Personne:
-  donnée numéro_sécurité_sociale contenu entier
-
 déclaration énumération PriseEnCharge :
   -- GardeAlternéePartageAllocations
   -- GardeAlternéeAllocataireUnique
@@ -49,6 +46,7 @@ déclaration champ d'application Smic :
 déclaration énumération PriseEnCompte:
   -- Complète
   -- Partagée
+  -- Zéro
 
 déclaration énumération VersementAllocations:
   -- Normal
