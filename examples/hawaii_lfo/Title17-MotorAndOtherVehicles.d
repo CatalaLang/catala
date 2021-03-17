@@ -1,4 +1,0 @@
-Title17-MotorAndOtherVehicles.d\
-Title17-MotorAndOtherVehicles.tex:\
-Title17-MotorAndOtherVehicles.catala_en
-Title17-MotorAndOtherVehicles.catala_en:
