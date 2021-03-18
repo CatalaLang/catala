@@ -1,7 +1,7 @@
 (lang dune 2.2)
 
 (name catala)
-(version 0.2.0)
+(version 0.3.0)
 (generate_opam_files true)
 (formatting)
 
@@ -40,4 +40,4 @@
 )
 
 (using menhir 2.1)
-(allow_approximate_merlin) 
+(allow_approximate_merlin)

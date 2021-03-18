@@ -24,10 +24,10 @@ cat examples/allocations_familiales/securite_sociale_R.catala_fr >> allocations_
 cat examples/allocations_familiales/securite_sociale_D.catala_fr >> allocations_familiales.catala_fr
 cat examples/allocations_familiales/epilogue.catala_fr >> allocations_familiales.catala_fr
 cat examples/allocations_familiales/tests/tests_allocations_familiales.catala_fr >> allocations_familiales.catala_fr
-sed -r '/^@@Inclusion.+$/d' allocations_familiales.catala_fr > allocations_familiales_fixed.catala_fr
+sed -r '/^## Inclusion.+$/d' allocations_familiales.catala_fr > allocations_familiales_fixed.catala_fr
 mv -f allocations_familiales_fixed.catala_fr allocations_familiales.catala_fr
 scp allocations_familiales.catala_fr $1/playground/
 rm allocations_familiales.catala_fr
 scp syntax_highlighting/en/ace/mode-catala_en.js $1/playground/
 scp syntax_highlighting/fr/ace/mode-catala_fr.js $1/playground/
-scp javascript/french_law.js $1/french_law.js
+scp french_law_js/french_law.js $1/french_law.js

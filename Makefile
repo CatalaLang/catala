@@ -183,7 +183,7 @@ run_french_law_library_tests: build_french_law_library
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
-	cd javascript && ln -sf ../_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law.js
+	cp -f _build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law_js/french_law.js
 
 ##########################################
 # Website assets
