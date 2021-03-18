@@ -19,4 +19,6 @@ let _ =
   try_test "Allocations familiales #4" Tests_allocations_familiales.test4;
   try_test "Allocations familiales #5" Tests_allocations_familiales.test5;
   try_test "Allocations familiales #6" Tests_allocations_familiales.test6;
+  try_test "Allocations familiales #7" Tests_allocations_familiales.test7;
+  try_test "Allocations familiales #8" Tests_allocations_familiales.test8;
   exit (if !failure then -1 else 0)
