@@ -43,7 +43,6 @@ type penalty286_83_135_out = {
   min_fine_out: money;
   max_days_out: duration;
   priors_same_offense_out: integer;
-  paragraph_a_applies_out: bool;
   paragraph_b_applies_out: bool;
   paragraph_c_applies_out: bool;
   penalty_out: penalty;
@@ -56,7 +55,6 @@ type penalty286_83_135_in = {
   min_fine_in: unit -> money;
   max_days_in: unit -> duration;
   priors_same_offense_in: unit -> integer;
-  paragraph_a_applies_in: unit -> bool;
   paragraph_b_applies_in: unit -> bool;
   paragraph_c_applies_in: unit -> bool;
   penalty_in: unit -> penalty;
@@ -78,9 +76,6 @@ let penalty286_83_135 =
     in
     let priors_same_offense_ : unit -> integer =
       (penalty286_83_135_in.priors_same_offense_in)
-    in
-    let paragraph_a_applies_ : unit -> bool =
-      (penalty286_83_135_in.paragraph_a_applies_in)
     in
     let paragraph_b_applies_ : unit -> bool =
       (penalty286_83_135_in.paragraph_b_applies_in)
@@ -149,7 +144,7 @@ let penalty286_83_135 =
                                     (((prior_.violation) =
                                         (offense_.violation)) &&
                                        (((prior_.date_of) +@
-                                           (duration_of_numbers 5 0 0)) <=@
+                                           (duration_of_numbers 5 0 0)) >=@
                                           (offense_.date_of))) then
                                     (acc_ +! (integer_of_string "1")) else
                                     acc_) (integer_of_string "0")
@@ -182,37 +177,6 @@ let penalty286_83_135 =
                   (fun (_: _) -> false))) with EmptyError ->
           raise NoValueProvided))
     in
-    let paragraph_a_applies_ : bool =
-      ((try
-          (handle_default ([|(fun (_: _) -> paragraph_a_applies_ ())|])
-             (fun (_: _) -> true)
-             (fun (_: _) ->
-                handle_default
-                  ([|(fun (_: _) ->
-                        handle_default ([||])
-                          (fun (_: _) ->
-                             ((not paragraph_b_applies_) &&
-                                (not paragraph_c_applies_)))
-                          (fun (_: _) -> true))|]) (fun (_: _) -> true)
-                  (fun (_: _) -> false))) with EmptyError ->
-          raise NoValueProvided))
-    in
-    let min_fine_ : money =
-      ((try
-          (handle_default ([|(fun (_: _) -> min_fine_ ())|])
-             (fun (_: _) -> true)
-             (fun (_: _) ->
-                handle_default
-                  ([|(fun (_: _) ->
-                        handle_default ([||])
-                          (fun (_: _) -> paragraph_b_applies_)
-                          (fun (_: _) -> money_of_cents_string "50000"));
-                     (fun (_: _) ->
-                        handle_default ([||]) (fun (_: _) -> true)
-                          (fun (_: _) -> money_of_cents_string "0"))|])
-                  (fun (_: _) -> false) (fun (_: _) -> raise EmptyError)))
-          with EmptyError -> raise NoValueProvided))
-    in
     let max_days_ : duration =
       ((try
           (handle_default ([|(fun (_: _) -> max_days_ ())|])
@@ -220,19 +184,29 @@ let penalty286_83_135 =
              (fun (_: _) ->
                 handle_default
                   ([|(fun (_: _) ->
-                        handle_default ([||])
-                          (fun (_: _) -> paragraph_b_applies_)
-                          (fun (_: _) -> duration_of_numbers 1 0 0));
-                     (fun (_: _) ->
                         handle_default
                           ([|(fun (_: _) ->
-                                handle_default ([||])
+                                handle_default
+                                  ([|(fun (_: _) ->
+                                        handle_default ([||])
+                                          (fun (_: _) -> paragraph_b_applies_)
+                                          (fun (_: _) ->
+                                             duration_of_numbers 1 0 0))|])
                                   (fun (_: _) ->
-                                     (paragraph_a_applies_ &&
+                                     ((match (offense_.violation)
+                                        with
+                                        Section286_102 _ -> true
+                                        | Section286_122 _ -> false
+                                        | Section286_130 _ -> false
+                                        | Section286_131 _ -> false
+                                        | Section286_132 _ -> false
+                                        | Section286_133 _ -> false
+                                        | Section286_134 _ -> false
+                                        | Other_83_135 _ -> false) ||
                                         ((match (offense_.violation)
                                            with
-                                           Section286_102 _ -> true
-                                           | Section286_122 _ -> false
+                                           Section286_102 _ -> false
+                                           | Section286_122 _ -> true
                                            | Section286_130 _ -> false
                                            | Section286_131 _ -> false
                                            | Section286_132 _ -> false
@@ -242,8 +216,8 @@ let penalty286_83_135 =
                                            ((match (offense_.violation)
                                               with
                                               Section286_102 _ -> false
-                                              | Section286_122 _ -> true
-                                              | Section286_130 _ -> false
+                                              | Section286_122 _ -> false
+                                              | Section286_130 _ -> true
                                               | Section286_131 _ -> false
                                               | Section286_132 _ -> false
                                               | Section286_133 _ -> false
@@ -255,9 +229,9 @@ let penalty286_83_135 =
                                                  | Section286_122 _ ->
                                                   false
                                                  | Section286_130 _ ->
-                                                  true
-                                                 | Section286_131 _ ->
                                                   false
+                                                 | Section286_131 _ ->
+                                                  true
                                                  | Section286_132 _ ->
                                                   false
                                                  | Section286_133 _ ->
@@ -275,9 +249,9 @@ let penalty286_83_135 =
                                                     | Section286_130 _ ->
                                                      false
                                                     | Section286_131 _ ->
-                                                     true
-                                                    | Section286_132 _ ->
                                                      false
+                                                    | Section286_132 _ ->
+                                                     true
                                                     | Section286_133 _ ->
                                                      false
                                                     | Section286_134 _ ->
@@ -296,54 +270,52 @@ let penalty286_83_135 =
                                                        | Section286_131 _ ->
                                                         false
                                                        | Section286_132 _ ->
-                                                        true
-                                                       | Section286_133 _ ->
                                                         false
+                                                       | Section286_133 _ ->
+                                                        true
                                                        | Section286_134 _ ->
                                                         false
                                                        | Other_83_135 _ ->
                                                         false) ||
-                                                       ((match
-                                                           (offense_.violation)
-                                                          with
-                                                          Section286_102 _ ->
-                                                           false
-                                                          | Section286_122 _ ->
-                                                           false
-                                                          | Section286_130 _ ->
-                                                           false
-                                                          | Section286_131 _ ->
-                                                           false
-                                                          | Section286_132 _ ->
-                                                           false
-                                                          | Section286_133 _ ->
-                                                           true
-                                                          | Section286_134 _ ->
-                                                           false
-                                                          | Other_83_135 _ ->
-                                                           false) ||
-                                                          (match
-                                                             (offense_.violation)
-                                                          with
-                                                          Section286_102 _ ->
-                                                           false
-                                                          | Section286_122 _ ->
-                                                           false
-                                                          | Section286_130 _ ->
-                                                           false
-                                                          | Section286_131 _ ->
-                                                           false
-                                                          | Section286_132 _ ->
-                                                           false
-                                                          | Section286_133 _ ->
-                                                           false
-                                                          | Section286_134 _ ->
-                                                           true
-                                                          | Other_83_135 _ ->
-                                                           false)))))))))
+                                                       (match
+                                                          (offense_.violation)
+                                                       with
+                                                       Section286_102 _ ->
+                                                        false
+                                                       | Section286_122 _ ->
+                                                        false
+                                                       | Section286_130 _ ->
+                                                        false
+                                                       | Section286_131 _ ->
+                                                        false
+                                                       | Section286_132 _ ->
+                                                        false
+                                                       | Section286_133 _ ->
+                                                        false
+                                                       | Section286_134 _ ->
+                                                        true
+                                                       | Other_83_135 _ ->
+                                                        false))))))))
                                   (fun (_: _) -> duration_of_numbers 0 0 30))|])
-                          (fun (_: _) -> paragraph_a_applies_)
-                          (fun (_: _) -> duration_of_numbers 0 0 30))|])
+                          (fun (_: _) -> true)
+                          (fun (_: _) -> duration_of_numbers 0 0 0))|])
+                  (fun (_: _) -> false) (fun (_: _) -> raise EmptyError)))
+          with EmptyError -> raise NoValueProvided))
+    in
+    let min_fine_ : money =
+      ((try
+          (handle_default ([|(fun (_: _) -> min_fine_ ())|])
+             (fun (_: _) -> true)
+             (fun (_: _) ->
+                handle_default
+                  ([|(fun (_: _) ->
+                        handle_default
+                          ([|(fun (_: _) ->
+                                handle_default ([||])
+                                  (fun (_: _) -> paragraph_b_applies_)
+                                  (fun (_: _) -> money_of_cents_string
+                                     "50000"))|]) (fun (_: _) -> true)
+                          (fun (_: _) -> money_of_cents_string "0"))|])
                   (fun (_: _) -> false) (fun (_: _) -> raise EmptyError)))
           with EmptyError -> raise NoValueProvided))
     in
@@ -372,6 +344,5 @@ let penalty286_83_135 =
        max_fine_out = max_fine_; min_fine_out = min_fine_;
        max_days_out = max_days_;
        priors_same_offense_out = priors_same_offense_;
-       paragraph_a_applies_out = paragraph_a_applies_;
        paragraph_b_applies_out = paragraph_b_applies_;
        paragraph_c_applies_out = paragraph_c_applies_; penalty_out = penalty_}

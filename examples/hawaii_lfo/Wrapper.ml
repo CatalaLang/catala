@@ -73,7 +73,6 @@ let catala_input_of_js (i: js_input Js.t): Title17.penalty286_83_135_in = {
   min_fine_in = H.no_input;
   max_days_in = H.no_input;
   priors_same_offense_in = H.no_input;
-  paragraph_a_applies_in = H.no_input;
   paragraph_b_applies_in = H.no_input;
   paragraph_c_applies_in = H.no_input;
   penalty_in = H.no_input
