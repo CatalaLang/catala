@@ -132,7 +132,7 @@ déclaration champ d'application AllocationsFamiliales:
   contexte montant_versé_complément_pour_base_et_majoration contenu argent
   contexte montant_base_complément_pour_base_et_majoration contenu argent
   contexte montant_versé_complément_pour_forfaitaire contenu argent
-  contexte dépassement_plafond_ressources contenu argent dépend de argent
+  contexte complément_dégressif contenu argent dépend de argent
 
   # Sous-champs d'applications
   contexte prestations_familiales champ d'application PrestationsFamiliales

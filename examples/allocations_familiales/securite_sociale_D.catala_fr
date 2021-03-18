@@ -79,7 +79,7 @@ champ d'application AllocationsFamiliales :
     (ressources_ménage <=€ plafond_II_d521_3)
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
-    alors prestations_familiales.base_mensuelle *€ 32 %
+    alors prestations_familiales.base_mensuelle *€ 16 %
     sinon 0 €
 ```
 
@@ -172,28 +172,28 @@ définie à l'alinéa précédent et, d'autre part, le montant des ressources.
 ```catala
 champ d'application AllocationsFamiliales :
   exception
-  définition dépassement_plafond_ressources de allocation
+  définition complément_dégressif de allocation
   sous condition
     (ressources_ménage >€ plafond_I_d521_3) et
     (ressources_ménage <=€ plafond_I_d521_3 +€ allocation *€ 12,0 )
   conséquence égal à
-    plafond_I_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage
+    (plafond_I_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€ (1,0 /. 12,0)
 
   exception
-  définition dépassement_plafond_ressources de allocation
+  définition complément_dégressif de allocation
   sous condition
     (ressources_ménage >€ plafond_II_d521_3) et
     (ressources_ménage <=€ plafond_II_d521_3 +€ allocation *€ 12,0)
   conséquence égal à
-    plafond_II_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage
+    (plafond_II_d521_3 +€ allocation *€ 12,0 -€ ressources_ménage) *€ (1,0 /. 12,0)
 
   # Dans les autres cas, le dépassement est nul
-  définition dépassement_plafond_ressources de allocations égal à 0 €
+  définition complément_dégressif de allocations égal à 0 €
 
   définition montant_versé_complément_pour_base_et_majoration égal à
     si droit_ouvert_complément alors
-      (dépassement_plafond_ressources de
-        montant_base_complément_pour_base_et_majoration) *€ (1,0 /. 12,0)
+      (complément_dégressif de
+        montant_base_complément_pour_base_et_majoration)
     sinon 0 €
 
   définition montant_base_complément_pour_base_et_majoration égal à
@@ -265,8 +265,7 @@ l'alinéa précédent et, d'autre part, le montant des ressources.
 champ d'application AllocationsFamiliales :
   définition montant_versé_complément_pour_forfaitaire égal à
     si droit_ouvert_complément alors
-      (dépassement_plafond_ressources de montant_versé_forfaitaire) *€
-        (1,0 /. 12,0)
+      (complément_dégressif de montant_versé_forfaitaire)
     sinon 0 €
 ```
 
