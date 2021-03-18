@@ -96,7 +96,7 @@ let js_time_and_days_of_catala (p: Title17.penalty_time_and_days):
   _ Js.t
 =
   object%js
-    method minfine = money_to_float p.Title17.min_fine
+    method minFine = money_to_float p.Title17.min_fine
     method maxFine = money_to_float p.Title17.max_fine
     method maxDays = p.Title17.max_days
   end
@@ -113,16 +113,19 @@ let js_time_and_days_of_catala (p: Title17.penalty_time_and_days):
 
 let _ =
   Js.export_all (object%js
-    method compute_penalties (input: js_input Js.t): _ Js.t =
+    method computePenalties (input: js_input Js.t): _ Js.t =
       match Title17.((penalty286_83_135 (catala_input_of_js input)).penalty_out) with
       | Title17.TimeAndDays td ->
           let o = js_time_and_days_of_catala td in
           let o = Js.Unsafe.coerce o in
-          o##.kind := "TimeAndDays";
+          o##.kind := Js.string "TimeAndDays";
           o
       | Title17.Fine500OrLoseRightToDriveUntil18 () ->
           let o = object%js end in
           let o = Js.Unsafe.coerce o in
-          o##.kind := "Fine500OrLoseRightToDriveUntil18";
+          o##.kind := Js.string "Fine500OrLoseRightToDriveUntil18";
           o
   end)
+
+let _ =
+  print_endline "all loaded"

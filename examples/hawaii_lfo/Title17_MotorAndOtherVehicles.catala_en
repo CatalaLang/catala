@@ -79,7 +79,7 @@ scope Penalty286_83_135:
   definition max_days under condition
     paragraph_a_applies
   consequence equals
-    30 day
+    0 day
 
   definition penalty equals
     TimeAndDays content (PenaltyTimeAndDays {
@@ -89,14 +89,14 @@ scope Penalty286_83_135:
     })
 
   exception max_days_paragraph_a definition max_days under condition
-    paragraph_a_applies and
+    paragraph_a_applies and (
     offense.violation with pattern Section286_102 or
     offense.violation with pattern Section286_122 or
     offense.violation with pattern Section286_130 or
     offense.violation with pattern Section286_131 or
     offense.violation with pattern Section286_132 or
     offense.violation with pattern Section286_133 or
-    offense.violation with pattern Section286_134
+    offense.violation with pattern Section286_134)
   consequence equals 30 day
 ```
 

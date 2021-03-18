@@ -1,9 +1,8 @@
 (executable
  (name wrapper)
  (modes byte js)
- (package catala)
  (modules Wrapper Title17_MotorAndOtherVehicles)
  (public_name hawaii_lfo_web)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries catala js_of_ocaml))
+ (libraries runtime js_of_ocaml))
