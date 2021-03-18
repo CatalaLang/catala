@@ -36,6 +36,8 @@
    (calendar (>= 2.04))
    (visitors (>= 20200210))
    (benchmark (>= 1.6))
+   (js_of_ocaml-ppx (>= 3.8.0))
+   (camomile (>= 1.0.2))
  )
 )
 
