@@ -46,7 +46,6 @@ declaration scope Penalty286_83_135:
 
   context priors_same_offense content integer
 
-  context paragraph_a_applies condition
   context paragraph_b_applies condition
   context paragraph_c_applies condition
 
@@ -68,18 +67,9 @@ fined not more than $1,000.
 ```catala
 scope Penalty286_83_135:
 
-  rule paragraph_a_applies under condition
-    (not paragraph_b_applies) and
-    (not paragraph_c_applies)
-  consequence fulfilled
-
   definition min_fine equals $0
   definition max_fine equals $1000
-  label max_days_paragraph_a
-  definition max_days under condition
-    paragraph_a_applies
-  consequence equals
-    0 day
+  definition max_days equals 0 day
 
   definition penalty equals
     TimeAndDays content (PenaltyTimeAndDays {
@@ -88,15 +78,15 @@ scope Penalty286_83_135:
       -- max_days: max_days
     })
 
-  exception max_days_paragraph_a definition max_days under condition
-    paragraph_a_applies and (
+  label max_days_paragraph_a
+  exception definition max_days under condition
     offense.violation with pattern Section286_102 or
     offense.violation with pattern Section286_122 or
     offense.violation with pattern Section286_130 or
     offense.violation with pattern Section286_131 or
     offense.violation with pattern Section286_132 or
     offense.violation with pattern Section286_133 or
-    offense.violation with pattern Section286_134)
+    offense.violation with pattern Section286_134
   consequence equals 30 day
 ```
 
@@ -118,7 +108,7 @@ scope Penalty286_83_135:
   definition priors_same_offense equals
     number for prior in defendant.priors of (
      prior.violation = offense.violation and
-        prior.date_of +@ 5 year <=@ offense.date_of
+        prior.date_of +@ 5 year >=@ offense.date_of
     )
 
   rule paragraph_b_applies under condition
@@ -127,11 +117,11 @@ scope Penalty286_83_135:
     not paragraph_c_applies
   consequence fulfilled
 
-  definition min_fine under condition
+  exception definition min_fine under condition
     paragraph_b_applies
   consequence equals $500
 
-  definition max_days under condition
+  exception max_days_paragraph_a definition max_days under condition
     paragraph_b_applies
   consequence equals 1 year
 ```

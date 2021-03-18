@@ -14,9 +14,16 @@ scope Penalty286_83_135:
   })
   definition defendant equals (Defendant {
     -- priors: [
+      (Offense {
+        -- violation: Section286_102
+        -- date_of: |2021-03-01|
+      });
+      (Offense {
+        -- violation: Section286_102
+        -- date_of: |2021-03-01|
+      })
     ]
     -- age: 17
   })
-  definition max_days equals 0 day
   assertion penalty = Fine500OrLoseRightToDriveUntil18
 ```
