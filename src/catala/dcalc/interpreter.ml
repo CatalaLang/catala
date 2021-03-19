@@ -158,7 +158,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Gt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool Runtime.(i1 >@ i2))
     | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool Runtime.(i1 >@ i2))
+        A.ELit (LBool Runtime.(i1 >=@ i2))
     | A.Binop A.Eq, [ ELit LUnit; ELit LUnit ] -> A.ELit (LBool true)
     | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
         A.ELit (LBool Runtime.(i1 =^ i2))

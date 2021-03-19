@@ -127,7 +127,7 @@ type allocations_familiales_out = {
   montant_verse_complement_pour_base_et_majoration_out : money;
   montant_base_complement_pour_base_et_majoration_out : money;
   montant_verse_complement_pour_forfaitaire_out : money;
-  depassement_plafond_ressources_out : money -> money;
+  complement_degressif_out : money -> money;
   nombre_enfants_l521_1_out : integer;
   age_minimum_alinea_1_l521_3_out : enfant -> integer;
   nombre_enfants_alinea_2_l521_3_out : integer;
@@ -167,7 +167,7 @@ type allocations_familiales_in = {
   montant_verse_complement_pour_base_et_majoration_in : unit -> money;
   montant_base_complement_pour_base_et_majoration_in : unit -> money;
   montant_verse_complement_pour_forfaitaire_in : unit -> money;
-  depassement_plafond_ressources_in : unit -> money -> money;
+  complement_degressif_in : unit -> money -> money;
   nombre_enfants_l521_1_in : unit -> integer;
   age_minimum_alinea_1_l521_3_in : unit -> enfant -> integer;
   nombre_enfants_alinea_2_l521_3_in : unit -> integer;
@@ -669,8 +669,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_complement_pour_forfaitaire_ : unit -> money =
     allocations_familiales_in.montant_verse_complement_pour_forfaitaire_in
   in
-  let depassement_plafond_ressources_ : unit -> money -> money =
-    allocations_familiales_in.depassement_plafond_ressources_in
+  let complement_degressif_ : unit -> money -> money =
+    allocations_familiales_in.complement_degressif_in
   in
   let nombre_enfants_l521_1_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_l521_1_in
@@ -1298,10 +1298,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
           with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
-  let depassement_plafond_ressources_ : money -> money =
+  let complement_degressif_ : money -> money =
     try
       handle_default
-        [| (fun (_ : _) -> depassement_plafond_ressources_ ()) |]
+        [| (fun (_ : _) -> complement_degressif_ ()) |]
         (fun (_ : _) -> true)
         (fun (_ : _) (param_ : money) ->
           try
@@ -1317,8 +1317,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             && ressources_menage_
                                <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                           (fun (_ : _) ->
-                            plafond__i_i_d521_3_
-                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
+                            ( plafond__i_i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_) )
+                            *$ (decimal_of_string "1." /& decimal_of_string "12.")));
                       (fun (_ : _) ->
                         handle_default [||]
                           (fun (_ : _) ->
@@ -1326,8 +1327,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             && ressources_menage_
                                <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                           (fun (_ : _) ->
-                            plafond__i_d521_3_
-                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_)));
+                            ( plafond__i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_) )
+                            *$ (decimal_of_string "1." /& decimal_of_string "12.")));
                     |]
                     (fun (_ : _) -> true)
                     (fun (_ : _) -> money_of_cents_string "0"));
@@ -1417,7 +1419,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                     if
                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                       >=! integer_of_string "2"
-                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
+                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
                     else money_of_cents_string "0"));
               (fun (_ : _) ->
                 handle_default [||]
@@ -1649,8 +1651,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   (fun (_ : _) -> true)
                   (fun (_ : _) ->
                     if droit_ouvert_complement_ then
-                      depassement_plafond_ressources_ montant_verse_forfaitaire_
-                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                      complement_degressif_ montant_verse_forfaitaire_
                     else money_of_cents_string "0"));
             |]
             (fun (_ : _) -> false)
@@ -1771,9 +1772,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   (fun (_ : _) -> true)
                   (fun (_ : _) ->
                     if droit_ouvert_complement_ then
-                      depassement_plafond_ressources_
-                        montant_base_complement_pour_base_et_majoration_
-                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                      complement_degressif_ montant_base_complement_pour_base_et_majoration_
                     else money_of_cents_string "0"));
             |]
             (fun (_ : _) -> false)
@@ -1849,7 +1848,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     montant_base_complement_pour_base_et_majoration_out =
       montant_base_complement_pour_base_et_majoration_;
     montant_verse_complement_pour_forfaitaire_out = montant_verse_complement_pour_forfaitaire_;
-    depassement_plafond_ressources_out = depassement_plafond_ressources_;
+    complement_degressif_out = complement_degressif_;
     nombre_enfants_l521_1_out = nombre_enfants_l521_1_;
     age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_;
     nombre_enfants_alinea_2_l521_3_out = nombre_enfants_alinea_2_l521_3_;
@@ -2066,7 +2065,7 @@ let interface_allocations_familiales
         montant_verse_complement_pour_base_et_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_base_complement_pour_base_et_majoration_in = (fun (_ : unit) -> raise EmptyError);
         montant_verse_complement_pour_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
-        depassement_plafond_ressources_in = (fun (_ : unit) -> raise EmptyError);
+        complement_degressif_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_l521_1_in = (fun (_ : unit) -> raise EmptyError);
         age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_alinea_2_l521_3_in = (fun (_ : unit) -> raise EmptyError);
@@ -2150,8 +2149,8 @@ let interface_allocations_familiales
   let allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_ : money =
     result_.montant_verse_complement_pour_forfaitaire_out
   in
-  let allocations_familiales_dot_depassement_plafond_ressources_ : money -> money =
-    result_.depassement_plafond_ressources_out
+  let allocations_familiales_dot_complement_degressif_ : money -> money =
+    result_.complement_degressif_out
   in
   let allocations_familiales_dot_nombre_enfants_l521_1_ : integer =
     result_.nombre_enfants_l521_1_out

@@ -29,9 +29,14 @@ class type enfant_entree =
 
     method gardeAlterneePartageAllocation : bool Js.t Js.readonly_prop
 
-    method priseEnChargeServiceSociaux : bool Js.t Js.readonly_prop
+    method priseEnCharge : Js.js_string Js.t Js.readonly_prop
+    (** Expects one of the five:
 
-    method allocationVerseeServiceSociaux : bool Js.t Js.readonly_prop
+        - "Effective et permanente"
+        - "Garde alternée, allocataire unique"
+        - "Garde alternée, partage des allocations"
+        - "Confié aux service sociaux, allocation versée à la famille"
+        - "Confié aux service sociaux, allocation versée aux services sociaux" *)
 
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
   end
@@ -85,15 +90,18 @@ let _ =
                              child##.dateNaissance##getMonth
                              child##.dateNaissance##getDay;
                          AF.d_prise_en_charge =
-                           ( if Js.to_bool child##.gardeAlternee then
-                             if Js.to_bool child##.gardeAlterneePartageAllocation then
+                           ( match Js.to_string child##.priseEnCharge with
+                           | "Effective et permanente" -> EffectiveEtPermanente ()
+                           | "Garde alternée, allocataire unique" ->
+                               GardeAlterneeAllocataireUnique ()
+                           | "Garde alternée, partage des allocations" ->
                                GardeAlterneePartageAllocations ()
-                             else GardeAlterneeAllocataireUnique ()
-                           else if Js.to_bool child##.priseEnChargeServiceSociaux then
-                             if Js.to_bool child##.allocationVerseeServiceSociaux then
+                           | "Confié aux service sociaux, allocation versée à la famille" ->
+                               ServicesSociauxAllocationVerseeALaFamille ()
+                           | "Confié aux service sociaux, allocation versée aux services sociaux"
+                             ->
                                ServicesSociauxAllocationVerseeAuxServicesSociaux ()
-                             else ServicesSociauxAllocationVerseeALaFamille ()
-                           else EffectiveEtPermanente () );
+                           | _ -> failwith "Unknown prise en charge" );
                          AF.d_remuneration_mensuelle =
                            money_of_units_int child##.remunerationMensuelle;
                        })

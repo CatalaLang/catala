@@ -174,16 +174,16 @@ generate_french_law_library:\
 build_french_law_library: generate_french_law_library format
 	dune build $(FRENCH_LAW_LIB_DIR)
 
-run_french_law_library_benchmark: build_french_law_library
+run_french_law_library_benchmark: generate_french_law_library
 	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
 
-run_french_law_library_tests: build_french_law_library
+run_french_law_library_tests: generate_french_law_library
 	dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
-	cd javascript && ln -sf ../_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law.js
+	cp -f _build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law_js/french_law.js
 
 ##########################################
 # Website assets

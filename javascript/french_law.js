@@ -1,1 +1,0 @@
-../_build/default/src/french_law/api_web.bc.js
