@@ -1,4 +1,5 @@
-default: build
+help : Makefile
+	@sed -n 's/^#> //p' $<
 
 ##########################################
 # Dependencies
@@ -223,6 +224,3 @@ inspect:
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
 	catala.html help
-
-help : Makefile
-	@sed -n 's/^#> //p' $<
