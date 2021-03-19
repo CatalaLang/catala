@@ -16,7 +16,9 @@
 (package
  (name catala)
  (synopsis "Literate programming language for tax code specification")
- (description "See https://catala-lang.org for more information")
+ (description "\| Catala is a domain-specific language for deriving faithful-by-construction
+              "\| algorithms from legislative texts. See https://catala-lang.org for more information
+ )
  (depends
    (ocaml (>= 4.08.0))
    (ANSITerminal (>= 0.8.2))
