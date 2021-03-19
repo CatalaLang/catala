@@ -86,7 +86,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>([^`])</string>
+          <string>([^`#])</string>
           <key>name</key>
           <string>entity.law.catala_fr</string>
         </dict>
