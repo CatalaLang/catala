@@ -15,10 +15,8 @@
 
 (package
  (name catala)
- (synopsis "Low-level language for tax code specification")
- (description "\| The Catala language is designed to be a low-level target for
-              "\| higher-level specification languages for fiscal legislation.
- )
+ (synopsis "Literate programming language for tax code specification")
+ (description "See https://catala-lang.org for more information")
  (depends
    (ocaml (>= 4.08.0))
    (ANSITerminal (>= 0.8.2))
