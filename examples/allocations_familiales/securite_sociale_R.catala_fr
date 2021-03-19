@@ -48,8 +48,8 @@ enfants ouvrent droit à la majoration des allocations familiales est fixé à
 
 ```catala
 champ d'application AllocationsFamiliales :
-  étiquette base_âge_limite_alinéa_1_l521_3
-  définition âge_limite_alinéa_1_l521_3 de enfant égal à 14
+  étiquette cas_base_âge_minimum_alinéa_1_l521_3
+  définition âge_minimum_alinéa_1_l521_3 de enfant égal à 14
 ```
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article
@@ -71,13 +71,15 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # du décret de 2008 pour des raisons de place seulement.
 champ d'application AllocationFamilialesAvril2008:
   # Âge limite avant décret n° 2008-409 du 28 avril 2008
-  définition âge_limite_alinéa_1_l521_3 égal à 16
+  définition âge_minimum_alinéa_1_l521_3 égal à 16
 
 champ d'application AllocationsFamiliales :
-  définition âge_limite_alinéa_1_l521_3 de enfant
-  sous condition (enfant.date_de_naissance +@ 11 an <=@ |30/04/2008|)
+  étiquette decret_2008_âge_minimum_alinéa_1_l521_3
+  exception cas_base_âge_minimum_alinéa_1_l521_3
+  définition âge_minimum_alinéa_1_l521_3 de enfant
+  sous condition (enfant.date_de_naissance +@ 11 an <=@ |2008-04-30|)
   conséquence égal à
-    version_avril_2008.âge_limite_alinéa_1_l521_3
+    version_avril_2008.âge_minimum_alinéa_1_l521_3
 ```
 
 #### [Article R521-2|LEGIARTI000006750608]
@@ -141,6 +143,10 @@ champ d'application AllocationsFamiliales :
       selon (prise_en_compte de enfant) sous forme
       -- Complète : 1,0
       -- Partagée : 0,5
+      # Pas directement dans cet arricle de loi, mais concerne le
+      # cas où l'enfant est pris en charge par les services sociaux et
+      # la part de l'allocation va également au service social
+      -- Zéro: 0,0
     )
 ```
 
@@ -177,6 +183,10 @@ champ d'application AllocationsFamiliales :
     selon (prise_en_compte de enfant) sous forme
     -- Complète : 100%
     -- Partagée : 50%
+    # Pas directement dans cet arricle de loi, mais concerne le
+    # cas où l'enfant est pris en charge par les services sociaux et
+    # la part de l'allocation va également au service social
+    -- Zéro: 0%
   )
 ```
 

@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_struct/bad/ambiguous_fields.catala
 [ERROR]    | 
-[ERROR] 16 |   def y := x.f 
+[ERROR] 16 |   def y := x.f
 [ERROR]    |              ^
 [ERROR]    + Article

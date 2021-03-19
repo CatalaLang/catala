@@ -253,7 +253,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
           let x_possible_structs =
             try Desugared.Ast.IdentMap.find (Pos.unmark x) ctxt.field_idmap
             with Not_found ->
-              Errors.raise_spanned_error "This identifier should refer to a struct field"
+              Errors.raise_spanned_error "Unknown subscope or struct field name"
                 (Pos.get_position x)
           in
           match c with

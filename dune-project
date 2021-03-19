@@ -1,7 +1,7 @@
 (lang dune 2.2)
 
 (name catala)
-(version 0.2.0)
+(version 0.3.0)
 (generate_opam_files true)
 (formatting)
 
@@ -36,8 +36,10 @@
    (calendar (>= 2.04))
    (visitors (>= 20200210))
    (benchmark (>= 1.6))
+   (js_of_ocaml-ppx (>= 3.8.0))
+   (camomile (>= 1.0.2))
  )
 )
 
 (using menhir 2.1)
-(allow_approximate_merlin) 
+(allow_approximate_merlin)

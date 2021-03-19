@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_struct/bad/nonexisting_struct.catala
 [ERROR]    | 
-[ERROR] 13 |   def y := x.Fo.f 
+[ERROR] 13 |   def y := x.Fo.f
 [ERROR]    |              ^^
 [ERROR]    + Article

@@ -181,11 +181,11 @@ struct_or_enum_inject:
     money_amount_cents = cents;
   }, Pos.from_lpos $sloc)
   }
-  | VERTICAL d = date_int DIV m = date_int DIV y = date_int VERTICAL {
+  | VERTICAL y = date_int MINUS m = date_int MINUS d = date_int VERTICAL {
     (LDate {
-      literal_date_day = (match !Utils.Cli.locale_lang with `En -> m | `Fr -> d);
-    literal_date_month = (match !Utils.Cli.locale_lang with `En -> d | `Fr -> m);
-    literal_date_year = y;
+      literal_date_year = y;
+      literal_date_month = m;
+      literal_date_day = d;
   }, Pos.from_lpos $sloc)
     }
   | TRUE { (LBool true, Pos.from_lpos $sloc) }

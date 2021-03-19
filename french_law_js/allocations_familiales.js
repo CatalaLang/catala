@@ -11,26 +11,24 @@ suite
           id: 0,
           remunerationMensuelle: 0,
           dateNaissance: new Date("2003-03-02"),
-          gardeAlternee: false,
-          priseEnChargeServiceSociaux: false,
+          priseEnCharge: "Effective et permanente",
+          aDejaOuvertDroitAuxAllocationsFamiliales: true,
         },
         {
           id: 1,
           remunerationMensuelle: 300,
           dateNaissance: new Date("2013-10-30"),
-          gardeAlternee: true,
-          gardeAlterneePartageAllocation: true,
-          priseEnChargeServiceSociaux: false,
+          priseEnCharge: "Garde alternée, partage des allocations",
+          aDejaOuvertDroitAuxAllocationsFamiliales: true,
         },
       ],
       income: 30000,
       residence: "Métropole",
+      personneQuiAssumeLaChargeEffectivePermanenteEstParent: true,
+      personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale: true,
     });
   })
   .on("cycle", function (event) {
     console.log(String(event.target));
-  })
-  .on("complete", function () {
-    console.log("Fastest is " + this.filter("fastest").map("name"));
   })
   .run({ async: true });

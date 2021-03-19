@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_struct/bad/wrong_qualified_field.catala
 [ERROR]    | 
-[ERROR] 17 |   def y := x.Foo.g 
+[ERROR] 17 |   def y := x.Foo.g
 [ERROR]    |            ^^^^^^^
 [ERROR]    + Article

@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]  --> test_struct/bad/nested.catala
 [ERROR]   | 
-[ERROR] 5 |   data x content S 
+[ERROR] 5 |   data x content S
 [ERROR]   |                  ^
 [ERROR]   + Article

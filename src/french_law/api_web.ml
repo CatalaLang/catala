@@ -29,9 +29,16 @@ class type enfant_entree =
 
     method gardeAlterneePartageAllocation : bool Js.t Js.readonly_prop
 
-    method priseEnChargeServiceSociaux : bool Js.t Js.readonly_prop
+    method priseEnCharge : Js.js_string Js.t Js.readonly_prop
+    (** Expects one of the five:
 
-    method allocationVerseeServiceSociaux : bool Js.t Js.readonly_prop
+        - "Effective et permanente"
+        - "Garde alternée, allocataire unique"
+        - "Garde alternée, partage des allocations"
+        - "Confié aux service sociaux, allocation versée à la famille"
+        - "Confié aux service sociaux, allocation versée aux services sociaux" *)
+
+    method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
   end
 
 class type allocations_familiales_input =
@@ -43,6 +50,11 @@ class type allocations_familiales_input =
     method income : int Js.readonly_prop
 
     method residence : Js.js_string Js.t Js.readonly_prop
+
+    method personneQuiAssumeLaChargeEffectivePermanenteEstParent : bool Js.t Js.readonly_prop
+
+    method personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale :
+      bool Js.t Js.readonly_prop
   end
 
 let _ =
@@ -52,6 +64,12 @@ let _ =
          let result =
            AF.interface_allocations_familiales
              {
+               AF.personne_charge_effective_permanente_est_parent_in =
+                 (fun _ -> Js.to_bool input##.personneQuiAssumeLaChargeEffectivePermanenteEstParent);
+               AF.personne_charge_effective_permanente_remplit_titre_I_in =
+                 (fun _ ->
+                   Js.to_bool
+                     input##.personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale);
                AF.date_courante_in =
                  (fun _ ->
                    date_of_numbers
@@ -63,24 +81,27 @@ let _ =
                    Array.map
                      (fun (child : enfant_entree Js.t) ->
                        {
+                         AF.d_a_deja_ouvert_droit_aux_allocations_familiales =
+                           Js.to_bool child##.aDejaOuvertDroitAuxAllocationsFamiliales;
                          AF.d_identifiant = integer_of_int child##.id;
                          AF.d_date_de_naissance =
                            date_of_numbers
                              child##.dateNaissance##getFullYear
                              child##.dateNaissance##getMonth
                              child##.dateNaissance##getDay;
-                         AF.d_garde_alternee =
-                           ( if Js.to_bool child##.gardeAlternee then
-                             if Js.to_bool child##.gardeAlterneePartageAllocation then
-                               OuiPartageAllocations ()
-                             else OuiAllocataireUnique ()
-                           else NonGardeUnique () );
-                         AF.d_prise_en_charge_par_services_sociaux =
-                           ( if Js.to_bool child##.priseEnChargeServiceSociaux then
-                             if Js.to_bool child##.allocationVerseeServiceSociaux then
-                               OuiAllocationVerseeAuxServicesSociaux ()
-                             else OuiAllocationVerseeALaFamille ()
-                           else NonPriseEnChargeFamille () );
+                         AF.d_prise_en_charge =
+                           ( match Js.to_string child##.priseEnCharge with
+                           | "Effective et permanente" -> EffectiveEtPermanente ()
+                           | "Garde alternée, allocataire unique" ->
+                               GardeAlterneeAllocataireUnique ()
+                           | "Garde alternée, partage des allocations" ->
+                               GardeAlterneePartageAllocations ()
+                           | "Confié aux service sociaux, allocation versée à la famille" ->
+                               ServicesSociauxAllocationVerseeALaFamille ()
+                           | "Confié aux service sociaux, allocation versée aux services sociaux"
+                             ->
+                               ServicesSociauxAllocationVerseeAuxServicesSociaux ()
+                           | _ -> failwith "Unknown prise en charge" );
                          AF.d_remuneration_mensuelle =
                            money_of_units_int child##.remunerationMensuelle;
                        })
