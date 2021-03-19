@@ -119,6 +119,7 @@ let token_list : (string * token) list =
     ("that", THAT);
     ("&&", AND);
     ("||", OR);
+    ("xor", XOR);
     ("not", NOT);
     ("number", CARDINAL);
     ("year", YEAR);
@@ -288,6 +289,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "||" ->
       update_acc lexbuf;
       OR
+  | "xor" ->
+      update_acc lexbuf;
+      XOR
   | "not" ->
       update_acc lexbuf;
       NOT

@@ -42,7 +42,7 @@
 %token LESSER_DATE GREATER_DATE LESSER_EQUAL_DATE GREATER_EQUAL_DATE
 %token LESSER_DURATION GREATER_DURATION LESSER_EQUAL_DURATION GREATER_EQUAL_DURATION
 %token EXISTS IN SUCH THAT
-%token DOT AND OR LPAREN RPAREN EQUAL
+%token DOT AND OR XOR LPAREN RPAREN EQUAL
 %token CARDINAL ASSERTION FIXED BY YEAR MONTH DAY
 %token PLUS MINUS MULT DIV
 %token PLUSDEC MINUSDEC MULTDEC DIVDEC
@@ -294,6 +294,7 @@ struct_or_enum_inject:
   logical_op:
   | AND { (And, Pos.from_lpos $sloc) }
   | OR { (Or, Pos.from_lpos $sloc) }
+  | XOR { (Xor, Pos.from_lpos $sloc) }
 
   logical_unop:
   | NOT { (Not, Pos.from_lpos $sloc) }

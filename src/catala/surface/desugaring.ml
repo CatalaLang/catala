@@ -33,6 +33,7 @@ let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
   match op with
   | And -> And
   | Or -> Or
+  | Xor -> Xor
   | Add l -> Add (translate_op_kind l)
   | Sub l -> Sub (translate_op_kind l)
   | Mult l -> Mult (translate_op_kind l)

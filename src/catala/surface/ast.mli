@@ -77,6 +77,7 @@ type op_kind =
 type binop =
   | And
   | Or
+  | Xor
   | Add of op_kind
   | Sub of op_kind
   | Mult of op_kind
@@ -457,6 +458,8 @@ class virtual ['self] program_map :
 
     method visit_Or : 'monomorphic. 'env -> binop
 
+    method visit_Xor : 'monomorphic. 'env -> binop
+
     method visit_PdfFile : 'monomorphic. 'env -> string Pos.marked -> int option -> law_include
 
     method visit_Percent : 'monomorphic. 'env -> literal_unit
@@ -789,6 +792,8 @@ class virtual ['self] program_iter :
     method visit_NotAnException : 'monomorphic. 'env -> unit
 
     method visit_Or : 'monomorphic. 'env -> unit
+
+    method visit_Xor : 'monomorphic. 'env -> unit
 
     method visit_PdfFile : 'monomorphic. 'env -> string Pos.marked -> int option -> unit
 

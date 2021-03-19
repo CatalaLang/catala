@@ -146,7 +146,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let arr x y = UnionFind.make (TArrow (x, y), pos) in
   match Pos.unmark op with
   | A.Ternop A.Fold -> arr (arr any2 (arr any any2)) (arr any2 (arr array_any any2))
-  | A.Binop (A.And | A.Or) -> arr bt (arr bt bt)
+  | A.Binop (A.And | A.Or | A.Xor) -> arr bt (arr bt bt)
   | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) -> arr it (arr it it)
   | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) -> arr rt (arr rt rt)
   | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)

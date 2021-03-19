@@ -56,7 +56,7 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | And -> Format.fprintf fmt "%s" "&&"
   | Or -> Format.fprintf fmt "%s" "||"
   | Eq -> Format.fprintf fmt "%s" "="
-  | Neq -> Format.fprintf fmt "%s" "<>"
+  | Neq | Xor -> Format.fprintf fmt "%s" "<>"
   | Lt k -> Format.fprintf fmt "%s%a" "<" format_op_kind k
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k

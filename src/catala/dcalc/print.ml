@@ -114,6 +114,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Div k -> format_operator fmt (Format.asprintf "/%a" format_op_kind k)
   | And -> format_operator fmt (Format.asprintf "%s" "&&")
   | Or -> format_operator fmt (Format.asprintf "%s" "||")
+  | Xor -> format_operator fmt (Format.asprintf "%s" "xor")
   | Eq -> format_operator fmt (Format.asprintf "%s" "=")
   | Neq -> format_operator fmt (Format.asprintf "%s" "!=")
   | Lt k -> format_operator fmt (Format.asprintf "%s%a" "<" format_op_kind k)

@@ -154,6 +154,7 @@ type op_kind = KInt | KDec | KMoney | KDate | KDuration
 type binop =
   | And
   | Or
+  | Xor
   | Add of op_kind
   | Sub of op_kind
   | Mult of op_kind
