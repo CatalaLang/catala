@@ -245,7 +245,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             format_with_parens e1
       | Some s ->
           Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)))
+            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)) )
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
