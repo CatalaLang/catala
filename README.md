@@ -49,7 +49,14 @@ language perfectly adapted to literate legislative programming.
 
 ## Building and installation
 
-See [the dedicated readme](INSTALL.md).
+Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
+If opam is installed on your machine, simply execute:
+
+    opam install catala
+
+However, if you wish to get the latest developments of the compiler, you probably
+want to compile it from the sources of this repository. For that, see
+[the dedicated readme](INSTALL.md).
 
 ## Usage
 
