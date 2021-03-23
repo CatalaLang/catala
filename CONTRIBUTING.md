@@ -92,6 +92,9 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
+Please note that the `ocamlformat` version the this project use is `0.17.0`.
+Using another version may cause spurious diffs to appear in your pull requests.
+
 ## Internationalization
 
 The Catala language should be adapted to any legislative text that follows a

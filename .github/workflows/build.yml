@@ -39,7 +39,7 @@ jobs:
         uses: avsm/setup-ocaml@v1
         with:
           # Version of the OCaml compiler to initialise
-          ocaml-version: 4.12.0
+          ocaml-version: 4.11.0
 
       - name: Install dependencies
         run: |
