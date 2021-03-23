@@ -102,7 +102,7 @@ let disambiguate_constructor (ctxt : Name_resolution.context)
       with Not_found ->
         Errors.raise_spanned_error
           (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
-          (Pos.get_position enum) )
+          (Pos.get_position enum))
 
 (** Usage: [translate_expr scope ctxt expr]
 
@@ -180,9 +180,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Scopelang.Ast.ELit
               (Dcalc.Ast.LRat
                  Runtime.(
-                   ( decimal_of_integer i
+                   (decimal_of_integer i
                    +& decimal_of_integer f
-                      /& decimal_of_integer (integer_exponentiation (integer_of_int 10) digits_f) )
+                      /& decimal_of_integer (integer_exponentiation (integer_of_int 10) digits_f))
                    /& decimal_of_string "100"))
         | LBool b -> Scopelang.Ast.ELit (Dcalc.Ast.LBool b)
         | LMoneyAmount i ->
@@ -212,12 +212,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                 (Pos.get_position date.literal_date_day);
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDate
-                 ( try
-                     Runtime.date_of_numbers
-                       (Pos.unmark date.literal_date_year)
-                       (Pos.unmark date.literal_date_month)
-                       (Pos.unmark date.literal_date_day)
-                   with Runtime.ImpossibleDate -> Errors.raise_spanned_error "Invalid date" pos ))
+                 (try
+                    Runtime.date_of_numbers
+                      (Pos.unmark date.literal_date_year)
+                      (Pos.unmark date.literal_date_month)
+                      (Pos.unmark date.literal_date_day)
+                  with Runtime.ImpossibleDate -> Errors.raise_spanned_error "Invalid date" pos))
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
@@ -289,7 +289,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               with Not_found ->
                 Errors.raise_spanned_error
                   (Format.asprintf "Struct %s has not been defined before" (Pos.unmark c_name))
-                  (Pos.get_position c_name) ) ) )
+                  (Pos.get_position c_name))))
   | FunCall (f, arg) ->
       Bindlib.box_apply2
         (fun f arg -> (Scopelang.Ast.EApp (f, [ arg ]), pos))
@@ -314,14 +314,13 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
                      (Pos.unmark s_name))
                   (Pos.get_position f_name)
             in
-            ( match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
+            (match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
             | None -> ()
             | Some e_field ->
                 Errors.raise_multispanned_error
                   (Format.asprintf "The field %a has been defined twice:"
                      Scopelang.Ast.StructFieldName.format_t f_uid)
-                  [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]
-            );
+                  [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]);
             let f_e = translate_expr scope ctxt f_e in
             Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
           Scopelang.Ast.StructFieldMap.empty fields
@@ -359,10 +358,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Bindlib.box_apply
               (fun payload ->
                 ( Scopelang.Ast.EEnumInj
-                    ( ( match payload with
+                    ( (match payload with
                       | Some e' -> e'
-                      | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)
-                      ),
+                      | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)),
                       c_uid,
                       e_uid ),
                   pos ))
@@ -377,10 +375,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               Bindlib.box_apply
                 (fun payload ->
                   ( Scopelang.Ast.EEnumInj
-                      ( ( match payload with
+                      ( (match payload with
                         | Some e' -> e'
-                        | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)
-                        ),
+                        | None -> (Scopelang.Ast.ELit Dcalc.Ast.LUnit, Pos.get_position constructor)),
                         c_uid,
                         e_uid ),
                     pos ))
@@ -393,7 +390,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
           with Not_found ->
             Errors.raise_spanned_error
               (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
-              (Pos.get_position enum) ) )
+              (Pos.get_position enum)))
   | MatchWith (e1, (cases, _cases_pos)) ->
       let e1 = translate_expr scope ctxt e1 in
       let cases_d, e_uid = disambiguate_match_and_build_expression scope ctxt cases in
@@ -402,12 +399,12 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         e1
         (LiftEnumConstructorMap.lift_box cases_d)
   | TestMatchCase (e1, pattern) ->
-      ( match snd (Pos.unmark pattern) with
+      (match snd (Pos.unmark pattern) with
       | None -> ()
       | Some binding ->
           Errors.print_spanned_warning
             "This binding will be ignored (remove it to suppress warning)"
-            (Pos.get_position binding) );
+            (Pos.get_position binding));
       let enum_uid, c_uid =
         disambiguate_constructor ctxt (fst (Pos.unmark pattern)) (Pos.get_position pattern)
       in
@@ -443,10 +440,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         (fun f_pred collection ->
           ( Scopelang.Ast.EApp
               ( ( Scopelang.Ast.EOp
-                    ( match op' with
+                    (match op' with
                     | Ast.Map -> Dcalc.Ast.Binop Dcalc.Ast.Map
                     | Ast.Filter -> Dcalc.Ast.Binop Dcalc.Ast.Filter
-                    | _ -> assert false (* should not happen *) ),
+                    | _ -> assert false (* should not happen *)),
                   pos ),
                 [ f_pred; collection ] ),
             pos ))
@@ -742,7 +739,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                      Scopelang.Ast.EnumName.format_t e_uid Scopelang.Ast.EnumName.format_t e_uid')
                   (Pos.get_position case.Ast.match_case_pattern)
         in
-        ( match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+        (match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
         | None -> ()
         | Some e_case ->
             Errors.raise_multispanned_error
@@ -751,7 +748,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
               [
                 (None, Pos.get_position case.match_case_expr);
                 (None, Pos.get_position (Bindlib.unbox e_case));
-              ] );
+              ]);
         let ctxt, (param_var, param_pos) =
           match binding with
           | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
@@ -868,12 +865,12 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | Some x -> x
       | None ->
           Desugared.Ast.RuleName.fresh
-            ( match def.definition_label with
+            (match def.definition_label with
             | None ->
                 Pos.map_under_mark
                   (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
                   def.definition_name
-            | Some label -> label )
+            | Some label -> label)
     in
     let is_exception (def : Ast.definition) =
       match def.Ast.definition_exception_to with NotAnException -> false | _ -> true
@@ -892,20 +889,20 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | NotAnException -> None
       | UnlabeledException ->
           Some
-            ( match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
+            (match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
             (* This should have been caught previously by check_unlabeled_exception *)
             | None | Some Name_resolution.Ambiguous -> assert false
-            | Some (Name_resolution.Unique name) -> Pos.same_pos_as name def.Ast.definition_name )
+            | Some (Name_resolution.Unique name) -> Pos.same_pos_as name def.Ast.definition_name)
       | ExceptionToLabel label ->
           Some
-            ( try
-                Pos.same_pos_as
-                  (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
-                  label
-              with Not_found ->
-                Errors.raise_spanned_error
-                  (Format.asprintf "Unknown label: \"%s\"" (Pos.unmark label))
-                  (Pos.get_position label) )
+            (try
+               Pos.same_pos_as
+                 (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_ctxt.label_idmap)
+                 label
+             with Not_found ->
+               Errors.raise_spanned_error
+                 (Format.asprintf "Unknown label: \"%s\"" (Pos.unmark label))
+                 (Pos.get_position label))
     in
     let x_def =
       Desugared.Ast.RuleMap.add rule_name
@@ -950,12 +947,12 @@ let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let ass =
     translate_expr scope_uid ctxt
-      ( match ass.Ast.assertion_condition with
+      (match ass.Ast.assertion_condition with
       | None -> ass.Ast.assertion_content
       | Some cond ->
           ( Ast.IfThenElse
               (cond, ass.Ast.assertion_content, Pos.same_pos_as (Ast.Literal (Ast.LBool true)) cond),
-            Pos.get_position cond ) )
+            Pos.get_position cond ))
   in
   let ass =
     match precond with
@@ -1006,7 +1003,7 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
               Errors.raise_spanned_error
                 "This exception can refer to several definitions. Try using labels to disambiguate"
                 (Pos.get_position item)
-          | Some (Unique _) -> () ) )
+          | Some (Unique _) -> ()))
   | Ast.Definition def -> (
       match def.definition_exception_to with
       | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
@@ -1024,7 +1021,7 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
               Errors.raise_spanned_error
                 "This exception can refer to several definitions. Try using labels to disambiguate"
                 (Pos.get_position item)
-          | Some (Unique _) -> () ) )
+          | Some (Unique _) -> ()))
   | _ -> ()
 
 (** Translates a surface scope use, which is a bunch of definitions *)

@@ -16,11 +16,11 @@ open Utils
 
 type scope_sigs_ctx =
   (* list of scope variables with their types *)
-  ( (Ast.ScopeVar.t * Dcalc.Ast.typ) list
+  ((Ast.ScopeVar.t * Dcalc.Ast.typ) list
   * (* var representing the scope *) Dcalc.Ast.Var.t
   * (* var representing the scope input inside the scope func *) Dcalc.Ast.Var.t
   * (* scope input *) Ast.StructName.t
-  * (* scope output *) Ast.StructName.t )
+  * (* scope output *) Ast.StructName.t)
   Ast.ScopeMap.t
 
 type ctx = {
@@ -47,7 +47,7 @@ let empty_ctx (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx) (scopes_ct
 
 let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.marked =
   Pos.same_pos_as
-    ( match Pos.unmark t with
+    (match Pos.unmark t with
     | Ast.TLit l -> Dcalc.Ast.TLit l
     | Ast.TArrow (t1, t2) -> Dcalc.Ast.TArrow (translate_typ ctx t1, translate_typ ctx t2)
     | Ast.TStruct s_uid ->
@@ -57,7 +57,7 @@ let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.m
         let e_cases = Ast.EnumMap.find e_uid ctx.enums in
         Dcalc.Ast.TEnum (List.map (fun (_, t) -> translate_typ ctx t) e_cases, e_uid)
     | Ast.TArray t1 -> Dcalc.Ast.TArray (translate_typ ctx (Pos.same_pos_as t1 t))
-    | Ast.TAny -> Dcalc.Ast.TAny )
+    | Ast.TAny -> Dcalc.Ast.TAny)
     t
 
 let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
@@ -90,7 +90,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     =
   Bindlib.box_apply
     (fun (x : Dcalc.Ast.expr) -> Pos.same_pos_as x e)
-    ( match Pos.unmark e with
+    (match Pos.unmark e with
     | EVar v -> Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.local_vars)
     | ELit l -> Bindlib.box (Dcalc.Ast.ELit l)
     | EStruct (struct_name, e_fields) ->
@@ -275,7 +275,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
                 as subscope %a's results will not have been computed yet" Ast.SubScopeName.format_t
                (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a) Ast.SubScopeName.format_t
                (Pos.unmark s))
-            (Pos.get_position e) )
+            (Pos.get_position e))
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))
@@ -284,7 +284,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     | EArray es ->
         Bindlib.box_apply
           (fun es -> Dcalc.Ast.EArray es)
-          (Bindlib.box_list (List.map (translate_expr ctx) es)) )
+          (Bindlib.box_list (List.map (translate_expr ctx) es)))
 
 let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)

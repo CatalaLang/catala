@@ -78,9 +78,9 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
     just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
     cons = Bindlib.box (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
     parameter =
-      ( match have_parameter with
+      (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
-      | None -> None );
+      | None -> None);
     exception_to_rule = None;
   }
 
@@ -89,9 +89,9 @@ let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.mark
     just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), pos);
     cons = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
     parameter =
-      ( match have_parameter with
+      (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
-      | None -> None );
+      | None -> None);
     exception_to_rule = None;
   }
 
@@ -127,10 +127,10 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
     Scopelang.Ast.LocationSet.fold
       (fun (loc, loc_pos) acc ->
         ScopeDefMap.add
-          ( match loc with
+          (match loc with
           | Scopelang.Ast.ScopeVar v -> ScopeDef.Var (Pos.unmark v)
           | Scopelang.Ast.SubScopeVar (_, sub_index, sub_var) ->
-              ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var) )
+              ScopeDef.SubScopeVar (Pos.unmark sub_index, Pos.unmark sub_var))
           loc_pos acc)
       locs acc
   in

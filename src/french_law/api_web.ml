@@ -90,7 +90,7 @@ let _ =
                              child##.dateNaissance##getMonth
                              child##.dateNaissance##getDay;
                          AF.d_prise_en_charge =
-                           ( match Js.to_string child##.priseEnCharge with
+                           (match Js.to_string child##.priseEnCharge with
                            | "Effective et permanente" -> EffectiveEtPermanente ()
                            | "Garde alternée, allocataire unique" ->
                                GardeAlterneeAllocataireUnique ()
@@ -101,7 +101,7 @@ let _ =
                            | "Confié aux service sociaux, allocation versée aux services sociaux"
                              ->
                                ServicesSociauxAllocationVerseeAuxServicesSociaux ()
-                           | _ -> failwith "Unknown prise en charge" );
+                           | _ -> failwith "Unknown prise en charge");
                          AF.d_remuneration_mensuelle =
                            money_of_units_int child##.remunerationMensuelle;
                        })
