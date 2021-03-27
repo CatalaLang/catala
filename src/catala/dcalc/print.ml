@@ -98,7 +98,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
       | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e) )
+      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e))
   | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
   | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 
@@ -114,6 +114,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Div k -> format_operator fmt (Format.asprintf "/%a" format_op_kind k)
   | And -> format_operator fmt (Format.asprintf "%s" "&&")
   | Or -> format_operator fmt (Format.asprintf "%s" "||")
+  | Xor -> format_operator fmt (Format.asprintf "%s" "xor")
   | Eq -> format_operator fmt (Format.asprintf "%s" "=")
   | Neq -> format_operator fmt (Format.asprintf "%s" "!=")
   | Lt k -> format_operator fmt (Format.asprintf "%s%a" "<" format_op_kind k)
@@ -136,7 +137,7 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
-    ( match Pos.unmark op with
+    (match Pos.unmark op with
     | Minus _ -> "-"
     | Not -> "~"
     | ErrorOnEmpty -> "error_empty"
@@ -150,7 +151,7 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | IntToRat -> "int_to_rat"
     | GetDay -> "get_day"
     | GetMonth -> "get_month"
-    | GetYear -> "get_year" )
+    | GetYear -> "get_year")
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
@@ -196,7 +197,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
           Format.fprintf fmt "%a%a%a%a%a" format_expr e1 format_punctuation "." format_punctuation
             "\"" Ast.StructFieldName.format_t
             (fst (List.nth (Ast.StructMap.find s ctx.ctx_structs) n))
-            format_punctuation "\"" )
+            format_punctuation "\"")
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Ast.EnumConstructor.format_t
         (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))

@@ -1,0 +1,15 @@
+## [Test all 'xor' combinations]
+
+```catala
+new scope TestXor :
+  param t_xor_t content bool
+  param t_xor_f content bool
+  param f_xor_t content bool
+  param f_xor_f content bool
+
+scope TestXor :
+  def t_xor_t := true xor true
+  def f_xor_t := false xor true
+  def t_xor_f := true xor false
+  def f_xor_f := false xor false
+```

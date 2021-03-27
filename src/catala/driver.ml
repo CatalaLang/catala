@@ -70,10 +70,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         let oc = open_out output_file in
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
-             ( output_file
-             :: List.map
-                  (fun ext -> Filename.remove_extension source_file ^ ext)
-                  backend_extensions_list ))
+             (output_file
+              ::
+              List.map
+                (fun ext -> Filename.remove_extension source_file ^ ext)
+                backend_extensions_list))
           (String.concat "\\\n" program.program_source_files)
           (String.concat "\\\n" program.program_source_files);
         0
@@ -88,10 +89,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         in
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
-             ( match backend with
+             (match backend with
              | Cli.Latex -> "LaTeX"
              | Cli.Html -> "HTML"
-             | _ -> assert false (* should not happen *) ));
+             | _ -> assert false (* should not happen *)));
         let output_file =
           match output_file with
           | Some f -> f
@@ -99,7 +100,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               Filename.remove_extension source_file
               ^
               match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false
-              (* should not happen *) )
+              (* should not happen *))
         in
         let oc = open_out output_file in
         let weave_output =
@@ -135,7 +136,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope \"%s\" inside the program." name)
-              | Some uid -> uid )
+              | Some uid -> uid)
         in
         Cli.debug_print "Desugaring...";
         let prgm = Surface.Desugaring.desugar_program ctxt program in
@@ -204,7 +205,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
             close_out oc;
             0
         | _ -> assert false
-        (* should not happen *) )
+        (* should not happen *))
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);
     -1

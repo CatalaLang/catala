@@ -1,10 +1,11 @@
 {0 Default calculus}
 
-This representation is the fourth in the compilation chain 
-(see {{: index.html#architecture} Architecture}). Its main difference 
-with the previous {{: desugared.html} desugared representation} is that scopes 
+This representation is the fourth in the compilation chain
+(see {{: index.html#architecture} Architecture}). Its main difference
+with the previous {{: desugared.html} desugared representation} is that scopes
 have been lowered into regular functions, and enums and structs have been
-lowered to sum and product types.
+lowered to sum and product types. The default calculus can be later compiled
+to a {{: lcalc.html} lambda calculus}.
 
 The module describing the abstract syntax tree is:
 
@@ -12,9 +13,8 @@ The module describing the abstract syntax tree is:
 
 Printing helpers can be found in {!module: Dcalc.Print}.
 
-This intermediate representation corresponds to the default calculus 
-presented in the {{: https://github.com/CatalaLang/catala/raw/master/doc/formalization/formalization.pdf}
-Catala formalization}.
+This intermediate representation corresponds to the default calculus
+presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
 
 {1 Typing }
 
@@ -34,7 +34,7 @@ Related modules:
 
 Since this representation is currently the last of the compilation chain,
 an {!module: Dcalc.Interpreter} module is provided to match the execution
-semantics of the default calculus. 
+semantics of the default calculus.
 
-Later, translations to a regular lambda calculus and/or a simple imperative 
+Later, translations to a regular lambda calculus and/or a simple imperative
 language are bound to be added.

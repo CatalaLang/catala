@@ -205,22 +205,22 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) : TVerte
   let g = build_type_graph structs enums in
   (* if there is a cycle, there will be an strongly connected component of cardinality > 1 *)
   let sccs = TSCC.scc_list g in
-  ( if List.length sccs < TDependencies.nb_vertex g then
-    let scc = List.find (fun scc -> List.length scc > 1) sccs in
-    Errors.raise_multispanned_error "Cyclic dependency detected between types!"
-      (List.flatten
-         (List.map
-            (fun v ->
-              let var_str, var_info =
-                (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
-              in
-              let succs = TDependencies.succ_e g v in
-              let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
-              let succ_str = Format.asprintf "%a" TVertex.format_t succ in
-              [
-                (Some ("Cycle type " ^ var_str ^ ", declared:"), Pos.get_position var_info);
-                ( Some ("Used here in the definition of another cycle type " ^ succ_str ^ ":"),
-                  edge_pos );
-              ])
-            scc)) );
+  (if List.length sccs < TDependencies.nb_vertex g then
+   let scc = List.find (fun scc -> List.length scc > 1) sccs in
+   Errors.raise_multispanned_error "Cyclic dependency detected between types!"
+     (List.flatten
+        (List.map
+           (fun v ->
+             let var_str, var_info =
+               (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
+             in
+             let succs = TDependencies.succ_e g v in
+             let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
+             let succ_str = Format.asprintf "%a" TVertex.format_t succ in
+             [
+               (Some ("Cycle type " ^ var_str ^ ", declared:"), Pos.get_position var_info);
+               ( Some ("Used here in the definition of another cycle type " ^ succ_str ^ ":"),
+                 edge_pos );
+             ])
+           scc)));
   List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])

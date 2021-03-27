@@ -12,4 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Formats a lambda calculus program into a valid OCaml program *)
+
 val format_program : Format.formatter -> Ast.program -> Scopelang.Dependency.TVertex.t list -> unit
+(** Usage [format_program fmt p type_dependencies_ordering] *)

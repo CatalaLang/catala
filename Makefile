@@ -1,4 +1,5 @@
-default: build
+help : Makefile
+	@sed -n 's/^#> //p' $<
 
 ##########################################
 # Dependencies
@@ -14,7 +15,7 @@ dependencies-ocaml:
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
 		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors benchmark
+		visitors benchmark ocamlformat
 
 init-submodules:
 	git submodule update --init
@@ -223,6 +224,3 @@ inspect:
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
 	catala.html help
-
-help : Makefile
-	@sed -n 's/^#> //p' $<

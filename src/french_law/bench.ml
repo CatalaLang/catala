@@ -22,18 +22,18 @@ let random_children (id : int) =
     d_date_de_naissance =
       date_of_numbers (2020 - Random.int 22) (1 + Random.int 12) (1 + Random.int 28);
     d_prise_en_charge =
-      ( match Random.int 5 with
+      (match Random.int 5 with
       | 0 -> AF.EffectiveEtPermanente ()
       | 1 -> AF.GardeAlterneePartageAllocations ()
       | 2 -> AF.GardeAlterneeAllocataireUnique ()
       | 3 -> AF.ServicesSociauxAllocationVerseeALaFamille ()
-      | _ -> AF.ServicesSociauxAllocationVerseeAuxServicesSociaux () );
+      | _ -> AF.ServicesSociauxAllocationVerseeAuxServicesSociaux ());
     d_a_deja_ouvert_droit_aux_allocations_familiales = true;
   }
 
 let format_residence (fmt : Format.formatter) (r : AF.collectivite) : unit =
   Format.fprintf fmt "%s"
-    ( match r with
+    (match r with
     | AF.Metropole _ -> "Métropole"
     | AF.Guyane _ -> "Guyane"
     | AF.Guadeloupe _ -> "Guadeloupe"
@@ -42,17 +42,17 @@ let format_residence (fmt : Format.formatter) (r : AF.collectivite) : unit =
     | AF.SaintBarthelemy _ -> "Saint Barthélemy"
     | AF.SaintPierreEtMiquelon _ -> "Saint Pierre et Miquelon"
     | AF.SaintMartin _ -> "Saint Martin"
-    | AF.Mayotte _ -> "Mayotte" )
+    | AF.Mayotte _ -> "Mayotte")
 
 let format_prise_en_charge (fmt : Format.formatter) (g : AF.prise_en_charge) : unit =
   Format.fprintf fmt "%s"
-    ( match g with
+    (match g with
     | AF.EffectiveEtPermanente _ -> "Effective et permanente"
     | AF.GardeAlterneePartageAllocations _ -> "Garde alternée, allocations partagée"
     | AF.GardeAlterneeAllocataireUnique _ -> "Garde alternée, allocataire unique"
     | AF.ServicesSociauxAllocationVerseeALaFamille _ -> "Oui, allocations versée à la famille"
     | AF.ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
-        "Oui, allocations versée aux services sociaux" )
+        "Oui, allocations versée aux services sociaux")
 
 let num_successful = ref 0
 

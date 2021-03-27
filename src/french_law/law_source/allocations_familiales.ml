@@ -240,11 +240,11 @@ let smic (smic_in : smic_in) =
                   (fun (_ : _) ->
                     date_courante_ >=@ date_of_numbers 2021 1 1
                     && date_courante_ <=@ date_of_numbers 2021 12 31
-                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                       || residence_ = SaintMartin ()
-                       || residence_ = SaintPierreEtMiquelon () ))
+                    && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                      || residence_ = Guyane () || residence_ = Martinique ()
+                      || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                      || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon ()))
                   (fun (_ : _) -> money_of_cents_string "1025"));
               (fun (_ : _) ->
                 handle_default [||]
@@ -258,11 +258,11 @@ let smic (smic_in : smic_in) =
                   (fun (_ : _) ->
                     date_courante_ >=@ date_of_numbers 2020 1 1
                     && date_courante_ <=@ date_of_numbers 2020 12 31
-                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                       || residence_ = SaintMartin ()
-                       || residence_ = SaintPierreEtMiquelon () ))
+                    && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                      || residence_ = Guyane () || residence_ = Martinique ()
+                      || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                      || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon ()))
                   (fun (_ : _) -> money_of_cents_string "1015"));
               (fun (_ : _) ->
                 handle_default [||]
@@ -276,11 +276,11 @@ let smic (smic_in : smic_in) =
                   (fun (_ : _) ->
                     date_courante_ >=@ date_of_numbers 2019 1 1
                     && date_courante_ <=@ date_of_numbers 2019 12 31
-                    && ( residence_ = Metropole () || residence_ = Guadeloupe ()
-                       || residence_ = Guyane () || residence_ = Martinique ()
-                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                       || residence_ = SaintMartin ()
-                       || residence_ = SaintPierreEtMiquelon () ))
+                    && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                      || residence_ = Guyane () || residence_ = Martinique ()
+                      || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                      || residence_ = SaintMartin ()
+                       || residence_ = SaintPierreEtMiquelon ()))
                   (fun (_ : _) -> money_of_cents_string "1003"));
             |]
             (fun (_ : _) -> false)
@@ -528,18 +528,18 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      ( match param_.obligation_scolaire with
+                      (match param_.obligation_scolaire with
                       | Avant _ -> true
                       | Pendant _ -> false
-                      | Apres _ -> false )
-                      || ( match param_.obligation_scolaire with
+                      | Apres _ -> false)
+                      || (match param_.obligation_scolaire with
                          | Avant _ -> false
                          | Pendant _ -> true
-                         | Apres _ -> false )
-                      || ( match param_.obligation_scolaire with
+                         | Apres _ -> false)
+                      || (match param_.obligation_scolaire with
                          | Avant _ -> false
                          | Pendant _ -> false
-                         | Apres _ -> true )
+                         | Apres _ -> true)
                          && param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
                     (fun (_ : _) -> true));
               |]
@@ -560,20 +560,20 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      ( match param_.obligation_scolaire with
+                      (match param_.obligation_scolaire with
                       | Avant _ -> false
                       | Pendant _ -> false
-                      | Apres _ -> true )
+                      | Apres _ -> true)
                       && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
                       && param_.age <! age_l512_3_2_)
                     (fun (_ : _) -> true));
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      ( match param_.obligation_scolaire with
+                      (match param_.obligation_scolaire with
                       | Avant _ -> true
                       | Pendant _ -> false
-                      | Apres _ -> false )
+                      | Apres _ -> false)
                       ||
                       match param_.obligation_scolaire with
                       | Avant _ -> false
@@ -1317,8 +1317,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             && ressources_menage_
                                <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                           (fun (_ : _) ->
-                            ( plafond__i_i_d521_3_
-                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_) )
+                            (plafond__i_i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
                             *$ (decimal_of_string "1." /& decimal_of_string "12.")));
                       (fun (_ : _) ->
                         handle_default [||]
@@ -1327,8 +1327,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             && ressources_menage_
                                <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                           (fun (_ : _) ->
-                            ( plafond__i_d521_3_
-                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_) )
+                            (plafond__i_d521_3_
+                            +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
                             *$ (decimal_of_string "1." /& decimal_of_string "12.")));
                     |]
                     (fun (_ : _) -> true)
@@ -1357,8 +1357,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                     then
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
                       *$ decimal_of_integer
-                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           -! integer_of_string "2" )
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2")
                     else money_of_cents_string "0"));
               (fun (_ : _) ->
                 handle_default [||]
@@ -1372,8 +1372,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                     then
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
                       *$ decimal_of_integer
-                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           -! integer_of_string "2" )
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2")
                     else money_of_cents_string "0"));
               (fun (_ : _) ->
                 handle_default [||]
@@ -1385,8 +1385,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                     then
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
                       *$ decimal_of_integer
-                           ( array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                           -! integer_of_string "2" )
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                           -! integer_of_string "2")
                     else money_of_cents_string "0"));
             |]
             (fun (_ : _) -> false)
@@ -1793,10 +1793,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   (fun (_ : _) ->
                     if droit_ouvert_base_ then
                       montant_verse_base_
-                      +$ ( montant_verse_majoration_
-                         +$ ( montant_verse_forfaitaire_
-                            +$ ( montant_verse_complement_pour_base_et_majoration_
-                               +$ montant_verse_complement_pour_forfaitaire_ ) ) )
+                      +$ (montant_verse_majoration_
+                         +$ (montant_verse_forfaitaire_
+                            +$ (montant_verse_complement_pour_base_et_majoration_
+                              +$ montant_verse_complement_pour_forfaitaire_)))
                     else money_of_cents_string "0"));
             |]
             (fun (_ : _) -> false)
@@ -1944,21 +1944,21 @@ let interface_allocations_familiales
                         {
                           identifiant = enfant_.d_identifiant;
                           obligation_scolaire =
-                            ( if
-                              enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0
-                              >=@ date_courante_
+                            (if
+                             enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0
+                             >=@ date_courante_
                             then Avant ()
                             else if
                             enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0
                             >=@ date_courante_
-                          then Pendant ()
-                            else Apres () );
+                           then Pendant ()
+                            else Apres ());
                           remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
                           date_de_naissance = enfant_.d_date_de_naissance;
                           age =
                             year_of_date
-                              ( date_of_numbers 0 1 1
-                              +@ (date_courante_ -@ enfant_.d_date_de_naissance) );
+                              (date_of_numbers 0 1 1
+                              +@ (date_courante_ -@ enfant_.d_date_de_naissance));
                           prise_en_charge = enfant_.d_prise_en_charge;
                           a_deja_ouvert_droit_aux_allocations_familiales =
                             enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;

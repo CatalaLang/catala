@@ -29,17 +29,17 @@ jobs:
         with:
           # OCaml cache files are stored in `~/.opam` on Linux/macOS
           path: ~/.opam
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'legifrance_catala.opam') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
       - name: Set up OCaml
-        uses: avsm/setup-ocaml@v1.1.3
+        uses: avsm/setup-ocaml@v1
         with:
           # Version of the OCaml compiler to initialise
-          ocaml-version: 4.09.1
+          ocaml-version: 4.11.0
 
       - name: Install dependencies
         run: |

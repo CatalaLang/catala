@@ -117,15 +117,15 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     else
       Errors.raise_multispanned_error
         "some definitions of the same variable are functions while others aren't"
-        ( List.map
-            (fun (_, r) ->
-              (Some "This definition is a function:", Pos.get_position (Bindlib.unbox r.Ast.cons)))
-            (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
+        (List.map
+           (fun (_, r) ->
+             (Some "This definition is a function:", Pos.get_position (Bindlib.unbox r.Ast.cons)))
+           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
                 Pos.get_position (Bindlib.unbox r.Ast.cons) ))
-            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)) )
+            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)))
   in
   let top_list = def_map_to_tree def_info def in
   let top_value =
@@ -135,11 +135,11 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (rule_tree_to_expr ~toplevel:true
        (Ast.ScopeDef.get_position def_info)
        (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func)
-       ( match top_list with
+       (match top_list with
        | [] ->
            (* In this case, there are no rules to define the expression *)
            Leaf top_value
-       | _ -> Node (top_list, top_value) ))
+       | _ -> Node (top_list, top_value)))
 
 (** Translates a scope *)
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =

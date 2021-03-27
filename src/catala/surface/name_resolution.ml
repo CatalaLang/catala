@@ -204,7 +204,7 @@ let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.mar
                   Errors.raise_spanned_error
                     (Format.asprintf "Unknown type \"%s\", not a struct or enum previously declared"
                        (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" ident))
-                    typ_pos ) ) )
+                    typ_pos)))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
@@ -376,7 +376,7 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
                   sub_scopes = Scopelang.Ast.SubScopeMap.empty;
                 }
                 ctxt.scopes;
-          } )
+          })
   | StructDecl sdecl -> (
       let name, pos = sdecl.struct_decl_name in
       match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
@@ -387,7 +387,7 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
             ctxt with
             struct_idmap =
               Desugared.Ast.IdentMap.add (Pos.unmark sdecl.struct_decl_name) s_uid ctxt.struct_idmap;
-          } )
+          })
   | EnumDecl edecl -> (
       let name, pos = edecl.enum_decl_name in
       match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
@@ -399,7 +399,7 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
             ctxt with
             enum_idmap =
               Desugared.Ast.IdentMap.add (Pos.unmark edecl.enum_decl_name) e_uid ctxt.enum_idmap;
-          } )
+          })
   | ScopeUse _ -> ctxt
 
 (** Process a code item that is a declaration *)
@@ -464,12 +464,12 @@ let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.
     | Some label ->
         let rule_name =
           Desugared.Ast.RuleName.fresh
-            ( match r.rule_label with
+            (match r.rule_label with
             | None ->
                 Pos.map_under_mark
                   (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
                   r.rule_name
-            | Some label -> label )
+            | Some label -> label)
         in
         {
           ctxt with
@@ -512,7 +512,7 @@ let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.
             | None ->
                 Desugared.Ast.ScopeDefMap.add def_key
                   (Unique (Desugared.Ast.RuleName.fresh (Pos.same_pos_as "default" r.rule_name)))
-                  scope_ctxt.default_rulemap )
+                  scope_ctxt.default_rulemap)
       in
       let new_scope_ctxt = { scope_ctxt with default_rulemap = rulemap } in
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add s_name new_scope_ctxt ctxt.scopes }
@@ -526,12 +526,12 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
     | Some label ->
         let definition_name =
           Desugared.Ast.RuleName.fresh
-            ( match d.definition_label with
+            (match d.definition_label with
             | None ->
                 Pos.map_under_mark
                   (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
                   d.definition_name
-            | Some label -> label )
+            | Some label -> label)
         in
         {
           ctxt with
@@ -576,7 +576,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                 Desugared.Ast.ScopeDefMap.add def_key
                   (Unique
                      (Desugared.Ast.RuleName.fresh (Pos.same_pos_as "default" d.definition_name)))
-                  scope_ctxt.default_rulemap )
+                  scope_ctxt.default_rulemap)
       in
       let new_scope_ctxt = { scope_ctxt with default_rulemap = rulemap } in
       { ctxt with scopes = Scopelang.Ast.ScopeMap.add s_name new_scope_ctxt ctxt.scopes }
