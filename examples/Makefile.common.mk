@@ -54,7 +54,7 @@ help : ../Makefile.common.mk
 # Misceallenous
 ##########################################
 
-#> clean				: Removes intermediate files
+#> clean					: Removes intermediate files
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
 	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \
