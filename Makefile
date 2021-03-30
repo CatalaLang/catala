@@ -167,6 +167,7 @@ $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
 
+#> generate_french_law_library		: Generates the French law library OCaml sources from Catala
 generate_french_law_library:\
 	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml \
 	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml

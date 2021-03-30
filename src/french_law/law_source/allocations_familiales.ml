@@ -88,9 +88,11 @@ type prestations_familiales_in = {
   base_mensuelle_in : unit -> money;
 }
 
-type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_out : integer }
+type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_metropole_out : integer }
 
-type allocation_familiales_avril2008_in = { age_minimum_alinea_1_l521_3_in : unit -> integer }
+type allocation_familiales_avril2008_in = {
+  age_minimum_alinea_1_l521_3_metropole_in : unit -> integer;
+}
 
 type enfant_le_plus_age_out = { enfants_out : enfant array; le_plus_age_out : enfant }
 
@@ -130,6 +132,8 @@ type allocations_familiales_out = {
   complement_degressif_out : money -> money;
   nombre_enfants_l521_1_out : integer;
   age_minimum_alinea_1_l521_3_out : enfant -> integer;
+  age_minimum_alinea_1_l521_3_metropole_out : enfant -> integer;
+  age_minimum_alinea_1_l521_3_outre_mer_out : enfant -> integer;
   nombre_enfants_alinea_2_l521_3_out : integer;
   est_enfant_le_plus_age_out : enfant -> bool;
   plafond_I_d521_3_out : money;
@@ -170,6 +174,8 @@ type allocations_familiales_in = {
   complement_degressif_in : unit -> money -> money;
   nombre_enfants_l521_1_in : unit -> integer;
   age_minimum_alinea_1_l521_3_in : unit -> enfant -> integer;
+  age_minimum_alinea_1_l521_3_metropole_in : unit -> enfant -> integer;
+  age_minimum_alinea_1_l521_3_outre_mer_in : unit -> enfant -> integer;
   nombre_enfants_alinea_2_l521_3_in : unit -> integer;
   est_enfant_le_plus_age_in : unit -> enfant -> bool;
   plafond_I_d521_3_in : unit -> money;
@@ -295,13 +301,13 @@ let smic (smic_in : smic_in) =
 
 let allocation_familiales_avril2008
     (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) =
-  let age_minimum_alinea_1_l521_3_ : unit -> integer =
-    allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_in
+  let age_minimum_alinea_1_l521_3_metropole_ : unit -> integer =
+    allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_metropole_in
   in
-  let age_minimum_alinea_1_l521_3_ : integer =
+  let age_minimum_alinea_1_l521_3_metropole_ : integer =
     try
       handle_default
-        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_ ()) |]
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_metropole_ ()) |]
         (fun (_ : _) -> true)
         (fun (_ : _) ->
           handle_default
@@ -313,7 +319,7 @@ let allocation_familiales_avril2008
             (fun (_ : _) -> raise EmptyError))
     with EmptyError -> raise NoValueProvided
   in
-  { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
+  { age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_ }
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   let enfants_ : unit -> enfant array = enfant_le_plus_age_in.enfants_in in
@@ -678,6 +684,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let age_minimum_alinea_1_l521_3_ : unit -> enfant -> integer =
     allocations_familiales_in.age_minimum_alinea_1_l521_3_in
   in
+  let age_minimum_alinea_1_l521_3_metropole_ : unit -> enfant -> integer =
+    allocations_familiales_in.age_minimum_alinea_1_l521_3_metropole_in
+  in
+  let age_minimum_alinea_1_l521_3_outre_mer_ : unit -> enfant -> integer =
+    allocations_familiales_in.age_minimum_alinea_1_l521_3_outre_mer_in
+  in
   let nombre_enfants_alinea_2_l521_3_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_alinea_2_l521_3_in
   in
@@ -883,6 +895,23 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
             (fun (_ : _) -> raise EmptyError))
     with EmptyError -> raise NoValueProvided
   in
+  let age_minimum_alinea_1_l521_3_outre_mer_ : enfant -> integer =
+    try
+      handle_default
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_outre_mer_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default [||] (fun (_ : _) -> true) (fun (_ : _) -> integer_of_string "11"));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
+  in
   let nombre_enfants_alinea_2_l521_3_ : integer =
     try
       handle_default
@@ -900,10 +929,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let result_ : allocation_familiales_avril2008_out =
     allocation_familiales_avril2008
-      { age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError) }
+      { age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError) }
   in
-  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_ : integer =
-    result_.age_minimum_alinea_1_l521_3_out
+  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_ : integer =
+    result_.age_minimum_alinea_1_l521_3_metropole_out
   in
   let prestations_familiales_dot_date_courante_ : unit -> date =
    fun (_ : unit) ->
@@ -979,10 +1008,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let enfant_le_plus_age_dot_enfants_ : enfant array = result_.enfants_out in
   let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
-  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
+  let age_minimum_alinea_1_l521_3_metropole_ : enfant -> integer =
     try
       handle_default
-        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_ ()) |]
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_metropole_ ()) |]
         (fun (_ : _) -> true)
         (fun (_ : _) (param_ : enfant) ->
           try
@@ -992,17 +1021,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   handle_default
                     [|
                       (fun (_ : _) ->
-                        handle_default
-                          [|
-                            (fun (_ : _) ->
-                              handle_default [||]
-                                (fun (_ : _) -> prestations_familiales_dot_regime_outre_mer_l751_1_)
-                                (fun (_ : _) -> integer_of_string "11"));
-                          |]
+                        handle_default [||]
                           (fun (_ : _) ->
                             param_.date_de_naissance +@ duration_of_numbers 11 0 0
                             <=@ date_of_numbers 2008 4 30)
-                          (fun (_ : _) -> version_avril_2008_dot_age_minimum_alinea_1_l521_3_));
+                          (fun (_ : _) ->
+                            version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_));
                     |]
                     (fun (_ : _) -> true)
                     (fun (_ : _) -> integer_of_string "14"));
@@ -1045,6 +1069,31 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   handle_default [||]
                     (fun (_ : _) -> true)
                     (fun (_ : _) -> enfant_le_plus_age_dot_le_plus_age_ = param_));
+              |]
+              (fun (_ : _) -> false)
+              (fun (_ : _) -> raise EmptyError)
+          with EmptyError -> raise NoValueProvided)
+    with EmptyError -> raise NoValueProvided
+  in
+  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
+    try
+      handle_default
+        [| (fun (_ : _) -> age_minimum_alinea_1_l521_3_ ()) |]
+        (fun (_ : _) -> true)
+        (fun (_ : _) (param_ : enfant) ->
+          try
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  handle_default
+                    [|
+                      (fun (_ : _) ->
+                        handle_default [||]
+                          (fun (_ : _) -> prestations_familiales_dot_regime_outre_mer_l751_1_)
+                          (fun (_ : _) -> age_minimum_alinea_1_l521_3_outre_mer_ param_));
+                    |]
+                    (fun (_ : _) -> true)
+                    (fun (_ : _) -> age_minimum_alinea_1_l521_3_metropole_ param_));
               |]
               (fun (_ : _) -> false)
               (fun (_ : _) -> raise EmptyError)
@@ -1579,29 +1628,21 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      droit_ouvert_majoration_ param_
-                      && ressources_menage_ >$ plafond__i_i_d521_3_
-                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         >=! integer_of_string "2")
+                      ressources_menage_ >$ plafond__i_i_d521_3_ && droit_ouvert_majoration_ param_)
                     (fun (_ : _) ->
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.04"));
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      droit_ouvert_majoration_ param_
-                      && ressources_menage_ >$ plafond__i_d521_3_
-                      && ressources_menage_ <=$ plafond__i_i_d521_3_
-                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         >=! integer_of_string "2")
+                      (ressources_menage_ >$ plafond__i_d521_3_
+                      && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                      && droit_ouvert_majoration_ param_)
                     (fun (_ : _) ->
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"));
                 (fun (_ : _) ->
                   handle_default [||]
                     (fun (_ : _) ->
-                      droit_ouvert_majoration_ param_
-                      && ressources_menage_ <=$ plafond__i_d521_3_
-                      && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         >=! integer_of_string "2")
+                      ressources_menage_ <=$ plafond__i_d521_3_ && droit_ouvert_majoration_ param_)
                     (fun (_ : _) ->
                       prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"));
               |]
@@ -1851,6 +1892,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     complement_degressif_out = complement_degressif_;
     nombre_enfants_l521_1_out = nombre_enfants_l521_1_;
     age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_;
+    age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_;
+    age_minimum_alinea_1_l521_3_outre_mer_out = age_minimum_alinea_1_l521_3_outre_mer_;
     nombre_enfants_alinea_2_l521_3_out = nombre_enfants_alinea_2_l521_3_;
     est_enfant_le_plus_age_out = est_enfant_le_plus_age_;
     plafond_I_d521_3_out = plafond__i_d521_3_;
@@ -2068,6 +2111,8 @@ let interface_allocations_familiales
         complement_degressif_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_l521_1_in = (fun (_ : unit) -> raise EmptyError);
         age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
+        age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError);
+        age_minimum_alinea_1_l521_3_outre_mer_in = (fun (_ : unit) -> raise EmptyError);
         nombre_enfants_alinea_2_l521_3_in = (fun (_ : unit) -> raise EmptyError);
         est_enfant_le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
         plafond_I_d521_3_in = (fun (_ : unit) -> raise EmptyError);
@@ -2157,6 +2202,12 @@ let interface_allocations_familiales
   in
   let allocations_familiales_dot_age_minimum_alinea_1_l521_3_ : enfant -> integer =
     result_.age_minimum_alinea_1_l521_3_out
+  in
+  let allocations_familiales_dot_age_minimum_alinea_1_l521_3_metropole_ : enfant -> integer =
+    result_.age_minimum_alinea_1_l521_3_metropole_out
+  in
+  let allocations_familiales_dot_age_minimum_alinea_1_l521_3_outre_mer_ : enfant -> integer =
+    result_.age_minimum_alinea_1_l521_3_outre_mer_out
   in
   let allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_ : integer =
     result_.nombre_enfants_alinea_2_l521_3_out

@@ -79,7 +79,7 @@ champ d'application PrestationsFamiliales:
   définition smic.date_courante égal à date_courante
 
 déclaration champ d'application AllocationFamilialesAvril2008:
-  contexte âge_minimum_alinéa_1_l521_3 contenu entier
+  contexte âge_minimum_alinéa_1_l521_3_métropole contenu entier
 
 déclaration champ d'application EnfantLePlusÂgé:
   contexte enfants contenu collection Enfant
@@ -142,6 +142,8 @@ déclaration champ d'application AllocationsFamiliales:
   # Plafonds, âges limites et autres constantes
   contexte nombre_enfants_l521_1 contenu entier
   contexte âge_minimum_alinéa_1_l521_3 contenu entier dépend de Enfant
+  contexte âge_minimum_alinéa_1_l521_3_métropole contenu entier dépend de Enfant
+  contexte âge_minimum_alinéa_1_l521_3_outre_mer contenu entier dépend de Enfant
   contexte nombre_enfants_alinéa_2_l521_3 contenu entier
   contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
   contexte plafond_I_d521_3 contenu argent
