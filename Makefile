@@ -10,12 +10,13 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
+# The Zarith dependency is fixed because of https://github.com/janestreet/zarith_stubs_js/pull/8
 dependencies-ocaml:
 	opam install \
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
-		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
+		re obelisk unionfind bindlib zarith.1.11 zarith_stubs_js.v0.14.0 ocamlgraph \
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors benchmark ocamlformat
+		visitors benchmark
 
 init-submodules:
 	git submodule update --init

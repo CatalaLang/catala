@@ -288,8 +288,8 @@ class virtual ['self] program_map :
     method visit_Base : 'monomorphic. 'env -> base_typ -> typ
 
     method visit_Binop :
-      'monomorphic. 'env -> binop Pos.marked -> expression Pos.marked -> expression Pos.marked ->
-      expression
+      'monomorphic.
+      'env -> binop Pos.marked -> expression Pos.marked -> expression Pos.marked -> expression
 
     method visit_Boolean : 'monomorphic. 'env -> primitive_typ
 
@@ -305,8 +305,13 @@ class virtual ['self] program_map :
     method visit_Collection : 'monomorphic. 'env -> base_typ_data Pos.marked -> base_typ_data
 
     method visit_CollectionOp :
-      'monomorphic. 'env -> collection_op Pos.marked -> ident Pos.marked -> expression Pos.marked ->
-      expression Pos.marked -> expression
+      'monomorphic.
+      'env ->
+      collection_op Pos.marked ->
+      ident Pos.marked ->
+      expression Pos.marked ->
+      expression Pos.marked ->
+      expression
 
     method visit_Condition : 'monomorphic. 'env -> base_typ
 
@@ -333,16 +338,24 @@ class virtual ['self] program_map :
     method visit_Div : 'monomorphic. 'env -> op_kind -> binop
 
     method visit_Dotted :
-      'monomorphic. 'env -> expression Pos.marked -> constructor Pos.marked option ->
-      ident Pos.marked -> expression
+      'monomorphic.
+      'env ->
+      expression Pos.marked ->
+      constructor Pos.marked option ->
+      ident Pos.marked ->
+      expression
 
     method visit_Duration : 'monomorphic. 'env -> primitive_typ
 
     method visit_EnumDecl : 'monomorphic. 'env -> enum_decl -> code_item
 
     method visit_EnumInject :
-      'monomorphic. 'env -> constructor Pos.marked option -> constructor Pos.marked ->
-      expression Pos.marked option -> expression
+      'monomorphic.
+      'env ->
+      constructor Pos.marked option ->
+      constructor Pos.marked ->
+      expression Pos.marked option ->
+      expression
 
     method visit_Eq : 'monomorphic. 'env -> binop
 
@@ -375,8 +388,8 @@ class virtual ['self] program_map :
     method visit_Ident : 'monomorphic. 'env -> ident -> expression
 
     method visit_IfThenElse :
-      'monomorphic. 'env -> expression Pos.marked -> expression Pos.marked ->
-      expression Pos.marked -> expression
+      'monomorphic.
+      'env -> expression Pos.marked -> expression Pos.marked -> expression Pos.marked -> expression
 
     method visit_Increasing : 'monomorphic. 'env -> variation_typ
 
@@ -475,8 +488,11 @@ class virtual ['self] program_map :
     method visit_StructDecl : 'monomorphic. 'env -> struct_decl -> code_item
 
     method visit_StructLit :
-      'monomorphic. 'env -> constructor Pos.marked ->
-      (ident Pos.marked * expression Pos.marked) list -> expression
+      'monomorphic.
+      'env ->
+      constructor Pos.marked ->
+      (ident Pos.marked * expression Pos.marked) list ->
+      expression
 
     method visit_Sub : 'monomorphic. 'env -> op_kind -> binop
 
@@ -490,8 +506,12 @@ class virtual ['self] program_map :
     method visit_Unop : 'monomorphic. 'env -> unop Pos.marked -> expression Pos.marked -> expression
 
     method visit_VariesWith :
-      'monomorphic. 'env -> qident Pos.marked -> expression Pos.marked ->
-      variation_typ Pos.marked option -> meta_assertion
+      'monomorphic.
+      'env ->
+      qident Pos.marked ->
+      expression Pos.marked ->
+      variation_typ Pos.marked option ->
+      meta_assertion
 
     method visit_Year : 'monomorphic. 'env -> literal_unit
 
@@ -553,7 +573,8 @@ class virtual ['self] program_map :
     method visit_match_case : 'monomorphic. 'env -> match_case -> match_case
 
     method visit_match_case_pattern :
-      'monomorphic. 'env ->
+      'monomorphic.
+      'env ->
       (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option ->
       (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option
 
@@ -630,8 +651,8 @@ class virtual ['self] program_iter :
     method visit_Base : 'monomorphic. 'env -> base_typ -> unit
 
     method visit_Binop :
-      'monomorphic. 'env -> binop Pos.marked -> expression Pos.marked -> expression Pos.marked ->
-      unit
+      'monomorphic.
+      'env -> binop Pos.marked -> expression Pos.marked -> expression Pos.marked -> unit
 
     method visit_Boolean : 'monomorphic. 'env -> unit
 
@@ -646,8 +667,13 @@ class virtual ['self] program_iter :
     method visit_Collection : 'monomorphic. 'env -> base_typ_data Pos.marked -> unit
 
     method visit_CollectionOp :
-      'monomorphic. 'env -> collection_op Pos.marked -> ident Pos.marked -> expression Pos.marked ->
-      expression Pos.marked -> unit
+      'monomorphic.
+      'env ->
+      collection_op Pos.marked ->
+      ident Pos.marked ->
+      expression Pos.marked ->
+      expression Pos.marked ->
+      unit
 
     method visit_Condition : 'monomorphic. 'env -> unit
 
@@ -672,16 +698,20 @@ class virtual ['self] program_iter :
     method visit_Div : 'monomorphic. 'env -> op_kind -> unit
 
     method visit_Dotted :
-      'monomorphic. 'env -> expression Pos.marked -> constructor Pos.marked option ->
-      ident Pos.marked -> unit
+      'monomorphic.
+      'env -> expression Pos.marked -> constructor Pos.marked option -> ident Pos.marked -> unit
 
     method visit_Duration : 'monomorphic. 'env -> unit
 
     method visit_EnumDecl : 'monomorphic. 'env -> enum_decl -> unit
 
     method visit_EnumInject :
-      'monomorphic. 'env -> constructor Pos.marked option -> constructor Pos.marked ->
-      expression Pos.marked option -> unit
+      'monomorphic.
+      'env ->
+      constructor Pos.marked option ->
+      constructor Pos.marked ->
+      expression Pos.marked option ->
+      unit
 
     method visit_Eq : 'monomorphic. 'env -> unit
 
@@ -713,8 +743,8 @@ class virtual ['self] program_iter :
     method visit_Ident : 'monomorphic. 'env -> ident -> unit
 
     method visit_IfThenElse :
-      'monomorphic. 'env -> expression Pos.marked -> expression Pos.marked ->
-      expression Pos.marked -> unit
+      'monomorphic.
+      'env -> expression Pos.marked -> expression Pos.marked -> expression Pos.marked -> unit
 
     method visit_Increasing : 'monomorphic. 'env -> unit
 
@@ -810,8 +840,8 @@ class virtual ['self] program_iter :
     method visit_StructDecl : 'monomorphic. 'env -> struct_decl -> unit
 
     method visit_StructLit :
-      'monomorphic. 'env -> constructor Pos.marked ->
-      (ident Pos.marked * expression Pos.marked) list -> unit
+      'monomorphic.
+      'env -> constructor Pos.marked -> (ident Pos.marked * expression Pos.marked) list -> unit
 
     method visit_Sub : 'monomorphic. 'env -> op_kind -> unit
 
@@ -825,8 +855,8 @@ class virtual ['self] program_iter :
     method visit_Unop : 'monomorphic. 'env -> unop Pos.marked -> expression Pos.marked -> unit
 
     method visit_VariesWith :
-      'monomorphic. 'env -> qident Pos.marked -> expression Pos.marked ->
-      variation_typ Pos.marked option -> unit
+      'monomorphic.
+      'env -> qident Pos.marked -> expression Pos.marked -> variation_typ Pos.marked option -> unit
 
     method visit_Year : 'monomorphic. 'env -> unit
 
@@ -887,7 +917,8 @@ class virtual ['self] program_iter :
     method visit_match_case : 'monomorphic. 'env -> match_case -> unit
 
     method visit_match_case_pattern :
-      'monomorphic. 'env ->
+      'monomorphic.
+      'env ->
       (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option ->
       unit
 
