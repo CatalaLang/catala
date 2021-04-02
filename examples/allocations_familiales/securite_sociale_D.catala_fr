@@ -25,25 +25,18 @@ inférieur ou égal au plafond défini au I de l'article D. 521-3, les taux
 servant au calcul des allocations familiales sont fixés, en pourcentage
 de la base mensuelle prévue à l'article L. 551-1, à :
 a) 32 % pour le deuxième enfant à charge ;
-
-```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_deuxième_enfant sous condition
-    ressources_ménage <=€ plafond_I_d521_3
-  conséquence égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
-    alors prestations_familiales.base_mensuelle *€ 32 %
-    sinon 0 €
-```
-
 b) 41 % pour le troisième enfant à charge et chacun des suivants.
 
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_troisième_enfant_et_plus
-  sous condition
-    ressources_ménage <=€ plafond_I_d521_3
-  conséquence égal à
+champ d'application AllocationsFamiliales sous condition
+  ressources_ménage <=€ plafond_I_d521_3:
+
+  définition montant_initial_base_deuxième_enfant égal à
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    alors prestations_familiales.base_mensuelle *€ 32 %
+    sinon 0 €
+
+  définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
     alors (prestations_familiales.base_mensuelle *€ 41 %) *€ (
       entier_vers_décimal de
@@ -55,14 +48,14 @@ La majoration pour âge est fixée à 16 % de la base mensuelle de calcul des
 prestations familiales ;
 
 ```catala
-champ d'application AllocationsFamiliales :
-   définition montant_initial_majoration de enfant
-   sous condition
-     (droit_ouvert_majoration de enfant) et
-     (ressources_ménage <=€ plafond_I_d521_3) et
-     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2)
-   conséquence égal à
-     prestations_familiales.base_mensuelle *€ 16 %
+champ d'application AllocationsFamiliales sous condition
+  ressources_ménage <=€ plafond_I_d521_3:
+
+  définition montant_initial_majoration de enfant
+  sous condition
+    droit_ouvert_majoration de enfant
+  conséquence égal à
+    prestations_familiales.base_mensuelle *€ 16 %
 ```
 
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -71,27 +64,19 @@ supérieur au plafond défini au I de l'article D. 521-3 et inférieur ou égal
 allocations familiales sont fixés, en pourcentage de la base mensuelle
 prévue à l'article L. 551-1, à :
 a) 16 % pour le deuxième enfant à charge ;
-
-```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_deuxième_enfant sous condition
-    (ressources_ménage >€ plafond_I_d521_3) et
-    (ressources_ménage <=€ plafond_II_d521_3)
-  conséquence égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
-    alors prestations_familiales.base_mensuelle *€ 16 %
-    sinon 0 €
-```
-
 b) 20,5 % pour le troisième enfant à charge et chacun des suivants.
 
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_troisième_enfant_et_plus
-  sous condition
-    (ressources_ménage >€ plafond_I_d521_3) et
-    (ressources_ménage <=€ plafond_II_d521_3)
-  conséquence égal à
+champ d'application AllocationsFamiliales sous condition
+  (ressources_ménage >€ plafond_I_d521_3) et
+  (ressources_ménage <=€ plafond_II_d521_3):
+
+  définition montant_initial_base_deuxième_enfant égal à
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    alors prestations_familiales.base_mensuelle *€ 16 %
+    sinon 0 €
+
+  définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
     alors (prestations_familiales.base_mensuelle *€ 20,5 %) *€ (
       entier_vers_décimal de
@@ -103,14 +88,14 @@ La majoration pour âge est fixée à 8 % de la base mensuelle de calcul des
 prestations familiales ;
 
 ```catala
-champ d'application AllocationsFamiliales :
-   définition montant_initial_majoration de enfant sous condition
-     (droit_ouvert_majoration de enfant) et
-     (ressources_ménage >€ plafond_I_d521_3) et
-     (ressources_ménage <=€ plafond_II_d521_3) et
-     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2)
-   conséquence égal à
-     prestations_familiales.base_mensuelle *€ 8 %
+champ d'application AllocationsFamiliales sous condition
+  (ressources_ménage >€ plafond_I_d521_3) et
+  (ressources_ménage <=€ plafond_II_d521_3):
+
+  définition montant_initial_majoration de enfant sous condition
+    droit_ouvert_majoration de enfant
+  conséquence égal à
+    prestations_familiales.base_mensuelle *€ 8 %
 ```
 
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -118,25 +103,17 @@ supérieur au plafond défini au II de l'article D. 521-3, les taux servant
 au calcul des allocations familiales sont fixés, en pourcentage de la base
 mensuelle prévue à l'article L. 551-1, à :
 a) 8 % pour le deuxième enfant à charge ;
-
-```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_deuxième_enfant sous condition
-    (ressources_ménage >€ plafond_II_d521_3)
-  conséquence égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
-    alors prestations_familiales.base_mensuelle *€ 8 %
-    sinon 0 €
-```
-
 b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
 
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_troisième_enfant_et_plus
-  sous condition
-    (ressources_ménage >€ plafond_II_d521_3)
-  conséquence égal à
+champ d'application AllocationsFamiliales sous condition
+  ressources_ménage >€ plafond_II_d521_3:
+  définition montant_initial_base_deuxième_enfant égal à
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    alors prestations_familiales.base_mensuelle *€ 8 %
+    sinon 0 €
+
+  définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
     alors (prestations_familiales.base_mensuelle *€ 10,25 %) *€ (
       entier_vers_décimal de
@@ -148,13 +125,13 @@ La majoration pour âge est fixée à 4 % de la base mensuelle de calcul des
 prestations familiales.
 
 ```catala
-champ d'application AllocationsFamiliales :
-   définition montant_initial_majoration de enfant sous condition
-     (droit_ouvert_majoration de enfant) et
-     (ressources_ménage >€ plafond_II_d521_3) et
-     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2)
-   conséquence égal à
-     prestations_familiales.base_mensuelle *€ 4 %
+champ d'application AllocationsFamiliales sous condition
+  ressources_ménage >€ plafond_II_d521_3:
+
+  définition montant_initial_majoration de enfant sous condition
+    droit_ouvert_majoration de enfant
+  conséquence égal à
+    prestations_familiales.base_mensuelle *€ 4 %
 ```
 
 II.-En application du sixième alinéa de l'article L. 521-1, le montant
@@ -369,10 +346,13 @@ partir de onze ans et à 5,67 p. 100 à partir de seize ans.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  exception decret_2008_âge_minimum_alinéa_1_l521_3
+
+  définition âge_minimum_alinéa_1_l521_3_outre_mer de enfant égal à 11
+
+  exception
   définition âge_minimum_alinéa_1_l521_3 de enfant
   sous condition prestations_familiales.régime_outre_mer_l751_1
-  conséquence égal à 11
+  conséquence égal à âge_minimum_alinéa_1_l521_3_outre_mer de enfant
 
   définition
     montant_initial_majoration de enfant
