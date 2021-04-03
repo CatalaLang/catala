@@ -15,9 +15,6 @@
 open Utils
 open Ast
 
-let typ_needs_parens (e : Dcalc.Ast.typ Pos.marked) : bool =
-  match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
-
 let is_uppercase (x : CamomileLibraryDefault.Camomile.UChar.t) : bool =
   try
     match CamomileLibraryDefault.Camomile.UCharInfo.general_category x with
@@ -67,14 +64,8 @@ let format_exception (fmt : Format.formatter) (exn : except) : unit =
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
 
-let format_base_type (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" s)
-
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.cyan ] "%s" s)
-
-let format_operator (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.green ] "%s" s)
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
