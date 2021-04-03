@@ -107,6 +107,18 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       Bindlib.box_apply
         (fun new_binder -> Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
         new_binder
+  | D.EDefault ([ exn ], just, cons) when !Cli.optimize_flag ->
+      Bindlib.box_apply3
+        (fun exn just cons ->
+          Pos.same_pos_as
+            (A.ECatch
+               ( exn,
+                 A.EmptyError,
+                 Pos.same_pos_as
+                   (A.EIfThenElse (just, cons, Pos.same_pos_as (A.ERaise A.EmptyError) e))
+                   e ))
+            e)
+        (translate_expr ctx exn) (translate_expr ctx just) (translate_expr ctx cons)
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 

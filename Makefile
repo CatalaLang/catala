@@ -172,6 +172,7 @@ $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 generate_french_law_library:\
 	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml \
 	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+	$(MAKE) format
 
 #> build_french_law_library		: Builds the OCaml French law library
 build_french_law_library: generate_french_law_library format
