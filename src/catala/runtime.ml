@@ -34,6 +34,35 @@ exception UncomparableDurations
 
 exception ImpossibleDate
 
+type source_position = {
+  filename : string;
+  start_line : int;
+  start_column : int;
+  end_line : int;
+  end_column : int;
+  law_headings : string list;
+}
+
+type event =
+  | BeginCall of string list
+  | EndCall of string list
+  | VariableDefinition of string list
+  | DecisionTaken of source_position
+
+let log_ref : event list ref = ref []
+
+let reset_log () = log_ref := []
+
+let retrieve_log () = !log_ref
+
+let log_begin_call _ f x = f x
+
+let log_end_call _ x = x
+
+let log_variable_definition _ x = x
+
+let log_decision_taken _ x = x
+
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)

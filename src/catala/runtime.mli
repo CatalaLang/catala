@@ -38,6 +38,35 @@ exception ImpossibleDate
 
 exception NoValueProvided
 
+(** {1 Logging} *)
+
+type source_position = {
+  filename : string;
+  start_line : int;
+  start_column : int;
+  end_line : int;
+  end_column : int;
+  law_headings : string list;
+}
+
+type event =
+  | BeginCall of string list
+  | EndCall of string list
+  | VariableDefinition of string list
+  | DecisionTaken of source_position
+
+val reset_log : unit -> unit
+
+val retrieve_log : unit -> event list
+
+val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
+
+val log_end_call : string list -> 'a -> 'a
+
+val log_variable_definition : string list -> 'a -> 'a
+
+val log_decision_taken : source_position -> bool -> bool
+
 (**{1 Constructors and conversions} *)
 
 (**{2 Money}*)

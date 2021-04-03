@@ -27,6 +27,8 @@ let from_info (file : string) (sline : int) (scol : int) (eline : int) (ecol : i
 
 let overwrite_law_info (pos : t) (law_pos : string list) : t = { pos with law_pos }
 
+let get_law_info (pos : t) : string list = pos.law_pos
+
 let get_start_line (pos : t) : int =
   let s, _ = pos.code_pos in
   s.Lexing.pos_lnum
