@@ -110,8 +110,6 @@ type allocations_familiales_out = {
   versement_out : enfant -> versement_allocations;
   montant_verse_out : money;
   droit_ouvert_base_out : bool;
-  montant_verse_base_out : money;
-  montant_avec_garde_alternee_base_out : money;
   montant_initial_base_out : money;
   montant_initial_base_premier_enfant_out : money;
   montant_initial_base_deuxieme_enfant_out : money;
@@ -119,17 +117,20 @@ type allocations_familiales_out = {
   rapport_enfants_total_moyen_out : decimal;
   nombre_moyen_enfants_out : decimal;
   nombre_total_enfants_out : decimal;
+  montant_avec_garde_alternee_base_out : money;
+  montant_verse_base_out : money;
   droit_ouvert_forfaitaire_out : enfant -> bool;
   montant_verse_forfaitaire_out : money;
   droit_ouvert_majoration_out : enfant -> bool;
-  montant_verse_majoration_out : money;
-  montant_avec_garde_alternee_majoration_out : enfant -> money;
+  montant_initial_metropole_majoration_out : enfant -> money;
   montant_initial_majoration_out : enfant -> money;
+  montant_avec_garde_alternee_majoration_out : enfant -> money;
+  montant_verse_majoration_out : money;
   droit_ouvert_complement_out : bool;
-  montant_verse_complement_pour_base_et_majoration_out : money;
   montant_base_complement_pour_base_et_majoration_out : money;
-  montant_verse_complement_pour_forfaitaire_out : money;
   complement_degressif_out : money -> money;
+  montant_verse_complement_pour_base_et_majoration_out : money;
+  montant_verse_complement_pour_forfaitaire_out : money;
   nombre_enfants_l521_1_out : integer;
   age_minimum_alinea_1_l521_3_out : enfant -> integer;
   age_minimum_alinea_1_l521_3_metropole_out : enfant -> integer;
@@ -152,8 +153,6 @@ type allocations_familiales_in = {
   versement_in : unit -> enfant -> versement_allocations;
   montant_verse_in : unit -> money;
   droit_ouvert_base_in : unit -> bool;
-  montant_verse_base_in : unit -> money;
-  montant_avec_garde_alternee_base_in : unit -> money;
   montant_initial_base_in : unit -> money;
   montant_initial_base_premier_enfant_in : unit -> money;
   montant_initial_base_deuxieme_enfant_in : unit -> money;
@@ -161,17 +160,20 @@ type allocations_familiales_in = {
   rapport_enfants_total_moyen_in : unit -> decimal;
   nombre_moyen_enfants_in : unit -> decimal;
   nombre_total_enfants_in : unit -> decimal;
+  montant_avec_garde_alternee_base_in : unit -> money;
+  montant_verse_base_in : unit -> money;
   droit_ouvert_forfaitaire_in : unit -> enfant -> bool;
   montant_verse_forfaitaire_in : unit -> money;
   droit_ouvert_majoration_in : unit -> enfant -> bool;
-  montant_verse_majoration_in : unit -> money;
-  montant_avec_garde_alternee_majoration_in : unit -> enfant -> money;
+  montant_initial_metropole_majoration_in : unit -> enfant -> money;
   montant_initial_majoration_in : unit -> enfant -> money;
+  montant_avec_garde_alternee_majoration_in : unit -> enfant -> money;
+  montant_verse_majoration_in : unit -> money;
   droit_ouvert_complement_in : unit -> bool;
-  montant_verse_complement_pour_base_et_majoration_in : unit -> money;
   montant_base_complement_pour_base_et_majoration_in : unit -> money;
-  montant_verse_complement_pour_forfaitaire_in : unit -> money;
   complement_degressif_in : unit -> money -> money;
+  montant_verse_complement_pour_base_et_majoration_in : unit -> money;
+  montant_verse_complement_pour_forfaitaire_in : unit -> money;
   nombre_enfants_l521_1_in : unit -> integer;
   age_minimum_alinea_1_l521_3_in : unit -> enfant -> integer;
   age_minimum_alinea_1_l521_3_metropole_in : unit -> enfant -> integer;
@@ -792,10 +794,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let montant_verse_ : unit -> money = allocations_familiales_in.montant_verse_in in
   let droit_ouvert_base_ : unit -> bool = allocations_familiales_in.droit_ouvert_base_in in
-  let montant_verse_base_ : unit -> money = allocations_familiales_in.montant_verse_base_in in
-  let montant_avec_garde_alternee_base_ : unit -> money =
-    allocations_familiales_in.montant_avec_garde_alternee_base_in
-  in
   let montant_initial_base_ : unit -> money = allocations_familiales_in.montant_initial_base_in in
   let montant_initial_base_premier_enfant_ : unit -> money =
     allocations_familiales_in.montant_initial_base_premier_enfant_in
@@ -811,6 +809,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let nombre_moyen_enfants_ : unit -> decimal = allocations_familiales_in.nombre_moyen_enfants_in in
   let nombre_total_enfants_ : unit -> decimal = allocations_familiales_in.nombre_total_enfants_in in
+  let montant_avec_garde_alternee_base_ : unit -> money =
+    allocations_familiales_in.montant_avec_garde_alternee_base_in
+  in
+  let montant_verse_base_ : unit -> money = allocations_familiales_in.montant_verse_base_in in
   let droit_ouvert_forfaitaire_ : unit -> enfant -> bool =
     allocations_familiales_in.droit_ouvert_forfaitaire_in
   in
@@ -820,29 +822,32 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let droit_ouvert_majoration_ : unit -> enfant -> bool =
     allocations_familiales_in.droit_ouvert_majoration_in
   in
-  let montant_verse_majoration_ : unit -> money =
-    allocations_familiales_in.montant_verse_majoration_in
-  in
-  let montant_avec_garde_alternee_majoration_ : unit -> enfant -> money =
-    allocations_familiales_in.montant_avec_garde_alternee_majoration_in
+  let montant_initial_metropole_majoration_ : unit -> enfant -> money =
+    allocations_familiales_in.montant_initial_metropole_majoration_in
   in
   let montant_initial_majoration_ : unit -> enfant -> money =
     allocations_familiales_in.montant_initial_majoration_in
   in
+  let montant_avec_garde_alternee_majoration_ : unit -> enfant -> money =
+    allocations_familiales_in.montant_avec_garde_alternee_majoration_in
+  in
+  let montant_verse_majoration_ : unit -> money =
+    allocations_familiales_in.montant_verse_majoration_in
+  in
   let droit_ouvert_complement_ : unit -> bool =
     allocations_familiales_in.droit_ouvert_complement_in
-  in
-  let montant_verse_complement_pour_base_et_majoration_ : unit -> money =
-    allocations_familiales_in.montant_verse_complement_pour_base_et_majoration_in
   in
   let montant_base_complement_pour_base_et_majoration_ : unit -> money =
     allocations_familiales_in.montant_base_complement_pour_base_et_majoration_in
   in
-  let montant_verse_complement_pour_forfaitaire_ : unit -> money =
-    allocations_familiales_in.montant_verse_complement_pour_forfaitaire_in
-  in
   let complement_degressif_ : unit -> money -> money =
     allocations_familiales_in.complement_degressif_in
+  in
+  let montant_verse_complement_pour_base_et_majoration_ : unit -> money =
+    allocations_familiales_in.montant_verse_complement_pour_base_et_majoration_in
+  in
+  let montant_verse_complement_pour_forfaitaire_ : unit -> money =
+    allocations_familiales_in.montant_verse_complement_pour_forfaitaire_in
   in
   let nombre_enfants_l521_1_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_l521_1_in
@@ -2542,11 +2547,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            else nombre_moyen_enfants_ /& nombre_total_enfants_
        with EmptyError -> raise NoValueProvided)
   in
-  let montant_initial_majoration_ : enfant -> money =
+  let montant_initial_metropole_majoration_ : enfant -> money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_majoration" ]
+      [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
       (try
-         try montant_initial_majoration_ ()
+         try montant_initial_metropole_majoration_ ()
          with EmptyError -> (
            fun (param_ : enfant) ->
              try
@@ -2579,43 +2584,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                         ]
                                         param_)))))
                      then money_of_cents_string "0"
-                     else raise EmptyError);
-                   (fun (_ : _) ->
-                     if
-                       log_decision_taken
-                         {
-                           filename = "./securite_sociale_D.catala_fr";
-                           start_line = 360;
-                           start_column = 5;
-                           end_line = 362;
-                           end_column = 71;
-                           law_headings =
-                             [
-                               "Article D755-5";
-                               "Chapitre 5 : Prestations familiales et prestations assimilées";
-                               "Titre 5 : Départements d'outre-mer";
-                               "Livre 7 : Régimes divers - Dispositions diverses";
-                               "Partie réglementaire - Décrets simples";
-                             ];
-                         }
-                         (log_end_call
-                            [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                            (log_variable_definition
-                               [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
-                               (log_begin_call
-                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                  droit_ouvert_majoration_
-                                  (log_variable_definition
-                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
-                                     param_)))
-                         && prestations_familiales_dot_regime_outre_mer_l751_1_
-                         && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                            = integer_of_string "1")
-                     then
-                       prestations_familiales_dot_base_mensuelle_
-                       *$
-                       if param_.age >=! integer_of_string "16" then decimal_of_string "0.0567"
-                       else decimal_of_string "0.0369"
                      else raise EmptyError);
                    (fun (_ : _) ->
                      if
@@ -2786,6 +2754,77 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            else money_of_cents_string "0"
        with EmptyError -> raise NoValueProvided)
   in
+  let montant_initial_majoration_ : enfant -> money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_initial_majoration" ]
+      (try
+         try montant_initial_majoration_ ()
+         with EmptyError -> (
+           fun (param_ : enfant) ->
+             try
+               try
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 362;
+                       start_column = 5;
+                       end_line = 364;
+                       end_column = 71;
+                       law_headings =
+                         [
+                           "Article D755-5";
+                           "Chapitre 5 : Prestations familiales et prestations assimilées";
+                           "Titre 5 : Départements d'outre-mer";
+                           "Livre 7 : Régimes divers - Dispositions diverses";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (log_end_call
+                        [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                        (log_variable_definition
+                           [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
+                           (log_begin_call
+                              [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                              droit_ouvert_majoration_
+                              (log_variable_definition
+                                 [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
+                                 param_)))
+                     && prestations_familiales_dot_regime_outre_mer_l751_1_
+                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                        = integer_of_string "1")
+                 then
+                   prestations_familiales_dot_base_mensuelle_
+                   *$
+                   if param_.age >=! integer_of_string "16" then decimal_of_string "0.0567"
+                   else decimal_of_string "0.0369"
+                 else raise EmptyError
+               with EmptyError ->
+                 log_end_call
+                   [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
+                   (log_variable_definition
+                      [ "AllocationsFamiliales"; "montant_initial_métropole_majoration"; "output" ]
+                      (log_begin_call
+                         [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
+                         montant_initial_metropole_majoration_
+                         (log_variable_definition
+                            [
+                              "AllocationsFamiliales";
+                              "montant_initial_métropole_majoration";
+                              "input";
+                            ]
+                            param_)))
+             with EmptyError -> raise NoValueProvided)
+       with EmptyError -> raise NoValueProvided)
+  in
+  let montant_avec_garde_alternee_base_ : money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_avec_garde_alternée_base" ]
+      (try
+         try montant_avec_garde_alternee_base_ ()
+         with EmptyError -> montant_initial_base_ *$ rapport_enfants_total_moyen_
+       with EmptyError -> raise NoValueProvided)
+  in
   let montant_avec_garde_alternee_majoration_ : enfant -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
@@ -2823,12 +2862,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              with EmptyError -> raise NoValueProvided)
        with EmptyError -> raise NoValueProvided)
   in
-  let montant_avec_garde_alternee_base_ : money =
+  let montant_verse_base_ : money =
     log_variable_definition
-      [ "AllocationsFamiliales"; "montant_avec_garde_alternée_base" ]
+      [ "AllocationsFamiliales"; "montant_versé_base" ]
       (try
-         try montant_avec_garde_alternee_base_ ()
-         with EmptyError -> montant_initial_base_ *$ rapport_enfants_total_moyen_
+         try montant_verse_base_ ()
+         with EmptyError ->
+           if droit_ouvert_base_ then montant_avec_garde_alternee_base_
+           else money_of_cents_string "0"
        with EmptyError -> raise NoValueProvided)
   in
   let montant_verse_majoration_ : money =
@@ -2860,16 +2901,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                ]
                                enfant_))))
                (money_of_cents_string "0") enfants_a_charge_
-           else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
-  in
-  let montant_verse_base_ : money =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_base" ]
-      (try
-         try montant_verse_base_ ()
-         with EmptyError ->
-           if droit_ouvert_base_ then montant_avec_garde_alternee_base_
            else money_of_cents_string "0"
        with EmptyError -> raise NoValueProvided)
   in
@@ -2939,8 +2970,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     versement_out = versement_;
     montant_verse_out = montant_verse_;
     droit_ouvert_base_out = droit_ouvert_base_;
-    montant_verse_base_out = montant_verse_base_;
-    montant_avec_garde_alternee_base_out = montant_avec_garde_alternee_base_;
     montant_initial_base_out = montant_initial_base_;
     montant_initial_base_premier_enfant_out = montant_initial_base_premier_enfant_;
     montant_initial_base_deuxieme_enfant_out = montant_initial_base_deuxieme_enfant_;
@@ -2949,19 +2978,22 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     rapport_enfants_total_moyen_out = rapport_enfants_total_moyen_;
     nombre_moyen_enfants_out = nombre_moyen_enfants_;
     nombre_total_enfants_out = nombre_total_enfants_;
+    montant_avec_garde_alternee_base_out = montant_avec_garde_alternee_base_;
+    montant_verse_base_out = montant_verse_base_;
     droit_ouvert_forfaitaire_out = droit_ouvert_forfaitaire_;
     montant_verse_forfaitaire_out = montant_verse_forfaitaire_;
     droit_ouvert_majoration_out = droit_ouvert_majoration_;
-    montant_verse_majoration_out = montant_verse_majoration_;
-    montant_avec_garde_alternee_majoration_out = montant_avec_garde_alternee_majoration_;
+    montant_initial_metropole_majoration_out = montant_initial_metropole_majoration_;
     montant_initial_majoration_out = montant_initial_majoration_;
+    montant_avec_garde_alternee_majoration_out = montant_avec_garde_alternee_majoration_;
+    montant_verse_majoration_out = montant_verse_majoration_;
     droit_ouvert_complement_out = droit_ouvert_complement_;
-    montant_verse_complement_pour_base_et_majoration_out =
-      montant_verse_complement_pour_base_et_majoration_;
     montant_base_complement_pour_base_et_majoration_out =
       montant_base_complement_pour_base_et_majoration_;
-    montant_verse_complement_pour_forfaitaire_out = montant_verse_complement_pour_forfaitaire_;
     complement_degressif_out = complement_degressif_;
+    montant_verse_complement_pour_base_et_majoration_out =
+      montant_verse_complement_pour_base_et_majoration_;
+    montant_verse_complement_pour_forfaitaire_out = montant_verse_complement_pour_forfaitaire_;
     nombre_enfants_l521_1_out = nombre_enfants_l521_1_;
     age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_;
     age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_;
@@ -3143,8 +3175,6 @@ let interface_allocations_familiales
            versement_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_base_in = (fun (_ : unit) -> raise EmptyError);
-           montant_verse_base_in = (fun (_ : unit) -> raise EmptyError);
-           montant_avec_garde_alternee_base_in = (fun (_ : unit) -> raise EmptyError);
            montant_initial_base_in = (fun (_ : unit) -> raise EmptyError);
            montant_initial_base_premier_enfant_in = (fun (_ : unit) -> raise EmptyError);
            montant_initial_base_deuxieme_enfant_in = (fun (_ : unit) -> raise EmptyError);
@@ -3152,18 +3182,21 @@ let interface_allocations_familiales
            rapport_enfants_total_moyen_in = (fun (_ : unit) -> raise EmptyError);
            nombre_moyen_enfants_in = (fun (_ : unit) -> raise EmptyError);
            nombre_total_enfants_in = (fun (_ : unit) -> raise EmptyError);
+           montant_avec_garde_alternee_base_in = (fun (_ : unit) -> raise EmptyError);
+           montant_verse_base_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_majoration_in = (fun (_ : unit) -> raise EmptyError);
-           montant_verse_majoration_in = (fun (_ : unit) -> raise EmptyError);
-           montant_avec_garde_alternee_majoration_in = (fun (_ : unit) -> raise EmptyError);
+           montant_initial_metropole_majoration_in = (fun (_ : unit) -> raise EmptyError);
            montant_initial_majoration_in = (fun (_ : unit) -> raise EmptyError);
+           montant_avec_garde_alternee_majoration_in = (fun (_ : unit) -> raise EmptyError);
+           montant_verse_majoration_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_complement_in = (fun (_ : unit) -> raise EmptyError);
+           montant_base_complement_pour_base_et_majoration_in = (fun (_ : unit) -> raise EmptyError);
+           complement_degressif_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_complement_pour_base_et_majoration_in =
              (fun (_ : unit) -> raise EmptyError);
-           montant_base_complement_pour_base_et_majoration_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_complement_pour_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
-           complement_degressif_in = (fun (_ : unit) -> raise EmptyError);
            nombre_enfants_l521_1_in = (fun (_ : unit) -> raise EmptyError);
            age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
            age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError);
@@ -3196,10 +3229,6 @@ let interface_allocations_familiales
   in
   let allocations_familiales_dot_montant_verse_ : money = result_.montant_verse_out in
   let allocations_familiales_dot_droit_ouvert_base_ : bool = result_.droit_ouvert_base_out in
-  let allocations_familiales_dot_montant_verse_base_ : money = result_.montant_verse_base_out in
-  let allocations_familiales_dot_montant_avec_garde_alternee_base_ : money =
-    result_.montant_avec_garde_alternee_base_out
-  in
   let allocations_familiales_dot_montant_initial_base_ : money = result_.montant_initial_base_out in
   let allocations_familiales_dot_montant_initial_base_premier_enfant_ : money =
     result_.montant_initial_base_premier_enfant_out
@@ -3219,6 +3248,10 @@ let interface_allocations_familiales
   let allocations_familiales_dot_nombre_total_enfants_ : decimal =
     result_.nombre_total_enfants_out
   in
+  let allocations_familiales_dot_montant_avec_garde_alternee_base_ : money =
+    result_.montant_avec_garde_alternee_base_out
+  in
+  let allocations_familiales_dot_montant_verse_base_ : money = result_.montant_verse_base_out in
   let allocations_familiales_dot_droit_ouvert_forfaitaire_ : enfant -> bool =
     result_.droit_ouvert_forfaitaire_out
   in
@@ -3228,29 +3261,32 @@ let interface_allocations_familiales
   let allocations_familiales_dot_droit_ouvert_majoration_ : enfant -> bool =
     result_.droit_ouvert_majoration_out
   in
-  let allocations_familiales_dot_montant_verse_majoration_ : money =
-    result_.montant_verse_majoration_out
-  in
-  let allocations_familiales_dot_montant_avec_garde_alternee_majoration_ : enfant -> money =
-    result_.montant_avec_garde_alternee_majoration_out
+  let allocations_familiales_dot_montant_initial_metropole_majoration_ : enfant -> money =
+    result_.montant_initial_metropole_majoration_out
   in
   let allocations_familiales_dot_montant_initial_majoration_ : enfant -> money =
     result_.montant_initial_majoration_out
   in
+  let allocations_familiales_dot_montant_avec_garde_alternee_majoration_ : enfant -> money =
+    result_.montant_avec_garde_alternee_majoration_out
+  in
+  let allocations_familiales_dot_montant_verse_majoration_ : money =
+    result_.montant_verse_majoration_out
+  in
   let allocations_familiales_dot_droit_ouvert_complement_ : bool =
     result_.droit_ouvert_complement_out
-  in
-  let allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_ : money =
-    result_.montant_verse_complement_pour_base_et_majoration_out
   in
   let allocations_familiales_dot_montant_base_complement_pour_base_et_majoration_ : money =
     result_.montant_base_complement_pour_base_et_majoration_out
   in
-  let allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_ : money =
-    result_.montant_verse_complement_pour_forfaitaire_out
-  in
   let allocations_familiales_dot_complement_degressif_ : money -> money =
     result_.complement_degressif_out
+  in
+  let allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_ : money =
+    result_.montant_verse_complement_pour_base_et_majoration_out
+  in
+  let allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_ : money =
+    result_.montant_verse_complement_pour_forfaitaire_out
   in
   let allocations_familiales_dot_nombre_enfants_l521_1_ : integer =
     result_.nombre_enfants_l521_1_out

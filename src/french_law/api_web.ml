@@ -57,9 +57,79 @@ class type allocations_familiales_input =
       bool Js.t Js.readonly_prop
   end
 
+class type source_position =
+  object
+    method fileName : Js.js_string Js.t Js.prop
+
+    method startLine : int Js.prop
+
+    method endLine : int Js.prop
+
+    method startColumn : int Js.prop
+
+    method endColumn : int Js.prop
+
+    method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
+  end
+
+class type log_event =
+  object
+    method eventType : Js.js_string Js.t Js.prop
+
+    method information : Js.js_string Js.t Js.js_array Js.t Js.prop
+
+    method sourcePosition : source_position Js.t Js.optdef Js.prop
+  end
+
 let _ =
   Js.export_all
     (object%js
+       method resetLog () : unit = reset_log ()
+
+       method retrieveLog () : log_event Js.t Js.js_array Js.t =
+         Js.array
+           (Array.of_list
+              (List.map
+                 (fun evt ->
+                   object%js
+                     val mutable eventType =
+                       Js.string
+                         (match evt with
+                         | BeginCall _ -> "Begin call"
+                         | EndCall _ -> "End call"
+                         | VariableDefinition _ -> "Variable definition"
+                         | DecisionTaken _ -> "Decision taken")
+
+                     val mutable information =
+                       Js.array
+                         (Array.of_list
+                            (match evt with
+                            | BeginCall info | EndCall info | VariableDefinition info ->
+                                List.map Js.string info
+                            | DecisionTaken _ -> []))
+
+                     val mutable sourcePosition =
+                       match evt with
+                       | DecisionTaken pos ->
+                           Js.def
+                             (object%js
+                                val mutable fileName = Js.string pos.filename
+
+                                val mutable startLine = pos.start_line
+
+                                val mutable endLine = pos.end_line
+
+                                val mutable startColumn = pos.start_column
+
+                                val mutable endColumn = pos.end_column
+
+                                val mutable lawHeadings =
+                                  Js.array (Array.of_list (List.map Js.string pos.law_headings))
+                             end)
+                       | _ -> Js.undefined
+                   end)
+                 (retrieve_log ())))
+
        method computeAllocationsFamiliales (input : allocations_familiales_input Js.t) : float =
          let result =
            AF.interface_allocations_familiales

@@ -51,7 +51,7 @@ prestations familiales ;
 champ d'application AllocationsFamiliales sous condition
   ressources_ménage <=€ plafond_I_d521_3:
 
-  définition montant_initial_majoration de enfant
+  définition montant_initial_métropole_majoration de enfant
   sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
@@ -92,7 +92,7 @@ champ d'application AllocationsFamiliales sous condition
   (ressources_ménage >€ plafond_I_d521_3) et
   (ressources_ménage <=€ plafond_II_d521_3):
 
-  définition montant_initial_majoration de enfant sous condition
+  définition montant_initial_métropole_majoration de enfant sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
     prestations_familiales.base_mensuelle *€ 8 %
@@ -128,7 +128,7 @@ prestations familiales.
 champ d'application AllocationsFamiliales sous condition
   ressources_ménage >€ plafond_II_d521_3:
 
-  définition montant_initial_majoration de enfant sous condition
+  définition montant_initial_métropole_majoration de enfant sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
     prestations_familiales.base_mensuelle *€ 4 %
@@ -354,8 +354,10 @@ champ d'application AllocationsFamiliales :
   sous condition prestations_familiales.régime_outre_mer_l751_1
   conséquence égal à âge_minimum_alinéa_1_l521_3_outre_mer de enfant
 
-  définition
-    montant_initial_majoration de enfant
+  définition montant_initial_majoration de enfant égal à
+    montant_initial_métropole_majoration de enfant
+
+  exception définition montant_initial_majoration de enfant
   sous condition
     (droit_ouvert_majoration de enfant) et
     prestations_familiales.régime_outre_mer_l751_1 et

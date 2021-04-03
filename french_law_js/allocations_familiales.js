@@ -27,6 +27,7 @@ suite
       personneQuiAssumeLaChargeEffectivePermanenteEstParent: true,
       personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale: true,
     });
+    Law.resetLog(true);
   })
   .on("cycle", function (event) {
     console.log(String(event.target));

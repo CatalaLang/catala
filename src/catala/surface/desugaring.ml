@@ -878,7 +878,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       if is_exception def then rule_name
       else
         match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
-        | None | Some Name_resolution.Ambiguous -> rule_name
+        | None | Some (Name_resolution.Ambiguous _) -> rule_name
         | Some (Name_resolution.Unique x) -> x
     in
     let parent_rule =
@@ -888,7 +888,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
           Some
             (match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
             (* This should have been caught previously by check_unlabeled_exception *)
-            | None | Some Name_resolution.Ambiguous -> assert false
+            | None | Some (Name_resolution.Ambiguous _) -> assert false
             | Some (Name_resolution.Unique name) -> Pos.same_pos_as name def.Ast.definition_name)
       | ExceptionToLabel label ->
           Some
@@ -996,10 +996,11 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
           | None ->
               Errors.raise_spanned_error "This exception does not have a corresponding definition"
                 (Pos.get_position item)
-          | Some Ambiguous ->
-              Errors.raise_spanned_error
+          | Some (Ambiguous pos) ->
+              Errors.raise_multispanned_error
                 "This exception can refer to several definitions. Try using labels to disambiguate"
-                (Pos.get_position item)
+                ([ (Some "Ambiguous exception", Pos.get_position item) ]
+                @ List.map (fun p -> (Some "Candidate definition", p)) pos)
           | Some (Unique _) -> ()))
   | Ast.Definition def -> (
       match def.definition_exception_to with
@@ -1014,10 +1015,11 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
           | None ->
               Errors.raise_spanned_error "This exception does not have a corresponding definition"
                 (Pos.get_position item)
-          | Some Ambiguous ->
-              Errors.raise_spanned_error
+          | Some (Ambiguous pos) ->
+              Errors.raise_multispanned_error
                 "This exception can refer to several definitions. Try using labels to disambiguate"
-                (Pos.get_position item)
+                ([ (Some "Ambiguous exception", Pos.get_position item) ]
+                @ List.map (fun p -> (Some "Candidate definition", p)) pos)
           | Some (Unique _) -> ()))
   | _ -> ()
 

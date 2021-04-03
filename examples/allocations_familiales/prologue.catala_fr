@@ -107,8 +107,6 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Variables liées à la base des allications familiales
   contexte droit_ouvert_base condition
-  contexte montant_versé_base contenu argent
-  contexte montant_avec_garde_alternée_base contenu argent
   contexte montant_initial_base contenu argent
   contexte montant_initial_base_premier_enfant contenu argent
   contexte montant_initial_base_deuxième_enfant contenu argent
@@ -116,6 +114,8 @@ déclaration champ d'application AllocationsFamiliales:
   contexte rapport_enfants_total_moyen contenu décimal
   contexte nombre_moyen_enfants contenu décimal
   contexte nombre_total_enfants contenu décimal
+  contexte montant_avec_garde_alternée_base contenu argent
+  contexte montant_versé_base contenu argent
 
   # Variables liées à l'allocation forfaitaire
   contexte droit_ouvert_forfaitaire condition dépend de Enfant
@@ -123,16 +123,17 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Variables liées aux majorations des allocations familiales
   contexte droit_ouvert_majoration condition dépend de Enfant
-  contexte montant_versé_majoration contenu argent
-  contexte montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  contexte montant_initial_métropole_majoration contenu argent dépend de Enfant
   contexte montant_initial_majoration contenu argent dépend de Enfant
+  contexte montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  contexte montant_versé_majoration contenu argent
 
   # Variables liées au complément dégressif
   contexte droit_ouvert_complément condition
-  contexte montant_versé_complément_pour_base_et_majoration contenu argent
   contexte montant_base_complément_pour_base_et_majoration contenu argent
-  contexte montant_versé_complément_pour_forfaitaire contenu argent
   contexte complément_dégressif contenu argent dépend de argent
+  contexte montant_versé_complément_pour_base_et_majoration contenu argent
+  contexte montant_versé_complément_pour_forfaitaire contenu argent
 
   # Sous-champs d'applications
   contexte prestations_familiales champ d'application PrestationsFamiliales

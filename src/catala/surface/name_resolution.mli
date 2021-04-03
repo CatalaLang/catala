@@ -23,7 +23,7 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
 
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
