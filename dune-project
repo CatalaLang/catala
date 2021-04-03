@@ -38,6 +38,7 @@
    (benchmark (>= 1.6))
    (js_of_ocaml-ppx (>= 3.8.0))
    (camomile (>= 1.0.2))
+   (hmap (>= 0.8.1))
  )
 )
 

@@ -43,28 +43,54 @@ type source_position = {
   law_headings : string list;
 }
 
+type store_key = Hmap.Key.t
+
 type event =
-  | BeginCall of string list
-  | EndCall of string list
-  | VariableDefinition of string list
+  | BeginCall of string list * store_key
+  | EndCall of string list * store_key
+  | VariableDefinition of string list * store_key
   | DecisionTaken of source_position
 
 let log_ref : event list ref = ref []
 
-let reset_log () = log_ref := []
+let store_ref : Hmap.t ref = ref Hmap.empty
+
+let reset_log () =
+  log_ref := [];
+  store_ref := Hmap.empty
 
 let retrieve_log () = List.rev !log_ref
 
+(* This function is where we have to punch trough the OCaml type system. Indeed, this value store is
+   really a cheap version of an embedding and de-embedding system where values are annotated by
+   their types. However, since this logging is meant to be accessed through Javascript where we have
+   access to type tagging, this is fine? *)
+let retrieve_value : 'a. store_key -> 'a =
+ fun key ->
+  let unique =
+    Hmap.filter
+      (fun binding ->
+        match binding with Hmap.B (key', _) -> Hmap.Key.equal key (Hmap.Key.hide_type key'))
+      !store_ref
+  in
+  match Hmap.get_any_binding unique with Hmap.B (_, v) -> Obj.magic v
+
 let log_begin_call info f x =
-  log_ref := BeginCall info :: !log_ref;
+  let x_key = Hmap.Key.create () in
+  store_ref := Hmap.add x_key x !store_ref;
+  log_ref := BeginCall (info, Hmap.Key.hide_type x_key) :: !log_ref;
   f x
 
 let log_end_call info x =
-  log_ref := EndCall info :: !log_ref;
+  let x_key = Hmap.Key.create () in
+  store_ref := Hmap.add x_key x !store_ref;
+  log_ref := EndCall (info, Hmap.Key.hide_type x_key) :: !log_ref;
   x
 
-let log_variable_definition info x =
-  log_ref := VariableDefinition info :: !log_ref;
+let log_variable_definition (info : string list) (x : 'a) =
+  let x_key = Hmap.Key.create () in
+  store_ref := Hmap.add x_key x !store_ref;
+  log_ref := VariableDefinition (info, Hmap.Key.hide_type x_key) :: !log_ref;
   x
 
 let log_decision_taken pos x =

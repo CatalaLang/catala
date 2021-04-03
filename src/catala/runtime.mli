@@ -49,15 +49,21 @@ type source_position = {
   law_headings : string list;
 }
 
+type store_key
+
 type event =
-  | BeginCall of string list
-  | EndCall of string list
-  | VariableDefinition of string list
+  | BeginCall of string list * store_key
+  | EndCall of string list * store_key
+  | VariableDefinition of string list * store_key
   | DecisionTaken of source_position
 
 val reset_log : unit -> unit
 
 val retrieve_log : unit -> event list
+
+val retrieve_value : store_key -> 'a
+(** TODO: This is a cheap substitute for a deep embedding of the language values, which will be
+    necessary. See https://github.com/CatalaLang/catala/issues/89#issuecomment-799723775 *)
 
 val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
 

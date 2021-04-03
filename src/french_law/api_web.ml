@@ -79,6 +79,8 @@ class type log_event =
     method information : Js.js_string Js.t Js.js_array Js.t Js.prop
 
     method sourcePosition : source_position Js.t Js.optdef Js.prop
+
+    method loggedValue : Js.Unsafe.any Js.prop
   end
 
 let _ =
@@ -104,9 +106,17 @@ let _ =
                        Js.array
                          (Array.of_list
                             (match evt with
-                            | BeginCall info | EndCall info | VariableDefinition info ->
+                            | BeginCall (info, _) | EndCall (info, _) | VariableDefinition (info, _)
+                              ->
                                 List.map Js.string info
                             | DecisionTaken _ -> []))
+
+                     val mutable loggedValue =
+                       match evt with
+                       | BeginCall (_, key) | EndCall (_, key) | VariableDefinition (_, key) ->
+                           let v = retrieve_value key in
+                           Js.Unsafe.inject v
+                       | DecisionTaken _ -> Js.Unsafe.inject Js.undefined
 
                      val mutable sourcePosition =
                        match evt with
