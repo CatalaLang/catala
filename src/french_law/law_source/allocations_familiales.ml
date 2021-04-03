@@ -208,85 +208,71 @@ let smic (smic_in : smic_in) =
   let date_courante_ : unit -> date = smic_in.date_courante_in in
   let residence_ : unit -> collectivite = smic_in.residence_in in
   let brut_horaire_ : unit -> money = smic_in.brut_horaire_in in
-  let date_courante_ : date =
-    try
-      try date_courante_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
-  let residence_ : collectivite =
-    try
-      try residence_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let date_courante_ : date = try date_courante_ () with EmptyError -> raise NoValueProvided in
+  let residence_ : collectivite = try residence_ () with EmptyError -> raise NoValueProvided in
   let brut_horaire_ : money =
     try
       try brut_horaire_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2021 1 1
-                  && date_courante_ <=@ date_of_numbers 2021 12 31
-                  && residence_ = Mayotte ()
-                then money_of_cents_string "774"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2021 1 1
-                  && date_courante_ <=@ date_of_numbers 2021 12 31
-                  && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                    || residence_ = Guyane () || residence_ = Martinique ()
-                    || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                    || residence_ = SaintMartin ()
-                     || residence_ = SaintPierreEtMiquelon ())
-                then money_of_cents_string "1025"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2020 1 1
-                  && date_courante_ <=@ date_of_numbers 2020 12 31
-                  && residence_ = Mayotte ()
-                then money_of_cents_string "766"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2020 1 1
-                  && date_courante_ <=@ date_of_numbers 2020 12 31
-                  && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                    || residence_ = Guyane () || residence_ = Martinique ()
-                    || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                    || residence_ = SaintMartin ()
-                     || residence_ = SaintPierreEtMiquelon ())
-                then money_of_cents_string "1015"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2019 1 1
-                  && date_courante_ <=@ date_of_numbers 2019 12 31
-                  && residence_ = Mayotte ()
-                then money_of_cents_string "757"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2019 1 1
-                  && date_courante_ <=@ date_of_numbers 2019 12 31
-                  && (residence_ = Metropole () || residence_ = Guadeloupe ()
-                    || residence_ = Guyane () || residence_ = Martinique ()
-                    || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-                    || residence_ = SaintMartin ()
-                     || residence_ = SaintPierreEtMiquelon ())
-                then money_of_cents_string "1003"
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2021 1 1
+                && date_courante_ <=@ date_of_numbers 2021 12 31
+                && residence_ = Mayotte ()
+              then money_of_cents_string "774"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2021 1 1
+                && date_courante_ <=@ date_of_numbers 2021 12 31
+                && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                  || residence_ = Guyane () || residence_ = Martinique ()
+                  || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                  || residence_ = SaintMartin ()
+                   || residence_ = SaintPierreEtMiquelon ())
+              then money_of_cents_string "1025"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2020 1 1
+                && date_courante_ <=@ date_of_numbers 2020 12 31
+                && residence_ = Mayotte ()
+              then money_of_cents_string "766"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2020 1 1
+                && date_courante_ <=@ date_of_numbers 2020 12 31
+                && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                  || residence_ = Guyane () || residence_ = Martinique ()
+                  || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                  || residence_ = SaintMartin ()
+                   || residence_ = SaintPierreEtMiquelon ())
+              then money_of_cents_string "1015"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2019 1 1
+                && date_courante_ <=@ date_of_numbers 2019 12 31
+                && residence_ = Mayotte ()
+              then money_of_cents_string "757"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2019 1 1
+                && date_courante_ <=@ date_of_numbers 2019 12 31
+                && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                  || residence_ = Guyane () || residence_ = Martinique ()
+                  || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                  || residence_ = SaintMartin ()
+                   || residence_ = SaintPierreEtMiquelon ())
+              then money_of_cents_string "1003"
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   {
@@ -301,13 +287,7 @@ let allocation_familiales_avril2008
     allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_metropole_in
   in
   let age_minimum_alinea_1_l521_3_metropole_ : integer =
-    try
-      try age_minimum_alinea_1_l521_3_metropole_ ()
-      with EmptyError ->
-        if true then
-          try if true then integer_of_string "16" else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+    try try age_minimum_alinea_1_l521_3_metropole_ () with EmptyError -> integer_of_string "16"
     with EmptyError -> raise NoValueProvided
   in
   { age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_ }
@@ -315,37 +295,25 @@ let allocation_familiales_avril2008
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   let enfants_ : unit -> enfant array = enfant_le_plus_age_in.enfants_in in
   let le_plus_age_ : unit -> enfant = enfant_le_plus_age_in.le_plus_age_in in
-  let enfants_ : enfant array =
-    try
-      try enfants_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let enfants_ : enfant array = try enfants_ () with EmptyError -> raise NoValueProvided in
   let le_plus_age_ : enfant =
     try
       try le_plus_age_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              let predicate_ : _ = fun (potentiel_plus_age_ : _) -> potentiel_plus_age_.age in
-              Array.fold_left
-                (fun (acc_ : _) (item_ : _) ->
-                  if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
-                {
-                  identifiant = ~-!(integer_of_string "1");
-                  obligation_scolaire = Pendant ();
-                  remuneration_mensuelle = money_of_cents_string "0";
-                  date_de_naissance = date_of_numbers 1900 1 1;
-                  age = integer_of_string "0";
-                  prise_en_charge = EffectiveEtPermanente ();
-                  a_deja_ouvert_droit_aux_allocations_familiales = false;
-                }
-                enfants_
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        let predicate_ : _ = fun (potentiel_plus_age_ : _) -> potentiel_plus_age_.age in
+        Array.fold_left
+          (fun (acc_ : _) (item_ : _) ->
+            if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
+          {
+            identifiant = ~-!(integer_of_string "1");
+            obligation_scolaire = Pendant ();
+            remuneration_mensuelle = money_of_cents_string "0";
+            date_de_naissance = date_of_numbers 1900 1 1;
+            age = integer_of_string "0";
+            prise_en_charge = EffectiveEtPermanente ();
+            a_deja_ouvert_droit_aux_allocations_familiales = false;
+          }
+          enfants_
     with EmptyError -> raise NoValueProvided
   in
   { enfants_out = enfants_; le_plus_age_out = le_plus_age_ }
@@ -367,71 +335,39 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let residence_ : unit -> collectivite = prestations_familiales_in.residence_in in
   let base_mensuelle_ : unit -> money = prestations_familiales_in.base_mensuelle_in in
   let age_l512_3_2_ : integer =
-    try
-      try age_l512_3_2_ ()
-      with EmptyError ->
-        if true then
-          try if true then integer_of_string "20" else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+    try try age_l512_3_2_ () with EmptyError -> integer_of_string "20"
     with EmptyError -> raise NoValueProvided
   in
-  let date_courante_ : date =
-    try
-      try date_courante_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let date_courante_ : date = try date_courante_ () with EmptyError -> raise NoValueProvided in
   let prestation_courante_ : element_prestations_familiales =
-    try
-      try prestation_courante_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
+    try prestation_courante_ () with EmptyError -> raise NoValueProvided
   in
-  let residence_ : collectivite =
-    try
-      try residence_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let residence_ : collectivite = try residence_ () with EmptyError -> raise NoValueProvided in
   let base_mensuelle_ : money =
     try
       try base_mensuelle_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2020 4 1
-                  && date_courante_ <@ date_of_numbers 2021 4 1
-                then money_of_cents_string "41404"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  date_courante_ >=@ date_of_numbers 2019 4 1
-                  && date_courante_ <@ date_of_numbers 2020 4 1
-                then money_of_cents_string "41316"
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2020 4 1
+                && date_courante_ <@ date_of_numbers 2021 4 1
+              then money_of_cents_string "41404"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2019 4 1
+                && date_courante_ <@ date_of_numbers 2020 4 1
+              then money_of_cents_string "41316"
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
-  let smic_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    try if true then date_courante_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
-  let smic_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    try if true then residence_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
+  let smic_dot_date_courante_ : unit -> date = fun (_ : unit) -> date_courante_ in
+  let smic_dot_residence_ : unit -> collectivite = fun (_ : unit) -> residence_ in
   let result_ : smic_out =
     smic
       {
@@ -446,42 +382,34 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let regime_outre_mer_l751_1_ : bool =
     try
       try regime_outre_mer_l751_1_ ()
-      with EmptyError ->
-        if true then
-          try
-            if
-              residence_ = Guadeloupe () || residence_ = Guyane () || residence_ = Martinique ()
-              || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
-              || residence_ = SaintMartin ()
-            then true
-            else raise EmptyError
-          with EmptyError -> if true then false else raise EmptyError
-        else raise EmptyError
+      with EmptyError -> (
+        try
+          if
+            residence_ = Guadeloupe () || residence_ = Guyane () || residence_ = Martinique ()
+            || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+            || residence_ = SaintMartin ()
+          then true
+          else raise EmptyError
+        with EmptyError -> false)
     with EmptyError -> raise NoValueProvided
   in
   let plafond_l512_3_2_ : money =
     try
       try plafond_l512_3_2_ ()
-      with EmptyError ->
-        if true then
-          try
-            try
-              if regime_outre_mer_l751_1_ then
-                smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
-              else raise EmptyError
-            with EmptyError ->
-              if true then
-                smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
-              else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+      with EmptyError -> (
+        try
+          if regime_outre_mer_l751_1_ then
+            smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
+          else raise EmptyError
+        with EmptyError ->
+          smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169.")
     with EmptyError -> raise NoValueProvided
   in
   let conditions_hors_age_ : enfant -> bool =
     try
       try conditions_hors_age_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             try
               if
@@ -500,16 +428,15 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                    && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
               then true
               else raise EmptyError
-            with EmptyError -> if true then false else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+            with EmptyError -> false
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_ : enfant -> bool =
     try
       try droit_ouvert_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             handle_default
               [|
@@ -539,8 +466,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
               |]
               (fun (_ : _) -> true)
               (fun (_ : _) -> false)
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   {
@@ -650,52 +576,26 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let plafond__i_d521_3_ : unit -> money = allocations_familiales_in.plafond_I_d521_3_in in
   let plafond__i_i_d521_3_ : unit -> money = allocations_familiales_in.plafond_II_d521_3_in in
   let personne_charge_effective_permanente_est_parent_ : bool =
-    try
-      try personne_charge_effective_permanente_est_parent_ ()
-      with EmptyError ->
-        if true then if true then false else raise EmptyError else raise EmptyError
+    try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
     with EmptyError -> raise NoValueProvided
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
-    try
-      try personne_charge_effective_permanente_remplit_titre__i_ ()
-      with EmptyError ->
-        if true then if true then false else raise EmptyError else raise EmptyError
+    try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
     with EmptyError -> raise NoValueProvided
   in
   let ressources_menage_ : money =
-    try
-      try ressources_menage_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
+    try ressources_menage_ () with EmptyError -> raise NoValueProvided
   in
-  let residence_ : collectivite =
-    try
-      try residence_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
-  let date_courante_ : date =
-    try
-      try date_courante_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let residence_ : collectivite = try residence_ () with EmptyError -> raise NoValueProvided in
+  let date_courante_ : date = try date_courante_ () with EmptyError -> raise NoValueProvided in
   let enfants_a_charge_ : enfant array =
-    try
-      try enfants_a_charge_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
+    try enfants_a_charge_ () with EmptyError -> raise NoValueProvided
   in
   let prise_en_compte_ : enfant -> prise_en_compte =
     try
       try prise_en_compte_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             handle_default
               [|
@@ -752,15 +652,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
               |]
               (fun (_ : _) -> false)
               (fun (_ : _) -> raise EmptyError)
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let versement_ : enfant -> versement_allocations =
     try
       try versement_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             handle_default
               [|
@@ -817,40 +716,23 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
               |]
               (fun (_ : _) -> false)
               (fun (_ : _) -> raise EmptyError)
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let nombre_enfants_l521_1_ : integer =
-    try
-      try nombre_enfants_l521_1_ ()
-      with EmptyError ->
-        if true then
-          try if true then integer_of_string "3" else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+    try try nombre_enfants_l521_1_ () with EmptyError -> integer_of_string "3"
     with EmptyError -> raise NoValueProvided
   in
   let age_minimum_alinea_1_l521_3_outre_mer_ : enfant -> integer =
     try
       try age_minimum_alinea_1_l521_3_outre_mer_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
-          try
-            try if true then integer_of_string "11" else raise EmptyError
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+      with EmptyError -> (
+        fun (param_ : enfant) ->
+          try integer_of_string "11" with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let nombre_enfants_alinea_2_l521_3_ : integer =
-    try
-      try nombre_enfants_alinea_2_l521_3_ ()
-      with EmptyError ->
-        if true then
-          try if true then integer_of_string "3" else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+    try try nombre_enfants_alinea_2_l521_3_ () with EmptyError -> integer_of_string "3"
     with EmptyError -> raise NoValueProvided
   in
   let result_ : allocation_familiales_avril2008_out =
@@ -860,21 +742,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_ : integer =
     result_.age_minimum_alinea_1_l521_3_metropole_out
   in
-  let prestations_familiales_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    try if true then date_courante_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
+  let prestations_familiales_dot_date_courante_ : unit -> date = fun (_ : unit) -> date_courante_ in
   let prestations_familiales_dot_prestation_courante_ : unit -> element_prestations_familiales =
-   fun (_ : unit) ->
-    try if true then AllocationsFamiliales () else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
+   fun (_ : unit) -> AllocationsFamiliales ()
   in
-  let prestations_familiales_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    try if true then residence_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
+  let prestations_familiales_dot_residence_ : unit -> collectivite = fun (_ : unit) -> residence_ in
   let result_ : prestations_familiales_out =
     prestations_familiales
       {
@@ -905,9 +777,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let prestations_familiales_dot_residence_ : collectivite = result_.residence_out in
   let prestations_familiales_dot_base_mensuelle_ : money = result_.base_mensuelle_out in
   let enfant_le_plus_age_dot_enfants_ : unit -> enfant array =
-   fun (_ : unit) ->
-    try if true then enfants_a_charge_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
+   fun (_ : unit) -> enfants_a_charge_
   in
   let result_ : enfant_le_plus_age_out =
     enfant_le_plus_age
@@ -921,168 +791,141 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let age_minimum_alinea_1_l521_3_metropole_ : enfant -> integer =
     try
       try age_minimum_alinea_1_l521_3_metropole_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             try
-              try
-                if
-                  param_.date_de_naissance +@ duration_of_numbers 11 0 0
-                  <=@ date_of_numbers 2008 4 30
-                then version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_
-                else raise EmptyError
-              with EmptyError -> if true then integer_of_string "14" else raise EmptyError
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+              if
+                param_.date_de_naissance +@ duration_of_numbers 11 0 0 <=@ date_of_numbers 2008 4 30
+              then version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_
+              else raise EmptyError
+            with EmptyError -> integer_of_string "14"
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
     try
       try enfants_a_charge_droit_ouvert_prestation_familiale_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              array_filter
-                (fun (enfant_ : _) -> prestations_familiales_dot_droit_ouvert_ enfant_)
-                enfants_a_charge_
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        array_filter
+          (fun (enfant_ : _) -> prestations_familiales_dot_droit_ouvert_ enfant_)
+          enfants_a_charge_
     with EmptyError -> raise NoValueProvided
   in
   let est_enfant_le_plus_age_ : enfant -> bool =
     try
       try est_enfant_le_plus_age_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
-          try
-            try if true then enfant_le_plus_age_dot_le_plus_age_ = param_ else raise EmptyError
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+      with EmptyError -> (
+        fun (param_ : enfant) ->
+          try enfant_le_plus_age_dot_le_plus_age_ = param_
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let age_minimum_alinea_1_l521_3_ : enfant -> integer =
     try
       try age_minimum_alinea_1_l521_3_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             try
-              try
-                if prestations_familiales_dot_regime_outre_mer_l751_1_ then
-                  age_minimum_alinea_1_l521_3_outre_mer_ param_
-                else raise EmptyError
-              with EmptyError ->
-                if true then age_minimum_alinea_1_l521_3_metropole_ param_ else raise EmptyError
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+              if prestations_familiales_dot_regime_outre_mer_l751_1_ then
+                age_minimum_alinea_1_l521_3_outre_mer_ param_
+              else raise EmptyError
+            with EmptyError -> age_minimum_alinea_1_l521_3_metropole_ param_
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let plafond__i_i_d521_3_ : money =
     try
       try plafond__i_i_d521_3_ ()
       with EmptyError ->
-        if true then
-          try
-            handle_default
-              [|
-                (fun (_ : _) ->
-                  if
-                    date_courante_ >=@ date_of_numbers 2021 1 1
-                    && date_courante_ <=@ date_of_numbers 2021 12 31
-                  then
-                    money_of_cents_string "8155800"
-                    +$ money_of_cents_string "582700"
-                       *$ decimal_of_integer
-                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-                  else raise EmptyError);
-                (fun (_ : _) ->
-                  if
-                    date_courante_ >=@ date_of_numbers 2020 1 1
-                    && date_courante_ <=@ date_of_numbers 2020 12 31
-                  then
-                    money_of_cents_string "8083100"
-                    +$ money_of_cents_string "577500"
-                       *$ decimal_of_integer
-                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-                  else raise EmptyError);
-              |]
-              (fun (_ : _) -> true)
-              (fun (_ : _) ->
-                money_of_cents_string "7830000"
-                +$ money_of_cents_string "559500"
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2021 1 1
+                && date_courante_ <=@ date_of_numbers 2021 12 31
+              then
+                money_of_cents_string "8155800"
+                +$ money_of_cents_string "582700"
                    *$ decimal_of_integer
-                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2020 1 1
+                && date_courante_ <=@ date_of_numbers 2020 12 31
+              then
+                money_of_cents_string "8083100"
+                +$ money_of_cents_string "577500"
+                   *$ decimal_of_integer
+                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> true)
+          (fun (_ : _) ->
+            money_of_cents_string "7830000"
+            +$ money_of_cents_string "559500"
+               *$ decimal_of_integer
+                    (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
     with EmptyError -> raise NoValueProvided
   in
   let plafond__i_d521_3_ : money =
     try
       try plafond__i_d521_3_ ()
       with EmptyError ->
-        if true then
-          try
-            handle_default
-              [|
-                (fun (_ : _) ->
-                  if
-                    date_courante_ >=@ date_of_numbers 2021 1 1
-                    && date_courante_ <=@ date_of_numbers 2021 12 31
-                  then
-                    money_of_cents_string "5827900"
-                    +$ money_of_cents_string "582700"
-                       *$ decimal_of_integer
-                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-                  else raise EmptyError);
-                (fun (_ : _) ->
-                  if
-                    date_courante_ >=@ date_of_numbers 2020 1 1
-                    && date_courante_ <=@ date_of_numbers 2020 12 31
-                  then
-                    money_of_cents_string "5775900"
-                    +$ money_of_cents_string "577500"
-                       *$ decimal_of_integer
-                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-                  else raise EmptyError);
-              |]
-              (fun (_ : _) -> true)
-              (fun (_ : _) ->
-                money_of_cents_string "5595000"
-                +$ money_of_cents_string "559500"
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2021 1 1
+                && date_courante_ <=@ date_of_numbers 2021 12 31
+              then
+                money_of_cents_string "5827900"
+                +$ money_of_cents_string "582700"
                    *$ decimal_of_integer
-                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                date_courante_ >=@ date_of_numbers 2020 1 1
+                && date_courante_ <=@ date_of_numbers 2020 12 31
+              then
+                money_of_cents_string "5775900"
+                +$ money_of_cents_string "577500"
+                   *$ decimal_of_integer
+                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> true)
+          (fun (_ : _) ->
+            money_of_cents_string "5595000"
+            +$ money_of_cents_string "559500"
+               *$ decimal_of_integer
+                    (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
     with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_complement_ : bool =
     try
       try droit_ouvert_complement_ ()
-      with EmptyError ->
-        if true then
+      with EmptyError -> (
+        try
           try
-            try
-              if
-                prestations_familiales_dot_regime_outre_mer_l751_1_
-                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                   = integer_of_string "1"
-              then false
-              else raise EmptyError
-            with EmptyError -> if true then true else raise EmptyError
-          with EmptyError -> if true then false else raise EmptyError
-        else raise EmptyError
+            if
+              prestations_familiales_dot_regime_outre_mer_l751_1_
+              && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                 = integer_of_string "1"
+            then false
+            else raise EmptyError
+          with EmptyError -> true
+        with EmptyError -> false)
     with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_forfaitaire_ : enfant -> bool =
     try
       try droit_ouvert_forfaitaire_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             try
               try
@@ -1100,73 +943,58 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   && prestations_familiales_dot_conditions_hors_age_ param_
                 then true
                 else raise EmptyError
-            with EmptyError -> if true then false else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+            with EmptyError -> false
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let nombre_total_enfants_ : decimal =
     try
       try nombre_total_enfants_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              decimal_of_integer (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        decimal_of_integer (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
     with EmptyError -> raise NoValueProvided
   in
   let nombre_moyen_enfants_ : decimal =
     try
       try nombre_moyen_enfants_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              Array.fold_left
-                (fun (acc_ : decimal) (enfant_ : _) ->
-                  acc_
-                  +&
-                  match prise_en_compte_ enfant_ with
-                  | Complete _ -> decimal_of_string "1."
-                  | Partagee _ -> decimal_of_string "0.5"
-                  | Zero _ -> decimal_of_string "0.")
-                (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        Array.fold_left
+          (fun (acc_ : decimal) (enfant_ : _) ->
+            acc_
+            +&
+            match prise_en_compte_ enfant_ with
+            | Complete _ -> decimal_of_string "1."
+            | Partagee _ -> decimal_of_string "0.5"
+            | Zero _ -> decimal_of_string "0.")
+          (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_
     with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_base_ : bool =
     try
       try droit_ouvert_base_ ()
-      with EmptyError ->
-        if true then
+      with EmptyError -> (
+        try
           try
-            try
-              if
-                prestations_familiales_dot_regime_outre_mer_l751_1_
-                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                   >=! integer_of_string "1"
-              then true
-              else raise EmptyError
-            with EmptyError ->
-              if
-                array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                >=! integer_of_string "2"
-              then true
-              else raise EmptyError
-          with EmptyError -> if true then false else raise EmptyError
-        else raise EmptyError
+            if
+              prestations_familiales_dot_regime_outre_mer_l751_1_
+              && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                 >=! integer_of_string "1"
+            then true
+            else raise EmptyError
+          with EmptyError ->
+            if
+              array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+              >=! integer_of_string "2"
+            then true
+            else raise EmptyError
+        with EmptyError -> false)
     with EmptyError -> raise NoValueProvided
   in
   let droit_ouvert_majoration_ : enfant -> bool =
     try
       try droit_ouvert_majoration_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             try
               try
@@ -1182,250 +1010,232 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                   && param_.age >=! age_minimum_alinea_1_l521_3_ param_
                 then true
                 else raise EmptyError
-            with EmptyError -> if true then false else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+            with EmptyError -> false
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let complement_degressif_ : money -> money =
     try
       try complement_degressif_ ()
-      with EmptyError ->
-        if true then fun (param_ : money) ->
+      with EmptyError -> (
+        fun (param_ : money) ->
           try
-            try
-              handle_default
-                [|
-                  (fun (_ : _) ->
-                    if
-                      ressources_menage_ >$ plafond__i_i_d521_3_
-                      && ressources_menage_
-                         <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12.")
-                    then
-                      (plafond__i_i_d521_3_
-                      +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
-                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
-                    else raise EmptyError);
-                  (fun (_ : _) ->
-                    if
-                      ressources_menage_ >$ plafond__i_d521_3_
-                      && ressources_menage_
-                         <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12.")
-                    then
-                      (plafond__i_d521_3_
-                      +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
-                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
-                    else raise EmptyError);
-                |]
-                (fun (_ : _) -> true)
-                (fun (_ : _) -> money_of_cents_string "0")
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+            handle_default
+              [|
+                (fun (_ : _) ->
+                  if
+                    ressources_menage_ >$ plafond__i_i_d521_3_
+                    && ressources_menage_
+                       <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12.")
+                  then
+                    (plafond__i_i_d521_3_
+                    +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
+                    *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                  else raise EmptyError);
+                (fun (_ : _) ->
+                  if
+                    ressources_menage_ >$ plafond__i_d521_3_
+                    && ressources_menage_
+                       <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12.")
+                  then
+                    (plafond__i_d521_3_
+                    +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
+                    *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                  else raise EmptyError);
+              |]
+              (fun (_ : _) -> true)
+              (fun (_ : _) -> money_of_cents_string "0")
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
     try
       try montant_initial_base_troisieme_enfant_et_plus_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if ressources_menage_ >$ plafond__i_i_d521_3_ then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "3"
-                  then
-                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
-                    *$ decimal_of_integer
-                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         -! integer_of_string "2")
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-              (fun (_ : _) ->
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if ressources_menage_ >$ plafond__i_i_d521_3_ then
                 if
-                  ressources_menage_ >$ plafond__i_d521_3_
-                  && ressources_menage_ <=$ plafond__i_i_d521_3_
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "3"
                 then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "3"
-                  then
-                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
-                    *$ decimal_of_integer
-                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         -! integer_of_string "2")
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if ressources_menage_ <=$ plafond__i_d521_3_ then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "3"
-                  then
-                    prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
-                    *$ decimal_of_integer
-                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                         -! integer_of_string "2")
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
+                  *$ decimal_of_integer
+                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       -! integer_of_string "2")
+                else money_of_cents_string "0"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                ressources_menage_ >$ plafond__i_d521_3_
+                && ressources_menage_ <=$ plafond__i_i_d521_3_
+              then
+                if
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "3"
+                then
+                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
+                  *$ decimal_of_integer
+                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       -! integer_of_string "2")
+                else money_of_cents_string "0"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if ressources_menage_ <=$ plafond__i_d521_3_ then
+                if
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "3"
+                then
+                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
+                  *$ decimal_of_integer
+                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                       -! integer_of_string "2")
+                else money_of_cents_string "0"
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_deuxieme_enfant_ : money =
     try
       try montant_initial_base_deuxieme_enfant_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if ressources_menage_ >$ plafond__i_i_d521_3_ then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "2"
-                  then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-              (fun (_ : _) ->
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if ressources_menage_ >$ plafond__i_i_d521_3_ then
                 if
-                  ressources_menage_ >$ plafond__i_d521_3_
-                  && ressources_menage_ <=$ plafond__i_i_d521_3_
-                then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "2"
-                  then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if ressources_menage_ <=$ plafond__i_d521_3_ then
-                  if
-                    array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                    >=! integer_of_string "2"
-                  then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
-                  else money_of_cents_string "0"
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "2"
+                then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
+                else money_of_cents_string "0"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                ressources_menage_ >$ plafond__i_d521_3_
+                && ressources_menage_ <=$ plafond__i_i_d521_3_
+              then
+                if
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "2"
+                then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
+                else money_of_cents_string "0"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if ressources_menage_ <=$ plafond__i_d521_3_ then
+                if
+                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                  >=! integer_of_string "2"
+                then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
+                else money_of_cents_string "0"
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_premier_enfant_ : money =
     try
       try montant_initial_base_premier_enfant_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if
-                  ressources_menage_ >$ plafond__i_i_d521_3_
-                  && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     = integer_of_string "1"
-                then
-                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                  *$ decimal_of_string "0.25"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  ressources_menage_ >$ plafond__i_d521_3_
-                  && ressources_menage_ <=$ plafond__i_i_d521_3_
-                  && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     = integer_of_string "1"
-                then
-                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                  *$ decimal_of_string "0.5"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  ressources_menage_ <=$ plafond__i_d521_3_
-                  && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     = integer_of_string "1"
-                then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                  <> integer_of_string "1"
-                then money_of_cents_string "0"
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if
+                ressources_menage_ >$ plafond__i_i_d521_3_
+                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                   = integer_of_string "1"
+              then
+                prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+                *$ decimal_of_string "0.25"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                ressources_menage_ >$ plafond__i_d521_3_
+                && ressources_menage_ <=$ plafond__i_i_d521_3_
+                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                   = integer_of_string "1"
+              then
+                prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+                *$ decimal_of_string "0.5"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                ressources_menage_ <=$ plafond__i_d521_3_
+                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                   = integer_of_string "1"
+              then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                <> integer_of_string "1"
+              then money_of_cents_string "0"
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_forfaitaire_ : money =
     try
       try montant_verse_forfaitaire_ ()
       with EmptyError ->
-        if true then
-          handle_default
-            [|
-              (fun (_ : _) ->
-                if ressources_menage_ >$ plafond__i_i_d521_3_ then
-                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
-                  *$ decimal_of_integer
-                       (Array.fold_left
-                          (fun (acc_ : integer) (enfant_ : _) ->
-                            if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
-                            else acc_)
-                          (integer_of_string "0") enfants_a_charge_)
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if
-                  ressources_menage_ >$ plafond__i_d521_3_
-                  && ressources_menage_ <=$ plafond__i_i_d521_3_
-                then
-                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
-                  *$ decimal_of_integer
-                       (Array.fold_left
-                          (fun (acc_ : integer) (enfant_ : _) ->
-                            if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
-                            else acc_)
-                          (integer_of_string "0") enfants_a_charge_)
-                else raise EmptyError);
-              (fun (_ : _) ->
-                if ressources_menage_ <=$ plafond__i_d521_3_ then
-                  prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
-                  *$ decimal_of_integer
-                       (Array.fold_left
-                          (fun (acc_ : integer) (enfant_ : _) ->
-                            if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
-                            else acc_)
-                          (integer_of_string "0") enfants_a_charge_)
-                else raise EmptyError);
-            |]
-            (fun (_ : _) -> false)
-            (fun (_ : _) -> raise EmptyError)
-        else raise EmptyError
+        handle_default
+          [|
+            (fun (_ : _) ->
+              if ressources_menage_ >$ plafond__i_i_d521_3_ then
+                prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
+                *$ decimal_of_integer
+                     (Array.fold_left
+                        (fun (acc_ : integer) (enfant_ : _) ->
+                          if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
+                          else acc_)
+                        (integer_of_string "0") enfants_a_charge_)
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if
+                ressources_menage_ >$ plafond__i_d521_3_
+                && ressources_menage_ <=$ plafond__i_i_d521_3_
+              then
+                prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
+                *$ decimal_of_integer
+                     (Array.fold_left
+                        (fun (acc_ : integer) (enfant_ : _) ->
+                          if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
+                          else acc_)
+                        (integer_of_string "0") enfants_a_charge_)
+              else raise EmptyError);
+            (fun (_ : _) ->
+              if ressources_menage_ <=$ plafond__i_d521_3_ then
+                prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
+                *$ decimal_of_integer
+                     (Array.fold_left
+                        (fun (acc_ : integer) (enfant_ : _) ->
+                          if droit_ouvert_forfaitaire_ enfant_ then acc_ +! integer_of_string "1"
+                          else acc_)
+                        (integer_of_string "0") enfants_a_charge_)
+              else raise EmptyError);
+          |]
+          (fun (_ : _) -> false)
+          (fun (_ : _) -> raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   let rapport_enfants_total_moyen_ : decimal =
     try
       try rapport_enfants_total_moyen_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
-              else nombre_moyen_enfants_ /& nombre_total_enfants_
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
+        else nombre_moyen_enfants_ /& nombre_total_enfants_
     with EmptyError -> raise NoValueProvided
   in
   let montant_initial_majoration_ : enfant -> money =
     try
       try montant_initial_majoration_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
             handle_default
               [|
@@ -1462,151 +1272,98 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
               |]
               (fun (_ : _) -> false)
               (fun (_ : _) -> raise EmptyError)
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let montant_initial_base_ : money =
     try
       try montant_initial_base_ ()
-      with EmptyError ->
-        if true then
-          try
-            try
-              if
-                prestations_familiales_dot_regime_outre_mer_l751_1_
-                && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                   = integer_of_string "1"
-              then montant_initial_base_premier_enfant_
-              else raise EmptyError
-            with EmptyError ->
-              if true then
-                montant_initial_base_deuxieme_enfant_
-                +$ montant_initial_base_troisieme_enfant_et_plus_
-              else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+      with EmptyError -> (
+        try
+          if
+            prestations_familiales_dot_regime_outre_mer_l751_1_
+            && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+               = integer_of_string "1"
+          then montant_initial_base_premier_enfant_
+          else raise EmptyError
+        with EmptyError ->
+          montant_initial_base_deuxieme_enfant_ +$ montant_initial_base_troisieme_enfant_et_plus_)
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_complement_pour_forfaitaire_ : money =
     try
       try montant_verse_complement_pour_forfaitaire_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if droit_ouvert_complement_ then complement_degressif_ montant_verse_forfaitaire_
-              else money_of_cents_string "0"
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if droit_ouvert_complement_ then complement_degressif_ montant_verse_forfaitaire_
+        else money_of_cents_string "0"
     with EmptyError -> raise NoValueProvided
   in
   let montant_avec_garde_alternee_majoration_ : enfant -> money =
     try
       try montant_avec_garde_alternee_majoration_ ()
-      with EmptyError ->
-        if true then fun (param_ : enfant) ->
+      with EmptyError -> (
+        fun (param_ : enfant) ->
           try
-            try
-              if true then
-                montant_initial_majoration_ param_
-                *$
-                match prise_en_compte_ param_ with
-                | Complete _ -> decimal_of_string "1."
-                | Partagee _ -> decimal_of_string "0.5"
-                | Zero _ -> decimal_of_string "0."
-              else raise EmptyError
-            with EmptyError -> if false then raise EmptyError else raise EmptyError
-          with EmptyError -> raise NoValueProvided
-        else raise EmptyError
+            montant_initial_majoration_ param_
+            *$
+            match prise_en_compte_ param_ with
+            | Complete _ -> decimal_of_string "1."
+            | Partagee _ -> decimal_of_string "0.5"
+            | Zero _ -> decimal_of_string "0."
+          with EmptyError -> raise NoValueProvided)
     with EmptyError -> raise NoValueProvided
   in
   let montant_avec_garde_alternee_base_ : money =
     try
       try montant_avec_garde_alternee_base_ ()
-      with EmptyError ->
-        if true then
-          try
-            if true then montant_initial_base_ *$ rapport_enfants_total_moyen_ else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+      with EmptyError -> montant_initial_base_ *$ rapport_enfants_total_moyen_
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_majoration_ : money =
     try
       try montant_verse_majoration_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if droit_ouvert_base_ then
-                Array.fold_left
-                  (fun (acc_ : money) (enfant_ : _) ->
-                    acc_ +$ montant_avec_garde_alternee_majoration_ enfant_)
-                  (money_of_cents_string "0") enfants_a_charge_
-              else money_of_cents_string "0"
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if droit_ouvert_base_ then
+          Array.fold_left
+            (fun (acc_ : money) (enfant_ : _) ->
+              acc_ +$ montant_avec_garde_alternee_majoration_ enfant_)
+            (money_of_cents_string "0") enfants_a_charge_
+        else money_of_cents_string "0"
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_base_ : money =
     try
       try montant_verse_base_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if droit_ouvert_base_ then montant_avec_garde_alternee_base_
-              else money_of_cents_string "0"
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if droit_ouvert_base_ then montant_avec_garde_alternee_base_ else money_of_cents_string "0"
     with EmptyError -> raise NoValueProvided
   in
   let montant_base_complement_pour_base_et_majoration_ : money =
     try
       try montant_base_complement_pour_base_et_majoration_ ()
-      with EmptyError ->
-        if true then
-          try if true then montant_verse_base_ +$ montant_verse_majoration_ else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+      with EmptyError -> montant_verse_base_ +$ montant_verse_majoration_
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_complement_pour_base_et_majoration_ : money =
     try
       try montant_verse_complement_pour_base_et_majoration_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if droit_ouvert_complement_ then
-                complement_degressif_ montant_base_complement_pour_base_et_majoration_
-              else money_of_cents_string "0"
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if droit_ouvert_complement_ then
+          complement_degressif_ montant_base_complement_pour_base_et_majoration_
+        else money_of_cents_string "0"
     with EmptyError -> raise NoValueProvided
   in
   let montant_verse_ : money =
     try
       try montant_verse_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              if droit_ouvert_base_ then
-                montant_verse_base_
-                +$ (montant_verse_majoration_
-                   +$ (montant_verse_forfaitaire_
-                      +$ (montant_verse_complement_pour_base_et_majoration_
-                        +$ montant_verse_complement_pour_forfaitaire_)))
-              else money_of_cents_string "0"
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        if droit_ouvert_base_ then
+          montant_verse_base_
+          +$ (montant_verse_majoration_
+             +$ (montant_verse_forfaitaire_
+                +$ (montant_verse_complement_pour_base_et_majoration_
+                  +$ montant_verse_complement_pour_forfaitaire_)))
+        else money_of_cents_string "0"
     with EmptyError -> raise NoValueProvided
   in
   let (_ : unit) =
@@ -1683,112 +1440,64 @@ let interface_allocations_familiales
   let personne_charge_effective_permanente_remplit_titre__i_ : unit -> bool =
     interface_allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
   in
-  let date_courante_ : date =
-    try
-      try date_courante_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
-  let enfants_ : enfant_entree array =
-    try
-      try enfants_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let date_courante_ : date = try date_courante_ () with EmptyError -> raise NoValueProvided in
+  let enfants_ : enfant_entree array = try enfants_ () with EmptyError -> raise NoValueProvided in
   let ressources_menage_ : money =
-    try
-      try ressources_menage_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
+    try ressources_menage_ () with EmptyError -> raise NoValueProvided
   in
-  let residence_ : collectivite =
-    try
-      try residence_ ()
-      with EmptyError ->
-        if true then if false then raise EmptyError else raise EmptyError else raise EmptyError
-    with EmptyError -> raise NoValueProvided
-  in
+  let residence_ : collectivite = try residence_ () with EmptyError -> raise NoValueProvided in
   let personne_charge_effective_permanente_est_parent_ : bool =
-    try
-      try personne_charge_effective_permanente_est_parent_ ()
-      with EmptyError ->
-        if true then if true then false else raise EmptyError else raise EmptyError
+    try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
     with EmptyError -> raise NoValueProvided
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
-    try
-      try personne_charge_effective_permanente_remplit_titre__i_ ()
-      with EmptyError ->
-        if true then if true then false else raise EmptyError else raise EmptyError
+    try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
     with EmptyError -> raise NoValueProvided
   in
   let enfants_a_charge_ : enfant array =
     try
       try enfants_a_charge_ ()
       with EmptyError ->
-        if true then
-          try
-            if true then
-              Array.map
-                (fun (enfant_ : _) ->
-                  {
-                    identifiant = enfant_.d_identifiant;
-                    obligation_scolaire =
-                      (if
-                       enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0 >=@ date_courante_
-                      then Avant ()
-                      else if
-                      enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0 >=@ date_courante_
-                     then Pendant ()
-                      else Apres ());
-                    remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
-                    date_de_naissance = enfant_.d_date_de_naissance;
-                    age =
-                      year_of_date
-                        (date_of_numbers 0 1 1 +@ (date_courante_ -@ enfant_.d_date_de_naissance));
-                    prise_en_charge = enfant_.d_prise_en_charge;
-                    a_deja_ouvert_droit_aux_allocations_familiales =
-                      enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
-                  })
-                enfants_
-            else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+        Array.map
+          (fun (enfant_ : _) ->
+            {
+              identifiant = enfant_.d_identifiant;
+              obligation_scolaire =
+                (if enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0 >=@ date_courante_ then
+                 Avant ()
+                else if enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0 >=@ date_courante_
+               then Pendant ()
+                else Apres ());
+              remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
+              date_de_naissance = enfant_.d_date_de_naissance;
+              age =
+                year_of_date
+                  (date_of_numbers 0 1 1 +@ (date_courante_ -@ enfant_.d_date_de_naissance));
+              prise_en_charge = enfant_.d_prise_en_charge;
+              a_deja_ouvert_droit_aux_allocations_familiales =
+                enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
+            })
+          enfants_
     with EmptyError -> raise NoValueProvided
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : unit -> bool =
    fun (_ : unit) ->
     try if personne_charge_effective_permanente_est_parent_ then true else raise EmptyError
-    with EmptyError -> if true then false else raise EmptyError
+    with EmptyError -> false
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ :
       unit -> bool =
    fun (_ : unit) ->
     try if personne_charge_effective_permanente_remplit_titre__i_ then true else raise EmptyError
-    with EmptyError -> if true then false else raise EmptyError
+    with EmptyError -> false
   in
   let allocations_familiales_dot_ressources_menage_ : unit -> money =
-   fun (_ : unit) ->
-    try if true then ressources_menage_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
+   fun (_ : unit) -> ressources_menage_
   in
-  let allocations_familiales_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    try if true then residence_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
-  let allocations_familiales_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    try if true then date_courante_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
-  in
+  let allocations_familiales_dot_residence_ : unit -> collectivite = fun (_ : unit) -> residence_ in
+  let allocations_familiales_dot_date_courante_ : unit -> date = fun (_ : unit) -> date_courante_ in
   let allocations_familiales_dot_enfants_a_charge_ : unit -> enfant array =
-   fun (_ : unit) ->
-    try if true then enfants_a_charge_ else raise EmptyError
-    with EmptyError -> if false then raise EmptyError else raise EmptyError
+   fun (_ : unit) -> enfants_a_charge_
   in
   let result_ : allocations_familiales_out =
     allocations_familiales
@@ -1935,13 +1644,7 @@ let interface_allocations_familiales
   let allocations_familiales_dot_plafond__i_d521_3_ : money = result_.plafond_I_d521_3_out in
   let allocations_familiales_dot_plafond__i_i_d521_3_ : money = result_.plafond_II_d521_3_out in
   let montant_verse_ : money =
-    try
-      try montant_verse_ ()
-      with EmptyError ->
-        if true then
-          try if true then allocations_familiales_dot_montant_verse_ else raise EmptyError
-          with EmptyError -> if false then raise EmptyError else raise EmptyError
-        else raise EmptyError
+    try try montant_verse_ () with EmptyError -> allocations_familiales_dot_montant_verse_
     with EmptyError -> raise NoValueProvided
   in
   {

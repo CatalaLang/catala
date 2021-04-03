@@ -52,15 +52,15 @@ let rec peephole_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
       Bindlib.box_apply3
         (fun e1 e2 e3 ->
           match Pos.unmark e1 with
-          | ELit (LBool true) -> e2
-          | ELit (LBool false) -> e3
+          | ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]) -> e2
+          | ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) -> e3
           | _ -> (EIfThenElse (e1, e2, e3), Pos.get_position e))
         (peephole_expr e1) (peephole_expr e2) (peephole_expr e3)
   | ECatch (e1, exn, e2) ->
       Bindlib.box_apply2
         (fun e1 e2 ->
-          ( (match (Pos.unmark e1, exn) with
-            | ERaise exn2, exn1 when exn1 = exn2 -> Pos.unmark e2
+          ( (match Pos.unmark e2 with
+            | ERaise exn2 when exn2 = exn -> Pos.unmark e1
             | _ -> ECatch (e1, exn, e2)),
             Pos.get_position e ))
         (peephole_expr e1) (peephole_expr e2)

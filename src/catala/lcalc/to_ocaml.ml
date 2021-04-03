@@ -202,6 +202,7 @@ let format_exception (fmt : Format.formatter) (exc : except) : unit =
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
+  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
 
 let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
     =
@@ -296,9 +297,6 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop D.ErrorOnEmpty), _), [ arg1 ]) ->
-      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ EmptyError ->@ raise NoValueProvided@]"
-        format_with_parens arg1
   | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
@@ -313,7 +311,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
-      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise@ AssertionFailed@]"
+      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
         format_with_parens e'
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception exc
   | ECatch (e1, exc, e2) ->

@@ -195,8 +195,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         | Cli.OCaml ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
-            (* let prgm = if optimize then begin Cli.debug_print "Optimizing lambda calculus...";
-               Lcalc.Optimizations.optimize_program prgm end else prgm in *)
+            let prgm =
+              if optimize then begin
+                Cli.debug_print "Optimizing lambda calculus...";
+                Lcalc.Optimizations.optimize_program prgm
+              end
+              else prgm
+            in
             let source_file =
               match source_file with
               | FileName f -> f

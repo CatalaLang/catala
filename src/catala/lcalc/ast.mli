@@ -30,7 +30,7 @@ type lit =
   | LDate of Runtime.date
   | LDuration of Runtime.duration
 
-type except = ConflictError | EmptyError | Crash
+type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
