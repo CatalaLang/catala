@@ -83,6 +83,7 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
+  | ErrorOnEmpty of expr Pos.marked
 
 let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   match Pos.unmark e with
@@ -115,6 +116,7 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
         excepts
   | EArray es ->
       List.fold_left (fun acc e' -> LocationSet.union acc (locations_used e')) LocationSet.empty es
+  | ErrorOnEmpty e' -> locations_used e'
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked

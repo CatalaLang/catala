@@ -238,13 +238,6 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Unop A.GetMonth, [ ELit (LDate d) ] -> A.ELit (LInt Runtime.(month_number_of_date d))
     | A.Unop A.GetYear, [ ELit (LDate d) ] -> A.ELit (LInt Runtime.(year_of_date d))
     | A.Unop A.IntToRat, [ ELit (LInt i) ] -> A.ELit (LRat Runtime.(decimal_of_integer i))
-    | A.Unop A.ErrorOnEmpty, [ e' ] ->
-        if e' = A.ELit LEmptyError then
-          Errors.raise_spanned_error
-            "This variable evaluated to an empty term (no rule that defined it applied in this \
-             situation)"
-            (Pos.get_position op)
-        else e'
     | A.Unop (A.Log (entry, infos)), [ e' ] ->
         if !Cli.trace_flag then (
           match entry with
@@ -327,7 +320,10 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
              term was well-typed"
             (Pos.get_position e))
   | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
-  | ETuple (es, s) -> Pos.same_pos_as (A.ETuple (List.map (evaluate_expr ctx) es, s)) e
+  | ETuple (es, s) ->
+      let new_es = List.map (evaluate_expr ctx) es in
+      if List.exists is_empty_error new_es then Pos.same_pos_as (A.ELit LEmptyError) e
+      else Pos.same_pos_as (A.ETuple (new_es, s)) e
   | ETupleAccess (e1, n, s, _) -> (
       let e1 = evaluate_expr ctx e1 in
       match Pos.unmark e1 with
@@ -349,6 +345,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
                     happen if the term was well-type)"
                    (List.length es) n)
                 (Pos.get_position e1))
+      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
             (Format.asprintf
@@ -358,7 +355,8 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
             (Pos.get_position e1))
   | EInj (e1, n, en, ts) ->
       let e1' = evaluate_expr ctx e1 in
-      Pos.same_pos_as (A.EInj (e1', n, en, ts)) e
+      if is_empty_error e1' then Pos.same_pos_as (A.ELit LEmptyError) e
+      else Pos.same_pos_as (A.EInj (e1', n, en, ts)) e
   | EMatch (e1, es, e_name) -> (
       let e1 = evaluate_expr ctx e1 in
       match Pos.unmark e1 with
@@ -413,12 +411,24 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       match Pos.unmark (evaluate_expr ctx cond) with
       | ELit (LBool true) -> evaluate_expr ctx et
       | ELit (LBool false) -> evaluate_expr ctx ef
+      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
             "Expected a boolean literal for the result of this condition (should not happen if the \
              term was well-typed)"
             (Pos.get_position cond))
-  | EArray es -> Pos.same_pos_as (A.EArray (List.map (evaluate_expr ctx) es)) e
+  | EArray es ->
+      let new_es = List.map (evaluate_expr ctx) es in
+      if List.exists is_empty_error new_es then Pos.same_pos_as (A.ELit LEmptyError) e
+      else Pos.same_pos_as (A.EArray new_es) e
+  | ErrorOnEmpty e' ->
+      let e' = evaluate_expr ctx e' in
+      if Pos.unmark e' = A.ELit LEmptyError then
+        Errors.raise_spanned_error
+          "This variable evaluated to an empty term (no rule that defined it applied in this \
+           situation)"
+          (Pos.get_position e)
+      else e'
   | EAssert e' -> (
       match Pos.unmark (evaluate_expr ctx e') with
       | ELit (LBool true) -> Pos.same_pos_as (Ast.ELit LUnit) e'
@@ -431,6 +441,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
                 (Pos.get_position e')
           | _ ->
               Errors.raise_spanned_error (Format.asprintf "Assertion failed") (Pos.get_position e'))
+      | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
           Errors.raise_spanned_error
             "Expected a boolean literal for the result of this assertion (should not happen if the \

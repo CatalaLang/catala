@@ -116,6 +116,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
         Format.fprintf fmt "@[<hov 2>⟨%a@ |@ %a ⊢ %a⟩@]"
           (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
           excepts format_expr just format_expr cons
+  | ErrorOnEmpty e' -> Format.fprintf fmt "error_empty@ %a" format_with_parens e'
   | EArray es ->
       Format.fprintf fmt "[%a]"
         (Format.pp_print_list

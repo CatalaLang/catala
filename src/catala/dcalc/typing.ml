@@ -169,7 +169,6 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop (A.Minus KMoney) -> arr mt mt
   | A.Unop (A.Minus KDuration) -> arr dut dut
   | A.Unop A.Not -> arr bt bt
-  | A.Unop A.ErrorOnEmpty -> arr any any
   | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
   | A.Unop (A.Log _) -> arr any any
   | A.Unop A.Length -> arr array_any it
@@ -319,6 +318,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
       | EAssert e' ->
           typecheck_expr_top_down ctx env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
           UnionFind.make (Pos.same_pos_as (TLit TUnit) e')
+      | ErrorOnEmpty e' -> typecheck_expr_bottom_up ctx env e'
       | EArray es ->
           let cell_type = UnionFind.make (Pos.same_pos_as (TAny (Any.fresh ())) e) in
           List.iter
@@ -448,6 +448,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
     | EAssert e' ->
         typecheck_expr_top_down ctx env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
         unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e'))
+    | ErrorOnEmpty e' -> typecheck_expr_top_down ctx env e' tau
     | EArray es ->
         let cell_type = UnionFind.make (Pos.same_pos_as (TAny (Any.fresh ())) e) in
         List.iter

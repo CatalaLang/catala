@@ -87,7 +87,6 @@ type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
 type unop =
   | Not
   | Minus of op_kind
-  | ErrorOnEmpty
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
@@ -117,6 +116,7 @@ type expr =
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | ErrorOnEmpty of expr Pos.marked
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

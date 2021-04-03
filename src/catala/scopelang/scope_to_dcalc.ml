@@ -281,6 +281,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
     | EOp op -> Bindlib.box (Dcalc.Ast.EOp op)
+    | ErrorOnEmpty e' ->
+        Bindlib.box_apply (fun e' -> Dcalc.Ast.ErrorOnEmpty e') (translate_expr ctx e')
     | EArray es ->
         Bindlib.box_apply
           (fun es -> Dcalc.Ast.EArray es)
@@ -307,11 +309,7 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr =
         Bindlib.box_apply
-          (fun merged_expr ->
-            ( Dcalc.Ast.EApp
-                ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
-                  [ merged_expr ] ),
-              Pos.get_position merged_expr ))
+          (fun merged_expr -> (Dcalc.Ast.ErrorOnEmpty merged_expr, Pos.get_position a_name))
           (merge_defaults a_expr new_e)
       in
       let merged_expr =

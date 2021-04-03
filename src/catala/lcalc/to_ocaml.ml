@@ -71,7 +71,6 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   match Pos.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
-  | ErrorOnEmpty -> assert false (* should not happen *)
   | Log (entry, infos) ->
       Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
         (Format.pp_print_list

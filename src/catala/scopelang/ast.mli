@@ -80,6 +80,7 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
+  | ErrorOnEmpty of expr Pos.marked
 
 val locations_used : expr Pos.marked -> LocationSet.t
 

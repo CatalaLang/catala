@@ -140,7 +140,6 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     (match Pos.unmark op with
     | Minus _ -> "-"
     | Not -> "~"
-    | ErrorOnEmpty -> "error_empty"
     | Log (entry, infos) ->
         Format.asprintf "log@[<hov 2>[%a|%a]@]" format_log_entry entry
           (Format.pp_print_list
@@ -264,6 +263,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
              format_expr)
           exceptions format_punctuation "|" format_expr just format_punctuation "⊢" format_expr
           cons format_punctuation "⟩"
+  | ErrorOnEmpty e' -> Format.fprintf fmt "error_empty@ %a" format_with_parens e'
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"

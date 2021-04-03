@@ -47,6 +47,8 @@ let rec peephole_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
         (fun e1 args -> (EApp (e1, args), Pos.get_position e))
         (peephole_expr e1)
         (Bindlib.box_list (List.map peephole_expr args))
+  | ErrorOnEmpty e1 ->
+      Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, Pos.get_position e)) (peephole_expr e1)
   | EAssert e1 -> Bindlib.box_apply (fun e1 -> (EAssert e1, Pos.get_position e)) (peephole_expr e1)
   | EIfThenElse (e1, e2, e3) ->
       Bindlib.box_apply3

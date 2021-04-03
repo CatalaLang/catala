@@ -86,7 +86,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
         (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
   | D.EAssert e1 ->
       Bindlib.box_apply (fun e1 -> Pos.same_pos_as (A.EAssert e1) e) (translate_expr ctx e1)
-  | D.EApp ((D.EOp (D.Unop D.ErrorOnEmpty), _), [ arg ]) ->
+  | D.ErrorOnEmpty arg ->
       Bindlib.box_apply
         (fun arg ->
           Pos.same_pos_as
