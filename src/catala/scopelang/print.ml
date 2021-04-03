@@ -74,7 +74,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
              Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" Ast.EnumConstructor.format_t cons_name
                format_expr case_expr))
         (Ast.EnumConstructorMap.bindings cases)
-  | EApp ((EAbs (_, binder, taus), _), args) ->
+  | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
@@ -85,7 +85,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
              Format.fprintf fmt "@[@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n@]" format_var x
                format_typ tau format_expr arg))
         xs_tau_arg format_expr body
-  | EAbs (_, binder, taus) ->
+  | EAbs ((binder, _), taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       Format.fprintf fmt "@[<hov 2>λ@ %a@ →@ %a@]"

@@ -633,8 +633,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
           Bindlib.box_apply
             (fun binder ->
               ( Scopelang.Ast.EAbs
-                  ( pos,
-                    binder,
+                  ( (binder, pos),
                     [
                       (Scopelang.Ast.TLit t, Pos.get_position op');
                       (Scopelang.Ast.TAny, pos)
@@ -697,8 +696,7 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
         Bindlib.box_apply
           (fun binder ->
             ( Scopelang.Ast.EAbs
-                ( pos,
-                  binder,
+                ( (binder, pos),
                   [ (Scopelang.Ast.TLit Dcalc.Ast.TBool, pos); (Scopelang.Ast.TAny, pos) ] ),
               pos ))
           (Bindlib.bind_mvar [| acc_var; param_var |] f_body)
@@ -763,8 +761,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
             (fun e_binder case_body ->
               Pos.same_pos_as
                 (Scopelang.Ast.EAbs
-                   ( param_pos,
-                     e_binder,
+                   ( (e_binder, param_pos),
                      [
                        Scopelang.Ast.EnumConstructorMap.find c_uid
                          (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);

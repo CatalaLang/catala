@@ -275,7 +275,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
               typecheck_expr_top_down ctx env es' t_es')
             es;
           t_ret
-      | EAbs (pos_binder, binder, taus) ->
+      | EAbs ((binder, pos_binder), taus) ->
           let xs, body = Bindlib.unmbind binder in
           if Array.length xs = List.length taus then
             let xstaus =
@@ -404,7 +404,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
             typecheck_expr_top_down ctx env es' t_es')
           es;
         unify ctx tau t_ret
-    | EAbs (pos_binder, binder, t_args) ->
+    | EAbs ((binder, pos_binder), t_args) ->
         let xs, body = Bindlib.unmbind binder in
         if Array.length xs = List.length t_args then
           let xstaus =

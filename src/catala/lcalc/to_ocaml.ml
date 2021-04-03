@@ -194,7 +194,7 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with
-  | EApp ((EAbs (_, _, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
+  | EApp ((EAbs (_, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
   | _ -> true
 
 let format_exception (fmt : Format.formatter) (exc : except) : unit =
@@ -258,7 +258,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "%a %a" format_enum_cons_name c
                (fun fmt e ->
                  match Pos.unmark e with
-                 | EAbs (_, binder, _) ->
+                 | EAbs ((binder, _), _) ->
                      let xs, body = Bindlib.unmbind binder in
                      Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
                        (Format.pp_print_list
@@ -270,7 +270,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
                e))
         (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
-  | EApp ((EAbs (_, binder, taus), _), args) ->
+  | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
@@ -281,7 +281,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n" format_var x format_typ
                tau format_with_parens arg))
         xs_tau_arg format_with_parens body
-  | EAbs (_, binder, taus) ->
+  | EAbs ((binder, _), taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"

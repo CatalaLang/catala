@@ -310,7 +310,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       let e1 = evaluate_expr ctx e1 in
       let args = List.map (evaluate_expr ctx) args in
       match Pos.unmark e1 with
-      | EAbs (_, binder, _) ->
+      | EAbs ((binder, _), _) ->
           if Bindlib.mbinder_arity binder = List.length args then
             evaluate_expr ctx (Bindlib.msubst binder (Array.of_list (List.map Pos.unmark args)))
           else
@@ -442,7 +442,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
 let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
     (Uid.MarkedString.info * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr ctx e) with
-  | Ast.EAbs (_, _, [ (Ast.TTuple (taus, Some s_in), _) ]) -> (
+  | Ast.EAbs (_, [ (Ast.TTuple (taus, Some s_in), _) ]) -> (
       let application_term = List.map (fun _ -> empty_thunked_term) taus in
       let to_interpret =
         (Ast.EApp (e, [ (Ast.ETuple (application_term, Some s_in), Pos.no_pos) ]), Pos.no_pos)

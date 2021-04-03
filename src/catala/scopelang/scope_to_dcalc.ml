@@ -235,7 +235,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           | _ -> new_e
         in
         Bindlib.box_apply Pos.unmark new_e
-    | EAbs (pos_binder, binder, typ) ->
+    | EAbs ((binder, pos_binder), typ) ->
         let xs, body = Bindlib.unmbind binder in
         let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, Pos.no_pos)) xs in
         let both_xs = Array.map2 (fun x new_x -> (x, new_x)) xs new_xs in
@@ -252,7 +252,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         let binder = Bindlib.bind_mvar new_xs body in
         Bindlib.box_apply
-          (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
+          (fun b -> Dcalc.Ast.EAbs ((b, pos_binder), List.map (translate_typ ctx) typ))
           binder
     | EDefault (excepts, just, cons) ->
         let just = tag_with_log_entry (translate_expr ctx just) Dcalc.Ast.PosRecordIfTrueBool [] in

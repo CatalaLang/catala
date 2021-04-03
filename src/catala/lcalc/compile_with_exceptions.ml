@@ -91,7 +91,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
         (fun e1 args -> Pos.same_pos_as (A.EApp (e1, args)) e)
         (translate_expr ctx e1)
         (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | D.EAbs (pos_binder, binder, ts) ->
+  | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
         Array.fold_right
@@ -105,7 +105,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let new_body = translate_expr ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
       Bindlib.box_apply
-        (fun new_binder -> Pos.same_pos_as (A.EAbs (pos_binder, new_binder, ts)) e)
+        (fun new_binder -> Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
         new_binder
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
