@@ -113,8 +113,7 @@ let _ =
 
                      val mutable loggedValue =
                        match evt with
-                       | BeginCall (_, key) | EndCall (_, key) | VariableDefinition (_, key) ->
-                           let v = retrieve_value key in
+                       | BeginCall (_, v) | EndCall (_, v) | VariableDefinition (_, v) ->
                            Js.Unsafe.inject v
                        | DecisionTaken _ -> Js.Unsafe.inject Js.undefined
 

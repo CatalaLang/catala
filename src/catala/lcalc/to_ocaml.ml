@@ -309,11 +309,11 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (op, Pos.no_pos) format_with_parens arg2
   | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [ f ]), _), [ arg ])
     when !Cli.trace_flag ->
-      Format.fprintf fmt "(log_begin_call@ %a@ %a@ %a)" format_uid_list info format_with_parens f
-        format_with_parens arg
+      Format.fprintf fmt "(log_begin_call@ %a@ %a@ unembeddable@ %a)" format_uid_list info
+        format_with_parens f format_with_parens arg
   | EApp ((EOp (Unop (D.Log (D.VarDef, info))), _), [ arg1 ]) when !Cli.trace_flag ->
-      Format.fprintf fmt "(log_variable_definition@ %a@ %a)" format_uid_list info format_with_parens
-        arg1
+      Format.fprintf fmt "(log_variable_definition@ %a@ unembeddable@ %a)" format_uid_list info
+        format_with_parens arg1
   | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ]) when !Cli.trace_flag ->
       Format.fprintf fmt
         "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
@@ -322,7 +322,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
         format_with_parens arg1
   | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [ arg1 ]) when !Cli.trace_flag ->
-      Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info format_with_parens arg1
+      Format.fprintf fmt "(log_end_call@ %a@ unembeddable@ %a)" format_uid_list info
+        format_with_parens arg1
   | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1

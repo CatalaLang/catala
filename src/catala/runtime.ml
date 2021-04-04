@@ -34,6 +34,18 @@ exception UncomparableDurations
 
 exception ImpossibleDate
 
+type runtime_value =
+  | Money of money
+  | Integer of integer
+  | Decimal of decimal
+  | Date of date
+  | Duration of duration
+  | Enum of string list * runtime_value
+  | Struct of string list * (string * runtime_value) list
+  | Unembeddable
+
+let unembeddable _ = Unembeddable
+
 type source_position = {
   filename : string;
   start_line : int;
@@ -43,54 +55,28 @@ type source_position = {
   law_headings : string list;
 }
 
-type store_key = Hmap.Key.t
-
 type event =
-  | BeginCall of string list * store_key
-  | EndCall of string list * store_key
-  | VariableDefinition of string list * store_key
+  | BeginCall of string list * runtime_value
+  | EndCall of string list * runtime_value
+  | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
 
 let log_ref : event list ref = ref []
 
-let store_ref : Hmap.t ref = ref Hmap.empty
+let reset_log () = log_ref := []
 
-let reset_log () =
-  log_ref := [];
-  store_ref := Hmap.empty
+let retrieve_log () = !log_ref
 
-let retrieve_log () = List.rev !log_ref
-
-(* This function is where we have to punch trough the OCaml type system. Indeed, this value store is
-   really a cheap version of an embedding and de-embedding system where values are annotated by
-   their types. However, since this logging is meant to be accessed through Javascript where we have
-   access to type tagging, this is fine? *)
-let retrieve_value : 'a. store_key -> 'a =
- fun key ->
-  let unique =
-    Hmap.filter
-      (fun binding ->
-        match binding with Hmap.B (key', _) -> Hmap.Key.equal key (Hmap.Key.hide_type key'))
-      !store_ref
-  in
-  match Hmap.get_any_binding unique with Hmap.B (_, v) -> Obj.magic v
-
-let log_begin_call info f x =
-  let x_key = Hmap.Key.create () in
-  store_ref := Hmap.add x_key x !store_ref;
-  log_ref := BeginCall (info, Hmap.Key.hide_type x_key) :: !log_ref;
+let log_begin_call info f _embed x =
+  log_ref := BeginCall (info, Unembeddable) :: !log_ref;
   f x
 
-let log_end_call info x =
-  let x_key = Hmap.Key.create () in
-  store_ref := Hmap.add x_key x !store_ref;
-  log_ref := EndCall (info, Hmap.Key.hide_type x_key) :: !log_ref;
+let log_end_call info _embed x =
+  log_ref := EndCall (info, Unembeddable) :: !log_ref;
   x
 
-let log_variable_definition (info : string list) (x : 'a) =
-  let x_key = Hmap.Key.create () in
-  store_ref := Hmap.add x_key x !store_ref;
-  log_ref := VariableDefinition (info, Hmap.Key.hide_type x_key) :: !log_ref;
+let log_variable_definition (info : string list) _embed (x : 'a) =
+  log_ref := VariableDefinition (info, Unembeddable) :: !log_ref;
   x
 
 let log_decision_taken pos x =

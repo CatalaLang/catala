@@ -38,6 +38,20 @@ exception ImpossibleDate
 
 exception NoValueProvided
 
+(** {1 Value Embedding} *)
+
+type runtime_value =
+  | Money of money
+  | Integer of integer
+  | Decimal of decimal
+  | Date of date
+  | Duration of duration
+  | Enum of string list * runtime_value
+  | Struct of string list * (string * runtime_value) list
+  | Unembeddable
+
+val unembeddable : 'a -> runtime_value
+
 (** {1 Logging} *)
 
 type source_position = {
@@ -49,27 +63,21 @@ type source_position = {
   law_headings : string list;
 }
 
-type store_key
-
 type event =
-  | BeginCall of string list * store_key
-  | EndCall of string list * store_key
-  | VariableDefinition of string list * store_key
+  | BeginCall of string list * runtime_value
+  | EndCall of string list * runtime_value
+  | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
 
 val reset_log : unit -> unit
 
 val retrieve_log : unit -> event list
 
-val retrieve_value : store_key -> 'a
-(** TODO: This is a cheap substitute for a deep embedding of the language values, which will be
-    necessary. See https://github.com/CatalaLang/catala/issues/89#issuecomment-799723775 *)
+val log_begin_call : string list -> ('a -> 'b) -> ('a -> runtime_value) -> 'a -> 'b
 
-val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
+val log_end_call : string list -> ('a -> runtime_value) -> 'a -> 'a
 
-val log_end_call : string list -> 'a -> 'a
-
-val log_variable_definition : string list -> 'a -> 'a
+val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a
 
 val log_decision_taken : source_position -> bool -> bool
 

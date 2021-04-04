@@ -18,7 +18,7 @@ dependencies-ocaml:
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
 		re obelisk unionfind bindlib zarith.1.11 zarith_stubs_js.v0.14.0 ocamlgraph \
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors benchmark hmap
+		visitors benchmark
 
 init-submodules:
 	git submodule update --init

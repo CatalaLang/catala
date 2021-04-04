@@ -7,7 +7,7 @@
 (library
  (name runtime)
  (public_name catala.runtime)
- (libraries calendar zarith zarith_stubs_js hmap)
+ (libraries calendar zarith zarith_stubs_js)
  (modules runtime))
 
 (executable
