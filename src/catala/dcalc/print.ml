@@ -129,7 +129,7 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
-  | VarDef -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
+  | VarDef _ -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
   | BeginCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ ")
   | EndCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← ")
   | PosRecordIfTrueBool ->

@@ -41,6 +41,8 @@ exception NoValueProvided
 (** {1 Value Embedding} *)
 
 type runtime_value =
+  | Unit
+  | Bool of bool
   | Money of money
   | Integer of integer
   | Decimal of decimal
@@ -51,6 +53,20 @@ type runtime_value =
   | Unembeddable
 
 val unembeddable : 'a -> runtime_value
+
+val embed_unit : unit -> runtime_value
+
+val embed_bool : bool -> runtime_value
+
+val embed_money : money -> runtime_value
+
+val embed_integer : integer -> runtime_value
+
+val embed_decimal : decimal -> runtime_value
+
+val embed_date : date -> runtime_value
+
+val embed_duration : duration -> runtime_value
 
 (** {1 Logging} *)
 
@@ -64,8 +80,8 @@ type source_position = {
 }
 
 type event =
-  | BeginCall of string list * runtime_value
-  | EndCall of string list * runtime_value
+  | BeginCall of string list
+  | EndCall of string list
   | VariableDefinition of string list * runtime_value
   | DecisionTaken of source_position
 
@@ -73,9 +89,9 @@ val reset_log : unit -> unit
 
 val retrieve_log : unit -> event list
 
-val log_begin_call : string list -> ('a -> 'b) -> ('a -> runtime_value) -> 'a -> 'b
+val log_begin_call : string list -> ('a -> 'b) -> 'a -> 'b
 
-val log_end_call : string list -> ('a -> runtime_value) -> 'a -> 'a
+val log_end_call : string list -> 'a -> 'a
 
 val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a
 

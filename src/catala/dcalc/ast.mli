@@ -82,7 +82,13 @@ type binop =
   | Map
   | Filter
 
-type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
+type log_entry =
+  | VarDef of typ
+      (** During code generation, we need to know the type of the variable being logged for
+          embedding *)
+  | BeginCall
+  | EndCall
+  | PosRecordIfTrueBool
 
 type unop =
   | Not

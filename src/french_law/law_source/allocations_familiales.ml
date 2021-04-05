@@ -211,7 +211,7 @@ let smic (smic_in : smic_in) =
   let residence_ : unit -> collectivite = smic_in.residence_in in
   let brut_horaire_ : unit -> money = smic_in.brut_horaire_in in
   let date_courante_ : date =
-    log_variable_definition [ "Smic"; "date_courante" ] unembeddable
+    log_variable_definition [ "Smic"; "date_courante" ] embed_date
       (try date_courante_ () with EmptyError -> raise NoValueProvided)
   in
   let residence_ : collectivite =
@@ -219,7 +219,7 @@ let smic (smic_in : smic_in) =
       (try residence_ () with EmptyError -> raise NoValueProvided)
   in
   let brut_horaire_ : money =
-    log_variable_definition [ "Smic"; "brut_horaire" ] unembeddable
+    log_variable_definition [ "Smic"; "brut_horaire" ] embed_money
       (try
          try brut_horaire_ ()
          with EmptyError ->
@@ -398,7 +398,7 @@ let allocation_familiales_avril2008
   let age_minimum_alinea_1_l521_3_metropole_ : integer =
     log_variable_definition
       [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3_métropole" ]
-      unembeddable
+      embed_integer
       (try try age_minimum_alinea_1_l521_3_metropole_ () with EmptyError -> integer_of_string "16"
        with EmptyError -> raise NoValueProvided)
   in
@@ -457,14 +457,14 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let age_l512_3_2_ : integer =
     log_variable_definition
       [ "PrestationsFamiliales"; "âge_l512_3_2" ]
-      unembeddable
+      embed_integer
       (try try age_l512_3_2_ () with EmptyError -> integer_of_string "20"
        with EmptyError -> raise NoValueProvided)
   in
   let date_courante_ : date =
     log_variable_definition
       [ "PrestationsFamiliales"; "date_courante" ]
-      unembeddable
+      embed_date
       (try date_courante_ () with EmptyError -> raise NoValueProvided)
   in
   let prestation_courante_ : element_prestations_familiales =
@@ -482,7 +482,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let base_mensuelle_ : money =
     log_variable_definition
       [ "PrestationsFamiliales"; "base_mensuelle" ]
-      unembeddable
+      embed_money
       (try
          try base_mensuelle_ ()
          with EmptyError ->
@@ -554,7 +554,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
    fun (_ : unit) ->
     log_variable_definition
       [ "PrestationsFamiliales"; "smic.date_courante" ]
-      unembeddable date_courante_
+      embed_date date_courante_
   in
   let smic_dot_residence_ : unit -> collectivite =
    fun (_ : unit) ->
@@ -563,10 +563,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let result_ : smic_out =
     log_end_call
       [ "PrestationsFamiliales"; "smic"; "Smic" ]
-      unembeddable
       (log_begin_call
          [ "PrestationsFamiliales"; "smic"; "Smic" ]
-         smic unembeddable
+         smic
          {
            date_courante_in = smic_dot_date_courante_;
            residence_in = smic_dot_residence_;
@@ -579,7 +578,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let regime_outre_mer_l751_1_ : bool =
     log_variable_definition
       [ "PrestationsFamiliales"; "régime_outre_mer_l751_1" ]
-      unembeddable
+      embed_bool
       (try
          try regime_outre_mer_l751_1_ ()
          with EmptyError -> (
@@ -614,7 +613,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   let plafond_l512_3_2_ : money =
     log_variable_definition
       [ "PrestationsFamiliales"; "plafond_l512_3_2" ]
-      unembeddable
+      embed_money
       (try
          try plafond_l512_3_2_ ()
          with EmptyError -> (
@@ -887,21 +886,21 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let personne_charge_effective_permanente_est_parent_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "personne_charge_effective_permanente_est_parent" ]
-      unembeddable
+      embed_bool
       (try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
        with EmptyError -> raise NoValueProvided)
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "personne_charge_effective_permanente_remplit_titre_I" ]
-      unembeddable
+      embed_bool
       (try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
        with EmptyError -> raise NoValueProvided)
   in
   let ressources_menage_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "ressources_ménage" ]
-      unembeddable
+      embed_money
       (try ressources_menage_ () with EmptyError -> raise NoValueProvided)
   in
   let residence_ : collectivite =
@@ -913,7 +912,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let date_courante_ : date =
     log_variable_definition
       [ "AllocationsFamiliales"; "date_courante" ]
-      unembeddable
+      embed_date
       (try date_courante_ () with EmptyError -> raise NoValueProvided)
   in
   let enfants_a_charge_ : enfant array =
@@ -1249,7 +1248,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let nombre_enfants_l521_1_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_l521_1" ]
-      unembeddable
+      embed_integer
       (try try nombre_enfants_l521_1_ () with EmptyError -> integer_of_string "3"
        with EmptyError -> raise NoValueProvided)
   in
@@ -1267,17 +1266,16 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let nombre_enfants_alinea_2_l521_3_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3" ]
-      unembeddable
+      embed_integer
       (try try nombre_enfants_alinea_2_l521_3_ () with EmptyError -> integer_of_string "3"
        with EmptyError -> raise NoValueProvided)
   in
   let result_ : allocation_familiales_avril2008_out =
     log_end_call
       [ "AllocationsFamiliales"; "version_avril_2008"; "AllocationFamilialesAvril2008" ]
-      unembeddable
       (log_begin_call
          [ "AllocationsFamiliales"; "version_avril_2008"; "AllocationFamilialesAvril2008" ]
-         allocation_familiales_avril2008 unembeddable
+         allocation_familiales_avril2008
          { age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError) })
   in
   let version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_ : integer =
@@ -1287,7 +1285,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
    fun (_ : unit) ->
     log_variable_definition
       [ "AllocationsFamiliales"; "prestations_familiales.date_courante" ]
-      unembeddable date_courante_
+      embed_date date_courante_
   in
   let prestations_familiales_dot_prestation_courante_ : unit -> element_prestations_familiales =
    fun (_ : unit) ->
@@ -1304,10 +1302,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let result_ : prestations_familiales_out =
     log_end_call
       [ "AllocationsFamiliales"; "prestations_familiales"; "PrestationsFamiliales" ]
-      unembeddable
       (log_begin_call
          [ "AllocationsFamiliales"; "prestations_familiales"; "PrestationsFamiliales" ]
-         prestations_familiales unembeddable
+         prestations_familiales
          {
            droit_ouvert_in = (fun (_ : unit) -> raise EmptyError);
            conditions_hors_age_in = (fun (_ : unit) -> raise EmptyError);
@@ -1344,10 +1341,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let result_ : enfant_le_plus_age_out =
     log_end_call
       [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
-      unembeddable
       (log_begin_call
          [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
-         enfant_le_plus_age unembeddable
+         enfant_le_plus_age
          {
            enfants_in = enfant_le_plus_age_dot_enfants_;
            le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
@@ -1402,13 +1398,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              (fun (enfant_ : _) ->
                log_end_call
                  [ "PrestationsFamiliales"; "droit_ouvert" ]
-                 unembeddable
                  (log_variable_definition
                     [ "PrestationsFamiliales"; "droit_ouvert"; "output" ]
                     unembeddable
                     (log_begin_call
                        [ "PrestationsFamiliales"; "droit_ouvert" ]
-                       prestations_familiales_dot_droit_ouvert_ unembeddable
+                       prestations_familiales_dot_droit_ouvert_
                        (log_variable_definition
                           [ "PrestationsFamiliales"; "droit_ouvert"; "input" ]
                           unembeddable enfant_))))
@@ -1458,7 +1453,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    log_end_call
                      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_outre_mer" ]
-                     unembeddable
                      (log_variable_definition
                         [
                           "AllocationsFamiliales";
@@ -1468,7 +1462,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                         unembeddable
                         (log_begin_call
                            [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_outre_mer" ]
-                           age_minimum_alinea_1_l521_3_outre_mer_ unembeddable
+                           age_minimum_alinea_1_l521_3_outre_mer_
                            (log_variable_definition
                               [
                                 "AllocationsFamiliales";
@@ -1480,7 +1474,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                with EmptyError ->
                  log_end_call
                    [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_métropole" ]
-                   unembeddable
                    (log_variable_definition
                       [
                         "AllocationsFamiliales";
@@ -1490,7 +1483,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                       unembeddable
                       (log_begin_call
                          [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_métropole" ]
-                         age_minimum_alinea_1_l521_3_metropole_ unembeddable
+                         age_minimum_alinea_1_l521_3_metropole_
                          (log_variable_definition
                             [
                               "AllocationsFamiliales";
@@ -1504,7 +1497,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let plafond__i_i_d521_3_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "plafond_II_d521_3" ]
-      unembeddable
+      embed_money
       (try
          try plafond__i_i_d521_3_ ()
          with EmptyError ->
@@ -1596,7 +1589,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let plafond__i_d521_3_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "plafond_I_d521_3" ]
-      unembeddable
+      embed_money
       (try
          try plafond__i_d521_3_ ()
          with EmptyError ->
@@ -1688,7 +1681,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let droit_ouvert_complement_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_complément" ]
-      unembeddable
+      embed_bool
       (try
          try droit_ouvert_complement_ ()
          with EmptyError -> (
@@ -1782,13 +1775,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        && param_.a_deja_ouvert_droit_aux_allocations_familiales
                        && log_end_call
                             [ "PrestationsFamiliales"; "conditions_hors_âge" ]
-                            unembeddable
                             (log_variable_definition
                                [ "PrestationsFamiliales"; "conditions_hors_âge"; "output" ]
                                unembeddable
                                (log_begin_call
                                   [ "PrestationsFamiliales"; "conditions_hors_âge" ]
-                                  prestations_familiales_dot_conditions_hors_age_ unembeddable
+                                  prestations_familiales_dot_conditions_hors_age_
                                   (log_variable_definition
                                      [ "PrestationsFamiliales"; "conditions_hors_âge"; "input" ]
                                      unembeddable param_))))
@@ -1801,7 +1793,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let nombre_total_enfants_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_total_enfants" ]
-      unembeddable
+      embed_decimal
       (try
          try nombre_total_enfants_ ()
          with EmptyError ->
@@ -1811,7 +1803,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let nombre_moyen_enfants_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_moyen_enfants" ]
-      unembeddable
+      embed_decimal
       (try
          try nombre_moyen_enfants_ ()
          with EmptyError ->
@@ -1822,13 +1814,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                match
                  log_end_call
                    [ "AllocationsFamiliales"; "prise_en_compte" ]
-                   unembeddable
                    (log_variable_definition
                       [ "AllocationsFamiliales"; "prise_en_compte"; "output" ]
                       unembeddable
                       (log_begin_call
                          [ "AllocationsFamiliales"; "prise_en_compte" ]
-                         prise_en_compte_ unembeddable
+                         prise_en_compte_
                          (log_variable_definition
                             [ "AllocationsFamiliales"; "prise_en_compte"; "input" ]
                             unembeddable enfant_)))
@@ -1842,7 +1833,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let droit_ouvert_base_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_base" ]
-      unembeddable
+      embed_bool
       (try
          try droit_ouvert_base_ ()
          with EmptyError -> (
@@ -1932,7 +1923,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        && param_.age
                           >=! log_end_call
                                 [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                unembeddable
                                 (log_variable_definition
                                    [
                                      "AllocationsFamiliales";
@@ -1942,7 +1932,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                    unembeddable
                                    (log_begin_call
                                       [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                      age_minimum_alinea_1_l521_3_ unembeddable
+                                      age_minimum_alinea_1_l521_3_
                                       (log_variable_definition
                                          [
                                            "AllocationsFamiliales";
@@ -1974,13 +1964,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        ((not
                            (log_end_call
                               [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé" ]
-                              unembeddable
                               (log_variable_definition
                                  [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé"; "output" ]
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé" ]
-                                    est_enfant_le_plus_age_ unembeddable
+                                    est_enfant_le_plus_age_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales";
@@ -1991,7 +1980,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        && param_.age
                           >=! log_end_call
                                 [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                unembeddable
                                 (log_variable_definition
                                    [
                                      "AllocationsFamiliales";
@@ -2001,7 +1989,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                    unembeddable
                                    (log_begin_call
                                       [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                      age_minimum_alinea_1_l521_3_ unembeddable
+                                      age_minimum_alinea_1_l521_3_
                                       (log_variable_definition
                                          [
                                            "AllocationsFamiliales";
@@ -2104,7 +2092,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_troisième_enfant_et_plus" ]
-      unembeddable
+      embed_money
       (try
          try montant_initial_base_troisieme_enfant_et_plus_ ()
          with EmptyError ->
@@ -2219,7 +2207,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_initial_base_deuxieme_enfant_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_deuxième_enfant" ]
-      unembeddable
+      embed_money
       (try
          try montant_initial_base_deuxieme_enfant_ ()
          with EmptyError ->
@@ -2322,7 +2310,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_initial_base_premier_enfant_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant" ]
-      unembeddable
+      embed_money
       (try
          try montant_initial_base_premier_enfant_ ()
          with EmptyError ->
@@ -2442,7 +2430,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_forfaitaire_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_forfaitaire" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_forfaitaire_ ()
          with EmptyError ->
@@ -2475,7 +2463,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              if
                                log_end_call
                                  [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 unembeddable
                                  (log_variable_definition
                                     [
                                       "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
@@ -2483,7 +2470,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                     unembeddable
                                     (log_begin_call
                                        [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_ unembeddable
+                                       droit_ouvert_forfaitaire_
                                        (log_variable_definition
                                           [
                                             "AllocationsFamiliales";
@@ -2523,7 +2510,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              if
                                log_end_call
                                  [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 unembeddable
                                  (log_variable_definition
                                     [
                                       "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
@@ -2531,7 +2517,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                     unembeddable
                                     (log_begin_call
                                        [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_ unembeddable
+                                       droit_ouvert_forfaitaire_
                                        (log_variable_definition
                                           [
                                             "AllocationsFamiliales";
@@ -2570,7 +2556,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              if
                                log_end_call
                                  [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 unembeddable
                                  (log_variable_definition
                                     [
                                       "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
@@ -2578,7 +2563,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                     unembeddable
                                     (log_begin_call
                                        [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_ unembeddable
+                                       droit_ouvert_forfaitaire_
                                        (log_variable_definition
                                           [
                                             "AllocationsFamiliales";
@@ -2608,7 +2593,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let rapport_enfants_total_moyen_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "rapport_enfants_total_moyen" ]
-      unembeddable
+      embed_decimal
       (try
          try rapport_enfants_total_moyen_ ()
          with EmptyError ->
@@ -2641,13 +2626,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          (not
                             (log_end_call
                                [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                               unembeddable
                                (log_variable_definition
                                   [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
                                   unembeddable
                                   (log_begin_call
                                      [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                     droit_ouvert_majoration_ unembeddable
+                                     droit_ouvert_majoration_
                                      (log_variable_definition
                                         [
                                           "AllocationsFamiliales";
@@ -2678,13 +2662,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          (ressources_menage_ >$ plafond__i_i_d521_3_
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                              unembeddable
                               (log_variable_definition
                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_ unembeddable
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
@@ -2714,13 +2697,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                           && ressources_menage_ <=$ plafond__i_i_d521_3_)
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                              unembeddable
                               (log_variable_definition
                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_ unembeddable
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
@@ -2749,13 +2731,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          (ressources_menage_ <=$ plafond__i_d521_3_
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                              unembeddable
                               (log_variable_definition
                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_ unembeddable
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
@@ -2782,7 +2763,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_initial_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base" ]
-      unembeddable
+      embed_money
       (try
          try montant_initial_base_ ()
          with EmptyError -> (
@@ -2816,20 +2797,19 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_complement_pour_forfaitaire_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_complement_pour_forfaitaire_ ()
          with EmptyError ->
            if droit_ouvert_complement_ then
              log_end_call
                [ "AllocationsFamiliales"; "complément_dégressif" ]
-               unembeddable
                (log_variable_definition
                   [ "AllocationsFamiliales"; "complément_dégressif"; "output" ]
                   unembeddable
                   (log_begin_call
                      [ "AllocationsFamiliales"; "complément_dégressif" ]
-                     complement_degressif_ unembeddable
+                     complement_degressif_
                      (log_variable_definition
                         [ "AllocationsFamiliales"; "complément_dégressif"; "input" ]
                         unembeddable montant_verse_forfaitaire_)))
@@ -2865,13 +2845,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      (log_end_call
                         [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                        unembeddable
                         (log_variable_definition
                            [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
                            unembeddable
                            (log_begin_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                              droit_ouvert_majoration_ unembeddable
+                              droit_ouvert_majoration_
                               (log_variable_definition
                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
                                  unembeddable param_)))
@@ -2887,13 +2866,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                with EmptyError ->
                  log_end_call
                    [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
-                   unembeddable
                    (log_variable_definition
                       [ "AllocationsFamiliales"; "montant_initial_métropole_majoration"; "output" ]
                       unembeddable
                       (log_begin_call
                          [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
-                         montant_initial_metropole_majoration_ unembeddable
+                         montant_initial_metropole_majoration_
                          (log_variable_definition
                             [
                               "AllocationsFamiliales";
@@ -2907,7 +2885,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_avec_garde_alternee_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_avec_garde_alternée_base" ]
-      unembeddable
+      embed_money
       (try
          try montant_avec_garde_alternee_base_ ()
          with EmptyError -> montant_initial_base_ *$ rapport_enfants_total_moyen_
@@ -2924,13 +2902,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              try
                log_end_call
                  [ "AllocationsFamiliales"; "montant_initial_majoration" ]
-                 unembeddable
                  (log_variable_definition
                     [ "AllocationsFamiliales"; "montant_initial_majoration"; "output" ]
                     unembeddable
                     (log_begin_call
                        [ "AllocationsFamiliales"; "montant_initial_majoration" ]
-                       montant_initial_majoration_ unembeddable
+                       montant_initial_majoration_
                        (log_variable_definition
                           [ "AllocationsFamiliales"; "montant_initial_majoration"; "input" ]
                           unembeddable param_)))
@@ -2938,13 +2915,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                match
                  log_end_call
                    [ "AllocationsFamiliales"; "prise_en_compte" ]
-                   unembeddable
                    (log_variable_definition
                       [ "AllocationsFamiliales"; "prise_en_compte"; "output" ]
                       unembeddable
                       (log_begin_call
                          [ "AllocationsFamiliales"; "prise_en_compte" ]
-                         prise_en_compte_ unembeddable
+                         prise_en_compte_
                          (log_variable_definition
                             [ "AllocationsFamiliales"; "prise_en_compte"; "input" ]
                             unembeddable param_)))
@@ -2958,7 +2934,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_base" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_base_ ()
          with EmptyError ->
@@ -2969,7 +2945,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_majoration" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_majoration_ ()
          with EmptyError ->
@@ -2979,7 +2955,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  acc_
                  +$ log_end_call
                       [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
-                      unembeddable
                       (log_variable_definition
                          [
                            "AllocationsFamiliales";
@@ -2989,7 +2964,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          unembeddable
                          (log_begin_call
                             [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
-                            montant_avec_garde_alternee_majoration_ unembeddable
+                            montant_avec_garde_alternee_majoration_
                             (log_variable_definition
                                [
                                  "AllocationsFamiliales";
@@ -3004,7 +2979,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_base_complement_pour_base_et_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_base_complément_pour_base_et_majoration" ]
-      unembeddable
+      embed_money
       (try
          try montant_base_complement_pour_base_et_majoration_ ()
          with EmptyError -> montant_verse_base_ +$ montant_verse_majoration_
@@ -3013,20 +2988,19 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_complement_pour_base_et_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_complément_pour_base_et_majoration" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_complement_pour_base_et_majoration_ ()
          with EmptyError ->
            if droit_ouvert_complement_ then
              log_end_call
                [ "AllocationsFamiliales"; "complément_dégressif" ]
-               unembeddable
                (log_variable_definition
                   [ "AllocationsFamiliales"; "complément_dégressif"; "output" ]
                   unembeddable
                   (log_begin_call
                      [ "AllocationsFamiliales"; "complément_dégressif" ]
-                     complement_degressif_ unembeddable
+                     complement_degressif_
                      (log_variable_definition
                         [ "AllocationsFamiliales"; "complément_dégressif"; "input" ]
                         unembeddable montant_base_complement_pour_base_et_majoration_)))
@@ -3036,7 +3010,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let montant_verse_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé" ]
-      unembeddable
+      embed_money
       (try
          try montant_verse_ ()
          with EmptyError ->
@@ -3127,7 +3101,7 @@ let interface_allocations_familiales
   let date_courante_ : date =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "date_courante" ]
-      unembeddable
+      embed_date
       (try date_courante_ () with EmptyError -> raise NoValueProvided)
   in
   let enfants_ : enfant_entree array =
@@ -3139,7 +3113,7 @@ let interface_allocations_familiales
   let ressources_menage_ : money =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "ressources_ménage" ]
-      unembeddable
+      embed_money
       (try ressources_menage_ () with EmptyError -> raise NoValueProvided)
   in
   let residence_ : collectivite =
@@ -3151,14 +3125,14 @@ let interface_allocations_familiales
   let personne_charge_effective_permanente_est_parent_ : bool =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "personne_charge_effective_permanente_est_parent" ]
-      unembeddable
+      embed_bool
       (try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
        with EmptyError -> raise NoValueProvided)
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "personne_charge_effective_permanente_remplit_titre_I" ]
-      unembeddable
+      embed_bool
       (try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
        with EmptyError -> raise NoValueProvided)
   in
@@ -3199,7 +3173,7 @@ let interface_allocations_familiales
         "InterfaceAllocationsFamiliales";
         "allocations_familiales.personne_charge_effective_permanente_est_parent";
       ]
-      unembeddable
+      embed_bool
       (try
          if
            log_decision_taken
@@ -3224,7 +3198,7 @@ let interface_allocations_familiales
         "InterfaceAllocationsFamiliales";
         "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I";
       ]
-      unembeddable
+      embed_bool
       (try
          if
            log_decision_taken
@@ -3245,7 +3219,7 @@ let interface_allocations_familiales
    fun (_ : unit) ->
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "allocations_familiales.ressources_ménage" ]
-      unembeddable ressources_menage_
+      embed_money ressources_menage_
   in
   let allocations_familiales_dot_residence_ : unit -> collectivite =
    fun (_ : unit) ->
@@ -3257,7 +3231,7 @@ let interface_allocations_familiales
    fun (_ : unit) ->
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "allocations_familiales.date_courante" ]
-      unembeddable date_courante_
+      embed_date date_courante_
   in
   let allocations_familiales_dot_enfants_a_charge_ : unit -> enfant array =
    fun (_ : unit) ->
@@ -3268,10 +3242,9 @@ let interface_allocations_familiales
   let result_ : allocations_familiales_out =
     log_end_call
       [ "InterfaceAllocationsFamiliales"; "allocations_familiales"; "AllocationsFamiliales" ]
-      unembeddable
       (log_begin_call
          [ "InterfaceAllocationsFamiliales"; "allocations_familiales"; "AllocationsFamiliales" ]
-         allocations_familiales unembeddable
+         allocations_familiales
          {
            personne_charge_effective_permanente_est_parent_in =
              allocations_familiales_dot_personne_charge_effective_permanente_est_parent_;
@@ -3423,7 +3396,7 @@ let interface_allocations_familiales
   let montant_verse_ : money =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "montant_versé" ]
-      unembeddable
+      embed_money
       (try try montant_verse_ () with EmptyError -> allocations_familiales_dot_montant_verse_
        with EmptyError -> raise NoValueProvided)
   in

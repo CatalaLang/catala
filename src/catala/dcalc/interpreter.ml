@@ -241,7 +241,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Unop (A.Log (entry, infos)), [ e' ] ->
         if !Cli.trace_flag then (
           match entry with
-          | VarDef ->
+          | VarDef _ ->
               Cli.log_print
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    Print.format_uid_list infos
