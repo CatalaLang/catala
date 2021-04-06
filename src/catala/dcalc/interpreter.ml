@@ -32,6 +32,17 @@ let empty_thunked_term : Ast.expr Pos.marked =
        [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
        Pos.no_pos)
 
+let rec type_eq (t1 : A.typ Pos.marked) (t2 : A.typ Pos.marked) : bool =
+  match (Pos.unmark t1, Pos.unmark t2) with
+  | A.TLit tl1, A.TLit tl2 -> tl1 = tl2
+  | A.TTuple (ts1, s1), A.TTuple (ts2, s2) -> (
+      try s1 == s2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false)
+  | A.TEnum (ts1, e1), A.TEnum (ts2, e2) -> (
+      try e1 == e2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false)
+  | A.TArray t1, A.TArray t2 -> type_eq t1 t2
+  | A.TArrow (t11, t12), A.TArrow (t21, t22) -> type_eq t11 t12 && type_eq t21 t22
+  | _, _ -> false
+
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
@@ -39,7 +50,7 @@ let log_indent = ref 0
 let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     (args : A.expr Pos.marked list) : A.expr Pos.marked =
   Pos.same_pos_as
-    ( match (Pos.unmark op, List.map Pos.unmark args) with
+    (match (Pos.unmark op, List.map Pos.unmark args) with
     | A.Ternop A.Fold, [ _f; _init; EArray es ] ->
         Pos.unmark
           (List.fold_left
@@ -70,7 +81,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             [
               (Some "The division operator:", Pos.get_position op);
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
-            ] )
+            ])
     | A.Binop (A.Add KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
         A.ELit (LMoney Runtime.(i1 +$ i2))
     | A.Binop (A.Sub KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
@@ -84,7 +95,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             [
               (Some "The division operator:", Pos.get_position op);
               (Some "The null denominator:", Pos.get_position (List.nth args 2));
-            ] )
+            ])
     | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
         A.ELit (LDuration Runtime.(i1 +^ i2))
     | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
@@ -116,7 +127,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             "Cannot compare together durations that cannot be converted to a precise number of days"
             [
               (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ] )
+            ])
     | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
         try A.ELit (LBool Runtime.(i1 <=^ i2))
         with _ ->
@@ -124,7 +135,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             "Cannot compare together durations that cannot be converted to a precise number of days"
             [
               (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ] )
+            ])
     | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
         try A.ELit (LBool Runtime.(i1 >^ i2))
         with _ ->
@@ -132,7 +143,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             "Cannot compare together durations that cannot be converted to a precise number of days"
             [
               (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ] )
+            ])
     | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
         try A.ELit (LBool Runtime.(i1 >=^ i2))
         with _ ->
@@ -140,7 +151,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
             "Cannot compare together durations that cannot be converted to a precise number of days"
             [
               (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ] )
+            ])
     | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool Runtime.(i1 <@ i2))
     | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
@@ -160,44 +171,44 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop A.Eq, [ EArray es1; EArray es2 ] ->
         A.ELit
           (LBool
-             ( try
-                 List.for_all2
-                   (fun e1 e2 ->
-                     match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
-                     | A.ELit (LBool b) -> b
-                     | _ -> assert false
-                     (* should not happen *))
-                   es1 es2
-               with Invalid_argument _ -> false ))
+             (try
+                List.for_all2
+                  (fun e1 e2 ->
+                    match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
+                    | A.ELit (LBool b) -> b
+                    | _ -> assert false
+                    (* should not happen *))
+                  es1 es2
+              with Invalid_argument _ -> false))
     | A.Binop A.Eq, [ ETuple (es1, s1); ETuple (es2, s2) ] ->
         A.ELit
           (LBool
-             ( try
-                 s1 = s2
-                 && List.for_all2
-                      (fun e1 e2 ->
-                        match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
-                        | A.ELit (LBool b) -> b
-                        | _ -> assert false
-                        (* should not happen *))
-                      es1 es2
-               with Invalid_argument _ -> false ))
-    | A.Binop A.Eq, [ EInj (e1, i1, en1, _ts1); EInj (e2, i2, en2, _ts2) ] ->
+             (try
+                s1 = s2
+                && List.for_all2
+                     (fun e1 e2 ->
+                       match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
+                       | A.ELit (LBool b) -> b
+                       | _ -> assert false
+                       (* should not happen *))
+                     es1 es2
+              with Invalid_argument _ -> false))
+    | A.Binop A.Eq, [ EInj (e1, i1, en1, ts1); EInj (e2, i2, en2, ts2) ] ->
         A.ELit
           (LBool
-             ( try
-                 en1 = en2 && i1 = i2
-                 &&
-                 match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
-                 | A.ELit (LBool b) -> b
-                 | _ -> assert false
-                 (* should not happen *)
-               with Invalid_argument _ -> false ))
+             (try
+                en1 = en2 && List.for_all2 type_eq ts1 ts2 && i1 = i2
+                &&
+                match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
+                | A.ELit (LBool b) -> b
+                | _ -> assert false
+                (* should not happen *)
+              with Invalid_argument _ -> false))
     | A.Binop A.Eq, [ _; _ ] -> A.ELit (LBool false) (* comparing anything else return false *)
     | A.Binop A.Neq, [ _; _ ] -> (
         match Pos.unmark (evaluate_operator ctx (Pos.same_pos_as (A.Binop A.Eq) op) args) with
         | A.ELit (A.LBool b) -> A.ELit (A.LBool (not b))
-        | _ -> assert false (*should not happen *) )
+        | _ -> assert false (*should not happen *))
     | A.Binop A.Map, [ _; A.EArray es ] ->
         A.EArray
           (List.map
@@ -234,7 +245,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
               Cli.log_print
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    Print.format_uid_list infos
-                   ( match e' with
+                   (match e' with
                    | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
                    | _ ->
                        let expr_str =
@@ -245,7 +256,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                            ~subst:(fun _ -> " ")
                            expr_str
                        in
-                       Cli.print_with_style [ ANSITerminal.green ] "%s" expr_str ))
+                       Cli.print_with_style [ ANSITerminal.green ] "%s" expr_str))
           | PosRecordIfTrueBool -> (
               let pos = Pos.get_position op in
               match (pos <> Pos.no_pos, e') with
@@ -256,7 +267,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                        (Cli.print_with_style [ ANSITerminal.green ] "Definition applied")
                        (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
                             Format.asprintf "%*s" (!log_indent * 2) "")))
-              | _ -> () )
+              | _ -> ())
           | BeginCall ->
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
@@ -266,20 +277,20 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
               log_indent := !log_indent - 1;
               Cli.log_print
                 (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
-                   Print.format_uid_list infos) )
+                   Print.format_uid_list infos))
         else ();
         e'
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError
     | _ ->
         Errors.raise_multispanned_error
           "Operator applied to the wrong arguments\n(should nothappen if the term was well-typed)"
-          ( [ (Some "Operator:", Pos.get_position op) ]
+          ([ (Some "Operator:", Pos.get_position op) ]
           @ List.mapi
               (fun i arg ->
                 ( Some
                     (Format.asprintf "Argument n°%d, value %a" (i + 1) (Print.format_expr ctx) arg),
                   Pos.get_position arg ))
-              args ) )
+              args))
     op
 
 and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.marked =
@@ -307,7 +318,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           Errors.raise_spanned_error
             "function has not been reduced to a lambda at evaluation (should not happen if the \
              term was well-typed"
-            (Pos.get_position e) )
+            (Pos.get_position e))
   | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
   | ETuple (es, s) ->
       let new_es = List.map (evaluate_expr ctx) es in
@@ -317,14 +328,14 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       let e1 = evaluate_expr ctx e1 in
       match Pos.unmark e1 with
       | ETuple (es, s') -> (
-          ( match (s, s') with
+          (match (s, s') with
           | None, None -> ()
           | Some s, Some s' when s = s' -> ()
           | _ ->
               Errors.raise_multispanned_error
                 "Error during tuple access: not the same structs (should not happen if the term \
                  was well-typed)"
-                [ (None, Pos.get_position e); (None, Pos.get_position e1) ] );
+                [ (None, Pos.get_position e); (None, Pos.get_position e1) ]);
           match List.nth_opt es n with
           | Some e' -> e'
           | None ->
@@ -341,7 +352,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
                "The expression %a should be a tuple with %d components but is not (should not \
                 happen if the term was well-typed)"
                (Print.format_expr ctx) e n)
-            (Pos.get_position e1) )
+            (Pos.get_position e1))
   | EInj (e1, n, en, ts) ->
       let e1' = evaluate_expr ctx e1 in
       if is_empty_error e1' then Pos.same_pos_as (A.ELit LEmptyError) e
@@ -370,7 +381,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           Errors.raise_spanned_error
             "Expected a term having a sum type as an argument to a match (should not happend if \
              the term was well-typed"
-            (Pos.get_position e1) )
+            (Pos.get_position e1))
   | EDefault (exceptions, just, cons) -> (
       let exceptions_orig = exceptions in
       let exceptions = List.map (evaluate_expr ctx) exceptions in
@@ -386,7 +397,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
               Errors.raise_spanned_error
                 "Default justification has not been reduced to a boolean at evaluation (should not \
                  happen if the term was well-typed"
-                (Pos.get_position e) )
+                (Pos.get_position e))
       | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
       | _ ->
           Errors.raise_multispanned_error
@@ -395,7 +406,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
                (fun (_, except) -> (Some "This justification is true:", Pos.get_position except))
                (List.filter
                   (fun (sub, _) -> not (is_empty_error sub))
-                  (List.map2 (fun x y -> (x, y)) exceptions exceptions_orig))) )
+                  (List.map2 (fun x y -> (x, y)) exceptions exceptions_orig))))
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr ctx cond) with
       | ELit (LBool true) -> evaluate_expr ctx et
@@ -435,7 +446,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           Errors.raise_spanned_error
             "Expected a boolean literal for the result of this assertion (should not happen if the \
              term was well-typed)"
-            (Pos.get_position e') )
+            (Pos.get_position e'))
 
 (** {1 API} *)
 
@@ -459,7 +470,7 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
           Errors.raise_spanned_error
             "The interpretation of a program should always yield a struct corresponding to the \
              scope variables"
-            (Pos.get_position e) )
+            (Pos.get_position e))
   | _ ->
       Errors.raise_spanned_error
         "The interpreter can only interpret terms starting with functions having thunked arguments"

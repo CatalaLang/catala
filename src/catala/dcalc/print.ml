@@ -170,23 +170,23 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
   | ETuple (es, None) ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "("
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ",")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
         es format_punctuation ")"
   | ETuple (es, Some s) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" Ast.StructName.format_t s format_punctuation "{"
+      Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]" Ast.StructName.format_t s
+        format_punctuation "{"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ",")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (e, struct_field) ->
-             Format.fprintf fmt "@[<hov 2>%a%a%a%a@ %a@]" format_punctuation "\""
-               Ast.StructFieldName.format_t struct_field format_punctuation "\"" format_punctuation
-               ":" format_expr e))
+             Format.fprintf fmt "%a%a%a%a %a" format_punctuation "\"" Ast.StructFieldName.format_t
+               struct_field format_punctuation "\"" format_punctuation ":" format_expr e))
         (List.combine es (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
         format_punctuation "}"
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "["
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ";")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
         es format_punctuation "]"
   | ETupleAccess (e1, n, s, _ts) -> (
