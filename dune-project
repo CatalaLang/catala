@@ -1,7 +1,7 @@
 (lang dune 2.2)
 
 (name catala)
-(version 0.2.0)
+(version 0.3.0)
 (generate_opam_files true)
 (formatting)
 
@@ -15,9 +15,9 @@
 
 (package
  (name catala)
- (synopsis "Low-level language for tax code specification")
- (description "\| The Catala language is designed to be a low-level target for
-              "\| higher-level specification languages for fiscal legislation.
+ (synopsis "Literate programming language for tax code specification")
+ (description "\| Catala is a domain-specific language for deriving faithful-by-construction
+              "\| algorithms from legislative texts. See https://catala-lang.org for more information
  )
  (depends
    (ocaml (>= 4.08.0))
@@ -29,15 +29,18 @@
    (bindlib (>= 5.0.1))
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
-   (zarith (>= 1.10))
-   (zarith_stubs_js (>= 0.14.0))
+   (zarith (= 1.11))
+   (zarith_stubs_js (= 0.14.0))
    (dune (>= 2.2))
    (ocamlgraph (>= 1.8.8))
    (calendar (>= 2.04))
    (visitors (>= 20200210))
    (benchmark (>= 1.6))
+   (js_of_ocaml-ppx (>= 3.8.0))
+   (camomile (>= 1.0.2))
+   (hmap (>= 0.8.1))
  )
 )
 
 (using menhir 2.1)
-(allow_approximate_merlin) 
+(allow_approximate_merlin)

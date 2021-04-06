@@ -24,7 +24,7 @@ type lit =
   | LDate of Runtime.date
   | LDuration of Runtime.duration
 
-type except = ConflictError | EmptyError | Crash
+type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -38,7 +38,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * D.typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of D.operator
@@ -66,7 +66,7 @@ let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
     (taus : D.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
+  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =

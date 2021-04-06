@@ -1,4 +1,7 @@
-default: build
+help : Makefile
+	@sed -n 's/^#> //p' $<
+
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 ##########################################
 # Dependencies
@@ -9,10 +12,11 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
+# The Zarith dependency is fixed because of https://github.com/janestreet/zarith_stubs_js/pull/8
 dependencies-ocaml:
 	opam install \
 		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
-		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
+		re obelisk unionfind bindlib zarith.1.11 zarith_stubs_js.v0.14.0 ocamlgraph \
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
 		visitors benchmark
 
@@ -157,33 +161,35 @@ tests_ml: run_french_law_library_tests
 FRENCH_LAW_LIB_DIR=src/french_law
 
 $(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
+	CATALA_OPTS="-O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source
 
 $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
-	$(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
+	CATALA_OPTS="-O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
 
+#> generate_french_law_library		: Generates the French law library OCaml sources from Catala
 generate_french_law_library:\
 	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml \
 	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+	$(MAKE) format
 
 #> build_french_law_library		: Builds the OCaml French law library
 build_french_law_library: generate_french_law_library format
-	dune build $(FRENCH_LAW_LIB_DIR)
+	dune build $(FRENCH_LAW_LIB_DIR)/french_law.a
 
-run_french_law_library_benchmark: build_french_law_library
-	dune exec $(FRENCH_LAW_LIB_DIR)/bench.exe
+run_french_law_library_benchmark: generate_french_law_library
+	dune exec --profile release $(FRENCH_LAW_LIB_DIR)/bench.exe
 
-run_french_law_library_tests: build_french_law_library
+run_french_law_library_tests: generate_french_law_library
 	dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library format
 	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
-	cd javascript && ln -sf ../_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js french_law.js
+	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js $(ROOT_DIR)/french_law_js/french_law.js
 
 ##########################################
 # Website assets
@@ -223,6 +229,3 @@ inspect:
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build doc format dependencies dependencies-ocaml \
 	catala.html help
-
-help : Makefile
-	@sed -n 's/^#> //p' $<

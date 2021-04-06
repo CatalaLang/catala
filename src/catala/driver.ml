@@ -19,12 +19,13 @@ module Pos = Utils.Pos
 (** Entry function for the executable. Returns a negative number in case of error. *)
 let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (ex_scope : string option)
+    (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)
     (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.trace_flag := trace;
+    Cli.optimize_flag := optimize;
     Cli.debug_print "Reading files...";
     (match source_file with FileName _ -> () | Contents c -> Cli.contents := c);
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
@@ -70,10 +71,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         let oc = open_out output_file in
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
-             ( output_file
-             :: List.map
-                  (fun ext -> Filename.remove_extension source_file ^ ext)
-                  backend_extensions_list ))
+             (output_file
+              ::
+              List.map
+                (fun ext -> Filename.remove_extension source_file ^ ext)
+                backend_extensions_list))
           (String.concat "\\\n" program.program_source_files)
           (String.concat "\\\n" program.program_source_files);
         0
@@ -88,10 +90,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         in
         Cli.debug_print
           (Printf.sprintf "Weaving literate program into %s"
-             ( match backend with
+             (match backend with
              | Cli.Latex -> "LaTeX"
              | Cli.Html -> "HTML"
-             | _ -> assert false (* should not happen *) ));
+             | _ -> assert false (* should not happen *)));
         let output_file =
           match output_file with
           | Some f -> f
@@ -99,7 +101,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               Filename.remove_extension source_file
               ^
               match backend with Cli.Latex -> ".tex" | Cli.Html -> ".html" | _ -> assert false
-              (* should not happen *) )
+              (* should not happen *))
         in
         let oc = open_out output_file in
         let weave_output =
@@ -135,7 +137,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               | None ->
                   Errors.raise_error
                     (Printf.sprintf "There is no scope \"%s\" inside the program." name)
-              | Some uid -> uid )
+              | Some uid -> uid)
         in
         Cli.debug_print "Desugaring...";
         let prgm = Surface.Desugaring.desugar_program ctxt program in
@@ -144,6 +146,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Cli.debug_print "Translating to default calculus...";
         let prgm, prgm_expr, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
+        in
+        let prgm =
+          if optimize then begin
+            Cli.debug_print "Optimizing default calculus...";
+            Dcalc.Optimizations.optimize_program prgm
+          end
+          else prgm
         in
         if dcalc then begin
           Format.printf "%a\n"
@@ -184,8 +193,15 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               results;
             0
         | Cli.OCaml ->
-            Cli.debug_print "Compiling program into OCaml...";
+            Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
+            let prgm =
+              if optimize then begin
+                Cli.debug_print "Optimizing lambda calculus...";
+                Lcalc.Optimizations.optimize_program prgm
+              end
+              else prgm
+            in
             let source_file =
               match source_file with
               | FileName f -> f
@@ -200,11 +216,12 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
             Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
             let oc = open_out output_file in
             let fmt = Format.formatter_of_out_channel oc in
+            Cli.debug_print "Compiling program into OCaml...";
             Lcalc.To_ocaml.format_program fmt prgm type_ordering;
             close_out oc;
             0
         | _ -> assert false
-        (* should not happen *) )
+        (* should not happen *))
   with Errors.StructuredError (msg, pos) ->
     Cli.error_print (Errors.print_structured_error msg pos);
     -1

@@ -68,6 +68,7 @@ type ternop = Fold
 type binop =
   | And
   | Or
+  | Xor
   | Add of op_kind
   | Sub of op_kind
   | Mult of op_kind
@@ -81,12 +82,17 @@ type binop =
   | Map
   | Filter
 
-type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
+type log_entry =
+  | VarDef of typ
+      (** During code generation, we need to know the type of the variable being logged for
+          embedding *)
+  | BeginCall
+  | EndCall
+  | PosRecordIfTrueBool
 
 type unop =
   | Not
   | Minus of op_kind
-  | ErrorOnEmpty
   | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
@@ -110,12 +116,13 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | ErrorOnEmpty of expr Pos.marked
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

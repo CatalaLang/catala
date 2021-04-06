@@ -146,7 +146,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   let arr x y = UnionFind.make (TArrow (x, y), pos) in
   match Pos.unmark op with
   | A.Ternop A.Fold -> arr (arr any2 (arr any any2)) (arr any2 (arr array_any any2))
-  | A.Binop (A.And | A.Or) -> arr bt (arr bt bt)
+  | A.Binop (A.And | A.Or | A.Xor) -> arr bt (arr bt bt)
   | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) -> arr it (arr it it)
   | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) -> arr rt (arr rt rt)
   | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)
@@ -169,7 +169,6 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop (A.Minus KMoney) -> arr mt mt
   | A.Unop (A.Minus KDuration) -> arr dut dut
   | A.Unop A.Not -> arr bt bt
-  | A.Unop A.ErrorOnEmpty -> arr any any
   | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
   | A.Unop (A.Log _) -> arr any any
   | A.Unop A.Length -> arr array_any it
@@ -222,7 +221,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
           | Some t -> t
           | None ->
               Errors.raise_spanned_error "Variable not found in the current context"
-                (Pos.get_position e) )
+                (Pos.get_position e))
       | ELit (LBool _) -> UnionFind.make (Pos.same_pos_as (TLit TBool) e)
       | ELit (LInt _) -> UnionFind.make (Pos.same_pos_as (TLit TInt) e)
       | ELit (LRat _) -> UnionFind.make (Pos.same_pos_as (TLit TRat) e)
@@ -246,7 +245,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
                 (Format.asprintf
                    "Expression should have a tuple type with at least %d elements but only has %d" n
                    (List.length typs))
-                (Pos.get_position e1) )
+                (Pos.get_position e1))
       | EInj (e1, n, e_name, ts) ->
           let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
           let ts_n =
@@ -275,7 +274,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
               typecheck_expr_top_down ctx env es' t_es')
             es;
           t_ret
-      | EAbs (pos_binder, binder, taus) ->
+      | EAbs ((binder, pos_binder), taus) ->
           let xs, body = Bindlib.unmbind binder in
           if Array.length xs = List.length taus then
             let xstaus =
@@ -319,6 +318,7 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
       | EAssert e' ->
           typecheck_expr_top_down ctx env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
           UnionFind.make (Pos.same_pos_as (TLit TUnit) e')
+      | ErrorOnEmpty e' -> typecheck_expr_bottom_up ctx env e'
       | EArray es ->
           let cell_type = UnionFind.make (Pos.same_pos_as (TAny (Any.fresh ())) e) in
           List.iter
@@ -350,7 +350,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
         | Some tau' -> ignore (unify ctx tau tau')
         | None ->
             Errors.raise_spanned_error "Variable not found in the current context"
-              (Pos.get_position e) )
+              (Pos.get_position e))
     | ELit (LBool _) -> unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TBool) e))
     | ELit (LInt _) -> unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TInt) e))
     | ELit (LRat _) -> unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TRat) e))
@@ -375,7 +375,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
               (Format.asprintf
                  "Expression should have a tuple type with at least %d elements but only has %d" n
                  (List.length typs))
-              (Pos.get_position e1) )
+              (Pos.get_position e1))
     | EInj (e1, n, e_name, ts) ->
         let ts = List.map (fun t -> UnionFind.make (Pos.map_under_mark ast_to_typ t)) ts in
         let ts_n =
@@ -404,7 +404,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
             typecheck_expr_top_down ctx env es' t_es')
           es;
         unify ctx tau t_ret
-    | EAbs (pos_binder, binder, t_args) ->
+    | EAbs ((binder, pos_binder), t_args) ->
         let xs, body = Bindlib.unmbind binder in
         if Array.length xs = List.length t_args then
           let xstaus =
@@ -448,6 +448,7 @@ and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.mar
     | EAssert e' ->
         typecheck_expr_top_down ctx env e' (UnionFind.make (Pos.same_pos_as (TLit TBool) e'));
         unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TUnit) e'))
+    | ErrorOnEmpty e' -> typecheck_expr_top_down ctx env e' tau
     | EArray es ->
         let cell_type = UnionFind.make (Pos.same_pos_as (TAny (Any.fresh ())) e) in
         List.iter

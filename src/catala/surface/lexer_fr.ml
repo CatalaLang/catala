@@ -67,6 +67,7 @@ let token_list_fr : (string * token) list =
     ("que", THAT);
     ("et", AND);
     ("ou", OR);
+    ("ou bien", XOR);
     ("non", NOT);
     ("nombre", CARDINAL);
     ("maximum", MAXIMUM);
@@ -250,6 +251,9 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "ou" ->
       L.update_acc lexbuf;
       OR
+  | "ou bien" ->
+      L.update_acc lexbuf;
+      XOR
   | "non" ->
       L.update_acc lexbuf;
       NOT

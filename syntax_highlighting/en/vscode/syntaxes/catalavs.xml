@@ -191,7 +191,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\$|&gt;=\$|&lt;=\$|&lt;\$|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|not|or|and|\$|%|year|month|day)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\$|&gt;=\$|&lt;=\$|&lt;\$|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|not|or|xor|and|\$|%|year|month|day)</string>
           <key>name</key>
           <string>keyword.operator.catala_en</string>
         </dict>

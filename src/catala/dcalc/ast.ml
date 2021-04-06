@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+[@@@ocaml.warning "-7-34"]
+
 open Utils
 
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
@@ -32,10 +34,14 @@ module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
+type struct_name = StructName.t
+
+type enum_name = EnumName.t
+
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list * StructName.t option
-  | TEnum of typ Pos.marked list * EnumName.t
+  | TTuple of typ Pos.marked list * struct_name option
+  | TEnum of typ Pos.marked list * enum_name
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
@@ -44,12 +50,18 @@ type date = Runtime.date
 
 type duration = Runtime.duration
 
+type integer = Runtime.integer
+
+type decimal = Runtime.decimal
+
+type money = Runtime.money
+
 type lit =
   | LBool of bool
   | LEmptyError
-  | LInt of Runtime.integer
-  | LRat of Runtime.decimal
-  | LMoney of Runtime.money
+  | LInt of integer
+  | LRat of decimal
+  | LMoney of money
   | LUnit
   | LDate of date
   | LDuration of duration
@@ -61,6 +73,7 @@ type ternop = Fold
 type binop =
   | And
   | Or
+  | Xor
   | Add of op_kind
   | Sub of op_kind
   | Mult of op_kind
@@ -74,13 +87,12 @@ type binop =
   | Map
   | Filter
 
-type log_entry = VarDef | BeginCall | EndCall | PosRecordIfTrueBool
+type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
 
 type unop =
   | Not
   | Minus of op_kind
-  | ErrorOnEmpty
-  | Log of log_entry * Utils.Uid.MarkedString.info list
+  | Log of log_entry * (Utils.Uid.MarkedString.info list[@opaque])
   | Length
   | IntToRat
   | GetDay
@@ -90,19 +102,20 @@ type unop =
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 type expr =
-  | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list * StructName.t option
-  | ETupleAccess of expr Pos.marked * int * StructName.t option * typ Pos.marked list
-  | EInj of expr Pos.marked * int * EnumName.t * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list * EnumName.t
+  | EVar of (expr Bindlib.var[@opaque]) Pos.marked
+  | ETuple of expr Pos.marked list * struct_name option
+  | ETupleAccess of expr Pos.marked * int * struct_name option * typ Pos.marked list
+  | EInj of expr Pos.marked * int * enum_name * typ Pos.marked list
+  | EMatch of expr Pos.marked * expr Pos.marked list * enum_name
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | ErrorOnEmpty of expr Pos.marked
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
@@ -130,7 +143,7 @@ let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
     (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
+  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =

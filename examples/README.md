@@ -7,16 +7,16 @@ of the Catala programming language development.
 
 ## List of examples
 
-* `allocations_familiales/`: computation of the French family benefits, based
-on the _Code de la sécurité sociale_. This case study is the biggest and
-most ambitious for Catala so far.
-* `code_general_impots/`: computation of the French income tax, based on the
-_Code général des impôts_. Currently, there are only stubs of program.
-* `tutorial/`: Catala language tutorial for developers of tech-savvy lawyers.
-The tutorial is written like a piece of legislation that gets annotated by
-Catala snippets.
-* `us_tax_code/`: contains the Catala formalization of several sections of the
-US Tax Code.
+- `allocations_familiales/`: computation of the French family benefits, based
+  on the _Code de la sécurité sociale_. This case study is the biggest and
+  most ambitious for Catala so far.
+- `code_general_impots/`: computation of the French income tax, based on the
+  _Code général des impôts_. Currently, there are only stubs of program.
+- `tutorial/`: Catala language tutorial for developers of tech-savvy lawyers.
+  The tutorial is written like a piece of legislation that gets annotated by
+  Catala snippets.
+- `us_tax_code/`: contains the Catala formalization of several sections of the
+  US Tax Code.
 
 ## Building and running examples
 
@@ -31,12 +31,12 @@ repository with:
 The `<name of target>` can be replaced with the following (we assume an example
 file `examples/foo/foo.catala_en`) list.
 
-* `foo.tex`: builds the LaTeX literate programming output from the Catala program
-* `foo.pdf`: compiles `foo.tex` using `latexmk`
-* `foo.html`: builds the HTML literate programming output from the Catala program
-* `foo.run`: interprets the Catala program contained in `foo.catala_en`. Note
-that you have to pass in the scope that you want to interpret via the `SCOPE`
-Makefile variable (`SCOPE=FooScope make -C examples/foo foo.run`).
+- `foo.run`: interprets the Catala program contained in `foo.catala_en`. Note
+  that you have to pass in the scope that you want to interpret via the `SCOPE`
+  Makefile variable (`SCOPE=FooScope make -C examples/foo foo.run`).
+- `foo.tex`: builds the LaTeX literate programming output from the Catala program
+- `foo.pdf`: compiles `foo.tex` using `latexmk`
+- `foo.html`: builds the HTML literate programming output from the Catala program
 
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
@@ -119,4 +119,3 @@ Finally, please add a rule for your example in the repository root
 for other examples. This will ensure that your example is built every
 time the compiler is modified; if a change in the compiler breaks your example,
 the authors will be notified and find a solution.
-

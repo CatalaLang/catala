@@ -74,12 +74,13 @@ type expr =
   | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
   | EMatch of expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
+  | ErrorOnEmpty of expr Pos.marked
 
 val locations_used : expr Pos.marked -> LocationSet.t
 

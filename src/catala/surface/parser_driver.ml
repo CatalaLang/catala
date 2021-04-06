@@ -91,7 +91,7 @@ let rec law_struct_list_to_tree (f : Ast.program_item list) : Ast.program_item l
                     (first :: after_gobbled, after_out)
               in
               let gobbled, rest_out = split_rest_tree rest_tree in
-              LawStructure (LawHeading (heading, gobbled)) :: rest_out ) )
+              LawStructure (LawHeading (heading, gobbled)) :: rest_out))
 
 (** Style with which to display syntax hints in the terminal output *)
 let syntax_hints_style = [ ANSITerminal.yellow ]
@@ -107,11 +107,11 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
     (Printf.sprintf "Syntax error at token %s\n%s"
        (Cli.print_with_style syntax_hints_style "\"%s\"" token)
        msg)
-    ( (Some "Error token:", error_loc)
-    ::
-    ( match last_good_loc with
-    | None -> []
-    | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ] ) )
+    ((Some "Error token:", error_loc)
+     ::
+     (match last_good_loc with
+     | None -> []
+     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
 
 (** Usage: [fail lexbuf env token_list last_input_needed]
 
@@ -225,7 +225,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
         try
           let input = open_in source_file in
           (Sedlexing.Utf8.from_channel input, Some input)
-        with Sys_error msg -> Errors.raise_error msg )
+        with Sys_error msg -> Errors.raise_error msg)
     | Contents contents -> (Sedlexing.Utf8.from_gen (Gen.of_string contents), None)
   in
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in

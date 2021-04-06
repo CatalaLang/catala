@@ -2,14 +2,13 @@
 <img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="100"/>
 </center>
 
-# Catala
+# Catala [![Catala chat][chat-image]][chat-link] ![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
-
-Join the Catala community on Zulip: https://zulip.catala-lang.org/!
+You can join the Catala community on [Zulip][chat-link]!
 
 ## Concepts
 
@@ -42,7 +41,7 @@ are in this case lawyers and not programmers.
 The Catala language is special because its logical structure mimics
 the logical structure of the law. Indeed, the core concept of
 "definition-under-conditions" that builds on default logic has been formalized
-by Professor of Law Sarah Lawsky in her article
+by Professor Sarah Lawsky in her article
 [A Logic for Statutes](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3088206).
 The Catala language is the only programming language to our knowledge that
 embeds default logic as a first-class feature, which is why it is the only
@@ -50,7 +49,14 @@ language perfectly adapted to literate legislative programming.
 
 ## Building and installation
 
-See [the dedicated readme](INSTALL.md).
+Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
+If opam is installed on your machine, simply execute:
+
+    opam install catala
+
+However, if you wish to get the latest developments of the compiler, you probably
+want to compile it from the sources of this repository. For that, see
+[the dedicated readme](INSTALL.md).
 
 ## Usage
 
@@ -88,6 +94,7 @@ The compiler documentation is auto-generated from its source code using
     make doc
 
 to generate the documentation, then open the `doc/odoc.html` file in any browser.
+The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
 
 ## License
 
@@ -109,3 +116,15 @@ has also influenced the creation by state conselor Lucien Mehl of the
 Centre de recherches et développement en informatique juridique (CENIJ),
 which eventually transformed into the entity managing the LegiFrance website,
 acting as the public service of legislative documentation.
+
+[chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg?style=social&logo=zulip&color=5c75a2
+[chat-link]: https://zulip.catala-lang.org/
+[ci-link]: https://github.com/catalalang/catala/actions/workflows/build.yml/badge.svg
+[licence-link]: https://img.shields.io/github/license/catalalang/catala
+[tag-link]: https://img.shields.io/github/v/tag/catalalang/catala
+[loc-link]: https://img.shields.io/tokei/lines/github/catalalang/catala
+[issues-link]: https://img.shields.io/github/issues/catalalang/catala
+[opam-link]: https://img.shields.io/badge/Package-opam-orange?logo=OCaml&link=https://opam.ocaml.org/packages/catala/
+[language-link]: https://img.shields.io/github/languages/top/catalalang/catala
+[contributors-link]: https://img.shields.io/github/contributors/catalalang/catala
+[activity-link]: https://img.shields.io/github/commit-activity/m/catalalang/catala

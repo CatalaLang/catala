@@ -37,6 +37,8 @@ let max_prec_digits = ref 20
 
 let trace_flag = ref false
 
+let optimize_flag = ref false
+
 open Cmdliner
 
 let file =
@@ -51,6 +53,8 @@ let debug_dcalc =
   Arg.(value & flag & info [ "dcalc" ] ~doc:"Emit default calculus version of the program")
 
 let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling from terminal output")
+
+let optimize = Arg.(value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations")
 
 let trace_opt =
   Arg.(value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the intepreter's computation")
@@ -98,7 +102,7 @@ let output =
 let catala_t f =
   Term.(
     const f $ file $ debug $ debug_dcalc $ unstyled $ wrap_weaved_output $ backend $ language
-    $ max_prec_digits_opt $ trace_opt $ ex_scope $ output)
+    $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
 
 let version = "0.2.0"
 

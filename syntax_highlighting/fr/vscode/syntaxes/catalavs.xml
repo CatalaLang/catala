@@ -191,7 +191,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\x{20ac}|\+|\-\.|\-\@|\-\^|\-\x{20ac}|\-|\*\.|\*\@|\*\^|\*\x{20ac}|\*|/\.|/\@|/\^|/\x{20ac}|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\x{20ac}|&gt;=\x{20ac}|&lt;=\x{20ac}|&lt;\x{20ac}|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|non|ou|et|\x{20ac}|%|an|mois|jour)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\x{20ac}|\+|\-\.|\-\@|\-\^|\-\x{20ac}|\-|\*\.|\*\@|\*\^|\*\x{20ac}|\*|/\.|/\@|/\^|/\x{20ac}|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\x{20ac}|&gt;=\x{20ac}|&lt;=\x{20ac}|&lt;\x{20ac}|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|non|ou\s+bien|ou|et|\x{20ac}|%|an|mois|jour)</string>
           <key>name</key>
           <string>keyword.operator.catala_fr</string>
         </dict>

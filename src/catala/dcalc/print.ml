@@ -98,7 +98,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
       | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e) )
+      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e))
   | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
   | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 
@@ -114,6 +114,7 @@ let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   | Div k -> format_operator fmt (Format.asprintf "/%a" format_op_kind k)
   | And -> format_operator fmt (Format.asprintf "%s" "&&")
   | Or -> format_operator fmt (Format.asprintf "%s" "||")
+  | Xor -> format_operator fmt (Format.asprintf "%s" "xor")
   | Eq -> format_operator fmt (Format.asprintf "%s" "=")
   | Neq -> format_operator fmt (Format.asprintf "%s" "!=")
   | Lt k -> format_operator fmt (Format.asprintf "%s%a" "<" format_op_kind k)
@@ -128,7 +129,7 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   match entry with
-  | VarDef -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
+  | VarDef _ -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
   | BeginCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ ")
   | EndCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← ")
   | PosRecordIfTrueBool ->
@@ -136,10 +137,9 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
-    ( match Pos.unmark op with
+    (match Pos.unmark op with
     | Minus _ -> "-"
     | Not -> "~"
-    | ErrorOnEmpty -> "error_empty"
     | Log (entry, infos) ->
         Format.asprintf "log@[<hov 2>[%a|%a]@]" format_log_entry entry
           (Format.pp_print_list
@@ -150,7 +150,7 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | IntToRat -> "int_to_rat"
     | GetDay -> "get_day"
     | GetMonth -> "get_month"
-    | GetYear -> "get_year" )
+    | GetYear -> "get_year")
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
@@ -196,7 +196,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
           Format.fprintf fmt "%a%a%a%a%a" format_expr e1 format_punctuation "." format_punctuation
             "\"" Ast.StructFieldName.format_t
             (fst (List.nth (Ast.StructMap.find s ctx.ctx_structs) n))
-            format_punctuation "\"" )
+            format_punctuation "\"")
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Ast.EnumConstructor.format_t
         (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))
@@ -211,7 +211,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
                format_punctuation ":" format_expr e))
         (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
-  | EApp ((EAbs (_, binder, taus), _), args) ->
+  | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
@@ -223,7 +223,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
                "let" format_var x format_punctuation ":" (format_typ ctx) tau format_punctuation "="
                format_expr arg format_keyword "in"))
         xs_tau_arg format_expr body
-  | EAbs (_, binder, taus) ->
+  | EAbs ((binder, _), taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" format_punctuation "λ"
@@ -263,6 +263,7 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
              format_expr)
           exceptions format_punctuation "|" format_expr just format_punctuation "⊢" format_expr
           cons format_punctuation "⟩"
+  | ErrorOnEmpty e' -> Format.fprintf fmt "error_empty@ %a" format_with_parens e'
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"

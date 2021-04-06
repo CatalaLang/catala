@@ -32,6 +32,8 @@ val debug_flag : bool ref
 val style_flag : bool ref
 (** Styles the terminal output *)
 
+val optimize_flag : bool ref
+
 val max_prec_digits : int ref
 (** Max number of digits to show for decimal results *)
 
@@ -71,12 +73,13 @@ val catala_t :
   string option ->
   int option ->
   bool ->
+  bool ->
   string option ->
   string option ->
   'a) ->
   'a Cmdliner.Term.t
 (** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt
+    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt optimize
     ex_scope output] *)
 
 val version : string
