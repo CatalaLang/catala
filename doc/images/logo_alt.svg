@@ -12,8 +12,10 @@
    viewBox="0 0 1511.811 1511.811"
    version="1.1"
    id="SVGRoot"
-   sodipodi:docname="file_type_catala-icon.svg"
+   sodipodi:docname="logo_alt.svg"
    inkscape:version="1.0.2 (1.0.2+r75+1)">
+  <title
+     id="title55">catala-logo</title>
   <defs
      id="defs2585" />
   <sodipodi:namedview
@@ -23,20 +25,21 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.34109608"
-     inkscape:cx="677.22919"
-     inkscape:cy="956.45401"
+     inkscape:zoom="0.25528064"
+     inkscape:cx="44.661103"
+     inkscape:cy="906.05629"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      inkscape:document-rotation="0"
-     showgrid="true"
-     inkscape:window-width="1163"
-     inkscape:window-height="1170"
-     inkscape:window-x="751"
-     inkscape:window-y="24"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1162"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
      inkscape:window-maximized="0"
      units="mm"
-     width="1e-05mm">
+     width="1e-05mm"
+     inkscape:pagecheckerboard="false">
     <inkscape:grid
        type="xygrid"
        id="grid2594" />
@@ -49,17 +52,25 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title>catala-logo</dc:title>
+        <dc:date>2021-04-06</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Emile Rolley</dc:title>
+          </cc:Agent>
+        </dc:creator>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     style="display:inline">
     <g
        id="g2802"
-       transform="matrix(49.917645,0,0,49.917645,-116.04935,120.04797)">
+       transform="matrix(49.917645,0,0,49.917645,-116.04935,120.04797)"
+       style="display:inline">
       <g
          id="g1784-7-10-8-9"
          transform="matrix(0.44238954,0,0,0.52657738,-7.246118,-13.245961)">
@@ -271,4 +282,8 @@
       </g>
     </g>
   </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="bg " />
 </svg>
