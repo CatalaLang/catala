@@ -77,18 +77,19 @@ type expr =
   | EEnumInj of expr Pos.marked * EnumConstructor.t * EnumName.t
   | EMatch of expr Pos.marked * EnumName.t * expr Pos.marked EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | EArray of expr Pos.marked list
+  | ErrorOnEmpty of expr Pos.marked
 
 let rec locations_used (e : expr Pos.marked) : LocationSet.t =
   match Pos.unmark e with
   | ELocation l -> LocationSet.singleton (l, Pos.get_position e)
   | EVar _ | ELit _ | EOp _ -> LocationSet.empty
-  | EAbs (_, binder, _) ->
+  | EAbs ((binder, _), _) ->
       let _, body = Bindlib.unmbind binder in
       locations_used body
   | EStruct (_, es) ->
@@ -115,6 +116,7 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
         excepts
   | EArray es ->
       List.fold_left (fun acc e' -> LocationSet.union acc (locations_used e')) LocationSet.empty es
+  | ErrorOnEmpty e' -> locations_used e'
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
@@ -155,7 +157,7 @@ let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
 
 let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
     (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs (pos_binder, b, taus), pos)) (Bindlib.bind_mvar xs e)
+  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =

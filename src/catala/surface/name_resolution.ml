@@ -23,7 +23,7 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
 
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
@@ -501,12 +501,23 @@ let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.
       let rulemap =
         match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
         (* There was already a default definition for this key. If we need it, it is ambiguous *)
-        | Some _ -> Desugared.Ast.ScopeDefMap.add def_key Ambiguous scope_ctxt.default_rulemap
+        | Some old ->
+            Desugared.Ast.ScopeDefMap.add def_key
+              (Ambiguous
+                 ([ Pos.get_position r.rule_name ]
+                 @
+                 match old with
+                 | Ambiguous old -> old
+                 | Unique n -> [ Pos.get_position (Desugared.Ast.RuleName.get_info n) ]))
+              scope_ctxt.default_rulemap
         (* No definition has been set yet for this key *)
         | None -> (
             match r.Ast.rule_label with
             (* This default definition has a label. This is not allowed for unlabeled exceptions *)
-            | Some _ -> Desugared.Ast.ScopeDefMap.add def_key Ambiguous scope_ctxt.default_rulemap
+            | Some _ ->
+                Desugared.Ast.ScopeDefMap.add def_key
+                  (Ambiguous [ Pos.get_position r.rule_name ])
+                  scope_ctxt.default_rulemap
             (* This is a possible default definition for this key. We create and store a fresh
                rulename *)
             | None ->
@@ -564,12 +575,23 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
       let rulemap =
         match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
         (* There was already a default definition for this key. If we need it, it is ambiguous *)
-        | Some _ -> Desugared.Ast.ScopeDefMap.add def_key Ambiguous scope_ctxt.default_rulemap
+        | Some old ->
+            Desugared.Ast.ScopeDefMap.add def_key
+              (Ambiguous
+                 ([ Pos.get_position d.definition_name ]
+                 @
+                 match old with
+                 | Ambiguous old -> old
+                 | Unique n -> [ Pos.get_position (Desugared.Ast.RuleName.get_info n) ]))
+              scope_ctxt.default_rulemap
         (* No definition has been set yet for this key *)
         | None -> (
             match d.Ast.definition_label with
             (* This default definition has a label. This is not allowed for unlabeled exceptions *)
-            | Some _ -> Desugared.Ast.ScopeDefMap.add def_key Ambiguous scope_ctxt.default_rulemap
+            | Some _ ->
+                Desugared.Ast.ScopeDefMap.add def_key
+                  (Ambiguous [ Pos.get_position d.definition_name ])
+                  scope_ctxt.default_rulemap
             (* This is a possible default definition for this key. We create and store a fresh
                rulename *)
             | None ->

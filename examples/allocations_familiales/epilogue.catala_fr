@@ -25,7 +25,7 @@ champ d'application EnfantLePlusÂgé:
 
 
 champ d'application AllocationsFamiliales:
-  définition montant_initial_majoration de enfant sous condition
+  définition montant_initial_métropole_majoration de enfant sous condition
     non (droit_ouvert_majoration de enfant)
   conséquence égal à 0 €
 

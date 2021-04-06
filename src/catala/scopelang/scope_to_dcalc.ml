@@ -215,7 +215,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           match (Pos.unmark e1, new_args) with
           | ELocation l, [ new_arg ] ->
               [
-                tag_with_log_entry new_arg Dcalc.Ast.VarDef
+                tag_with_log_entry new_arg (Dcalc.Ast.VarDef Dcalc.Ast.TAny)
                   (markings l @ [ Pos.same_pos_as "input" e ]);
               ]
           | _ -> new_args
@@ -229,13 +229,13 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           match Pos.unmark e1 with
           | ELocation l ->
               tag_with_log_entry
-                (tag_with_log_entry new_e Dcalc.Ast.VarDef
+                (tag_with_log_entry new_e (Dcalc.Ast.VarDef Dcalc.Ast.TAny)
                    (markings l @ [ Pos.same_pos_as "output" e ]))
                 Dcalc.Ast.EndCall (markings l)
           | _ -> new_e
         in
         Bindlib.box_apply Pos.unmark new_e
-    | EAbs (pos_binder, binder, typ) ->
+    | EAbs ((binder, pos_binder), typ) ->
         let xs, body = Bindlib.unmbind binder in
         let new_xs = Array.map (fun x -> Dcalc.Ast.Var.make (Bindlib.name_of x, Pos.no_pos)) xs in
         let both_xs = Array.map2 (fun x new_x -> (x, new_x)) xs new_xs in
@@ -252,7 +252,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         in
         let binder = Bindlib.bind_mvar new_xs body in
         Bindlib.box_apply
-          (fun b -> Dcalc.Ast.EAbs (pos_binder, b, List.map (translate_typ ctx) typ))
+          (fun b -> Dcalc.Ast.EAbs ((b, pos_binder), List.map (translate_typ ctx) typ))
           binder
     | EDefault (excepts, just, cons) ->
         let just = tag_with_log_entry (translate_expr ctx just) Dcalc.Ast.PosRecordIfTrueBool [] in
@@ -281,6 +281,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))
           (translate_expr ctx cond) (translate_expr ctx et) (translate_expr ctx ef)
     | EOp op -> Bindlib.box (Dcalc.Ast.EOp op)
+    | ErrorOnEmpty e' ->
+        Bindlib.box_apply (fun e' -> Dcalc.Ast.ErrorOnEmpty e') (translate_expr ctx e')
     | EArray es ->
         Bindlib.box_apply
           (fun es -> Dcalc.Ast.EArray es)
@@ -307,15 +309,13 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
       let a_expr = Dcalc.Ast.make_var (a_var, var_def_pos) in
       let merged_expr =
         Bindlib.box_apply
-          (fun merged_expr ->
-            ( Dcalc.Ast.EApp
-                ( (Dcalc.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), Pos.get_position a_name),
-                  [ merged_expr ] ),
-              Pos.get_position merged_expr ))
+          (fun merged_expr -> (Dcalc.Ast.ErrorOnEmpty merged_expr, Pos.get_position a_name))
           (merge_defaults a_expr new_e)
       in
       let merged_expr =
-        tag_with_log_entry merged_expr Dcalc.Ast.VarDef [ (sigma_name, pos_sigma); a_name ]
+        tag_with_log_entry merged_expr
+          (Dcalc.Ast.VarDef (Pos.unmark tau))
+          [ (sigma_name, pos_sigma); a_name ]
       in
 
       let next_e = Dcalc.Ast.make_let_in a_var tau merged_expr next_e in
@@ -358,7 +358,8 @@ let rec translate_rule (ctx : ctx) (rule : Ast.rule) (rest : Ast.rule list)
           (Pos.get_position e)
       in
       let new_e =
-        tag_with_log_entry (translate_expr ctx e) Dcalc.Ast.VarDef
+        tag_with_log_entry (translate_expr ctx e)
+          (Dcalc.Ast.VarDef (Pos.unmark tau))
           [ (sigma_name, pos_sigma); a_name ]
       in
       let silent_var = Dcalc.Ast.Var.make ("_", Pos.no_pos) in

@@ -34,6 +34,71 @@ exception UncomparableDurations
 
 exception ImpossibleDate
 
+type runtime_value =
+  | Unit
+  | Bool of bool
+  | Money of money
+  | Integer of integer
+  | Decimal of decimal
+  | Date of date
+  | Duration of duration
+  | Enum of string list * runtime_value
+  | Struct of string list * (string * runtime_value) list
+  | Unembeddable
+
+let unembeddable _ = Unembeddable
+
+let embed_unit () = Unit
+
+let embed_bool x = Bool x
+
+let embed_money x = Money x
+
+let embed_integer x = Integer x
+
+let embed_decimal x = Decimal x
+
+let embed_date x = Date x
+
+let embed_duration x = Duration x
+
+type source_position = {
+  filename : string;
+  start_line : int;
+  start_column : int;
+  end_line : int;
+  end_column : int;
+  law_headings : string list;
+}
+
+type event =
+  | BeginCall of string list
+  | EndCall of string list
+  | VariableDefinition of string list * runtime_value
+  | DecisionTaken of source_position
+
+let log_ref : event list ref = ref []
+
+let reset_log () = log_ref := []
+
+let retrieve_log () = List.rev !log_ref
+
+let log_begin_call info f x =
+  log_ref := BeginCall info :: !log_ref;
+  f x
+
+let log_end_call info x =
+  log_ref := EndCall info :: !log_ref;
+  x
+
+let log_variable_definition (info : string list) embed (x : 'a) =
+  log_ref := VariableDefinition (info, embed x) :: !log_ref;
+  x
+
+let log_decision_taken pos x =
+  if x then log_ref := DecisionTaken pos :: !log_ref;
+  x
+
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)

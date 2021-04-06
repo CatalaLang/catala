@@ -13,6 +13,10 @@ ans sous réserve que leur rémunération n'excède pas le plafond fixé au deux
 alinéa du présent article.
 
 ```catala
+# Attention: ici la condition de ressources au dessous du plafond est une répétition
+# par rapport au texte de L512-3. On ne remet donc pas le code ici correspondant
+# à cette limitation.
+
 champ d'application PrestationsFamiliales :
   définition âge_l512_3_2 égal à 20
 ```
@@ -34,7 +38,8 @@ législation sur les assurances sociales.
 
 
 ```catala
-# Le programme ne tient pas en compte des avantages en nature
+# Le programme Catala ne tient pas en compte des avantages en nature.
+# TODO: Liane, faire de la recherche juridique sur le sujet.
 ```
 
 ##### Titre 2 : Prestations générales d'entretien
@@ -48,8 +53,10 @@ enfants ouvrent droit à la majoration des allocations familiales est fixé à
 
 ```catala
 champ d'application AllocationsFamiliales :
-  étiquette cas_base_âge_minimum_alinéa_1_l521_3
-  définition âge_minimum_alinéa_1_l521_3 de enfant égal à 14
+  définition âge_minimum_alinéa_1_l521_3_métropole de enfant égal à 14
+
+  définition âge_minimum_alinéa_1_l521_3 de enfant égal à
+    âge_minimum_alinéa_1_l521_3_métropole de enfant
 ```
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article
@@ -71,15 +78,14 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # du décret de 2008 pour des raisons de place seulement.
 champ d'application AllocationFamilialesAvril2008:
   # Âge limite avant décret n° 2008-409 du 28 avril 2008
-  définition âge_minimum_alinéa_1_l521_3 égal à 16
+  définition âge_minimum_alinéa_1_l521_3_métropole égal à 16
 
 champ d'application AllocationsFamiliales :
-  étiquette decret_2008_âge_minimum_alinéa_1_l521_3
-  exception cas_base_âge_minimum_alinéa_1_l521_3
-  définition âge_minimum_alinéa_1_l521_3 de enfant
+  exception
+  définition âge_minimum_alinéa_1_l521_3_métropole de enfant
   sous condition (enfant.date_de_naissance +@ 11 an <=@ |2008-04-30|)
   conséquence égal à
-    version_avril_2008.âge_minimum_alinéa_1_l521_3
+    version_avril_2008.âge_minimum_alinéa_1_l521_3_métropole
 ```
 
 #### [Article R521-2|LEGIARTI000006750608]
@@ -96,7 +102,7 @@ une demande conjointe de partage.
 
 ```catala
 # Le fait que l'allocataire dans le cas d'un commun accord soit celui des
-# deux parents désigné par l'accord est déjà modélisé dans L512-2.
+# deux parents désigné par l'accord est déjà modélisé dans L521-2.
 ```
 
 Lorsque les parents ont désigné un allocataire unique ou fait une demande
@@ -143,7 +149,7 @@ champ d'application AllocationsFamiliales :
       selon (prise_en_compte de enfant) sous forme
       -- Complète : 1,0
       -- Partagée : 0,5
-      # Pas directement dans cet arricle de loi, mais concerne le
+      # Pas directement dans cet article de loi, mais concerne le
       # cas où l'enfant est pris en charge par les services sociaux et
       # la part de l'allocation va également au service social
       -- Zéro: 0,0
@@ -168,8 +174,11 @@ nombre d'enfants à charge est évalué dans les conditions prévues au premier
 alinéa de l'article R. 521-3.
 
 ```catala
-# enfants_à_charge ne contient que des enfants à charge donc rien à formaliser
-# ici
+# Le renvoi ci-dessus ne fait qu'annoncer qu'on va appliquer un système
+# de décote pour garde alternée au système de majorations.
+# Ce renvoi signifie que notre liste enfants_à_charge_droit_ouvert_prestation_familiale
+# qui était utilisée pour la prestation de base est la même que la liste
+# d'enfant utilisée pour le calcul des majorations
 ```
 
 Lorsque le ou les enfants ouvrant droit à ladite majoration sont en résidence

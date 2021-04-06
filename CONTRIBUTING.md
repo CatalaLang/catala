@@ -45,7 +45,6 @@ Please look at the code of other examples to see how to format things properly.
 While formatting the text, don't forget regularly to try and parse your example
 using for instance
 
-
 ```
 make -C examples/foo foo.tex
 ```
@@ -92,13 +91,13 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-Please note that the `ocamlformat` version the this project use is `0.17.0`.
+Please note that the `ocamlformat` version the this project use is `0.18.0`.
 Using another version may cause spurious diffs to appear in your pull requests.
 
 ## Internationalization
 
 The Catala language should be adapted to any legislative text that follows a
-general-to-specifics statutes order. Therefore, there exists  multiple versions
+general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
 Currently, Catala supports English and French legislative text via the

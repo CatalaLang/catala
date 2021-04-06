@@ -42,7 +42,7 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
 
 let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
   match entry with
-  | VarDef -> Format.fprintf fmt ":="
+  | VarDef _ -> Format.fprintf fmt ":="
   | BeginCall -> Format.fprintf fmt "→ "
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
@@ -67,16 +67,26 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
 let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> Format.fprintf fmt "Array.fold_left"
 
+let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list) : unit =
+  Format.fprintf fmt "@[<hov 2>[%a]@]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+       (fun fmt info -> Format.fprintf fmt "\"%a\"" Utils.Uid.MarkedString.format_info info))
+    uids
+
+let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
+  Format.fprintf fmt "@[<hov 2>[%a]@]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+       (fun fmt info -> Format.fprintf fmt "\"%s\"" info))
+    uids
+
 let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit =
   match Pos.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
-  | ErrorOnEmpty -> assert false (* should not happen *)
   | Log (entry, infos) ->
-      Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-           (fun fmt info -> Utils.Uid.MarkedString.format_info fmt info))
+      Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry format_uid_list
         infos
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
@@ -194,7 +204,7 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with
-  | EApp ((EAbs (_, _, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
+  | EApp ((EAbs (_, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
   | _ -> true
 
 let format_exception (fmt : Format.formatter) (exc : except) : unit =
@@ -202,6 +212,7 @@ let format_exception (fmt : Format.formatter) (exc : except) : unit =
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
+  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
 
 let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
     =
@@ -258,7 +269,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "%a %a" format_enum_cons_name c
                (fun fmt e ->
                  match Pos.unmark e with
-                 | EAbs (_, binder, _) ->
+                 | EAbs ((binder, _), _) ->
                      let xs, body = Bindlib.unmbind binder in
                      Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
                        (Format.pp_print_list
@@ -270,7 +281,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
                e))
         (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
-  | EApp ((EAbs (_, binder, taus), _), args) ->
+  | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
@@ -281,7 +292,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@ in@\n" format_var x format_typ
                tau format_with_parens arg))
         xs_tau_arg format_with_parens body
-  | EAbs (_, binder, taus) ->
+  | EAbs ((binder, _), taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       Format.fprintf fmt "@[<hov 2>fun@ %a ->@ %a@]"
@@ -296,9 +307,31 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop D.ErrorOnEmpty), _), [ arg1 ]) ->
-      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ EmptyError ->@ raise NoValueProvided@]"
+  | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [ f ]), _), [ arg ])
+    when !Cli.trace_flag ->
+      Format.fprintf fmt "(log_begin_call@ %a@ %a@ %a)" format_uid_list info format_with_parens f
+        format_with_parens arg
+  | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [ arg1 ]) when !Cli.trace_flag ->
+      Format.fprintf fmt "(log_variable_definition@ %a@ %s@ %a)" format_uid_list info
+        (match tau with
+        | D.TLit D.TUnit -> "embed_unit"
+        | D.TLit D.TBool -> "embed_bool"
+        | D.TLit D.TInt -> "embed_integer"
+        | D.TLit D.TRat -> "embed_decimal"
+        | D.TLit D.TMoney -> "embed_money"
+        | D.TLit D.TDate -> "embed_date"
+        | D.TLit D.TDuration -> "embed_duration"
+        | _ -> "unembeddable")
         format_with_parens arg1
+  | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ]) when !Cli.trace_flag ->
+      Format.fprintf fmt
+        "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
+         end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
+        (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+        (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
+        format_with_parens arg1
+  | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [ arg1 ]) when !Cli.trace_flag ->
+      Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info format_with_parens arg1
   | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
@@ -313,7 +346,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EAssert e' ->
-      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise@ AssertionFailed@]"
+      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
         format_with_parens e'
   | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception exc
   | ECatch (e1, exc, e2) ->

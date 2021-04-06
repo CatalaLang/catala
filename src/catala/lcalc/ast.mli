@@ -30,7 +30,7 @@ type lit =
   | LDate of Runtime.date
   | LDuration of Runtime.duration
 
-type except = ConflictError | EmptyError | Crash
+type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -45,7 +45,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of Pos.t * (expr, expr Pos.marked) Bindlib.mbinder * Dcalc.Ast.typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of Dcalc.Ast.operator

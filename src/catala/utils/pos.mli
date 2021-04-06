@@ -27,6 +27,8 @@ val from_info : string -> int -> int -> int -> int -> t
 
 val overwrite_law_info : t -> string list -> t
 
+val get_law_info : t -> string list
+
 val get_start_line : t -> int
 
 val get_start_column : t -> int

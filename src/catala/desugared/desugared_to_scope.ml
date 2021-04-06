@@ -84,9 +84,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
         let default =
           Bindlib.box_apply
             (fun (default : Scopelang.Ast.expr * Pos.t) ->
-              ( Scopelang.Ast.EApp
-                  ((Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.ErrorOnEmpty), def_pos), [ default ]),
-                def_pos ))
+              (Scopelang.Ast.ErrorOnEmpty default, def_pos))
             default
         in
         Scopelang.Ast.make_abs (Array.of_list [ new_param ]) default def_pos [ typ ] def_pos

@@ -29,8 +29,8 @@
    (bindlib (>= 5.0.1))
    (cmdliner (>= 1.0.4))
    (re (>= 1.9.0))
-   (zarith (>= 1.10))
-   (zarith_stubs_js (>= 0.14.0))
+   (zarith (= 1.11))
+   (zarith_stubs_js (= 0.14.0))
    (dune (>= 2.2))
    (ocamlgraph (>= 1.8.8))
    (calendar (>= 2.04))
@@ -38,6 +38,7 @@
    (benchmark (>= 1.6))
    (js_of_ocaml-ppx (>= 3.8.0))
    (camomile (>= 1.0.2))
+   (hmap (>= 0.8.1))
  )
 )
 

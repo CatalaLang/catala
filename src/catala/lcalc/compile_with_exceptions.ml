@@ -86,12 +86,19 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
         (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
   | D.EAssert e1 ->
       Bindlib.box_apply (fun e1 -> Pos.same_pos_as (A.EAssert e1) e) (translate_expr ctx e1)
+  | D.ErrorOnEmpty arg ->
+      Bindlib.box_apply
+        (fun arg ->
+          Pos.same_pos_as
+            (A.ECatch (arg, A.EmptyError, Pos.same_pos_as (A.ERaise A.NoValueProvided) e))
+            e)
+        (translate_expr ctx arg)
   | D.EApp (e1, args) ->
       Bindlib.box_apply2
         (fun e1 args -> Pos.same_pos_as (A.EApp (e1, args)) e)
         (translate_expr ctx e1)
         (Bindlib.box_list (List.map (translate_expr ctx) args))
-  | D.EAbs (pos_binder, binder, ts) ->
+  | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
         Array.fold_right
@@ -105,8 +112,20 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let new_body = translate_expr ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
       Bindlib.box_apply
-        (fun new_binder -> Pos.same_pos_as (A.EAbs (pos_binder, new_binder, ts)) e)
+        (fun new_binder -> Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
         new_binder
+  | D.EDefault ([ exn ], just, cons) when !Cli.optimize_flag ->
+      Bindlib.box_apply3
+        (fun exn just cons ->
+          Pos.same_pos_as
+            (A.ECatch
+               ( exn,
+                 A.EmptyError,
+                 Pos.same_pos_as
+                   (A.EIfThenElse (just, cons, Pos.same_pos_as (A.ERaise A.EmptyError) e))
+                   e ))
+            e)
+        (translate_expr ctx exn) (translate_expr ctx just) (translate_expr ctx cons)
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 

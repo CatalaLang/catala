@@ -1,7 +1,9 @@
 (library
  (name dcalc)
  (public_name catala.dcalc)
- (libraries bindlib unionFind utils re camomile catala.runtime))
+ (libraries bindlib unionFind utils re camomile catala.runtime)
+ (preprocess
+  (pps visitors.ppx)))
 
 (documentation
  (package catala))
