@@ -32,17 +32,6 @@ let empty_thunked_term : Ast.expr Pos.marked =
        [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
        Pos.no_pos)
 
-let rec type_eq (t1 : A.typ Pos.marked) (t2 : A.typ Pos.marked) : bool =
-  match (Pos.unmark t1, Pos.unmark t2) with
-  | A.TLit tl1, A.TLit tl2 -> tl1 = tl2
-  | A.TTuple (ts1, s1), A.TTuple (ts2, s2) -> (
-      try s1 == s2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false)
-  | A.TEnum (ts1, e1), A.TEnum (ts2, e2) -> (
-      try e1 == e2 && List.for_all2 type_eq ts1 ts2 with Invalid_argument _ -> false)
-  | A.TArray t1, A.TArray t2 -> type_eq t1 t2
-  | A.TArrow (t11, t12), A.TArrow (t21, t22) -> type_eq t11 t12 && type_eq t21 t22
-  | _, _ -> false
-
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
@@ -193,11 +182,11 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                        (* should not happen *))
                      es1 es2
               with Invalid_argument _ -> false))
-    | A.Binop A.Eq, [ EInj (e1, i1, en1, ts1); EInj (e2, i2, en2, ts2) ] ->
+    | A.Binop A.Eq, [ EInj (e1, i1, en1, _ts1); EInj (e2, i2, en2, _ts2) ] ->
         A.ELit
           (LBool
              (try
-                en1 = en2 && List.for_all2 type_eq ts1 ts2 && i1 = i2
+                en1 = en2 && i1 = i2
                 &&
                 match Pos.unmark (evaluate_operator ctx op [ e1; e2 ]) with
                 | A.ELit (LBool b) -> b
