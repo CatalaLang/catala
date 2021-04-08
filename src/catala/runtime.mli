@@ -48,8 +48,9 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string list * runtime_value
+  | Enum of string list * (string * runtime_value)
   | Struct of string list * (string * runtime_value) list
+  | Array of runtime_value Array.t
   | Unembeddable
 
 val unembeddable : 'a -> runtime_value
@@ -67,6 +68,8 @@ val embed_decimal : decimal -> runtime_value
 val embed_date : date -> runtime_value
 
 val embed_duration : duration -> runtime_value
+
+val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {1 Logging} *)
 

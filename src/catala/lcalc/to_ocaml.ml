@@ -167,6 +167,20 @@ let format_enum_cons_name (fmt : Format.formatter) (v : Dcalc.Ast.EnumConstructo
   Format.fprintf fmt "%s"
     (avoid_keywords (to_ascii (Format.asprintf "%a" Dcalc.Ast.EnumConstructor.format_t v)))
 
+let rec typ_embedding_name (fmt : Format.formatter) (ty : D.typ Pos.marked) : unit =
+  match Pos.unmark ty with
+  | D.TLit D.TUnit -> Format.fprintf fmt "embed_unit"
+  | D.TLit D.TBool -> Format.fprintf fmt "embed_bool"
+  | D.TLit D.TInt -> Format.fprintf fmt "embed_integer"
+  | D.TLit D.TRat -> Format.fprintf fmt "embed_decimal"
+  | D.TLit D.TMoney -> Format.fprintf fmt "embed_money"
+  | D.TLit D.TDate -> Format.fprintf fmt "embed_date"
+  | D.TLit D.TDuration -> Format.fprintf fmt "embed_duration"
+  | D.TTuple (_, Some s_name) -> Format.fprintf fmt "embed_%a" format_struct_name s_name
+  | D.TEnum (_, e_name) -> Format.fprintf fmt "embed_%a" format_enum_name e_name
+  | D.TArray ty -> Format.fprintf fmt "embed_array (%a)" typ_embedding_name ty
+  | _ -> Format.fprintf fmt "unembeddable"
+
 let typ_needs_parens (e : Dcalc.Ast.typ Pos.marked) : bool =
   match Pos.unmark e with TArrow _ | TArray _ -> true | _ -> false
 
@@ -312,17 +326,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       Format.fprintf fmt "(log_begin_call@ %a@ %a@ %a)" format_uid_list info format_with_parens f
         format_with_parens arg
   | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [ arg1 ]) when !Cli.trace_flag ->
-      Format.fprintf fmt "(log_variable_definition@ %a@ %s@ %a)" format_uid_list info
-        (match tau with
-        | D.TLit D.TUnit -> "embed_unit"
-        | D.TLit D.TBool -> "embed_bool"
-        | D.TLit D.TInt -> "embed_integer"
-        | D.TLit D.TRat -> "embed_decimal"
-        | D.TLit D.TMoney -> "embed_money"
-        | D.TLit D.TDate -> "embed_date"
-        | D.TLit D.TDuration -> "embed_duration"
-        | _ -> "unembeddable")
-        format_with_parens arg1
+      Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list info
+        typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
   | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ]) when !Cli.trace_flag ->
       Format.fprintf fmt
         "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
@@ -353,28 +358,66 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens e1
         format_exception exc format_with_parens e2
 
+let format_struct_embedding (fmt : Format.formatter)
+    ((struct_name, struct_fields) : D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list)
+    =
+  if List.length struct_fields = 0 then
+    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n" format_struct_name
+      struct_name format_struct_name struct_name
+  else
+    Format.fprintf fmt
+      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Struct([\"%a\"],@ @[<hov 2>[%a]@])@]@\n@\n"
+      format_struct_name struct_name format_struct_name struct_name D.StructName.format_t
+      struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
+         (fun _fmt (struct_field, struct_field_type) ->
+           Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" D.StructFieldName.format_t struct_field
+             typ_embedding_name struct_field_type format_struct_field_name struct_field))
+      struct_fields
+
+let format_enum_embedding (fmt : Format.formatter)
+    ((enum_name, enum_cases) : D.EnumName.t * (D.EnumConstructor.t * D.typ Pos.marked) list) =
+  if List.length enum_cases = 0 then
+    Format.fprintf fmt "let embed_%a (_: %a) : runtime_value = Unit@\n@\n" format_enum_name
+      enum_name format_enum_name enum_name
+  else
+    Format.fprintf fmt
+      "@[<hov 2>let embed_%a (x: %a) : runtime_value =@ Enum([\"%a\"],@ @[<hov 2>match x with@ \
+       %a@])@]@\n\
+       @\n"
+      format_enum_name enum_name format_enum_name enum_name D.EnumName.format_t enum_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun _fmt (enum_cons, enum_cons_type) ->
+           Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]" format_enum_cons_name enum_cons
+             D.EnumConstructor.format_t enum_cons typ_embedding_name enum_cons_type))
+      enum_cases
+
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     if List.length struct_fields = 0 then
       Format.fprintf fmt "type %a = unit" format_struct_name struct_name
     else
-      Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" format_struct_name struct_name
+      Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}@\n@\n" format_struct_name struct_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "%a:@ %a;" format_struct_field_name struct_field format_typ
                struct_field_type))
-        struct_fields
+        struct_fields;
+    if !Cli.trace_flag then format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n" format_enum_name enum_name
+    Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
              enum_cons_type))
-      enum_cons
+      enum_cons;
+    if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
     List.exists

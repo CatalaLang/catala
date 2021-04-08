@@ -42,8 +42,9 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string list * runtime_value
+  | Enum of string list * (string * runtime_value)
   | Struct of string list * (string * runtime_value) list
+  | Array of runtime_value Array.t
   | Unembeddable
 
 let unembeddable _ = Unembeddable
@@ -61,6 +62,8 @@ let embed_decimal x = Decimal x
 let embed_date x = Date x
 
 let embed_duration x = Duration x
+
+let embed_array f x = Array (Array.map f x)
 
 type source_position = {
   filename : string;

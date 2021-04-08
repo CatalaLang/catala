@@ -83,9 +83,9 @@ class type log_event =
     method loggedValue : Js.Unsafe.any Js.prop
   end
 
-let embed_to_js (v : runtime_value) : Js.Unsafe.any =
+let rec embed_to_js (v : runtime_value) : Js.Unsafe.any =
   match v with
-  | Unit -> Js.Unsafe.inject Js.null
+  | Unit -> Js.Unsafe.inject Js.undefined
   | Bool b -> Js.Unsafe.inject (Js.bool b)
   | Integer i -> Js.Unsafe.inject (integer_to_int i)
   | Decimal d -> Js.Unsafe.inject (decimal_to_float d)
@@ -103,8 +103,38 @@ let embed_to_js (v : runtime_value) : Js.Unsafe.any =
   | Duration d ->
       let days, months, years = duration_to_days_months_years d in
       Js.Unsafe.inject (Js.string (Printf.sprintf "%dD%dM%dY" days months years))
-  | Struct _ -> Js.Unsafe.inject Js.null
-  | Enum _ -> Js.Unsafe.inject Js.null
+  | Struct (name, fields) ->
+      Js.Unsafe.inject
+        (object%js
+           val mutable structName =
+             if List.length name = 1 then Js.Unsafe.inject (Js.string (List.hd name))
+             else Js.Unsafe.inject (Js.array (Array.of_list (List.map Js.string name)))
+
+           val mutable structFields =
+             Js.Unsafe.inject
+               (Js.array
+                  (Array.of_list
+                     (List.map
+                        (fun (name, v) ->
+                          object%js
+                            val mutable fieldName = Js.Unsafe.inject (Js.string name)
+
+                            val mutable fieldValue = Js.Unsafe.inject (embed_to_js v)
+                          end)
+                        fields)))
+        end)
+  | Enum (name, (case, v)) ->
+      Js.Unsafe.inject
+        (object%js
+           val mutable enumName =
+             if List.length name = 1 then Js.Unsafe.inject (Js.string (List.hd name))
+             else Js.Unsafe.inject (Js.array (Array.of_list (List.map Js.string name)))
+
+           val mutable enumCase = Js.Unsafe.inject (Js.string case)
+
+           val mutable enumPayload = Js.Unsafe.inject (embed_to_js v)
+        end)
+  | Array vs -> Js.Unsafe.inject (Js.array (Array.map embed_to_js vs))
   | Unembeddable -> Js.Unsafe.inject Js.null
 
 let _ =
