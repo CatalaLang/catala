@@ -398,7 +398,7 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     if List.length struct_fields = 0 then
-      Format.fprintf fmt "type %a = unit" format_struct_name struct_name
+      Format.fprintf fmt "type %a = unit@\n@\n" format_struct_name struct_name
     else
       Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}@\n@\n" format_struct_name struct_name
         (Format.pp_print_list
@@ -410,13 +410,16 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
     if !Cli.trace_flag then format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
-    Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name enum_name
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (enum_cons, enum_cons_type) ->
-           Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
-             enum_cons_type))
-      enum_cons;
+    if List.length enum_cons = 0 then
+      Format.fprintf fmt "type %a = unit@\n@\n" format_enum_name enum_name
+    else
+      Format.fprintf fmt "type %a =@\n@[<hov 2>  %a@]@\n@\n" format_enum_name enum_name
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           (fun _fmt (enum_cons, enum_cons_type) ->
+             Format.fprintf fmt "| %a@ of@ %a" format_enum_cons_name enum_cons format_typ
+               enum_cons_type))
+        enum_cons;
     if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
