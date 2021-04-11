@@ -555,16 +555,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 204;
+                       start_line = 335;
                        start_column = 5;
-                       end_line = 206;
+                       end_line = 337;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
@@ -577,16 +577,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 186;
+                       start_line = 317;
                        start_column = 5;
-                       end_line = 195;
+                       end_line = 326;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
@@ -603,16 +603,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 165;
+                       start_line = 296;
                        start_column = 5;
-                       end_line = 167;
+                       end_line = 298;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
@@ -625,16 +625,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 147;
+                       start_line = 278;
                        start_column = 5;
-                       end_line = 156;
+                       end_line = 287;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
@@ -651,16 +651,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 126;
+                       start_line = 257;
                        start_column = 5;
-                       end_line = 128;
+                       end_line = 259;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2019 1 1
@@ -673,16 +673,16 @@ let smic (smic_in : smic_in) =
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 108;
+                       start_line = 239;
                        start_column = 5;
-                       end_line = 117;
+                       end_line = 248;
                        end_column = 6;
                        law_headings =
                          [
                            "Article 1";
                            "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du \
                             salaire minimum de croissance";
-                           "Décrets divers";
+                           "Montant du salaire minimum de croissance";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2019 1 1
@@ -818,9 +818,32 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 49;
+                       start_line = 68;
                        start_column = 5;
-                       end_line = 50;
+                       end_line = 69;
+                       end_column = 34;
+                       law_headings =
+                         [
+                           "Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021\n\
+                            relative à la revalorisation au 1er avril 2021 des prestations\n\
+                            familiales servies en métropole, en Guadeloupe, en Guyane,\n\
+                            en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin\n\
+                            et dans le département de Mayotte";
+                           "Montant de la base mensuelle des allocations familiales";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2021 4 1
+                     && date_courante_ <@ date_of_numbers 2022 4 1)
+                 then money_of_cents_string "41481"
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./decrets_divers.catala_fr";
+                       start_line = 48;
+                       start_column = 5;
+                       end_line = 49;
                        end_column = 34;
                        law_headings =
                          [
@@ -830,7 +853,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                             Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et \
                             dans\n\
                             le département de Mayotte";
-                           "Instructions ministérielles";
+                           "Montant de la base mensuelle des allocations familiales";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2020 4 1
@@ -842,9 +865,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 25;
+                       start_line = 24;
                        start_column = 5;
-                       end_line = 26;
+                       end_line = 25;
                        end_column = 34;
                        law_headings =
                          [
@@ -853,7 +876,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                             à la revalorisation au 1er avril 2019 des prestations familiales \
                             servies en\n\
                             métropole";
-                           "Instructions ministérielles";
+                           "Montant de la base mensuelle des allocations familiales";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2019 4 1
@@ -1835,9 +1858,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 240;
+                       start_line = 216;
                        start_column = 5;
-                       end_line = 240;
+                       end_line = 216;
                        end_column = 69;
                        law_headings =
                          [
@@ -1846,7 +1869,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             ressources de certaines prestations familiales et aux tranches du \
                             barème applicable au recouvrement des indus et à la saisie des \
                             prestations";
-                           "Décrets divers";
+                           "Montant des plafonds de ressources";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
@@ -1862,9 +1885,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 85;
+                       start_line = 180;
                        start_column = 5;
-                       end_line = 85;
+                       end_line = 180;
                        end_column = 69;
                        law_headings =
                          [
@@ -1876,7 +1899,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             en Guadeloupe, en Guyane, en Martinique, à La Réunion, à \
                             Saint-Barthélemy,\n\
                             à Saint-Martin et à Mayotte";
-                           "Instructions ministérielles";
+                           "Montant des plafonds de ressources";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
@@ -1884,6 +1907,67 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    money_of_cents_string "8083100"
                    +$ money_of_cents_string "577500"
+                      *$ decimal_of_integer
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./decrets_divers.catala_fr";
+                       start_line = 143;
+                       start_column = 5;
+                       end_line = 143;
+                       end_column = 69;
+                       law_headings =
+                         [
+                           "Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre \
+                            2018\n\
+                            relative à la revalorisation au 1er janvier 2019 des plafonds de \
+                            ressources\n\
+                            d’attribution de certaines prestations familiales servies en \
+                            métropole, en\n\
+                            Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy,\n\
+                            à Saint-Martin et à Mayotte";
+                           "Montant des plafonds de ressources";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2019 1 1
+                     && date_courante_ <=@ date_of_numbers 2019 12 31)
+                 then
+                   money_of_cents_string "7955800"
+                   +$ money_of_cents_string "568400"
+                      *$ decimal_of_integer
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./decrets_divers.catala_fr";
+                       start_line = 106;
+                       start_column = 5;
+                       end_line = 106;
+                       end_column = 69;
+                       law_headings =
+                         [
+                           "CIRCULAIRE INTERMINISTERIELLE N° DSS/SD2B/2017/352 du 22 décembre 2017\n\
+                            relative à la revalorisation au 1er janvier 2018 des plafonds de \
+                            ressources\n\
+                            d’attribution de certaines prestations familiales servies en \
+                            métropole, en\n\
+                            Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy,\n\
+                            à Saint-Martin et à Mayotte";
+                           "Montant des plafonds de ressources";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2018 1 1
+                     && date_courante_ <=@ date_of_numbers 2018 12 31)
+                 then
+                   money_of_cents_string "7877000"
+                   +$ money_of_cents_string "562800"
                       *$ decimal_of_integer
                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                  else raise EmptyError);
@@ -1927,9 +2011,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 224;
+                       start_line = 200;
                        start_column = 5;
-                       end_line = 224;
+                       end_line = 200;
                        end_column = 69;
                        law_headings =
                          [
@@ -1938,7 +2022,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             ressources de certaines prestations familiales et aux tranches du \
                             barème applicable au recouvrement des indus et à la saisie des \
                             prestations";
-                           "Décrets divers";
+                           "Montant des plafonds de ressources";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2021 1 1
@@ -1954,9 +2038,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./decrets_divers.catala_fr";
-                       start_line = 78;
+                       start_line = 173;
                        start_column = 5;
-                       end_line = 78;
+                       end_line = 173;
                        end_column = 69;
                        law_headings =
                          [
@@ -1968,7 +2052,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                             en Guadeloupe, en Guyane, en Martinique, à La Réunion, à \
                             Saint-Barthélemy,\n\
                             à Saint-Martin et à Mayotte";
-                           "Instructions ministérielles";
+                           "Montant des plafonds de ressources";
                          ];
                      }
                      (date_courante_ >=@ date_of_numbers 2020 1 1
@@ -1976,6 +2060,67 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    money_of_cents_string "5775900"
                    +$ money_of_cents_string "577500"
+                      *$ decimal_of_integer
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./decrets_divers.catala_fr";
+                       start_line = 136;
+                       start_column = 5;
+                       end_line = 136;
+                       end_column = 69;
+                       law_headings =
+                         [
+                           "Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre \
+                            2018\n\
+                            relative à la revalorisation au 1er janvier 2019 des plafonds de \
+                            ressources\n\
+                            d’attribution de certaines prestations familiales servies en \
+                            métropole, en\n\
+                            Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy,\n\
+                            à Saint-Martin et à Mayotte";
+                           "Montant des plafonds de ressources";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2019 1 1
+                     && date_courante_ <=@ date_of_numbers 2019 12 31)
+                 then
+                   money_of_cents_string "5684900"
+                   +$ money_of_cents_string "568400"
+                      *$ decimal_of_integer
+                           (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./decrets_divers.catala_fr";
+                       start_line = 99;
+                       start_column = 5;
+                       end_line = 99;
+                       end_column = 69;
+                       law_headings =
+                         [
+                           "CIRCULAIRE INTERMINISTERIELLE N° DSS/SD2B/2017/352 du 22 décembre 2017\n\
+                            relative à la revalorisation au 1er janvier 2018 des plafonds de \
+                            ressources\n\
+                            d’attribution de certaines prestations familiales servies en \
+                            métropole, en\n\
+                            Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy,\n\
+                            à Saint-Martin et à Mayotte";
+                           "Montant des plafonds de ressources";
+                         ];
+                     }
+                     (date_courante_ >=@ date_of_numbers 2018 1 1
+                     && date_courante_ <=@ date_of_numbers 2018 12 31)
+                 then
+                   money_of_cents_string "5628600"
+                   +$ money_of_cents_string "562800"
                       *$ decimal_of_integer
                            (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                  else raise EmptyError);
