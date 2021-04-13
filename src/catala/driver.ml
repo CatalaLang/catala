@@ -131,7 +131,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         let scope_uid =
           match (ex_scope, backend) with
           | None, Cli.Run -> Errors.raise_error "No scope was provided for execution."
-          | None, _ -> snd (Desugared.Ast.IdentMap.choose ctxt.scope_idmap)
+          | None, _ ->
+              snd
+                (try Desugared.Ast.IdentMap.choose ctxt.scope_idmap
+                 with Not_found ->
+                   Errors.raise_error (Printf.sprintf "There isn't any scope inside the program."))
           | Some name, _ -> (
               match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
               | None ->
