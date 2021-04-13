@@ -5,6 +5,12 @@
  (modules driver))
 
 (library
+ (name catala_lib)
+ (public_name catala.catalaLib)
+ (libraries catala)
+ (modules catala_lib))
+
+(library
  (name runtime)
  (public_name catala.runtime)
  (libraries calendar zarith zarith_stubs_js)
