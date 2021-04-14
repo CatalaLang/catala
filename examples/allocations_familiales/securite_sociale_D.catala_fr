@@ -18,6 +18,9 @@ champ d'application AllocationsFamiliales :
   définition montant_initial_base égal à
     montant_initial_base_deuxième_enfant +€
     montant_initial_base_troisième_enfant_et_plus
+
+  définition montant_initial_majoration de enfant égal à
+    montant_initial_métropole_majoration de enfant
 ```
 
 1° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -32,12 +35,12 @@ champ d'application AllocationsFamiliales sous condition
   ressources_ménage <=€ plafond_I_d521_3:
 
   définition montant_initial_base_deuxième_enfant égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 32 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (prestations_familiales.base_mensuelle *€ 41 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
@@ -72,12 +75,12 @@ champ d'application AllocationsFamiliales sous condition
   (ressources_ménage <=€ plafond_II_d521_3):
 
   définition montant_initial_base_deuxième_enfant égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 16 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (prestations_familiales.base_mensuelle *€ 20,5 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
@@ -109,12 +112,12 @@ b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
 champ d'application AllocationsFamiliales sous condition
   ressources_ménage >€ plafond_II_d521_3:
   définition montant_initial_base_deuxième_enfant égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 2
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 8 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
-    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 3
+    si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (prestations_familiales.base_mensuelle *€ 10,25 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
@@ -148,6 +151,11 @@ définie à l'alinéa précédent et, d'autre part, le montant des ressources.
 
 ```catala
 champ d'application AllocationsFamiliales :
+
+  # Attention : cette formule ne marche que si la diminution des
+  # allocations se fait d'un facteur 1/2 à chaque passage de plafond de
+  # ressources.
+
   exception
   définition complément_dégressif de allocation
   sous condition
@@ -179,6 +187,16 @@ champ d'application AllocationsFamiliales :
 
 #### [Article D521-2|LEGIARTI000030680324]
 
+```catala
+# L'allocation forfaitaire totale est la somme de toutes les allocations
+# forfaitaires distribuées à chaque enfant du ménage
+champ d'application AllocationsFamiliales :
+  définition montant_versé_forfaitaire égal à
+    montant_versé_forfaitaire_par_enfant *€
+    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
+      droit_ouvert_forfaitaire de enfant)
+```
+
 I.-Le montant mensuel de l'allocation forfaitaire prévue au deuxième alinéa de
 l'article L. 521-1 est défini selon le barème suivant :
 
@@ -188,13 +206,15 @@ mensuel de l'allocation forfaitaire est fixé à 20,234 % de la base mensuelle
 de calcul des allocations familiales par enfant ;
 
 ```catala
+# TODO Liane: la syntaxe de la phrase est très ambiguë, on a l'impression que
+# c'est la BMAF qui est "par enfant" et pas le montant de l'allocation forfaitaire
+# Erreur de rédaction ? Problème juridique ?
+
 champ d'application AllocationsFamiliales :
-  définition montant_versé_forfaitaire sous condition
+  définition montant_versé_forfaitaire_par_enfant sous condition
     ressources_ménage <=€ plafond_I_d521_3
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 20,234 %) *€
-    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
-      droit_ouvert_forfaitaire de enfant)
+    (prestations_familiales.base_mensuelle *€ 20,234 %)
 ```
 
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -205,13 +225,11 @@ familiales par enfant ;
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition montant_versé_forfaitaire sous condition
+  définition montant_versé_forfaitaire_par_enfant sous condition
     (ressources_ménage >€ plafond_I_d521_3) et
     (ressources_ménage <=€ plafond_II_d521_3)
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 10,117 %) *€
-    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
-      droit_ouvert_forfaitaire de enfant)
+    (prestations_familiales.base_mensuelle *€ 10,117 %)
 ```
 
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -221,12 +239,10 @@ des allocations familiales par enfant.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition montant_versé_forfaitaire sous condition
+  définition montant_versé_forfaitaire_par_enfant sous condition
     ressources_ménage >€ plafond_II_d521_3
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 5,059 %) *€
-    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
-      droit_ouvert_forfaitaire de enfant)
+    (prestations_familiales.base_mensuelle *€ 5,059 %)
 ```
 
 II.-En application du sixième alinéa de l'article L. 521-1, le montant mensuel
@@ -240,10 +256,28 @@ l'alinéa précédent et, d'autre part, le montant des ressources.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition montant_versé_complément_pour_forfaitaire égal à
-    si droit_ouvert_complément alors
-      (complément_dégressif de montant_versé_forfaitaire)
-    sinon 0 €
+  exception
+  définition montant_versé_complément_pour_forfaitaire
+  sous condition
+    (ressources_ménage >€ plafond_I_d521_3) et
+    (ressources_ménage <=€ plafond_I_d521_3 +€
+      montant_versé_forfaitaire *€ 12,0 )
+  conséquence égal à
+    (plafond_I_d521_3 +€ montant_versé_forfaitaire *€ 12,0
+      -€ ressources_ménage) *€ (1,0 /. 12,0)
+
+  exception
+  définition montant_versé_complément_pour_forfaitaire
+  sous condition
+    (ressources_ménage >€ plafond_II_d521_3) et
+    (ressources_ménage <=€ plafond_II_d521_3 +€
+      montant_versé_forfaitaire *€ 12,0)
+  conséquence égal à
+    (plafond_II_d521_3 +€ montant_versé_forfaitaire *€ 12,0
+      -€ ressources_ménage) *€ (1,0 /. 12,0)
+
+  # Dans les autres cas, le dépassement est nul
+  définition montant_versé_complément_pour_forfaitaire égal à 0 €
 ```
 
 III.-Le nombre minimum d'enfants à charge mentionné au deuxième alinéa de
@@ -282,6 +316,11 @@ l'évolution en moyenne annuelle des prix à la consommation hors tabac de
 l'année civile de référence, par arrêté des ministres chargés de la sécurité
 sociale, du budget et de l'agriculture.
 
+```catala
+# Nota : ces montants sont en réalités remis à jour chaque année par des décrets,
+# voir decrets_divers.catala_fr
+```
+
 #### Livre 7 : Régimes divers - Dispositions diverses
 
 ##### Titre 5 : Départements d'outre-mer
@@ -318,51 +357,32 @@ champ d'application AllocationsFamiliales :
   conséquence égal à 0€
 
   définition montant_initial_base_premier_enfant sous condition
-    (ressources_ménage <=€ plafond_I_d521_3) et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence égal à
     prestations_familiales.base_mensuelle *€ 5,88 %
-  définition montant_initial_base_premier_enfant sous condition
-    (ressources_ménage >€ plafond_I_d521_3) et
-    (ressources_ménage <=€ plafond_II_d521_3) et
-    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
-  conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 5,88 %) *€ 50%
-  définition montant_initial_base_premier_enfant sous condition
-    (ressources_ménage >€ plafond_II_d521_3) et
-    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
-  conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 5,88 %) *€ 25%
-
-
-# Question : le complément dégressif s'applique-t-il ici ? Car le complément
-# est basé sur les plafonds du taux de base qui ne s'appliquent pas ici,
-# donc il serait logique que le plafond ne s'applique pas.
 ```
-
+informatique
 La majoration des allocations familiales pour un seul enfant à charge est
 fixée à 3,69 p. 100 de la base mensuelle prévue à l'article L. 755-3 à
 partir de onze ans et à 5,67 p. 100 à partir de seize ans.
 
 ```catala
 champ d'application AllocationsFamiliales :
-
-  définition âge_minimum_alinéa_1_l521_3_outre_mer de enfant égal à 11
-
-  exception
-  définition âge_minimum_alinéa_1_l521_3 de enfant
-  sous condition prestations_familiales.régime_outre_mer_l751_1
-  conséquence égal à âge_minimum_alinéa_1_l521_3_outre_mer de enfant
-
-  définition montant_initial_majoration de enfant égal à
-    montant_initial_métropole_majoration de enfant
-
-  exception définition montant_initial_majoration de enfant
+ exception définition montant_initial_majoration de enfant
   sous condition
     (droit_ouvert_majoration de enfant) et
     prestations_familiales.régime_outre_mer_l751_1 et
-    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
+    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
+    (enfant.âge >= 11 et enfant.âge < 16)
   conséquence égal à
-    prestations_familiales.base_mensuelle *€
-    (si enfant.âge >= 16 alors 5,67 % sinon 3,69 %)
+    prestations_familiales.base_mensuelle *€ 3,69 %
+
+ exception définition montant_initial_majoration de enfant
+  sous condition
+    (droit_ouvert_majoration de enfant) et
+    prestations_familiales.régime_outre_mer_l751_1 et
+    (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
+    (enfant.âge >= 16)
+  conséquence égal à
+    prestations_familiales.base_mensuelle *€ 5,67 %
 ```

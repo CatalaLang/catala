@@ -86,7 +86,7 @@ champ d'application Test3:
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Guyane
   règle f.personne_charge_effective_permanente_est_parent rempli
-  assertion f.montant_versé = 12,18€
+  assertion f.montant_versé = 24,35 €
 
 déclaration champ d'application Test4:
   contexte f champ d'application InterfaceAllocationsFamiliales

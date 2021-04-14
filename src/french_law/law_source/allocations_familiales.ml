@@ -227,29 +227,21 @@ let embed_prestations_familiales_in (x : prestations_familiales_in) : runtime_va
         ("base_mensuelle_in", unembeddable x.base_mensuelle_in);
       ] )
 
-type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_metropole_out : integer }
+type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_out : integer }
 
 let embed_allocation_familiales_avril2008_out (x : allocation_familiales_avril2008_out) :
     runtime_value =
   Struct
     ( [ "AllocationFamilialesAvril2008_out" ],
-      [
-        ( "âge_minimum_alinéa_1_l521_3_métropole_out",
-          embed_integer x.age_minimum_alinea_1_l521_3_metropole_out );
-      ] )
+      [ ("âge_minimum_alinéa_1_l521_3_out", embed_integer x.age_minimum_alinea_1_l521_3_out) ] )
 
-type allocation_familiales_avril2008_in = {
-  age_minimum_alinea_1_l521_3_metropole_in : unit -> integer;
-}
+type allocation_familiales_avril2008_in = { age_minimum_alinea_1_l521_3_in : unit -> integer }
 
 let embed_allocation_familiales_avril2008_in (x : allocation_familiales_avril2008_in) :
     runtime_value =
   Struct
     ( [ "AllocationFamilialesAvril2008_in" ],
-      [
-        ( "âge_minimum_alinéa_1_l521_3_métropole_in",
-          unembeddable x.age_minimum_alinea_1_l521_3_metropole_in );
-      ] )
+      [ ("âge_minimum_alinéa_1_l521_3_in", unembeddable x.age_minimum_alinea_1_l521_3_in) ] )
 
 type enfant_le_plus_age_out = { enfants_out : enfant array; le_plus_age_out : enfant }
 
@@ -293,6 +285,7 @@ type allocations_familiales_out = {
   montant_avec_garde_alternee_base_out : money;
   montant_verse_base_out : money;
   droit_ouvert_forfaitaire_out : enfant -> bool;
+  montant_verse_forfaitaire_par_enfant_out : money;
   montant_verse_forfaitaire_out : money;
   droit_ouvert_majoration_out : enfant -> bool;
   montant_initial_metropole_majoration_out : enfant -> money;
@@ -306,8 +299,6 @@ type allocations_familiales_out = {
   montant_verse_complement_pour_forfaitaire_out : money;
   nombre_enfants_l521_1_out : integer;
   age_minimum_alinea_1_l521_3_out : enfant -> integer;
-  age_minimum_alinea_1_l521_3_metropole_out : enfant -> integer;
-  age_minimum_alinea_1_l521_3_outre_mer_out : enfant -> integer;
   nombre_enfants_alinea_2_l521_3_out : integer;
   est_enfant_le_plus_age_out : enfant -> bool;
   plafond_I_d521_3_out : money;
@@ -345,6 +336,8 @@ let embed_allocations_familiales_out (x : allocations_familiales_out) : runtime_
         ("montant_avec_garde_alternée_base_out", embed_money x.montant_avec_garde_alternee_base_out);
         ("montant_versé_base_out", embed_money x.montant_verse_base_out);
         ("droit_ouvert_forfaitaire_out", unembeddable x.droit_ouvert_forfaitaire_out);
+        ( "montant_versé_forfaitaire_par_enfant_out",
+          embed_money x.montant_verse_forfaitaire_par_enfant_out );
         ("montant_versé_forfaitaire_out", embed_money x.montant_verse_forfaitaire_out);
         ("droit_ouvert_majoration_out", unembeddable x.droit_ouvert_majoration_out);
         ( "montant_initial_métropole_majoration_out",
@@ -363,10 +356,6 @@ let embed_allocations_familiales_out (x : allocations_familiales_out) : runtime_
           embed_money x.montant_verse_complement_pour_forfaitaire_out );
         ("nombre_enfants_l521_1_out", embed_integer x.nombre_enfants_l521_1_out);
         ("âge_minimum_alinéa_1_l521_3_out", unembeddable x.age_minimum_alinea_1_l521_3_out);
-        ( "âge_minimum_alinéa_1_l521_3_métropole_out",
-          unembeddable x.age_minimum_alinea_1_l521_3_metropole_out );
-        ( "âge_minimum_alinéa_1_l521_3_outre_mer_out",
-          unembeddable x.age_minimum_alinea_1_l521_3_outre_mer_out );
         ("nombre_enfants_alinéa_2_l521_3_out", embed_integer x.nombre_enfants_alinea_2_l521_3_out);
         ("est_enfant_le_plus_âgé_out", unembeddable x.est_enfant_le_plus_age_out);
         ("plafond_I_d521_3_out", embed_money x.plafond_I_d521_3_out);
@@ -395,6 +384,7 @@ type allocations_familiales_in = {
   montant_avec_garde_alternee_base_in : unit -> money;
   montant_verse_base_in : unit -> money;
   droit_ouvert_forfaitaire_in : unit -> enfant -> bool;
+  montant_verse_forfaitaire_par_enfant_in : unit -> money;
   montant_verse_forfaitaire_in : unit -> money;
   droit_ouvert_majoration_in : unit -> enfant -> bool;
   montant_initial_metropole_majoration_in : unit -> enfant -> money;
@@ -408,8 +398,6 @@ type allocations_familiales_in = {
   montant_verse_complement_pour_forfaitaire_in : unit -> money;
   nombre_enfants_l521_1_in : unit -> integer;
   age_minimum_alinea_1_l521_3_in : unit -> enfant -> integer;
-  age_minimum_alinea_1_l521_3_metropole_in : unit -> enfant -> integer;
-  age_minimum_alinea_1_l521_3_outre_mer_in : unit -> enfant -> integer;
   nombre_enfants_alinea_2_l521_3_in : unit -> integer;
   est_enfant_le_plus_age_in : unit -> enfant -> bool;
   plafond_I_d521_3_in : unit -> money;
@@ -447,6 +435,8 @@ let embed_allocations_familiales_in (x : allocations_familiales_in) : runtime_va
         ("montant_avec_garde_alternée_base_in", unembeddable x.montant_avec_garde_alternee_base_in);
         ("montant_versé_base_in", unembeddable x.montant_verse_base_in);
         ("droit_ouvert_forfaitaire_in", unembeddable x.droit_ouvert_forfaitaire_in);
+        ( "montant_versé_forfaitaire_par_enfant_in",
+          unembeddable x.montant_verse_forfaitaire_par_enfant_in );
         ("montant_versé_forfaitaire_in", unembeddable x.montant_verse_forfaitaire_in);
         ("droit_ouvert_majoration_in", unembeddable x.droit_ouvert_majoration_in);
         ( "montant_initial_métropole_majoration_in",
@@ -465,10 +455,6 @@ let embed_allocations_familiales_in (x : allocations_familiales_in) : runtime_va
           unembeddable x.montant_verse_complement_pour_forfaitaire_in );
         ("nombre_enfants_l521_1_in", unembeddable x.nombre_enfants_l521_1_in);
         ("âge_minimum_alinéa_1_l521_3_in", unembeddable x.age_minimum_alinea_1_l521_3_in);
-        ( "âge_minimum_alinéa_1_l521_3_métropole_in",
-          unembeddable x.age_minimum_alinea_1_l521_3_metropole_in );
-        ( "âge_minimum_alinéa_1_l521_3_outre_mer_in",
-          unembeddable x.age_minimum_alinea_1_l521_3_outre_mer_in );
         ("nombre_enfants_alinéa_2_l521_3_in", unembeddable x.nombre_enfants_alinea_2_l521_3_in);
         ("est_enfant_le_plus_âgé_in", unembeddable x.est_enfant_le_plus_age_in);
         ("plafond_I_d521_3_in", unembeddable x.plafond_I_d521_3_in);
@@ -717,17 +703,17 @@ let smic (smic_in : smic_in) =
 
 let allocation_familiales_avril2008
     (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) =
-  let age_minimum_alinea_1_l521_3_metropole_ : unit -> integer =
-    allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_metropole_in
+  let age_minimum_alinea_1_l521_3_ : unit -> integer =
+    allocation_familiales_avril2008_in.age_minimum_alinea_1_l521_3_in
   in
-  let age_minimum_alinea_1_l521_3_metropole_ : integer =
+  let age_minimum_alinea_1_l521_3_ : integer =
     log_variable_definition
-      [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3_métropole" ]
+      [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3" ]
       embed_integer
-      (try try age_minimum_alinea_1_l521_3_metropole_ () with EmptyError -> integer_of_string "16"
+      (try try age_minimum_alinea_1_l521_3_ () with EmptyError -> integer_of_string "16"
        with EmptyError -> raise NoValueProvided)
   in
-  { age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_ }
+  { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   let enfants_ : unit -> enfant array = enfant_le_plus_age_in.enfants_in in
@@ -972,9 +958,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                log_decision_taken
                  {
                    filename = "./securite_sociale_R.catala_fr";
-                   start_line = 219;
+                   start_line = 216;
                    start_column = 18;
-                   end_line = 219;
+                   end_line = 216;
                    end_column = 41;
                    law_headings =
                      [
@@ -1180,6 +1166,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let droit_ouvert_forfaitaire_ : unit -> enfant -> bool =
     allocations_familiales_in.droit_ouvert_forfaitaire_in
   in
+  let montant_verse_forfaitaire_par_enfant_ : unit -> money =
+    allocations_familiales_in.montant_verse_forfaitaire_par_enfant_in
+  in
   let montant_verse_forfaitaire_ : unit -> money =
     allocations_familiales_in.montant_verse_forfaitaire_in
   in
@@ -1218,12 +1207,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let age_minimum_alinea_1_l521_3_ : unit -> enfant -> integer =
     allocations_familiales_in.age_minimum_alinea_1_l521_3_in
-  in
-  let age_minimum_alinea_1_l521_3_metropole_ : unit -> enfant -> integer =
-    allocations_familiales_in.age_minimum_alinea_1_l521_3_metropole_in
-  in
-  let age_minimum_alinea_1_l521_3_outre_mer_ : unit -> enfant -> integer =
-    allocations_familiales_in.age_minimum_alinea_1_l521_3_outre_mer_in
   in
   let nombre_enfants_alinea_2_l521_3_ : unit -> integer =
     allocations_familiales_in.nombre_enfants_alinea_2_l521_3_in
@@ -1602,17 +1585,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       (try try nombre_enfants_l521_1_ () with EmptyError -> integer_of_string "3"
        with EmptyError -> raise NoValueProvided)
   in
-  let age_minimum_alinea_1_l521_3_outre_mer_ : enfant -> integer =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_outre_mer" ]
-      unembeddable
-      (try
-         try age_minimum_alinea_1_l521_3_outre_mer_ ()
-         with EmptyError -> (
-           fun (param_ : enfant) ->
-             try integer_of_string "11" with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
-  in
   let nombre_enfants_alinea_2_l521_3_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3" ]
@@ -1626,10 +1598,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       (log_begin_call
          [ "AllocationsFamiliales"; "version_avril_2008"; "AllocationFamilialesAvril2008" ]
          allocation_familiales_avril2008
-         { age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError) })
+         { age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError) })
   in
-  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_ : integer =
-    result_.age_minimum_alinea_1_l521_3_metropole_out
+  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_ : integer =
+    result_.age_minimum_alinea_1_l521_3_out
   in
   let prestations_familiales_dot_date_courante_ : unit -> date =
    fun (_ : unit) ->
@@ -1701,12 +1673,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   in
   let enfant_le_plus_age_dot_enfants_ : enfant array = result_.enfants_out in
   let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
-  let age_minimum_alinea_1_l521_3_metropole_ : enfant -> integer =
+  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
     log_variable_definition
-      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_métropole" ]
+      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
       unembeddable
       (try
-         try age_minimum_alinea_1_l521_3_metropole_ ()
+         try age_minimum_alinea_1_l521_3_ ()
          with EmptyError -> (
            fun (param_ : enfant) ->
              try
@@ -1715,9 +1687,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_R.catala_fr";
-                       start_line = 86;
+                       start_line = 83;
                        start_column = 19;
-                       end_line = 86;
+                       end_line = 83;
                        end_column = 69;
                        law_headings =
                          [
@@ -1731,7 +1703,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      (param_.date_de_naissance +@ duration_of_numbers 11 0 0
                      <=@ date_of_numbers 2008 4 30)
-                 then version_avril_2008_dot_age_minimum_alinea_1_l521_3_metropole_
+                 then version_avril_2008_dot_age_minimum_alinea_1_l521_3_
                  else raise EmptyError
                with EmptyError -> integer_of_string "14"
              with EmptyError -> raise NoValueProvided)
@@ -1769,78 +1741,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          with EmptyError -> (
            fun (param_ : enfant) ->
              try enfant_le_plus_age_dot_le_plus_age_ = param_
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
-  in
-  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-      unembeddable
-      (try
-         try age_minimum_alinea_1_l521_3_ ()
-         with EmptyError -> (
-           fun (param_ : enfant) ->
-             try
-               try
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 354;
-                       start_column = 18;
-                       end_line = 354;
-                       end_column = 64;
-                       law_headings =
-                         [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     prestations_familiales_dot_regime_outre_mer_l751_1_
-                 then
-                   log_end_call
-                     [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_outre_mer" ]
-                     (log_variable_definition
-                        [
-                          "AllocationsFamiliales";
-                          "âge_minimum_alinéa_1_l521_3_outre_mer";
-                          "output";
-                        ]
-                        unembeddable
-                        (log_begin_call
-                           [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_outre_mer" ]
-                           age_minimum_alinea_1_l521_3_outre_mer_
-                           (log_variable_definition
-                              [
-                                "AllocationsFamiliales";
-                                "âge_minimum_alinéa_1_l521_3_outre_mer";
-                                "input";
-                              ]
-                              unembeddable param_)))
-                 else raise EmptyError
-               with EmptyError ->
-                 log_end_call
-                   [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_métropole" ]
-                   (log_variable_definition
-                      [
-                        "AllocationsFamiliales";
-                        "âge_minimum_alinéa_1_l521_3_métropole";
-                        "output";
-                      ]
-                      unembeddable
-                      (log_begin_call
-                         [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3_métropole" ]
-                         age_minimum_alinea_1_l521_3_metropole_
-                         (log_variable_definition
-                            [
-                              "AllocationsFamiliales";
-                              "âge_minimum_alinéa_1_l521_3_métropole";
-                              "input";
-                            ]
-                            unembeddable param_)))
              with EmptyError -> raise NoValueProvided)
        with EmptyError -> raise NoValueProvided)
   in
@@ -1976,9 +1876,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                log_decision_taken
                  {
                    filename = "./securite_sociale_D.catala_fr";
-                   start_line = 274;
+                   start_line = 308;
                    start_column = 14;
-                   end_line = 274;
+                   end_line = 308;
                    end_column = 31;
                    law_headings =
                      [
@@ -2129,9 +2029,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                log_decision_taken
                  {
                    filename = "./securite_sociale_D.catala_fr";
-                   start_line = 264;
+                   start_line = 298;
                    start_column = 14;
-                   end_line = 264;
+                   end_line = 298;
                    end_column = 30;
                    law_headings =
                      [
@@ -2300,6 +2200,74 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                | Partagee _ -> decimal_of_string "0.5"
                | Zero _ -> decimal_of_string "0.")
              (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_
+       with EmptyError -> raise NoValueProvided)
+  in
+  let montant_initial_base_premier_enfant_ : money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant" ]
+      embed_money
+      (try
+         try montant_initial_base_premier_enfant_ ()
+         with EmptyError ->
+           handle_default
+             [|
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 360;
+                       start_column = 6;
+                       end_line = 360;
+                       end_column = 70;
+                       law_headings =
+                         [
+                           "Article D755-5";
+                           "Chapitre 5 : Prestations familiales et prestations assimilées";
+                           "Titre 5 : Départements d'outre-mer";
+                           "Livre 7 : Régimes divers - Dispositions diverses";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                     = integer_of_string "1")
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 356;
+                       start_column = 6;
+                       end_line = 356;
+                       end_column = 71;
+                       law_headings =
+                         [
+                           "Article D755-5";
+                           "Chapitre 5 : Prestations familiales et prestations assimilées";
+                           "Titre 5 : Départements d'outre-mer";
+                           "Livre 7 : Régimes divers - Dispositions diverses";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                     <> integer_of_string "1")
+                 then money_of_cents_string "0"
+                 else raise EmptyError);
+             |]
+             (fun (_ : _) ->
+               log_decision_taken
+                 {
+                   filename = "";
+                   start_line = 0;
+                   start_column = 1;
+                   end_line = 0;
+                   end_column = 1;
+                   law_headings = [];
+                 }
+                 false)
+             (fun (_ : _) -> raise EmptyError)
        with EmptyError -> raise NoValueProvided)
   in
   let droit_ouvert_base_ : bool =
@@ -2491,9 +2459,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        log_decision_taken
                          {
                            filename = "./securite_sociale_D.catala_fr";
-                           start_line = 162;
+                           start_line = 170;
                            start_column = 5;
-                           end_line = 163;
+                           end_line = 171;
                            end_column = 68;
                            law_headings =
                              [
@@ -2517,9 +2485,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        log_decision_taken
                          {
                            filename = "./securite_sociale_D.catala_fr";
-                           start_line = 154;
+                           start_line = 162;
                            start_column = 5;
-                           end_line = 155;
+                           end_line = 163;
                            end_column = 68;
                            law_headings =
                              [
@@ -2543,9 +2511,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 168;
+                       start_line = 176;
                        start_column = 14;
-                       end_line = 168;
+                       end_line = 176;
                        end_column = 34;
                        law_headings =
                          [
@@ -2559,6 +2527,94 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      true)
                  (fun (_ : _) -> money_of_cents_string "0")
              with EmptyError -> raise NoValueProvided)
+       with EmptyError -> raise NoValueProvided)
+  in
+  let montant_verse_forfaitaire_par_enfant_ : money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_versé_forfaitaire_par_enfant" ]
+      embed_money
+      (try
+         try montant_verse_forfaitaire_par_enfant_ ()
+         with EmptyError ->
+           handle_default
+             [|
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 243;
+                       start_column = 5;
+                       end_line = 243;
+                       end_column = 43;
+                       law_headings =
+                         [
+                           "Article D521-2";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (ressources_menage_ >$ plafond__i_i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 229;
+                       start_column = 5;
+                       end_line = 230;
+                       end_column = 46;
+                       law_headings =
+                         [
+                           "Article D521-2";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (ressources_menage_ >$ plafond__i_d521_3_
+                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 215;
+                       start_column = 5;
+                       end_line = 215;
+                       end_column = 43;
+                       law_headings =
+                         [
+                           "Article D521-2";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (ressources_menage_ <=$ plafond__i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
+                 else raise EmptyError);
+             |]
+             (fun (_ : _) ->
+               log_decision_taken
+                 {
+                   filename = "";
+                   start_line = 0;
+                   start_column = 1;
+                   end_line = 0;
+                   end_column = 1;
+                   law_headings = [];
+                 }
+                 false)
+             (fun (_ : _) -> raise EmptyError)
        with EmptyError -> raise NoValueProvided)
   in
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
@@ -2575,9 +2631,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 110;
+                       start_line = 113;
                        start_column = 3;
-                       end_line = 110;
+                       end_line = 113;
                        end_column = 41;
                        law_headings =
                          [
@@ -2605,9 +2661,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 71;
+                       start_line = 74;
                        start_column = 3;
-                       end_line = 72;
+                       end_line = 75;
                        end_column = 44;
                        law_headings =
                          [
@@ -2636,9 +2692,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 32;
+                       start_line = 35;
                        start_column = 3;
-                       end_line = 32;
+                       end_line = 35;
                        end_column = 41;
                        law_headings =
                          [
@@ -2653,7 +2709,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "3"
+                     >! integer_of_string "2"
                    then
                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
                      *$ decimal_of_integer
@@ -2690,9 +2746,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 110;
+                       start_line = 113;
                        start_column = 3;
-                       end_line = 110;
+                       end_line = 113;
                        end_column = 41;
                        law_headings =
                          [
@@ -2716,9 +2772,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 71;
+                       start_line = 74;
                        start_column = 3;
-                       end_line = 72;
+                       end_line = 75;
                        end_column = 44;
                        law_headings =
                          [
@@ -2743,9 +2799,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 32;
+                       start_line = 35;
                        start_column = 3;
-                       end_line = 32;
+                       end_line = 35;
                        end_column = 41;
                        law_headings =
                          [
@@ -2760,292 +2816,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "2"
+                     >! integer_of_string "1"
                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
                    else money_of_cents_string "0"
-                 else raise EmptyError);
-             |]
-             (fun (_ : _) ->
-               log_decision_taken
-                 {
-                   filename = "";
-                   start_line = 0;
-                   start_column = 1;
-                   end_line = 0;
-                   end_column = 1;
-                   law_headings = [];
-                 }
-                 false)
-             (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
-  in
-  let montant_initial_base_premier_enfant_ : money =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant" ]
-      embed_money
-      (try
-         try montant_initial_base_premier_enfant_ ()
-         with EmptyError ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 332;
-                       start_column = 5;
-                       end_line = 333;
-                       end_column = 71;
-                       law_headings =
-                         [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ >$ plafond__i_i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                 then
-                   prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                   *$ decimal_of_string "0.25"
-                 else raise EmptyError);
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 326;
-                       start_column = 5;
-                       end_line = 328;
-                       end_column = 71;
-                       law_headings =
-                         [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                 then
-                   prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                   *$ decimal_of_string "0.5"
-                 else raise EmptyError);
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 321;
-                       start_column = 5;
-                       end_line = 322;
-                       end_column = 71;
-                       law_headings =
-                         [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ <=$ plafond__i_d521_3_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
-                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
-                 else raise EmptyError);
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 317;
-                       start_column = 6;
-                       end_line = 317;
-                       end_column = 71;
-                       law_headings =
-                         [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     <> integer_of_string "1")
-                 then money_of_cents_string "0"
-                 else raise EmptyError);
-             |]
-             (fun (_ : _) ->
-               log_decision_taken
-                 {
-                   filename = "";
-                   start_line = 0;
-                   start_column = 1;
-                   end_line = 0;
-                   end_column = 1;
-                   law_headings = [];
-                 }
-                 false)
-             (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
-  in
-  let montant_verse_forfaitaire_ : money =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_forfaitaire" ]
-      embed_money
-      (try
-         try montant_verse_forfaitaire_ ()
-         with EmptyError ->
-           handle_default
-             [|
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 225;
-                       start_column = 5;
-                       end_line = 225;
-                       end_column = 43;
-                       law_headings =
-                         [
-                           "Article D521-2";
-                           "Chapitre 1er : Allocations familiales";
-                           "Titre 2 : Prestations générales d'entretien";
-                           "Livre 5 : Prestations familiales et prestations assimilées";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ >$ plafond__i_i_d521_3_)
-                 then
-                   prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
-                   *$ decimal_of_integer
-                        (Array.fold_left
-                           (fun (acc_ : integer) (enfant_ : _) ->
-                             if
-                               log_end_call
-                                 [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 (log_variable_definition
-                                    [
-                                      "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
-                                    ]
-                                    unembeddable
-                                    (log_begin_call
-                                       [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_
-                                       (log_variable_definition
-                                          [
-                                            "AllocationsFamiliales";
-                                            "droit_ouvert_forfaitaire";
-                                            "input";
-                                          ]
-                                          unembeddable enfant_)))
-                             then acc_ +! integer_of_string "1"
-                             else acc_)
-                           (integer_of_string "0") enfants_a_charge_)
-                 else raise EmptyError);
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 209;
-                       start_column = 5;
-                       end_line = 210;
-                       end_column = 46;
-                       law_headings =
-                         [
-                           "Article D521-2";
-                           "Chapitre 1er : Allocations familiales";
-                           "Titre 2 : Prestations générales d'entretien";
-                           "Livre 5 : Prestations familiales et prestations assimilées";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ >$ plafond__i_d521_3_
-                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
-                 then
-                   prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
-                   *$ decimal_of_integer
-                        (Array.fold_left
-                           (fun (acc_ : integer) (enfant_ : _) ->
-                             if
-                               log_end_call
-                                 [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 (log_variable_definition
-                                    [
-                                      "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
-                                    ]
-                                    unembeddable
-                                    (log_begin_call
-                                       [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_
-                                       (log_variable_definition
-                                          [
-                                            "AllocationsFamiliales";
-                                            "droit_ouvert_forfaitaire";
-                                            "input";
-                                          ]
-                                          unembeddable enfant_)))
-                             then acc_ +! integer_of_string "1"
-                             else acc_)
-                           (integer_of_string "0") enfants_a_charge_)
-                 else raise EmptyError);
-               (fun (_ : _) ->
-                 if
-                   log_decision_taken
-                     {
-                       filename = "./securite_sociale_D.catala_fr";
-                       start_line = 193;
-                       start_column = 5;
-                       end_line = 193;
-                       end_column = 43;
-                       law_headings =
-                         [
-                           "Article D521-2";
-                           "Chapitre 1er : Allocations familiales";
-                           "Titre 2 : Prestations générales d'entretien";
-                           "Livre 5 : Prestations familiales et prestations assimilées";
-                           "Partie réglementaire - Décrets simples";
-                         ];
-                     }
-                     (ressources_menage_ <=$ plafond__i_d521_3_)
-                 then
-                   prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
-                   *$ decimal_of_integer
-                        (Array.fold_left
-                           (fun (acc_ : integer) (enfant_ : _) ->
-                             if
-                               log_end_call
-                                 [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 (log_variable_definition
-                                    [
-                                      "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output";
-                                    ]
-                                    unembeddable
-                                    (log_begin_call
-                                       [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                       droit_ouvert_forfaitaire_
-                                       (log_variable_definition
-                                          [
-                                            "AllocationsFamiliales";
-                                            "droit_ouvert_forfaitaire";
-                                            "input";
-                                          ]
-                                          unembeddable enfant_)))
-                             then acc_ +! integer_of_string "1"
-                             else acc_)
-                           (integer_of_string "0") enfants_a_charge_)
                  else raise EmptyError);
              |]
              (fun (_ : _) ->
@@ -3118,9 +2891,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        log_decision_taken
                          {
                            filename = "./securite_sociale_D.catala_fr";
-                           start_line = 129;
+                           start_line = 132;
                            start_column = 3;
-                           end_line = 129;
+                           end_line = 132;
                            end_column = 41;
                            law_headings =
                              [
@@ -3152,9 +2925,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        log_decision_taken
                          {
                            filename = "./securite_sociale_D.catala_fr";
-                           start_line = 92;
+                           start_line = 95;
                            start_column = 3;
-                           end_line = 93;
+                           end_line = 96;
                            end_column = 44;
                            law_headings =
                              [
@@ -3187,9 +2960,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        log_decision_taken
                          {
                            filename = "./securite_sociale_D.catala_fr";
-                           start_line = 52;
+                           start_line = 55;
                            start_column = 3;
-                           end_line = 52;
+                           end_line = 55;
                            end_column = 41;
                            law_headings =
                              [
@@ -3232,6 +3005,34 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              with EmptyError -> raise NoValueProvided)
        with EmptyError -> raise NoValueProvided)
   in
+  let montant_verse_forfaitaire_ : money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_versé_forfaitaire" ]
+      embed_money
+      (try
+         try montant_verse_forfaitaire_ ()
+         with EmptyError ->
+           montant_verse_forfaitaire_par_enfant_
+           *$ decimal_of_integer
+                (Array.fold_left
+                   (fun (acc_ : integer) (enfant_ : _) ->
+                     if
+                       log_end_call
+                         [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
+                         (log_variable_definition
+                            [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "output" ]
+                            unembeddable
+                            (log_begin_call
+                               [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
+                               droit_ouvert_forfaitaire_
+                               (log_variable_definition
+                                  [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "input" ]
+                                  unembeddable enfant_)))
+                     then acc_ +! integer_of_string "1"
+                     else acc_)
+                   (integer_of_string "0") enfants_a_charge_)
+       with EmptyError -> raise NoValueProvided)
+  in
   let montant_initial_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base" ]
@@ -3244,9 +3045,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                log_decision_taken
                  {
                    filename = "./securite_sociale_D.catala_fr";
-                   start_line = 311;
+                   start_line = 350;
                    start_column = 5;
-                   end_line = 312;
+                   end_line = 351;
                    end_column = 69;
                    law_headings =
                      [
@@ -3266,28 +3067,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              montant_initial_base_deuxieme_enfant_ +$ montant_initial_base_troisieme_enfant_et_plus_)
        with EmptyError -> raise NoValueProvided)
   in
-  let montant_verse_complement_pour_forfaitaire_ : money =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire" ]
-      embed_money
-      (try
-         try montant_verse_complement_pour_forfaitaire_ ()
-         with EmptyError ->
-           if droit_ouvert_complement_ then
-             log_end_call
-               [ "AllocationsFamiliales"; "complément_dégressif" ]
-               (log_variable_definition
-                  [ "AllocationsFamiliales"; "complément_dégressif"; "output" ]
-                  unembeddable
-                  (log_begin_call
-                     [ "AllocationsFamiliales"; "complément_dégressif" ]
-                     complement_degressif_
-                     (log_variable_definition
-                        [ "AllocationsFamiliales"; "complément_dégressif"; "input" ]
-                        unembeddable montant_verse_forfaitaire_)))
-           else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
-  in
   let montant_initial_majoration_ : enfant -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_majoration" ]
@@ -3297,61 +3076,204 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          with EmptyError -> (
            fun (param_ : enfant) ->
              try
-               try
+               handle_default
+                 [|
+                   (fun (_ : _) ->
+                     if
+                       log_decision_taken
+                         {
+                           filename = "./securite_sociale_D.catala_fr";
+                           start_line = 382;
+                           start_column = 5;
+                           end_line = 385;
+                           end_column = 23;
+                           law_headings =
+                             [
+                               "Article D755-5";
+                               "Chapitre 5 : Prestations familiales et prestations assimilées";
+                               "Titre 5 : Départements d'outre-mer";
+                               "Livre 7 : Régimes divers - Dispositions diverses";
+                               "Partie réglementaire - Décrets simples";
+                             ];
+                         }
+                         (log_end_call
+                            [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                            (log_variable_definition
+                               [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
+                               unembeddable
+                               (log_begin_call
+                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                                  droit_ouvert_majoration_
+                                  (log_variable_definition
+                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
+                                     unembeddable param_)))
+                         && prestations_familiales_dot_regime_outre_mer_l751_1_
+                         && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                            = integer_of_string "1"
+                         && param_.age >=! integer_of_string "16")
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0567"
+                     else raise EmptyError);
+                   (fun (_ : _) ->
+                     if
+                       log_decision_taken
+                         {
+                           filename = "./securite_sociale_D.catala_fr";
+                           start_line = 373;
+                           start_column = 5;
+                           end_line = 376;
+                           end_column = 42;
+                           law_headings =
+                             [
+                               "Article D755-5";
+                               "Chapitre 5 : Prestations familiales et prestations assimilées";
+                               "Titre 5 : Départements d'outre-mer";
+                               "Livre 7 : Régimes divers - Dispositions diverses";
+                               "Partie réglementaire - Décrets simples";
+                             ];
+                         }
+                         (log_end_call
+                            [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                            (log_variable_definition
+                               [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
+                               unembeddable
+                               (log_begin_call
+                                  [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
+                                  droit_ouvert_majoration_
+                                  (log_variable_definition
+                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
+                                     unembeddable param_)))
+                         && prestations_familiales_dot_regime_outre_mer_l751_1_
+                         && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                            = integer_of_string "1"
+                         && param_.age >=! integer_of_string "11"
+                         && param_.age <! integer_of_string "16")
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0369"
+                     else raise EmptyError);
+                 |]
+                 (fun (_ : _) ->
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 22;
+                       start_column = 14;
+                       end_line = 22;
+                       end_column = 40;
+                       law_headings =
+                         [
+                           "Article D521-1";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     true)
+                 (fun (_ : _) ->
+                   log_end_call
+                     [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
+                     (log_variable_definition
+                        [
+                          "AllocationsFamiliales"; "montant_initial_métropole_majoration"; "output";
+                        ]
+                        unembeddable
+                        (log_begin_call
+                           [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
+                           montant_initial_metropole_majoration_
+                           (log_variable_definition
+                              [
+                                "AllocationsFamiliales";
+                                "montant_initial_métropole_majoration";
+                                "input";
+                              ]
+                              unembeddable param_))))
+             with EmptyError -> raise NoValueProvided)
+       with EmptyError -> raise NoValueProvided)
+  in
+  let montant_verse_complement_pour_forfaitaire_ : money =
+    log_variable_definition
+      [ "AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire" ]
+      embed_money
+      (try
+         try montant_verse_complement_pour_forfaitaire_ ()
+         with EmptyError ->
+           handle_default
+             [|
+               (fun (_ : _) ->
                  if
                    log_decision_taken
                      {
                        filename = "./securite_sociale_D.catala_fr";
-                       start_line = 362;
+                       start_line = 272;
                        start_column = 5;
-                       end_line = 364;
-                       end_column = 71;
+                       end_line = 274;
+                       end_column = 41;
                        law_headings =
                          [
-                           "Article D755-5";
-                           "Chapitre 5 : Prestations familiales et prestations assimilées";
-                           "Titre 5 : Départements d'outre-mer";
-                           "Livre 7 : Régimes divers - Dispositions diverses";
+                           "Article D521-2";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
                            "Partie réglementaire - Décrets simples";
                          ];
                      }
-                     (log_end_call
-                        [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                        (log_variable_definition
-                           [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "output" ]
-                           unembeddable
-                           (log_begin_call
-                              [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                              droit_ouvert_majoration_
-                              (log_variable_definition
-                                 [ "AllocationsFamiliales"; "droit_ouvert_majoration"; "input" ]
-                                 unembeddable param_)))
-                     && prestations_familiales_dot_regime_outre_mer_l751_1_
-                     && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                        = integer_of_string "1")
+                     (ressources_menage_ >$ plafond__i_i_d521_3_
+                     && ressources_menage_
+                        <=$ plafond__i_i_d521_3_
+                            +$ (montant_verse_forfaitaire_ *$ decimal_of_string "12."))
                  then
-                   prestations_familiales_dot_base_mensuelle_
-                   *$
-                   if param_.age >=! integer_of_string "16" then decimal_of_string "0.0567"
-                   else decimal_of_string "0.0369"
-                 else raise EmptyError
-               with EmptyError ->
-                 log_end_call
-                   [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
-                   (log_variable_definition
-                      [ "AllocationsFamiliales"; "montant_initial_métropole_majoration"; "output" ]
-                      unembeddable
-                      (log_begin_call
-                         [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
-                         montant_initial_metropole_majoration_
-                         (log_variable_definition
-                            [
-                              "AllocationsFamiliales";
-                              "montant_initial_métropole_majoration";
-                              "input";
-                            ]
-                            unembeddable param_)))
-             with EmptyError -> raise NoValueProvided)
+                   (plafond__i_i_d521_3_
+                   +$ ((montant_verse_forfaitaire_ *$ decimal_of_string "12.") -$ ressources_menage_)
+                   )
+                   *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                 else raise EmptyError);
+               (fun (_ : _) ->
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./securite_sociale_D.catala_fr";
+                       start_line = 262;
+                       start_column = 5;
+                       end_line = 264;
+                       end_column = 42;
+                       law_headings =
+                         [
+                           "Article D521-2";
+                           "Chapitre 1er : Allocations familiales";
+                           "Titre 2 : Prestations générales d'entretien";
+                           "Livre 5 : Prestations familiales et prestations assimilées";
+                           "Partie réglementaire - Décrets simples";
+                         ];
+                     }
+                     (ressources_menage_ >$ plafond__i_d521_3_
+                     && ressources_menage_
+                        <=$ plafond__i_d521_3_
+                            +$ (montant_verse_forfaitaire_ *$ decimal_of_string "12."))
+                 then
+                   (plafond__i_d521_3_
+                   +$ ((montant_verse_forfaitaire_ *$ decimal_of_string "12.") -$ ressources_menage_)
+                   )
+                   *$ (decimal_of_string "1." /& decimal_of_string "12.")
+                 else raise EmptyError);
+             |]
+             (fun (_ : _) ->
+               log_decision_taken
+                 {
+                   filename = "./securite_sociale_D.catala_fr";
+                   start_line = 280;
+                   start_column = 14;
+                   end_line = 280;
+                   end_column = 55;
+                   law_headings =
+                     [
+                       "Article D521-2";
+                       "Chapitre 1er : Allocations familiales";
+                       "Titre 2 : Prestations générales d'entretien";
+                       "Livre 5 : Prestations familiales et prestations assimilées";
+                       "Partie réglementaire - Décrets simples";
+                     ];
+                 }
+                 true)
+             (fun (_ : _) -> money_of_cents_string "0")
        with EmptyError -> raise NoValueProvided)
   in
   let montant_avec_garde_alternee_base_ : money =
@@ -3529,6 +3451,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     montant_avec_garde_alternee_base_out = montant_avec_garde_alternee_base_;
     montant_verse_base_out = montant_verse_base_;
     droit_ouvert_forfaitaire_out = droit_ouvert_forfaitaire_;
+    montant_verse_forfaitaire_par_enfant_out = montant_verse_forfaitaire_par_enfant_;
     montant_verse_forfaitaire_out = montant_verse_forfaitaire_;
     droit_ouvert_majoration_out = droit_ouvert_majoration_;
     montant_initial_metropole_majoration_out = montant_initial_metropole_majoration_;
@@ -3544,8 +3467,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     montant_verse_complement_pour_forfaitaire_out = montant_verse_complement_pour_forfaitaire_;
     nombre_enfants_l521_1_out = nombre_enfants_l521_1_;
     age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_;
-    age_minimum_alinea_1_l521_3_metropole_out = age_minimum_alinea_1_l521_3_metropole_;
-    age_minimum_alinea_1_l521_3_outre_mer_out = age_minimum_alinea_1_l521_3_outre_mer_;
     nombre_enfants_alinea_2_l521_3_out = nombre_enfants_alinea_2_l521_3_;
     est_enfant_le_plus_age_out = est_enfant_le_plus_age_;
     plafond_I_d521_3_out = plafond__i_d521_3_;
@@ -3742,6 +3663,7 @@ let interface_allocations_familiales
            montant_avec_garde_alternee_base_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_base_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
+           montant_verse_forfaitaire_par_enfant_in = (fun (_ : unit) -> raise EmptyError);
            montant_verse_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
            droit_ouvert_majoration_in = (fun (_ : unit) -> raise EmptyError);
            montant_initial_metropole_majoration_in = (fun (_ : unit) -> raise EmptyError);
@@ -3756,8 +3678,6 @@ let interface_allocations_familiales
            montant_verse_complement_pour_forfaitaire_in = (fun (_ : unit) -> raise EmptyError);
            nombre_enfants_l521_1_in = (fun (_ : unit) -> raise EmptyError);
            age_minimum_alinea_1_l521_3_in = (fun (_ : unit) -> raise EmptyError);
-           age_minimum_alinea_1_l521_3_metropole_in = (fun (_ : unit) -> raise EmptyError);
-           age_minimum_alinea_1_l521_3_outre_mer_in = (fun (_ : unit) -> raise EmptyError);
            nombre_enfants_alinea_2_l521_3_in = (fun (_ : unit) -> raise EmptyError);
            est_enfant_le_plus_age_in = (fun (_ : unit) -> raise EmptyError);
            plafond_I_d521_3_in = (fun (_ : unit) -> raise EmptyError);
@@ -3812,6 +3732,9 @@ let interface_allocations_familiales
   let allocations_familiales_dot_droit_ouvert_forfaitaire_ : enfant -> bool =
     result_.droit_ouvert_forfaitaire_out
   in
+  let allocations_familiales_dot_montant_verse_forfaitaire_par_enfant_ : money =
+    result_.montant_verse_forfaitaire_par_enfant_out
+  in
   let allocations_familiales_dot_montant_verse_forfaitaire_ : money =
     result_.montant_verse_forfaitaire_out
   in
@@ -3850,12 +3773,6 @@ let interface_allocations_familiales
   in
   let allocations_familiales_dot_age_minimum_alinea_1_l521_3_ : enfant -> integer =
     result_.age_minimum_alinea_1_l521_3_out
-  in
-  let allocations_familiales_dot_age_minimum_alinea_1_l521_3_metropole_ : enfant -> integer =
-    result_.age_minimum_alinea_1_l521_3_metropole_out
-  in
-  let allocations_familiales_dot_age_minimum_alinea_1_l521_3_outre_mer_ : enfant -> integer =
-    result_.age_minimum_alinea_1_l521_3_outre_mer_out
   in
   let allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_ : integer =
     result_.nombre_enfants_alinea_2_l521_3_out

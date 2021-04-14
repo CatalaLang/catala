@@ -53,10 +53,7 @@ enfants ouvrent droit à la majoration des allocations familiales est fixé à
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition âge_minimum_alinéa_1_l521_3_métropole de enfant égal à 14
-
-  définition âge_minimum_alinéa_1_l521_3 de enfant égal à
-    âge_minimum_alinéa_1_l521_3_métropole de enfant
+  définition âge_minimum_alinéa_1_l521_3 de enfant égal à 14
 ```
 
 Le nombre minimum d'enfants à charge, mentionné au deuxième alinéa de l'article
@@ -78,14 +75,14 @@ le onzième anniversaire est postérieur au 30 avril 2008.
 # du décret de 2008 pour des raisons de place seulement.
 champ d'application AllocationFamilialesAvril2008:
   # Âge limite avant décret n° 2008-409 du 28 avril 2008
-  définition âge_minimum_alinéa_1_l521_3_métropole égal à 16
+  définition âge_minimum_alinéa_1_l521_3 égal à 16
 
 champ d'application AllocationsFamiliales :
   exception
-  définition âge_minimum_alinéa_1_l521_3_métropole de enfant
+  définition âge_minimum_alinéa_1_l521_3 de enfant
   sous condition (enfant.date_de_naissance +@ 11 an <=@ |2008-04-30|)
   conséquence égal à
-    version_avril_2008.âge_minimum_alinéa_1_l521_3_métropole
+    version_avril_2008.âge_minimum_alinéa_1_l521_3
 ```
 
 #### [Article R521-2|LEGIARTI000006750608]
