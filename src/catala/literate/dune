@@ -1,6 +1,6 @@
 (library
  (name literate)
- (public_name catala.literate)
+ (package catala)
  (libraries re utils surface))
 
 (documentation

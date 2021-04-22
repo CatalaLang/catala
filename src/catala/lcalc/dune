@@ -1,7 +1,8 @@
 (library
  (name lcalc)
- (public_name catala.lcalc)
+ (package catala)
  (libraries bindlib dcalc scopelang runtime))
 
 (documentation
- (package catala))
+ (package catala)
+ (mld_files lcalc))

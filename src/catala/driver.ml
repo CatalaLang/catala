@@ -16,7 +16,8 @@ module Cli = Utils.Cli
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
-(** Entry function for the executable. Returns a negative number in case of error. *)
+(** Entry function for the executable. Returns a negative number in case of error. Usage:
+    [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
     (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)

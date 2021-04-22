@@ -2,7 +2,7 @@
 
 open Runtime
 
-[@@@ocaml.warning "-26-27"]
+[@@@ocaml.warning "-26-27-32"]
 
 type prise_en_charge =
   | GardeAlterneePartageAllocations of unit
@@ -2648,7 +2648,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "3"
+                     >! integer_of_string "2"
                    then
                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
                      *$ decimal_of_integer
@@ -2679,7 +2679,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "3"
+                     >! integer_of_string "2"
                    then
                      prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
                      *$ decimal_of_integer
@@ -2763,7 +2763,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "2"
+                     >! integer_of_string "1"
                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
                    else money_of_cents_string "0"
                  else raise EmptyError);
@@ -2790,7 +2790,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then
                    if
                      array_length enfants_a_charge_droit_ouvert_prestation_familiale_
-                     >=! integer_of_string "2"
+                     >! integer_of_string "1"
                    then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
                    else money_of_cents_string "0"
                  else raise EmptyError);

@@ -79,7 +79,7 @@ More documentation can be found on each intermediate representations here.
 
 The main compilation chain is defined in:
 
-{!modules: Catala.Driver}
+{!modules: Driver}
 
 Last, two more modules contain additional features for the compiler:
 

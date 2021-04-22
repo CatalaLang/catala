@@ -1,4 +1,4 @@
 (library
  (name law_source)
- (public_name catala.law_source)
+ (public_name french_law.law_source)
  (libraries runtime))
