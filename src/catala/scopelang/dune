@@ -1,6 +1,6 @@
 (library
  (name scopelang)
- (package catala)
+ (public_name catala.scopelang)
  (libraries utils dcalc ocamlgraph))
 
 (documentation

@@ -1,4 +1,4 @@
-open Catala_lib.Driver
+open Driver
 open Js_of_ocaml
 
 let _ =

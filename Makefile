@@ -160,12 +160,12 @@ tests_ml: run_french_law_library_tests
 
 FRENCH_LAW_LIB_DIR=src/french_law
 
-$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml:
+$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
 	CATALA_OPTS="-O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source
 
-$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
+$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
 	CATALA_OPTS="-O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
 		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
@@ -209,7 +209,8 @@ website-assets: doc literate_examples grammar.html catala.html js_build build_fr
 # Misceallenous
 ##########################################
 
-all: dependencies build doc tests literate_examples website-assets build_french_law_library
+all: dependencies build doc tests generate_french_law_library build_french_law_library build_french_law_library_js \
+	tests_ml website-assets
 
 #> clean					: Clean build artifacts
 clean:

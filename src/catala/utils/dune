@@ -1,6 +1,6 @@
 (library
  (name utils)
- (package catala)
+ (public_name catala.utils)
  (libraries cmdliner ANSITerminal re))
 
 (documentation
