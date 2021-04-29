@@ -232,10 +232,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
   Sedlexing.set_filename lexbuf source_file_name;
   Parse_utils.current_file := source_file_name;
   let lexer_lang =
-    match language with
-    | `Fr -> Lexer_fr.lexer_fr
-    | `En -> Lexer_en.lexer_en
-    | `NonVerbose -> Lexer.lexer
+    match language with `Fr -> Lexer_fr.lexer | `En -> Lexer_en.lexer | `NonVerbose -> Lexer.lexer
   in
   let token_list_lang =
     match language with

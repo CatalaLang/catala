@@ -595,3 +595,18 @@ let lex_law (lexbuf : lexbuf) : token =
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
     is_code}. *)
 let lexer (lexbuf : lexbuf) : token = if !is_code then lex_code lexbuf else lex_law lexbuf
+
+module type LocalisedLexer = sig
+  val token_list : (string * Parser.token) list
+  (** Same as {!val: token_list_language_agnostic}, but with tokens specialized to a given language. *)
+
+  val lex_code : Sedlexing.lexbuf -> Parser.token
+  (** Main lexing function used in code blocks *)
+
+  val lex_law : Sedlexing.lexbuf -> Parser.token
+  (** Main lexing function used outside code blocks *)
+
+  val lexer : Sedlexing.lexbuf -> Parser.token
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
+      {!val: Surface.Lexer.is_code}. *)
+end
