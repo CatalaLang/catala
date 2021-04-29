@@ -346,21 +346,19 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
 
 (** Process the names of all declaration items *)
 let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
-  let raise_already_defined_error use name pos msg =
+  let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
       (Format.asprintf "%s name \"%s\" already defined" msg
          (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
-      [
-        (Some "first definition", Pos.get_position (Scopelang.Ast.ScopeName.get_info use));
-        (Some "second definition", pos);
-      ]
+      [ (Some "first definition", Pos.get_position use); (Some "second definition", pos) ]
   in
   match Pos.unmark item with
   | ScopeDecl decl -> (
       let name, pos = decl.scope_decl_name in
       (* Checks if the name is already used *)
       match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-      | Some use -> raise_already_defined_error use name pos "scope"
+      | Some use ->
+          raise_already_defined_error (Scopelang.Ast.ScopeName.get_info use) name pos "scope"
       | None ->
           let scope_uid = Scopelang.Ast.ScopeName.fresh (name, pos) in
           {
@@ -379,8 +377,9 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
           })
   | StructDecl sdecl -> (
       let name, pos = sdecl.struct_decl_name in
-      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-      | Some use -> raise_already_defined_error use name pos "struct"
+      match Desugared.Ast.IdentMap.find_opt name ctxt.struct_idmap with
+      | Some use ->
+          raise_already_defined_error (Scopelang.Ast.StructName.get_info use) name pos "struct"
       | None ->
           let s_uid = Scopelang.Ast.StructName.fresh sdecl.struct_decl_name in
           {
@@ -390,8 +389,9 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
           })
   | EnumDecl edecl -> (
       let name, pos = edecl.enum_decl_name in
-      match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-      | Some use -> raise_already_defined_error use name pos "enum"
+      match Desugared.Ast.IdentMap.find_opt name ctxt.enum_idmap with
+      | Some use ->
+          raise_already_defined_error (Scopelang.Ast.EnumName.get_info use) name pos "enum"
       | None ->
           let e_uid = Scopelang.Ast.EnumName.fresh edecl.enum_decl_name in
 

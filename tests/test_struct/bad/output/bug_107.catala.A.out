@@ -1,0 +1,15 @@
+[ERROR] struct name "S" already defined
+[ERROR] 
+[ERROR] first definition
+[ERROR]  --> test_struct/bad/bug_107.catala
+[ERROR]   | 
+[ERROR] 4 | new struct S:
+[ERROR]   |            ^
+[ERROR]   + https://github.com/CatalaLang/catala/issues/107
+[ERROR] 
+[ERROR] second definition
+[ERROR]  --> test_struct/bad/bug_107.catala
+[ERROR]   | 
+[ERROR] 8 | new struct S:
+[ERROR]   |            ^
+[ERROR]   + https://github.com/CatalaLang/catala/issues/107

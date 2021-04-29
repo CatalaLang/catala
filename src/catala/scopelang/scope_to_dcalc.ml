@@ -98,14 +98,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         let d_fields, remaining_e_fields =
           List.fold_right
             (fun (field_name, _) (d_fields, e_fields) ->
-              let field_e =
-                try Ast.StructFieldMap.find field_name e_fields
-                with Not_found ->
-                  Errors.raise_spanned_error
-                    (Format.asprintf "Missing field for structure %a: \"%a\""
-                       Ast.StructName.format_t struct_name Ast.StructFieldName.format_t field_name)
-                    (Pos.get_position e)
-              in
+              let field_e = Ast.StructFieldMap.find field_name e_fields in
               let field_d = translate_expr ctx field_e in
               (field_d :: d_fields, Ast.StructFieldMap.remove field_name e_fields))
             struct_sig ([], e_fields)

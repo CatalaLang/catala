@@ -325,6 +325,17 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
             Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
           Scopelang.Ast.StructFieldMap.empty fields
       in
+      let expected_s_fields = Scopelang.Ast.StructMap.find s_uid ctxt.structs in
+      Scopelang.Ast.StructFieldMap.iter
+        (fun expected_f _ ->
+          if not (Scopelang.Ast.StructFieldMap.mem expected_f s_fields) then
+            Errors.raise_spanned_error
+              (Format.asprintf "Missing field for structure %a: \"%a\""
+                 Scopelang.Ast.StructName.format_t s_uid Scopelang.Ast.StructFieldName.format_t
+                 expected_f)
+              pos)
+        expected_s_fields;
+
       Bindlib.box_apply
         (fun s_fields -> (Scopelang.Ast.EStruct (s_uid, s_fields), pos))
         (LiftStructFieldMap.lift_box s_fields)

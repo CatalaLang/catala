@@ -1,0 +1,17 @@
+## [https://github.com/CatalaLang/catala/issues/107]
+
+```catala
+new struct S:
+  data x content int
+  data y content int
+
+new struct S:
+  data x content int
+  data y content int
+
+new scope A:
+  param a content S
+
+scope A:
+  def a := S { --x : 0 -- y : 1 }
+```
