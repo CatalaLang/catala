@@ -214,6 +214,9 @@ let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string *
 
 (** {1 Parsing multiple files}*)
 
+let localised_lexers : (Cli.frontend_lang * (module Lexer.LocalisedLexer)) list =
+  [ (`Fr, (module Lexer_fr)); (`En, (module Lexer_en)); (`NonVerbose, (module Lexer)) ]
+
 (** Parses a single source file *)
 let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
     Ast.program =
@@ -231,17 +234,10 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
   Sedlexing.set_filename lexbuf source_file_name;
   Parse_utils.current_file := source_file_name;
-  let lexer_lang =
-    match language with `Fr -> Lexer_fr.lexer | `En -> Lexer_en.lexer | `NonVerbose -> Lexer.lexer
-  in
-  let token_list_lang =
-    match language with
-    | `Fr -> Lexer_fr.token_list_fr
-    | `En -> Lexer_en.token_list_en
-    | `NonVerbose -> Lexer.token_list
-  in
+  let module LocalisedLexer = (val List.assoc language localised_lexers) in
   let commands_or_includes =
-    sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master lexbuf
+    sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list
+      Parser.Incremental.source_file_or_master lexbuf
   in
   (match input with Some input -> close_in input | None -> ());
   match commands_or_includes with

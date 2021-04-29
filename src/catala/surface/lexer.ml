@@ -14,7 +14,7 @@
 
 (** Concise syntax with English abbreviated keywords. *)
 
-open Parser
+open Tokens
 open Sedlexing
 open Utils
 open Lexer_common
