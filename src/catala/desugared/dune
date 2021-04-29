@@ -1,6 +1,6 @@
 (library
  (name desugared)
- (public_name catala.desugared)
+ (package catala)
  (libraries utils dcalc scopelang ocamlgraph))
 
 (documentation

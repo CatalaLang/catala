@@ -1,8 +1,16 @@
 (library
  (name surface)
- (libraries utils menhirLib sedlex re desugared scopelang zarith
-   zarith_stubs_js calendar)
- (public_name catala.surface)
+ (libraries
+  utils
+  menhirLib
+  sedlex
+  re
+  desugared
+  scopelang
+  zarith
+  zarith_stubs_js
+  calendar)
+ (package catala)
  (preprocess
   (pps sedlex.ppx visitors.ppx)))
 
