@@ -7,7 +7,7 @@
 (library
  (name catala_lib)
  (public_name catala.catala_lib)
- (libraries driver)
+ (libraries driver utils surface desugared literate dcalc lcalc runtime)
  (modules catala_lib))
 
 (library
