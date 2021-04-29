@@ -178,7 +178,7 @@ generate_french_law_library:\
 
 #> build_french_law_library		: Builds the OCaml French law library
 build_french_law_library: generate_french_law_library format
-	dune build $(FRENCH_LAW_LIB_DIR)/french_law.a
+	dune build $(FRENCH_LAW_LIB_DIR)/api.a
 
 run_french_law_library_benchmark: generate_french_law_library
 	dune exec --profile release $(FRENCH_LAW_LIB_DIR)/bench.exe
