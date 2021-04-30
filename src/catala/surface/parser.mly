@@ -427,7 +427,13 @@ struct_or_enum_inject:
   }
 
   ident:
-  | i = IDENT { (i, Pos.from_lpos $sloc) }
+  | i = IDENT {
+   if List.mem_assoc i Localisation.builtins then
+     Errors.raise_spanned_error
+       (Printf.sprintf "Reserved builtin name")
+       (Pos.from_lpos $sloc)
+   else (i, Pos.from_lpos $sloc)
+  }
 
   condition_pos:
   | CONDITION { Pos.from_lpos $sloc }
