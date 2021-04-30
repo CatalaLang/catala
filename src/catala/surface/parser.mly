@@ -20,6 +20,9 @@
   open Utils
   %}
 
+%parameter<Localisation: sig
+  val builtins: (string * Ast.builtin_expression) list
+end>
 
 %type <Ast.source_file_or_master> source_file_or_master
 
@@ -58,7 +61,10 @@ qident:
 }
 
 atomic_expression:
-| q = ident { let (q, q_pos) = q in (Ident q, q_pos) }
+| q = ident {
+    let (q, q_pos) = q in
+    (try Builtin (List.assoc q Localisation.builtins) with Not_found -> Ident q),
+    q_pos }
 | l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
 | LPAREN e = expression RPAREN { e }
 
@@ -95,18 +101,6 @@ struct_or_enum_inject:
     (Builtin Cardinal, Pos.from_lpos $sloc)
   }
 
-  | INT_TO_DEC {
-    (Builtin IntToDec, Pos.from_lpos $sloc)
-  }
-  | GET_DAY {
-    (Builtin GetDay, Pos.from_lpos $sloc)
-  }
-  | GET_MONTH {
-    (Builtin GetMonth, Pos.from_lpos $sloc)
-  }
-  | GET_YEAR {
-    (Builtin GetYear, Pos.from_lpos $sloc)
-  }
   | e = struct_or_enum_inject {
     e
   }

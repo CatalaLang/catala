@@ -130,6 +130,10 @@ let token_list : (string * token) list =
   ]
   @ token_list_language_agnostic
 
+(** Localised builtin functions *)
+let builtins : (string * Ast.builtin_expression) list =
+  [ ("int_to_dec", IntToDec); ("get_day", GetDay); ("get_month", GetMonth); ("get_year", GetYear) ]
+
 (** Main lexing function used in a code block *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -298,18 +302,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "|]" ->
       update_acc lexbuf;
       CONSEQUENCE
-  | "int_to_dec" ->
-      update_acc lexbuf;
-      INT_TO_DEC
-  | "get_day" ->
-      update_acc lexbuf;
-      GET_DAY
-  | "get_month" ->
-      update_acc lexbuf;
-      GET_MONTH
-  | "get_year" ->
-      update_acc lexbuf;
-      GET_YEAR
   | "maximum" ->
       update_acc lexbuf;
       MAXIMUM
@@ -597,16 +589,19 @@ let lex_law (lexbuf : lexbuf) : token =
 let lexer (lexbuf : lexbuf) : token = if !is_code then lex_code lexbuf else lex_law lexbuf
 
 module type LocalisedLexer = sig
-  val token_list : (string * Parser.token) list
+  val token_list : (string * Tokens.token) list
   (** Same as {!val: token_list_language_agnostic}, but with tokens specialized to a given language. *)
 
-  val lex_code : Sedlexing.lexbuf -> Parser.token
+  val builtins : (string * Ast.builtin_expression) list
+  (** Associative list of string to their corresponding builtins *)
+
+  val lex_code : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used in code blocks *)
 
-  val lex_law : Sedlexing.lexbuf -> Parser.token
+  val lex_law : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used outside code blocks *)
 
-  val lexer : Sedlexing.lexbuf -> Parser.token
+  val lexer : Sedlexing.lexbuf -> Tokens.token
   (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
       {!val: Surface.Lexer.is_code}. *)
 end

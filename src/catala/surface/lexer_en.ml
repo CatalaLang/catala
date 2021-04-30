@@ -85,6 +85,15 @@ let token_list : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+(** Localised builtin functions *)
+let builtins : (string * Ast.builtin_expression) list =
+  [
+    ("integer_to_decimal", IntToDec);
+    ("get_day", GetDay);
+    ("get_month", GetMonth);
+    ("get_year", GetYear);
+  ]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -253,18 +262,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "not" ->
       L.update_acc lexbuf;
       NOT
-  | "integer_to_decimal" ->
-      L.update_acc lexbuf;
-      INT_TO_DEC
-  | "get_day" ->
-      L.update_acc lexbuf;
-      GET_DAY
-  | "get_month" ->
-      L.update_acc lexbuf;
-      GET_MONTH
-  | "get_year" ->
-      L.update_acc lexbuf;
-      GET_YEAR
   | "maximum" ->
       L.update_acc lexbuf;
       MAXIMUM

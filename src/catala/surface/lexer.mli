@@ -31,23 +31,25 @@ val update_acc : Sedlexing.lexbuf -> unit
 val raise_lexer_error : Utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
-val token_list_language_agnostic : (string * Parser.token) list
+val token_list_language_agnostic : (string * Tokens.token) list
 (** Associative list matching each punctuation string part of the Catala syntax with its {!module:
     Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 
 module type LocalisedLexer = sig
-  val token_list : (string * Parser.token) list
+  val token_list : (string * Tokens.token) list
   (** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the
       input language. *)
 
+  val builtins : (string * Ast.builtin_expression) list
+  (** Associative list of string to their corresponding builtins *)
 
-  val lex_code : Sedlexing.lexbuf -> Parser.token
+  val lex_code : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used in a code block *)
 
-  val lex_law : Sedlexing.lexbuf -> Parser.token
+  val lex_law : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used outside code blocks *)
 
-  val lexer : Sedlexing.lexbuf -> Parser.token
+  val lexer : Sedlexing.lexbuf -> Tokens.token
   (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
       {!val: is_code}. *)
 end

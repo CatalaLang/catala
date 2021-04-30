@@ -83,6 +83,14 @@ let token_list : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+let builtins : (string * Ast.builtin_expression) list =
+  [
+    ("entier_vers_décimal", Ast.IntToDec);
+    ("accès_jour", Ast.GetDay);
+    ("accès_mois", Ast.GetMonth);
+    ("accès_année", Ast.GetYear);
+  ]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -275,18 +283,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "initial" ->
       L.update_acc lexbuf;
       INIT
-  | "entier_vers_d", 0xE9, "cimal" ->
-      L.update_acc lexbuf;
-      INT_TO_DEC
-  | "acc", 0xE8, "s_jour" ->
-      L.update_acc lexbuf;
-      GET_DAY
-  | "acc", 0xE8, "s_mois" ->
-      L.update_acc lexbuf;
-      GET_MONTH
-  | "acc", 0xE8, "s_ann", 0xE9, "e" ->
-      L.update_acc lexbuf;
-      GET_YEAR
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE
