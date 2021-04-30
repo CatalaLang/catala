@@ -1029,7 +1029,7 @@ expected the type of the elements compared to get the maximum
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM TEXT INIT YEAR
 ##
-## Ends in an error in state: 94.
+## Ends in an error in state: 95.
 ##
 ## aggregate_func -> CONTENT MINIMUM typ_base INIT . primitive_expression [ FOR ]
 ##
@@ -1041,7 +1041,7 @@ expected the initial expression for the minimum
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM TEXT YEAR
 ##
-## Ends in an error in state: 93.
+## Ends in an error in state: 94.
 ##
 ## aggregate_func -> CONTENT MINIMUM typ_base . INIT primitive_expression [ FOR ]
 ##
@@ -1053,7 +1053,7 @@ expected the "initial" keyword introducing the initial expression for the minimu
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT MINIMUM YEAR
 ##
-## Ends in an error in state: 92.
+## Ends in an error in state: 93.
 ##
 ## aggregate_func -> CONTENT MINIMUM . typ_base INIT primitive_expression [ FOR ]
 ##
@@ -1065,7 +1065,7 @@ expected the type of the elements compared to get the minimum
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION CONTENT YEAR
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 92.
 ##
 ## aggregate_func -> CONTENT . MAXIMUM typ_base INIT primitive_expression [ FOR ]
 ## aggregate_func -> CONTENT . MINIMUM typ_base INIT primitive_expression [ FOR ]
@@ -1318,7 +1318,7 @@ expected an expression for the test of the conditional
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 96.
+## Ends in an error in state: 97.
 ##
 ## literal -> num_literal . option(unit_literal) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR OF NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING IN GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
@@ -1493,7 +1493,7 @@ expected the "for" keyword to introduce the identifier for the map predicate
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WE_HAVE
 ##
-## Ends in an error in state: 72.
+## Ends in an error in state: 73.
 ##
 ## expression -> MATCH primitive_expression . WITH match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
@@ -1516,7 +1516,7 @@ expected the "with patter" keyword to complete the pattern matching expression
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 79.
+## Ends in an error in state: 80.
 ##
 ## maybe_qualified_constructor -> constructor . option(preceded(DOT,constructor)) [ XOR THEN SEMICOLON SCOPE RULE RSQUARE RPAREN RBRACKET PLUSMONEY PLUSDURATION PLUSDEC PLUSDATE PLUS OR OF NOT_EQUAL MULTMONEY MULTDEC MULT MINUSMONEY MINUSDURATION MINUSDEC MINUSDATE MINUS LESSER_MONEY LESSER_EQUAL_MONEY LESSER_EQUAL_DURATION LESSER_EQUAL_DEC LESSER_EQUAL_DATE LESSER_EQUAL LESSER_DURATION LESSER_DEC LESSER_DATE LESSER LABEL INCREASING GREATER_MONEY GREATER_EQUAL_MONEY GREATER_EQUAL_DURATION GREATER_EQUAL_DEC GREATER_EQUAL_DATE GREATER_EQUAL GREATER_DURATION GREATER_DEC GREATER_DATE GREATER EXCEPTION EQUAL END_CODE ELSE DIVMONEY DIVDEC DIV DEFINITION DECREASING DECLARATION CONSTRUCTOR CONSEQUENCE COLON ASSERTION AND ALT ]
 ##
@@ -1528,7 +1528,7 @@ expected a binding for the constructor payload, or a colon and the matching case
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH ALT YEAR
 ##
-## Ends in an error in state: 74.
+## Ends in an error in state: 75.
 ##
 ## match_arms -> ALT . match_arm match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##
@@ -1540,7 +1540,7 @@ expected the name of the constructor for the enum case in the pattern matching
 
 source_file_or_master: LAW_ARTICLE BEGIN_CODE SCOPE CONSTRUCTOR UNDER_CONDITION MATCH TRUE WITH YEAR
 ##
-## Ends in an error in state: 73.
+## Ends in an error in state: 74.
 ##
 ## expression -> MATCH primitive_expression WITH . match_arms [ THEN SEMICOLON SCOPE RULE RSQUARE RPAREN LABEL EXCEPTION END_CODE ELSE DEFINITION DECLARATION CONSEQUENCE COLON ASSERTION ]
 ##

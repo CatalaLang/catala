@@ -61,10 +61,9 @@ qident:
 }
 
 atomic_expression:
-| q = ident {
-    let (q, q_pos) = q in
+| q = IDENT {
     (try Builtin (List.assoc q Localisation.builtins) with Not_found -> Ident q),
-    q_pos }
+    Pos.from_lpos $sloc }
 | l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
 | LPAREN e = expression RPAREN { e }
 
