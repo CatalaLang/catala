@@ -91,8 +91,29 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
-Please note that the `ocamlformat` version the this project use is `0.18.0`.
+Please note that the `ocamlformat` version this project uses is `0.18.0`.
 Using another version may cause spurious diffs to appear in your pull requests.
+
+### Example: adding a builtin function
+
+The language provides a limited number of builtin functions, which are sometimes
+needed for things that can't easily be expressed in Catala itself; in case you
+need more, here is how one can be added:
+- Choose a name wisely. Be ready to patch any code that already used the name
+  for scope parameters, variables or structure fields, since it won't compile
+  anymore.
+- Add an element to the `builtin_expression` type in `surface/ast.ml(i)`
+- Add your builtin in the `builtins` list in `surface/lexer.ml`, and with proper
+  translations in all of the language-specific modules `surface/lexer_en.ml`,
+  `surface/lexer_fr.ml`, etc.
+- The rest can all be done by following the type errors downstream:
+  - Add a corresponding element to the lower-level AST in `dcalc/ast.ml(i)`, type `unop`
+  - Extend the translation accordingly in `surface/desugaring.ml`
+  - Extend the printer (`dcalc/print.ml`) and the typer with correct type
+    information (`dcalc/typing.ml`)
+  - Finally, provide the implementations:
+    * in `lcalc/to_ocaml.ml`, function `format_unop`
+    * in `dcalc/interpreter.ml`, function `evaluate_operator`
 
 ## Internationalization
 
