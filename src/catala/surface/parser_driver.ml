@@ -223,10 +223,16 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
       Incremental.source_file_or_master lexbuf
 end
 
-(** {1 Parsing multiple files}*)
+module Parser_NonVerbose = ParserAux (Lexer)
+module Parser_En = ParserAux (Lexer_en)
+module Parser_Fr = ParserAux (Lexer_fr)
 
-let localised_lexers : (Cli.frontend_lang * (module Lexer.LocalisedLexer)) list =
-  [ (`Fr, (module Lexer_fr)); (`En, (module Lexer_en)); (`NonVerbose, (module Lexer)) ]
+let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file_or_master = function
+  | `NonVerbose -> Parser_NonVerbose.commands_or_includes
+  | `En -> Parser_En.commands_or_includes
+  | `Fr -> Parser_Fr.commands_or_includes
+
+(** {1 Parsing multiple files} *)
 
 (** Parses a single source file *)
 let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
@@ -245,9 +251,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
   Sedlexing.set_filename lexbuf source_file_name;
   Parse_utils.current_file := source_file_name;
-  let module LocalisedLexer = (val List.assoc language localised_lexers) in
-  let module ConcreteParser = ParserAux (LocalisedLexer) in
-  let commands_or_includes = ConcreteParser.commands_or_includes lexbuf in
+  let commands_or_includes = localised_parser language lexbuf in
   (match input with Some input -> close_in input | None -> ());
   match commands_or_includes with
   | Ast.SourceFile commands ->
