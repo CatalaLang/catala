@@ -12,19 +12,31 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree built by the Catala parser *)
+
 [@@@ocaml.warning "-7"]
 
 open Utils
+(** {1 Visitor classes for programs} *)
+
+(** To allow for quick traversal and/or modification of this AST structure, we provide a
+    {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design pattern}. This feature is
+    implemented via {{:https://gitlab.inria.fr/fpottier/visitors} François Pottier's OCaml visitors
+    library}. *)
+
+(** {1 Type definitions} *)
 
 type constructor = (string[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "constructor_map"; nude = true },
     visitors { variety = "iter"; name = "constructor_iter"; nude = true }]
+(** Constructors are CamelCase *)
 
 type ident = (string[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "ident_map"; nude = true },
     visitors { variety = "iter"; name = "ident_iter"; nude = true }]
+(** Idents are snake_case *)
 
 type qident = ident Pos.marked list
 [@@deriving
@@ -262,6 +274,7 @@ and expression =
   | ArrayLit of expression Pos.marked list
   | Ident of ident
   | Dotted of expression Pos.marked * constructor Pos.marked option * ident Pos.marked
+      (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors
     {

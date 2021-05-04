@@ -16,15 +16,8 @@
 
 open Sedlexing
 open Utils
-module I = Parser.MenhirInterpreter
 
 (** {1 Internal functions} *)
-
-(** Returns the state number from the Menhir environment *)
-let state (env : 'semantic_value I.env) : int =
-  match Lazy.force (I.stack env) with
-  | MenhirLib.General.Nil -> 0
-  | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
 (** Three-way minimum *)
 let minimum a b c = min a (min b c)
@@ -113,106 +106,133 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
      | None -> []
      | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
 
-(** Usage: [fail lexbuf env token_list last_input_needed]
+module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
+  include Parser.Make (LocalisedLexer)
+  module I = MenhirInterpreter
 
-    Raises an error with meaningful hints about what the parsing error was. [lexbuf] is the lexing
-    buffer state at the failure point, [env] is the Menhir environment and [last_input_needed] is
-    the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
-    by things like {!val: Surface.Lexer.token_list_language_agnostic} and is used to provide
-    suggestions of the tokens acceptable at the failure point *)
-let fail (lexbuf : lexbuf) (env : 'semantic_value I.env) (token_list : (string * Parser.token) list)
-    (last_input_needed : 'semantic_value I.env option) : 'a =
-  let wrong_token = Utf8.lexeme lexbuf in
-  let acceptable_tokens, last_positions =
-    match last_input_needed with
-    | Some last_input_needed ->
-        ( List.filter
-            (fun (_, t) ->
-              I.acceptable (I.input_needed last_input_needed) t (fst (lexing_positions lexbuf)))
-            token_list,
-          Some (I.positions last_input_needed) )
-    | None -> (token_list, None)
-  in
-  let similar_acceptable_tokens =
-    List.sort
-      (fun (x, _) (y, _) ->
-        let truncated_x =
-          if String.length wrong_token <= String.length x then
-            String.sub x 0 (String.length wrong_token)
-          else x
-        in
-        let truncated_y =
-          if String.length wrong_token <= String.length y then
-            String.sub y 0 (String.length wrong_token)
-          else y
-        in
-        let levx = levenshtein_distance truncated_x wrong_token in
-        let levy = levenshtein_distance truncated_y wrong_token in
-        if levx = levy then String.length x - String.length y else levx - levy)
-      acceptable_tokens
-  in
-  let similar_token_msg =
-    if List.length similar_acceptable_tokens = 0 then None
-    else
-      Some
-        (Printf.sprintf "did you mean %s?"
-           (String.concat ", or maybe "
-              (List.map
-                 (fun (ts, _) -> Cli.print_with_style syntax_hints_style "\"%s\"" ts)
-                 similar_acceptable_tokens)))
-  in
-  (* The parser has suspended itself because of a syntax error. Stop. *)
-  let custom_menhir_message =
-    match Parser_errors.message (state env) with
-    | exception Not_found ->
-        "Message: " ^ Cli.print_with_style syntax_hints_style "%s" "unexpected token"
-    | msg ->
-        "Message: "
-        ^ Cli.print_with_style syntax_hints_style "%s" (String.trim (String.uncapitalize_ascii msg))
-  in
-  let msg =
-    match similar_token_msg with
-    | None -> custom_menhir_message
-    | Some similar_token_msg ->
-        Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
-  in
-  raise_parser_error
-    (Pos.from_lpos (lexing_positions lexbuf))
-    (Option.map Pos.from_lpos last_positions)
-    (Utf8.lexeme lexbuf) msg
+  (** Returns the state number from the Menhir environment *)
+  let state (env : 'semantic_value I.env) : int =
+    match Lazy.force (I.stack env) with
+    | MenhirLib.General.Nil -> 0
+    | MenhirLib.General.Cons (Element (s, _, _, _), _) -> I.number s
 
-(** Main parsing loop *)
-let rec loop (next_token : unit -> Parser.token * Lexing.position * Lexing.position)
-    (token_list : (string * Parser.token) list) (lexbuf : lexbuf)
-    (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint) :
-    Ast.source_file_or_master =
-  match checkpoint with
-  | I.InputNeeded env ->
-      let token = next_token () in
-      let checkpoint = I.offer checkpoint token in
-      loop next_token token_list lexbuf (Some env) checkpoint
-  | I.Shifting _ | I.AboutToReduce _ ->
-      let checkpoint = I.resume checkpoint in
-      loop next_token token_list lexbuf last_input_needed checkpoint
-  | I.HandlingError env -> fail lexbuf env token_list last_input_needed
-  | I.Accepted v -> v
-  | I.Rejected ->
-      (* Cannot happen as we stop at syntax error immediatly *)
-      assert false
+  (** Usage: [fail lexbuf env token_list last_input_needed]
 
-(** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type difference for
-    [lexbuf]. *)
-let sedlex_with_menhir (lexer' : lexbuf -> Parser.token) (token_list : (string * Parser.token) list)
-    (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
-    Ast.source_file_or_master =
-  let lexer : unit -> Parser.token * Lexing.position * Lexing.position =
-    with_tokenizer lexer' lexbuf
-  in
-  try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
-  with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-    Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
+      Raises an error with meaningful hints about what the parsing error was. [lexbuf] is the lexing
+      buffer state at the failure point, [env] is the Menhir environment and [last_input_needed] is
+      the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
+      by things like {!val: Surface.Lexer.token_list_language_agnostic} and is used to provide
+      suggestions of the tokens acceptable at the failure point *)
+  let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
+      (token_list : (string * Tokens.token) list) (last_input_needed : 'semantic_value I.env option)
+      : 'a =
+    let wrong_token = Utf8.lexeme lexbuf in
+    let acceptable_tokens, last_positions =
+      match last_input_needed with
+      | Some last_input_needed ->
+          ( List.filter
+              (fun (_, t) ->
+                I.acceptable (I.input_needed last_input_needed) t (fst (lexing_positions lexbuf)))
+              token_list,
+            Some (I.positions last_input_needed) )
+      | None -> (token_list, None)
+    in
+    let similar_acceptable_tokens =
+      List.sort
+        (fun (x, _) (y, _) ->
+          let truncated_x =
+            if String.length wrong_token <= String.length x then
+              String.sub x 0 (String.length wrong_token)
+            else x
+          in
+          let truncated_y =
+            if String.length wrong_token <= String.length y then
+              String.sub y 0 (String.length wrong_token)
+            else y
+          in
+          let levx = levenshtein_distance truncated_x wrong_token in
+          let levy = levenshtein_distance truncated_y wrong_token in
+          if levx = levy then String.length x - String.length y else levx - levy)
+        acceptable_tokens
+    in
+    let similar_token_msg =
+      if List.length similar_acceptable_tokens = 0 then None
+      else
+        Some
+          (Printf.sprintf "did you mean %s?"
+             (String.concat ", or maybe "
+                (List.map
+                   (fun (ts, _) -> Cli.print_with_style syntax_hints_style "\"%s\"" ts)
+                   similar_acceptable_tokens)))
+    in
+    (* The parser has suspended itself because of a syntax error. Stop. *)
+    let custom_menhir_message =
+      match Parser_errors.message (state env) with
+      | exception Not_found ->
+          "Message: " ^ Cli.print_with_style syntax_hints_style "%s" "unexpected token"
+      | msg ->
+          "Message: "
+          ^ Cli.print_with_style syntax_hints_style "%s"
+              (String.trim (String.uncapitalize_ascii msg))
+    in
+    let msg =
+      match similar_token_msg with
+      | None -> custom_menhir_message
+      | Some similar_token_msg ->
+          Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message similar_token_msg
+    in
+    raise_parser_error
+      (Pos.from_lpos (lexing_positions lexbuf))
+      (Option.map Pos.from_lpos last_positions)
+      (Utf8.lexeme lexbuf) msg
 
-(** {1 Parsing multiple files}*)
+  (** Main parsing loop *)
+  let rec loop (next_token : unit -> Tokens.token * Lexing.position * Lexing.position)
+      (token_list : (string * Tokens.token) list) (lexbuf : lexbuf)
+      (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint)
+      : Ast.source_file_or_master =
+    match checkpoint with
+    | I.InputNeeded env ->
+        let token = next_token () in
+        let checkpoint = I.offer checkpoint token in
+        loop next_token token_list lexbuf (Some env) checkpoint
+    | I.Shifting _ | I.AboutToReduce _ ->
+        let checkpoint = I.resume checkpoint in
+        loop next_token token_list lexbuf last_input_needed checkpoint
+    | I.HandlingError env -> fail lexbuf env token_list last_input_needed
+    | I.Accepted v -> v
+    | I.Rejected ->
+        (* Cannot happen as we stop at syntax error immediatly *)
+        assert false
+
+  (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type difference for
+      [lexbuf]. *)
+  let sedlex_with_menhir (lexer' : lexbuf -> Tokens.token)
+      (token_list : (string * Tokens.token) list)
+      (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
+      Ast.source_file_or_master =
+    let lexer : unit -> Tokens.token * Lexing.position * Lexing.position =
+      with_tokenizer lexer' lexbuf
+    in
+    try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
+    with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
+      Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
+
+  let commands_or_includes (lexbuf : lexbuf) : Ast.source_file_or_master =
+    sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list
+      Incremental.source_file_or_master lexbuf
+end
+
+module Parser_NonVerbose = ParserAux (Lexer)
+module Parser_En = ParserAux (Lexer_en)
+module Parser_Fr = ParserAux (Lexer_fr)
+
+let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file_or_master = function
+  | `NonVerbose -> Parser_NonVerbose.commands_or_includes
+  | `En -> Parser_En.commands_or_includes
+  | `Fr -> Parser_Fr.commands_or_includes
+
+(** {1 Parsing multiple files} *)
 
 (** Parses a single source file *)
 let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
@@ -231,21 +251,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
   Sedlexing.set_filename lexbuf source_file_name;
   Parse_utils.current_file := source_file_name;
-  let lexer_lang =
-    match language with
-    | `Fr -> Lexer_fr.lexer_fr
-    | `En -> Lexer_en.lexer_en
-    | `NonVerbose -> Lexer.lexer
-  in
-  let token_list_lang =
-    match language with
-    | `Fr -> Lexer_fr.token_list_fr
-    | `En -> Lexer_en.token_list_en
-    | `NonVerbose -> Lexer.token_list
-  in
-  let commands_or_includes =
-    sedlex_with_menhir lexer_lang token_list_lang Parser.Incremental.source_file_or_master lexbuf
-  in
+  let commands_or_includes = localised_parser language lexbuf in
   (match input with Some input -> close_in input | None -> ());
   match commands_or_includes with
   | Ast.SourceFile commands ->

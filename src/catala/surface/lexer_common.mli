@@ -15,5 +15,5 @@
 val calc_precedence : string -> int
 (** Calculates the precedence according a matched regex of the form : '[#]+' *)
 
-val get_law_heading : Sedlexing.lexbuf -> Parser.token
+val get_law_heading : Sedlexing.lexbuf -> Tokens.token
 (** Gets the [LAW_HEADING] token from the current [lexbuf] *)

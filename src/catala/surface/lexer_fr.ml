@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-open Parser
+open Tokens
 open Sedlexing
 open Utils
 open Lexer_common
@@ -21,7 +21,7 @@ module R = Re.Pcre
 
 (** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
     French. *)
-let token_list_fr : (string * token) list =
+let token_list : (string * token) list =
   [
     ("champ d'application", SCOPE);
     ("conséquence", CONSEQUENCE);
@@ -83,19 +83,27 @@ let token_list_fr : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+let builtins : (string * Ast.builtin_expression) list =
+  [
+    ("entier_vers_décimal", Ast.IntToDec);
+    ("accès_jour", Ast.GetDay);
+    ("accès_mois", Ast.GetMonth);
+    ("accès_année", Ast.GetYear);
+  ]
+
 (** Main lexing function used in code blocks *)
-let rec lex_code_fr (lexbuf : lexbuf) : token =
+let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | white_space | '\n' ->
       (* Whitespaces *)
       L.update_acc lexbuf;
-      lex_code_fr lexbuf
+      lex_code lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       L.update_acc lexbuf;
-      lex_code_fr lexbuf
+      lex_code lexbuf
   | "```" ->
       (* End of code section *)
       L.is_code := false;
@@ -275,18 +283,6 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | "initial" ->
       L.update_acc lexbuf;
       INIT
-  | "entier_vers_d", 0xE9, "cimal" ->
-      L.update_acc lexbuf;
-      INT_TO_DEC
-  | "acc", 0xE8, "s_jour" ->
-      L.update_acc lexbuf;
-      GET_DAY
-  | "acc", 0xE8, "s_mois" ->
-      L.update_acc lexbuf;
-      GET_MONTH
-  | "acc", 0xE8, "s_ann", 0xE9, "e" ->
-      L.update_acc lexbuf;
-      GET_YEAR
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE
@@ -494,7 +490,7 @@ let rec lex_code_fr (lexbuf : lexbuf) : token =
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Main lexing function used outside code blocks *)
-let lex_law_fr (lexbuf : lexbuf) : token =
+let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
@@ -564,7 +560,6 @@ let lex_law_fr (lexbuf : lexbuf) : token =
   | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-(** Entry point of the lexer, distributes to {!val: lex_code_fr} or {!val: lex_law_fr} depending of
-    {!val: Surface.Lexer.is_code}. *)
-let lexer_fr (lexbuf : lexbuf) : token =
-  if !L.is_code then lex_code_fr lexbuf else lex_law_fr lexbuf
+(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
+    Surface.Lexer.is_code}. *)
+let lexer (lexbuf : lexbuf) : token = if !L.is_code then lex_code lexbuf else lex_law lexbuf

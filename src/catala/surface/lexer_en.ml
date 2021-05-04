@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-open Parser
+open Tokens
 open Sedlexing
 open Utils
 open Lexer_common
@@ -21,7 +21,7 @@ module R = Re.Pcre
 
 (** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
     English. *)
-let token_list_en : (string * token) list =
+let token_list : (string * token) list =
   [
     ("scope", SCOPE);
     ("consequence", CONSEQUENCE);
@@ -85,19 +85,28 @@ let token_list_en : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+(** Localised builtin functions *)
+let builtins : (string * Ast.builtin_expression) list =
+  [
+    ("integer_to_decimal", IntToDec);
+    ("get_day", GetDay);
+    ("get_month", GetMonth);
+    ("get_year", GetYear);
+  ]
+
 (** Main lexing function used in code blocks *)
-let rec lex_code_en (lexbuf : lexbuf) : token =
+let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | white_space ->
       (* Whitespaces *)
       L.update_acc lexbuf;
-      lex_code_en lexbuf
+      lex_code lexbuf
   | '#', Star (Compl '\n'), '\n' ->
       (* Comments *)
       L.update_acc lexbuf;
-      lex_code_en lexbuf
+      lex_code lexbuf
   | "```" ->
       (* End of code section *)
       L.is_code := false;
@@ -253,18 +262,6 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | "not" ->
       L.update_acc lexbuf;
       NOT
-  | "integer_to_decimal" ->
-      L.update_acc lexbuf;
-      INT_TO_DEC
-  | "get_day" ->
-      L.update_acc lexbuf;
-      GET_DAY
-  | "get_month" ->
-      L.update_acc lexbuf;
-      GET_MONTH
-  | "get_year" ->
-      L.update_acc lexbuf;
-      GET_YEAR
   | "maximum" ->
       L.update_acc lexbuf;
       MAXIMUM
@@ -487,7 +484,7 @@ let rec lex_code_en (lexbuf : lexbuf) : token =
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Main lexing function used outside code blocks *)
-let lex_law_en (lexbuf : lexbuf) : token =
+let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
@@ -548,7 +545,6 @@ let lex_law_en (lexbuf : lexbuf) : token =
   | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-(** Entry point of the lexer, distributes to {!val: lex_code_en} or {!val: lex_law_en} depending of
-    {!val: Surface.Lexer.is_code}. *)
-let lexer_en (lexbuf : lexbuf) : token =
-  if !L.is_code then lex_code_en lexbuf else lex_law_en lexbuf
+(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
+    Surface.Lexer.is_code}. *)
+let lexer (lexbuf : lexbuf) : token = if !L.is_code then lex_code lexbuf else lex_law lexbuf

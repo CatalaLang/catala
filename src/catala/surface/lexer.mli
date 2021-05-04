@@ -12,7 +12,9 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Concise syntax with English abbreviated keywords. *)
+(** Basic lexer with abbreviated syntax, and support for localised implementations. *)
+
+(** Auxiliary functions used by all lexers. *)
 
 val is_code : bool ref
 (** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
@@ -29,20 +31,28 @@ val update_acc : Sedlexing.lexbuf -> unit
 val raise_lexer_error : Utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
-val token_list_language_agnostic : (string * Parser.token) list
+val token_list_language_agnostic : (string * Tokens.token) list
 (** Associative list matching each punctuation string part of the Catala syntax with its {!module:
     Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 
-val token_list : (string * Parser.token) list
-(** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the input
-    language. *)
+module type LocalisedLexer = sig
+  val token_list : (string * Tokens.token) list
+  (** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the
+      input language. *)
 
-val lex_code : Sedlexing.lexbuf -> Parser.token
-(** Main lexing function used in a code block *)
+  val builtins : (string * Ast.builtin_expression) list
+  (** Associative list of string to their corresponding builtins *)
 
-val lex_law : Sedlexing.lexbuf -> Parser.token
-(** Main lexing function used outside code blocks *)
+  val lex_code : Sedlexing.lexbuf -> Tokens.token
+  (** Main lexing function used in a code block *)
 
-val lexer : Sedlexing.lexbuf -> Parser.token
-(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
-    is_code}. *)
+  val lex_law : Sedlexing.lexbuf -> Tokens.token
+  (** Main lexing function used outside code blocks *)
+
+  val lexer : Sedlexing.lexbuf -> Tokens.token
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
+      {!val: is_code}. *)
+end
+
+include LocalisedLexer
+(** Concise syntax with English abbreviated keywords. *)
