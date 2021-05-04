@@ -99,6 +99,7 @@ Using another version may cause spurious diffs to appear in your pull requests.
 The language provides a limited number of builtin functions, which are sometimes
 needed for things that can't easily be expressed in Catala itself; in case you
 need more, here is how one can be added:
+
 - Choose a name wisely. Be ready to patch any code that already used the name
   for scope parameters, variables or structure fields, since it won't compile
   anymore.
@@ -112,8 +113,9 @@ need more, here is how one can be added:
   - Extend the printer (`dcalc/print.ml`) and the typer with correct type
     information (`dcalc/typing.ml`)
   - Finally, provide the implementations:
-    * in `lcalc/to_ocaml.ml`, function `format_unop`
-    * in `dcalc/interpreter.ml`, function `evaluate_operator`
+    - in `lcalc/to_ocaml.ml`, function `format_unop`
+    - in `dcalc/interpreter.ml`, function `evaluate_operator`
+- Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
 
 ## Internationalization
 
