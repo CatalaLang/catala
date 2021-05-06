@@ -57,7 +57,7 @@ let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling fro
 let optimize = Arg.(value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations")
 
 let trace_opt =
-  Arg.(value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the intepreter's computation")
+  Arg.(value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the interpreter's computation")
 
 let wrap_weaved_output =
   Arg.(
