@@ -1,0 +1,78 @@
+## Rozdzial 3
+
+> Begin metadata
+
+```catala
+declaration scope UmowaSprzedazy: # A7_U1_P1
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+  context inne_prawa_majatkowe condition
+
+scope UmowaSprzedazy:
+  definition podatek equals
+    kwota *$ stawka
+
+scope UmowaSprzedazy:
+  label a7_u1_p1_ppa
+  definition stawka equals 2% # A7_U1_P1_PPa
+
+scope UmowaSprzedazy:
+  exception a7_u1_p1_ppa
+  definition stawka under condition
+    inne_prawa_majatkowe
+  consequence equals 1% # A7_U1_P1_PPb
+
+declaration scope UmowaZamianyLubDarowizny: # A7_U1_P2
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+  context inne_prawa_majatkowe condition
+
+scope UmowaZamianyLubDarowizny:
+  definition podatek equals
+    kwota *$ stawka
+
+scope UmowaZamianyLubDarowizny:
+  label a7_u1_p2_ppa
+  definition stawka equals 2% # A7_U1_P2_PPa
+
+scope UmowaZamianyLubDarowizny:
+  exception a7_u1_p2_ppa
+  definition stawka under condition
+    inne_prawa_majatkowe
+  consequence equals 1% # A7_U1_P2_PPb
+
+###
+
+declaration scope OdplatneUzytkowanie: # A7_U1_P3
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+  context inne_prawa_majatkowe condition
+
+scope OdplatneUzytkowanie:
+  definition podatek equals
+    kwota *$ stawka
+
+scope OdplatneUzytkowanie:
+  definition stawka equals 1% # A7_U1_P3
+
+###
+
+declaration scope PozyczkaLubDepozytNieprawidlowy: # A7_U1_P4
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+  context inne_prawa_majatkowe condition
+
+scope PozyczkaLubDepozytNieprawidlowy:
+  definition podatek equals
+    kwota *$ stawka
+
+scope PozyczkaLubDepozytNieprawidlowy:
+  definition stawka equals 0.5% # A7_U1_P4
+
+```
+
+> End metadata
