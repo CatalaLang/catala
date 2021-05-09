@@ -1,13 +1,13 @@
-> Include: ../podatek_od_czynnosci_cywilnoprawnych/rozdzial_3.catala_en
+> Include: ../podatek_od_czynnosci_cywilnoprawnych/rozdzial_3.catala_pl
 
 ## [Test - Art. 7 ustęp 1 punkt 3]
 
 ```catala
-deklaracja scope Test_A7_U1_P3:
-  kontekst sprzedaz scope OdplatneUzytkowanie
+deklaracja zakres Test_A7_U1_P3:
+  kontekst sprzedaz zakres OdplatneUzytkowanie
 
-scope Test_A7_U1_P3:
-  definition sprzedaz.kwota equals $100
+zakres Test_A7_U1_P3:
+  definicja sprzedaz.kwota wynosi $100
 
-  assertion sprzedaz.podatek = $1
+  asercja sprzedaz.podatek = $1
 ```
