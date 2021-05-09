@@ -3,8 +3,8 @@
 ## [Test - Art. 7 ustęp 1 punkt 3]
 
 ```catala
-declaration scope Test_A7_U1_P3:
-  context sprzedaz scope OdplatneUzytkowanie
+deklaracja scope Test_A7_U1_P3:
+  kontekst sprzedaz scope OdplatneUzytkowanie
 
 scope Test_A7_U1_P3:
   definition sprzedaz.kwota equals $100

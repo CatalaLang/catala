@@ -7,19 +7,19 @@
 
 > Begin metadata
 ```catala
-declaration scope UmowaSprzedazy:
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
-  context inne_prawa_majatkowe condition
+deklaracja zakres UmowaSprzedazy:
+  kontekst kwota zawartosc pieniadze
+  kontekst stawka zawartosc dziesietna
+  kontekst podatek zawartosc pieniadze
+  kontekst inne_prawa_majatkowe condition
 
-scope UmowaSprzedazy:
-  definition podatek equals
+zakres UmowaSprzedazy:
+  definicja podatek wynosi
     kwota *$ stawka
 
-scope UmowaSprzedazy:
-  label a7_u1_p1_ppa
-  definition stawka equals 2%
+zakres UmowaSprzedazy:
+  etykieta a7_u1_p1_ppa
+  definicja stawka wynosi 2%
 ```
 > End metadata
 
@@ -27,11 +27,11 @@ scope UmowaSprzedazy:
 #### b) innych praw majątkowych – 1%;
 > Begin metadata
 ```catala
-scope UmowaSprzedazy:
-  exception a7_u1_p1_ppa
-  definition stawka under condition
+zakres UmowaSprzedazy:
+  wyjatek a7_u1_p1_ppa
+  definicja stawka pod warunkiem
     inne_prawa_majatkowe
-  consequence equals 1%
+  konsekwencja wynosi 1%
 ```
 > End metadata
 
@@ -42,19 +42,19 @@ mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z 
 > Begin metadata
 
 ```catala
-declaration scope UmowaZamianyLubDarowizny:
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
-  context inne_prawa_majatkowe condition
+deklaracja zakres UmowaZamianyLubDarowizny:
+  kontekst kwota zawartosc pieniadze
+  kontekst stawka zawartosc dziesietna
+  kontekst podatek zawartosc pieniadze
+  kontekst inne_prawa_majatkowe condition
 
-scope UmowaZamianyLubDarowizny:
-  definition podatek equals
+zakres UmowaZamianyLubDarowizny:
+  definicja podatek wynosi
     kwota *$ stawka
 
-scope UmowaZamianyLubDarowizny:
-  label a7_u1_p2_ppa
-  definition stawka equals 2%
+zakres UmowaZamianyLubDarowizny:
+  etykieta a7_u1_p2_ppa
+  definicja stawka wynosi 2%
 ```
 > End metadata
 
@@ -62,11 +62,11 @@ scope UmowaZamianyLubDarowizny:
 
 >Begin metadata
 ```catala
-scope UmowaZamianyLubDarowizny:
-  exception a7_u1_p2_ppa
-  definition stawka under condition
+zakres UmowaZamianyLubDarowizny:
+  wyjatek a7_u1_p2_ppa
+  definicja stawka pod warunkiem
     inne_prawa_majatkowe
-  consequence equals 1%
+  konsekwencja wynosi 1%
 ```
 >End metadata
 
@@ -74,17 +74,17 @@ scope UmowaZamianyLubDarowizny:
 
 > Begin metadata
 ```catala
-declaration scope OdplatneUzytkowanie:
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
+deklaracja zakres OdplatneUzytkowanie:
+  kontekst kwota zawartosc pieniadze
+  kontekst stawka zawartosc dziesietna
+  kontekst podatek zawartosc pieniadze
 
-scope OdplatneUzytkowanie:
-  definition podatek equals
+zakres OdplatneUzytkowanie:
+  definicja podatek wynosi
     kwota *$ stawka
 
-scope OdplatneUzytkowanie:
-  definition stawka equals 1%
+zakres OdplatneUzytkowanie:
+  definicja stawka wynosi 1%
 ```
 > End metadata
 
@@ -92,16 +92,16 @@ scope OdplatneUzytkowanie:
 
 > Begin metadata
 ```catala
-declaration scope PozyczkaLubDepozytNieprawidlowy:
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
+deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
+  kontekst kwota zawartosc pieniadze
+  kontekst stawka zawartosc dziesietna
+  kontekst podatek zawartosc pieniadze
 
-scope PozyczkaLubDepozytNieprawidlowy:
-  definition podatek equals
+zakres PozyczkaLubDepozytNieprawidlowy:
+  definicja podatek wynosi
     kwota *$ stawka # TODO: extract somehow?
 
-scope PozyczkaLubDepozytNieprawidlowy:
-  definition stawka equals 0.5%
+zakres PozyczkaLubDepozytNieprawidlowy:
+  definicja stawka wynosi 0.5%
 ```
 > End metadata

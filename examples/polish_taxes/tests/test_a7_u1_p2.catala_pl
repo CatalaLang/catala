@@ -1,21 +1,21 @@
 > Include: ../podatek_od_czynnosci_cywilnoprawnych/rozdzial_3.catala_en
 
-## [Test - Art. 7 ustęp 1 punkt 1]
+## [Test - Art. 7 ustęp 1 punkt 2]
 
 ```catala
-declaration scope Test_A7_U1_P1_PPa:
-  context sprzedaz scope UmowaSprzedazy
+deklaracja scope Test_A7_U1_P2_PPa:
+  kontekst sprzedaz scope UmowaZamianyLubDarowizny
 
-scope Test_A7_U1_P1_PPa:
+scope Test_A7_U1_P2_PPa:
   definition sprzedaz.kwota equals $100
 
   assertion sprzedaz.podatek = $2
 
 
-declaration scope Test_A7_U1_P1_PPb:
-  context sprzedaz scope UmowaSprzedazy
+deklaracja scope Test_A7_U1_P2_PPb:
+  kontekst sprzedaz scope UmowaZamianyLubDarowizny
 
-scope Test_A7_U1_P1_PPb:
+scope Test_A7_U1_P2_PPb:
   definition sprzedaz.kwota equals $100
   definition sprzedaz.inne_prawa_majatkowe equals true
 

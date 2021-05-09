@@ -3,8 +3,8 @@
 ## [Test - Art. 7 ustęp 1 punkt 4]
 
 ```catala
-declaration scope Test_A7_U1_P4:
-  context sprzedaz scope PozyczkaLubDepozytNieprawidlowy
+deklaracja scope Test_A7_U1_P4:
+  kontekst sprzedaz scope PozyczkaLubDepozytNieprawidlowy
 
 scope Test_A7_U1_P4:
   definition sprzedaz.kwota equals $200
