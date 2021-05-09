@@ -1,9 +1,13 @@
 ## Rozdzial 3
 
-> Begin metadata
+## Art. 7. 1. Stawki podatku wynoszą:
 
+### 1) od umowy sprzedaży:
+#### a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
+
+> Begin metadata
 ```catala
-declaration scope UmowaSprzedazy: # A7_U1_P1
+declaration scope UmowaSprzedazy:
   context kwota content money
   context stawka content decimal
   context podatek content money
@@ -15,15 +19,30 @@ scope UmowaSprzedazy:
 
 scope UmowaSprzedazy:
   label a7_u1_p1_ppa
-  definition stawka equals 2% # A7_U1_P1_PPa
+  definition stawka equals 2%
+```
+> End metadata
 
+
+#### b) innych praw majątkowych – 1%;
+> Begin metadata
+```catala
 scope UmowaSprzedazy:
   exception a7_u1_p1_ppa
   definition stawka under condition
     inne_prawa_majatkowe
-  consequence equals 1% # A7_U1_P1_PPb
+  consequence equals 1%
+```
+> End metadata
 
-declaration scope UmowaZamianyLubDarowizny: # A7_U1_P2
+### 2) od umów zamiany, dożywocia, o dział spadku, o zniesienie współwłasności oraz darowizny:
+
+#### a) przy przeniesieniu własności nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu
+mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
+> Begin metadata
+
+```catala
+declaration scope UmowaZamianyLubDarowizny:
   context kwota content money
   context stawka content decimal
   context podatek content money
@@ -35,44 +54,54 @@ scope UmowaZamianyLubDarowizny:
 
 scope UmowaZamianyLubDarowizny:
   label a7_u1_p2_ppa
-  definition stawka equals 2% # A7_U1_P2_PPa
+  definition stawka equals 2%
+```
+> End metadata
 
+#### b) przy przeniesieniu własności innych praw majątkowych – 1%;
+
+>Begin metadata
+```catala
 scope UmowaZamianyLubDarowizny:
   exception a7_u1_p2_ppa
   definition stawka under condition
     inne_prawa_majatkowe
-  consequence equals 1% # A7_U1_P2_PPb
-
-###
-
-declaration scope OdplatneUzytkowanie: # A7_U1_P3
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
-  context inne_prawa_majatkowe condition
-
-scope OdplatneUzytkowanie:
-  definition podatek equals
-    kwota *$ stawka
-
-scope OdplatneUzytkowanie:
-  definition stawka equals 1% # A7_U1_P3
-
-###
-
-declaration scope PozyczkaLubDepozytNieprawidlowy: # A7_U1_P4
-  context kwota content money
-  context stawka content decimal
-  context podatek content money
-  context inne_prawa_majatkowe condition
-
-scope PozyczkaLubDepozytNieprawidlowy:
-  definition podatek equals
-    kwota *$ stawka
-
-scope PozyczkaLubDepozytNieprawidlowy:
-  definition stawka equals 0.5% # A7_U1_P4
-
+  consequence equals 1%
 ```
+>End metadata
 
+### 3) od umowy ustanowienia odpłatnego użytkowania, w tym nieprawidłowego, oraz odpłatnej służebności – 1%, z zastrzeżeniem ust. 5;
+
+> Begin metadata
+```catala
+declaration scope OdplatneUzytkowanie:
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+
+scope OdplatneUzytkowanie:
+  definition podatek equals
+    kwota *$ stawka
+
+scope OdplatneUzytkowanie:
+  definition stawka equals 1%
+```
+> End metadata
+
+### 4) od umowy pożyczki oraz depozytu nieprawidłowego – 0,5%, z zastrzeżeniem ust. 5;
+
+> Begin metadata
+```catala
+declaration scope PozyczkaLubDepozytNieprawidlowy:
+  context kwota content money
+  context stawka content decimal
+  context podatek content money
+
+scope PozyczkaLubDepozytNieprawidlowy:
+  definition podatek equals
+    kwota *$ stawka # TODO: extract somehow?
+
+scope PozyczkaLubDepozytNieprawidlowy:
+  definition stawka equals 0.5%
+```
 > End metadata

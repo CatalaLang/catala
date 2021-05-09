@@ -8,7 +8,7 @@ declaration scope Test_A7_U1_P2_PPa:
 
 scope Test_A7_U1_P2_PPa:
   definition sprzedaz.kwota equals $100
-  
+
   assertion sprzedaz.podatek = $2
 
 
