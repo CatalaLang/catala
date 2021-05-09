@@ -16,7 +16,6 @@ scp grammar.html $1/
 scp catala.html $1/
 scp _build/default/src/catala/catala_web.bc.js $1/playground/
 scp examples/tutorial_en/tutorial_en.catala_en $1/playground/
-# TODO BW: PL
 scp examples/tutoriel_fr/tutoriel_fr.catala_fr $1/playground/
 cat examples/allocations_familiales/prologue.catala_fr > allocations_familiales.catala_fr
 cat examples/allocations_familiales/decrets_divers.catala_fr >> allocations_familiales.catala_fr
