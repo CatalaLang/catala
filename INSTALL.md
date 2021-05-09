@@ -119,7 +119,8 @@ augmented with the Catala plugin, simply enter
     sudo make pygments
 
 This will execute the
-script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and
+script `syntax_highlighting/fr/pygments/set_up_pygments.sh`,
+`syntax_highlighting/pl/pygments/set_up_pygments.sh` and
 `syntax_highlighting/en/pygments/set_up_pygments.sh`.
 
 The scripts patch your `pigmentize` executable, used for instance by the `minted` LaTeX package.

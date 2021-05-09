@@ -12,9 +12,9 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type frontend_lang = [ `En | `Fr | `NonVerbose ]
+type frontend_lang = [ `En | `Fr | `NonVerbose | `Pl ]
 
-type backend_lang = [ `En | `Fr ]
+type backend_lang = [ `En | `Fr | `Pl ]
 
 val to_backend_lang : frontend_lang -> backend_lang
 

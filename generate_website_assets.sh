@@ -16,6 +16,7 @@ scp grammar.html $1/
 scp catala.html $1/
 scp _build/default/src/catala/catala_web.bc.js $1/playground/
 scp examples/tutorial_en/tutorial_en.catala_en $1/playground/
+# TODO BW: PL
 scp examples/tutoriel_fr/tutoriel_fr.catala_fr $1/playground/
 cat examples/allocations_familiales/prologue.catala_fr > allocations_familiales.catala_fr
 cat examples/allocations_familiales/decrets_divers.catala_fr >> allocations_familiales.catala_fr
@@ -29,5 +30,6 @@ mv -f allocations_familiales_fixed.catala_fr allocations_familiales.catala_fr
 scp allocations_familiales.catala_fr $1/playground/
 rm allocations_familiales.catala_fr
 scp syntax_highlighting/en/ace/mode-catala_en.js $1/playground/
+# TODO BW: PL
 scp syntax_highlighting/fr/ace/mode-catala_fr.js $1/playground/
 scp french_law_js/french_law.js $1/french_law.js

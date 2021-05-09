@@ -98,7 +98,8 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
       | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e))
+      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
+      | `Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
   | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
   | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 

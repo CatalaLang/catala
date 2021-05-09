@@ -1,0 +1,24 @@
+## Rozdzial 3
+
+## Art. 7. 1. Stawki podatku wynoszą:
+
+### 1) od umowy sprzedaży:
+#### a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
+
+> Begin metadata
+```catala
+deklaracja zakres UmowaSprzedazy:
+  kontekst kwota zawartosc pieniadze
+  kontekst stawka zawartosc dziesietna
+  kontekst podatek zawartosc pieniadze
+
+zakres UmowaSprzedazy:
+  definicja podatek wynosi
+    kwota *$ stawka
+
+zakres UmowaSprzedazy:
+  etykieta a7_u1_p1_ppa
+  definicja stawka wynosi 2%
+```
+> End metadata
+

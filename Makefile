@@ -58,12 +58,17 @@ install:
 
 SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
 SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
+SYNTAX_HIGHLIGHTING_PL=${CURDIR}/syntax_highlighting/pl
 
 pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
 	chmod +x $<
 	sudo $<
 
 pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
+	chmod +x $<
+	sudo $<
+
+pygmentize_pl: $(SYNTAX_HIGHLIGHTING_PL)/set_up_pygments.sh
 	chmod +x $<
 	sudo $<
 
@@ -75,6 +80,10 @@ atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	$<
 
 atom_en: ${CURDIR}/syntax_highlighting/en/setup_atom.sh
+	chmod +x $<
+	$<
+
+atom_pl: ${CURDIR}/syntax_highlighting/pl/setup_atom.sh
 	chmod +x $<
 	$<
 
@@ -90,6 +99,10 @@ vscode_fr: ${CURDIR}/syntax_highlighting/fr/setup_vscode.sh
 	$<
 
 vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
+	chmod +x $<
+	$<
+
+vscode_pl: ${CURDIR}/syntax_highlighting/pl/setup_vscode.sh
 	chmod +x $<
 	$<
 
@@ -222,7 +235,7 @@ clean:
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
-	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_fr,md,fst,mld --grading
+	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading
 
 ##########################################
 # Special targets

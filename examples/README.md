@@ -99,7 +99,7 @@ To build and run the example, create a `Makefile` in `foo/`
 with the following contents:
 
 ```Makefile
-CATALA_LANG=en # or fr if your source code is in French
+CATALA_LANG=en # or fr/pl if your source code is in French/Polish
 SRC=foo.catala
 
 include ../Makefile.common.mk
