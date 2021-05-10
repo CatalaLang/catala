@@ -73,7 +73,7 @@ pygmentize_pl: $(SYNTAX_HIGHLIGHTING_PL)/set_up_pygments.sh
 	sudo $<
 
 #> pygments				: Extends your pygmentize executable with Catala lexers
-pygments: pygmentize_fr pygmentize_en
+pygments: pygmentize_fr pygmentize_en pygmentize_pl
 
 atom_fr: ${CURDIR}/syntax_highlighting/fr/setup_atom.sh
 	chmod +x $<

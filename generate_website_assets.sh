@@ -29,6 +29,6 @@ mv -f allocations_familiales_fixed.catala_fr allocations_familiales.catala_fr
 scp allocations_familiales.catala_fr $1/playground/
 rm allocations_familiales.catala_fr
 scp syntax_highlighting/en/ace/mode-catala_en.js $1/playground/
-# TODO BW: PL
 scp syntax_highlighting/fr/ace/mode-catala_fr.js $1/playground/
+# TODO: PL
 scp french_law_js/french_law.js $1/french_law.js

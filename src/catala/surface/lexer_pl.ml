@@ -57,7 +57,7 @@ let token_list : (string * token) list =
     ("struktura", STRUCT);
     ("asercja", ASSERTION);
     ("rozna", VARIES);
-    ("with", WITH_V);
+    ("wraz z", WITH_V);
     ("dla", FOR);
     ("wszystkie", ALL);
     ("mamy", WE_HAVE);
