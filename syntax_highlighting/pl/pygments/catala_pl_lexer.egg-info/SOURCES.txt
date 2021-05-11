@@ -1,6 +1,0 @@
-setup.py
-catala_pl_lexer.egg-info/PKG-INFO
-catala_pl_lexer.egg-info/SOURCES.txt
-catala_pl_lexer.egg-info/dependency_links.txt
-catala_pl_lexer.egg-info/entry_points.txt
-catala_pl_lexer.egg-info/top_level.txt
