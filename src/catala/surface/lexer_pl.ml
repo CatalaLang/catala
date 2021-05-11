@@ -494,9 +494,9 @@ let lex_law (lexbuf : lexbuf) : token =
 
       BEGIN_CODE
   | eof -> EOF
-  | '#', Star white_space, "Master file" -> MASTER_FILE
-  | '>', Star white_space, "Begin metadata" -> BEGIN_METADATA
-  | '>', Star white_space, "End metadata" -> END_METADATA
+  | '#', Star white_space, "Plik glowny" -> MASTER_FILE
+  | '>', Star white_space, "Poczatek metadanych" -> BEGIN_METADATA
+  | '>', Star white_space, "Koniec metadanych" -> END_METADATA
   | ( '>',
       Star white_space,
       "Include:",

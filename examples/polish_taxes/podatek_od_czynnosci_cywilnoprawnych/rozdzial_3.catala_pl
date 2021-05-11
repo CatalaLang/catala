@@ -5,7 +5,7 @@
 ### 1) od umowy sprzedaży:
 #### a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
 
-> Begin metadata
+> Poczatek metadanych
 ```catala
 deklaracja zakres UmowaSprzedazy:
   kontekst kwota zawartosc pieniadze
@@ -21,11 +21,11 @@ zakres UmowaSprzedazy:
   etykieta a7_u1_p1_ppa
   definicja stawka wynosi 2%
 ```
-> End metadata
+> Koniec metadanych
 
 
 #### b) innych praw majątkowych – 1%;
-> Begin metadata
+> Poczatek metadanych
 ```catala
 zakres UmowaSprzedazy:
   wyjatek a7_u1_p1_ppa
@@ -33,13 +33,13 @@ zakres UmowaSprzedazy:
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
 ```
-> End metadata
+> Koniec metadanych
 
 ### 2) od umów zamiany, dożywocia, o dział spadku, o zniesienie współwłasności oraz darowizny:
 
 #### a) przy przeniesieniu własności nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu
 mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
-> Begin metadata
+> Poczatek metadanych
 
 ```catala
 deklaracja zakres UmowaZamianyLubDarowizny:
@@ -56,11 +56,11 @@ zakres UmowaZamianyLubDarowizny:
   etykieta a7_u1_p2_ppa
   definicja stawka wynosi 2%
 ```
-> End metadata
+> Koniec metadanych
 
 #### b) przy przeniesieniu własności innych praw majątkowych – 1%;
 
->Begin metadata
+>Poczatek metadanych
 ```catala
 zakres UmowaZamianyLubDarowizny:
   wyjatek a7_u1_p2_ppa
@@ -68,11 +68,11 @@ zakres UmowaZamianyLubDarowizny:
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
 ```
->End metadata
+>Koniec metadanych
 
 ### 3) od umowy ustanowienia odpłatnego użytkowania, w tym nieprawidłowego, oraz odpłatnej służebności – 1%, z zastrzeżeniem ust. 5;
 
-> Begin metadata
+> Poczatek metadanych
 ```catala
 deklaracja zakres OdplatneUzytkowanie:
   kontekst kwota zawartosc pieniadze
@@ -86,11 +86,11 @@ zakres OdplatneUzytkowanie:
 zakres OdplatneUzytkowanie:
   definicja stawka wynosi 1%
 ```
-> End metadata
+> Koniec metadanych
 
 ### 4) od umowy pożyczki oraz depozytu nieprawidłowego – 0,5%, z zastrzeżeniem ust. 5;
 
-> Begin metadata
+> Poczatek metadanych
 ```catala
 deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
   kontekst kwota zawartosc pieniadze
@@ -104,4 +104,4 @@ zakres PozyczkaLubDepozytNieprawidlowy:
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja stawka wynosi 0.5%
 ```
-> End metadata
+> Koniec metadanych
