@@ -43,10 +43,10 @@ let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : F
     "\\documentclass[11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
      \\usepackage[utf8]{inputenc}\n\
+     \\usepackage{amssymb}\n\
      \\usepackage[%s]{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
-     \\usepackage{amssymb}\n\
      \\usepackage{newunicodechar}\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\

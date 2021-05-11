@@ -5,6 +5,6 @@ setup(
     packages=find_packages(),
     entry_points="""
     [pygments.lexers]
-    catala_pl_lexer = catala_pl_lexer.lexer:CatalaNvLexer
+    catala_pl_lexer = catala_pl_lexer.lexer:CatalaPlLexer
     """,
 )
