@@ -213,7 +213,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|zawartosc|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|warunek|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjatek)\b
+    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|zawartosc|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjatek)\b
     styles [] = .keyword_rule ;
   }
 
@@ -245,7 +245,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|tekst|dziesietna|suma)\b
+    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|warunek|tekst|dziesietna|suma)\b
     styles [] = .primitive;
   }
 
