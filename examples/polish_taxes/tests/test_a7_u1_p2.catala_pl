@@ -7,17 +7,17 @@ deklaracja zakres Test_A7_U1_P2_PPa:
   kontekst sprzedaz zakres UmowaZamianyLubDarowizny
 
 zakres Test_A7_U1_P2_PPa:
-  definicja sprzedaz.kwota wynosi $100
+  definicja sprzedaz.kwota wynosi 100 PLN
 
-  asercja sprzedaz.podatek = $2
+  asercja sprzedaz.podatek = 2 PLN
 
 
 deklaracja zakres Test_A7_U1_P2_PPb:
   kontekst sprzedaz zakres UmowaZamianyLubDarowizny
 
 zakres Test_A7_U1_P2_PPb:
-  definicja sprzedaz.kwota wynosi $100
+  definicja sprzedaz.kwota wynosi 100 PLN
   definicja sprzedaz.inne_prawa_majatkowe wynosi prawda
 
-  asercja sprzedaz.podatek = $1
+  asercja sprzedaz.podatek = 1 PLN
 ```
