@@ -154,7 +154,7 @@ main : context {
       regex          \= (\#\#)
       styles []       = .law_title;
       : pop {
-         regex       \= (@@[\+]*)
+         regex       \= (\n)
          styles []    = .law_title;
       }
       : pattern {
@@ -164,10 +164,10 @@ main : context {
    }
 
    : inline_push {
-      regex          \= (@)
+      regex          \= ([\#]+\s*\[[^\]]\s*])
       styles []       = .law_subtitle;
       : pop {
-         regex       \= (@)
+         regex       \= (\n)
          styles []    = .law_subtitle;
       }
       : pattern {

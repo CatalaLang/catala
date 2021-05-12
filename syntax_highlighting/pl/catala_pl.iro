@@ -154,7 +154,7 @@ main : context {
       regex          \= (\#\#)
       styles []       = .law_title;
       : pop {
-         regex       \= (@@[\+]*)
+         regex       \= (\n)
          styles []    = .law_title;
       }
       : pattern {
@@ -164,10 +164,10 @@ main : context {
    }
 
    : inline_push {
-      regex          \= (@)
+      regex          \= ([\#]+\s*\[[^\]]\s*])
       styles []       = .law_subtitle;
       : pop {
-         regex       \= (@)
+         regex       \= (\n)
          styles []    = .law_subtitle;
       }
       : pattern {
@@ -211,7 +211,7 @@ code : context {
     regex \= \b(pasuje|ze\s+wzorem|staloprzecinkowa|przez|malejacy|rosnacy|rozna|wraz z|mamy|w|takich ze|istnieje|dla|wszystkie|z|jezeli|wtedy|inaczej|poczatkowy)\b
     styles [] = .keyword_expression ;
   }
-  
+
   : pattern {
     regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|zawartosc|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|warunek|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjatek)\b
     styles [] = .keyword_rule ;
