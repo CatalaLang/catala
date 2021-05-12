@@ -1,6 +1,8 @@
 ## Rozdzial 3
 
-## [Art. 7. 1. Stawki podatku wynoszą:]
+### [Art. 7.]
+
+1. Stawki podatku wynoszą:
 
 1) od umowy sprzedaży:
 
@@ -11,7 +13,7 @@ deklaracja zakres UmowaSprzedazy:
   kontekst kwota zawartosc pieniadze
   kontekst stawka zawartosc dziesietna
   kontekst podatek zawartosc pieniadze
-  kontekst inne_prawa_majatkowe condition
+  kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaSprzedazy:
   definicja podatek wynosi
@@ -42,7 +44,7 @@ deklaracja zakres UmowaZamianyLubDarowizny:
   kontekst kwota zawartosc pieniadze
   kontekst stawka zawartosc dziesietna
   kontekst podatek zawartosc pieniadze
-  kontekst inne_prawa_majatkowe condition
+  kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaZamianyLubDarowizny:
   definicja podatek wynosi

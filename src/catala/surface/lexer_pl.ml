@@ -201,7 +201,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "inaczej" ->
       L.update_acc lexbuf;
       ELSE
-  | "condition" ->
+  | "warunek" ->
       L.update_acc lexbuf;
       CONDITION
   | "zawartosc" ->
