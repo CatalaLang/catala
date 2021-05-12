@@ -53,7 +53,7 @@ let token_list : (string * token) list =
     ("jezeli", IF);
     ("wtedy", THEN);
     ("inaczej", ELSE);
-    ("zawartosc", CONTENT);
+    ("typu", CONTENT);
     ("struktura", STRUCT);
     ("asercja", ASSERTION);
     ("rozna", VARIES);
@@ -204,7 +204,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "warunek" ->
       L.update_acc lexbuf;
       CONDITION
-  | "zawartosc" ->
+  | "typu" ->
       L.update_acc lexbuf;
       CONTENT
   | "struktura" ->

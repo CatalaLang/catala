@@ -12,9 +12,9 @@ a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własności
 
 ```catala
 deklaracja zakres UmowaSprzedazy:
-  kontekst kwota zawartosc pieniadze
-  kontekst stawka zawartosc dziesietna
-  kontekst podatek zawartosc pieniadze
+  kontekst kwota typu pieniadze
+  kontekst stawka typu dziesietna
+  kontekst podatek typu pieniadze
   kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaSprzedazy:
@@ -43,9 +43,9 @@ mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z 
 
 ```catala
 deklaracja zakres UmowaZamianyLubDarowizny:
-  kontekst kwota zawartosc pieniadze
-  kontekst stawka zawartosc dziesietna
-  kontekst podatek zawartosc pieniadze
+  kontekst kwota typu pieniadze
+  kontekst stawka typu dziesietna
+  kontekst podatek typu pieniadze
   kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaZamianyLubDarowizny:
@@ -71,9 +71,9 @@ zakres UmowaZamianyLubDarowizny:
 
 ```catala
 deklaracja zakres OdplatneUzytkowanie:
-  kontekst kwota zawartosc pieniadze
-  kontekst stawka zawartosc dziesietna
-  kontekst podatek zawartosc pieniadze
+  kontekst kwota typu pieniadze
+  kontekst stawka typu dziesietna
+  kontekst podatek typu pieniadze
 
 zakres OdplatneUzytkowanie:
   definicja podatek wynosi
@@ -87,9 +87,9 @@ zakres OdplatneUzytkowanie:
 
 ```catala
 deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
-  kontekst kwota zawartosc pieniadze
-  kontekst stawka zawartosc dziesietna
-  kontekst podatek zawartosc pieniadze
+  kontekst kwota typu pieniadze
+  kontekst stawka typu dziesietna
+  kontekst podatek typu pieniadze
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
