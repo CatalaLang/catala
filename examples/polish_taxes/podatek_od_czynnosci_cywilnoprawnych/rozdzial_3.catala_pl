@@ -93,7 +93,7 @@ deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
-    kwota *$ stawka # TODO: extract somehow?
+    kwota *$ stawka # TODO: extract somehow? this exists in every declaration
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja stawka wynosi 0.5%
