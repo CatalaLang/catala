@@ -9,5 +9,5 @@ deklaracja zakres Test_A7_U1_P9:
 zakres Test_A7_U1_P9:
   definicja sprzedaz.kwota wynosi 1000 PLN
 
-  asercja sprzedaz.podatek = 1 PLN
+  asercja sprzedaz.podatek = 5 PLN
 ```

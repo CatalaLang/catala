@@ -140,5 +140,5 @@ zakres UmowaSpolki:
     kwota *$ stawka_podatku
 
 zakres UmowaSpolki:
-  definicja stawka_podatku wynosi 0.1%
+  definicja stawka_podatku wynosi 0.5%
 ```
