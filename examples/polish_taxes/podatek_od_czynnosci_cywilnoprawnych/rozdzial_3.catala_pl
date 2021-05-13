@@ -96,3 +96,33 @@ zakres PozyczkaLubDepozytNieprawidlowy:
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja stawka_podatku wynosi 0.5%
 ```
+
+7) od ustanowienia hipoteki:
+
+a) na zabezpieczenie wierzytelności istniejących – od kwoty zabezpieczonej wierzytelności – 0,1%,
+
+```catala
+deklaracja zakres Hipoteka:
+  kontekst kwota typu pieniadze
+  kontekst stawka_podatku typu dziesietna
+  kontekst podatek typu pieniadze
+  kontekst wysokosc_nieustalona warunek
+
+zakres Hipoteka:
+  etykieta a7_u1_p7_ppa
+  definicja podatek wynosi
+    kwota *$ stawka_podatku
+
+zakres Hipoteka:
+  definicja stawka_podatku wynosi 0.1%
+```
+
+b) na zabezpieczenie wierzytelności o wysokości nieustalonej – 19 zł;
+
+```catala
+zakres Hipoteka:
+  wyjatek a7_u1_p7_ppa
+  definicja podatek pod warunkiem
+    wysokosc_nieustalona
+  konsekwencja wynosi 19 PLN
+```
