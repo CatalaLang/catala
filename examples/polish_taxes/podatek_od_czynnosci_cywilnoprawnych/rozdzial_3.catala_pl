@@ -11,17 +11,17 @@ a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własności
 ```catala
 deklaracja zakres UmowaSprzedazy:
   kontekst kwota typu pieniadze
-  kontekst stawka typu dziesietna
+  kontekst stawka_podatku typu dziesietna
   kontekst podatek typu pieniadze
   kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaSprzedazy:
   definicja podatek wynosi
-    kwota *$ stawka
+    kwota *$ stawka_podatku
 
 zakres UmowaSprzedazy:
   etykieta a7_u1_p1_ppa
-  definicja stawka wynosi 2%
+  definicja stawka_podatku wynosi 2%
 ```
 
 
@@ -29,7 +29,7 @@ b) innych praw majątkowych – 1%;
 ```catala
 zakres UmowaSprzedazy:
   wyjatek a7_u1_p1_ppa
-  definicja stawka pod warunkiem
+  definicja stawka_podatku pod warunkiem
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
 ```
@@ -42,17 +42,17 @@ mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z 
 ```catala
 deklaracja zakres UmowaZamianyLubDarowizny:
   kontekst kwota typu pieniadze
-  kontekst stawka typu dziesietna
+  kontekst stawka_podatku typu dziesietna
   kontekst podatek typu pieniadze
   kontekst inne_prawa_majatkowe warunek
 
 zakres UmowaZamianyLubDarowizny:
   definicja podatek wynosi
-    kwota *$ stawka
+    kwota *$ stawka_podatku
 
 zakres UmowaZamianyLubDarowizny:
   etykieta a7_u1_p2_ppa
-  definicja stawka wynosi 2%
+  definicja stawka_podatku wynosi 2%
 ```
 
 b) przy przeniesieniu własności innych praw majątkowych – 1%;
@@ -60,7 +60,7 @@ b) przy przeniesieniu własności innych praw majątkowych – 1%;
 ```catala
 zakres UmowaZamianyLubDarowizny:
   wyjatek a7_u1_p2_ppa
-  definicja stawka pod warunkiem
+  definicja stawka_podatku pod warunkiem
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
 ```
@@ -70,15 +70,15 @@ zakres UmowaZamianyLubDarowizny:
 ```catala
 deklaracja zakres OdplatneUzytkowanie:
   kontekst kwota typu pieniadze
-  kontekst stawka typu dziesietna
+  kontekst stawka_podatku typu dziesietna
   kontekst podatek typu pieniadze
 
 zakres OdplatneUzytkowanie:
   definicja podatek wynosi
-    kwota *$ stawka
+    kwota *$ stawka_podatku
 
 zakres OdplatneUzytkowanie:
-  definicja stawka wynosi 1%
+  definicja stawka_podatku wynosi 1%
 ```
 
 4) od umowy pożyczki oraz depozytu nieprawidłowego – 0,5%, z zastrzeżeniem ust. 5;
@@ -86,13 +86,13 @@ zakres OdplatneUzytkowanie:
 ```catala
 deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
   kontekst kwota typu pieniadze
-  kontekst stawka typu dziesietna
+  kontekst stawka_podatku typu dziesietna
   kontekst podatek typu pieniadze
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
-    kwota *$ stawka # TODO: extract somehow? this exists in every declaration
+    kwota *$ stawka_podatku # TODO: extract somehow? this exists in every declaration
 
 zakres PozyczkaLubDepozytNieprawidlowy:
-  definicja stawka wynosi 0.5%
+  definicja stawka_podatku wynosi 0.5%
 ```
