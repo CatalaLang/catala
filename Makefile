@@ -123,6 +123,7 @@ CODE_GENERAL_IMPOTS_DIR=$(EXAMPLES_DIR)/code_general_impots
 US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
+POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
 
 
 literate_allocations_familiales: build
@@ -145,9 +146,13 @@ literate_tutoriel_fr: build
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
 	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
+literate_polish_taxes: build
+	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.tex
+	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.html
+
 #> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
 literate_examples: literate_allocations_familiales literate_code_general_impots \
-	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr
+	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr literate_polish_taxes
 
 ##########################################
 # Execute test suite
@@ -232,6 +237,7 @@ clean:
 	$(MAKE) -C $(US_TAX_CODE_DIR) clean
 	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
 	$(MAKE) -C $(TUTORIAL_EN_DIR) clean
+	$(MAKE) -C $(POLISH_TAXES_DIR) clean
 	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
