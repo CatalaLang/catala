@@ -295,8 +295,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "dzien" ->
       L.update_acc lexbuf;
       DAY
-  | 0x24, Star white_space, '0' .. '9', Star ('0' .. '9' | ','), Opt ('.', Rep ('0' .. '9', 0 .. 2))
-    ->
+  | ( Star white_space,
+      '0' .. '9',
+      Star ('0' .. '9' | ','),
+      Opt ('.', Rep ('0' .. '9', 0 .. 2)),
+      Star white_space,
+      "PLN" ) ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
       let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
