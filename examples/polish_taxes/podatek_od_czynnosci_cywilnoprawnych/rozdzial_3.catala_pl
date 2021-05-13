@@ -102,7 +102,7 @@ zakres PozyczkaLubDepozytNieprawidlowy:
 a) na zabezpieczenie wierzytelności istniejących – od kwoty zabezpieczonej wierzytelności – 0,1%,
 
 ```catala
-deklaracja zakres Hipoteka:
+deklaracja  zakres Hipoteka:
   kontekst kwota typu pieniadze
   kontekst stawka_podatku typu dziesietna
   kontekst podatek typu pieniadze
@@ -125,4 +125,20 @@ zakres Hipoteka:
   definicja podatek pod warunkiem
     wysokosc_nieustalona
   konsekwencja wynosi 19 PLN
+```
+
+9) od umowy spółki – 0,5%.
+
+```catala
+deklaracja zakres UmowaSpolki:
+  kontekst kwota typu pieniadze
+  kontekst stawka_podatku typu dziesietna
+  kontekst podatek typu pieniadze
+
+zakres UmowaSpolki:
+  definicja podatek wynosi
+    kwota *$ stawka_podatku
+
+zakres UmowaSpolki:
+  definicja stawka_podatku wynosi 0.1%
 ```
