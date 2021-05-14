@@ -6,7 +6,7 @@
 
 ###### Chapitre 1er : Allocations familiales
 
-#### [Article D521-1|LEGIARTI000030680318]
+#### Article D521-1|LEGIARTI000030680318
 
 I.-Pour l'application de l'article L. 521-1 , le montant des allocations
 familiales et de la majoration pour âge prévue à l'article L. 521-3
@@ -185,7 +185,7 @@ champ d'application AllocationsFamiliales :
     montant_versé_base +€ montant_versé_majoration
 ```
 
-#### [Article D521-2|LEGIARTI000030680324]
+#### Article D521-2|LEGIARTI000030680324
 
 ```catala
 # L'allocation forfaitaire totale est la somme de toutes les allocations
@@ -288,7 +288,7 @@ champ d'application AllocationsFamiliales :
   définition nombre_enfants_l521_1 égal à 3
 ```
 
-#### [Article D521-3|LEGIARTI000030678079]
+#### Article D521-3|LEGIARTI000030678079
 
 I.-Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à
 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
@@ -327,7 +327,7 @@ sociale, du budget et de l'agriculture.
 
 ###### Chapitre 5 : Prestations familiales et prestations assimilées
 
-#### [Article D755-5|LEGIARTI000006738575]
+#### Article D755-5|LEGIARTI000006738575
 
 I. - Les taux servant au calcul des allocations familiales et de la majoration
 prévue à l'article L. 755-11 sont identiques à ceux mentionnés à l'article

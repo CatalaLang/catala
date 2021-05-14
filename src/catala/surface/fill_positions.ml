@@ -24,17 +24,10 @@ let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
 
       method! visit_LawHeading (env : string list) (heading : Ast.law_heading)
           (children : Ast.law_structure list) =
-        let env = heading.law_heading_name :: env in
+        let env = Pos.unmark heading.law_heading_name :: env in
         Ast.LawHeading
           ( super#visit_law_heading env heading,
             List.map (fun child -> super#visit_law_structure env child) children )
-
-      method! visit_LawArticle (env : string list) (heading : Ast.law_article)
-          (children : Ast.law_article_item list) =
-        let env = Pos.unmark heading.law_article_name :: env in
-        Ast.LawArticle
-          ( super#visit_law_article env heading,
-            List.map (fun child -> super#visit_law_article_item env child) children )
     end
   in
   visitor#visit_program [] p

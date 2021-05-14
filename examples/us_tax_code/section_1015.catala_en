@@ -33,7 +33,7 @@ declaration scope BasisOfGift:
 ```
 > End metadata
 
-### [(a) Gifts after December 31, 1920]
+### (a) Gifts after December 31, 1920
 
 If the property was acquired by gift after December 31, 1920, the basis shall be
 the same as it would be in the hands of the donor or the last preceding owner by
@@ -77,7 +77,7 @@ scope BasisOfGift under condition
     -- None : value.fair_market of transferor.acquisition.moment
 ```
 
-### [(b) Transfer in trust after December 31, 1920]
+### (b) Transfer in trust after December 31, 1920
 
 If the property was acquired after December 31, 1920, by a transfer in trust
 (other than by a transfer in trust by a gift, bequest, or devise), the basis
@@ -95,7 +95,7 @@ scope BasisOfGift under condition
     transferor.basis + transferor.gain_or_loss of acquisition.moment
 ```
 
-### [(c) Gift or transfer in trust before January 1, 1921]
+### (c) Gift or transfer in trust before January 1, 1921
 
 If the property was acquired by gift or transfer in trust on or before December
 31, 1920, the basis shall be the fair market value of such property at the time
@@ -109,7 +109,7 @@ scope BasisOfGift under condition acquisition.moment <= |1920-01-31|:
 
 ### (d) Increased basis for gift tax paid
 
-#### [(1) In general]
+#### (1) In general
 If— (A) the property is acquired by gift on or after September 2, 1958, the
 basis shall be the basis determined under subsection (a), increased (but not
 above the fair market value of the property at the time of the gift) by the
@@ -155,7 +155,7 @@ scope BasisOfGift under condition
     )
 ```
 
-#### [(2) Amount of tax paid with respect to gift]
+#### (2) Amount of tax paid with respect to gift
 
 For purposes of paragraph (1), the amount of gift tax paid with respect to any
 gift is an amount which bears the same ratio to the amount of gift tax paid under
@@ -175,7 +175,7 @@ under section 2523 (relating to marital deduction).
 #formalizing other sections of the code
 ```
 
-#### [(3) Gifts treated as made one-half by each spouse]
+#### (3) Gifts treated as made one-half by each spouse
 
 For purposes of paragraph (1), where the donor and his spouse elected, under
 section 2513 to have the gift considered as made one-half by each, the amount
@@ -187,7 +187,7 @@ the manner provided in paragraph (2)).
 # Same here
 ```
 
-#### [(4) Treatment as adjustment to basis]
+#### (4) Treatment as adjustment to basis
 
 For purposes of section 1016(b), an increase in basis under paragraph (1) shall
 be treated as an adjustment under section 1016(a).
@@ -196,7 +196,7 @@ be treated as an adjustment under section 1016(a).
 # Same here
 ```
 
-#### [(5) Application to gifts before 1955]
+#### (5) Application to gifts before 1955
 
 With respect to any property acquired by gift before 1955, references in this
 subsection to any provision of this title shall be deemed to refer to the
@@ -209,7 +209,7 @@ laws which was effective for the year in which such gift was made.
 
 #### (6) Special rule for gifts made after December 31, 1976
 
-##### [(A) In general]
+##### (A) In general
 
 In the case of any gift made after December 31, 1976, the increase in basis
 provided by this subsection with respect to any gift for the gift tax paid under
@@ -232,7 +232,7 @@ scope BasisOfGift under condition
     )
 ```
 
-##### [(B) Net appreciation]
+##### (B) Net appreciation
 
 For purposes of paragraph (1), the net appreciation in value of any gift is the
 amount by which the fair market value of the gift exceeds the donor’s adjusted
@@ -244,7 +244,7 @@ scope BasisOfGift:
     value.fair_market_value of acquisition.moment - transferor.basis
 ```
 
-##### [(e) Gifts between spouses]
+##### (e) Gifts between spouses
 
 In the case of any property acquired by gift in a transfer described in section
 1041(a), the basis of such property in the hands of the transferee shall be

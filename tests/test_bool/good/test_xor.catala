@@ -1,4 +1,4 @@
-## [Test all 'xor' combinations]
+## Test all 'xor' combinations
 
 ```catala
 new scope TestXor :

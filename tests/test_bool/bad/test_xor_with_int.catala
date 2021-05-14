@@ -1,4 +1,4 @@
-## ['xor' should be a boolean operator]
+## 'xor' should be a boolean operator
 
 ```catala
 new scope TestXorWithInt :

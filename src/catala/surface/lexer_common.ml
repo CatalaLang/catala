@@ -18,23 +18,18 @@ module R = Re.Pcre
 
 (* Calculates the precedence according a {!val: matched_regex} of the form : '[#]+'.
 
-   @note -2 because both [LAW_ARTICLE] and [LAW_HEADING] start with at least "##" and the number of
-   '#' remaining corresponds to the precedence. *)
-let calc_precedence (matched_regex : string) : int = String.length matched_regex - 2
+   @note -2 because [LAW_HEADING] start with at least "#" and the number of '#' remaining
+   corresponds to the precedence. *)
+let calc_precedence (matched_regex : string) : int = String.length matched_regex - 1
 
 (* Gets the [LAW_HEADING] token from the current {!val: lexbuf} *)
 let get_law_heading (lexbuf : lexbuf) : token =
-  let extract_code_title = R.regexp "([#]+)\\s*([^#\n]+)\n" in
-  let get_match = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
-  let get_new_lines = R.regexp "\n" in
-  let new_lines_count =
-    try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
+  let extract_article_title =
+    R.regexp "([#]+)\\s*([^\\|]+)(\\|([^\\|]+)|)(\\|\\s*([0-9]{4}\\-[0-9]{2}\\-[0-9]{2})|)"
   in
-
-  (* the -1 is here to compensate for Sedlex's automatic newline detection around token *)
-  for _i = 1 to new_lines_count - 1 do
-    new_line lexbuf
-  done;
-  let law_title = get_match 2 in
-  let precedence = calc_precedence (get_match 1) in
-  LAW_HEADING (law_title, precedence)
+  let get_substring = R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf)) in
+  let title = get_substring 2 in
+  let article_id = try Some (get_substring 4) with Not_found -> None in
+  let article_expiration_date = try Some (get_substring 6) with Not_found -> None in
+  let precedence = calc_precedence (get_substring 1) in
+  LAW_HEADING (title, article_id, article_expiration_date, precedence)

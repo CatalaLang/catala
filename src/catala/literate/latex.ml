@@ -126,32 +126,19 @@ let math_syms_replace (c : string) : string =
 
 (** {1 Weaving} *)
 
-let law_article_item_to_latex (language : C.backend_lang) (fmt : Format.formatter)
-    (i : A.law_article_item) : unit =
-  match i with
-  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
-  | A.CodeBlock (_, c) ->
-      Format.fprintf fmt
-        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-         ```catala%s```\n\
-         \\end{minted}"
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (match language with `Fr -> "catala_fr" | `En -> "catala_en")
-        (math_syms_replace (Pos.unmark c))
-
 let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
     (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
-      Format.fprintf fmt "\\%ssection*{%s}\n\n"
+      Format.fprintf fmt "\\%s*{%s}\n\n"
         (match heading.law_heading_precedence with
-        | 0 -> ""
-        | 1 -> ""
-        | 2 -> "sub"
-        | 3 -> "sub"
-        | _ -> "subsub")
-        (pre_latexify heading.law_heading_name);
+        | 0 -> "chapter"
+        | 1 -> "section"
+        | 2 -> "subsection"
+        | 4 -> "subsubsection"
+        | 5 -> "paragraph"
+        | _ -> "subparagraph")
+        (pre_latexify (Pos.unmark heading.law_heading_name));
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
         (law_structure_to_latex language) fmt children
@@ -164,13 +151,17 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
         (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
         file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.LawArticle (article, children) ->
-      Format.fprintf fmt "\\paragraph{%s}\n\n" (pre_latexify (Pos.unmark article.law_article_name));
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-        (law_article_item_to_latex language)
-        fmt children
-  | A.MetadataBlock (_, c) ->
+  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
+  | A.CodeBlock (_, c, false) ->
+      Format.fprintf fmt
+        "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
+         ```catala%s```\n\
+         \\end{minted}"
+        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+        (Pos.get_start_line (Pos.get_position c) - 1)
+        (match language with `Fr -> "catala_fr" | `En -> "catala_en")
+        (math_syms_replace (Pos.unmark c))
+  | A.CodeBlock (_, c, true) ->
       let metadata_title = match language with `Fr -> "Métadonnées" | `En -> "Metadata" in
       Format.fprintf fmt
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
@@ -185,15 +176,10 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (match language with `Fr -> "catala_fr" | `En -> "catala_en")
         (math_syms_replace (Pos.unmark c))
-  | A.IntermediateText t -> Format.fprintf fmt "%s" (pre_latexify t)
-
-let program_item_to_latex (language : C.backend_lang) (fmt : Format.formatter) (i : A.program_item)
-    : unit =
-  match i with A.LawStructure law_s -> law_structure_to_latex language fmt law_s
 
 (** {1 API} *)
 
 let ast_to_latex (language : C.backend_lang) (fmt : Format.formatter) (program : A.program) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (program_item_to_latex language) fmt program.program_items
+    (law_structure_to_latex language) fmt program.program_items

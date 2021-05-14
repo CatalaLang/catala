@@ -415,28 +415,14 @@ let process_code_block (ctxt : context) (block : Ast.code_block)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
-(** Process a law article item, only considering the code blocks *)
-let process_law_article_item (ctxt : context) (item : Ast.law_article_item)
-    (process_item : context -> Ast.code_item Pos.marked -> context) : context =
-  match item with CodeBlock (block, _) -> process_code_block ctxt block process_item | _ -> ctxt
-
 (** Process a law structure, only considering the code blocks *)
 let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match s with
   | Ast.LawHeading (_, children) ->
       List.fold_left (fun ctxt child -> process_law_structure ctxt child process_item) ctxt children
-  | Ast.LawArticle (_, children) ->
-      List.fold_left
-        (fun ctxt child -> process_law_article_item ctxt child process_item)
-        ctxt children
-  | Ast.MetadataBlock (b, c) -> process_law_article_item ctxt (Ast.CodeBlock (b, c)) process_item
-  | Ast.IntermediateText _ | Ast.LawInclude _ -> ctxt
-
-(** Process a program item, only considering the code blocks *)
-let process_program_item (ctxt : context) (item : Ast.program_item)
-    (process_item : context -> Ast.code_item Pos.marked -> context) : context =
-  match item with Ast.LawStructure s -> process_law_structure ctxt s process_item
+  | Ast.CodeBlock (block, _, _) -> process_code_block ctxt block process_item
+  | Ast.LawInclude _ | Ast.LawText _ -> ctxt
 
 (** {1 Scope uses pass} *)
 
@@ -647,17 +633,17 @@ let form_context (prgm : Ast.program) : context =
   in
   let ctxt =
     List.fold_left
-      (fun ctxt item -> process_program_item ctxt item process_name_item)
+      (fun ctxt item -> process_law_structure ctxt item process_name_item)
       empty_ctxt prgm.program_items
   in
   let ctxt =
     List.fold_left
-      (fun ctxt item -> process_program_item ctxt item process_decl_item)
+      (fun ctxt item -> process_law_structure ctxt item process_decl_item)
       ctxt prgm.program_items
   in
   let ctxt =
     List.fold_left
-      (fun ctxt item -> process_program_item ctxt item process_use_item)
+      (fun ctxt item -> process_law_structure ctxt item process_use_item)
       ctxt prgm.program_items
   in
   ctxt

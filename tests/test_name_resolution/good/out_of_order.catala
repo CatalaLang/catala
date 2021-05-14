@@ -1,8 +1,8 @@
-## [Article]
+## Article
 
-```catala 
+```catala
 new scope S:
-  param a content A 
+  param a content A
   param b content B
 
 new struct A:
@@ -10,7 +10,7 @@ new struct A:
    data y content B
 
 new struct B:
-   data y content bool 
+   data y content bool
    data z content dec
 
 scope S:

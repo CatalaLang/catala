@@ -27,7 +27,7 @@ importance by adding increasing numbers of "+" after the title of the heading.
 The fundamental division unit is the article, introduced by a single "at".
 Let's analyse a fictional example that defines an income tax.
 
-#### [Article 1]
+#### Article 1
 
 The income tax for an individual is defined as a fixed percentage of the
 individual's income over a year.
@@ -58,7 +58,6 @@ Let's start our metadata section by declaring the type information for the
 individual:
 
 > Begin metadata
-
 ```catala
 declaration structure Individual:
   # The name of the structure "Individual", must start with an
@@ -72,7 +71,6 @@ declaration structure Individual:
   # "income" and "number_of_children" start by a lowercase letter,
   # they follow the snake_case convention
 ```
-
 > End metadata
 
 This structure contains two data fields, "income" and "number_of_children". Structures are
@@ -85,7 +83,6 @@ Sometimes, the law gives an enumeration of different situations. These
 enumerations are modeled in Catala using an enumeration type, like:
 
 > Begin metadata
-
 ```catala
 declaration enumeration TaxCredit:
 # The name "TaxCredit" is also written in CamelCase
@@ -98,7 +95,6 @@ declaration enumeration TaxCredit:
 # by the tax credit. This means that if you're in the "ChildrenTaxCredit"
 # situation, you will also have access to this number of children
 ```
-
 > End metadata
 
 In computer science terms, such an enumeration is called a "sum type" or simply
@@ -112,7 +108,6 @@ Catala using "scopes". Scopes are close to functions in terms of traditional
 programming. Scopes also have to be declared in metadata, so here we go:
 
 > Begin metadata
-
 ```catala
 declaration scope IncomeTaxComputation:
   # Scope names use CamelCase
@@ -123,13 +118,12 @@ declaration scope IncomeTaxComputation:
   context fixed_percentage content decimal
   context income_tax content money
 ```
-
 > End metadata
 
 We now have everything to annotate the contents of article 1, which is copied
 over below.
 
-#### [Article 1]
+#### Article 1
 
 The income tax for an individual is defined as a fixed percentage of the
 individual's income over a year.
@@ -161,7 +155,7 @@ But inside article 1, one question remains unknown: what is the value of
 of the fixed percentage? Often, precise values are defined elsewhere in the
 legislative source. Here, let's suppose we have:
 
-#### [Article 2]
+#### Article 2
 
 The fixed percentage mentionned at article 1 is equal to 20 %.
 
@@ -180,7 +174,7 @@ definition is as close as possible to its location in the text.
 So far so good, but now the legislative text introduces some trickiness. Let us
 suppose the third article says:
 
-#### [Article 3]
+#### Article 3
 
 If the individual is in charge of 2 or more children, then the fixed
 percentage mentionned at article 1 is equal to 15 %.
@@ -215,7 +209,6 @@ like in the metadata definition when we want to define a two-brackets tax
 computation:
 
 > Begin metadata
-
 ```catala
 declaration structure TwoBrackets:
   data breakpoint content money
@@ -226,12 +219,11 @@ declaration scope TwoBracketsTaxComputation :
   context brackets content TwoBrackets
   context tax_formula content money depends on money
 ```
-
 > End metadata
 
 And in the code:
 
-#### [Article4]
+#### Article4
 
 The tax amount for a two-brackets computation is equal to the amount
 of income in each bracket multiplied by the rate of each bracket.
@@ -252,7 +244,7 @@ scope TwoBracketsTaxComputation :
 Now that we've defined our helper scope for computing a two-brackets tax, we
 want to use it in our main tax computation scope.
 
-#### [Article 5]
+#### Article 5
 
 For individuals whose income is greater than $100,000, the income
 tax of article 1 is 40% of the income above $100,000. Below $100,000, the
@@ -276,7 +268,7 @@ scope NewIncomeTaxComputation :
   definition income_tax equals two_brackets.tax_formula of individual.income
 ```
 
-#### [Article 6]
+#### Article 6
 
 Individuals earning less than $10,000 are exempted of the income tax mentionned
 at article 1.
@@ -304,7 +296,7 @@ cases for each Catala scope that you define is a good practice called
 "unit testing" in the software engineering community. A test case is defined
 as another scope:
 
-#### [Testing NewIncomeTaxComputation]
+#### Testing NewIncomeTaxComputation
 
 ```catala
 declaration scope Test1:
@@ -357,7 +349,7 @@ definition of income tax in article 5. But actually, article 6 is just an
 exception of article 5. In the law, it is implicit that if article 6 is
 applicable, then it takes precedence over article 5.
 
-#### [Fixing the computation]
+#### Fixing the computation
 
 This implicit precedence has to be explicitely declared in Catala. Here is a
 fixed version of the NewIncomeTaxComputation scope:

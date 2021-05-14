@@ -21,8 +21,7 @@
 %}
 
 %token EOF
-%token<string * string option * string option * int> LAW_ARTICLE
-%token<string * int> LAW_HEADING
+%token<string * string option * string option * int> LAW_HEADING
 %token<Ast.law_include> LAW_INCLUDE
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
@@ -31,7 +30,7 @@
 %token TRUE FALSE
 %token<Runtime.integer * Runtime.integer> DECIMAL_LITERAL
 %token<Runtime.integer * Runtime.integer> MONEY_AMOUNT
-%token BEGIN_CODE TEXT MASTER_FILE
+%token BEGIN_CODE TEXT
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
 %token RULE CONDITION DEFINED_AS

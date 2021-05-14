@@ -520,15 +520,15 @@ type source_repr = (string[@opaque]) Pos.marked
   visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "source_repr_map" },
     visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "source_repr_iter" }]
 
-type law_article = {
-  law_article_name : (string[@opaque]) Pos.marked;
-  law_article_id : (string[@opaque]) option;
-  law_article_expiration_date : (string[@opaque]) option;
-  law_article_precedence : (int[@opaque]);
+type law_heading = {
+  law_heading_name : (string[@opaque]) Pos.marked;
+  law_heading_id : (string[@opaque]) option;
+  law_heading_expiration_date : (string[@opaque]) option;
+  law_heading_precedence : (int[@opaque]);
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_article_map" },
-    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "law_article_iter" }]
+  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_heading_map" },
+    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "law_heading_iter" }]
 
 type law_include =
   | PdfFile of (string[@opaque]) Pos.marked * (int[@opaque]) option
@@ -538,72 +538,29 @@ type law_include =
   visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_include_map" },
     visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "law_include_iter" }]
 
-type law_article_item = LawText of (string[@opaque]) | CodeBlock of code_block * source_repr
-[@@deriving
-  visitors
-    {
-      variety = "map";
-      ancestors = [ "code_block_map"; "source_repr_map" ];
-      name = "law_article_item_map";
-    },
-    visitors
-      {
-        variety = "iter";
-        ancestors = [ "code_block_iter"; "source_repr_iter" ];
-        name = "law_article_item_iter";
-      }]
-
-type law_heading = { law_heading_name : (string[@opaque]); law_heading_precedence : (int[@opaque]) }
-[@@deriving
-  visitors { variety = "map"; name = "law_heading_map" },
-    visitors { variety = "iter"; name = "law_heading_iter" }]
-
 type law_structure =
   | LawInclude of law_include
   | LawHeading of law_heading * law_structure list
-  | LawArticle of law_article * law_article_item list
-  | MetadataBlock of code_block * source_repr
-  | IntermediateText of (string[@opaque])
+  | LawText of (string[@opaque])
+  | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors =
-        [
-          "law_include_map";
-          "law_article_map";
-          "law_article_item_map";
-          "code_block_map";
-          "source_repr_map";
-          "law_heading_map";
-        ];
+      ancestors = [ "law_include_map"; "code_block_map"; "source_repr_map"; "law_heading_map" ];
       name = "law_structure_map";
     },
     visitors
       {
         variety = "iter";
         ancestors =
-          [
-            "law_include_iter";
-            "law_article_iter";
-            "law_article_item_iter";
-            "code_block_iter";
-            "source_repr_iter";
-            "law_heading_iter";
-          ];
+          [ "law_include_iter"; "code_block_iter"; "source_repr_iter"; "law_heading_iter" ];
         name = "law_structure_iter";
       }]
 
-type program_item = LawStructure of law_structure
+type program = { program_items : law_structure list; program_source_files : (string[@opaque]) list }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "law_structure_map" ]; name = "program_item_map" },
-    visitors { variety = "iter"; ancestors = [ "law_structure_iter" ]; name = "program_item_iter" }]
+  visitors { variety = "map"; ancestors = [ "law_structure_map" ]; name = "program_map" },
+    visitors { variety = "iter"; ancestors = [ "law_structure_iter" ]; name = "program_iter" }]
 
-type program = { program_items : program_item list; program_source_files : (string[@opaque]) list }
-[@@deriving
-  visitors { variety = "map"; ancestors = [ "program_item_map" ]; name = "program_map" },
-    visitors { variety = "iter"; ancestors = [ "program_item_iter" ]; name = "program_iter" }]
-
-type source_file_or_master =
-  | SourceFile of program_item list
-  | MasterFile of string Pos.marked list
+type source_file = law_structure list

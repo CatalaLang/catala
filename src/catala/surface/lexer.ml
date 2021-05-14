@@ -533,7 +533,6 @@ let lex_law (lexbuf : lexbuf) : token =
       code_string_acc := "";
       BEGIN_CODE
   | eof -> EOF
-  | '#', Star white_space, "Master file" -> MASTER_FILE
   | '>', Star white_space, "Begin metadata" -> BEGIN_METADATA
   | '>', Star white_space, "End metadata" -> END_METADATA
   | ( '>',
@@ -554,34 +553,8 @@ let lex_law (lexbuf : lexbuf) : token =
       if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
-      get_law_heading lexbuf
-  | ( '#',
-      Plus '#',
-      Star white_space,
-      '[',
-      Star white_space,
-      Plus (Compl ']'),
-      Star white_space,
-      ']',
-      '\n' ) ->
-      let extract_article_title = R.regexp "([#]+)\\s*\\[([^@]+)\\]" in
-      let get_substring =
-        R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
-      in
-      let title = get_substring 2 in
-      let get_new_lines = R.regexp "\n" in
-      let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
-      in
-      (* the -1 is here to compensate for Sedlex's automatic newline detection around token *)
-      for _i = 1 to new_lines_count - 1 do
-        new_line lexbuf
-      done;
-      let precedence = calc_precedence (get_substring 1) in
-
-      LAW_ARTICLE (title, None, None, precedence)
-  | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
+  | Plus (Compl ('#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:

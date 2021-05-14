@@ -53,7 +53,7 @@ let levenshtein_distance (s : string) (t : string) : int =
 
 (** After parsing, heading structure is completely flat because of the [source_file_item] rule. We
     need to tree-i-fy the flat structure, by looking at the precedence of the law headings. *)
-let rec law_struct_list_to_tree (f : Ast.program_item list) : Ast.program_item list =
+let rec law_struct_list_to_tree (f : Ast.law_structure list) : Ast.law_structure list =
   match f with
   | [] -> []
   | [ item ] -> [ item ]
@@ -63,28 +63,28 @@ let rec law_struct_list_to_tree (f : Ast.program_item list) : Ast.program_item l
       | [] -> assert false (* there should be at least one rest element *)
       | rest_head :: rest_tail -> (
           match first_item with
-          | LawStructure (LawArticle _ | MetadataBlock _ | IntermediateText _ | LawInclude _) ->
-              (* if an article or an include is just before a new heading or a new article, then we
-                 don't merge it with what comes next *)
+          | CodeBlock _ | LawText _ | LawInclude _ ->
+              (* if an article or an include is just before a new heading , then we don't merge it
+                 with what comes next *)
               first_item :: rest_head :: rest_tail
-          | LawStructure (LawHeading (heading, _)) ->
+          | LawHeading (heading, _) ->
               (* here we have encountered a heading, which is going to "gobble" everything in the
                  [rest_tree] until it finds a heading of at least the same precedence *)
-              let rec split_rest_tree (rest_tree : Ast.program_item list) :
-                  Ast.law_structure list * Ast.program_item list =
+              let rec split_rest_tree (rest_tree : Ast.law_structure list) :
+                  Ast.law_structure list * Ast.law_structure list =
                 match rest_tree with
                 | [] -> ([], [])
-                | LawStructure (LawHeading (new_heading, _)) :: _
+                | LawHeading (new_heading, _) :: _
                   when new_heading.law_heading_precedence <= heading.law_heading_precedence ->
                     (* we stop gobbling *)
                     ([], rest_tree)
-                | LawStructure first :: after ->
+                | first :: after ->
                     (* we continue gobbling *)
                     let after_gobbled, after_out = split_rest_tree after in
                     (first :: after_gobbled, after_out)
               in
               let gobbled, rest_out = split_rest_tree rest_tree in
-              LawStructure (LawHeading (heading, gobbled)) :: rest_out))
+              LawHeading (heading, gobbled) :: rest_out))
 
 (** Style with which to display syntax hints in the terminal output *)
 let syntax_hints_style = [ ANSITerminal.yellow ]
@@ -190,7 +190,7 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
   let rec loop (next_token : unit -> Tokens.token * Lexing.position * Lexing.position)
       (token_list : (string * Tokens.token) list) (lexbuf : lexbuf)
       (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint)
-      : Ast.source_file_or_master =
+      : Ast.source_file =
     match checkpoint with
     | I.InputNeeded env ->
         let token = next_token () in
@@ -210,7 +210,7 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
   let sedlex_with_menhir (lexer' : lexbuf -> Tokens.token)
       (token_list : (string * Tokens.token) list)
       (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
-      Ast.source_file_or_master =
+      Ast.source_file =
     let lexer : unit -> Tokens.token * Lexing.position * Lexing.position =
       with_tokenizer lexer' lexbuf
     in
@@ -218,16 +218,15 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
     with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
       Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
 
-  let commands_or_includes (lexbuf : lexbuf) : Ast.source_file_or_master =
-    sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list
-      Incremental.source_file_or_master lexbuf
+  let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
+    sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list Incremental.source_file lexbuf
 end
 
 module Parser_NonVerbose = ParserAux (Lexer)
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 
-let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file_or_master = function
+let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file = function
   | `NonVerbose -> Parser_NonVerbose.commands_or_includes
   | `En -> Parser_En.commands_or_includes
   | `Fr -> Parser_Fr.commands_or_includes
@@ -251,48 +250,21 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
   let source_file_name = match source_file with FileName s -> s | Contents _ -> "stdin" in
   Sedlexing.set_filename lexbuf source_file_name;
   Parse_utils.current_file := source_file_name;
-  let commands_or_includes = localised_parser language lexbuf in
+  let commands = localised_parser language lexbuf in
   (match input with Some input -> close_in input | None -> ());
-  match commands_or_includes with
-  | Ast.SourceFile commands ->
-      let program = expand_includes source_file_name commands language in
-      {
-        program_items = program.Ast.program_items;
-        program_source_files = source_file_name :: program.Ast.program_source_files;
-      }
-  | Ast.MasterFile includes ->
-      let current_source_file_dirname = Filename.dirname source_file_name in
-      let includes =
-        List.map
-          (fun includ ->
-            (if current_source_file_dirname = "./" then "" else current_source_file_dirname ^ "/")
-            ^ Pos.unmark includ)
-          includes
-      in
-      let new_program =
-        List.fold_left
-          (fun acc includ_file ->
-            let includ_program = parse_source_file (FileName includ_file) language in
-            {
-              Ast.program_source_files =
-                acc.Ast.program_source_files @ includ_program.program_source_files;
-              Ast.program_items = acc.Ast.program_items @ includ_program.program_items;
-            })
-          { Ast.program_source_files = []; Ast.program_items = [] }
-          includes
-      in
-      {
-        program_items = new_program.Ast.program_items;
-        program_source_files = source_file_name :: new_program.program_source_files;
-      }
+  let program = expand_includes source_file_name commands language in
+  {
+    program_items = program.Ast.program_items;
+    program_source_files = source_file_name :: program.Ast.program_source_files;
+  }
 
 (** Expands the include directives in a parsing result, thus parsing new source files *)
-and expand_includes (source_file : string) (commands : Ast.program_item list)
+and expand_includes (source_file : string) (commands : Ast.law_structure list)
     (language : Cli.frontend_lang) : Ast.program =
   List.fold_left
     (fun acc command ->
       match command with
-      | Ast.LawStructure (LawInclude (Ast.CatalaFile sub_source)) ->
+      | Ast.LawInclude (Ast.CatalaFile sub_source) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = Filename.concat source_dir (Pos.unmark sub_source) in
           let includ_program = parse_source_file (FileName sub_source) language in
@@ -301,18 +273,13 @@ and expand_includes (source_file : string) (commands : Ast.program_item list)
               acc.Ast.program_source_files @ includ_program.program_source_files;
             Ast.program_items = acc.Ast.program_items @ includ_program.program_items;
           }
-      | Ast.LawStructure (Ast.LawHeading (heading, commands')) ->
+      | Ast.LawHeading (heading, commands') ->
           let { Ast.program_items = commands'; Ast.program_source_files = new_sources } =
-            expand_includes source_file (List.map (fun x -> Ast.LawStructure x) commands') language
+            expand_includes source_file commands' language
           in
           {
             Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
-            Ast.program_items =
-              acc.Ast.program_items
-              @ [
-                  Ast.LawStructure
-                    (Ast.LawHeading (heading, List.map (fun (Ast.LawStructure x) -> x) commands'));
-                ];
+            Ast.program_items = acc.Ast.program_items @ [ Ast.LawHeading (heading, commands') ];
           }
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [ i ] })
     { Ast.program_source_files = []; Ast.program_items = [] }
