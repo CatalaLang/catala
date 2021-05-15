@@ -137,7 +137,7 @@ let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatte
   | A.LawText t ->
       let t = pre_html t in
       if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
-  | A.CodeBlock (_, c, _) ->
+  | A.CodeBlock (_, c, metadata) ->
       let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
       let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
       let syms_subst = function
@@ -151,11 +151,12 @@ let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatte
         | s -> s
       in
       let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
-      Format.fprintf fmt "<div class='code-wrapper'>\n<div class='filename'>%s</div>\n%s\n</div>"
+      Format.fprintf fmt "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
+        (if metadata then " code-metadata" else "")
         (Pos.get_file (Pos.get_position c))
         (pygmentize_code (Pos.same_pos_as ("```catala" ^ pprinted_c ^ "```") c) language)
   | A.LawHeading (heading, children) ->
-      let h_number = heading.law_heading_precedence + 2 in
+      let h_number = heading.law_heading_precedence + 1 in
       Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n" h_number
         (match (heading.law_heading_id, language) with
         | Some id, `Fr ->
