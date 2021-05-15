@@ -500,9 +500,6 @@ let lex_law (lexbuf : lexbuf) : token =
 
       BEGIN_CODE
   | eof -> EOF
-  | '#', Star white_space, "Fichier ma", 0x00EE, "tre" ->
-      (* 0x00EE is î *)
-      MASTER_FILE
   | '>', Star white_space, 'D', 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es" -> BEGIN_METADATA
   | '>', Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es" -> END_METADATA
   | ( '>',
@@ -526,38 +523,8 @@ let lex_law (lexbuf : lexbuf) : token =
       else if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | ( '#',
-      Plus '#',
-      Star white_space,
-      '[',
-      Star white_space,
-      Plus (Compl ']'),
-      Star white_space,
-      ']',
-      '\n' ) ->
-      let extract_article_title =
-        R.regexp
-          "([#]+)\\s*\\[\\s*(([^\\|]+)\\|(((LEGIARTI|JORFARTI)[0-9]{12})(\\|([0-2]{2}\\/[0-2]{2}\\/[0-2]{4})|))|[^\\@]+)\\]"
-      in
-      let get_substring =
-        R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf))
-      in
-      let title = try get_substring 3 with Not_found -> get_substring 2 in
-      let article_id = try Some (get_substring 5) with Not_found -> None in
-      let article_expiration_date = try Some (get_substring 8) with Not_found -> None in
-      let precedence = calc_precedence (get_substring 1) in
-      let get_new_lines = R.regexp "\n" in
-      let new_lines_count =
-        try Array.length (R.extract ~rex:get_new_lines (Utf8.lexeme lexbuf)) with Not_found -> 0
-      in
-      (* the -1 is here to compensate for Sedlex's automatic newline detection around token *)
-      for _i = 1 to new_lines_count - 1 do
-        new_line lexbuf
-      done;
-      LAW_ARTICLE (title, article_id, article_expiration_date, precedence)
-  | '#', Plus '#', Star white_space, Plus (Compl ('[' | ']' | '\n')), Star white_space, '\n' ->
-      get_law_heading lexbuf
-  | Plus (Compl ('/' | '#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
+  | Plus (Compl ('#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:

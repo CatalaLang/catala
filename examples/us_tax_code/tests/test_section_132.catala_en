@@ -1,6 +1,6 @@
 > Include: ../section_132.catala_en
 
-### [Test]
+### Test
 
 ```catala
 declaration scope TestSection132_1:

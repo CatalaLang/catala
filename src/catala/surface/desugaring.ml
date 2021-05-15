@@ -1084,32 +1084,18 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
           ctxt.Name_resolution.scopes;
     }
   in
-  let processer_article_item (prgm : Desugared.Ast.program) (item : Ast.law_article_item) :
+  let rec processer_structure (prgm : Desugared.Ast.program) (item : Ast.law_structure) :
       Desugared.Ast.program =
     match item with
-    | CodeBlock (block, _) ->
+    | LawHeading (_, children) ->
+        List.fold_left (fun prgm child -> processer_structure prgm child) prgm children
+    | CodeBlock (block, _, _) ->
         List.fold_left
           (fun prgm item ->
             match Pos.unmark item with
             | Ast.ScopeUse use -> process_scope_use ctxt prgm use
             | _ -> prgm)
           prgm block
-    | _ -> prgm
+    | LawInclude _ | LawText _ -> prgm
   in
-  let rec processer_structure (prgm : Desugared.Ast.program) (item : Ast.law_structure) :
-      Desugared.Ast.program =
-    match item with
-    | LawHeading (_, children) ->
-        List.fold_left (fun prgm child -> processer_structure prgm child) prgm children
-    | LawArticle (_, children) ->
-        List.fold_left (fun prgm child -> processer_article_item prgm child) prgm children
-    | MetadataBlock (b, c) -> processer_article_item prgm (CodeBlock (b, c))
-    | IntermediateText _ | LawInclude _ -> prgm
-  in
-
-  let processer_item (prgm : Desugared.Ast.program) (item : Ast.program_item) :
-      Desugared.Ast.program =
-    match item with LawStructure s -> processer_structure prgm s
-  in
-
-  List.fold_left processer_item empty_prgm prgm.program_items
+  List.fold_left processer_structure empty_prgm prgm.program_items

@@ -32,7 +32,7 @@ scope QualifiedEmployeeDiscount:
 ### (c) Qualified employee discount defined
  For purposes of this section—
 
-#### [(1) Qualified employee discount]
+#### (1) Qualified employee discount
 
 The term “qualified employee discount” means any employee discount with respect
 to qualified property or services to the extent such discount does not exceed—
@@ -72,7 +72,7 @@ scope QualifiedEmployeeDiscount under condition is_services:
 
 #### (2) Gross profit percentage
 
-##### [(A) In general]
+##### (A) In general
 
 The term “gross profit percentage” means the percent which—
 
@@ -89,7 +89,7 @@ scope QualifiedEmployeeDiscount under condition is_property:
     (customer_price -$ aggregate_cost) /$ customer_price
 ```
 
-##### [(B) Determination of gross profit percentage]
+##### (B) Determination of gross profit percentage
 
 Gross profit percentage shall be determined on the basis of—
 
@@ -104,7 +104,7 @@ reasonable classification of property selected by the employer), and
 # percentage ; we do not formalize them
 ```
 
-##### [(3) Employee discount defined]
+##### (3) Employee discount defined
 
 The term “employee discount” means the amount by which—
 
@@ -122,7 +122,7 @@ scope QualifiedEmployeeDiscount:
     customer_price -$ employee_price
 ```
 
-##### [(4) Qualified property or services]
+##### (4) Qualified property or services
 
 The term “qualified property or services” means any property (other than real
 property and other than personal property of a kind held for investment) or

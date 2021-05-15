@@ -4,7 +4,7 @@
 
 LATEXMK?=latexmk
 
-CATALA=dune exec --no-print-director ../../src/catala/catala.exe -- \
+CATALA=../../_build/default/src/catala/catala.exe \
 	$(CATALA_OPTS) --language=$(CATALA_LANG)
 
 help : ../Makefile.common.mk

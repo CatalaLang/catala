@@ -15,7 +15,7 @@ RESET := $(shell tput -Txterm sgr0)
 
 CATALA_OPTS?=
 
-CATALA=dune exec --no-buffer --no-print-director ../src/catala/catala.exe -- Interpret $(CATALA_OPTS)
+CATALA=../_build/default/src/catala/catala.exe Interpret $(CATALA_OPTS)
 
 pass_tests: $(wildcard */*/output/*.out)
 
@@ -25,12 +25,12 @@ reset_tests: $(subst output/,,$(subst .out,.in,$(wildcard */*/output/*.out)))
 .FORCE:
 
 %.run: .FORCE
-	$(CATALA) $(word 1,$(subst ., ,$*)).catala -s $(word 3,$(subst ., ,$*)) 
+	$(CATALA) $(word 1,$(subst ., ,$*)).catala -s $(word 3,$(subst ., ,$*))
 
 # Usage: make <test_dir>/output/<test_name>.catala.<scope_name>.out
-# This rule runs the test and compares against the expected output. If the 
+# This rule runs the test and compares against the expected output. If the
 # Catala program is <test_dir>/<test_name>.catala
-# and the scope to run is <scope_name>, then the expected output should be in the file 
+# and the scope to run is <scope_name>, then the expected output should be in the file
 # <test_dir>/output/<test_name>.catala.<scope_name>.out
 %.out: .FORCE
 	@$(CATALA) --unstyled \
@@ -40,7 +40,7 @@ reset_tests: $(subst output/,,$(subst .out,.in,$(wildcard */*/output/*.out)))
 	@echo "${GREEN}PASS${RESET} ${PURPLE}$*${RESET}"
 
 # Usage: make <test_dir>/<test_name>.catala.<scope_name>.in
-# This rule runs the test <test_dir>/<test_name>.catala, prints its output and 
+# This rule runs the test <test_dir>/<test_name>.catala, prints its output and
 # writes this output to the <test_dir>/output/<test_name>.catala.<scope_name>.out file
 %.in: .FORCE
 	@-$(CATALA) $(word 1,$(subst ., ,$*)).catala -s $(word 3,$(subst ., ,$*))
