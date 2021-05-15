@@ -554,7 +554,9 @@ let lex_law (lexbuf : lexbuf) : token =
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
   | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
-  | Plus (Compl ('#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus (Compl ('#' | '`' | '>') | Rep ('`', 1 .. 2), Compl '`' | "```", (Plus white_space | '\n'))
+    ->
+      LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
