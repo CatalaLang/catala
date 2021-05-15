@@ -28,7 +28,7 @@ let get_law_heading (lexbuf : lexbuf) : token =
     R.regexp "([#]+)\\s*([^\\|]+)(\\|([^\\|]+)|)(\\|\\s*([0-9]{4}\\-[0-9]{2}\\-[0-9]{2})|)"
   in
   let get_substring = R.get_substring (R.exec ~rex:extract_article_title (Utf8.lexeme lexbuf)) in
-  let title = get_substring 2 in
+  let title = String.trim (get_substring 2) in
   let article_id = try Some (get_substring 4) with Not_found -> None in
   let article_expiration_date = try Some (get_substring 6) with Not_found -> None in
   let precedence = calc_precedence (get_substring 1) in
