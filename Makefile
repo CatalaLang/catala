@@ -102,9 +102,10 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 	chmod +x $<
 	$<
 
-vscode_pl: ${CURDIR}/syntax_highlighting/pl/setup_vscode.sh
-	chmod +x $<
-	$<
+# TODO
+# vscode_pl: ${CURDIR}/syntax_highlighting/pl/setup_vscode.sh
+# 	chmod +x $<
+# 	$<
 
 vscode_nv: ${CURDIR}/syntax_highlighting/nv/setup_vscode.sh
 	chmod +x $<
