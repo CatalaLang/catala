@@ -28,7 +28,7 @@ zakres UmowaSprzedazy:
 b) innych praw majątkowych – 1%;
 ```catala
 zakres UmowaSprzedazy:
-  wyjatek a7_u1_p1_ppa
+  wyjątek a7_u1_p1_ppa
   definicja stawka_podatku pod warunkiem
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
@@ -59,7 +59,7 @@ b) przy przeniesieniu własności innych praw majątkowych – 1%;
 
 ```catala
 zakres UmowaZamianyLubDarowizny:
-  wyjatek a7_u1_p2_ppa
+  wyjątek a7_u1_p2_ppa
   definicja stawka_podatku pod warunkiem
     inne_prawa_majatkowe
   konsekwencja wynosi 1%
@@ -121,7 +121,7 @@ b) na zabezpieczenie wierzytelności o wysokości nieustalonej – 19 zł;
 
 ```catala
 zakres Hipoteka:
-  wyjatek a7_u1_p7_ppa
+  wyjątek a7_u1_p7_ppa
   definicja podatek pod warunkiem
     wysokosc_nieustalona
   konsekwencja wynosi 19 PLN

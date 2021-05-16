@@ -45,7 +45,7 @@ let token_list : (string * token) list =
     ("spelnione", FILLED);
     ("definicja", DEFINITION);
     ("etykieta", LABEL);
-    ("wyjatek", EXCEPTION);
+    ("wyjątek", EXCEPTION);
     ("wynosi", DEFINED_AS);
     ("pasuje", MATCH);
     ("ze wzorem", WITH);
@@ -174,7 +174,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "etykieta" ->
       L.update_acc lexbuf;
       LABEL
-  | "wyjatek" ->
+  | "wyj", 0x0105, "tek" ->
       L.update_acc lexbuf;
       EXCEPTION
   | "wynosi" ->

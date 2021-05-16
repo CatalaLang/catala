@@ -197,7 +197,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjatek)\b
+    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek)\b
     styles [] = .keyword_rule ;
   }
 
