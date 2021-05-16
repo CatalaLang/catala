@@ -94,7 +94,7 @@
         'name' : 'keyword.operator.catala_pl'
       }
       {
-        'match' : '\\b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|warunek|tekst|dziesietna|suma)\\b'
+        'match' : '\\b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|warunek|tekst|dziesietny|suma)\\b'
         'name' : 'support.type.catala_pl'
       }
       {

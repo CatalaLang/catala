@@ -229,7 +229,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|warunek|tekst|dziesietna|suma)\b
+    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniadze|warunek|tekst|dziesietny|suma)\b
     styles [] = .primitive;
   }
 
