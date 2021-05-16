@@ -37,7 +37,7 @@ let token_list : (string * token) list =
     ("calkowita", INTEGER);
     ("pieniądze", MONEY);
     ("tekst", TEXT);
-    ("dziesietny", DECIMAL);
+    ("dziesiętny", DECIMAL);
     ("czas", DATE);
     ("czas trwania", DURATION);
     ("zerojedynkowy", BOOLEAN);
@@ -150,7 +150,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "tekst" ->
       L.update_acc lexbuf;
       TEXT
-  | "dziesietny" ->
+  | "dziesi", 0x0119, "tny" ->
       L.update_acc lexbuf;
       DECIMAL
   | "czas" ->
