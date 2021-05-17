@@ -11,10 +11,9 @@ a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własności
 ```catala
 deklaracja zakres UmowaSprzedazy:
   kontekst kwota typu pieniądze
-  kontekst stawka typu dziesiętny
-  kontekst podatek typu pieniądze
   kontekst inne_prawa_majatkowe warunek
   kontekst stawka_podatku typu dziesiętny
+  kontekst podatek typu pieniądze
 
 zakres UmowaSprzedazy:
   definicja podatek wynosi
@@ -43,10 +42,9 @@ mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z 
 ```catala
 deklaracja zakres UmowaZamianyLubDarowizny:
   kontekst kwota typu pieniądze
-  kontekst stawka typu dziesiętny
-  kontekst podatek typu pieniądze
   kontekst inne_prawa_majatkowe warunek
   kontekst stawka_podatku typu dziesiętny
+  kontekst podatek typu pieniądze
 
 zakres UmowaZamianyLubDarowizny:
   definicja podatek wynosi
@@ -72,9 +70,8 @@ zakres UmowaZamianyLubDarowizny:
 ```catala
 deklaracja zakres OdplatneUzytkowanie:
   kontekst kwota typu pieniądze
-  kontekst stawka typu dziesiętny
-  kontekst podatek typu pieniądze
   kontekst stawka_podatku typu dziesiętny
+  kontekst podatek typu pieniądze
 
 zakres OdplatneUzytkowanie:
   definicja podatek wynosi
@@ -89,9 +86,8 @@ zakres OdplatneUzytkowanie:
 ```catala
 deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
   kontekst kwota typu pieniądze
-  kontekst stawka typu dziesiętny
-  kontekst podatek typu pieniądze
   kontekst stawka_podatku typu dziesiętny
+  kontekst podatek typu pieniądze
 
 zakres PozyczkaLubDepozytNieprawidlowy:
   definicja podatek wynosi
@@ -108,9 +104,9 @@ a) na zabezpieczenie wierzytelności istniejących – od kwoty zabezpieczonej w
 ```catala
 deklaracja  zakres Hipoteka:
   kontekst kwota typu pieniądze
+  kontekst wysokosc_nieustalona warunek
   kontekst stawka_podatku typu dziesiętny
   kontekst podatek typu pieniądze
-  kontekst wysokosc_nieustalona warunek
 
 zakres Hipoteka:
   etykieta a7_u1_p7_ppa
