@@ -927,7 +927,7 @@ let translation_correctness_exceptions_step
       take_l_steps ltau le' n2 == Some target_e
       ))
   =
-  if List.Tot.for_all (fun except -> D.is_value except) dexceptions then begin
+  if List.Tot.for_all D.is_value dexceptions then begin
     let n1, target_e = translation_correctness_exceptions_empty_count_exception_triggered
       de dexceptions djust dcons dtau D.AllEmpty L.ENone rec_lemma
     in
