@@ -1,135 +1,120 @@
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="100"/>
-</center>
+# Catala: A Programming Language for the Law
 
-# Catala [![Catala chat][chat-image]][chat-link] ![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
+Welcome to the ICFP artefact for the Catala compiler. This artefact is a modified
+version of the GitHub repository at https://github.com/CatalaLang/catala.
+The regular readme was renamed to `README.WEB.md` to be replaced by this one,
+which has been written specifically for the ICFP artefact.
 
-Catala is a domain-specific language for deriving
-faithful-by-construction algorithms from legislative texts. To learn quickly
-about the language and its features, you can jump right to the official
-[Catala tutorial](https://catala-lang.org/en/examples/tutorial).
-You can join the Catala community on [Zulip][chat-link]!
+## Building the Catala compiler
 
-## Concepts
+The compiler should already be built and available as `catala.exe`. You can
+also re-trigger the build with `make build`.
 
-Catala is a programming language adapted for socio-fiscal legislative literate
-programming. By annotating each line of the legislative text with its meaning
-in terms of code, one can derive an implementation of complex socio-fiscal
-mechanisms that enjoys a high level of assurance regarding the code-law
-faithfulness.
+## Writing your first Catala program
 
-Concretely, you have to first gather all the laws, executive orders, previous
-cases, etc. that contain information about the socio-fiscal mechanism that
-you want to implement. Then, you can proceed to annotate the text article by
-article, in your favorite text editor :
+Open a file `foo.catala_en` and type in:
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="450"/>
-</center>
+~~~
+## My Catala program
 
-Once your code is complete and tested, you can use the Catala
-compiler to produce a lawyer-readable PDF version of your
-implementation. The Catala language has been specially designed
-in collaboration with law professionals to ensure that the code
-can be reviewed and certified correct by the domain experts, which
-are in this case lawyers and not programmers.
+```catala
+declaration scope Foo:
+  context bar content money
+  context baz content decimal
+  context foobar content money
+  context select content boolean
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="400"/>
-</center>
+scope Foo:
+  definition foobar equals bar *$ baz
 
-The Catala language is special because its logical structure mimics
-the logical structure of the law. Indeed, the core concept of
-"definition-under-conditions" that builds on default logic has been formalized
-by Professor Sarah Lawsky in her article
-[A Logic for Statutes](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3088206).
-The Catala language is the only programming language to our knowledge that
-embeds default logic as a first-class feature, which is why it is the only
-language perfectly adapted to literate legislative programming.
+  exception
+  definition foobar under condition select consequence equals
+    bar *$ (baz *. 2.0)
 
-## Building and installation
+declaration scope FooTest:
+   context foo scope Foo
+   context foobar content money
 
-Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
-If opam is installed on your machine, simply execute:
+scope FooTest:
+  definition foo.bar equals $100
+  definition foo.baz equals 0.2
+  definition foo.select equals true
+  definition foobar equals foo.foobar
+```
+~~~
 
-    opam install catala
+You can now run this program by running the interpreter:
 
-To get the cutting-edge, latest version of Catala, you
-can also do
+    ./catala.exe --language=en --scope=FooTest Interpret foo.catala_en
 
-    opam pin add catala --dev-repo
+Explanation of the options:
+* `--language=en` tells the compiler to parse the English version of the Catala keywords.
+* `--scope=FooTest` tells the interpeter to run the function corresponding to the scope
+  `FooTest`. It is the equivalent of specifying which is the "main" function.
 
-However, if you wish to get the latest developments of the compiler, you probably
-want to compile it from the sources of this repository. For that, see
-[the dedicated readme](INSTALL.md).
+You can now fiddle with this base to write any program that you want. You can
+also see the traduction of your source program in the default calculus formalism
+by entering
 
-## Usage
+    ./catala.exe --language=en --scope=Foo --dcalc --unstyled Interpret foo.catala_en
 
-Use `catala --help` to get more information about the command line
-options available.
+## Tutorial and syntax
 
-The top-level `Makefile` contains a lot of useful targets to run. To display
-them, use
+A tutorial presenting the features of the language is present in `examples/tutorial_en`.
+You can run the interpreter on the tutorial by entering
 
-        make help
+    SCOPE=Test3 make -C examples/tutorial_en tutorial_en.run
 
-## Examples
+To get a sense of Catala's syntax, you can look at the suggestions in the
+syntax error messages of the compiler. A syntax cheat sheet is also available
+at https://github.com/CatalaLang/catala/blob/master/doc/syntax/syntax.pdf
+or in the `doc/syntax/syntax.pdf` file of this repository.
 
-See [the dedicated readme](examples/README.md).
+## Examples from the paper
 
-## Contributing
+### Section 121 of the US Tax Code
 
-See [the dedicated readme](CONTRIBUTING.md).
+The full code for the example from sections §2 and §3 of the paper is available
+at `examples/us_tax_code/section121.catala_en`. You can run the unit tests in
+`examples/us_tax_code/tests/test_section_121.catala_en` with this kind of command:
 
-## Test suite
+    SCOPE=Test1 make -C examples/us_tax_code tests/test_section_121.run
 
-See [the dedicated readme](tests/README.md).
+### French family benefits
 
-## Documentation
+The full code for the example from section §6.3 of the paper is available at
+`examples/allocations_familiales/*.catala_fr`. Note that the source code in this
+file is written with the French version of the Catala surface language, which is
+not meant to be understood by non-francophones (rather, it is intended to be
+understood by francophone programmers and lawyers). You can run the unit tests
+in `examples/allocations_familiales/tests/tests_allocations_familiales.catala_en`
+with this kind of command:
 
-### Formal semantics
+    SCOPE=Test1 make -C examples/allocations_familiales tests/tests_allocations_familiales.run
 
-See [the dedicated readme](doc/formalization/README.md).
+As claimed in the paper, the Catala source code for the French family benefits
+can also be compiled to OCaml. To trigger this build, please run
 
-### Compiler documentation
+    make generate_french_law_library -B
 
-The compiler documentation is auto-generated from its source code using
-`dune` and `odoc`. Use
+The generated code can be inspected at `examples/allocations_familiales/allocations_familiales.ml`,
+or in `src/french_law/law_source/allocations_familiales.ml`. You can run the
+same unit tests as before for the generated OCaml code by typing
 
-    make doc
+    make tests_ml
 
-to generate the documentation, then open the `doc/odoc.html` file in any browser.
-The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
+You can also benchmark the generated code on random inputs by typing
 
-## License
+    make run_french_law_library_benchmark
 
-The library is released under the [Apache license (version 2)](LICENSE.txt).
 
-## Limitations and disclaimer
+## User study
 
-Catala is a research project from Inria, the French National
-Research Institute for Computer Science. The compiler is yet
-unstable and lacks some of its features.
+The full data for the user study presented in section §6.1 of the paper can
+be found at `doc/user_study/catala_case_study_us_tax_code_section_121.xlsx`.
 
-## Pierre Catala
+## F* formalization
 
-The language is named after Pierre Catala, a professor of law who
-pionneered the French legaltech by creating a computer database of law cases,
-Juris-Data. The research group that he led in the late 1960s, the
-Centre d’études et de traitement de l’information juridique (CETIJ),
-has also influenced the creation by state conselor Lucien Mehl of the
-Centre de recherches et développement en informatique juridique (CENIJ),
-which eventually transformed into the entity managing the LegiFrance website,
-acting as the public service of legislative documentation.
-
-[chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg?style=social&logo=zulip&color=5c75a2
-[chat-link]: https://zulip.catala-lang.org/
-[ci-link]: https://github.com/catalalang/catala/actions/workflows/build.yml/badge.svg
-[licence-link]: https://img.shields.io/github/license/catalalang/catala
-[tag-link]: https://img.shields.io/github/v/tag/catalalang/catala
-[loc-link]: https://img.shields.io/tokei/lines/github/catalalang/catala
-[issues-link]: https://img.shields.io/github/issues/catalalang/catala
-[opam-link]: https://img.shields.io/badge/Package-opam-orange?logo=OCaml&link=https://opam.ocaml.org/packages/catala/
-[language-link]: https://img.shields.io/github/languages/top/catalalang/catala
-[contributors-link]: https://img.shields.io/github/contributors/catalalang/catala
-[activity-link]: https://img.shields.io/github/commit-activity/m/catalalang/catala
+The F* formalization of the proof presented in section §4.4 of the paper can
+be found at `doc/formalization`. Please refer to the README in this directory
+for further description and instructions on how to replay the proof.

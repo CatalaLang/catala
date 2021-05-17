@@ -1,0 +1,26 @@
+## My Catala program
+
+```catala
+declaration scope Foo:
+  context bar content money
+  context baz content decimal
+  context foobar content money
+  context select content boolean
+
+scope Foo:
+  definition foobar equals bar *$ baz
+
+  exception
+  definition foobar under condition select consequence equals
+    bar *$ (baz *. 2.0)
+
+declaration scope FooTest:
+   context foo scope Foo
+   context foobar content money
+
+scope FooTest:
+  definition foo.bar equals $100
+  definition foo.baz equals 0.2
+  definition foo.select equals true
+  definition foobar equals foo.foobar
+```
