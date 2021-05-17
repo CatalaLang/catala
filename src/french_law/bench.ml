@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-module AF = French_law.Api.Allocations_familiales
+module AF = Api.Allocations_familiales
 open Runtime
 
 let random_children (id : int) =
@@ -66,8 +66,8 @@ let run_test () =
   let residence = if Random.bool () then AF.Metropole () else AF.Guadeloupe () in
   try
     let amount =
-      French_law.Api.compute_allocations_familiales ~current_date ~income ~residence ~children
-        ~is_parent:true ~fills_title_I:true
+      Api.compute_allocations_familiales ~current_date ~income ~residence ~children ~is_parent:true
+        ~fills_title_I:true
     in
     incr num_successful;
     total_amount := Float.add !total_amount amount

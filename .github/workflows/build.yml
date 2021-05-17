@@ -63,7 +63,7 @@ jobs:
       - name: Build and test French law library
         run: |
           eval $(opam env)
-          make build_french_law_library build_french_law_library_js
+          make build_french_law_library build_french_law_library_js run_french_law_library_benchmark
 
       - name: Run compiled code tests
         run: |
