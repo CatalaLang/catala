@@ -499,7 +499,7 @@ and substitution_preserves_typing_list
 
 (**** Preservation theorem *)
 
-#push-options "--fuel 3 --ifuel 1 --z3rlimit 20"
+#push-options "--fuel 3 --ifuel 1 --z3rlimit 70 --quake 10/1"
 let rec preservation (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau /\ Some? (step e)))
       (ensures (typing empty (Some?.v (step e)) tau))
