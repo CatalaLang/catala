@@ -27,7 +27,7 @@ To replay the proofs, you will need to have [F\*](https://github.com/FStarLang/F
 on your machine, and the `FSTAR_HOME` environement variable pointed to the location of the F\*
 directory. You can then replay the proofs using:
 
-    make verify
+    make verify -j4
 
 The proofs should take 4~5 minutes to replay entirely. Warning: due to Z3 non-deterministic behavior,
 some proofs may fail to replay on your machine for unknown reasons. May this happen, we will make

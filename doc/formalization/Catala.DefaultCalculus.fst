@@ -499,7 +499,7 @@ and substitution_preserves_typing_list
 
 (**** Preservation theorem *)
 
-#push-options "--fuel 3 --ifuel 1 --z3rlimit 70 --quake 10/1"
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 100 --quake 10/1"
 let rec preservation (e: exp) (tau: ty)
     : Lemma (requires (typing empty e tau /\ Some? (step e)))
       (ensures (typing empty (Some?.v (step e)) tau))
@@ -530,7 +530,7 @@ let rec preservation (e: exp) (tau: ty)
     if List.Tot.for_all (fun except -> is_value except) exceptions then
       match empty_count AllEmpty exceptions with
       | AllEmpty ->
-        begin if not (is_value just) then preservation just TBool else match just with
+        begin if not (is_value just) then begin assert(Some? (step just)); preservation just TBool end else match just with
         | ELit LTrue -> ()
         | _ -> ()
         end
