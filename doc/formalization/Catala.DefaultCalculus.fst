@@ -527,7 +527,7 @@ let rec preservation (e: exp) (tau: ty)
         else preservation e2 tau_arg
     else preservation e1 (TArrow tau_arg tau)
   | EDefault exceptions just cons tau' ->
-    if List.Tot.for_all (fun except -> is_value except) exceptions then
+    if List.Tot.for_all is_value exceptions then
       match empty_count AllEmpty exceptions with
       | AllEmpty ->
         begin if not (is_value just) then begin assert(Some? (step just)); preservation just TBool end else match just with
