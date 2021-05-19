@@ -150,30 +150,14 @@ contexts [] {
 
 main : context {
 
-   : inline_push {
-      regex          \= (\#\#)
-      styles []       = .law_title;
-      : pop {
-         regex       \= (@@[\+]*)
-         styles []    = .law_title;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_title;
-      }
+   : pattern {
+     regex \=  ([\#]+.*)
+     styles [] = .law_title;
    }
 
-   : inline_push {
-      regex          \= (@)
-      styles []       = .law_subtitle;
-      : pop {
-         regex       \= (@)
-         styles []    = .law_subtitle;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_subtitle;
-      }
+   : pattern {
+     regex \=  ([\#]+\s*\[[^\]]\s*].*)
+     styles [] = .law_subtitle;
    }
 
    : pattern {

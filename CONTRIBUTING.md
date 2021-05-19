@@ -124,7 +124,7 @@ general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
 Currently, Catala supports English and French legislative text via the
-`--language=en` or `--language=fr` option.
+`--language=en`, `--language=fr` or `--language=pl`  option.
 
 Technically, support for new languages can be added via a new lexer. If you want
 to add a new language, you can start from

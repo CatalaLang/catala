@@ -35,6 +35,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
       | Some l ->
           if l = "fr" then `Fr
           else if l = "en" then `En
+          else if l = "pl" then `Pl
           else if l = "non-verbose" then `NonVerbose
           else
             Errors.raise_error

@@ -12,12 +12,12 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type frontend_lang = [ `Fr | `En | `NonVerbose ]
+type frontend_lang = [ `Fr | `En | `NonVerbose | `Pl ]
 
-type backend_lang = [ `Fr | `En ]
+type backend_lang = [ `Fr | `En | `Pl ]
 
 let to_backend_lang (lang : frontend_lang) : backend_lang =
-  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr
+  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr | `Pl -> `Pl
 
 (** Source files to be compiled *)
 let source_files : string list ref = ref []

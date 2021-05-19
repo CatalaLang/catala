@@ -13,8 +13,8 @@
 # the License.
 
 
-name                   = catala_nv
-file_extensions []     = catala;
+name                   = catala_pl
+file_extensions []     = catala_pl;
 
 ################################################################
 ## Styles
@@ -132,9 +132,9 @@ styles [] {
 ## Parse contexts
 #################################################
 
-__LOWER_CHARS \= a-zéèàâùîêœç
+__LOWER_CHARS \= a-ząćęłńóśżź
 
-__UPPER_CHARS \= A-ZÉÈÀÂÙÎÊŒÇ
+__UPPER_CHARS \= A-ZĄĆĘŁŃÓŚŻŹ
 
 __SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
 
@@ -187,17 +187,17 @@ code : context {
   }
 
   : pattern {
-    regex \=  (param)(\s+)($${__SC_ID})
+    regex \=  (kontekst)(\s+)($${__SC_ID})
     styles [] = .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {
-    regex \= \b(match|with|fixed|by|decreasing|increasing|varies|with\s+param|we\s+have|in|such\s+that|exists|for|all|of|if|then|else|init)\b
+    regex \= \b(pasuje|ze\s+wzorem|staloprzecinkowa|przez|malejacy|rosnacy|rozna|wraz z|mamy|w|takich ze|istnieje|dla|wszystkie|z|jezeli|wtedy|inaczej|poczatkowy)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(scope|fun\s+of|new|includes|set|content|option|struct|enum|param|rule|condition|data|ok|assert|def|label|exception)\b
+    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek)\b
     styles [] = .keyword_rule ;
   }
 
@@ -207,7 +207,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(true|false)\b
+    regex \= \b(prawda|falsz)\b
     styles [] = .literal ;
   }
 
@@ -219,17 +219,17 @@ code : context {
 
 
   : pattern {
-     regex \= (\-\-|\;|\.|\,|\:=|\:|\(|\)|\[\||\|\]|\[|\]|\{|\})
+     regex \= (\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})
      styles [] = .punctuation;
   }
 
-   : pattern {
-     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|xor|and|\$|%|year|month|day)
+  : pattern {
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|nie|lub|xor|i|\$|%|rok|miesiac|dzien)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(int|bool|date|duration|money|text|decimal|number|sum)\b
+    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniądze|warunek|tekst|dziesiętny|suma)\b
     styles [] = .primitive;
   }
 
