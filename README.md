@@ -3,11 +3,14 @@
 Welcome to the ICFP artefact for the Catala compiler. This artefact is a modified
 version of the GitHub repository at https://github.com/CatalaLang/catala.
 The regular readme was renamed to `README.WEB.md` to be replaced by this one,
-which has been written specifically for the ICFP artefact.
+which has been written specifically for the ICFP artefact. Please make sure you
+`cd` into the `catala` directory of the VM, which is assume to be the base
+directory of all the commands listed below.
 
 ## Building the Catala compiler
 
-The compiler should already be built and available as `catala.exe`. You can
+The compiler should already be built and available as `catala.exe`. It is
+not available in the `$PATH`, but is placed You can
 also re-trigger the build with `make build`.
 
 ## Writing your first Catala program
@@ -74,9 +77,16 @@ or in the `doc/syntax/syntax.pdf` file of this repository.
 
 ### Section 121 of the US Tax Code
 
-The full code for the example from sections §2 and §3 of the paper is available
-at `examples/us_tax_code/section121.catala_en`. You can run the unit tests in
-`examples/us_tax_code/tests/test_section_121.catala_en` with this kind of command:
+The full code for the example from Appendix A of the paper (available in the
+supplementary PDF material) is available at `examples/us_tax_code/section121.catala_en`.
+Please note that there are slight differences between the full code of Section
+121 presented in Appendix A and the various excerpts shown in sections §2 and
+§3 of the paper. Indeed, those excerpts show a somewhat simplified version of
+the code whose purpose is to present the features of Catala and not be a
+self-contained piece of executable code.
+
+You can run the unit tests in `examples/us_tax_code/tests/test_section_121.catala_en`
+with this kind of command:
 
     SCOPE=Test1 make -C examples/us_tax_code tests/test_section_121.run
 
