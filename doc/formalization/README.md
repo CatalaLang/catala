@@ -23,15 +23,24 @@ a list of lemmas to feed in priority to the SMT solver.
 
 ## Proof replay
 
-To replay the proofs, you will need to have [F\*](https://github.com/FStarLang/FStar) installed
-on your machine, and the `FSTAR_HOME` environement variable pointed to the location of the F\*
-directory. You can then replay the proofs using:
+This artefact comes with F* preinstalled in the `~/FStar` folder.
+You can replay the proofs using:
 
-    make verify -j4
+    make verify -j6 -B
 
-The proofs should take 4~5 minutes to replay entirely. Warning: due to Z3 non-deterministic behavior,
-some proofs may fail to replay on your machine for unknown reasons. May this happen, we will make
-sure to strenghen the flaky proofs for the camera-ready version of the artefact.
+The proofs should take ~30 seconds to replay entirely. The proof replay is very fast
+because of F*'s system of recording proof certificates once verification has been
+performed once with Z3. To replay the proofs entirely, you can type
+
+   rm -rf _cache
+   make verify -j6 -B
+
+This longer replay, that involves calls to Z3, can take as long as 4 or 5 minutes
+to complete.
+
+Warning: due to Z3 non-deterministic behavior,
+some proofs may fail to replay on your machine for unknown reasons. May this happen,
+please contact the authors so that we can make the proofs more robust.
 
 ## Disclaimer
 
