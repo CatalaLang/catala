@@ -804,7 +804,7 @@ let step_exceptions_head_value_error
        acc, 6
 #pop-options
 
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 1500"
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 500 --quake 10/1"
 let step_exceptions_head_value_non_error
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
