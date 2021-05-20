@@ -1,5 +1,5 @@
 [
-  "i*™û!d\u000bÅYö\u0001\u0005\u000f\u0017yi",
+  "è\u000f¥úCÚ\u001beóÄkz[nœS",
   [
     [
       "Catala.Translation.Helpers.typ_process_exceptions_f",
@@ -29,7 +29,7 @@
         "typing_Tm_abs_683fecef0f32ab9df689545bd34ec676"
       ],
       0,
-      "f4621b9177ba8510238ce22175c67eb6"
+      "143b9302181ab46ccd0e5d15c2e0941f"
     ],
     [
       "Catala.Translation.Helpers.build_default_translation_typing",
@@ -85,7 +85,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "7a3913649f012fb3c414cf909eafd41c"
+      "33e0affa7261e9067cdbce3ddcddf4e2"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_untouched_by_subst",
@@ -161,7 +161,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "3653a502e2c84a85da3971009003c3e6"
+      "5964f8288c016f27611188cfa97624a6"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps",
@@ -195,7 +195,7 @@
         "typing_Catala.LambdaCalculus.step", "well-founded-ordering-on-nat"
       ],
       0,
-      "5bcda4dd84f1df6ea161b597dcf9de2b"
+      "0ebf747631c6235c501b01bbd431d70f"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps_transitive",
@@ -205,11 +205,11 @@
       [
         "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
         "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
-        "refinement_interpretation_Tm_refine_506891b7f1b4542ed9ee2fd85986009e",
+        "refinement_interpretation_Tm_refine_2d1d82d8e7b45c4b826c650f2ee22c70",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "1cfbbe940ee4c4c17f160e56608752f6"
+      "659ca6eb5fcae351875036a89efe7259"
     ],
     [
       "Catala.Translation.Helpers.take_l_steps_transitive",
@@ -256,7 +256,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "a9c81e863bb135dcf216d9c8d5c5530d"
+      "efd12261adda6a797b529668c6c40d06"
     ],
     [
       "Catala.Translation.Helpers.step_lift_commute_non_value",
@@ -277,7 +277,7 @@
         "typing_tok_Prims.T@tok"
       ],
       0,
-      "f566661da55618dcbe2b2ec400423480"
+      "7ca2a4bf2f69213d17aa0a2471759ad4"
     ],
     [
       "Catala.Translation.Helpers.is_stepping_agnostic_lift",
@@ -291,7 +291,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "1b0eee8a73a0f9faa887c4b21d775649"
+      "6eb5f22d8aa332b43c7ca8b6f0bbe7c4"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -305,7 +305,7 @@
         "kinding_Catala.LambdaCalculus.exp@tok"
       ],
       0,
-      "907ff2bc00df5eef887aaa695cf54c25"
+      "ae5ed7f5f262164fd7b5647f2113bf69"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -366,7 +366,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "9809adc742f341e861abeee3b4d313ec"
+      "f8e5f4b23fe3908178cc11be93bc8620"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -380,7 +380,7 @@
         "kinding_Catala.LambdaCalculus.exp@tok"
       ],
       0,
-      "fc5e06d5b11f113a89f5f1f1693e37f6"
+      "d21803a41f4927e9b583c59e18188f3c"
     ],
     [
       "Catala.Translation.Helpers.l_values_dont_step",
@@ -420,7 +420,7 @@
         "typing_Catala.LambdaCalculus.is_value_list"
       ],
       0,
-      "41a331c575f7077efc0abf1a4a0e95b2"
+      "3e25f8d2e0e087deea78daa3f5e63aaa"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps",
@@ -429,7 +429,7 @@
       1,
       [ "@query" ],
       0,
-      "4fbc059703e5ebe675959304f95bf436"
+      "c802c133f612226c1374acdfa8324bc7"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps",
@@ -487,7 +487,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "676edb28716d4ddaf236fff80c7de179"
+      "b11f10cda30c9c61b3501c24f3b8c310"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift'",
@@ -517,7 +517,7 @@
         "typing_tok_Catala.LambdaCalculus.TBool@tok"
       ],
       0,
-      "d0702c3be1b49defcc01981a79d1e355"
+      "3076e194fecd0a04ba5711e9d7670385"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift_is_stepping_agnostic",
@@ -555,7 +555,7 @@
         "typing_Catala.Translation.Helpers.if_cond_lift_"
       ],
       0,
-      "13e37e1bf89473a14dee08ad2d3af5ad"
+      "d00dd8bb9ad0636706d568784576c9cc"
     ],
     [
       "Catala.Translation.Helpers.if_cond_lift",
@@ -567,7 +567,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "411cef90d7ae00fc18b7d94ad4c947bf"
+      "86174ad51352d43d77b93c4a1db2dc34"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift'",
@@ -593,7 +593,7 @@
         "typing_Catala.LambdaCalculus.empty"
       ],
       0,
-      "769f3842b338720df48a3c861c21c62d"
+      "e43d70be6d1d2dcd9ddf562c95c009bd"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift_is_stepping_agnostic",
@@ -633,7 +633,7 @@
         "typing_Catala.Translation.Helpers.app_f_lift_"
       ],
       0,
-      "4bc94208324dbce77be874e2930d0be4"
+      "3a6b677653f08ceebdd2c993e5751e75"
     ],
     [
       "Catala.Translation.Helpers.app_f_lift",
@@ -645,7 +645,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "649aac82175906a9cdf671184ceadaab"
+      "5b62797a4131996b4b308c346d5017e3"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift'",
@@ -676,7 +676,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "d4e9f4c8c23dd689d28644180d524f7b"
+      "1eb479df49f9bd44d04668ead937ea1f"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift_is_stepping_agnostic",
@@ -721,7 +721,7 @@
         "true_interp", "typing_Tm_abs_e963bfe47364f5aa72ea70ed36eb1677"
       ],
       0,
-      "45a1006bef4bcc60e5d92678ebd96983"
+      "8cda1d30ae820910243655e6f58eae95"
     ],
     [
       "Catala.Translation.Helpers.app_arg_lift",
@@ -733,7 +733,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "41c6a2646b2f71dc22f6c57553606171"
+      "e93629647176b0bfbbea807bd5a2aca6"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift'",
@@ -857,7 +857,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "35bda88bfa3fb4a50b7db24ff68df574"
+      "df1298f3aadddbdb4d3bb3e586a360c0"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_is_stepping_agnostic",
@@ -910,7 +910,7 @@
         "true_interp", "typing_Catala.LambdaCalculus.step"
       ],
       0,
-      "8fbe8b9d58576e2b35cc1e3dd584ee53"
+      "dfb16d5a0e38d3c28889619783287c64"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift",
@@ -922,7 +922,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "b2ad2061e7913cc685915a5c8c2c27ed"
+      "65358c88d6fc4d6ce800f6db696619ec"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift'",
@@ -1019,7 +1019,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "86a935521dec34e9e48d641f00b6eabe"
+      "a4528e796a162796e72facc3a4db8aef"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift_is_stepping_agnostic",
@@ -1078,7 +1078,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "492599b9aabaa6fbfd51e4af80e70e8d"
+      "12130b4ed57f71ea866b34b6388a2fe7"
     ],
     [
       "Catala.Translation.Helpers.exceptions_init_lift",
@@ -1090,7 +1090,7 @@
         "equation_Catala.Translation.Helpers.is_stepping_agnostic_lift"
       ],
       0,
-      "b91b94fd1fad3ebbae3b18dd0290fc71"
+      "668a4a3f5d9fe58c7d25849b1c8229c3"
     ],
     [
       "Catala.Translation.Helpers.stepping_lemma",
@@ -1240,7 +1240,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "2d4523fe4dd3278ce6b10025809816e6"
+      "87f7c608e239ce2ca96d28b468c9495a"
     ],
     [
       "Catala.Translation.Helpers.stepping_lemma",
@@ -1270,7 +1270,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "3ed1297ee869d570f516e7c2b3ad888d"
+      "0f8c86cdaa61e9c3aeca800afa856db1"
     ],
     [
       "Catala.Translation.Helpers.lift_multiple_l_steps_exceptions_head",
@@ -1458,7 +1458,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "981a7d2637cb254881caed2de02cd2a7"
+      "90375b98f78397c3f602a928ae1297a7"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied",
@@ -1508,7 +1508,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "3849a64803205c5d1a8e60dafc926b96"
+      "1351745ed59b26a0eb38fdd007f6de23"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied_stepped",
@@ -1601,7 +1601,7 @@
         "typing_tok_Catala.LambdaCalculus.ENone@tok"
       ],
       0,
-      "62020cd2d20cc66d0148059df648558c"
+      "81ec8c9b094595193c0d4fa9c9e0f67e"
     ],
     [
       "Catala.Translation.Helpers.process_exceptions_applied_stepping",
@@ -1740,7 +1740,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "fa2d818f44d65d7ad08f22e6a677e972"
+      "a998c17c4c0d368c49d68724a81a066d"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_steps_to_error",
@@ -1814,7 +1814,7 @@
         "typing_tok_Catala.LambdaCalculus.ConflictError@tok"
       ],
       0,
-      "3cd481ad9d8981e3d18c835a620846a9"
+      "0b5e2044806ac6b3e9099ca056be806a"
     ],
     [
       "Catala.Translation.Helpers.exceptions_head_lift_steps_to_error",
@@ -1846,7 +1846,7 @@
         "typing_Catala.LambdaCalculus.is_value_list"
       ],
       0,
-      "8c30f8c2b95b0bfe3334b181da5b60b8"
+      "bd9092a179ef07e37a2a90cc2ba80e77"
     ],
     [
       "Catala.Translation.Helpers.exception_init_lift_conflict_error",
@@ -1943,7 +1943,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "6ef9ec9f5de17cb2fbcb9cc7febb8b17"
+      "64ddb595dcc317a512102e50ae2df213"
     ],
     [
       "Catala.Translation.Helpers.is_option_value",
@@ -1972,7 +1972,7 @@
         "typing_Catala.LambdaCalculus.typing"
       ],
       0,
-      "74eab4cade48e13ee20bc17393d4f558"
+      "836f2939f9ea1c7599ba6e3347bfa9b5"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_error",
@@ -2152,7 +2152,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "ac20c8e8310d0bbbaaeecf755c7ea3a0"
+      "7ff8abf235989554ebb2cebcf872aa87"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_non_error",
@@ -2367,7 +2367,7 @@
         "typing_Catala.LambdaCalculus.uu___is_ELit"
       ],
       0,
-      "f999de9dee37dbccaf3667a1c037299d"
+      "2b5d722d46440cfad7471440df32d11a"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_same_acc_result",
@@ -2376,7 +2376,7 @@
       2,
       [ "@query", "assumption_Catala.LambdaCalculus.exp__uu___haseq" ],
       0,
-      "b423bad682a96e9426b1247ad0b5fbe1"
+      "e05f6308cdce42d7b81337591cb1f396"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_same_acc_result",
@@ -2392,7 +2392,7 @@
         "refinement_interpretation_Tm_refine_cdbe32eb48421474d9b70d61150eebfe"
       ],
       0,
-      "3705c047eb2ca8352d94938e68b9424e"
+      "7ce3f98595d41dc52a0c9aad7b178f72"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_head_value_go_through",
@@ -2434,7 +2434,7 @@
         "typing_tok_Catala.LambdaCalculus.EmptyError@tok"
       ],
       0,
-      "17e6b22a20160daf0e9d0208217c1ae4"
+      "fd39ad81dcdf53ccdce3c204c9485e57"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_conflict_error",
@@ -2475,7 +2475,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "cde6bc6eff2b3d58efe321fc0bccf691"
+      "964a7b7a9f0052d73330917f701ab7a8"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_some_acc",
@@ -2620,7 +2620,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "5ab7e1ff6226204dffb925a44caf5c9e"
+      "8b7eacb9ede89cadf60542b15ca48913"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_empty_none",
@@ -2748,7 +2748,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "6965fd115a1073ab65424aa723c9725e"
+      "04a3454dcfd63671c86c799d598c0404"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_cons_conflict_error",
@@ -2861,7 +2861,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "d3ecb1e3753adefb6cd64231fab0c603"
+      "8193afcb622515601d683c0439d272c6"
     ],
     [
       "Catala.Translation.Helpers.step_exceptions_general_conflict_error",
@@ -2958,7 +2958,7 @@
         "typing_tok_Catala.LambdaCalculus.TUnit@tok"
       ],
       0,
-      "cf84291cad1827ed516563b11f2acc1d"
+      "ae623444f9eab8e4819f002af7dbe5e6"
     ]
   ]
 ]

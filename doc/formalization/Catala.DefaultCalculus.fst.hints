@@ -1,5 +1,5 @@
 [
-  "Ô∆,˘úz[V˙\b\u0019Kå6Å\u0016",
+  "^÷“\u0019ÊÅú¶R≥Ôi®\n\u001c6",
   [
     [
       "Catala.DefaultCalculus.ty",
@@ -1369,7 +1369,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "7c603d42b8a02f0e7e53692461f3bdc8"
+      "2caf5bf722b94a214563c4b58dfd0592"
     ],
     [
       "Catala.DefaultCalculus.preservation",
@@ -1555,7 +1555,7 @@
         "unit_typing"
       ],
       0,
-      "70161adffea5b502b30ddc8e1b6c0356"
+      "1f5c06cb5572febc9e2355e796f50834"
     ],
     [
       "Catala.DefaultCalculus.preservation",
@@ -1568,13 +1568,13 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "5c982adb5d64cfdb940db140106d10f0"
+      "b3bcc3a1d16fea99e6f6a223fe293e0f"
     ],
     [
       "Catala.DefaultCalculus.preservation",
       4,
-      3,
-      1,
+      4,
+      2,
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Catala.DefaultCalculus.step.fuel_instrumented",
@@ -1602,7 +1602,6 @@
         "data_elim_Catala.DefaultCalculus.EDefault",
         "data_elim_FStar.Pervasives.Native.Some",
         "data_typing_intro_Catala.DefaultCalculus.EDefault@tok",
-        "data_typing_intro_Catala.DefaultCalculus.ELit@tok",
         "data_typing_intro_Catala.DefaultCalculus.TUnit@tok",
         "disc_equation_FStar.Pervasives.Native.None",
         "disc_equation_FStar.Pervasives.Native.Some",
@@ -1630,6 +1629,7 @@
         "projection_inverse_Catala.DefaultCalculus.EDefault_just",
         "projection_inverse_Catala.DefaultCalculus.EDefault_tau",
         "projection_inverse_Catala.DefaultCalculus.ELit_l",
+        "projection_inverse_FStar.Pervasives.Native.None_a",
         "projection_inverse_FStar.Pervasives.Native.Some_v",
         "projection_inverse_Prims.Cons_a",
         "projection_inverse_Prims.Cons_hd",
@@ -1640,7 +1640,6 @@
         "refinement_interpretation_Tm_refine_94ff508dba60a98364daca65da372e14",
         "refinement_interpretation_Tm_refine_adf079fdab7afb98eae06afbf41efee1",
         "subterm_ordering_Prims.Cons",
-        "token_correspondence_Catala.DefaultCalculus.step.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.step_exceptions_left_to_right.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.typing.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.typing_list.fuel_instrumented",
@@ -1648,12 +1647,11 @@
         "typing_Catala.DefaultCalculus.step",
         "typing_Catala.DefaultCalculus.step_exceptions_left_to_right",
         "typing_Catala.DefaultCalculus.typing",
-        "typing_tok_Catala.DefaultCalculus.LConflictError@tok",
         "typing_tok_Catala.DefaultCalculus.TBool@tok", "unit_inversion",
         "unit_typing"
       ],
       0,
-      "ab75c775e6afae39ebf4f607b1b59e28"
+      "0ffcc137baddae54cd5223d99bb5fffa"
     ]
   ]
 ]
