@@ -804,7 +804,7 @@ let step_exceptions_head_value_error
        acc, 6
 #pop-options
 
-#push-options "--fuel 8 --ifuel 1 --z3rlimit 1500"
+#push-options "--fuel 8 --ifuel 1 --z3rlimit 1000 --quake 10/1"
 let step_exceptions_head_value_non_error
   (tau: ty)
   (tl: list exp{is_value_list tl /\ typing_list empty tl (TArrow TUnit tau)})
@@ -889,7 +889,7 @@ let step_exceptions_head_value_non_error
     let init5 = EApp (EAbs tau (ELit (LError ConflictError))) hd tau in
     assert(step init4 == Some init5);
     let c_err = ELit (LError ConflictError) in
-    assert(step init5 == Some c_err);
+    assert_norm(step init5 == Some c_err);
     preservation init0 (TOption tau); preservation init1 (TOption tau);
     preservation init2 (TOption tau); preservation init3 (TOption tau);
     preservation init4 (TOption tau); preservation init5 (TOption tau);
