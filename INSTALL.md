@@ -20,7 +20,7 @@ git submodules, with
 
     make dependencies
 
-This should ensure everything is set up for developping on the Catala compiler!
+This should ensure everything is set up for developing on the Catala compiler!
 
 Other features for generation of files and literate programming also require
 the following executables to be present
