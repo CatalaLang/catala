@@ -28,9 +28,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
     Cli.debug_print "Reading files...";
-    (match source_file with FileName _ -> () | Contents c -> Cli.contents := c);
+    let filename = ref "" in
+    (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
     let language =
+      (* TODO: Should be factorizable. *)
       match language with
       | Some l ->
           if l = "fr" then `Fr
@@ -40,7 +42,21 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
           else
             Errors.raise_error
               (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
-      | None -> `NonVerbose
+      | None ->
+          let exts = List.rev (String.split_on_char '.' !filename) in
+          if 1 >= List.length exts then
+            Errors.raise_error
+              (Printf.sprintf
+                 "No file extension found for the file: %s (Try to add one or to specify the -l \
+                  flag)"
+                 !filename);
+          let ext = List.hd exts in
+          if ext = "catala_en" then `En
+          else if ext = "catala_fr" then `Fr
+          else if ext = "catala" then `NonVerbose
+          else
+            Errors.raise_error
+              (Printf.sprintf "The file extension (%s) is not supported by Catala" ext)
     in
     Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
@@ -74,10 +90,9 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
              (output_file
-              ::
-              List.map
-                (fun ext -> Filename.remove_extension source_file ^ ext)
-                backend_extensions_list))
+             :: List.map
+                  (fun ext -> Filename.remove_extension source_file ^ ext)
+                  backend_extensions_list))
           (String.concat "\\\n" program.program_source_files)
           (String.concat "\\\n" program.program_source_files);
         0
