@@ -31,32 +31,33 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
     let filename = ref "" in
     (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
-    let language =
-      (* TODO: Should be factorizable. *)
+    let l =
       match language with
-      | Some l ->
-          if l = "fr" then `Fr
-          else if l = "en" then `En
-          else if l = "pl" then `Pl
-          else if l = "non-verbose" then `NonVerbose
-          else
-            Errors.raise_error
-              (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
+      | Some l -> l
       | None ->
+          (* Try to infer the language from the intput file extension. *)
           let exts = List.rev (String.split_on_char '.' !filename) in
           if 1 >= List.length exts then
             Errors.raise_error
               (Printf.sprintf
-                 "No file extension found for the file: %s (Try to add one or to specify the -l \
+                 "No file extension found for the file '%s'. (Try to add one or to specify the -l \
                   flag)"
                  !filename);
           let ext = List.hd exts in
-          if ext = "catala_en" then `En
-          else if ext = "catala_fr" then `Fr
-          else if ext = "catala" then `NonVerbose
-          else
-            Errors.raise_error
-              (Printf.sprintf "The file extension (%s) is not supported by Catala" ext)
+          if ext = "catala_en" then "en"
+          else if ext = "catala_fr" then "fr"
+          else if ext = "catala_pl" then "pl"
+          else if ext = "catala" then "non-verbose"
+          else ext
+    in
+    let language =
+      if l = "fr" then `Fr
+      else if l = "en" then `En
+      else if l = "pl" then `Pl
+      else if l = "non-verbose" then `NonVerbose
+      else
+        Errors.raise_error
+          (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
     in
     Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
