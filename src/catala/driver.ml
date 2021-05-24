@@ -16,6 +16,14 @@ module Cli = Utils.Cli
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
+(** Associates a {!type: Cli.frontend_lang} with its string represtation. *)
+let languages = [ ("en", `En); ("fr", `Fr); ("pl", `Pl); ("non-verbose", `NonVerbose) ]
+
+(** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
+    representation. *)
+let extensions =
+  [ ("catala_fr", "fr"); ("catala_en", "en"); ("catala_pl", "pl"); ("catala", "non-verbose") ]
+
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
@@ -34,7 +42,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
     let l =
       match language with
       | Some l -> l
-      | None ->
+      | None -> (
           (* Try to infer the language from the intput file extension. *)
           let exts = List.rev (String.split_on_char '.' !filename) in
           if 1 >= List.length exts then
@@ -44,18 +52,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
                   flag)"
                  !filename);
           let ext = List.hd exts in
-          if ext = "catala_en" then "en"
-          else if ext = "catala_fr" then "fr"
-          else if ext = "catala_pl" then "pl"
-          else if ext = "catala" then "non-verbose"
-          else ext
+          try List.assoc ext extensions with Not_found -> ext)
     in
     let language =
-      if l = "fr" then `Fr
-      else if l = "en" then `En
-      else if l = "pl" then `Pl
-      else if l = "non-verbose" then `NonVerbose
-      else
+      try List.assoc l languages
+      with Not_found ->
         Errors.raise_error
           (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
     in
