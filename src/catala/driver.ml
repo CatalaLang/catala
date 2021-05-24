@@ -22,7 +22,7 @@ let languages = [ ("en", `En); ("fr", `Fr); ("pl", `Pl); ("non-verbose", `NonVer
 (** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
     representation. *)
 let extensions =
-  [ ("catala_fr", "fr"); ("catala_en", "en"); ("catala_pl", "pl"); ("catala", "non-verbose") ]
+  [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl"); (".catala", "non-verbose") ]
 
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)

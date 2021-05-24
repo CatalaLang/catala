@@ -527,8 +527,17 @@ let lex_law (lexbuf : lexbuf) : token =
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
   | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
-  | Plus (Compl ('#' | '`' | '>') | Rep ('`', 1 .. 2), Compl '`' | "```", (Plus white_space | '\n'))
-    ->
+  | Plus
+      (* Match non-special characters, i.e. characters that doesn't appear at the start of a
+         previous regexp. *)
+      ( Compl ('#' | '`' | '>')
+      (* Following literals allow to match grave accents as long as they don't conflict with the
+         [BEGIN_CODE] token, i.e. either there are no more than three consecutive ones or they must
+         be followed by a white space or a newline character. *)
+      | Rep ('`', 1 .. 2), Compl '`'
+      | "```", (white_space | '\n')
+      (* @note (EmileRolley): for a more permisive constraint, [white_space] could be replaced by
+         [Compl 'c'] but it lacks consistency in my opinion. *) ) ->
       LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
