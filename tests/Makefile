@@ -34,7 +34,7 @@ reset_tests: $(subst output/,,$(subst .out,.in,$(wildcard */*/output/*.out)))
 # <test_dir>/output/<test_name>.catala.<scope_name>.out
 %.out: .FORCE
 	@$(CATALA) --unstyled \
-  $(word 1, $(subst /, , $*))/$(word 2, $(subst /, , $*))/$(word 1, $(subst ., ,$(word 4, $(subst /, , $*)))).catala \
+  $(word 1, $(subst /, , $*))/$(word 2, $(subst /, , $*))/$(word 1, $(subst ., ,$(word 4, $(subst /, , $*)))).$(word 2, $(subst ., , $*)) \
 	-s $(word 3, $(subst ., ,$*)) 2>&1 | \
 		colordiff -u -b $@ - || { echo "${RED}FAIL${RESET} ${PURPLE}$*${RESET}"; exit 1; }
 	@echo "${GREEN}PASS${RESET} ${PURPLE}$*${RESET}"
