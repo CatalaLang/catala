@@ -499,6 +499,16 @@ let rec lex_code (lexbuf : lexbuf) : token =
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
+  let compl_catala =
+    [%sedlex.regexp?
+      ( Compl 'c'
+      | 'c', Compl 'a'
+      | "ca", Compl 't'
+      | "cat", Compl 'a'
+      | "cata", Compl 'l'
+      | "catal", Compl 'a'
+      | "catala", Compl (white_space | '\n') )]
+  in
   match%sedlex lexbuf with
   | "```catala" ->
       L.is_code := true;
@@ -533,11 +543,9 @@ let lex_law (lexbuf : lexbuf) : token =
       ( Compl ('#' | '`' | '>')
       (* Following literals allow to match grave accents as long as they don't conflict with the
          [BEGIN_CODE] token, i.e. either there are no more than three consecutive ones or they must
-         be followed by a white space or a newline character. *)
+         not be followed by 'catala'. *)
       | Rep ('`', 1 .. 2), Compl '`'
-      | "```", (white_space | '\n')
-      (* @note (EmileRolley): for a more permisive constraint, [white_space] could be replaced by
-         [Compl 'c'] but it lacks consistency in my opinion. *) ) ->
+      | "```", compl_catala ) ->
       LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 

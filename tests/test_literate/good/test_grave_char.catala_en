@@ -9,11 +9,9 @@ This allows to:
 
 * use Fenced Code Blocks:
 
-```
+```ocaml
 let () = print_endline "Hello world!"
 ```
-
-**Remark**: for Fenced Code Blocks, ``` must be followed by a space or a new line.
 
 ```catala
 declaration scope A:
@@ -23,4 +21,8 @@ scope A:
   definition literate_parsing_is_ok equals true
 ```
 
-Even after `Catala` code block.
+Even after `Catala` code block:
+
+```c
+int main(void) { return 0; }
+```
