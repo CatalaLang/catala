@@ -134,7 +134,10 @@ let token_list : (string * token) list =
 let builtins : (string * Ast.builtin_expression) list =
   [ ("int_to_dec", IntToDec); ("get_day", GetDay); ("get_month", GetMonth); ("get_year", GetYear) ]
 
-(** Regexp matching any digit character. *)
+(** Regexp matching any digit character.
+
+    @note can not be used outside the current module (@see <
+    https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
 let digit = [%sedlex.regexp? '0' .. '9']
 
 (** Main lexing function used in a code block *)
