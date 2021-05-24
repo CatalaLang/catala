@@ -1,0 +1,26 @@
+## Law text should be able to contain grave accent '`'.
+
+This is a block of law text containing `.
+This allows to:
+
+* use `Markdown` code block inside `Catala` files,
+
+* _escape_ special characters such as `#` or `>`,
+
+* use Fenced Code Blocks:
+
+```
+let () = print_endline "Hello world!"
+```
+
+**Remark**: for Fenced Code Blocks, ``` must be followed by a space or a new line.
+
+```catala
+declaration scope A:
+  context literate_parsing_is_ok content boolean
+
+scope A:
+  definition literate_parsing_is_ok equals true
+```
+
+Even after `Catala` code block.

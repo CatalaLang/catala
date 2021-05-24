@@ -1,4 +1,4 @@
-## Law text should be able to contain '`'.
+## Law text should be able to contain grave accent '`'.
 
 This is a block of law text containing `.
 This allows to:
@@ -16,11 +16,11 @@ let () = print_endline "Hello world!"
 **Remark**: for Fenced Code Blocks, ``` must be followed by a space or a new line.
 
 ```catala
-new scope Test :
-  param literate_parsing_is_ok content bool
+déclaration champ d'application A:
+  contexte literate_parsing_is_ok contenu booléen
 
-scope Test :
-  def literate_parsing_is_ok := true
+champ d'application A:
+  définition literate_parsing_is_ok égal à vrai
 ```
 
 Even after `Catala` code block.
