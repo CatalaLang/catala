@@ -44,14 +44,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
       | Some l -> l
       | None -> (
           (* Try to infer the language from the intput file extension. *)
-          let exts = List.rev (String.split_on_char '.' !filename) in
-          if 1 >= List.length exts then
+          let ext = Filename.extension !filename in
+          if ext = "" then
             Errors.raise_error
               (Printf.sprintf
                  "No file extension found for the file '%s'. (Try to add one or to specify the -l \
                   flag)"
                  !filename);
-          let ext = List.hd exts in
           try List.assoc ext extensions with Not_found -> ext)
     in
     let language =
