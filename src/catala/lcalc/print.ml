@@ -27,6 +27,7 @@ let begins_with_uppercase (s : string) : bool =
   let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
   is_uppercase first_letter
 
+(* (EmileRolley) NOTE: seems to be factorizable with Dcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Format.fprintf fmt "%b" b
@@ -37,9 +38,9 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
-      | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
-      | `Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
+      | En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
+      | Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
+      | Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
   | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
   | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 

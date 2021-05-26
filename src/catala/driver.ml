@@ -16,8 +16,8 @@ module Cli = Utils.Cli
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
-(** Associates a {!type: Cli.frontend_lang} with its string represtation. *)
-let languages = [ ("en", `En); ("fr", `Fr); ("pl", `Pl) ]
+(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
+let languages = [ ("en", Cli.En); ("fr", Cli.Fr); ("pl", Cli.Pl) ]
 
 (** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
     representation. *)
@@ -58,7 +58,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Errors.raise_error
           (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
     in
-    Cli.locale_lang := Cli.to_backend_lang language;
+    Cli.locale_lang := language;
     let backend =
       let backend = String.lowercase_ascii backend in
       if backend = "makefile" then Cli.Makefile
@@ -97,7 +97,6 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
           (String.concat "\\\n" program.program_source_files);
         0
     | Cli.Latex | Cli.Html ->
-        let language : Cli.backend_lang = Cli.to_backend_lang language in
         let source_file =
           match source_file with
           | FileName f -> f

@@ -12,18 +12,12 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(* TODO: Factorize frontend_lang and backend_lang into a unique algebric type. *)
-type frontend_lang = [ `Fr | `En | `Pl ]
-
-type backend_lang = [ `Fr | `En | `Pl ]
-
-let to_backend_lang (lang : frontend_lang) : backend_lang =
-  match lang with `En -> `En | `Fr -> `Fr | `Pl -> `Pl
+type backend_lang = En | Fr | Pl
 
 (** Source files to be compiled *)
 let source_files : string list ref = ref []
 
-let locale_lang : backend_lang ref = ref `En
+let locale_lang : backend_lang ref = ref En
 
 let contents : string ref = ref ""
 

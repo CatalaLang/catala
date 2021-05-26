@@ -226,16 +226,16 @@ module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file = function
-  | `En -> Parser_En.commands_or_includes
-  | `Fr -> Parser_Fr.commands_or_includes
-  | `Pl -> Parser_Pl.commands_or_includes
+let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
+  | En -> Parser_En.commands_or_includes
+  | Fr -> Parser_Fr.commands_or_includes
+  | Pl -> Parser_Pl.commands_or_includes
 
 (** {1 Parsing multiple files} *)
 
 (** Parses a single source file *)
-let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
-    Ast.program =
+let rec parse_source_file (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program
+    =
   Cli.debug_print
     (Printf.sprintf "Parsing %s" (match source_file with FileName s | Contents s -> s));
   let lexbuf, input =
@@ -260,7 +260,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
 
 (** Expands the include directives in a parsing result, thus parsing new source files *)
 and expand_includes (source_file : string) (commands : Ast.law_structure list)
-    (language : Cli.frontend_lang) : Ast.program =
+    (language : Cli.backend_lang) : Ast.program =
   List.fold_left
     (fun acc command ->
       match command with
@@ -287,7 +287,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list)
 
 (** {1 API} *)
 
-let parse_top_level_file (source_file : Pos.input_file) (language : Cli.frontend_lang) : Ast.program
+let parse_top_level_file (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program
     =
   let program = parse_source_file source_file language in
   { program with Ast.program_items = law_struct_list_to_tree program.Ast.program_items }

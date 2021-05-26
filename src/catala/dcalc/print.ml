@@ -86,6 +86,7 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
   | TArray t1 -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_base_type "array" format_typ t1
   | TAny -> Format.fprintf fmt "any"
 
+(* (EmileRolley) NOTE: seems to be factorizable with Lcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Format.fprintf fmt "%b" b
@@ -97,9 +98,9 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
-      | `En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | `Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
-      | `Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
+      | En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
+      | Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
+      | Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
   | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
   | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
 
