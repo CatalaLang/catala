@@ -12,7 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type frontend_lang = [ `En | `Fr | `NonVerbose | `Pl ]
+type frontend_lang = [ `En | `Fr | `Pl ]
 
 type backend_lang = [ `En | `Fr | `Pl ]
 

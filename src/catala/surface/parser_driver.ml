@@ -222,13 +222,11 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list Incremental.source_file lexbuf
 end
 
-module Parser_NonVerbose = ParserAux (Lexer_en)
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
 let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file = function
-  | `NonVerbose -> Parser_NonVerbose.commands_or_includes
   | `En -> Parser_En.commands_or_includes
   | `Fr -> Parser_Fr.commands_or_includes
   | `Pl -> Parser_Pl.commands_or_includes
