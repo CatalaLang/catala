@@ -16,6 +16,14 @@ module Cli = Utils.Cli
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
+(** Associates a {!type: Cli.frontend_lang} with its string represtation. *)
+let languages = [ ("en", `En); ("fr", `Fr); ("pl", `Pl); ("non-verbose", `NonVerbose) ]
+
+(** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
+    representation. *)
+let extensions =
+  [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl"); (".catala", "non-verbose") ]
+
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
@@ -28,19 +36,28 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
     Cli.debug_print "Reading files...";
-    (match source_file with FileName _ -> () | Contents c -> Cli.contents := c);
+    let filename = ref "" in
+    (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);
     (match max_prec_digits with None -> () | Some i -> Cli.max_prec_digits := i);
-    let language =
+    let l =
       match language with
-      | Some l ->
-          if l = "fr" then `Fr
-          else if l = "en" then `En
-          else if l = "pl" then `Pl
-          else if l = "non-verbose" then `NonVerbose
-          else
+      | Some l -> l
+      | None -> (
+          (* Try to infer the language from the intput file extension. *)
+          let ext = Filename.extension !filename in
+          if ext = "" then
             Errors.raise_error
-              (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
-      | None -> `NonVerbose
+              (Printf.sprintf
+                 "No file extension found for the file '%s'. (Try to add one or to specify the -l \
+                  flag)"
+                 !filename);
+          try List.assoc ext extensions with Not_found -> ext)
+    in
+    let language =
+      try List.assoc l languages
+      with Not_found ->
+        Errors.raise_error
+          (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
     in
     Cli.locale_lang := Cli.to_backend_lang language;
     let backend =
@@ -74,10 +91,9 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
              (output_file
-              ::
-              List.map
-                (fun ext -> Filename.remove_extension source_file ^ ext)
-                backend_extensions_list))
+             :: List.map
+                  (fun ext -> Filename.remove_extension source_file ^ ext)
+                  backend_extensions_list))
           (String.concat "\\\n" program.program_source_files)
           (String.concat "\\\n" program.program_source_files);
         0

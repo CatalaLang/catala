@@ -91,6 +91,12 @@ let builtins : (string * Ast.builtin_expression) list =
     ("accès_année", Ast.GetYear);
   ]
 
+(** Regexp matching any digit character.
+
+    @note can not be used outside the current module (@see <
+    https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
+let digit = [%sedlex.regexp? '0' .. '9']
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -298,11 +304,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "jour" ->
       L.update_acc lexbuf;
       DAY
-  | ( '0' .. '9',
-      Star ('0' .. '9' | white_space),
-      Opt (',', Rep ('0' .. '9', 0 .. 2)),
-      Star white_space,
-      0x20AC ) ->
+  | digit, Star (digit | white_space), Opt (',', Rep (digit, 0 .. 2)), Star white_space, 0x20AC ->
       let extract_parts = R.regexp "([0-9]([0-9 ]*[0-9]|))(,([0-9]{0,2})|)" in
       let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 0 (String.length full_str - 1)) in
@@ -318,7 +320,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       in
       L.update_acc lexbuf;
       MONEY_AMOUNT (units, cents)
-  | Plus '0' .. '9', ',', Star '0' .. '9' ->
+  | Plus digit, ',', Star digit ->
       let extract_code_title = R.regexp "([0-9]+),([0-9]*)" in
       let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
       (* Integer literal*)
@@ -475,15 +477,15 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '.' ->
       L.update_acc lexbuf;
       DOT
-  | uppercase, Star (uppercase | lowercase | '0' .. '9' | '_' | '\'') ->
+  | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;
       CONSTRUCTOR (Utf8.lexeme lexbuf)
-  | lowercase, Star (lowercase | uppercase | '0' .. '9' | '_' | '\'') ->
+  | lowercase, Star (lowercase | uppercase | digit | '_' | '\'') ->
       (* Name of variable *)
       L.update_acc lexbuf;
       IDENT (Utf8.lexeme lexbuf)
-  | Plus '0' .. '9' ->
+  | Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;
       INT_LITERAL (Runtime.integer_of_string (Utf8.lexeme lexbuf))
@@ -493,6 +495,16 @@ let rec lex_code (lexbuf : lexbuf) : token =
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
+  let compl_catala =
+    [%sedlex.regexp?
+      ( Compl 'c'
+      | 'c', Compl 'a'
+      | "ca", Compl 't'
+      | "cat", Compl 'a'
+      | "cata", Compl 'l'
+      | "catal", Compl 'a'
+      | "catala", Compl (white_space | '\n') )]
+  in
   match%sedlex lexbuf with
   | "```catala" ->
       L.is_code := true;
@@ -508,7 +520,7 @@ let lex_law (lexbuf : lexbuf) : token =
       Star white_space,
       Plus (Compl ('@' | '\n')),
       Star white_space,
-      Opt ('@', Star white_space, "p.", Star white_space, Plus '0' .. '9', Star white_space),
+      Opt ('@', Star white_space, "p.", Star white_space, Plus digit, Star white_space),
       '\n' ) ->
       let extract_components =
         R.regexp ">\\s*Inclusion\\:\\s*([^@\\n]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)"
@@ -524,7 +536,16 @@ let lex_law (lexbuf : lexbuf) : token =
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
   | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
-  | Plus (Compl ('#' | '`' | '>')) -> LAW_TEXT (Utf8.lexeme lexbuf)
+  | Plus
+      (* Match non-special characters, i.e. characters that doesn't appear at the start of a
+         previous regexp. *)
+      ( Compl ('#' | '`' | '>')
+      (* Following literals allow to match grave accents as long as they don't conflict with the
+         [BEGIN_CODE] token, i.e. either there are no more than three consecutive ones or they must
+         not be followed by 'catala'. *)
+      | Rep ('`', 1 .. 2), Compl '`'
+      | "```", compl_catala ) ->
+      LAW_TEXT (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
