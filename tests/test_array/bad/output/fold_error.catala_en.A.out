@@ -1,0 +1,24 @@
+[ERROR] Error during typechecking, incompatible types:
+[ERROR] --> money
+[ERROR] --> integer
+[ERROR] 
+[ERROR] Error coming from typechecking the following expression:
+[ERROR]   --> test_array/bad/fold_error.catala_en
+[ERROR]    | 
+[ERROR] 10 |   definition list_high_count equals number for m in list of (m >=$ $7)
+[ERROR]    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] Type money coming from expression:
+[ERROR]   --> test_array/bad/fold_error.catala_en
+[ERROR]    | 
+[ERROR] 10 |   definition list_high_count equals number for m in list of (m >=$ $7)
+[ERROR]    |                                                                ^^^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] Type integer coming from expression:
+[ERROR]  --> test_array/bad/fold_error.catala_en
+[ERROR]   | 
+[ERROR] 5 |   context list content collection integer
+[ERROR]   |                        ^^^^^^^^^^^^^^^^^^
+[ERROR]   + Article

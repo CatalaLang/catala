@@ -1,0 +1,10 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content integer
+  context y content boolean
+
+scope A:
+  definition x equals 1
+```

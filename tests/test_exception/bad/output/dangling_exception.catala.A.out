@@ -1,7 +1,0 @@
-[ERROR] This rule has been declared as an exception to an incorrect label: "base_y" is not a label attached to a definition of "x"
-[ERROR] 
-[ERROR]   --> test_exception/bad/dangling_exception.catala
-[ERROR]    | 
-[ERROR] 12 |   exception base_y
-[ERROR]    |             ^^^^^^
-[ERROR]    + Test

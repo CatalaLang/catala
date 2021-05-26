@@ -1,0 +1,15 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1
+
+declaration enumeration F:
+  -- Case1
+
+declaration scope A:
+  context e content E
+
+scope A:
+  definition e equals Case1
+```

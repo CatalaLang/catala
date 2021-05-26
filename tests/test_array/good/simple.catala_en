@@ -1,0 +1,22 @@
+## Article
+
+```catala
+declaration scope A:
+   context x content collection integer
+
+scope A:
+   definition x equals [0; 4+5; 8*8]
+
+declaration scope B:
+   context a scope A
+   context v content integer
+   context w content boolean
+   context y content boolean
+   context z content boolean
+
+scope B:
+   definition v equals number of a.x
+   definition w equals 64 in a.x
+   definition y equals exists m in a.x such that m = 9
+   definition z equals for all m in a.x we have m > 0
+```

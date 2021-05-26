@@ -1,0 +1,14 @@
+## Article
+
+```catala
+declaration structure S:
+  data x content E
+  data y content integer
+
+declaration enumeration E:
+  -- Case1 content boolean
+  -- Case2 content S
+
+declaration scope A:
+  context x content E
+```

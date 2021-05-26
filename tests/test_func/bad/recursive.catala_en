@@ -1,0 +1,9 @@
+## Article
+
+```catala
+declaration scope RecursiveFunc:
+  context f content integer depends on integer
+
+scope RecursiveFunc:
+  definition f of x equals f of x + 1
+```
