@@ -15,12 +15,11 @@
 open Tokens
 open Sedlexing
 open Utils
-open Lexer_common
-module L = Lexer
+module L = Lexer_common
 module R = Re.Pcre
 
-(** Same as {!val: Surface.Lexer.token_list_language_agnostic}, but with tokens specialized to
-    English. *)
+(** Same as {!val: Surface.Lexer_common.token_list_language_agnostic}, but with tokens specialized
+    to English. *)
 let token_list : (string * token) list =
   [
     ("scope", SCOPE);
@@ -528,7 +527,8 @@ let lex_law (lexbuf : lexbuf) : token =
       if Filename.extension name = ".pdf" then
         LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
       else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' -> get_law_heading lexbuf
+  | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' ->
+      L.get_law_heading lexbuf
   | Plus
       (* Match non-special characters, i.e. characters that doesn't appear at the start of a
          previous regexp. *)
@@ -542,5 +542,5 @@ let lex_law (lexbuf : lexbuf) : token =
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
-    Surface.Lexer.is_code}. *)
+    Surface.Lexer_common.is_code}. *)
 let lexer (lexbuf : lexbuf) : token = if !L.is_code then lex_code lexbuf else lex_law lexbuf

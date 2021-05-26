@@ -106,7 +106,7 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
     | None -> []
     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
 
-module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
+module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
   module I = MenhirInterpreter
 
@@ -121,8 +121,8 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
       Raises an error with meaningful hints about what the parsing error was. [lexbuf] is the lexing
       buffer state at the failure point, [env] is the Menhir environment and [last_input_needed] is
       the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
-      by things like {!val: Surface.Lexer.token_list_language_agnostic} and is used to provide
-      suggestions of the tokens acceptable at the failure point *)
+      by things like {!val: Surface.Lexer_common.token_list_language_agnostic} and is used to
+      provide suggestions of the tokens acceptable at the failure point *)
   let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
       (token_list : (string * Tokens.token) list) (last_input_needed : 'semantic_value I.env option)
       : 'a =
@@ -216,13 +216,13 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
     in
     try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
     with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-      Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
+      Lexer_common.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
 
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
     sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list Incremental.source_file lexbuf
 end
 
-module Parser_NonVerbose = ParserAux (Lexer)
+module Parser_NonVerbose = ParserAux (Lexer_en)
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
