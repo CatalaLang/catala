@@ -73,8 +73,7 @@ let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG"
-        ~doc:"Input language among: en, fr, non-verbose (default non-verbose)")
+    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr, pl (default en)")
 
 let max_prec_digits_opt =
   Arg.(
