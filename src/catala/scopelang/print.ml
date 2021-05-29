@@ -123,3 +123,56 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";")
            (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
         es
+
+let format_struct (fmt : Format.formatter)
+    ((name, fields) : StructName.t * (StructFieldName.t * typ Pos.marked) list) : unit =
+  Format.fprintf fmt "type %a = {@\n@[<hov 2>  %a@]@\n}" StructName.format_t name
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+       (fun fmt (field_name, typ) ->
+         Format.fprintf fmt "%a: %a" StructFieldName.format_t field_name format_typ typ))
+    fields
+
+let format_enum (fmt : Format.formatter)
+    ((name, cases) : EnumName.t * (EnumConstructor.t * typ Pos.marked) list) : unit =
+  Format.fprintf fmt "type %a = @\n@[<hov 2>  %a@]" EnumName.format_t name
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+       (fun fmt (field_name, typ) ->
+         Format.fprintf fmt "| %a: %a" EnumConstructor.format_t field_name format_typ typ))
+    cases
+
+let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_decl) : unit =
+  Format.fprintf fmt "@[<hov 2>let scope %a@ %a@ =@]@\n@[<hov 2>  %a@\nend scope@]"
+    ScopeName.format_t name
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+       (fun fmt (scope_var, typ) ->
+         Format.fprintf fmt "(%a: %a)" ScopeVar.format_t scope_var format_typ typ))
+    (ScopeVarMap.bindings decl.scope_sig)
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
+       (fun fmt rule ->
+         match rule with
+         | Definition (loc, typ, e) ->
+             Format.fprintf fmt "@[<hov 2>let %a : %a =@ @[<hov 2>%a@]@ in@]" format_location
+               (Pos.unmark loc) format_typ typ
+               (fun fmt e ->
+                 match Pos.unmark loc with
+                 | SubScopeVar _ -> format_expr fmt e
+                 | ScopeVar _ -> Format.fprintf fmt "reentrant or by default@ %a" format_expr e)
+               e
+         | Assertion e -> Format.fprintf fmt "assert (%a)" format_expr e
+         | Call (scope_name, subscope_name) ->
+             Format.fprintf fmt "call %a[%a]" ScopeName.format_t scope_name SubScopeName.format_t
+               subscope_name))
+    decl.scope_decl_rules
+
+let format_program (fmt : Format.formatter) (p : program) : unit =
+  Format.fprintf fmt "%a@\n@\n%a@\n@\n%a"
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_struct)
+    (StructMap.bindings p.program_structs)
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_enum)
+    (EnumMap.bindings p.program_enums)
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_scope)
+    (ScopeMap.bindings p.program_scopes)

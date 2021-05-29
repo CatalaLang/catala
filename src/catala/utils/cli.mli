@@ -49,7 +49,7 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 
 val backend : string Cmdliner.Term.t
 
-type backend_option = Latex | Makefile | Html | Run | OCaml
+type backend_option = Latex | Makefile | Html | Run | OCaml | Dcalc | Scopelang
 
 val language : string option Cmdliner.Term.t
 
@@ -61,7 +61,6 @@ val output : string option Cmdliner.Term.t
 
 val catala_t :
   (string ->
-  bool ->
   bool ->
   bool ->
   bool ->

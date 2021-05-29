@@ -25,7 +25,7 @@ let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "p
 
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
-let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyled : bool)
+let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
     (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)
     (output_file : string option) : int =
@@ -66,12 +66,14 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
       else if backend = "html" then Cli.Html
       else if backend = "interpret" then Cli.Run
       else if backend = "ocaml" then Cli.OCaml
+      else if backend = "dcalc" then Cli.Dcalc
+      else if backend = "scopelang" then Cli.Scopelang
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
     in
-    let program = Surface.Parser_driver.parse_top_level_file source_file language in
-    let program = Surface.Fill_positions.fill_pos_with_legislative_info program in
+    let prgm = Surface.Parser_driver.parse_top_level_file source_file language in
+    let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
     match backend with
     | Cli.Makefile ->
         let backend_extensions_list = [ ".tex" ] in
@@ -90,11 +92,12 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
              (output_file
-             :: List.map
-                  (fun ext -> Filename.remove_extension source_file ^ ext)
-                  backend_extensions_list))
-          (String.concat "\\\n" program.program_source_files)
-          (String.concat "\\\n" program.program_source_files);
+              ::
+              List.map
+                (fun ext -> Filename.remove_extension source_file ^ ext)
+                backend_extensions_list))
+          (String.concat "\\\n" prgm.program_source_files)
+          (String.concat "\\\n" prgm.program_source_files);
         0
     | Cli.Latex | Cli.Html ->
         let source_file =
@@ -132,18 +135,18 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         if wrap_weaved_output then
           match backend with
           | Cli.Latex ->
-              Literate.Latex.wrap_latex program.Surface.Ast.program_source_files language fmt
-                (fun fmt -> weave_output fmt program)
+              Literate.Latex.wrap_latex prgm.Surface.Ast.program_source_files language fmt
+                (fun fmt -> weave_output fmt prgm)
           | Cli.Html ->
-              Literate.Html.wrap_html program.Surface.Ast.program_source_files language fmt
-                (fun fmt -> weave_output fmt program)
+              Literate.Html.wrap_html prgm.Surface.Ast.program_source_files language fmt (fun fmt ->
+                  weave_output fmt prgm)
           | _ -> assert false (* should not happen *)
-        else weave_output fmt program;
+        else weave_output fmt prgm;
         close_out oc;
         0
-    | Cli.Run | Cli.OCaml -> (
+    | _ -> (
         Cli.debug_print "Name resolution...";
-        let ctxt = Surface.Name_resolution.form_context program in
+        let ctxt = Surface.Name_resolution.form_context prgm in
         let scope_uid =
           match (ex_scope, backend) with
           | None, Cli.Run -> Errors.raise_error "No scope was provided for execution."
@@ -160,9 +163,24 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
               | Some uid -> uid)
         in
         Cli.debug_print "Desugaring...";
-        let prgm = Surface.Desugaring.desugar_program ctxt program in
+        let prgm = Surface.Desugaring.desugar_program ctxt prgm in
         Cli.debug_print "Collecting rules...";
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
+        if backend = Cli.Scopelang then begin
+          let fmt, at_end =
+            match output_file with
+            | Some f ->
+                let oc = open_out f in
+                (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
+            | None -> (Format.std_formatter, fun _ -> ())
+          in
+          if Option.is_some ex_scope then
+            Format.fprintf fmt "%a\n" Scopelang.Print.format_scope
+              (scope_uid, Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes)
+          else Format.fprintf fmt "%a\n" Scopelang.Print.format_program prgm;
+          at_end ();
+          exit 0
+        end;
         Cli.debug_print "Translating to default calculus...";
         let prgm, prgm_expr, type_ordering =
           Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
@@ -174,11 +192,21 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
           end
           else prgm
         in
-        if dcalc then begin
-          Format.printf "%a\n"
-            (Dcalc.Print.format_expr prgm.decl_ctx)
-            (let _, _, e = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
-             e);
+        if backend = Cli.Dcalc then begin
+          let fmt, at_end =
+            match output_file with
+            | Some f ->
+                let oc = open_out f in
+                (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
+            | None -> (Format.std_formatter, fun _ -> ())
+          in
+          if Option.is_some ex_scope then
+            Format.fprintf fmt "%a\n"
+              (Dcalc.Print.format_expr prgm.decl_ctx)
+              (let _, _, e = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
+               e)
+          else Format.fprintf fmt "%a\n" (Dcalc.Print.format_expr prgm.decl_ctx) prgm_expr;
+          at_end ();
           exit 0
         end;
         Cli.debug_print "Typechecking...";

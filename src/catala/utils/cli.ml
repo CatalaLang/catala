@@ -44,9 +44,6 @@ let file =
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
-let debug_dcalc =
-  Arg.(value & flag & info [ "dcalc" ] ~doc:"Emit default calculus version of the program")
-
 let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling from terminal output")
 
 let optimize = Arg.(value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations")
@@ -65,9 +62,9 @@ let backend =
     required
     & pos 0 (some string) None
     & info [] ~docv:"BACKEND"
-        ~doc:"Backend selection among: LaTeX, Makefile, Html, Interpret, OCaml")
+        ~doc:"Backend selection among: LaTeX, Makefile, Html, Interpret, OCaml, Dcalc, Scopelang")
 
-type backend_option = Latex | Makefile | Html | Run | OCaml
+type backend_option = Latex | Makefile | Html | Run | OCaml | Dcalc | Scopelang
 
 let language =
   Arg.(
@@ -91,12 +88,11 @@ let output =
     value
     & opt (some string) None
     & info [ "output"; "o" ] ~docv:"OUTPUT"
-        ~doc:
-          "$(i, OUTPUT) is the file that will contain the extracted output (for compiler backends)")
+        ~doc:"$(i, OUTPUT) is the file that will contain the output of the compiler")
 
 let catala_t f =
   Term.(
-    const f $ file $ debug $ debug_dcalc $ unstyled $ wrap_weaved_output $ backend $ language
+    const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
 
 let version = "0.4.0"
