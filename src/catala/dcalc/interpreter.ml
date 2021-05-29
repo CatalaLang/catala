@@ -91,6 +91,15 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         A.ELit (LDuration Runtime.(i1 -@ i2))
     | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
         A.ELit (LDate Runtime.(i1 +@ i2))
+    | A.Binop (A.Div KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
+        try A.ELit (LRat Runtime.(i1 /^ i2))
+        with Division_by_zero | Runtime.IndivisableDurations ->
+          (* TODO: Manage IndivisableDurations. *)
+          Errors.raise_multispanned_error "division by zero at runtime"
+            [
+              (Some "The division operator:", Pos.get_position op);
+              (Some "The null denominator:", Pos.get_position (List.nth args 1));
+            ])
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <! i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <=! i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 >! i2))

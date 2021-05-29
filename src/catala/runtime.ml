@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -31,6 +31,8 @@ exception AssertionFailed
 exception ConflictError
 
 exception UncomparableDurations
+
+exception IndivisableDurations
 
 exception ImpossibleDate
 
@@ -257,6 +259,16 @@ let ( -@ ) (d1 : date) (d2 : date) : duration = CalendarLib.Date.sub d1 d2
 let ( +^ ) (d1 : duration) (d2 : duration) : duration = CalendarLib.Date.Period.add d1 d2
 
 let ( -^ ) (d1 : duration) (d2 : duration) : duration = CalendarLib.Date.Period.sub d1 d2
+
+(* (EmileRolley) NOTE: {!CalendarLib.Date.Period.nb_days} is deprecated,
+   {!CalendarLib.Date.Period.safe_nb_days} should be used. But the current {!duration} is greater
+   that the supported polymorphic variants.*)
+let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
+  try
+    let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
+    let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
+    if 0 = nb_day1 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
+  with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations
 
 let ( <=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 <= 0
 
