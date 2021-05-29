@@ -24,9 +24,8 @@ reset_tests: $(subst output/,,$(subst .out,.in,$(wildcard */*/output/*.out)))
 # Forces all the tests to be redone
 .FORCE:
 
-# FIXME: .catala should be replaced by the corresponding regexp.
 %.run: .FORCE
-	$(CATALA) $(word 1,$(subst ., ,$*)).catala -s $(word 3,$(subst ., ,$*))
+	$(CATALA) $(word 1,$(subst ., ,$*)).$(word 2, $(subst ., , $*)) -s $(word 3,$(subst ., ,$*))
 
 # Usage: make <test_dir>/output/<test_name>.catala_<language>.<scope_name>.out
 # This rule runs the test and compares against the expected output. If the
