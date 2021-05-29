@@ -38,7 +38,7 @@ let log_indent = ref 0
 
 let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     (args : A.expr Pos.marked list) : A.expr Pos.marked =
-  let apply_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =
+  let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =
     try div ()
     with Division_by_zero ->
       Errors.raise_multispanned_error "division by zero at runtime"
@@ -46,6 +46,13 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
           (Some "The division operator:", Pos.get_position op);
           (Some "The null denominator:", Pos.get_position (List.nth args 1));
         ]
+  in
+  let apply_cmp_or_raise_err (cmp : unit -> A.expr) (args : (A.expr * Pos.t) list) : A.expr =
+    try cmp ()
+    with Runtime.UncomparableDurations ->
+      Errors.raise_multispanned_error
+        "Cannot compare together durations that cannot be converted to a precise number of days"
+        [ (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1)) ]
   in
   Pos.same_pos_as
     (match (Pos.unmark op, List.map Pos.unmark args) with
@@ -62,16 +69,12 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Sub KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt Runtime.(i1 -! i2))
     | A.Binop (A.Mult KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LInt Runtime.(i1 *! i2))
     | A.Binop (A.Div KInt), [ ELit (LInt i1); ELit (LInt i2) ] ->
-        apply_or_raise_err
-          (fun _ ->
-            if i2 <> Runtime.integer_of_int 0 then A.ELit (LInt Runtime.(i1 /! i2))
-            else raise Division_by_zero)
-          op
+        apply_div_or_raise_err (fun _ -> A.ELit (LInt Runtime.(i1 /! i2))) op
     | A.Binop (A.Add KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat Runtime.(i1 +& i2))
     | A.Binop (A.Sub KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat Runtime.(i1 -& i2))
     | A.Binop (A.Mult KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat Runtime.(i1 *& i2))
     | A.Binop (A.Div KRat), [ ELit (LRat i1); ELit (LRat i2) ] ->
-        apply_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2))) op
+        apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2))) op
     | A.Binop (A.Add KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
         A.ELit (LMoney Runtime.(i1 +$ i2))
     | A.Binop (A.Sub KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
@@ -79,7 +82,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Mult KMoney), [ ELit (LMoney i1); ELit (LRat i2) ] ->
         A.ELit (LMoney Runtime.(i1 *$ i2))
     | A.Binop (A.Div KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        apply_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /$ i2))) op
+        apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /$ i2))) op
     | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
         A.ELit (LDuration Runtime.(i1 +^ i2))
     | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
@@ -104,38 +107,14 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         A.ELit (LBool Runtime.(i1 >$ i2))
     | A.Binop (A.Gte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
         A.ELit (LBool Runtime.(i1 >=$ i2))
-    | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
-        try A.ELit (LBool Runtime.(i1 <^ i2))
-        with _ ->
-          Errors.raise_multispanned_error
-            "Cannot compare together durations that cannot be converted to a precise number of days"
-            [
-              (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ])
-    | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
-        try A.ELit (LBool Runtime.(i1 <=^ i2))
-        with _ ->
-          Errors.raise_multispanned_error
-            "Cannot compare together durations that cannot be converted to a precise number of days"
-            [
-              (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ])
-    | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
-        try A.ELit (LBool Runtime.(i1 >^ i2))
-        with _ ->
-          Errors.raise_multispanned_error
-            "Cannot compare together durations that cannot be converted to a precise number of days"
-            [
-              (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ])
-    | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
-        try A.ELit (LBool Runtime.(i1 >=^ i2))
-        with _ ->
-          Errors.raise_multispanned_error
-            "Cannot compare together durations that cannot be converted to a precise number of days"
-            [
-              (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1));
-            ])
+    | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 <^ i2))) args
+    | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 <=^ i2))) args
+    | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 >^ i2))) args
+    | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 >=^ i2))) args
     | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
         A.ELit (LBool Runtime.(i1 <@ i2))
     | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
