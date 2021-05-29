@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -106,7 +106,7 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
     | None -> []
     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
 
-module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
+module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
   module I = MenhirInterpreter
 
@@ -121,8 +121,8 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
       Raises an error with meaningful hints about what the parsing error was. [lexbuf] is the lexing
       buffer state at the failure point, [env] is the Menhir environment and [last_input_needed] is
       the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
-      by things like {!val: Surface.Lexer.token_list_language_agnostic} and is used to provide
-      suggestions of the tokens acceptable at the failure point *)
+      by things like {!val: Surface.Lexer_common.token_list_language_agnostic} and is used to
+      provide suggestions of the tokens acceptable at the failure point *)
   let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
       (token_list : (string * Tokens.token) list) (last_input_needed : 'semantic_value I.env option)
       : 'a =
@@ -216,28 +216,26 @@ module ParserAux (LocalisedLexer : Lexer.LocalisedLexer) = struct
     in
     try loop lexer token_list lexbuf None (target_rule (fst @@ Sedlexing.lexing_positions lexbuf))
     with Sedlexing.MalFormed | Sedlexing.InvalidCodepoint _ ->
-      Lexer.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
+      Lexer_common.raise_lexer_error (Pos.from_lpos (lexing_positions lexbuf)) (Utf8.lexeme lexbuf)
 
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
     sedlex_with_menhir LocalisedLexer.lexer LocalisedLexer.token_list Incremental.source_file lexbuf
 end
 
-module Parser_NonVerbose = ParserAux (Lexer)
 module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser : Cli.frontend_lang -> lexbuf -> Ast.source_file = function
-  | `NonVerbose -> Parser_NonVerbose.commands_or_includes
-  | `En -> Parser_En.commands_or_includes
-  | `Fr -> Parser_Fr.commands_or_includes
-  | `Pl -> Parser_Pl.commands_or_includes
+let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
+  | En -> Parser_En.commands_or_includes
+  | Fr -> Parser_Fr.commands_or_includes
+  | Pl -> Parser_Pl.commands_or_includes
 
 (** {1 Parsing multiple files} *)
 
 (** Parses a single source file *)
-let rec parse_source_file (source_file : Pos.input_file) (language : Cli.frontend_lang) :
-    Ast.program =
+let rec parse_source_file (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program
+    =
   Cli.debug_print
     (Printf.sprintf "Parsing %s" (match source_file with FileName s | Contents s -> s));
   let lexbuf, input =
@@ -262,7 +260,7 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.fronten
 
 (** Expands the include directives in a parsing result, thus parsing new source files *)
 and expand_includes (source_file : string) (commands : Ast.law_structure list)
-    (language : Cli.frontend_lang) : Ast.program =
+    (language : Cli.backend_lang) : Ast.program =
   List.fold_left
     (fun acc command ->
       match command with
@@ -289,7 +287,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list)
 
 (** {1 API} *)
 
-let parse_top_level_file (source_file : Pos.input_file) (language : Cli.frontend_lang) : Ast.program
+let parse_top_level_file (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program
     =
   let program = parse_source_file source_file language in
   { program with Ast.program_items = law_struct_list_to_tree program.Ast.program_items }

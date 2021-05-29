@@ -16,4 +16,4 @@
 
 open Utils
 
-val parse_top_level_file : Pos.input_file -> Cli.frontend_lang -> Ast.program
+val parse_top_level_file : Pos.input_file -> Cli.backend_lang -> Ast.program

@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -12,11 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type frontend_lang = [ `En | `Fr | `NonVerbose | `Pl ]
-
-type backend_lang = [ `En | `Fr | `Pl ]
-
-val to_backend_lang : frontend_lang -> backend_lang
+type backend_lang = En | Fr | Pl
 
 (** {2 Configuration globals} *)
 

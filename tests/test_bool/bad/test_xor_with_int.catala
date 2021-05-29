@@ -1,9 +1,0 @@
-## 'xor' should be a boolean operator
-
-```catala
-new scope TestXorWithInt :
-  param test_var content int
-
-scope TestXorWithInt :
-  def test_var := 10 xor 20
-```

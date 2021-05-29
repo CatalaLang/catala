@@ -1,0 +1,30 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content integer
+
+declaration scope B:
+  context a scope A
+  context y1 content integer
+  context y2 content integer
+
+declaration scope C:
+  context b scope B
+  context z1 content integer
+  context z2 content integer
+
+
+scope A:
+  definition x equals 0
+
+scope B:
+  definition a.x equals y1
+  definition y1 equals 1
+  definition y2 equals a.x
+
+scope C:
+  definition b.y1 equals z1
+  definition z1 equals 2
+  definition z2 equals b.y2
+```

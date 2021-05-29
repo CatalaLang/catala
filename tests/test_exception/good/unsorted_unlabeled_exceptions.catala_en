@@ -1,0 +1,18 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content integer
+  context y content integer
+
+scope A:
+  exception
+  definition x equals 1
+
+  exception
+  definition y equals 2
+
+  definition x equals 0
+
+  definition y equals 3
+```

@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -12,17 +12,12 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type frontend_lang = [ `Fr | `En | `NonVerbose | `Pl ]
-
-type backend_lang = [ `Fr | `En | `Pl ]
-
-let to_backend_lang (lang : frontend_lang) : backend_lang =
-  match lang with `En | `NonVerbose -> `En | `Fr -> `Fr | `Pl -> `Pl
+type backend_lang = En | Fr | Pl
 
 (** Source files to be compiled *)
 let source_files : string list ref = ref []
 
-let locale_lang : backend_lang ref = ref `En
+let locale_lang : backend_lang ref = ref En
 
 let contents : string ref = ref ""
 
@@ -78,8 +73,7 @@ let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG"
-        ~doc:"Input language among: en, fr, non-verbose (default non-verbose)")
+    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr, pl")
 
 let max_prec_digits_opt =
   Arg.(

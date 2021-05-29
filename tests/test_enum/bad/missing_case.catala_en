@@ -1,0 +1,17 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2 content boolean
+  -- Case3
+
+declaration scope A:
+  context e content E
+  context out content boolean
+
+scope A:
+  definition out equals match e with pattern
+    -- Case1 of i : i = 0
+    -- Case2 of b : b
+```

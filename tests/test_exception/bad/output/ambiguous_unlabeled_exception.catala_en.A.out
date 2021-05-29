@@ -1,0 +1,28 @@
+[ERROR] This exception can refer to several definitions. Try using labels to disambiguate
+[ERROR] 
+[ERROR] Ambiguous exception
+[ERROR]   --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+[ERROR]    | 
+[ERROR] 10 |   definition x equals 1
+[ERROR]    |                       
+[ERROR] 11 | 
+[ERROR]    | 
+[ERROR] 12 |   exception
+[ERROR]    |   ^^^^^^^^^
+[ERROR] 13 |   definition x equals 2
+[ERROR]    |   ^^^^^^^^^^^^^^^^^^^^^^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Candidate definition
+[ERROR]   --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+[ERROR]    | 
+[ERROR] 10 |   definition x equals 1
+[ERROR]    |              ^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Candidate definition
+[ERROR]  --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+[ERROR]   | 
+[ERROR] 8 |   definition x equals 0
+[ERROR]   |              ^
+[ERROR]   + Test

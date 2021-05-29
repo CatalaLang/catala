@@ -1,0 +1,19 @@
+## Article
+
+```catala
+declaration scope S:
+  context a content A
+  context b content B
+
+declaration structure A:
+   data x content integer
+   data y content B
+
+declaration structure B:
+   data y content boolean
+   data z content decimal
+
+scope S:
+   definition b equals B { -- y: true -- z: 0.0}
+   definition a equals A { -- x: 0 -- y : b }
+```

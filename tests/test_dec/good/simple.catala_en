@@ -1,0 +1,13 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content decimal
+  context y content decimal
+  context z content decimal
+
+scope A:
+  definition x equals 84.648665
+  definition y equals 4.368297
+  definition z equals x /. y
+```

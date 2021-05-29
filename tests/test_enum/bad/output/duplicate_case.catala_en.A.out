@@ -1,0 +1,13 @@
+[ERROR] The constructor Case3 has been matched twice:
+[ERROR] 
+[ERROR]   --> test_enum/bad/duplicate_case.catala_en
+[ERROR]    | 
+[ERROR] 18 |     -- Case3 : true
+[ERROR]    |                ^^^^
+[ERROR]    + Article
+[ERROR] 
+[ERROR]   --> test_enum/bad/duplicate_case.catala_en
+[ERROR]    | 
+[ERROR] 17 |     -- Case3 : false
+[ERROR]    |                ^^^^^
+[ERROR]    + Article

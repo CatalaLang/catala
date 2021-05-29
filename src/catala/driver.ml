@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -16,13 +16,12 @@ module Cli = Utils.Cli
 module Errors = Utils.Errors
 module Pos = Utils.Pos
 
-(** Associates a {!type: Cli.frontend_lang} with its string represtation. *)
-let languages = [ ("en", `En); ("fr", `Fr); ("pl", `Pl); ("non-verbose", `NonVerbose) ]
+(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
+let languages = [ ("en", Cli.En); ("fr", Cli.Fr); ("pl", Cli.Pl) ]
 
 (** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
     representation. *)
-let extensions =
-  [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl"); (".catala", "non-verbose") ]
+let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl") ]
 
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
@@ -59,7 +58,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
         Errors.raise_error
           (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
     in
-    Cli.locale_lang := Cli.to_backend_lang language;
+    Cli.locale_lang := language;
     let backend =
       let backend = String.lowercase_ascii backend in
       if backend = "makefile" then Cli.Makefile
@@ -98,7 +97,6 @@ let driver (source_file : Pos.input_file) (debug : bool) (dcalc : bool) (unstyle
           (String.concat "\\\n" program.program_source_files);
         0
     | Cli.Latex | Cli.Html ->
-        let language : Cli.backend_lang = Cli.to_backend_lang language in
         let source_file =
           match source_file with
           | FileName f -> f

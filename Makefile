@@ -87,12 +87,8 @@ atom_pl: ${CURDIR}/syntax_highlighting/pl/setup_atom.sh
 	chmod +x $<
 	$<
 
-atom_nv: ${CURDIR}/syntax_highlighting/nv/setup_atom.sh
-	chmod +x $<
-	$<
-
 #> atom					: Installs Catala syntax highlighting for Atom
-atom: atom_fr atom_en atom_nv
+atom: atom_fr atom_en atom_pl
 
 vscode_fr: ${CURDIR}/syntax_highlighting/fr/setup_vscode.sh
 	chmod +x $<
@@ -107,12 +103,8 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 # 	chmod +x $<
 # 	$<
 
-vscode_nv: ${CURDIR}/syntax_highlighting/nv/setup_vscode.sh
-	chmod +x $<
-	$<
-
 #> vscode					: Installs Catala syntax highlighting for VSCode
-vscode: vscode_fr vscode_en vscode_nv
+vscode: vscode_fr vscode_en
 
 ##########################################
 # Examples-related rules
@@ -125,7 +117,6 @@ US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
-
 
 literate_allocations_familiales: build
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex

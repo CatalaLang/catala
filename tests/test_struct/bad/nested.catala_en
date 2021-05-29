@@ -1,0 +1,12 @@
+## Article
+
+```catala
+declaration structure S:
+  data x content S
+
+declaration scope A:
+  context y content S
+
+scope A:
+  definition y equals S { -- x: 1 }
+```

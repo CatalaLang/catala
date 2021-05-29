@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 
 open Tokens
 open Sedlexing
+open Utils
 module R = Re.Pcre
 
 (* Calculates the precedence according a {!val: matched_regex} of the form : '[#]+'.
@@ -33,3 +34,65 @@ let get_law_heading (lexbuf : lexbuf) : token =
   let article_expiration_date = try Some (String.trim (get_substring 6)) with Not_found -> None in
   let precedence = calc_precedence (String.trim (get_substring 1)) in
   LAW_HEADING (title, article_id, article_expiration_date, precedence)
+
+(** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
+    code or law. *)
+let is_code : bool ref = ref false
+
+(** Mutable string reference that accumulates the string representation of the body of code being
+    lexed. This string representation is used in the literate programming backends to faithfully
+    capture the spacing pattern of the original program *)
+let code_string_acc : string ref = ref ""
+
+(** Updates {!val:code_string_acc} with the current lexeme *)
+let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
+
+(** Error-generating helper *)
+let raise_lexer_error (loc : Pos.t) (token : string) =
+  Errors.raise_spanned_error
+    (Printf.sprintf "Parsing error after token \"%s\": what comes after is unknown" token)
+    loc
+
+(** Associative list matching each punctuation string part of the Catala syntax with its {!module:
+    Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
+let token_list_language_agnostic : (string * token) list =
+  [
+    (".", DOT);
+    ("<=", LESSER_EQUAL);
+    (">=", GREATER_EQUAL);
+    (">", GREATER);
+    ("!=", NOT_EQUAL);
+    ("=", EQUAL);
+    ("(", LPAREN);
+    (")", RPAREN);
+    ("{", LBRACKET);
+    ("}", RBRACKET);
+    ("{", LSQUARE);
+    ("}", RSQUARE);
+    ("+", PLUS);
+    ("-", MINUS);
+    ("*", MULT);
+    ("/", DIV);
+    ("|", VERTICAL);
+    (":", COLON);
+    (";", SEMICOLON);
+    ("--", ALT);
+  ]
+
+module type LocalisedLexer = sig
+  val token_list : (string * Tokens.token) list
+  (** Same as {!val: token_list_language_agnostic}, but with tokens specialized to a given language. *)
+
+  val builtins : (string * Ast.builtin_expression) list
+  (** Associative list of string to their corresponding builtins *)
+
+  val lex_code : Sedlexing.lexbuf -> Tokens.token
+  (** Main lexing function used in code blocks *)
+
+  val lex_law : Sedlexing.lexbuf -> Tokens.token
+  (** Main lexing function used outside code blocks *)
+
+  val lexer : Sedlexing.lexbuf -> Tokens.token
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
+      {!val: Surface.Lexer_common.is_code}. *)
+end

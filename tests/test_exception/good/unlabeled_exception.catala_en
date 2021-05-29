@@ -1,0 +1,12 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content integer
+
+scope A:
+  definition x equals 0
+
+  exception
+  definition x equals 1
+```

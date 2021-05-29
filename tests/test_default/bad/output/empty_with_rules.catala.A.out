@@ -1,7 +1,0 @@
-[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
-[ERROR] 
-[ERROR]  --> test_default/bad/empty_with_rules.catala
-[ERROR]   | 
-[ERROR] 5 |   param x content int
-[ERROR]   |         ^
-[ERROR]   + Article
