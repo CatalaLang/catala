@@ -19,5 +19,5 @@ scope A:
   definition z2 equals z3 = 5937 day
 
   definition d equals z3 /^ z3
-  definition d2 equals z3 /^ 1 day
+  definition d2 equals z3 /^ 2 day
 ```
