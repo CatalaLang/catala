@@ -151,12 +151,12 @@ contexts [] {
 main : context {
 
    : pattern {
-     regex \=  ([\#]+.*)
+     regex \=  (^\s*[\#]+.*)
      styles [] = .law_title;
    }
 
    : pattern {
-     regex \=  ([\#]+\s*\[[^\]]\s*].*)
+     regex \=  (^\s*[\#]+\s*\[[^\]]\s*].*)
      styles [] = .law_subtitle;
    }
 

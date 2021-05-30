@@ -13,7 +13,7 @@
   'main' : {
     'patterns' : [
       {
-        'begin' : '([#]+)'
+        'begin' : '(^\\s*[\\#]+)'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_fr'
@@ -32,7 +32,7 @@
         }
       }
       {
-        'begin' : '([#]+\s*\[[^\]]\s*\])'
+        'begin' : '(^\\s*[\\#]+\\s*\\[[^\\]]\\s*\\])'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_fr'

@@ -23,12 +23,12 @@ ace.define(
         start: [
           {
             token: "markup.heading.title",
-            regex: "([#]+)",
+            regex: "(^s*[#]+)",
             push: "main__1",
           },
           {
             token: "markup.heading.subtitle",
-            regex: "([#]+s*[[^]]s*])",
+            regex: "(^s*[#]+s*[[^]]s*])",
             push: "main__2",
           },
           {

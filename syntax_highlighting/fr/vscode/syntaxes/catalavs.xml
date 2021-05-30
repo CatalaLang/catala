@@ -28,7 +28,7 @@
       <array>
         <dict>
           <key>begin</key>
-          <string>([\#]+)</string>
+          <string>(^\s*[\#]+)</string>
           <key>beginCaptures</key>
           <dict>
             <key>1</key>
@@ -57,7 +57,7 @@
         </dict>
         <dict>
           <key>begin</key>
-          <string>([\#]+\s*\[[^\]]\s*\])</string>
+          <string>(^\s*[\#]+\s*\[[^\]]\s*\])</string>
           <key>beginCaptures</key>
           <dict>
             <key>1</key>
