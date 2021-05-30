@@ -167,7 +167,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\|[0-9]+/[0-9]+/[0-9]+\|)</string>
+          <string>(\|[0-9]+\-[0-9]+\-[0-9]+\|)</string>
           <key>name</key>
           <string>constant.numeric.catala_en</string>
         </dict>

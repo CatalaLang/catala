@@ -71,7 +71,7 @@ ace.define(
           },
           {
             token: "constant.numeric",
-            regex: "(\\|[0-9]+/[0-9]+/[0-9]+\\|)",
+            regex: "(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)",
           },
           {
             token: "constant",

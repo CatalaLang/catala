@@ -74,7 +74,7 @@
         'name' : 'keyword.other.catala_pl'
       }
       {
-        'match' : '(\\|[0-9]+/[0-9]+/[0-9]+\\|)'
+        'match' : '(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)'
         'name' : 'constant.numeric.catala_pl'
       }
       {
