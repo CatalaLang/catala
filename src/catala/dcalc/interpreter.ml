@@ -38,6 +38,8 @@ let log_indent = ref 0
 
 let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     (args : A.expr Pos.marked list) : A.expr Pos.marked =
+  (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use [op] to raise
+     multispanned errors. *)
   let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =
     try div ()
     with Division_by_zero ->
@@ -47,12 +49,17 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
           (Some "The null denominator:", Pos.get_position (List.nth args 1));
         ]
   in
+  let get_binop_args_pos (args : (A.expr * Pos.t) list) : (string option * Pos.t) list =
+    [ (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1)) ]
+  in
+  (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched, use [args] to raise
+     multispanned errors. *)
   let apply_cmp_or_raise_err (cmp : unit -> A.expr) (args : (A.expr * Pos.t) list) : A.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
       Errors.raise_multispanned_error
         "Cannot compare together durations that cannot be converted to a precise number of days"
-        [ (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1)) ]
+        (get_binop_args_pos args)
   in
   Pos.same_pos_as
     (match (Pos.unmark op, List.map Pos.unmark args) with
@@ -75,22 +82,31 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Mult KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LRat Runtime.(i1 *& i2))
     | A.Binop (A.Div KRat), [ ELit (LRat i1); ELit (LRat i2) ] ->
         apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /& i2))) op
-    | A.Binop (A.Add KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LMoney Runtime.(i1 +$ i2))
-    | A.Binop (A.Sub KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LMoney Runtime.(i1 -$ i2))
-    | A.Binop (A.Mult KMoney), [ ELit (LMoney i1); ELit (LRat i2) ] ->
-        A.ELit (LMoney Runtime.(i1 *$ i2))
-    | A.Binop (A.Div KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(i1 /$ i2))) op
-    | A.Binop (A.Add KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration Runtime.(i1 +^ i2))
-    | A.Binop (A.Sub KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LDuration Runtime.(i1 -^ i2))
-    | A.Binop (A.Sub KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LDuration Runtime.(i1 -@ i2))
-    | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
-        A.ELit (LDate Runtime.(i1 +@ i2))
+    | A.Binop (A.Add KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LMoney Runtime.(m1 +$ m2))
+    | A.Binop (A.Sub KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LMoney Runtime.(m1 -$ m2))
+    | A.Binop (A.Mult KMoney), [ ELit (LMoney m1); ELit (LRat m2) ] ->
+        A.ELit (LMoney Runtime.(m1 *$ m2))
+    | A.Binop (A.Div KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        apply_div_or_raise_err (fun _ -> A.ELit (LRat Runtime.(m1 /$ m2))) op
+    | A.Binop (A.Add KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        A.ELit (LDuration Runtime.(d1 +^ d2))
+    | A.Binop (A.Sub KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        A.ELit (LDuration Runtime.(d1 -^ d2))
+    | A.Binop (A.Sub KDate), [ ELit (LDate d1); ELit (LDate d2) ] ->
+        A.ELit (LDuration Runtime.(d1 -@ d2))
+    | A.Binop (A.Add KDate), [ ELit (LDate d1); ELit (LDuration d2) ] ->
+        A.ELit (LDate Runtime.(d1 +@ d2))
+    | A.Binop (A.Div KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        apply_div_or_raise_err
+          (fun _ ->
+            try A.ELit (LRat Runtime.(d1 /^ d2))
+            with Runtime.IndivisableDurations ->
+              Errors.raise_multispanned_error
+                "Cannot divide durations that cannot be converted to a precise number of days"
+                (get_binop_args_pos args))
+          op
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <! i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <=! i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 >! i2))
@@ -99,35 +115,35 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     | A.Binop (A.Lte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Runtime.(i1 <=& i2))
     | A.Binop (A.Gt KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Runtime.(i1 >& i2))
     | A.Binop (A.Gte KRat), [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Runtime.(i1 >=& i2))
-    | A.Binop (A.Lt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LBool Runtime.(i1 <$ i2))
-    | A.Binop (A.Lte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LBool Runtime.(i1 <=$ i2))
-    | A.Binop (A.Gt KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LBool Runtime.(i1 >$ i2))
-    | A.Binop (A.Gte KMoney), [ ELit (LMoney i1); ELit (LMoney i2) ] ->
-        A.ELit (LBool Runtime.(i1 >=$ i2))
-    | A.Binop (A.Lt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 <^ i2))) args
-    | A.Binop (A.Lte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 <=^ i2))) args
-    | A.Binop (A.Gt KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 >^ i2))) args
-    | A.Binop (A.Gte KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(i1 >=^ i2))) args
-    | A.Binop (A.Lt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool Runtime.(i1 <@ i2))
-    | A.Binop (A.Lte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool Runtime.(i1 <=@ i2))
-    | A.Binop (A.Gt KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool Runtime.(i1 >@ i2))
-    | A.Binop (A.Gte KDate), [ ELit (LDate i1); ELit (LDate i2) ] ->
-        A.ELit (LBool Runtime.(i1 >=@ i2))
+    | A.Binop (A.Lt KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LBool Runtime.(m1 <$ m2))
+    | A.Binop (A.Lte KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LBool Runtime.(m1 <=$ m2))
+    | A.Binop (A.Gt KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LBool Runtime.(m1 >$ m2))
+    | A.Binop (A.Gte KMoney), [ ELit (LMoney m1); ELit (LMoney m2) ] ->
+        A.ELit (LBool Runtime.(m1 >=$ m2))
+    | A.Binop (A.Lt KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 <^ d2))) args
+    | A.Binop (A.Lte KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 <=^ d2))) args
+    | A.Binop (A.Gt KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 >^ d2))) args
+    | A.Binop (A.Gte KDuration), [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        apply_cmp_or_raise_err (fun _ -> A.ELit (LBool Runtime.(d1 >=^ d2))) args
+    | A.Binop (A.Lt KDate), [ ELit (LDate d1); ELit (LDate d2) ] ->
+        A.ELit (LBool Runtime.(d1 <@ d2))
+    | A.Binop (A.Lte KDate), [ ELit (LDate d1); ELit (LDate d2) ] ->
+        A.ELit (LBool Runtime.(d1 <=@ d2))
+    | A.Binop (A.Gt KDate), [ ELit (LDate d1); ELit (LDate d2) ] ->
+        A.ELit (LBool Runtime.(d1 >@ d2))
+    | A.Binop (A.Gte KDate), [ ELit (LDate d1); ELit (LDate d2) ] ->
+        A.ELit (LBool Runtime.(d1 >=@ d2))
     | A.Binop A.Eq, [ ELit LUnit; ELit LUnit ] -> A.ELit (LBool true)
-    | A.Binop A.Eq, [ ELit (LDuration i1); ELit (LDuration i2) ] ->
-        A.ELit (LBool Runtime.(i1 =^ i2))
-    | A.Binop A.Eq, [ ELit (LDate i1); ELit (LDate i2) ] -> A.ELit (LBool Runtime.(i1 =@ i2))
-    | A.Binop A.Eq, [ ELit (LMoney i1); ELit (LMoney i2) ] -> A.ELit (LBool Runtime.(i1 =$ i2))
+    | A.Binop A.Eq, [ ELit (LDuration d1); ELit (LDuration d2) ] ->
+        A.ELit (LBool Runtime.(d1 =^ d2))
+    | A.Binop A.Eq, [ ELit (LDate d1); ELit (LDate d2) ] -> A.ELit (LBool Runtime.(d1 =@ d2))
+    | A.Binop A.Eq, [ ELit (LMoney m1); ELit (LMoney m2) ] -> A.ELit (LBool Runtime.(m1 =$ m2))
     | A.Binop A.Eq, [ ELit (LRat i1); ELit (LRat i2) ] -> A.ELit (LBool Runtime.(i1 =& i2))
     | A.Binop A.Eq, [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 =! i2))
     | A.Binop A.Eq, [ ELit (LBool b1); ELit (LBool b2) ] -> A.ELit (LBool (b1 = b2))

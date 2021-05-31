@@ -362,6 +362,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "-^" ->
       L.update_acc lexbuf;
       MINUSDURATION
+  | "/^" ->
+      L.update_acc lexbuf;
+      DIVDURATION
   | "<=", 0x20AC ->
       L.update_acc lexbuf;
       LESSER_EQUAL_MONEY

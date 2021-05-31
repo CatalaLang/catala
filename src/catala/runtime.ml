@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -31,6 +31,8 @@ exception AssertionFailed
 exception ConflictError
 
 exception UncomparableDurations
+
+exception IndivisableDurations
 
 exception ImpossibleDate
 
@@ -156,7 +158,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
     (List.rev !digits)
     (if List.length !digits - leading_zeroes !digits = max_prec_digits then "…" else "")
 
-let integer_of_string (i : string) : integer = Z.of_string i
+let integer_of_string (s : string) : integer = Z.of_string s
 
 let integer_to_string (i : integer) : string = Z.to_string i
 
@@ -219,14 +221,14 @@ let ( *$ ) (i1 : money) (i2 : decimal) : money =
   (* we perform nearest rounding when multiplying an amount of money by a decimal !*)
   if Z.(of_int 2 * remainder >= Q.den rat_result) then Z.add res (Z.of_int 1) else res
 
-let ( /$ ) (i1 : money) (i2 : money) : decimal =
-  if i2 <> Z.zero then Q.div (Q.of_bigint i1) (Q.of_bigint i2) else raise Division_by_zero
+let ( /$ ) (m1 : money) (m2 : money) : decimal =
+  if Z.zero = m2 then raise Division_by_zero else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
 
-let ( +$ ) (i1 : money) (i2 : money) : money = Z.add i1 i2
+let ( +$ ) (m1 : money) (m2 : money) : money = Z.add m1 m2
 
-let ( -$ ) (i1 : money) (i2 : money) : money = Z.sub i1 i2
+let ( -$ ) (m1 : money) (m2 : money) : money = Z.sub m1 m2
 
-let ( ~-$ ) (i1 : money) : money = Z.sub Z.zero i1
+let ( ~-$ ) (m1 : money) : money = Z.sub Z.zero m1
 
 let ( +! ) (i1 : integer) (i2 : integer) : integer = Z.add i1 i2
 
@@ -237,7 +239,7 @@ let ( ~-! ) (i1 : integer) : integer = Z.sub Z.zero i1
 let ( *! ) (i1 : integer) (i2 : integer) : integer = Z.mul i1 i2
 
 let ( /! ) (i1 : integer) (i2 : integer) : integer =
-  if i2 <> Z.zero then Z.div i1 i2 else raise Division_by_zero
+  if Z.zero = i2 then raise Division_by_zero else Z.div i1 i2
 
 let ( +& ) (i1 : decimal) (i2 : decimal) : decimal = Q.add i1 i2
 
@@ -248,7 +250,7 @@ let ( ~-& ) (i1 : decimal) : decimal = Q.sub Q.zero i1
 let ( *& ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
 
 let ( /& ) (i1 : decimal) (i2 : decimal) : decimal =
-  if i2 <> Q.zero then Q.div i1 i2 else raise Division_by_zero
+  if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
 
 let ( +@ ) (d1 : date) (d2 : duration) : date = CalendarLib.Date.add d1 d2
 
@@ -257,6 +259,16 @@ let ( -@ ) (d1 : date) (d2 : date) : duration = CalendarLib.Date.sub d1 d2
 let ( +^ ) (d1 : duration) (d2 : duration) : duration = CalendarLib.Date.Period.add d1 d2
 
 let ( -^ ) (d1 : duration) (d2 : duration) : duration = CalendarLib.Date.Period.sub d1 d2
+
+(* (EmileRolley) NOTE: {!CalendarLib.Date.Period.nb_days} is deprecated,
+   {!CalendarLib.Date.Period.safe_nb_days} should be used. But the current {!duration} is greater
+   that the supported polymorphic variants.*)
+let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
+  try
+    let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
+    let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
+    if 0 = nb_day2 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
+  with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations
 
 let ( <=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 <= 0
 

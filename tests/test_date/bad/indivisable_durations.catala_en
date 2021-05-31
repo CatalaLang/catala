@@ -1,0 +1,11 @@
+## `Runtime.IndivisableDurations` exception handling
+
+### Day divided by months
+
+```catala
+declaration scope DayByMonth:
+  context d content decimal
+
+scope DayByMonth:
+  definition d equals 1 day /^ 2 month
+```

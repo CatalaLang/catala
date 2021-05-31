@@ -153,6 +153,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
   | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
   | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
+  | A.Binop (A.Div KDuration) -> arr dut (arr dut rt)
   | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
   | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
   | A.Binop (A.Lt KInt | A.Lte KInt | A.Gt KInt | A.Gte KInt) -> arr it (arr it bt)
@@ -176,7 +177,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop A.GetMonth -> arr dat it
   | A.Unop A.GetYear -> arr dat it
   | A.Unop A.IntToRat -> arr it rt
-  | Binop (Mult (KDate | KDuration)) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
+  | Binop (Mult (KDate | KDuration)) | Binop (Div KDate) | Unop (Minus KDate) ->
       Errors.raise_spanned_error "This operator is not available!" pos
 
 let rec ast_to_typ (ty : A.typ) : typ =

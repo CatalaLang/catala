@@ -7,11 +7,17 @@ declaration scope A:
   context z content boolean
   context z2 content boolean
   context z3 content duration
+  context d content decimal
+  context d2 content decimal
 
 scope A:
   definition x equals |2019-01-01|
   definition y equals |2002-09-30|
+
   definition z equals y +@ (x -@ y) = x
   definition z3 equals x -@ y
   definition z2 equals z3 = 5937 day
+
+  definition d equals z3 /^ z3
+  definition d2 equals z3 /^ 2 day
 ```

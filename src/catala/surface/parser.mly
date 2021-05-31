@@ -212,6 +212,7 @@ mult_op:
 | DIVDEC { (Div KDec, Pos.from_lpos $sloc) }
 | MULTMONEY { (Mult KMoney, Pos.from_lpos $sloc) }
 | DIVMONEY { (Div KMoney, Pos.from_lpos $sloc) }
+| DIVDURATION { (Div KDuration, Pos.from_lpos $sloc) }
 
 mult_expression:
 | e =  base_expression { e }
