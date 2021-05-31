@@ -23,11 +23,11 @@ syn match Number contained "\<\([0-9]\+\(,[0.9]*\|\)\)\>"
 syn keyword Boolean contained vrai faux
 " (EmileRolley) NOTE: maybe special characters such as '€' should be encoded differently.
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+€\|+\|-\.\|-@\|-\^\|-€\|-\|\*\.\|\*@\|\*\^\|\*€\|\*\|/\.\|/@\|/\^\|/€\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>€\|>=€\|<=€\|<€\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|non\|ou\s\+bien\|ou\|et\|€\|%\|an\|mois\|jour\)"
-syn match Ignore contained "\(--\|\;\|\.\|\,\|\:\|(\|)\|\[\|\]\|{\|}\)"
+syn match punctuation contained "\(--\|\;\|\.\|\,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Structure contained entier booléen date durée argent texte décimal décret loi nombre somme
 
 syn region ctxt contained
-      \ matchgroup=StorageClass start="\<contexte"
+      \ matchgroup=Keyword start="\<contexte"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation
@@ -39,7 +39,7 @@ syn region sc_id_def_dot_sc_id contained contains=punctuation
       \ matchgroup=sc_id end="\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region code transparent matchgroup=Ignore start="```catala" matchgroup=Ignore end="```"
-      \ contains=ALLBUT, law_title
+      \ contains=ALLBUT, PreProc, Include, Define
 
 " Synchronizes the position where redrawing start at the start of a code block.
 syntax sync match codeSync grouphere code "```catala"
@@ -47,5 +47,6 @@ syntax sync match codeSync grouphere code "```catala"
 hi link sc_id_def Identifier
 hi link sc_id Function
 hi link cc_id Type
+hi link punctuation Ignore
 
 let b:current_syntax = "catala_fr"
