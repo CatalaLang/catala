@@ -1,0 +1,14 @@
+*.aux
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.fls
+*.tex
+*.pdf
+_minted*
+*.toc
+*.pyg
+*.d
+*.ml
