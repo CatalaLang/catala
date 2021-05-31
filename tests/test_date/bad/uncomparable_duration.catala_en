@@ -1,0 +1,41 @@
+## `UncomparableDurations` exception management
+
+### `<^` operator
+
+```catala
+declaration scope Lt:
+  context d content boolean
+
+scope Lt:
+  definition d equals 1 month <^ 2 day
+```
+
+### `<=^` operator
+
+```catala
+declaration scope Le:
+  context d content boolean
+
+scope Le:
+  definition d equals 1 month <=^ 2 day
+```
+
+### `<=^` operator
+
+```catala
+declaration scope Gt:
+  context d content boolean
+
+scope Gt:
+  definition d equals 1 month >^ 2 day
+```
+
+### `>=^` operator
+
+```catala
+declaration scope Ge:
+  context d content boolean
+
+scope Ge:
+  definition d equals 1 month >=^ 2 day
+```
