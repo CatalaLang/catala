@@ -1,3 +1,8 @@
+" In order to enable the syntax highlighting, please refer to
+"
+"     https://elias.rhi.hi.is/vim/syntax.html#:syn-files
+"
+
 if exists("b:current_syntax")
   finish
 endif
