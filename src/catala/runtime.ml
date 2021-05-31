@@ -158,7 +158,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
     (List.rev !digits)
     (if List.length !digits - leading_zeroes !digits = max_prec_digits then "…" else "")
 
-let integer_of_string (i : string) : integer = Z.of_string i
+let integer_of_string (s : string) : integer = Z.of_string s
 
 let integer_to_string (i : integer) : string = Z.to_string i
 
@@ -221,14 +221,14 @@ let ( *$ ) (i1 : money) (i2 : decimal) : money =
   (* we perform nearest rounding when multiplying an amount of money by a decimal !*)
   if Z.(of_int 2 * remainder >= Q.den rat_result) then Z.add res (Z.of_int 1) else res
 
-let ( /$ ) (i1 : money) (i2 : money) : decimal =
-  if i2 <> Z.zero then Q.div (Q.of_bigint i1) (Q.of_bigint i2) else raise Division_by_zero
+let ( /$ ) (m1 : money) (m2 : money) : decimal =
+  if Z.zero = m2 then raise Division_by_zero else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
 
-let ( +$ ) (i1 : money) (i2 : money) : money = Z.add i1 i2
+let ( +$ ) (m1 : money) (m2 : money) : money = Z.add m1 m2
 
-let ( -$ ) (i1 : money) (i2 : money) : money = Z.sub i1 i2
+let ( -$ ) (m1 : money) (m2 : money) : money = Z.sub m1 m2
 
-let ( ~-$ ) (i1 : money) : money = Z.sub Z.zero i1
+let ( ~-$ ) (m1 : money) : money = Z.sub Z.zero m1
 
 let ( +! ) (i1 : integer) (i2 : integer) : integer = Z.add i1 i2
 
@@ -239,7 +239,7 @@ let ( ~-! ) (i1 : integer) : integer = Z.sub Z.zero i1
 let ( *! ) (i1 : integer) (i2 : integer) : integer = Z.mul i1 i2
 
 let ( /! ) (i1 : integer) (i2 : integer) : integer =
-  if i2 <> Z.zero then Z.div i1 i2 else raise Division_by_zero
+  if Z.zero = i2 then raise Division_by_zero else Z.div i1 i2
 
 let ( +& ) (i1 : decimal) (i2 : decimal) : decimal = Q.add i1 i2
 
@@ -250,7 +250,7 @@ let ( ~-& ) (i1 : decimal) : decimal = Q.sub Q.zero i1
 let ( *& ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
 
 let ( /& ) (i1 : decimal) (i2 : decimal) : decimal =
-  if i2 <> Q.zero then Q.div i1 i2 else raise Division_by_zero
+  if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
 
 let ( +@ ) (d1 : date) (d2 : duration) : date = CalendarLib.Date.add d1 d2
 
