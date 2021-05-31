@@ -267,7 +267,7 @@ let ( /^ ) (d1 : duration) (d2 : duration) : decimal =
   try
     let nb_day1 = CalendarLib.Date.Period.nb_days d1 in
     let nb_day2 = CalendarLib.Date.Period.nb_days d2 in
-    if 0 = nb_day1 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
+    if 0 = nb_day2 then raise Division_by_zero else Q.(nb_day1 // nb_day2)
   with CalendarLib.Date.Period.Not_computable -> raise IndivisableDurations
 
 let ( <=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 <= 0

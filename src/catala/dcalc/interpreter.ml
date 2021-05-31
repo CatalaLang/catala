@@ -38,6 +38,8 @@ let log_indent = ref 0
 
 let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
     (args : A.expr Pos.marked list) : A.expr Pos.marked =
+  (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use [op] to raise
+     multispanned errors. *)
   let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =
     try div ()
     with Division_by_zero ->
@@ -47,6 +49,8 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
           (Some "The null denominator:", Pos.get_position (List.nth args 1));
         ]
   in
+  (* Try to apply [cmp] and if a [UncomparableDurations] exceptions is catched, use [args] to raise
+     multispanned errors. *)
   let apply_cmp_or_raise_err (cmp : unit -> A.expr) (args : (A.expr * Pos.t) list) : A.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
@@ -91,21 +95,18 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         A.ELit (LDuration Runtime.(i1 -@ i2))
     | A.Binop (A.Add KDate), [ ELit (LDate i1); ELit (LDuration i2) ] ->
         A.ELit (LDate Runtime.(i1 +@ i2))
-    | A.Binop (A.Div KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] -> (
-        try A.ELit (LRat Runtime.(i1 /^ i2)) with
-        | Division_by_zero ->
-            Errors.raise_multispanned_error "division by zero at runtime"
-              [
-                (Some "The division operator:", Pos.get_position op);
-                (Some "The null denominator:", Pos.get_position (List.nth args 1));
-              ]
-        | Runtime.IndivisableDurations ->
-            Errors.raise_multispanned_error
-              "Cannot divide durations that cannot be converted to a precise number of days"
-              [
-                (None, Pos.get_position (List.nth args 0));
-                (None, Pos.get_position (List.nth args 1));
-              ])
+    | A.Binop (A.Div KDuration), [ ELit (LDuration i1); ELit (LDuration i2) ] ->
+        apply_div_or_raise_err
+          (fun _ ->
+            try A.ELit (LRat Runtime.(i1 /^ i2))
+            with Runtime.IndivisableDurations ->
+              Errors.raise_multispanned_error
+                "Cannot divide durations that cannot be converted to a precise number of days"
+                [
+                  (None, Pos.get_position (List.nth args 0));
+                  (None, Pos.get_position (List.nth args 1));
+                ])
+          op
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <! i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <=! i2))
     | A.Binop (A.Gt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 >! i2))

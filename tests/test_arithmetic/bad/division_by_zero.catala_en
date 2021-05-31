@@ -29,3 +29,13 @@ declaration scope Money:
 scope Money:
   definition i equals $10.0 /$ $0.0
 ```
+
+### with duration
+
+```catala
+declaration scope Duration:
+  context i content decimal
+
+scope Duration:
+  definition i equals 10 day /^ 0 day
+```
