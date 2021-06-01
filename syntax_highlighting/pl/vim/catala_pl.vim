@@ -5,7 +5,7 @@
 "     2. Enable file type detection by adding to $VIMCONFIG/filetype.vim:
 "
 "           augroup filetypedetect
-"               au! BufRead,BufNewFile *.catala_fr setfiletype catala_fr
+"               au! BufRead,BufNewFile *.catala_en setfiletype catala_en
 "           augroup END
 "
 " More informations could be found at:
@@ -18,26 +18,25 @@ if exists("b:current_syntax")
 endif
 
 syn match PreProc "^\s*#.*$"
-syn match Include "^\s*>\s*Inclusion:.*$"
-syn match Define "^\s*>\s*\(Début\|Fin\)\s\+métadonnées\s*$"
+syn match Include "^\s*>\s*Include:.*$"
+syn match Define "^\s*>\s*\(Begin\|End\)\s\+metadata\s*$"
+
 
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
-
-syn match Keyword contained "\<\(contexte\|champ\s\+d'application\|collection\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|étiquette\|exception\)\>"
-syn match Statement contained "\<\(selon\|sous\s\+forme\|fixé\|par\|décroissante\|croissante\|varie\|avec\|on\s\+a\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\)\>"
-syn keyword Conditional contained si alors sinon
+syn match Keyword contained "\<\(zakres\|zalezy\s\+od\|deklaracja\|kolekcja\|typu\|opcjonalny\|struktura\|enumeracja\|kontekst\|zasada\|pod\s\+warunkuem\|czas\|konsekwencja\|spelnione\|wynosi\|asercja\|definicja\|etykieta\|wyjątek\)\>"
+syn match Statement contained "\<\(pasuje\|ze\s\+wzorem\|staloprzecinkowa\|przez\|malejacy\|rosnacy\|rozna\|wraz z\|mamy\|w\|takich ze\|istnieje\|dla\|wszystkie\|z\|jezeli\|wtedy\|inaczej\|poczatkowy\)\>"
+syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
 syn match Number contained "\<\([0-9]\+\(,[0.9]*\|\)\)\>"
-syn keyword Boolean contained vrai faux
-" (EmileRolley) NOTE: maybe special characters such as '€' should be encoded differently.
-syn match Operator contained "\(->\|+\.\|+@\|+\^\|+€\|+\|-\.\|-@\|-\^\|-€\|-\|\*\.\|\*@\|\*\^\|\*€\|\*\|/\.\|/@\|/\^\|/€\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>€\|>=€\|<=€\|<€\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|non\|ou\s\+bien\|ou\|et\|€\|%\|an\|mois\|jour\)"
+syn keyword Boolean contained prawda falsz
+syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\^\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|nie\|lub\|xor\|i\|\$\|%\|rok\|miesiac\|dzien\)"
 syn match punctuation contained "\(--\|\;\|\.\|\,\|\:\|(\|)\|\[\|\]\|{\|}\)"
-syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
+syn keyword Type contained calkowita zerojedynkowy czas trwania pieniądze warunek tekst dziesiętny suma
 
 syn region ctxt contained
-      \ matchgroup=Keyword start="\<contexte"
+      \ matchgroup=Keyword start="\<kontekst"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation
@@ -59,4 +58,4 @@ hi link sc_id Function
 hi link cc_id Structure
 hi link punctuation Ignore
 
-let b:current_syntax = "catala_fr"
+let b:current_syntax = "catala_pl"
