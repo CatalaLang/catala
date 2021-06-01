@@ -29,11 +29,11 @@ syn match Statement contained "\<\(selon\|sous\s\+forme\|fixé\|par\|décroissan
 syn keyword Conditional contained si alors sinon
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
-syn match Number contained "\<\([0-9]\+\(,[0.9]*\|\)\)\>"
+syn match Float contained "\<\([0-9]\+\(,[0-9]*\)*\(.[0-9]*\)\{0,1}\)\>"
 syn keyword Boolean contained vrai faux
 " (EmileRolley) NOTE: maybe special characters such as '€' should be encoded differently.
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+€\|+\|-\.\|-@\|-\^\|-€\|-\|\*\.\|\*@\|\*\^\|\*€\|\*\|/\.\|/@\|/\^\|/€\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>€\|>=€\|<=€\|<€\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|non\|ou\s\+bien\|ou\|et\|€\|%\|an\|mois\|jour\)"
-syn match punctuation contained "\(--\|\;\|\.\|\,\|\:\|(\|)\|\[\|\]\|{\|}\)"
+syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
 
 syn region ctxt contained
@@ -56,7 +56,7 @@ syntax sync match codeSync grouphere code "```catala"
 
 hi link sc_id_def Identifier
 hi link sc_id Function
-hi link cc_id Structure
+hi link cc_id Type
 hi link punctuation Ignore
 
 let b:current_syntax = "catala_fr"

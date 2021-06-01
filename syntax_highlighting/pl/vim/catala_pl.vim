@@ -29,10 +29,10 @@ syn match Statement contained "\<\(pasuje\|ze\s\+wzorem\|staloprzecinkowa\|przez
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
-syn match Number contained "\<\([0-9]\+\(,[0.9]*\|\)\)\>"
+syn match Float contained "\<\([0-9]\+\(,[0-9]*\|\)*\(.[0-9]*\)\{0,1}\)\>"
 syn keyword Boolean contained prawda falsz
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\^\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|nie\|lub\|xor\|i\|\$\|%\|rok\|miesiac\|dzien\)"
-syn match punctuation contained "\(--\|\;\|\.\|\,\|\:\|(\|)\|\[\|\]\|{\|}\)"
+syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained calkowita zerojedynkowy czas trwania pieniądze warunek tekst dziesiętny suma
 
 syn region ctxt contained
@@ -55,7 +55,7 @@ syntax sync match codeSync grouphere code "```catala"
 
 hi link sc_id_def Identifier
 hi link sc_id Function
-hi link cc_id Structure
+hi link cc_id Type
 hi link punctuation Ignore
 
 let b:current_syntax = "catala_pl"
