@@ -47,6 +47,7 @@ let token_list : (string * token) list =
     ("exception", EXCEPTION);
     ("equals", DEFINED_AS);
     ("match", MATCH);
+    ("Anything", WILDCARD);
     ("with pattern", WITH);
     ("under condition", UNDER_CONDITION);
     ("if", IF);
@@ -191,6 +192,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "with pattern" ->
       L.update_acc lexbuf;
       WITH
+  | "Anything" ->
+      L.update_acc lexbuf;
+      WILDCARD
   | "under condition" ->
       L.update_acc lexbuf;
       UNDER_CONDITION

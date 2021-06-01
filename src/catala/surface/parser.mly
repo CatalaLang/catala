@@ -288,12 +288,13 @@ let (cs, i) = cs_and_i in
 }
 
 match_arm:
+| WILDCARD COLON e = logical_expression { (WildCard (e), Pos.from_lpos $sloc) }
 | pat = constructor_binding COLON e = logical_expression {
-  ({
+  (MatchCase ({
     (* DM 14/04/2020 : I can't have the $sloc in constructor_binding... *)
     match_case_pattern = (pat, Pos.from_lpos $sloc);
-  match_case_expr = e;
-  }, Pos.from_lpos $sloc)
+    match_case_expr = e;
+  }), Pos.from_lpos $sloc)
 }
 
 match_arms:
