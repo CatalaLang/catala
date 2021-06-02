@@ -34,7 +34,7 @@ syn match Float contained "\<\([0-9]\+\(,[0-9]*\)*\(.[0-9]*\)\{0,1}\)\>"
 syn keyword Boolean contained true false
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\^\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|not\|or\|xor\|and\|\$\|%\|an\|year\|day\)"
 syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
-syn keyword Type contained integer boolean date duration money text decimal number sum
+syn keyword Structure contained integer boolean date duration money text decimal number sum
 
 syn region ctxt contained
       \ matchgroup=Keyword start="\<context"
