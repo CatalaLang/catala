@@ -55,7 +55,7 @@ syntax sync match codeSync grouphere code "```catala"
 
 hi link sc_id_def Identifier
 hi link sc_id Function
-hi link cc_id Type
+hi link cc_id Structure
 hi link punctuation Ignore
 
 let b:current_syntax = "catala_pl"
