@@ -34,7 +34,7 @@ syn keyword Boolean contained vrai faux
 " (EmileRolley) NOTE: maybe special characters such as '€' should be encoded differently.
 syn match Operator contained "\(->\|+\.\|+@\|+\^\|+€\|+\|-\.\|-@\|-\^\|-€\|-\|\*\.\|\*@\|\*\^\|\*€\|\*\|/\.\|/@\|/\^\|/€\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>€\|>=€\|<=€\|<€\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|non\|ou\s\+bien\|ou\|et\|€\|%\|an\|mois\|jour\)"
 syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
-syn keyword Structure contained entier booléen date durée argent texte décimal décret loi nombre somme
+syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
 
 syn region ctxt contained
       \ matchgroup=Keyword start="\<contexte"
