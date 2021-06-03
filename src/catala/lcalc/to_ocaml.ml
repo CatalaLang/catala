@@ -455,7 +455,7 @@ let format_program (fmt : Format.formatter) (p : Ast.program)
      @\n\
      open Runtime@\n\
      @\n\
-     [@@@@@@ocaml.warning \"-26-27-32\"]@\n\
+     [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
      @\n\
      %a@\n\
      @\n\
