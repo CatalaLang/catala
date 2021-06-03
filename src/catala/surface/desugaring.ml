@@ -783,7 +783,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1)
     | Ast.WildCard match_case_expr -> (
         let nb_cases = List.length cases in
-        let raise_wildcard_last_case_error () =
+        let raise_wildcard_not_last_case_err () =
           Errors.raise_multispanned_error "Wildcard must be the last match case."
             [
               (Some "Not ending wildcard:", case_pos);
@@ -792,15 +792,15 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         in
         match e_uid with
         | None ->
-            let nb_cases = List.length cases in
             if 1 = nb_cases then
               Errors.raise_spanned_error
                 "Couldn't infer the enumeration name from lonely wildcard. (Wildcard cannot be \
                  used as single match case)"
                 case_pos
-            else raise_wildcard_last_case_error ()
+            else raise_wildcard_not_last_case_err ()
         | Some e_uid ->
-            if curr_index < nb_cases - 1 then raise_wildcard_last_case_error ();
+            if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
+
             (* Gets all constructors of [e_uid]. *)
             let constructors_map = Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums in
             let missing_constructors =
@@ -821,20 +821,20 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                 case_pos
             else
               (* Creates the [wildcard_payload] *)
-              let param = ("wildcard_payload", Pos.no_pos) in
-              let ctxt, (param_var, param_pos) =
-                let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
-                (ctxt, (param_var, Pos.get_position param))
+              let wildcard_payload = ("wildcard_payload", Pos.no_pos) in
+              let ctxt, (payload_var, var_pos) =
+                let ctxt, payload_var = Name_resolution.add_def_local_var ctxt wildcard_payload in
+                (ctxt, (payload_var, Pos.get_position wildcard_payload))
               in
               let case_body = translate_expr scope ctxt match_case_expr in
-              let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
+              let e_binder = Bindlib.bind_mvar (Array.of_list [ payload_var ]) case_body in
               let bind_wildcard_payload c_uid _ (cases_d, e_uid_opt, curr_index) =
                 let case_expr =
                   Bindlib.box_apply2
                     (fun e_binder case_body ->
                       Pos.same_pos_as
                         (Scopelang.Ast.EAbs
-                           ( (e_binder, param_pos),
+                           ( (e_binder, var_pos),
                              [
                                Scopelang.Ast.EnumConstructorMap.find c_uid
                                  (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
