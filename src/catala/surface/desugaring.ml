@@ -728,7 +728,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
     (ctxt : Name_resolution.context) (cases : Ast.match_case Pos.marked list) :
     Scopelang.Ast.expr Pos.marked Bindlib.box Scopelang.Ast.EnumConstructorMap.t
     * Scopelang.Ast.EnumName.t =
-  let manage_match_cases (cases_d, e_uid) (case, _pos_case) =
+  let manage_match_cases (cases_d, e_uid) (case, case_pos) =
     match case with
     | Ast.MatchCase case ->
         let constructor, binding = Pos.unmark case.Ast.match_case_pattern in
@@ -783,7 +783,11 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid)
     | Ast.WildCard match_case_expr -> (
         match e_uid with
-        | None -> Errors.raise_error "Should not be the first case."
+        | None ->
+            Errors.raise_spanned_error
+              "Couldn't infer the enumeration name from lonely wildcard. (Wildcard cannot be used \
+               as single match case)"
+              case_pos
         | Some e_uid ->
             (* Gets all constructors of [e_uid]. *)
             let constructors_map = Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums in
@@ -797,7 +801,12 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
             in
 
             if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
-              failwith "Un reachable match case, all constructors are described."
+              Errors.raise_spanned_error
+                (Format.asprintf
+                   "Unreachable match case, all constructors of the enumeration %a are already \
+                    specified."
+                   Scopelang.Ast.EnumName.format_t e_uid)
+                case_pos
             else
               (* Creates the [wildcard_payload] *)
               let param = ("wildcard_payload", Pos.no_pos) in
