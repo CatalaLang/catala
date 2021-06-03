@@ -13,7 +13,7 @@
   'main' : {
     'patterns' : [
       {
-        'begin' : '([#]+)'
+        'begin' : '(^\\s*[\\#]+)'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_en'
@@ -32,7 +32,7 @@
         }
       }
       {
-        'begin' : '([#]+\s*\[[^\]]\s*\])'
+        'begin' : '(^\\s*[\\#]+\\s*\\[[^\]]\\s*\\])'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_en'
@@ -104,7 +104,7 @@
         'name' : 'keyword.other.catala_en'
       }
       {
-        'match' : '(\\|[0-9]+/[0-9]+/[0-9]+\\|)'
+        'match' : '(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)'
         'name' : 'constant.numeric.catala_en'
       }
       {

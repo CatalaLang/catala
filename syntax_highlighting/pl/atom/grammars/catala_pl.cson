@@ -13,11 +13,11 @@
   'main' : {
     'patterns' : [
       {
-        'match' : '([\\#]+.*)'
+        'match' : '(^\\s*[\\#]+.*)'
         'name' : 'markup.heading.title.catala_pl'
       }
       {
-        'match' : '([\\#]+\\s*\\[[^\\]]\\s*].*)'
+        'match' : '(^\\s*[\\#]+\\s*\\[[^\\]]\\s*].*)'
         'name' : 'markup.heading.subtitle.catala_pl'
       }
       {
@@ -70,11 +70,11 @@
         'name' : 'keyword.control.catala_pl'
       }
       {
-        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyj\x{0105}tek)\\b'
+        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek)\\b'
         'name' : 'keyword.other.catala_pl'
       }
       {
-        'match' : '(\\|[0-9]+/[0-9]+/[0-9]+\\|)'
+        'match' : '(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)'
         'name' : 'constant.numeric.catala_pl'
       }
       {
@@ -94,7 +94,7 @@
         'name' : 'keyword.operator.catala_pl'
       }
       {
-        'match' : '\\b(calkowita|zerojedynkowy|czas|czas trwania|pieni\\x{0105}dze|warunek|tekst|dziesi\\x{0119}tny|suma)\\b'
+        'match' : '\\b(calkowita|zerojedynkowy|czas|czas trwania|pieniądze|warunek|tekst|dziesiętny|suma)\\b'
         'name' : 'support.type.catala_pl'
       }
       {

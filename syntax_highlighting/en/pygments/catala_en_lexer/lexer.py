@@ -14,8 +14,8 @@ class CatalaEnLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (u'([\#]+)', bygroups(Generic.Heading), 'main__1'),
-            (u'([\#]+\s*\[[^\]]\s*])', bygroups(Generic.Heading), 'main__2'),
+            (u'(^[\#]+)', bygroups(Generic.Heading), 'main__1'),
+            (u'(^[\#]+\s*\[[^\]]\s*])', bygroups(Generic.Heading), 'main__2'),
             (u'([^`\\n\\r])', bygroups(Text)),
             (u'(```catala)', bygroups(Text), 'code'),
             ('(\n|\r|\r\n)', Text),
@@ -28,7 +28,7 @@ class CatalaEnLexer(RegexLexer):
              bygroups(Keyword.Declaration, Text, Name.Variable)),
             (u'\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b', bygroups(Keyword.Reserved)),
             (u'\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception)\\b', bygroups(Keyword.Declaration)),
-            (u'(\\|[0-9]+/[0-9]+/[0-9]+\\|)', bygroups(Number.Integer)),
+            (u'(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(true|false)\\b', bygroups(Keyword.Constant)),
             (u'\\b([0-9]+(,[0.9]*|))\\b', bygroups(Number.Integer)),
             (u'(\\-\\-|\\;|\\.|\\,|\\:|\\(|\\)|\\[|\\]|\\{|\\})', bygroups(
