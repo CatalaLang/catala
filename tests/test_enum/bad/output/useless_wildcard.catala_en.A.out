@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_enum/bad/useless_wildcard.catala_en
 [ERROR]    | 
-[ERROR] 17 |     -- Anything : 31
+[ERROR] 17 |     -- anything : 31
 [ERROR]    |        ^^^^^^^^^^^^^
 [ERROR]    + Useless wildcard

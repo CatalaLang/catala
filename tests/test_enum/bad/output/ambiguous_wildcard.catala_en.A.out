@@ -2,6 +2,6 @@
 [ERROR] 
 [ERROR]   --> test_enum/bad/ambiguous_wildcard.catala_en
 [ERROR]    | 
-[ERROR] 15 |     -- Anything : 31
+[ERROR] 15 |     -- anything : 31
 [ERROR]    |        ^^^^^^^^^^^^^
 [ERROR]    + Wildcard cannot be used as single match case

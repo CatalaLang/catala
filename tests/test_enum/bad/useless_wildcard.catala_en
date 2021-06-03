@@ -14,5 +14,5 @@ scope A:
   definition y equals match x with pattern
     -- Case1 : 42
     -- Case2 : 42
-    -- Anything : 31
+    -- anything : 31
 ```

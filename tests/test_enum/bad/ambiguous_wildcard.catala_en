@@ -12,5 +12,5 @@ declaration scope A:
 scope A:
   definition x equals Case1
   definition y equals match x with pattern
-    -- Anything : 31
+    -- anything : 31
 ```

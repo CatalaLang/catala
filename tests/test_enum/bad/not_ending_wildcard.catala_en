@@ -16,7 +16,7 @@ declaration scope First_case:
 scope First_case:
   definition x equals Case1
   definition y equals match x with pattern
-    -- Anything : 31
+    -- anything : 31
     -- Case2 : 42
 	-- Case1 : 42
 ```
@@ -32,6 +32,6 @@ scope Middle_case:
   definition x equals Case1
   definition y equals match x with pattern
     -- Case2 : 42
-    -- Anything : 31
+    -- anything : 31
 	-- Case1 : 42
 ```
