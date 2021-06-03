@@ -1,0 +1,7 @@
+[ERROR] Unreachable match case, all constructors of the enumeration E are already specified.
+[ERROR] 
+[ERROR]   --> test_enum/bad/useless_wildcard.catala_en
+[ERROR]    | 
+[ERROR] 17 |     -- Anything : 31
+[ERROR]    |        ^^^^^^^^^^^^^
+[ERROR]    + Useless wildcard
