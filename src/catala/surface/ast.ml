@@ -249,10 +249,12 @@ type aggregate_func =
 
 and collection_op = Exists | Forall | Aggregate of aggregate_func | Map | Filter
 
-and match_case = {
+and explicit_match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
   match_case_expr : expression Pos.marked;
 }
+
+and match_case = WildCard of expression Pos.marked | MatchCase of explicit_match_case
 
 and match_cases = match_case Pos.marked list
 

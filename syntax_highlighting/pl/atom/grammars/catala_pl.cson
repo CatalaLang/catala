@@ -70,7 +70,7 @@
         'name' : 'keyword.control.catala_pl'
       }
       {
-        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek)\\b'
+        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek|cokolwiek)\\b'
         'name' : 'keyword.other.catala_pl'
       }
       {

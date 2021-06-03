@@ -728,9 +728,31 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
     (ctxt : Name_resolution.context) (cases : Ast.match_case Pos.marked list) :
     Scopelang.Ast.expr Pos.marked Bindlib.box Scopelang.Ast.EnumConstructorMap.t
     * Scopelang.Ast.EnumName.t =
-  let expr, e_name =
-    List.fold_left
-      (fun (cases_d, e_uid) (case, _pos_case) ->
+  let create_var = function
+    | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
+    | Some param ->
+        let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
+        (ctxt, (param_var, Pos.get_position param))
+  in
+  let bind_case_body (c_uid : Dcalc.Ast.EnumConstructor.t) (e_uid : Dcalc.Ast.EnumName.t)
+      (ctxt : Name_resolution.context) (param_pos : Pos.t) (case_body : ('a * Pos.t) Bindlib.box)
+      (e_binder : (Scopelang.Ast.expr, Scopelang.Ast.expr * Pos.t) Bindlib.mbinder Bindlib.box) :
+      'c Bindlib.box =
+    Bindlib.box_apply2
+      (fun e_binder case_body ->
+        Pos.same_pos_as
+          (Scopelang.Ast.EAbs
+             ( (e_binder, param_pos),
+               [
+                 Scopelang.Ast.EnumConstructorMap.find c_uid
+                   (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
+               ] ))
+          case_body)
+      e_binder case_body
+  in
+  let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
+    match case with
+    | Ast.MatchCase case ->
         let constructor, binding = Pos.unmark case.Ast.match_case_pattern in
         let e_uid', c_uid =
           disambiguate_constructor ctxt constructor (Pos.get_position case.Ast.match_case_pattern)
@@ -758,31 +780,80 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                 (None, Pos.get_position case.match_case_expr);
                 (None, Pos.get_position (Bindlib.unbox e_case));
               ]);
-        let ctxt, (param_var, param_pos) =
-          match binding with
-          | None -> (ctxt, (Scopelang.Ast.Var.make ("_", Pos.no_pos), Pos.no_pos))
-          | Some param ->
-              let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
-              (ctxt, (param_var, Pos.get_position param))
-        in
+        let ctxt, (param_var, param_pos) = create_var binding in
         let case_body = translate_expr scope ctxt case.Ast.match_case_expr in
         let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
-        let case_expr =
-          Bindlib.box_apply2
-            (fun e_binder case_body ->
-              Pos.same_pos_as
-                (Scopelang.Ast.EAbs
-                   ( (e_binder, param_pos),
-                     [
-                       Scopelang.Ast.EnumConstructorMap.find c_uid
-                         (Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums);
-                     ] ))
-                case_body)
-            e_binder case_body
+        let case_expr = bind_case_body c_uid e_uid ctxt param_pos case_body e_binder in
+
+        (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid, curr_index + 1)
+    | Ast.WildCard match_case_expr -> (
+        let nb_cases = List.length cases in
+        let raise_wildcard_not_last_case_err () =
+          Errors.raise_multispanned_error "Wildcard must be the last match case"
+            [
+              (Some "Not ending wildcard:", case_pos);
+              (Some "Next reachable case:", curr_index + 1 |> List.nth cases |> Pos.get_position);
+            ]
         in
-        (Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d, Some e_uid))
-      (Scopelang.Ast.EnumConstructorMap.empty, None)
-      cases
+        match e_uid with
+        | None ->
+            if 1 = nb_cases then
+              Errors.raise_spanned_error
+                "Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used \
+                 as single match case)"
+                case_pos
+            else raise_wildcard_not_last_case_err ()
+        | Some e_uid -> (
+            if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
+
+            let missing_constructors =
+              Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums
+              |> Scopelang.Ast.EnumConstructorMap.filter_map (fun c_uid _ ->
+                     match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+                     | Some _ -> None
+                     | None -> Some c_uid)
+            in
+
+            if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
+              Errors.print_spanned_warning
+                (Format.asprintf
+                   "Unreachable match case, all constructors of the enumeration %a are already \
+                    specified"
+                   Scopelang.Ast.EnumName.format_t e_uid)
+                case_pos;
+
+            (* The current used strategy is to replace the wildcard branch:
+
+                   match foo with
+                   | Case1 x -> x
+                   | _ -> 1
+
+               with:
+
+                   let wildcard_payload = 1 in
+                   match foo with
+                   | Case1 x -> x
+                   | Case2 -> wildcard_payload
+                    ...
+                   | CaseN -> wildcard_payload *)
+
+
+            (* Creates the wildcard payload *)
+            let ctxt, (payload_var, var_pos) = create_var None in
+            let case_body = translate_expr scope ctxt match_case_expr in
+            let e_binder = Bindlib.bind_mvar (Array.of_list [ payload_var ]) case_body in
+
+            (* For each missing cases, binds the wildcard payload. *)
+            Scopelang.Ast.EnumConstructorMap.fold
+              (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
+                let case_expr = bind_case_body c_uid e_uid ctxt var_pos case_body e_binder in
+                ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
+                  e_uid_opt,
+                  curr_index + 1 ))
+              missing_constructors (cases_d, Some e_uid, curr_index)))[@ocamlformat "disable"]
+  in
+  let expr, e_name, _ =
+    List.fold_left bind_match_cases (Scopelang.Ast.EnumConstructorMap.empty, None, 0) cases
   in
   (expr, Option.get e_name)
 

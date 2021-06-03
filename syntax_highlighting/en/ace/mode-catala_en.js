@@ -67,7 +67,7 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception)\\b",
+              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b",
           },
           {
             token: "constant.numeric",

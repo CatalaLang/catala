@@ -128,6 +128,6 @@ Currently, Catala supports English and French legislative text via the
 
 Technically, support for new languages can be added via a new lexer. If you want
 to add a new language, you can start from
-[existing lexer examples](src/catala/catala_surface/lexer_fr.ml), tweak and open
+[existing lexer examples](src/catala/surface/lexer_fr.ml), tweak and open
 a pull request. If you don't feel familiar enough with OCaml to do so, please
 leave an issue on this repository.

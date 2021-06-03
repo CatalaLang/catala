@@ -1,0 +1,18 @@
+## Useless wildcard
+
+```catala
+declaration enumeration E:
+  -- Case1
+  -- Case2
+
+declaration scope A:
+  context x content E
+  context y content integer
+
+scope A:
+  definition x equals Case1
+  definition y equals match x with pattern
+    -- Case1 : 42
+    -- Case2 : 42
+    -- anything : 31
+```

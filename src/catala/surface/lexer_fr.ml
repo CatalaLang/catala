@@ -46,6 +46,7 @@ let token_list : (string * token) list =
     ("égal à", DEFINED_AS);
     ("selon", MATCH);
     ("sous forme", WITH);
+    ("n'importe quel", WILDCARD);
     ("sous condition", UNDER_CONDITION);
     ("si", IF);
     ("alors", THEN);
@@ -96,6 +97,9 @@ let builtins : (string * Ast.builtin_expression) list =
     https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
 let digit = [%sedlex.regexp? '0' .. '9']
 
+(** Regexp matching at least one space. *)
+let space_plus = [%sedlex.regexp? Plus white_space]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -113,14 +117,14 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* End of code section *)
       L.is_code := false;
       END_CODE !L.code_string_acc
-  | "champ d\'application" ->
+  | "champ", space_plus, "d\'application" ->
       L.update_acc lexbuf;
       SCOPE
   | "donn", 0xE9, "e" ->
       (* 0xE9 is é *)
       L.update_acc lexbuf;
       DATA
-  | "d", 0xE9, "pend de" ->
+  | "d", 0xE9, "pend", space_plus, "de" ->
       L.update_acc lexbuf;
       DEPENDS
   | "d", 0xE9, "claration" ->
@@ -188,10 +192,13 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "selon" ->
       L.update_acc lexbuf;
       MATCH
-  | "sous forme" ->
+  | "sous", space_plus, "forme" ->
       L.update_acc lexbuf;
       WITH
-  | "sous condition" ->
+  | "n'importe", space_plus, "quel" ->
+      L.update_acc lexbuf;
+      WILDCARD
+  | "sous", space_plus, "condition" ->
       L.update_acc lexbuf;
       UNDER_CONDITION
   | "si" ->
@@ -232,7 +239,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "tout" ->
       L.update_acc lexbuf;
       ALL
-  | "on a" ->
+  | "on", space_plus, "a" ->
       L.update_acc lexbuf;
       WE_HAVE
   | "fix", 0xE9 ->
@@ -264,7 +271,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "ou" ->
       L.update_acc lexbuf;
       OR
-  | "ou bien" ->
+  | "ou", space_plus, "bien" ->
       L.update_acc lexbuf;
       XOR
   | "non" ->
