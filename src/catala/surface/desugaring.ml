@@ -734,7 +734,10 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
         (ctxt, (param_var, Pos.get_position param))
   in
-  let bind_case_body c_uid e_uid ctxt param_pos case_body e_binder =
+  let bind_case_body (c_uid : Dcalc.Ast.EnumConstructor.t) (e_uid : Dcalc.Ast.EnumName.t)
+      (ctxt : Name_resolution.context) (param_pos : Pos.t) (case_body : ('a * Pos.t) Bindlib.box)
+      (e_binder : (Scopelang.Ast.expr, Scopelang.Ast.expr * Pos.t) Bindlib.mbinder Bindlib.box) :
+      'c Bindlib.box =
     Bindlib.box_apply2
       (fun e_binder case_body ->
         Pos.same_pos_as
@@ -786,7 +789,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
     | Ast.WildCard match_case_expr -> (
         let nb_cases = List.length cases in
         let raise_wildcard_not_last_case_err () =
-          Errors.raise_multispanned_error "Wildcard must be the last match case."
+          Errors.raise_multispanned_error "Wildcard must be the last match case"
             [
               (Some "Not ending wildcard:", case_pos);
               (Some "Next reachable case:", curr_index + 1 |> List.nth cases |> Pos.get_position);
@@ -796,11 +799,11 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         | None ->
             if 1 = nb_cases then
               Errors.raise_spanned_error
-                "Couldn't infer the enumeration name from lonely wildcard. (Wildcard cannot be \
-                 used as single match case)"
+                "Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used \
+                 as single match case)"
                 case_pos
             else raise_wildcard_not_last_case_err ()
-        | Some e_uid ->
+        | Some e_uid -> (
             if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
 
             let missing_constructors =
@@ -815,23 +818,39 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
               Errors.raise_spanned_error
                 (Format.asprintf
                    "Unreachable match case, all constructors of the enumeration %a are already \
-                    specified."
+                    specified"
                    Scopelang.Ast.EnumName.format_t e_uid)
-                case_pos
-            else
-              (* Creates the wildcard payload *)
-              let ctxt, (payload_var, var_pos) = create_var None in
-              let case_body = translate_expr scope ctxt match_case_expr in
-              let e_binder = Bindlib.bind_mvar (Array.of_list [ payload_var ]) case_body in
+                case_pos;
 
-              (* For each missing cases, binds the wildcard payload. *)
-              Scopelang.Ast.EnumConstructorMap.fold
-                (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
-                  let case_expr = bind_case_body c_uid e_uid ctxt var_pos case_body e_binder in
-                  ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
-                    e_uid_opt,
-                    curr_index + 1 ))
-                missing_constructors (cases_d, Some e_uid, curr_index))
+            (* The current used strategy is to replace the wildcard branch:
+
+                   match foo with
+                   | Case1 x -> x
+                   | _ -> 1
+
+               with:
+
+                   let wildcard_payload = 1 in
+                   match foo with
+                   | Case1 x -> x
+                   | Case2 -> wildcard_payload
+                    ...
+                   | CaseN -> wildcard_payload *)
+
+
+            (* Creates the wildcard payload *)
+            let ctxt, (payload_var, var_pos) = create_var None in
+            let case_body = translate_expr scope ctxt match_case_expr in
+            let e_binder = Bindlib.bind_mvar (Array.of_list [ payload_var ]) case_body in
+
+            (* For each missing cases, binds the wildcard payload. *)
+            Scopelang.Ast.EnumConstructorMap.fold
+              (fun c_uid _ (cases_d, e_uid_opt, curr_index) ->
+                let case_expr = bind_case_body c_uid e_uid ctxt var_pos case_body e_binder in
+                ( Scopelang.Ast.EnumConstructorMap.add c_uid case_expr cases_d,
+                  e_uid_opt,
+                  curr_index + 1 ))
+              missing_constructors (cases_d, Some e_uid, curr_index)))[@ocamlformat "disable"]
   in
   let expr, e_name, _ =
     List.fold_left bind_match_cases (Scopelang.Ast.EnumConstructorMap.empty, None, 0) cases
