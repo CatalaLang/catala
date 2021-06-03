@@ -100,6 +100,9 @@ let builtins : (string * Ast.builtin_expression) list =
     https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
 let digit = [%sedlex.regexp? '0' .. '9']
 
+(** Regexp matching at least one space. *)
+let space_plus = [%sedlex.regexp? Plus white_space]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -123,7 +126,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "data" ->
       L.update_acc lexbuf;
       DATA
-  | "depends on" ->
+  | "depends", space_plus, "on" ->
       L.update_acc lexbuf;
       DEPENDS
   | "declaration" ->
@@ -189,13 +192,13 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "match" ->
       L.update_acc lexbuf;
       MATCH
-  | "with pattern" ->
+  | "with", space_plus, "pattern" ->
       L.update_acc lexbuf;
       WITH
   | "anything" ->
       L.update_acc lexbuf;
       WILDCARD
-  | "under condition" ->
+  | "under", space_plus, "condition" ->
       L.update_acc lexbuf;
       UNDER_CONDITION
   | "if" ->
@@ -234,7 +237,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "all" ->
       L.update_acc lexbuf;
       ALL
-  | "we have" ->
+  | "we", space_plus, "have" ->
       L.update_acc lexbuf;
       WE_HAVE
   | "fixed" ->

@@ -102,6 +102,9 @@ let builtins : (string * Ast.builtin_expression) list =
     https://github.com/ocaml-community/sedlex#lexer-specifications >). *)
 let digit = [%sedlex.regexp? '0' .. '9']
 
+(** Regexp matching at least one space. *)
+let space_plus = [%sedlex.regexp? Plus white_space]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -125,7 +128,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "data" ->
       L.update_acc lexbuf;
       DATA
-  | "zalezy od" ->
+  | "zalezy", space_plus, "od" ->
       L.update_acc lexbuf;
       DEPENDS
   | "deklaracja" ->
@@ -164,7 +167,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "czas" ->
       L.update_acc lexbuf;
       DATE
-  | "czas trwania" ->
+  | "czas", space_plus, "trwania" ->
       L.update_acc lexbuf;
       DURATION
   | "zerojedynkowy" ->
@@ -191,13 +194,13 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "pasuje" ->
       L.update_acc lexbuf;
       MATCH
-  | "ze wzorem" ->
+  | "ze", space_plus, "wzorem" ->
       L.update_acc lexbuf;
       WITH
   | "cokolwiek" ->
       L.update_acc lexbuf;
       WILDCARD
-  | "pod warunkiem" ->
+  | "pod", space_plus, "warunkiem" ->
       L.update_acc lexbuf;
       UNDER_CONDITION
   | "jezeli" ->
@@ -227,7 +230,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "rozna" ->
       L.update_acc lexbuf;
       VARIES
-  | "wraz z" ->
+  | "wraz", space_plus, "z" ->
       L.update_acc lexbuf;
       WITH_V
   | "dla" ->
@@ -255,7 +258,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "in" ->
       L.update_acc lexbuf;
       IN
-  | "takie ze" ->
+  | "takie", space_plus, "ze" ->
       L.update_acc lexbuf;
       SUCH
   | "to" ->
