@@ -803,15 +803,12 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
         | Some e_uid ->
             if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
 
-            (* Gets all constructors of [e_uid]. *)
-            let constructors_map = Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums in
             let missing_constructors =
-              Scopelang.Ast.EnumConstructorMap.filter_map
-                (fun c_uid _ ->
-                  match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
-                  | Some _ -> None
-                  | None -> Some c_uid)
-                constructors_map
+              Scopelang.Ast.EnumMap.find e_uid ctxt.Name_resolution.enums
+              |> Scopelang.Ast.EnumConstructorMap.filter_map (fun c_uid _ ->
+                     match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
+                     | Some _ -> None
+                     | None -> Some c_uid)
             in
 
             if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
