@@ -815,7 +815,7 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
             in
 
             if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
-              Errors.raise_spanned_error
+              Errors.print_spanned_warning
                 (Format.asprintf
                    "Unreachable match case, all constructors of the enumeration %a are already \
                     specified"
