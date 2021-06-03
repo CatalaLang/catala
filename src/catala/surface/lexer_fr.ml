@@ -192,7 +192,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "sous forme" ->
       L.update_acc lexbuf;
       WITH
-  | "N'importe" ->
+  | "n'importe quel" ->
       L.update_acc lexbuf;
       WILDCARD
   | "sous condition" ->

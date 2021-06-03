@@ -24,15 +24,14 @@ syn match Define "^\s*>\s*\(Begin\|End\)\s\+metadata\s*$"
 
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
-
-syn match Keyword contained "\<\(scope\|depends\s\+on\|declaration\|includes\|collection\|content\|optional\|structure\|enumeration\|context\|rule\|under\s\+condition\|condition\|data\|consequence\|fulfilled\|equals\|assertion\|definition\|label\|exception\)\>"
+syn match Keyword contained "\<\(scope\|depends\s\+on\|declaration\|includes\|collection\|content\|optional\|structure\|enumeration\|context\|rule\|under\s\+condition\|condition\|data\|consequence\|fulfilled\|equals\|assertion\|definition\|label\|exception\|anything\)\>"
 syn match Statement contained "\<\(match\|with\s\+pattern\|fixed\|by\|decreasing\|increasing\|varies\|with\|we\s\+have\|in\|such\s\+that\|exists\|for\|all\|of\|if\|then\|else\|initial\)\>"
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"
 syn match Number contained "|[0-9]\+-[0-9]\+-[0-9]\+|"
 syn match Float contained "\<\([0-9]\+\(,[0-9]*\)*\(.[0-9]*\)\{0,1}\)\>"
 syn keyword Boolean contained true false
-syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\^\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|not\|or\|xor\|and\|\$\|%\|an\|year\|day\)"
+syn match Operator contained "\(->\|+\.\|+@\|+\^\|+\$\|+\|-\.\|-@\|-\^\|-\$\|-\|\*\.\|\*@\|\*\^\|\*\$\|\*\|/\.\|/@\|/\^\|/\$\|/\|\!\|>\.\|>=\.\|<=\.\|<\.\|>@\|>=@\|<=@\|<@\|>\$\|>=\$\|<=\$\|<\$\|>\^\|>=\^\|<=\^\|<\^\|>\|>=\|<=\|<\|=\|not\|or\|xor\|and\|\$\|%\|month\|year\|day\)"
 syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained integer boolean date duration money text decimal number sum
 

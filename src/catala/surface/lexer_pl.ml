@@ -48,6 +48,7 @@ let token_list : (string * token) list =
     ("wynosi", DEFINED_AS);
     ("pasuje", MATCH);
     ("ze wzorem", WITH);
+    ("cokolwiek", WILDCARD);
     ("pod warunkiem", UNDER_CONDITION);
     ("jezeli", IF);
     ("wtedy", THEN);
@@ -193,6 +194,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "ze wzorem" ->
       L.update_acc lexbuf;
       WITH
+  | "cokolwiek" ->
+      L.update_acc lexbuf;
+      WILDCARD
   | "pod warunkiem" ->
       L.update_acc lexbuf;
       UNDER_CONDITION
