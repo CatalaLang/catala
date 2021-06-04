@@ -37,6 +37,12 @@ let raise_failed_pygments (command : string) (error_code : int) : 'a =
     (Printf.sprintf "Weaving to HTML failed: pygmentize command \"%s\" returned with error code %d"
        command error_code)
 
+(** Partial application allowing to remove code block delimiters. *)
+let remove_code_block_delimiters : string -> string =
+  let delim = R.regexp "```(catala){0,1}" in
+  let delim_subst = function "```catala" | "```" -> "" | s -> s in
+  R.substitute ~rex:delim ~subst:delim_subst
+
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
@@ -119,7 +125,7 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
   let oc = open_in temp_file_out in
   let output = really_input_string oc (in_channel_length oc) in
   close_in oc;
-  output
+  remove_code_block_delimiters output
 
 (** {1 Weaving} *)
 
