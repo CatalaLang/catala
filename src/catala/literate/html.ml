@@ -43,6 +43,24 @@ let remove_code_block_delimiters : string -> string =
   let delim_subst = function "```catala" | "```" -> "" | s -> s in
   R.substitute ~rex:delim ~subst:delim_subst
 
+(** Partial application allowing to substitute operators by their unicode representation. *)
+let substitute_arithmetics_op : string -> string =
+  (* (EmileRolley) NOTE: [date] should match the new ISO format. + I don't get why this must be in
+     the regex...*)
+  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
+  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
+  let syms_subst = function
+    | "!=" -> "≠"
+    | "<=" -> "≤"
+    | ">=" -> "≥"
+    | "--" -> "—"
+    | "->" -> "→"
+    | "*" -> "×"
+    | "/" -> "÷"
+    | s -> s
+  in
+  R.substitute ~rex:syms ~subst:syms_subst
+
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
@@ -136,19 +154,7 @@ let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatte
       let t = pre_html t in
       if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
   | A.CodeBlock (_, c, metadata) ->
-      let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-      let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
-      let syms_subst = function
-        | "!=" -> "≠"
-        | "<=" -> "≤"
-        | ">=" -> "≥"
-        | "--" -> "—"
-        | "->" -> "→"
-        | "*" -> "×"
-        | "/" -> "÷"
-        | s -> s
-      in
-      let pprinted_c = R.substitute ~rex:syms ~subst:syms_subst (Pos.unmark c) in
+      let pprinted_c = substitute_arithmetics_op (Pos.unmark c) in
       Format.fprintf fmt "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (if metadata then " code-metadata" else "")
         (Pos.get_file (Pos.get_position c))
