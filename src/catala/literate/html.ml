@@ -49,11 +49,7 @@ let remove_cb_last_lines : string -> string =
 
 (** Partial application allowing to substitute operators by their unicode representation. *)
 let substitute_arithmetics_op : string -> string =
-  (* (EmileRolley) NOTE: [date] should match the new ISO format. + I don't get why this must be in
-     the regex...*)
-  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|\\/") in
-  let syms_subst = function
+  R.substitute ~rex:(R.regexp "!=|<=|>=|--|->|\\*|\\/") ~subst:(function
     | "!=" -> "≠"
     | "<=" -> "≤"
     | ">=" -> "≥"
@@ -61,9 +57,7 @@ let substitute_arithmetics_op : string -> string =
     | "->" -> "→"
     | "*" -> "×"
     | "/" -> "÷"
-    | s -> s
-  in
-  R.substitute ~rex:syms ~subst:syms_subst
+    | s -> s)
 
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
