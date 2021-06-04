@@ -37,11 +37,15 @@ let raise_failed_pygments (command : string) (error_code : int) : 'a =
     (Printf.sprintf "Weaving to HTML failed: pygmentize command \"%s\" returned with error code %d"
        command error_code)
 
-(** Partial application allowing to remove code block delimiters. *)
-let remove_code_block_delimiters : string -> string =
-  let delim = R.regexp "```(catala){0,1}" in
-  let delim_subst = function "```catala" | "```" -> "" | s -> s in
-  R.substitute ~rex:delim ~subst:delim_subst
+(** Partial application allowing to remove first code lines of [<td class="code">] and
+    [<td class="linenos">] generated HTML. Basically, remove all code block first lines. *)
+let remove_cb_first_lines : string -> string =
+  R.substitute ~rex:(R.regexp "<pre>.*\n") ~subst:(function _ -> "<pre>\n")
+
+(** Partial application allowing to remove last code lines of [<td class="code">] and
+    [<td class="linenos">] generated HTML. Basically, remove all code block last lines. *)
+let remove_cb_last_lines : string -> string =
+  R.substitute ~rex:(R.regexp "<a.*\n*</pre>") ~subst:(function _ -> "</pre>")
 
 (** Partial application allowing to substitute operators by their unicode representation. *)
 let substitute_arithmetics_op : string -> string =
@@ -143,7 +147,8 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
   let oc = open_in temp_file_out in
   let output = really_input_string oc (in_channel_length oc) in
   close_in oc;
-  remove_code_block_delimiters output
+  (* Remove code blocks delimiters needed by [Pygments]. *)
+  output |> remove_cb_first_lines |> remove_cb_last_lines
 
 (** {1 Weaving} *)
 
