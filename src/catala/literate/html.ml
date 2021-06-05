@@ -45,7 +45,7 @@ let remove_cb_first_lines : string -> string =
 (** Partial application allowing to remove last code lines of [<td class="code">] and
     [<td class="linenos">] generated HTML. Basically, remove all code block last lines. *)
 let remove_cb_last_lines : string -> string =
-  R.substitute ~rex:(R.regexp "<a.*\n*</pre>") ~subst:(function _ -> "</pre>")
+  R.substitute ~rex:(R.regexp "<.*\n*</pre>") ~subst:(function _ -> "</pre>")
 
 (** Partial application allowing to substitute operators by their unicode representation. *)
 let substitute_arithmetics_op : string -> string =

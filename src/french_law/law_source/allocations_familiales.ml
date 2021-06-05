@@ -2,7 +2,7 @@
 
 open Runtime
 
-[@@@ocaml.warning "-26-27-32"]
+[@@@ocaml.warning "-4-26-27-32-41-42"]
 
 type prise_en_charge =
   | GardeAlterneePartageAllocations of unit
