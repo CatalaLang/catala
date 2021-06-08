@@ -224,7 +224,6 @@ let needs_parens (e : expr Pos.marked) : bool =
 let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
     =
   let format_expr = format_expr ctx in
-  (* @note: (EmileRolley) is [fmt] really needed? *)
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
