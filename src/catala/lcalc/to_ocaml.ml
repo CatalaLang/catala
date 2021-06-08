@@ -221,25 +221,25 @@ let needs_parens (e : expr Pos.marked) : bool =
   | EApp ((EAbs (_, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
   | _ -> true
 
+let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
+  match Pos.unmark exc with
+  | ConflictError -> Format.fprintf fmt "ConflictError"
+  | EmptyError -> Format.fprintf fmt "EmptyError"
+  | Crash -> Format.fprintf fmt "Crash"
+  | NoValueProvided ->
+      let pos = Pos.get_position exc in
+      Format.fprintf fmt
+        "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
+         end_line=%d; end_column=%d;@ law_headings=%a}@])"
+        (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+        (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
+
 let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
     =
   let format_expr = format_expr ctx in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
-  in
-  let format_exception (fmt : Format.formatter) (exc : except) : unit =
-    match exc with
-    | ConflictError -> Format.fprintf fmt "ConflictError"
-    | EmptyError -> Format.fprintf fmt "EmptyError"
-    | Crash -> Format.fprintf fmt "Crash"
-    | NoValueProvided ->
-        let _, pos = e in
-        Format.fprintf fmt
-          "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
-           end_line=%d; end_column=%d;@ law_headings=%a}@])"
-          (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-          (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
   in
   match Pos.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
@@ -359,10 +359,12 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
         format_with_parens e'
-  | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception exc
+  | ERaise exc -> Format.fprintf fmt "raise@ %a" format_exception (exc, Pos.get_position e)
   | ECatch (e1, exc, e2) ->
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a@ ->@ %a@]" format_with_parens e1
-        format_exception exc format_with_parens e2
+        format_exception
+        (exc, Pos.get_position e)
+        format_with_parens e2
 
 let format_struct_embedding (fmt : Format.formatter)
     ((struct_name, struct_fields) : D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list)
