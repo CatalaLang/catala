@@ -56,7 +56,7 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
 
-let format_exceormat_exception (fmt : Format.formatter) (exn : except) : unit =
+let format_exception (fmt : Format.formatter) (exn : except) : unit =
   match exn with
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | ConflictError -> Format.fprintf fmt "ConflictError"
