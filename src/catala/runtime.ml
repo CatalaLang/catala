@@ -24,8 +24,6 @@ type duration = CalendarLib.Date.Period.t
 
 exception EmptyError
 
-exception NoValueProvided
-
 exception AssertionFailed
 
 exception ConflictError
@@ -75,6 +73,8 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
+
+exception NoValueProvided of source_position
 
 type event =
   | BeginCall of string list

@@ -90,7 +90,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       Bindlib.box_apply
         (fun arg ->
           Pos.same_pos_as
-            (A.ECatch (arg, A.EmptyError, Pos.same_pos_as (A.ERaise A.NoValueProvided) e))
+            (A.ECatch (arg, A.EmptyError, Pos.same_pos_as (A.ERaise (A.NoValueProvided e)) e))
             e)
         (translate_expr ctx arg)
   | D.EApp (e1, args) ->

@@ -38,8 +38,6 @@ exception IndivisableDurations
 
 exception ImpossibleDate
 
-exception NoValueProvided
-
 (** {1 Value Embedding} *)
 
 type runtime_value =
@@ -83,6 +81,8 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
+
+exception NoValueProvided of source_position
 
 type event =
   | BeginCall of string list

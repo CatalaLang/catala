@@ -221,19 +221,25 @@ let needs_parens (e : expr Pos.marked) : bool =
   | EApp ((EAbs (_, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except) : unit =
-  match exc with
-  | ConflictError -> Format.fprintf fmt "ConflictError"
-  | EmptyError -> Format.fprintf fmt "EmptyError"
-  | Crash -> Format.fprintf fmt "Crash"
-  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
-
 let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
     =
   let format_expr = format_expr ctx in
+  (* @note: (EmileRolley) is [fmt] really needed? *)
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
+  in
+  let format_exception (fmt : Format.formatter) (exc : except) : unit =
+    match exc with
+    | ConflictError -> Format.fprintf fmt "ConflictError"
+    | EmptyError -> Format.fprintf fmt "EmptyError"
+    | Crash -> Format.fprintf fmt "Crash"
+    | NoValueProvided (_, pos) ->
+        Format.fprintf fmt
+          "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
+           end_line=%d; end_column=%d;@ law_headings=%a}@])"
+          (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+          (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
   in
   match Pos.unmark e with
   | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)

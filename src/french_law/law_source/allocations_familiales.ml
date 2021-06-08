@@ -523,11 +523,33 @@ let smic (smic_in : smic_in) =
   let brut_horaire_ : unit -> money = smic_in.brut_horaire_in in
   let date_courante_ : date =
     log_variable_definition [ "Smic"; "date_courante" ] embed_date
-      (try date_courante_ () with EmptyError -> raise NoValueProvided)
+      (try date_courante_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 42;
+                start_column = 12;
+                end_line = 42;
+                end_column = 25;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let residence_ : collectivite =
     log_variable_definition [ "Smic"; "résidence" ] embed_collectivite
-      (try residence_ () with EmptyError -> raise NoValueProvided)
+      (try residence_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 43;
+                start_column = 12;
+                end_line = 43;
+                end_column = 21;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let brut_horaire_ : money =
     log_variable_definition [ "Smic"; "brut_horaire" ] embed_money
@@ -693,7 +715,17 @@ let smic (smic_in : smic_in) =
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 44;
+                start_column = 12;
+                end_line = 44;
+                end_column = 24;
+                law_headings = [ "Prologue" ];
+              }))
   in
   {
     date_courante_out = date_courante_;
@@ -711,7 +743,17 @@ let allocation_familiales_avril2008
       [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3" ]
       embed_integer
       (try try age_minimum_alinea_1_l521_3_ () with EmptyError -> integer_of_string "16"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 82;
+                start_column = 12;
+                end_line = 82;
+                end_column = 39;
+                law_headings = [ "Prologue" ];
+              }))
   in
   { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
@@ -722,7 +764,18 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
     log_variable_definition
       [ "EnfantLePlusÂgé"; "enfants" ]
       (embed_array embed_enfant)
-      (try enfants_ () with EmptyError -> raise NoValueProvided)
+      (try enfants_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 85;
+                start_column = 12;
+                end_line = 85;
+                end_column = 19;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let le_plus_age_ : enfant =
     log_variable_definition
@@ -745,7 +798,17 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
                a_deja_ouvert_droit_aux_allocations_familiales = false;
              }
              enfants_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 86;
+                start_column = 12;
+                end_line = 86;
+                end_column = 23;
+                law_headings = [ "Prologue" ];
+              }))
   in
   { enfants_out = enfants_; le_plus_age_out = le_plus_age_ }
 
@@ -770,25 +833,68 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
       [ "PrestationsFamiliales"; "âge_l512_3_2" ]
       embed_integer
       (try try age_l512_3_2_ () with EmptyError -> integer_of_string "20"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 69;
+                start_column = 12;
+                end_line = 69;
+                end_column = 24;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let date_courante_ : date =
     log_variable_definition
       [ "PrestationsFamiliales"; "date_courante" ]
       embed_date
-      (try date_courante_ () with EmptyError -> raise NoValueProvided)
+      (try date_courante_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 71;
+                start_column = 12;
+                end_line = 71;
+                end_column = 25;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let prestation_courante_ : element_prestations_familiales =
     log_variable_definition
       [ "PrestationsFamiliales"; "prestation_courante" ]
       embed_element_prestations_familiales
-      (try prestation_courante_ () with EmptyError -> raise NoValueProvided)
+      (try prestation_courante_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 72;
+                start_column = 12;
+                end_line = 72;
+                end_column = 31;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let residence_ : collectivite =
     log_variable_definition
       [ "PrestationsFamiliales"; "résidence" ]
       embed_collectivite
-      (try residence_ () with EmptyError -> raise NoValueProvided)
+      (try residence_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 73;
+                start_column = 12;
+                end_line = 73;
+                end_column = 21;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let base_mensuelle_ : money =
     log_variable_definition
@@ -879,7 +985,17 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 75;
+                start_column = 12;
+                end_line = 75;
+                end_column = 26;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let smic_dot_date_courante_ : unit -> date =
    fun (_ : unit) ->
@@ -941,7 +1057,17 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              then true
              else raise EmptyError
            with EmptyError -> false)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 70;
+                start_column = 12;
+                end_line = 70;
+                end_column = 35;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let plafond_l512_3_2_ : money =
     log_variable_definition
@@ -974,7 +1100,17 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              else raise EmptyError
            with EmptyError ->
              smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169.")
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 68;
+                start_column = 12;
+                end_line = 68;
+                end_column = 28;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let conditions_hors_age_ : enfant -> bool =
     log_variable_definition
@@ -1020,8 +1156,28 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                  then true
                  else raise EmptyError
                with EmptyError -> false
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 67;
+                      start_column = 12;
+                      end_line = 67;
+                      end_column = 31;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 67;
+                start_column = 12;
+                end_line = 67;
+                end_column = 31;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let droit_ouvert_ : enfant -> bool =
     log_variable_definition
@@ -1104,8 +1260,28 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                      }
                      true)
                  (fun (_ : _) -> false)
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 66;
+                      start_column = 12;
+                      end_line = 66;
+                      end_column = 24;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 66;
+                start_column = 12;
+                end_line = 66;
+                end_column = 24;
+                law_headings = [ "Prologue" ];
+              }))
   in
   {
     droit_ouvert_out = droit_ouvert_;
@@ -1218,38 +1394,102 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       [ "AllocationsFamiliales"; "personne_charge_effective_permanente_est_parent" ]
       embed_bool
       (try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 91;
+                start_column = 12;
+                end_line = 91;
+                end_column = 59;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "personne_charge_effective_permanente_remplit_titre_I" ]
       embed_bool
       (try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 92;
+                start_column = 12;
+                end_line = 92;
+                end_column = 64;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let ressources_menage_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "ressources_ménage" ]
       embed_money
-      (try ressources_menage_ () with EmptyError -> raise NoValueProvided)
+      (try ressources_menage_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 93;
+                start_column = 12;
+                end_line = 93;
+                end_column = 29;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let residence_ : collectivite =
     log_variable_definition
       [ "AllocationsFamiliales"; "résidence" ]
       embed_collectivite
-      (try residence_ () with EmptyError -> raise NoValueProvided)
+      (try residence_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 94;
+                start_column = 12;
+                end_line = 94;
+                end_column = 21;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let date_courante_ : date =
     log_variable_definition
       [ "AllocationsFamiliales"; "date_courante" ]
       embed_date
-      (try date_courante_ () with EmptyError -> raise NoValueProvided)
+      (try date_courante_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 97;
+                start_column = 12;
+                end_line = 97;
+                end_column = 25;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let enfants_a_charge_ : enfant array =
     log_variable_definition
       [ "AllocationsFamiliales"; "enfants_à_charge" ]
       (embed_array embed_enfant)
-      (try enfants_a_charge_ () with EmptyError -> raise NoValueProvided)
+      (try enfants_a_charge_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 100;
+                start_column = 12;
+                end_line = 100;
+                end_column = 28;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let prise_en_compte_ : enfant -> prise_en_compte =
     log_variable_definition
@@ -1410,8 +1650,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      false)
                  (fun (_ : _) -> raise EmptyError)
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 103;
+                      start_column = 12;
+                      end_line = 103;
+                      end_column = 27;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 103;
+                start_column = 12;
+                end_line = 103;
+                end_column = 27;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let versement_ : enfant -> versement_allocations =
     log_variable_definition
@@ -1572,22 +1832,62 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      false)
                  (fun (_ : _) -> raise EmptyError)
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 104;
+                      start_column = 12;
+                      end_line = 104;
+                      end_column = 21;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 104;
+                start_column = 12;
+                end_line = 104;
+                end_column = 21;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let nombre_enfants_l521_1_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_l521_1" ]
       embed_integer
       (try try nombre_enfants_l521_1_ () with EmptyError -> integer_of_string "3"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 145;
+                start_column = 12;
+                end_line = 145;
+                end_column = 33;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let nombre_enfants_alinea_2_l521_3_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3" ]
       embed_integer
       (try try nombre_enfants_alinea_2_l521_3_ () with EmptyError -> integer_of_string "3"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 147;
+                start_column = 12;
+                end_line = 147;
+                end_column = 42;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let result_ : allocation_familiales_avril2008_out =
     log_end_call
@@ -1703,8 +2003,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  then version_avril_2008_dot_age_minimum_alinea_1_l521_3_
                  else raise EmptyError
                with EmptyError -> integer_of_string "14"
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 146;
+                      start_column = 12;
+                      end_line = 146;
+                      end_column = 39;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 146;
+                start_column = 12;
+                end_line = 146;
+                end_column = 39;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
     log_variable_definition
@@ -1727,7 +2047,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                           [ "PrestationsFamiliales"; "droit_ouvert"; "input" ]
                           unembeddable enfant_))))
              enfants_a_charge_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 101;
+                start_column = 12;
+                end_line = 101;
+                end_column = 62;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let est_enfant_le_plus_age_ : enfant -> bool =
     log_variable_definition
@@ -1738,8 +2068,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          with EmptyError -> (
            fun (param_ : enfant) ->
              try enfant_le_plus_age_dot_le_plus_age_ = param_
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 148;
+                      start_column = 12;
+                      end_line = 148;
+                      end_column = 34;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 148;
+                start_column = 12;
+                end_line = 148;
+                end_column = 34;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let plafond__i_i_d521_3_ : money =
     log_variable_definition
@@ -1882,7 +2232,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                +$ money_of_cents_string "559500"
                   *$ decimal_of_integer
                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 150;
+                start_column = 12;
+                end_line = 150;
+                end_column = 29;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let plafond__i_d521_3_ : money =
     log_variable_definition
@@ -2025,7 +2385,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                +$ money_of_cents_string "559500"
                   *$ decimal_of_integer
                        (array_length enfants_a_charge_droit_ouvert_prestation_familiale_))
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 149;
+                start_column = 12;
+                end_line = 149;
+                end_column = 28;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let droit_ouvert_complement_ : bool =
     log_variable_definition
@@ -2062,7 +2432,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                else raise EmptyError
              with EmptyError -> true
            with EmptyError -> false)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 133;
+                start_column = 12;
+                end_line = 133;
+                end_column = 35;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let droit_ouvert_forfaitaire_ : enfant -> bool =
     log_variable_definition
@@ -2136,8 +2516,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    then true
                    else raise EmptyError
                with EmptyError -> false
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 121;
+                      start_column = 12;
+                      end_line = 121;
+                      end_column = 36;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 121;
+                start_column = 12;
+                end_line = 121;
+                end_column = 36;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let nombre_total_enfants_ : decimal =
     log_variable_definition
@@ -2147,7 +2547,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          try nombre_total_enfants_ ()
          with EmptyError ->
            decimal_of_integer (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 116;
+                start_column = 12;
+                end_line = 116;
+                end_column = 32;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let nombre_moyen_enfants_ : decimal =
     log_variable_definition
@@ -2177,7 +2587,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                | Partagee _ -> decimal_of_string "0.5"
                | Zero _ -> decimal_of_string "0.")
              (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 115;
+                start_column = 12;
+                end_line = 115;
+                end_column = 32;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_base_premier_enfant_ : money =
     log_variable_definition
@@ -2245,7 +2665,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 111;
+                start_column = 12;
+                end_line = 111;
+                end_column = 47;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let droit_ouvert_base_ : bool =
     log_variable_definition
@@ -2304,7 +2734,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                then true
                else raise EmptyError
            with EmptyError -> false)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 109;
+                start_column = 12;
+                end_line = 109;
+                end_column = 29;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let droit_ouvert_majoration_ : enfant -> bool =
     log_variable_definition
@@ -2417,8 +2857,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    then true
                    else raise EmptyError
                with EmptyError -> false
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 126;
+                      start_column = 12;
+                      end_line = 126;
+                      end_column = 35;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 126;
+                start_column = 12;
+                end_line = 126;
+                end_column = 35;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let complement_degressif_ : money -> money =
     log_variable_definition
@@ -2503,8 +2963,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      true)
                  (fun (_ : _) -> money_of_cents_string "0")
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 135;
+                      start_column = 12;
+                      end_line = 135;
+                      end_column = 32;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 135;
+                start_column = 12;
+                end_line = 135;
+                end_column = 32;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_forfaitaire_par_enfant_ : money =
     log_variable_definition
@@ -2592,7 +3072,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 122;
+                start_column = 12;
+                end_line = 122;
+                end_column = 48;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_base_troisieme_enfant_et_plus_ : money =
     log_variable_definition
@@ -2707,7 +3197,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 113;
+                start_column = 12;
+                end_line = 113;
+                end_column = 57;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_base_deuxieme_enfant_ : money =
     log_variable_definition
@@ -2810,7 +3310,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  }
                  false)
              (fun (_ : _) -> raise EmptyError)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 112;
+                start_column = 12;
+                end_line = 112;
+                end_column = 48;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let rapport_enfants_total_moyen_ : decimal =
     log_variable_definition
@@ -2821,7 +3331,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          with EmptyError ->
            if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
            else nombre_moyen_enfants_ /& nombre_total_enfants_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 114;
+                start_column = 12;
+                end_line = 114;
+                end_column = 39;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_metropole_majoration_ : enfant -> money =
     log_variable_definition
@@ -2979,8 +3499,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      }
                      false)
                  (fun (_ : _) -> raise EmptyError)
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 127;
+                      start_column = 12;
+                      end_line = 127;
+                      end_column = 48;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 127;
+                start_column = 12;
+                end_line = 127;
+                end_column = 48;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_forfaitaire_ : money =
     log_variable_definition
@@ -3008,7 +3548,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      then acc_ +! integer_of_string "1"
                      else acc_)
                    (integer_of_string "0") enfants_a_charge_)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 123;
+                start_column = 12;
+                end_line = 123;
+                end_column = 37;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_base_ : money =
     log_variable_definition
@@ -3042,7 +3592,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              else raise EmptyError
            with EmptyError ->
              montant_initial_base_deuxieme_enfant_ +$ montant_initial_base_troisieme_enfant_et_plus_)
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 110;
+                start_column = 12;
+                end_line = 110;
+                end_column = 32;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_initial_majoration_ : enfant -> money =
     log_variable_definition
@@ -3163,8 +3723,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                 "input";
                               ]
                               unembeddable param_))))
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 128;
+                      start_column = 12;
+                      end_line = 128;
+                      end_column = 38;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 128;
+                start_column = 12;
+                end_line = 128;
+                end_column = 38;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_complement_pour_forfaitaire_ : money =
     log_variable_definition
@@ -3251,7 +3831,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  }
                  true)
              (fun (_ : _) -> money_of_cents_string "0")
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 137;
+                start_column = 12;
+                end_line = 137;
+                end_column = 53;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_avec_garde_alternee_base_ : money =
     log_variable_definition
@@ -3260,7 +3850,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       (try
          try montant_avec_garde_alternee_base_ ()
          with EmptyError -> montant_initial_base_ *$ rapport_enfants_total_moyen_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 117;
+                start_column = 12;
+                end_line = 117;
+                end_column = 44;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_avec_garde_alternee_majoration_ : enfant -> money =
     log_variable_definition
@@ -3299,8 +3899,28 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                | Complete _ -> decimal_of_string "1."
                | Partagee _ -> decimal_of_string "0.5"
                | Zero _ -> decimal_of_string "0."
-             with EmptyError -> raise NoValueProvided)
-       with EmptyError -> raise NoValueProvided)
+             with EmptyError ->
+               raise
+                 (NoValueProvided
+                    {
+                      filename = "./prologue.catala_fr";
+                      start_line = 129;
+                      start_column = 12;
+                      end_line = 129;
+                      end_column = 50;
+                      law_headings = [ "Prologue" ];
+                    }))
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 129;
+                start_column = 12;
+                end_line = 129;
+                end_column = 50;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_base_ : money =
     log_variable_definition
@@ -3311,7 +3931,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          with EmptyError ->
            if droit_ouvert_base_ then montant_avec_garde_alternee_base_
            else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 118;
+                start_column = 12;
+                end_line = 118;
+                end_column = 30;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_majoration_ : money =
     log_variable_definition
@@ -3345,7 +3975,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                unembeddable enfant_))))
                (money_of_cents_string "0") enfants_a_charge_
            else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 130;
+                start_column = 12;
+                end_line = 130;
+                end_column = 36;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_base_complement_pour_base_et_majoration_ : money =
     log_variable_definition
@@ -3354,7 +3994,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
       (try
          try montant_base_complement_pour_base_et_majoration_ ()
          with EmptyError -> montant_verse_base_ +$ montant_verse_majoration_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 134;
+                start_column = 12;
+                end_line = 134;
+                end_column = 59;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_complement_pour_base_et_majoration_ : money =
     log_variable_definition
@@ -3376,7 +4026,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                         [ "AllocationsFamiliales"; "complément_dégressif"; "input" ]
                         unembeddable montant_base_complement_pour_base_et_majoration_)))
            else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 136;
+                start_column = 12;
+                end_line = 136;
+                end_column = 60;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let montant_verse_ : money =
     log_variable_definition
@@ -3392,7 +4052,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    +$ (montant_verse_complement_pour_base_et_majoration_
                      +$ montant_verse_complement_pour_forfaitaire_)))
            else money_of_cents_string "0"
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./prologue.catala_fr";
+                start_line = 106;
+                start_column = 12;
+                end_line = 106;
+                end_column = 25;
+                law_headings = [ "Prologue" ];
+              }))
   in
   let (_ : unit) =
     if
@@ -3472,39 +4142,103 @@ let interface_allocations_familiales
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "date_courante" ]
       embed_date
-      (try date_courante_ () with EmptyError -> raise NoValueProvided)
+      (try date_courante_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 78;
+                start_column = 12;
+                end_line = 78;
+                end_column = 25;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let enfants_ : enfant_entree array =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "enfants" ]
       (embed_array embed_enfant_entree)
-      (try enfants_ () with EmptyError -> raise NoValueProvided)
+      (try enfants_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 79;
+                start_column = 12;
+                end_line = 79;
+                end_column = 19;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let ressources_menage_ : money =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "ressources_ménage" ]
       embed_money
-      (try ressources_menage_ () with EmptyError -> raise NoValueProvided)
+      (try ressources_menage_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 82;
+                start_column = 12;
+                end_line = 82;
+                end_column = 29;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let residence_ : collectivite =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "résidence" ]
       embed_collectivite
-      (try residence_ () with EmptyError -> raise NoValueProvided)
+      (try residence_ ()
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 83;
+                start_column = 12;
+                end_line = 83;
+                end_column = 21;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let personne_charge_effective_permanente_est_parent_ : bool =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "personne_charge_effective_permanente_est_parent" ]
       embed_bool
       (try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 85;
+                start_column = 12;
+                end_line = 85;
+                end_column = 59;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "personne_charge_effective_permanente_remplit_titre_I" ]
       embed_bool
       (try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 86;
+                start_column = 12;
+                end_line = 86;
+                end_column = 64;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let enfants_a_charge_ : enfant array =
     log_variable_definition
@@ -3534,7 +4268,17 @@ let interface_allocations_familiales
                    enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
                })
              enfants_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 80;
+                start_column = 12;
+                end_line = 80;
+                end_column = 28;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : unit -> bool =
    fun (_ : unit) ->
@@ -3764,7 +4508,17 @@ let interface_allocations_familiales
       [ "InterfaceAllocationsFamiliales"; "montant_versé" ]
       embed_money
       (try try montant_verse_ () with EmptyError -> allocations_familiales_dot_montant_verse_
-       with EmptyError -> raise NoValueProvided)
+       with EmptyError ->
+         raise
+           (NoValueProvided
+              {
+                filename = "./epilogue.catala_fr";
+                start_line = 84;
+                start_column = 12;
+                end_line = 84;
+                end_column = 25;
+                law_headings = [ "Interface du programme"; "Épilogue" ];
+              }))
   in
   {
     date_courante_out = date_courante_;
