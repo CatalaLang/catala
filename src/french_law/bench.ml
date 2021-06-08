@@ -72,10 +72,10 @@ let run_test () =
     incr num_successful;
     total_amount := Float.add !total_amount amount
   with
-  | (NoValueProvided | ConflictError) as err ->
+  | (NoValueProvided _ | ConflictError) as err ->
       Format.printf "%s\n%a\nincome: %d\ncurrent_date: %s\nresidence: %a\n"
         (match err with
-        | NoValueProvided -> "No value provided somewhere!"
+        | NoValueProvided _ -> "No value provided somewhere!"
         | ConflictError -> "Conflict error!"
         | _ -> failwith "impossible")
         (Format.pp_print_list (fun fmt child ->
