@@ -234,7 +234,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
     | ConflictError -> Format.fprintf fmt "ConflictError"
     | EmptyError -> Format.fprintf fmt "EmptyError"
     | Crash -> Format.fprintf fmt "Crash"
-    | NoValueProvided (_, pos) ->
+    | NoValueProvided ->
+        let _, pos = e in
         Format.fprintf fmt
           "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ start_column=%d;@ \
            end_line=%d; end_column=%d;@ law_headings=%a}@])"

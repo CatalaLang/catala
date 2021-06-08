@@ -62,8 +62,7 @@ let format_exception (fmt : Format.formatter) (exn : except) : unit =
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | Crash -> Format.fprintf fmt "Crash"
-  (* TODO: manage position. *)
-  | NoValueProvided _ -> Format.fprintf fmt "NoValueProvided"
+  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
