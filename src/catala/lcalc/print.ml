@@ -27,7 +27,7 @@ let begins_with_uppercase (s : string) : bool =
   let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
   is_uppercase first_letter
 
-(* (EmileRolley) NOTE: seems to be factorizable with Dcalc.Print.format_lit. *)
+(** @note: (EmileRolley) seems to be factorizable with Dcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Format.fprintf fmt "%b" b
@@ -56,12 +56,14 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
               (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
     infos
 
+(** @note Could be factorized with [Lcalc.To_ocaml.format_exception]. *)
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
   match exn with
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | Crash -> Format.fprintf fmt "Crash"
-  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
+  (* TODO: manage position. *)
+  | NoValueProvided _ -> Format.fprintf fmt "NoValueProvided"
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
