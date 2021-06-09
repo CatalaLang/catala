@@ -22,9 +22,16 @@ type date = CalendarLib.Date.t
 
 type duration = CalendarLib.Date.Period.t
 
-exception EmptyError
+type source_position = {
+  filename : string;
+  start_line : int;
+  start_column : int;
+  end_line : int;
+  end_column : int;
+  law_headings : string list;
+}
 
-exception NoValueProvided
+exception EmptyError
 
 exception AssertionFailed
 
@@ -35,6 +42,8 @@ exception UncomparableDurations
 exception IndivisableDurations
 
 exception ImpossibleDate
+
+exception NoValueProvided of source_position
 
 type runtime_value =
   | Unit
@@ -66,15 +75,6 @@ let embed_date x = Date x
 let embed_duration x = Duration x
 
 let embed_array f x = Array (Array.map f x)
-
-type source_position = {
-  filename : string;
-  start_line : int;
-  start_column : int;
-  end_line : int;
-  end_column : int;
-  law_headings : string list;
-}
 
 type event =
   | BeginCall of string list

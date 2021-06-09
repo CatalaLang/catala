@@ -24,6 +24,15 @@ type date
 
 type duration
 
+type source_position = {
+  filename : string;
+  start_line : int;
+  start_column : int;
+  end_line : int;
+  end_column : int;
+  law_headings : string list;
+}
+
 (** {1 Exceptions} *)
 
 exception EmptyError
@@ -38,7 +47,7 @@ exception IndivisableDurations
 
 exception ImpossibleDate
 
-exception NoValueProvided
+exception NoValueProvided of source_position
 
 (** {1 Value Embedding} *)
 
@@ -74,15 +83,6 @@ val embed_duration : duration -> runtime_value
 val embed_array : ('a -> runtime_value) -> 'a Array.t -> runtime_value
 
 (** {1 Logging} *)
-
-type source_position = {
-  filename : string;
-  start_line : int;
-  start_column : int;
-  end_line : int;
-  end_column : int;
-  law_headings : string list;
-}
 
 type event =
   | BeginCall of string list

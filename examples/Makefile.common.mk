@@ -60,7 +60,8 @@ clean:
 	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \
 		$(SRC:.catala_$(CATALA_LANG)=.d) \
 		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
-		$(SRC:.catala_$(CATALA_LANG)=.html)
+		$(SRC:.catala_$(CATALA_LANG)=.html) \
+		$(SRC:.catala_$(CATALA_LANG)=.ml) \
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

@@ -27,7 +27,7 @@ let begins_with_uppercase (s : string) : bool =
   let first_letter = CamomileLibraryDefault.Camomile.UTF8.get s 0 in
   is_uppercase first_letter
 
-(* (EmileRolley) NOTE: seems to be factorizable with Dcalc.Print.format_lit. *)
+(** @note: (EmileRolley) seems to be factorizable with Dcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Format.fprintf fmt "%b" b

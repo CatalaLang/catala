@@ -1,1 +1,3 @@
 *.catala* linguist-language=Markdown
+french_law/french_law.js binary
+src/french_law/law_source/*.ml binary
