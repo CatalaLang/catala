@@ -4,3 +4,4 @@ _opam/
 src/**/.merlin
 legifrance_oauth*
 *.html
+build/

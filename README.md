@@ -68,10 +68,14 @@ want to compile it from the sources of this repository. For that, see
 Use `catala --help` to get more information about the command line
 options available.
 
-The top-level `Makefile` contains a lot of useful targets to run. To display
-them, use
+The top-level CMakelists.txt contains definitions of targets that will be generated and then used. To generate them, call
 
-        make help
+    mkdir -p build/ && cmake -B build
+
+Now, you can call e.g. `cmake --build build/ --target help` from the top directory or `make help` from build directory.
+
+<!-- TODO: change make -> cmake --build build/ in some places -->
+
 
 ## Examples
 
