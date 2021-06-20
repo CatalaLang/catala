@@ -101,7 +101,7 @@ let rec embed_to_js (v : runtime_value) : Js.Unsafe.any =
       ignore (date##setUTCMilliseconds 0);
       Js.Unsafe.inject date
   | Duration d ->
-      let days, months, years = duration_to_days_months_years d in
+      let days, months, years = duration_to_years_months_days d in
       Js.Unsafe.inject (Js.string (Printf.sprintf "%dD%dM%dY" days months years))
   | Struct (name, fields) ->
       Js.Unsafe.inject

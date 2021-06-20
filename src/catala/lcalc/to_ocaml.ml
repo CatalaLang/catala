@@ -33,7 +33,7 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
         (Runtime.integer_to_int (Runtime.month_number_of_date d))
         (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
   | LDuration d ->
-      let years, months, days = Runtime.duration_to_days_months_years d in
+      let years, months, days = Runtime.duration_to_years_months_days d in
       Format.fprintf fmt "duration_of_numbers %d %d %d" years months days
 
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
