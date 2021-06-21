@@ -1,1 +1,6 @@
 env/
+.mypy_cache/
+_static/
+_templates/
+doc/
+**/__pycache__

@@ -1,3 +1,5 @@
 gmpy2
 typing
 mypy
+python-dateutil
+sphinx
