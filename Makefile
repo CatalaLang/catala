@@ -167,7 +167,7 @@ tests: test_suite test_examples
 tests_ocaml: run_french_law_library_tests
 
 #> bench_ocaml				: Run OCaml benchmarks for the Catala-generated code
-bench_ocaml: run_french_law_library_benchmark
+bench_ocaml: run_french_law_library_benchmark_ocaml
 
 #> bench_js					: Run JS benchmarks for the Catala-generated code
 bench_js: run_french_law_library_benchmark_js
