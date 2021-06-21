@@ -64,7 +64,7 @@ let backend =
     & info [] ~docv:"BACKEND"
         ~doc:"Backend selection among: LaTeX, Makefile, Html, Interpret, OCaml, Dcalc, Scopelang")
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Dcalc | Scopelang
+type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang
 
 let language =
   Arg.(

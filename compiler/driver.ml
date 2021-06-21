@@ -68,6 +68,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "ocaml" then Cli.OCaml
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
+      else if backend = "python" then Cli.Python
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -240,7 +241,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      result))
               results;
             0
-        | Cli.OCaml ->
+        | Cli.OCaml | Cli.Python ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
             let prgm =
@@ -254,7 +255,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               match source_file with
               | FileName f -> f
               | Contents _ ->
-                  Errors.raise_error "The OCaml backend does not work if the input is not a file"
+                  Errors.raise_error "This backend does not work if the input is not a file"
             in
             let output_file =
               match output_file with
@@ -264,8 +265,15 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
             let oc = open_out output_file in
             let fmt = Format.formatter_of_out_channel oc in
-            Cli.debug_print "Compiling program into OCaml...";
-            Lcalc.To_ocaml.format_program fmt prgm type_ordering;
+
+            (match backend with
+            | Cli.OCaml ->
+                Cli.debug_print "Compiling program into OCaml...";
+                Lcalc.To_ocaml.format_program fmt prgm type_ordering
+            | Cli.Python ->
+                Cli.debug_print "Compiling program into Python...";
+                Lcalc.To_python.format_program fmt prgm type_ordering
+            | _ -> assert false (* should not happen *));
             close_out oc;
             0
         | _ -> assert false
