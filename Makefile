@@ -20,11 +20,14 @@ dependencies-ocaml:
 		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
 		visitors benchmark
 
+dependencies-js:
+	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
+
 init-submodules:
 	git submodule update --init
 
-#> dependencies				: Install the Catala OCaml and Git dependencies
-dependencies: dependencies-ocaml init-submodules
+#> dependencies				: Install the Catala OCaml, JS and Git dependencies
+dependencies: dependencies-ocaml dependencies-js init-submodules
 
 
 ##########################################
@@ -169,7 +172,7 @@ tests_ocaml: run_french_law_library_tests
 #> bench_ocaml				: Run OCaml benchmarks for the Catala-generated code
 bench_ocaml: run_french_law_library_benchmark_ocaml
 
-#> bench_js					: Run JS benchmarks for the Catala-generated code
+#> bench_js				: Run JS benchmarks for the Catala-generated code
 bench_js: run_french_law_library_benchmark_js
 
 ##########################################
@@ -203,7 +206,7 @@ run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
 	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
 run_french_law_library_benchmark_js: build_french_law_library_js
-	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR)
+	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
 
 run_french_law_library_tests: generate_french_law_library_ocaml
 	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
