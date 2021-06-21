@@ -10,14 +10,13 @@ Welcome to French law's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-runtime
+modules
 =======
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-   catala_runtime
-
+   modules
 
 Indices and tables
 ==================

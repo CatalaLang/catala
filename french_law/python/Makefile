@@ -1,8 +1,10 @@
+SOURCES=catala_runtime.py
+
 dependencies:
 	pip install -r dependencies.txt
 
 type:
-	mypy runtime/catala_runtime.py
+	mypy $(SOURCES)
 
 doc:
 	mkdir -p doc

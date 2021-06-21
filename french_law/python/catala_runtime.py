@@ -1,3 +1,12 @@
+"""
+.. module:: catala_runtime
+   :platform: Unix, Windows
+   :synopsis: The Python bindings for the functions used in the generated Catala code
+   :noindex:
+
+.. moduleauthor:: Denis Merigoux <denis.merigoux@inria.fr>
+"""
+
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
 from gmpy2 import log2, mpz, mpq, mpfr, mpc  # type: ignore
@@ -48,25 +57,9 @@ class ConflictError(Exception):
     pass
 
 
-class UncomparableDurations(Exception):
-    pass
-
-
-class IndivisableDurations(Exception):
-    pass
-
-
-class ImpossibleDate(Exception):
-    pass
-
-
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
         self.source_position = SourcePosition
-
-# TODO: Value embedding
-
-# TODO: logging
 
 # ============================
 # Constructors and conversions
@@ -106,7 +99,7 @@ def money_to_cents(m: Money) -> Integer:
 
 
 def decimal_of_string(d: str) -> Decimal:
-    return mpq(d)
+    return Decimal(mpq(d))
 
 
 def decimal_to_float(d: Decimal) -> float:
@@ -114,11 +107,11 @@ def decimal_to_float(d: Decimal) -> float:
 
 
 def decimal_of_float(d: float) -> Decimal:
-    return mpq(d)
+    return Decimal(mpq(d))
 
 
 def decimal_of_integer(d: Integer) -> Decimal:
-    return mpq(d)
+    return Decimal(mpq(d))
 
 
 def decimal_to_string(precision: int, i: Decimal) -> str:
@@ -130,7 +123,7 @@ def decimal_to_string(precision: int, i: Decimal) -> str:
 
 
 def integer_of_string(s: str) -> Integer:
-    return mpz(s)
+    return Integer(mpz(s))
 
 
 def integer_to_string(d: Integer) -> str:
@@ -138,7 +131,7 @@ def integer_to_string(d: Integer) -> str:
 
 
 def integer_of_int(d: int) -> Integer:
-    return mpz(d)
+    return Integer(mpz(d))
 
 
 def integer_to_int(d: Integer) -> int:
@@ -174,10 +167,7 @@ def date_to_string(d: Date) -> str:
 
 
 def date_of_numbers(year: int, month: int, day: int) -> Date:
-    try:
-        return Date(datetime.date(year, month, day))
-    except:
-        raise ImpossibleDate()
+    return Date(datetime.date(year, month, day))
 
 # ---------
 # Durations
