@@ -1,0 +1,3 @@
+gmpy2
+typing
+mypy
