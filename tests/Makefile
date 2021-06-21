@@ -15,7 +15,7 @@ RESET := $(shell tput -Txterm sgr0)
 
 CATALA_OPTS?=
 
-CATALA=../_build/default/src/catala/catala.exe Interpret $(CATALA_OPTS)
+CATALA=../_build/default/compiler/catala.exe Interpret $(CATALA_OPTS)
 
 pass_tests: $(wildcard */*/output/*.out)
 

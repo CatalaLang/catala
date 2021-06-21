@@ -1,6 +1,6 @@
 _build/
 _opam/
 *.install
-src/**/.merlin
+compiler/**/.merlin
 legifrance_oauth*
 *.html

@@ -7,7 +7,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff
+EXECUTABLES = man2html virtualenv python3 colordiff node
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -31,6 +31,8 @@ dependencies: dependencies-ocaml init-submodules
 # Catala compiler rules
 ##########################################
 
+COMPILER_DIR=compiler
+
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
 
@@ -38,11 +40,11 @@ format:
 build:
 	dune build @update-parser-messages --auto-promote | true
 	@$(MAKE) --no-print-directory format
-	dune build src/catala/catala.exe
+	dune build $(COMPILER_DIR)/catala.exe
 
 #> js_build				: Builds the Web-compatible JS version of the Catala compiler
 js_build:
-	dune build src/catala/catala_web.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala_web.bc.js --profile release
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
@@ -147,7 +149,7 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr literate_polish_taxes
 
 ##########################################
-# Execute test suite
+# High-level test and benchmarks commands
 ##########################################
 
 .FORCE:
@@ -161,55 +163,65 @@ test_examples: .FORCE
 #> tests					: Run interpreter tests
 tests: test_suite test_examples
 
-#> tests_ml				: Run OCaml unit tests for the Catala-generated code
-tests_ml: run_french_law_library_tests
+#> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
+tests_ocaml: run_french_law_library_tests
+
+#> bench_ocaml				: Run OCaml benchmarks for the Catala-generated code
+bench_ocaml: run_french_law_library_benchmark
+
+#> bench_js					: Run JS benchmarks for the Catala-generated code
+bench_js: run_french_law_library_benchmark_js
 
 ##########################################
 # French law library
 ##########################################
 
-FRENCH_LAW_LIB_DIR=src/french_law
+FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
+FRENCH_LAW_JS_LIB_DIR=french_law/js
 
-$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
 	CATALA_OPTS="-O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml \
-		$(FRENCH_LAW_LIB_DIR)/law_source
+		$(FRENCH_LAW_OCAML_LIB_DIR)/law_source
 
-$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
 	CATALA_OPTS="-O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml \
-		$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/
+		$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/
 
-#> generate_french_law_library		: Generates the French law library OCaml sources from Catala
-generate_french_law_library:\
-	$(FRENCH_LAW_LIB_DIR)/law_source/allocations_familiales.ml \
-	$(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+#> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
+generate_french_law_library_ocaml:\
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml \
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
 	$(MAKE) format
 
-#> build_french_law_library		: Builds the OCaml French law library
-build_french_law_library: generate_french_law_library format
-	dune build $(FRENCH_LAW_LIB_DIR)/api.a
+#> build_french_law_library_ocaml		: Builds the OCaml French law library
+build_french_law_library_ocaml: generate_french_law_library_ocaml format
+	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
 
-run_french_law_library_benchmark: generate_french_law_library
-	dune exec --profile release $(FRENCH_LAW_LIB_DIR)/bench.exe
+run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
+	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
-run_french_law_library_tests: generate_french_law_library
-	dune exec $(FRENCH_LAW_LIB_DIR)/law_source/unit_tests/run_tests.exe
+run_french_law_library_benchmark_js: build_french_law_library_js
+	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR)
+
+run_french_law_library_tests: generate_french_law_library_ocaml
+	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
-build_french_law_library_js: generate_french_law_library format
-	dune build --profile release $(FRENCH_LAW_LIB_DIR)/api_web.bc.js
-	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_LIB_DIR)/api_web.bc.js $(ROOT_DIR)/french_law_js/french_law.js
+build_french_law_library_js: generate_french_law_library_ocaml format
+	dune build --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
+	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
 ##########################################
 # Website assets
 ##########################################
 
-grammar.html: src/catala/surface/parser.mly
+grammar.html: $(COMPILER_DIR)/surface/parser.mly
 	obelisk html -o $@ $<
 
-catala.html: src/catala/utils/cli.ml
-	dune exec src/catala/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
+catala.html: $(COMPILER_DIR)/utils/cli.ml
+	dune exec $(COMPILER_DIR)/catala.exe -- --help=groff | man2html | sed -e '1,8d' \
 	| tac | sed "1,20d" | tac > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
@@ -219,8 +231,9 @@ website-assets: doc literate_examples grammar.html catala.html js_build build_fr
 # Misceallenous
 ##########################################
 
-all: dependencies build doc tests generate_french_law_library build_french_law_library build_french_law_library_js \
-	tests_ml website-assets
+#> all					: Run all make commands
+all: dependencies build doc tests generate_french_law_library_ocaml build_french_law_library_ocaml build_french_law_library_js \
+	tests_ocaml bench_ocaml bench_js website-assets
 
 #> clean					: Clean build artifacts
 clean:

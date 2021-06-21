@@ -1,3 +1,4 @@
 *.catala* linguist-language=Markdown
-french_law/french_law.js binary
-src/french_law/law_source/*.ml binary
+french_law/js/french_law.js binary
+french_law/ocaml/law_source/allocations_familiales.ml binary
+french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml binary
