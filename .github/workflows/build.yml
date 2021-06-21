@@ -51,26 +51,7 @@ jobs:
           sudo python3 -m pip install virtualenv
           sudo make pygments
 
-      - name: Make compiler
+      - name: Make all
         run: |
           eval $(opam env)
-          make build
-      - name: Run interpreter tests
-        run: |
-          eval $(opam env)
-          make tests
-
-      - name: Build and test French law library
-        run: |
-          eval $(opam env)
-          make build_french_law_library build_french_law_library_js run_french_law_library_benchmark
-
-      - name: Run compiled code tests
-        run: |
-          eval $(opam env)
-          make tests_ml
-
-      - name: Make assets and documentation
-        run: |
-          eval $(opam env)
-          make website-assets doc
+          make all
