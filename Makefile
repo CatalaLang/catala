@@ -223,7 +223,7 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
 #> generate_french_law_library_python	: Generates the French law library Python sources from Catala
-generate_french_law_library_ocaml:\
+generate_french_law_library_python:\
 	$(FRENCH_LAW_PYTHON_LIB_DIR)/allocations_familiales.py
 
 

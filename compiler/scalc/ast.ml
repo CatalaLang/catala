@@ -32,14 +32,16 @@ type expr =
 
 type stmt =
   | SInnerFuncDef of func
+  | SLocalDecl of LocalVarName.t Pos.marked * D.typ Pos.marked
   | SLocalDef of LocalVarName.t Pos.marked * expr Pos.marked
   | STryExcept of block Pos.marked * L.except * block Pos.marked
   | SRaise of L.except
   | SIfThenElse of expr Pos.marked * block Pos.marked * block Pos.marked
   | SSwitch of expr Pos.marked * D.EnumName.t * block Pos.marked list
       (** Each block corresponds to one case of the enum *)
-  | SReturn of expr Pos.marked
-  | SAssert of expr Pos.marked
+  | SReturn of expr
+  | SBlock of block
+  | SAssert of expr
 
 and block = stmt Pos.marked list
 
