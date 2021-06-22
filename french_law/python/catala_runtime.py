@@ -12,7 +12,7 @@
 from gmpy2 import log2, mpz, mpq, mpfr, mpc  # type: ignore
 import datetime
 import dateutil.relativedelta  # type: ignore
-from typing import NewType, List, Callable, Tuple, Optional, TypeVar
+from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable
 
 # =====
 # Types
@@ -23,6 +23,10 @@ Decimal = NewType('Decimal', object)
 Money = NewType('Money', Integer)
 Date = NewType('Date', datetime.date)
 Duration = NewType('Duration', object)
+
+
+class Unit:
+    pass
 
 
 class SourcePosition:
@@ -60,6 +64,58 @@ class ConflictError(Exception):
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
         self.source_position = SourcePosition
+
+
+def raise_(ex):
+    raise ex
+
+
+class TryCatch:
+    def __init__(self, fun, *args, **kwargs):
+        self.fun = fun
+        self.args = args
+        self.kwargs = kwargs
+
+        self.exception_types_and_handlers = []
+        self.finalize = None
+
+    def rescue(self, exception_types, handler):
+        if not isinstance(exception_types, Iterable):
+            exception_types = (exception_types,)
+
+        self.exception_types_and_handlers.append((exception_types, handler))
+        return self
+
+    def ensure(self, finalize, *finalize_args, **finalize_kwargs):
+        if self.finalize is not None:
+            raise Exception('ensure() called twice')
+
+        self.finalize = finalize
+        self.finalize_args = finalize_args
+        self.finalize_kwargs = finalize_kwargs
+        return self
+
+    def __call__(self):
+        try:
+            return self.fun(*self.args, **self.kwargs)
+
+        except BaseException as exc:
+            handler = self.find_applicable_handler(exc)
+            if handler is None:
+                raise
+            return handler(exc)
+
+        finally:
+            if self.finalize is not None:
+                self.finalize()
+
+    def find_applicable_handler(self, exc):
+        applicable_handlers = (
+            handler
+            for exception_types, handler in self.exception_types_and_handlers
+            if isinstance(exc, exception_types)
+        )
+        return next(applicable_handlers, None)
 
 # ============================
 # Constructors and conversions

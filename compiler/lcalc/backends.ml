@@ -52,3 +52,22 @@ let to_lowercase (s : string) : string =
       is_first := false)
     s;
   !out
+
+let to_uppercase (s : string) : string =
+  let last_was_underscore = ref false in
+  let is_first = ref true in
+  let out = ref "" in
+  CamomileLibraryDefault.Camomile.UTF8.iter
+    (fun c ->
+      let is_underscore = c = CamomileLibraryDefault.Camomile.UChar.of_char '_' in
+      let c_string = String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c) in
+      out :=
+        !out
+        ^
+        if is_underscore then ""
+        else if !last_was_underscore || !is_first then String.uppercase_ascii c_string
+        else c_string;
+      last_was_underscore := is_underscore;
+      is_first := false)
+    s;
+  !out

@@ -18,3 +18,6 @@ val to_ascii : string -> string
 
 val to_lowercase : string -> string
 (** Converts CamlCase into snake_case *)
+
+val to_uppercase : string -> string
+(** Convertes snake_case into CamlCase *)

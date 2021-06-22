@@ -257,24 +257,29 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               | Contents _ ->
                   Errors.raise_error "This backend does not work if the input is not a file"
             in
-            let output_file =
+            let output_file (extension : string) : string =
               match output_file with
               | Some f -> f
-              | None -> Filename.remove_extension source_file ^ ".ml"
+              | None -> Filename.remove_extension source_file ^ extension
             in
-            Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
-            let oc = open_out output_file in
-            let fmt = Format.formatter_of_out_channel oc in
-
             (match backend with
             | Cli.OCaml ->
+                let output_file = output_file ".ml" in
+                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                let oc = open_out output_file in
+                let fmt = Format.formatter_of_out_channel oc in
                 Cli.debug_print "Compiling program into OCaml...";
-                Lcalc.To_ocaml.format_program fmt prgm type_ordering
+                Lcalc.To_ocaml.format_program fmt prgm type_ordering;
+                close_out oc
             | Cli.Python ->
+                let output_file = output_file ".py" in
                 Cli.debug_print "Compiling program into Python...";
-                Lcalc.To_python.format_program fmt prgm type_ordering
+                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                let oc = open_out output_file in
+                let fmt = Format.formatter_of_out_channel oc in
+                Lcalc.To_python.format_program fmt prgm type_ordering;
+                close_out oc
             | _ -> assert false (* should not happen *));
-            close_out oc;
             0
         | _ -> assert false
         (* should not happen *))
