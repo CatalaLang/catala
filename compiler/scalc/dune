@@ -1,0 +1,8 @@
+(library
+ (name scalc)
+ (public_name catala.scalc)
+ (libraries bindlib lcalc runtime))
+
+(documentation
+ (package catala)
+ (mld_files scalc))

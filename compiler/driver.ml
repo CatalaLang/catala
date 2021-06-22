@@ -277,7 +277,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                 Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
                 let oc = open_out output_file in
                 let fmt = Format.formatter_of_out_channel oc in
-                Lcalc.To_python.format_program fmt prgm type_ordering;
+                Scalc.To_python.format_program fmt prgm type_ordering;
                 close_out oc
             | _ -> assert false (* should not happen *));
             0

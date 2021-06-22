@@ -2,7 +2,7 @@
 
 This representation is the fifth in the compilation chain
 (see {{: index.html#architecture} Architecture}). Its main difference
-with the previous {{: Lcalc.html} default calculus} is the absence of the
+with the previous {{: Dcalc.html} default calculus} is the absence of the
 default term, which has been eliminated through diverse compilation schemes.
 
 The module describing the abstract syntax tree is:
