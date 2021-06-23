@@ -11,13 +11,15 @@
    is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
-open Lcalc
+[@@@warning "-32-27"]
+
 open Utils
 open Ast
-open Backends
+open Lcalc.Backends
 module D = Dcalc.Ast
+module L = Lcalc.Ast
 
-let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
+let format_lit (fmt : Format.formatter) (l : L.lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
   | LInt i -> Format.fprintf fmt "integer_of_string(\"%s\")" (Runtime.integer_to_string i)
@@ -166,23 +168,34 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
-let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
+let format_var (fmt : Format.formatter) (v : LocalVarName.t) : unit =
+  let v_str = Pos.unmark (LocalVarName.get_info v) in
+  let lowercase_name = to_lowercase (to_ascii v_str) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
-  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
+  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase v_str then
+    Format.fprintf fmt "%s" lowercase_name
+  else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
+  else Format.fprintf fmt "%s_" lowercase_name
+
+let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
+  let v_str = Pos.unmark (FuncName.get_info v) in
+  let lowercase_name = to_lowercase (to_ascii v_str) in
+  let lowercase_name =
+    Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
+  in
+  let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
+  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase v_str then
     Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with
-  | EApp ((EAbs (_, _), _), _) | ELit (LBool _ | LUnit) | EVar _ | ETuple _ | EOp _ -> false
-  | _ -> true
+  match Pos.unmark e with ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Pos.marked) : unit =
+let format_exception (fmt : Format.formatter) (exc : L.except Pos.marked) : unit =
   match Pos.unmark exc with
   | ConflictError -> Format.fprintf fmt "ConflictError"
   | EmptyError -> Format.fprintf fmt "EmptyError"
@@ -203,82 +216,29 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
     else Format.fprintf fmt "%a" format_expr e
   in
   match Pos.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_var (Pos.unmark v)
-  | ETuple (es, None) ->
-      Format.fprintf fmt "@[<hov 2>(%a)@]"
+  | EFunc v -> Format.fprintf fmt "%a" format_func_name v
+  | EVar v -> Format.fprintf fmt "%a" format_var v
+  | EStruct (es, s) ->
+      if List.length es = 0 then failwith "should not happen"
+      else
+        Format.fprintf fmt "%a(@[<hov 2>%a@])" format_struct_name s
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+             (fun fmt (e, struct_field) ->
+               Format.fprintf fmt "%a = %a" format_struct_field_name struct_field format_with_parens
+                 e))
+          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+  | EArray es ->
+      Format.fprintf fmt "@[<hov 2>[%a]@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
         es
-  | ETuple (es, Some s) ->
-      if List.length es = 0 then Format.fprintf fmt "()"
-      else
-        Format.fprintf fmt "{@[<hov 2>%a@]}"
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-             (fun fmt (e, struct_field) ->
-               Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
-                 format_with_parens e))
-          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
-  | EArray es ->
-      Format.fprintf fmt "@[<hov 2>[|%a|]@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun fmt e -> Format.fprintf fmt "%a" format_with_parens e))
-        es
-  | ETupleAccess (e1, n, s, ts) -> (
-      match s with
-      | None ->
-          Format.fprintf fmt "let@ %a@ = %a@ in@ x"
-            (Format.pp_print_list
-               ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-               (fun fmt i -> Format.fprintf fmt "%s" (if i = n then "x" else "_")))
-            (List.mapi (fun i _ -> i) ts)
-            format_with_parens e1
-      | Some s ->
-          Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)))
-  | EInj (e, n, en, _ts) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
-        (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
-        format_with_parens e
-  | EMatch (e, es, e_name) ->
-      Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
-           (fun fmt (e, c) ->
-             Format.fprintf fmt "%a %a" format_enum_cons_name c
-               (fun fmt e ->
-                 match Pos.unmark e with
-                 | EAbs ((binder, _), _) ->
-                     let xs, body = Bindlib.unmbind binder in
-                     Format.fprintf fmt "%a ->@[<hov 2>@ %a@]"
-                       (Format.pp_print_list
-                          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-                          (fun fmt x -> Format.fprintf fmt "%a" format_var x))
-                       (Array.to_list xs) format_with_parens body
-                 | _ -> assert false
-                 (* should not happen *))
-               e))
-        (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
+  | EStructFieldAccess (e1, field, _) ->
+      Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name field
+  | EInj (e, cons, _) ->
+      Format.fprintf fmt "@[<hov 2>%a(%a)@]" format_enum_cons_name cons format_expr e
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
-  | EApp ((EAbs ((binder, _), taus), _), args) ->
-      let xs, body = Bindlib.unmbind binder in
-      let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-      let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
-      Format.fprintf fmt "%a%a"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
-           (fun fmt (x, _, arg) -> Format.fprintf fmt "%a = %a@\n" format_var x format_expr arg))
-        xs_tau_arg format_with_parens body
-  | EAbs ((binder, _), taus) ->
-      let xs, body = Bindlib.unmbind binder in
-      let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-      Format.fprintf fmt "@[<hov 4>lambda %a:@ %a@]"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-           (fun fmt (x, _) -> Format.fprintf fmt "%a" format_var x))
-        xs_tau format_expr body
   | EApp ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_binop (op, Pos.no_pos) format_with_parens
         arg1 format_with_parens arg2
@@ -308,21 +268,9 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       Format.fprintf fmt "@[<hov 4>%a(%a)@]" format_with_parens f
         (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") format_expr)
         args
-  | EIfThenElse (e1, e2, e3) ->
-      Format.fprintf fmt "@[<hov 4>%a@ if@ %a@ else@ %a@]" format_with_parens e2 format_with_parens
-        e1 format_with_parens e3
   | EOp (Ternop op) -> Format.fprintf fmt "%a" format_ternop (op, Pos.no_pos)
   | EOp (Binop op) -> Format.fprintf fmt "%a" format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
-  | EAssert e' ->
-      Format.fprintf fmt "@[<hov 2>if @ %a@ then@ ()@ else@ raise AssertionFailed@]"
-        format_with_parens e'
-  | ERaise exc -> Format.fprintf fmt "raise_(%a)" format_exception (exc, Pos.get_position e)
-  | ECatch (e1, exc, e2) ->
-      Format.fprintf fmt "@[<hov 4>TryCatch(%a).rescue(%a,@ lambda _: %a)@]" format_expr e1
-        format_exception
-        (exc, Pos.get_position e)
-        format_with_parens e2
 
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
@@ -399,16 +347,5 @@ let format_program (fmt : Format.formatter) (p : Ast.program)
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-       (fun fmt (name, e) ->
-         match Pos.unmark e with
-         | EAbs ((binder, _), typs) ->
-             let vars, body = Bindlib.unmbind binder in
-             let vars_and_typs = List.map2 (fun var typ -> (var, typ)) (Array.to_list vars) typs in
-             Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var name
-               (Format.pp_print_list
-                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-                  (fun fmt (var, typ) -> Format.fprintf fmt "%a: %a" format_var var format_typ typ))
-               vars_and_typs (format_expr p.decl_ctx) body
-         | _ -> assert false
-         (* should not happen*)))
+       (fun fmt (name, params, body) -> assert false))
     p.scopes

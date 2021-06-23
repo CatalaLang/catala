@@ -272,6 +272,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering;
                 close_out oc
             | Cli.Python ->
+                let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 let output_file = output_file ".py" in
                 Cli.debug_print "Compiling program into Python...";
                 Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);

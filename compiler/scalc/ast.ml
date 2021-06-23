@@ -22,6 +22,7 @@ module LocalVarName = Uid.Make (Uid.MarkedString) ()
 
 type expr =
   | EVar of LocalVarName.t
+  | EFunc of FuncName.t
   | EStruct of expr Pos.marked list * D.StructName.t
   | EStructFieldAccess of expr Pos.marked * D.StructFieldName.t * D.StructName.t
   | EInj of expr Pos.marked * D.EnumConstructor.t * D.EnumName.t
@@ -34,17 +35,16 @@ type stmt =
   | SInnerFuncDef of func
   | SLocalDecl of LocalVarName.t Pos.marked * D.typ Pos.marked
   | SLocalDef of LocalVarName.t Pos.marked * expr Pos.marked
-  | STryExcept of block Pos.marked * L.except * block Pos.marked
+  | STryExcept of block * L.except * block
   | SRaise of L.except
-  | SIfThenElse of expr Pos.marked * block Pos.marked * block Pos.marked
-  | SSwitch of expr Pos.marked * D.EnumName.t * block Pos.marked list
+  | SIfThenElse of expr Pos.marked * block * block
+  | SSwitch of expr Pos.marked * D.EnumName.t * block list
       (** Each block corresponds to one case of the enum *)
   | SReturn of expr
-  | SBlock of block
   | SAssert of expr
 
 and block = stmt Pos.marked list
 
-and func = FuncName.t * (LocalVarName.t Pos.marked * D.typ Pos.marked) list * block Pos.marked
+and func = FuncName.t * (LocalVarName.t Pos.marked * D.typ Pos.marked) list * block
 
 type program = { decl_ctx : D.decl_ctx; scopes : func list }

@@ -90,6 +90,8 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val handle_default : Var.t
+
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
 type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : (Var.t * expr Pos.marked) list }
