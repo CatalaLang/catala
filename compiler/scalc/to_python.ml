@@ -69,14 +69,14 @@ let format_ternop (fmt : Format.formatter) (op : Dcalc.Ast.ternop Pos.marked) : 
   match Pos.unmark op with Fold -> Format.fprintf fmt "list_fold_left"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list) : unit =
-  Format.fprintf fmt "@[<hov 4>[%a]@]"
+  Format.fprintf fmt "[%a]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
        (fun fmt info -> Format.fprintf fmt "\"%a\"" Utils.Uid.MarkedString.format_info info))
     uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
-  Format.fprintf fmt "@[<hov 4>[%a]@]"
+  Format.fprintf fmt "[%a]"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
        (fun fmt info -> Format.fprintf fmt "\"%s\"" info))
@@ -194,7 +194,7 @@ let rec format_expression (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e
   | EStruct (es, s) ->
       if List.length es = 0 then failwith "should not happen"
       else
-        Format.fprintf fmt "@[<hov 4>%a(%a)@]" format_struct_name s
+        Format.fprintf fmt "%a(%a)" format_struct_name s
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
              (fun fmt (e, struct_field) ->
@@ -204,48 +204,45 @@ let rec format_expression (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e
   | EStructFieldAccess (e1, field, _) ->
       Format.fprintf fmt "%a.%a" (format_expression ctx) e1 format_struct_field_name field
   | EInj (e, cons, enum_name) ->
-      Format.fprintf fmt "@[<hov 4>%a_%a(%a)@]" format_enum_name enum_name format_enum_cons_name
-        cons (format_expression ctx) e
+      Format.fprintf fmt "%a_%a(%a)" format_enum_name enum_name format_enum_cons_name cons
+        (format_expression ctx) e
   | EArray es ->
-      Format.fprintf fmt "@[<hov 4>[%a]@]"
+      Format.fprintf fmt "[%a]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
         es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EOp (Binop ((Dcalc.Ast.Map | Dcalc.Ast.Filter) as op)), _), [ arg1; arg2 ]) ->
-      Format.fprintf fmt "@[<hov 4>%a(%a,@ %a)@]" format_binop (op, Pos.no_pos)
-        (format_expression ctx) arg1 (format_expression ctx) arg2
+      Format.fprintf fmt "%a(%a,@ %a)" format_binop (op, Pos.no_pos) (format_expression ctx) arg1
+        (format_expression ctx) arg2
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
-      Format.fprintf fmt "@[<hov 4>(%a %a %a)@]" (format_expression ctx) arg1 format_binop
-        (op, Pos.no_pos) (format_expression ctx) arg2
+      Format.fprintf fmt "(%a %a %a)" (format_expression ctx) arg1 format_binop (op, Pos.no_pos)
+        (format_expression ctx) arg2
   | EApp ((EApp ((EOp (Unop (D.Log (D.BeginCall, info))), _), [ f ]), _), [ arg ])
     when !Cli.trace_flag ->
-      Format.fprintf fmt "@[<hov 4>log_begin_call(%a,@ %a,@ %a)@]" format_uid_list info
-        (format_expression ctx) f (format_expression ctx) arg
+      Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info (format_expression ctx)
+        f (format_expression ctx) arg
   | EApp ((EOp (Unop (D.Log (D.VarDef tau, info))), _), [ arg1 ]) when !Cli.trace_flag ->
-      Format.fprintf fmt "@[<hov 4>log_variable_definition(%a,@ %a)@]" format_uid_list info
+      Format.fprintf fmt "log_variable_definition(%a,@ %a)" format_uid_list info
         (format_expression ctx) arg1
   | EApp ((EOp (Unop (D.Log (D.PosRecordIfTrueBool, _))), pos), [ arg1 ]) when !Cli.trace_flag ->
       Format.fprintf fmt
-        "@[<hov 4>log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
-         start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
+        "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ start_column=%d,@ \
+         end_line=%d, end_column=%d,@ law_headings=%a), %a)"
         (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
         (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list (Pos.get_law_info pos)
         (format_expression ctx) arg1
   | EApp ((EOp (Unop (D.Log (D.EndCall, info))), _), [ arg1 ]) when !Cli.trace_flag ->
-      Format.fprintf fmt "@[<hov 4>log_end_call(%a,@ %a)@]" format_uid_list info
-        (format_expression ctx) arg1
+      Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info (format_expression ctx) arg1
   | EApp ((EOp (Unop (D.Log _)), _), [ arg1 ]) ->
       Format.fprintf fmt "%a" (format_expression ctx) arg1
   | EApp ((EOp (Unop ((Minus _ | Not) as op)), _), [ arg1 ]) ->
-      Format.fprintf fmt "@[<hov 4>%a %a@]" format_unop (op, Pos.no_pos) (format_expression ctx)
-        arg1
+      Format.fprintf fmt "%a %a" format_unop (op, Pos.no_pos) (format_expression ctx) arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
-      Format.fprintf fmt "@[<hov 4>%a(%a)@]" format_unop (op, Pos.no_pos) (format_expression ctx)
-        arg1
+      Format.fprintf fmt "%a(%a)" format_unop (op, Pos.no_pos) (format_expression ctx) arg1
   | EApp (f, args) ->
-      Format.fprintf fmt "@[<hov 4>%a(%a)@]" (format_expression ctx) f
+      Format.fprintf fmt "%a(%a)" (format_expression ctx) f
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (format_expression ctx))
@@ -264,9 +261,9 @@ let rec format_statement (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (s 
            (fun fmt (var, typ) ->
              Format.fprintf fmt "%a:%a" format_var (Pos.unmark var) format_typ typ))
         func_params (format_block ctx) func_body
-  | SLocalDecl _ -> () (* We don't need to declare variables in Python *)
+  | SLocalDecl _ -> assert false (* We don't need to declare variables in Python *)
   | SLocalDef (v, e) ->
-      Format.fprintf fmt "%a = %a" format_var (Pos.unmark v) (format_expression ctx) e
+      Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Pos.unmark v) (format_expression ctx) e
   | STryExcept (try_b, except, catch_b) ->
       Format.fprintf fmt "@[<hov 4>try:@\n%a@]@\n@[<hov 4>except %a:@\n%a@]" (format_block ctx)
         try_b format_exception (except, Pos.no_pos) (format_block ctx) catch_b
@@ -294,7 +291,10 @@ let rec format_statement (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (s 
       Format.fprintf fmt "@[<hov 4>assert %a@]" (format_expression ctx) (e1, Pos.get_position s)
 
 and format_block (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (b : block) : unit =
-  Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n") (format_statement ctx) fmt b
+  Format.pp_print_list
+    ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+    (format_statement ctx) fmt
+    (List.filter (fun s -> match Pos.unmark s with SLocalDecl _ -> false | _ -> true) b)
 
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
@@ -319,17 +319,18 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if List.length enum_cons = 0 then
-      Format.fprintf fmt "class %a(Unit):@\n\tpass@\n@\n" format_enum_name enum_name
+      Format.fprintf fmt
+        "class %a(Unit):@\n\tdef __init__(self, value: Any) -> None:@\n\t\tself.value = value@\n@\n"
+        format_enum_name enum_name
     else
-      Format.fprintf fmt "class %a:@\n\tpass@\n@\n%a" format_enum_name enum_name
+      Format.fprintf fmt
+        "class %a:@\n\tdef __init__(self, value: Any) -> None:@\n\t\tself.value = value@\n@\n%a"
+        format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
            (fun _fmt (enum_cons, enum_cons_type) ->
-             Format.fprintf fmt
-               "class %a_%a(%a):@\n\
-                \tdef __init__(self, value: %a) -> None:@\n\
-                \t\tself.value = value" format_enum_name enum_name format_enum_cons_name enum_cons
-               format_enum_name enum_name format_typ enum_cons_type))
+             Format.fprintf fmt "class %a_%a(%a):@\n\tpass" format_enum_name enum_name
+               format_enum_cons_name enum_cons format_enum_name enum_name))
         enum_cons
   in
   let is_in_type_ordering s =

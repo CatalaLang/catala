@@ -1,4 +1,4 @@
-SOURCES=catala_runtime.py
+SOURCES=catala_runtime.py allocations_familiales.py
 
 dependencies:
 	pip install -r dependencies.txt

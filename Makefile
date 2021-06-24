@@ -229,6 +229,11 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 generate_french_law_library_python:\
 	$(FRENCH_LAW_PYTHON_LIB_DIR)/allocations_familiales.py
 
+#> type_french_law_library_python	: Types the French law library Python sources with mypy
+type_french_law_library_python: generate_french_law_library_python
+	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+
 
 ##########################################
 # Website assets
@@ -249,8 +254,14 @@ website-assets: doc literate_examples grammar.html catala.html js_build build_fr
 ##########################################
 
 #> all					: Run all make commands
-all: dependencies build doc tests generate_french_law_library_ocaml build_french_law_library_ocaml build_french_law_library_js \
-	tests_ocaml bench_ocaml bench_js website-assets
+all: \
+	dependencies build doc website-assets\
+	tests tests_ocaml \
+	bench_ocaml bench_js \
+	generate_french_law_library_ocaml build_french_law_library_ocaml \
+	build_french_law_library_js \
+	generate_french_law_library_python type_french_law_library_python
+
 
 #> clean					: Clean build artifacts
 clean:

@@ -50,6 +50,7 @@ jobs:
           sudo python3 -m pip install --upgrade pip
           sudo python3 -m pip install virtualenv
           sudo make pygments
+          ./french_law/python/setup_env.sh
 
       - name: Make all
         run: |
