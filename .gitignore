@@ -4,3 +4,4 @@ _opam/
 compiler/**/.merlin
 legifrance_oauth*
 *.html
+.vscode/

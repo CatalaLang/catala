@@ -87,7 +87,7 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | Minus _ -> Format.fprintf fmt "-"
   | Not -> Format.fprintf fmt "not"
   | Log (entry, infos) -> assert false (* should not happen *)
-  | Length -> Format.fprintf fmt "%s" "len"
+  | Length -> Format.fprintf fmt "%s" "list_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
   | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"

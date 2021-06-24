@@ -262,6 +262,9 @@ def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
 
 
+def list_length(l: List[Alpha]) -> Integer:
+    return mpz(len(l))
+
 # ========
 # Defaults
 # ========

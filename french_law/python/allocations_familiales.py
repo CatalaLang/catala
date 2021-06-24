@@ -1391,7 +1391,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=92, end_column=69,
                     law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2018,1,1)) and (date_courante_176 <= date_of_numbers(2018,12,31)))):
-                    return (money_of_cents_string("7877000") + (money_of_cents_string("562800") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("7877000") + (money_of_cents_string("562800") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_337(_:Any):
@@ -1400,7 +1400,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=125, end_column=69,
                     law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2019,1,1)) and (date_courante_176 <= date_of_numbers(2019,12,31)))):
-                    return (money_of_cents_string("7955800") + (money_of_cents_string("568400") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("7955800") + (money_of_cents_string("568400") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_335(_:Any):
@@ -1409,7 +1409,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=158, end_column=69,
                     law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2020,1,1)) and (date_courante_176 <= date_of_numbers(2020,12,31)))):
-                    return (money_of_cents_string("8083100") + (money_of_cents_string("577500") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("8083100") + (money_of_cents_string("577500") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_333(_:Any):
@@ -1418,7 +1418,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=194, end_column=69, law_headings=["Article 1",
                     "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2021,1,1)) and (date_courante_176 <= date_of_numbers(2021,12,31)))):
-                    return (money_of_cents_string("8155800") + (money_of_cents_string("582700") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("8155800") + (money_of_cents_string("582700") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_341(_:Any):
@@ -1431,7 +1431,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), True)
             def local_var_343(_:Any):
-                return (money_of_cents_string("7830000") + (money_of_cents_string("559500") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                return (money_of_cents_string("7830000") + (money_of_cents_string("559500") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
             local_var_332 = handle_default([local_var_333, local_var_335,
                 local_var_337, local_var_339], local_var_341, local_var_343)
     except EmptyError:
@@ -1450,7 +1450,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=85, end_column=69,
                     law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2018,1,1)) and (date_courante_176 <= date_of_numbers(2018,12,31)))):
-                    return (money_of_cents_string("5628600") + (money_of_cents_string("562800") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("5628600") + (money_of_cents_string("562800") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_351(_:Any):
@@ -1459,7 +1459,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=118, end_column=69,
                     law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2019,1,1)) and (date_courante_176 <= date_of_numbers(2019,12,31)))):
-                    return (money_of_cents_string("5684900") + (money_of_cents_string("568400") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("5684900") + (money_of_cents_string("568400") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_349(_:Any):
@@ -1468,7 +1468,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=151, end_column=69,
                     law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2020,1,1)) and (date_courante_176 <= date_of_numbers(2020,12,31)))):
-                    return (money_of_cents_string("5775900") + (money_of_cents_string("577500") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("5775900") + (money_of_cents_string("577500") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_347(_:Any):
@@ -1477,7 +1477,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     end_line=178, end_column=69, law_headings=["Article 1",
                     "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
                     "Montant des plafonds de ressources"]), ((date_courante_176 >= date_of_numbers(2021,1,1)) and (date_courante_176 <= date_of_numbers(2021,12,31)))):
-                    return (money_of_cents_string("5827900") + (money_of_cents_string("582700") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                    return (money_of_cents_string("5827900") + (money_of_cents_string("582700") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
                 else:
                     raise EmptyError
             def local_var_355(_:Any):
@@ -1490,7 +1490,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), True)
             def local_var_357(_:Any):
-                return (money_of_cents_string("5595000") + (money_of_cents_string("559500") * decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
+                return (money_of_cents_string("5595000") + (money_of_cents_string("559500") * decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))))
             local_var_346 = handle_default([local_var_347, local_var_349,
                 local_var_351, local_var_353], local_var_355, local_var_357)
     except EmptyError:
@@ -1513,7 +1513,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                         "Livre 7 : Régimes divers - Dispositions diverses",
                         "Partie législative",
-                        "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
+                        "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
                         local_var_360 = False
                     else:
                         raise EmptyError
@@ -1543,7 +1543,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                                 "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                 "Livre 7 : Régimes divers - Dispositions diverses",
                                 "Partie législative",
-                                "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
+                                "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
                                 return False
                             else:
                                 raise EmptyError
@@ -1556,7 +1556,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                                 "Titre 2 : Prestations générales d'entretien",
                                 "Livre 5 : Prestations familiales et prestations assimilées",
                                 "Partie législative",
-                                "Code de la sécurité sociale"]), ((len(enfants_a_charge_178) >= nombre_enfants_alinea_2_l521_3_276) and ((param_363.age == prestations_familiales_dot_age_l512_3_2_307) and (param_363.a_deja_ouvert_droit_aux_allocations_familiales and log_end_call(["PrestationsFamiliales",
+                                "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_178) >= nombre_enfants_alinea_2_l521_3_276) and ((param_363.age == prestations_familiales_dot_age_l512_3_2_307) and (param_363.a_deja_ouvert_droit_aux_allocations_familiales and log_end_call(["PrestationsFamiliales",
                                 "conditions_hors_âge"],
                                 log_variable_definition(["PrestationsFamiliales",
                                 "conditions_hors_âge", "output"],
@@ -1585,7 +1585,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
         try:
             local_var_365 = nombre_total_enfants_146(Unit())
         except EmptyError:
-            local_var_365 = decimal_of_integer(len(enfants_a_charge_droit_ouvert_prestation_familiale_324))
+            local_var_365 = decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324))
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
             start_line=116, start_column=12, end_line=116, end_column=32,
@@ -1637,7 +1637,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Chapitre 5 : Prestations familiales et prestations assimilées",
                     "Titre 5 : Départements d'outre-mer",
                     "Livre 7 : Régimes divers - Dispositions diverses",
-                    "Partie réglementaire - Décrets simples"]), (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) != integer_of_string("1"))):
+                    "Partie réglementaire - Décrets simples"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) != integer_of_string("1"))):
                     return money_of_cents_string("0")
                 else:
                     raise EmptyError
@@ -1649,7 +1649,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Chapitre 5 : Prestations familiales et prestations assimilées",
                     "Titre 5 : Départements d'outre-mer",
                     "Livre 7 : Régimes divers - Dispositions diverses",
-                    "Partie réglementaire - Décrets simples"]), (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1"))):
+                    "Partie réglementaire - Décrets simples"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1"))):
                     return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.0588"))
                 else:
                     raise EmptyError
@@ -1681,7 +1681,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                         "Livre 7 : Régimes divers - Dispositions diverses",
                         "Partie législative",
-                        "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= integer_of_string("1")))):
+                        "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= integer_of_string("1")))):
                         local_var_386 = True
                     else:
                         raise EmptyError
@@ -1694,7 +1694,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                         "Titre 2 : Prestations générales d'entretien",
                         "Livre 5 : Prestations familiales et prestations assimilées",
                         "Partie législative",
-                        "Code de la sécurité sociale"]), (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= integer_of_string("2"))):
+                        "Code de la sécurité sociale"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= integer_of_string("2"))):
                         local_var_386 = True
                     else:
                         raise EmptyError
@@ -1722,7 +1722,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                                 "Titre 2 : Prestations générales d'entretien",
                                 "Livre 5 : Prestations familiales et prestations assimilées",
                                 "Partie législative",
-                                "Code de la sécurité sociale"]), ((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= nombre_enfants_alinea_2_l521_3_276) and (param_389.age >= log_end_call(["AllocationsFamiliales",
+                                "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) >= nombre_enfants_alinea_2_l521_3_276) and (param_389.age >= log_end_call(["AllocationsFamiliales",
                                 "âge_minimum_alinéa_1_l521_3"],
                                 log_variable_definition(["AllocationsFamiliales",
                                 "âge_minimum_alinéa_1_l521_3", "output"],
@@ -1898,8 +1898,8 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), (ressources_menage_172 <= plafond__i_d521_3_345)):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.41")) * decimal_of_integer((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
+                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.41")) * decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
@@ -1913,8 +1913,8 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 > plafond__i_d521_3_345) and (ressources_menage_172 <= plafond__i_i_d521_3_331))):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.205")) * decimal_of_integer((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
+                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.205")) * decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
@@ -1928,8 +1928,8 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), (ressources_menage_172 > plafond__i_i_d521_3_331)):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
-                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.1025")) * decimal_of_integer((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("2")):
+                        return ((prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.1025")) * decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) - integer_of_string("2"))))
                     else:
                         return money_of_cents_string("0")
                 else:
@@ -1961,7 +1961,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), (ressources_menage_172 <= plafond__i_d521_3_345)):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
                         return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.32"))
                     else:
                         return money_of_cents_string("0")
@@ -1976,7 +1976,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), ((ressources_menage_172 > plafond__i_d521_3_345) and (ressources_menage_172 <= plafond__i_i_d521_3_331))):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
                         return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.16"))
                     else:
                         return money_of_cents_string("0")
@@ -1991,7 +1991,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Titre 2 : Prestations générales d'entretien",
                     "Livre 5 : Prestations familiales et prestations assimilées",
                     "Partie réglementaire - Décrets simples"]), (ressources_menage_172 > plafond__i_i_d521_3_331)):
-                    if (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
+                    if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) > integer_of_string("1")):
                         return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.08"))
                     else:
                         return money_of_cents_string("0")
@@ -2170,7 +2170,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                     "Chapitre 5 : Prestations familiales et prestations assimilées",
                     "Titre 5 : Départements d'outre-mer",
                     "Livre 7 : Régimes divers - Dispositions diverses",
-                    "Partie réglementaire - Décrets simples"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
+                    "Partie réglementaire - Décrets simples"]), (prestations_familiales_dot_regime_outre_mer_l751_1_308 and (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")))):
                     local_var_460 = montant_initial_base_premier_enfant_375
                 else:
                     raise EmptyError
@@ -2205,7 +2205,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                             droit_ouvert_majoration_387,
                             log_variable_definition(["AllocationsFamiliales",
                             "droit_ouvert_majoration", "input"],
-                            param_463)))) and (prestations_familiales_dot_regime_outre_mer_l751_1_308 and ((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")) and ((param_463.age >= integer_of_string("11")) and (param_463.age < integer_of_string("16"))))))):
+                            param_463)))) and (prestations_familiales_dot_regime_outre_mer_l751_1_308 and ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")) and ((param_463.age >= integer_of_string("11")) and (param_463.age < integer_of_string("16"))))))):
                             return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.0369"))
                         else:
                             raise EmptyError
@@ -2226,7 +2226,7 @@ def allocations_familiales(allocations_familiales_in_128:AllocationsFamilialesIn
                             droit_ouvert_majoration_387,
                             log_variable_definition(["AllocationsFamiliales",
                             "droit_ouvert_majoration", "input"],
-                            param_463)))) and (prestations_familiales_dot_regime_outre_mer_l751_1_308 and ((len(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")) and (param_463.age >= integer_of_string("16")))))):
+                            param_463)))) and (prestations_familiales_dot_regime_outre_mer_l751_1_308 and ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_324) == integer_of_string("1")) and (param_463.age >= integer_of_string("16")))))):
                             return (prestations_familiales_dot_base_mensuelle_312 * decimal_of_string("0.0567"))
                         else:
                             raise EmptyError
