@@ -168,8 +168,8 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 
-let format_var (fmt : Format.formatter) (v : LocalVarName.t) : unit =
-  let v_str = Pos.unmark (LocalVarName.get_info v) in
+let format_var (fmt : Format.formatter) (v : LocalName.t) : unit =
+  let v_str = Pos.unmark (LocalName.get_info v) in
   let lowercase_name = to_lowercase (to_ascii v_str) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
@@ -180,8 +180,8 @@ let format_var (fmt : Format.formatter) (v : LocalVarName.t) : unit =
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
-let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  let v_str = Pos.unmark (FuncName.get_info v) in
+let format_func_name (fmt : Format.formatter) (v : TopLevelName.t) : unit =
+  let v_str = Pos.unmark (TopLevelName.get_info v) in
   let lowercase_name = to_lowercase (to_ascii v_str) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
@@ -347,5 +347,5 @@ let format_program (fmt : Format.formatter) (p : Ast.program)
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-       (fun fmt (name, params, body) -> assert false))
+       (fun fmt (name, { Ast.func_params; Ast.func_body }) -> assert false))
     p.scopes

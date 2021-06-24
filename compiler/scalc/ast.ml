@@ -16,13 +16,13 @@ open Utils
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 
-module FuncName = Uid.Make (Uid.MarkedString) ()
+module TopLevelName = Uid.Make (Uid.MarkedString) ()
 
-module LocalVarName = Uid.Make (Uid.MarkedString) ()
+module LocalName = Uid.Make (Uid.MarkedString) ()
 
 type expr =
-  | EVar of LocalVarName.t
-  | EFunc of FuncName.t
+  | EVar of LocalName.t
+  | EFunc of TopLevelName.t
   | EStruct of expr Pos.marked list * D.StructName.t
   | EStructFieldAccess of expr Pos.marked * D.StructFieldName.t * D.StructName.t
   | EInj of expr Pos.marked * D.EnumConstructor.t * D.EnumName.t
@@ -32,19 +32,23 @@ type expr =
   | EOp of Dcalc.Ast.operator
 
 type stmt =
-  | SInnerFuncDef of func
-  | SLocalDecl of LocalVarName.t Pos.marked * D.typ Pos.marked
-  | SLocalDef of LocalVarName.t Pos.marked * expr Pos.marked
+  | SInnerFuncDef of LocalName.t Pos.marked * func
+  | SLocalDecl of LocalName.t Pos.marked * D.typ Pos.marked
+  | SLocalDef of LocalName.t Pos.marked * expr Pos.marked
   | STryExcept of block * L.except * block
   | SRaise of L.except
   | SIfThenElse of expr Pos.marked * block * block
-  | SSwitch of expr Pos.marked * D.EnumName.t * block list
-      (** Each block corresponds to one case of the enum *)
+  | SSwitch of
+      expr Pos.marked
+      * D.EnumName.t
+      * (block (* Statements corresponding to arm closure body*)
+        * (* Variable instantiated with enum payload *) LocalName.t)
+        list  (** Each block corresponds to one case of the enum *)
   | SReturn of expr
   | SAssert of expr
 
 and block = stmt Pos.marked list
 
-and func = FuncName.t * (LocalVarName.t Pos.marked * D.typ Pos.marked) list * block
+and func = { func_params : (LocalName.t Pos.marked * D.typ Pos.marked) list; func_body : block }
 
-type program = { decl_ctx : D.decl_ctx; scopes : func list }
+type program = { decl_ctx : D.decl_ctx; scopes : (TopLevelName.t * func) list }
