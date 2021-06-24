@@ -6,6 +6,9 @@ dependencies:
 type:
 	mypy $(SOURCES)
 
+format:
+	autopep8 --in-place $(SOURCES)
+
 doc:
 	mkdir -p doc
 	sphinx-build ./ doc

@@ -2,4 +2,6 @@ gmpy2
 typing
 mypy
 python-dateutil
+types-python-dateutil
 sphinx
+autopep8
