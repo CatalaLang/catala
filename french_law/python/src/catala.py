@@ -163,8 +163,7 @@ class Date:
         return Date(self.value + other.value)
 
     def __sub__(self, other: 'Date') -> 'Duration':
-        # Careful: invert argument order
-        return Duration(dateutil.relativedelta.relativedelta(other.value, self.value))
+        return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
 
     def __lt__(self, other: 'Date') -> bool:
         return self.value < other.value
@@ -253,6 +252,18 @@ class Unit:
     def __init__(self) -> None:
         ...
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Unit):
+            return True
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        if isinstance(other, Unit):
+            return False
+        else:
+            return True
+
 
 class SourcePosition:
     def __init__(self,
@@ -268,6 +279,10 @@ class SourcePosition:
         self.end_line = end_line
         self.end_column = end_column
         self.law_headings = law_headings
+
+    def __str__(self) -> str:
+        return "in file {}, from {}:{} to {}:{} ({})".format(
+            self.filename, self.start_line, self.start_column, self.end_line, self.end_column, ", ".join(self.law_headings))
 
 # ==========
 # Exceptions
@@ -303,8 +318,8 @@ def money_of_cents_string(v: str) -> Money:
     return Money(Integer(v))
 
 
-def money_of_cents_int(v: int) -> Money:
-    return Money(Integer(v))
+def money_of_units_int(v: int) -> Money:
+    return Money(Integer(v) * Integer(100))
 
 
 def money_of_cents_integer(v: Integer) -> Money:
@@ -396,7 +411,9 @@ def date_to_string(d: Date) -> str:
 
 
 def date_of_numbers(year: int, month: int, day: int) -> Date:
-    return Date(datetime.date(year, month, day))
+    # The datetime.date does not take year=0 as an entry, we trick it into
+    # 1 in that case because year=0 cases don't care about the actual year
+    return Date(datetime.date(year if year != 0 else 1, month, day))
 
 # ---------
 # Durations
@@ -467,7 +484,7 @@ def handle_default(
 
 
 def no_input() -> Callable[[Unit], Alpha]:
-    def closure(_: Unit()):
+    def closure(_: Unit):
         raise EmptyError
     return closure
 
@@ -488,5 +505,7 @@ def log_end_call(headings: List[str], value: Alpha) -> Alpha:
     return value
 
 
-def log_decision_taken(pos: SourcePosition, value: Alpha) -> Alpha:
+def log_decision_taken(pos: SourcePosition, value: bool) -> bool:
+    if value:
+        print(">> Decision taken {}".format(pos))
     return value
