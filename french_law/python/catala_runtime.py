@@ -13,6 +13,10 @@ from gmpy2 import log2, mpz, mpq, mpfr, mpc  # type: ignore
 import datetime
 import dateutil.relativedelta  # type: ignore
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable
+from functools import reduce
+
+Alpha = TypeVar('Alpha')
+Beta = TypeVar('Beta')
 
 # =====
 # Types
@@ -241,24 +245,38 @@ def duration_to_years_months_days(d: Duration) -> Tuple[int, int, int]:
 def duration_to_string(s: Duration) -> str:
     return "{}".format(s)
 
+# -----
+# Lists
+# -----
+
+
+def list_fold_left(f: Callable[[Alpha, Beta], Alpha], init: Alpha, l: List[Beta]) -> Alpha:
+    return reduce(f, l, init)
+
+
+def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
+    return [i for i in l if f(i)]
+
+
+def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
+    return [f(i) for i in l]
+
+
 # ========
 # Defaults
 # ========
 
 
-Alpha = TypeVar('Alpha')
-
-
 def handle_default(
-    exceptions: List[Callable[[], Alpha]],
-    just: Callable[[], Alpha],
-    cons: Callable[[], Alpha]
+    exceptions: List[Callable[[Unit], Alpha]],
+    just: Callable[[Unit], Alpha],
+    cons: Callable[[Unit], Alpha]
 ) -> Alpha:
     acc: Optional[Alpha] = None
     for exception in exceptions:
         new_val: Optional[Alpha]
         try:
-            new_val = exception()
+            new_val = exception(Unit())
         except EmptyError:
             new_val = None
         if acc is None:
@@ -268,8 +286,8 @@ def handle_default(
         elif not (acc is None) and not (new_val is None):
             raise ConflictError
     if acc is None:
-        if just():
-            return cons()
+        if just(Unit()):
+            return cons(Unit())
         else:
             raise EmptyError
     else:
@@ -279,3 +297,23 @@ def handle_default(
 def no_input() -> Callable[[], Alpha]:
     # From https://stackoverflow.com/questions/8294618/define-a-lambda-expression-that-raises-an-exception
     return (_ for _ in ()).throw(EmptyError)
+
+# =======
+# Logging
+# =======
+
+
+def log_variable_definition(headings: List[str], value: Alpha) -> Alpha:
+    return value
+
+
+def log_begin_call(headings: List[str], f: Callable[[Alpha], Beta], value: Alpha) -> Beta:
+    return f(value)
+
+
+def log_end_call(headings: List[str], value: Alpha) -> Alpha:
+    return value
+
+
+def log_decision_taken(pos: SourcePosition, value: Alpha) -> Alpha:
+    return value

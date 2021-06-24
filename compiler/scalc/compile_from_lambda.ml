@@ -138,6 +138,11 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) : A.bloc
   | L.EAbs ((binder, binder_pos), taus) ->
       let vars, body = Bindlib.unmbind binder in
       let vars_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list vars) taus in
+      let closure_name =
+        match ctxt.inside_definition_of with
+        | None -> A.LocalName.fresh ("closure", Pos.get_position block_expr)
+        | Some x -> x
+      in
       let ctxt =
         {
           ctxt with
@@ -146,12 +151,8 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) : A.bloc
               (fun var_dict (x, _) ->
                 L.VarMap.add x (A.LocalName.fresh (Bindlib.name_of x, binder_pos)) var_dict)
               ctxt.var_dict vars_tau;
+          inside_definition_of = None;
         }
-      in
-      let closure_name =
-        match ctxt.inside_definition_of with
-        | None -> A.LocalName.fresh ("closure", Pos.get_position block_expr)
-        | Some x -> x
       in
       let new_body = translate_statements ctxt body in
       [

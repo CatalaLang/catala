@@ -89,6 +89,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           | Some f -> f
           | None -> Filename.remove_extension source_file ^ ".d"
         in
+        Cli.debug_print (Format.asprintf "Writing list of dependencies to %s..." output_file);
         let oc = open_out output_file in
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
