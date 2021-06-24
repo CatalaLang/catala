@@ -256,10 +256,11 @@ website-assets: doc literate_examples grammar.html catala.html js_build build_fr
 #> all					: Run all make commands
 all: \
 	dependencies build doc website-assets\
-	tests tests_ocaml \
-	bench_ocaml bench_js \
+	tests \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
+	tests_ocaml bench_ocaml \
 	build_french_law_library_js \
+	bench_js \
 	generate_french_law_library_python type_french_law_library_python
 
 
