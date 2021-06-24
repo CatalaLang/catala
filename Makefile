@@ -178,8 +178,8 @@ bench_ocaml: run_french_law_library_benchmark_ocaml
 #> bench_js				: Run JS benchmarks for the Catala-generated code
 bench_js: run_french_law_library_benchmark_js
 
-#> tests_python				: Run Python unit tests for the Catala-generated code
-tests_python: run_french_law_library_python_tests
+#> bench_python				: Run Python benchmarks for the Catala-generated code
+bench_python: run_french_law_library_benchmark_python
 
 
 ##########################################
@@ -237,7 +237,7 @@ type_french_law_library_python: generate_french_law_library_python
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
 
-run_french_law_library_python_tests: type_french_law_library_python
+run_french_law_library_benchmark_python: type_french_law_library_python
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) test
 
@@ -268,7 +268,8 @@ all: \
 	tests_ocaml bench_ocaml \
 	build_french_law_library_js \
 	bench_js \
-	generate_french_law_library_python type_french_law_library_python
+	generate_french_law_library_python type_french_law_library_python\
+	bench_python
 
 
 #> clean					: Clean build artifacts

@@ -2,9 +2,10 @@
 
 from src.catala import date_of_numbers, Unit, integer_of_int, money_of_units_int, no_input, money_to_float
 from src.allocations_familiales import interface_allocations_familiales, InterfaceAllocationsFamilialesIn, EnfantEntree, PriseEnCharge, PriseEnCharge_Code, Collectivite, Collectivite_Code
+import timeit
 
 
-def main():
+def iteration():
     out = interface_allocations_familiales(
         InterfaceAllocationsFamilialesIn(
             date_courante_in=lambda _: date_of_numbers(2020, 4, 20),
@@ -32,5 +33,8 @@ def main():
     assert (money_given == 99.37)
 
 
+iterations = 10000
+
 if __name__ == '__main__':
-    main()
+    print("Iterating {} iterations of the family benefits computation. Total time (s):".format(iterations))
+    print(timeit.timeit(iteration, number=iterations))
