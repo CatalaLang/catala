@@ -9,7 +9,7 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, mpc  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod  # type: ignore
 import datetime
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union
@@ -66,9 +66,12 @@ class Integer:
         else:
             return False
 
+    def __str__(self) -> str:
+        return self.value.__str__()
+
 
 class Decimal:
-    def __init__(self, value: Union[str, int, float, Integer]) -> None:
+    def __init__(self, value: Union[str, int, float]) -> None:
         self.value = mpq(value)
 
     def __add__(self, other: 'Decimal') -> 'Decimal':
@@ -110,6 +113,9 @@ class Decimal:
         else:
             return False
 
+    def __str__(self) -> str:
+        return self.value.__str__()
+
 
 class Money:
     def __init__(self, value: Integer) -> None:
@@ -122,7 +128,15 @@ class Money:
         return Money(self.value - other.value)
 
     def __mul__(self, other: Decimal) -> 'Money':
-        return Money(Integer(self.value.value * other.value))
+        cents = self.value.value
+        coeff = other.value
+        rat_result = self.value.value * other.value
+        out = Money(Integer(rat_result))
+        res, remainder = t_divmod(rat_result.numerator, rat_result.denominator)
+        if 2 * remainder >= rat_result.denominator:
+            return Money(Integer(res + 1))
+        else:
+            return Money(Integer(res))
 
     def __truediv__(self, other: 'Money') -> Decimal:
         return Decimal(mpq(self.value.value / other.value.value))
@@ -153,6 +167,9 @@ class Money:
             return self.value == other.value
         else:
             return False
+
+    def __str__(self) -> str:
+        return "${:.2}".format(self.value.value / 100)
 
 
 class Date:
@@ -449,7 +466,7 @@ def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
 
 
 def list_length(l: List[Alpha]) -> Integer:
-    return mpz(len(l))
+    return Integer(len(l))
 
 # ========
 # Defaults
@@ -506,6 +523,4 @@ def log_end_call(headings: List[str], value: Alpha) -> Alpha:
 
 
 def log_decision_taken(pos: SourcePosition, value: bool) -> bool:
-    if value:
-        print(">> Decision taken {}".format(pos))
     return value

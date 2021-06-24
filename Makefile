@@ -170,13 +170,17 @@ test_examples: .FORCE
 tests: test_suite test_examples
 
 #> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
-tests_ocaml: run_french_law_library_tests
+tests_ocaml: run_french_law_library_ocaml_tests
 
 #> bench_ocaml				: Run OCaml benchmarks for the Catala-generated code
 bench_ocaml: run_french_law_library_benchmark_ocaml
 
 #> bench_js				: Run JS benchmarks for the Catala-generated code
 bench_js: run_french_law_library_benchmark_js
+
+#> tests_python				: Run Python unit tests for the Catala-generated code
+tests_python: run_french_law_library_python_tests
+
 
 ##########################################
 # French law library
@@ -211,11 +215,11 @@ build_french_law_library_ocaml: generate_french_law_library_ocaml format
 run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
 	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
+run_french_law_library_ocaml_tests: build_french_law_library_ocaml
+	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
+
 run_french_law_library_benchmark_js: build_french_law_library_js
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
-
-run_french_law_library_tests: generate_french_law_library_ocaml
-	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js: generate_french_law_library_ocaml format
@@ -232,6 +236,10 @@ generate_french_law_library_python:\
 type_french_law_library_python: generate_french_law_library_python
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+
+run_french_law_library_python_tests: type_french_law_library_python
+	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) test
 
 
 ##########################################

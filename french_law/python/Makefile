@@ -8,3 +8,6 @@ type:
 
 format:
 	autopep8 --in-place $(SOURCES)
+
+test:
+	python main.py
