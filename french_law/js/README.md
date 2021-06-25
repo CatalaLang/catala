@@ -1,10 +1,26 @@
-# The French Law Javascript Library
+# Javascript French Law Library
 
-This Javascript library contains some computations defined by French
-legislative texts. The JS code is extracted from OCaml, which is itself
-extracted from Catala code (https://catala-lang.org).
+This folder contains a ready-to-use Javascript library featuring French public
+algorithms coded up in Catala.
 
-## Allocations familiales
+## Generating the source files
+
+The JS code is extracted from OCaml using
+[`js_of_ocaml`](https://ocsigen.org/js_of_ocaml/). See the
+[dedicated README](../ocaml/README.md) of the OCaml library for more precisions
+about the OCaml code. The wrapping between OCaml and JS is done by the
+`api_web.ml` module.
+
+You can generate the `french_law.js` source JS module by invoking this command
+from the root of the repository:
+
+```
+make build_french_law_library_js
+```
+
+## Available algorithms
+
+### Allocations familiales
 
 The function of the library is `computeAllocationsFamiliales`. This computation
 returns the amount of _allocations familiales_ for one household described

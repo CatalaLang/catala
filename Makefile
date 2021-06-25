@@ -115,7 +115,7 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 vscode: vscode_fr vscode_en
 
 ##########################################
-# Examples-related rules
+# Literate programming and examples
 ##########################################
 
 EXAMPLES_DIR=examples
@@ -155,6 +155,81 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr literate_polish_taxes
 
 ##########################################
+# French law library
+##########################################
+
+#-----------------------------------------
+# OCaml
+#-----------------------------------------
+
+FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
+
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
+	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $@
+
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
+	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml $@
+
+#> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
+generate_french_law_library_ocaml:\
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml \
+	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
+	$(MAKE) format
+
+#> build_french_law_library_ocaml		: Builds the OCaml French law library
+build_french_law_library_ocaml: generate_french_law_library_ocaml format
+	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
+
+run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
+	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
+
+run_french_law_library_ocaml_tests: build_french_law_library_ocaml
+	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
+
+
+#-----------------------------------------
+# JS
+#-----------------------------------------
+
+FRENCH_LAW_JS_LIB_DIR=french_law/js
+
+run_french_law_library_benchmark_js: build_french_law_library_js
+	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
+
+#> build_french_law_library_js		: Builds the JS version of the OCaml French law library
+build_french_law_library_js: generate_french_law_library_ocaml format
+	dune build --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
+	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
+
+
+#-----------------------------------------
+# Python
+#-----------------------------------------
+
+FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
+
+$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py: .FORCE
+	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
+	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
+
+#> generate_french_law_library_python	: Generates the French law library Python sources from Catala
+generate_french_law_library_python:\
+	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py
+	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) format
+
+#> type_french_law_library_python	: Types the French law library Python sources with mypy
+type_french_law_library_python: generate_french_law_library_python
+	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+
+run_french_law_library_benchmark_python: type_french_law_library_python
+	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) test
+
+##########################################
 # High-level test and benchmarks commands
 ##########################################
 
@@ -181,65 +256,6 @@ bench_js: run_french_law_library_benchmark_js
 #> bench_python				: Run Python benchmarks for the Catala-generated code
 bench_python: run_french_law_library_benchmark_python
 
-
-##########################################
-# French law library
-##########################################
-
-FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
-FRENCH_LAW_JS_LIB_DIR=french_law/js
-FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
-
-$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py: .FORCE
-	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
-	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
-
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
-	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
-	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $@
-
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
-	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
-	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml $@
-
-#> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
-generate_french_law_library_ocaml:\
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml \
-	$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml
-	$(MAKE) format
-
-#> build_french_law_library_ocaml		: Builds the OCaml French law library
-build_french_law_library_ocaml: generate_french_law_library_ocaml format
-	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
-
-run_french_law_library_benchmark_ocaml: generate_french_law_library_ocaml
-	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
-
-run_french_law_library_ocaml_tests: build_french_law_library_ocaml
-	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
-
-run_french_law_library_benchmark_js: build_french_law_library_js
-	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
-
-#> build_french_law_library_js		: Builds the JS version of the OCaml French law library
-build_french_law_library_js: generate_french_law_library_ocaml format
-	dune build --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js
-	cp -f $(ROOT_DIR)/_build/default/$(FRENCH_LAW_OCAML_LIB_DIR)/api_web.bc.js $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
-
-#> generate_french_law_library_python	: Generates the French law library Python sources from Catala
-generate_french_law_library_python:\
-	$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) format
-
-#> type_french_law_library_python	: Types the French law library Python sources with mypy
-type_french_law_library_python: generate_french_law_library_python
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
-
-run_french_law_library_benchmark_python: type_french_law_library_python
-	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) test
 
 
 ##########################################
