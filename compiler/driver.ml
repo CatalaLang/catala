@@ -68,6 +68,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "ocaml" then Cli.OCaml
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
+      else if backend = "python" then Cli.Python
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -88,6 +89,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           | Some f -> f
           | None -> Filename.remove_extension source_file ^ ".d"
         in
+        Cli.debug_print (Format.asprintf "Writing list of dependencies to %s..." output_file);
         let oc = open_out output_file in
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
@@ -240,7 +242,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      result))
               results;
             0
-        | Cli.OCaml ->
+        | Cli.OCaml | Cli.Python ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
             let prgm =
@@ -254,19 +256,32 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               match source_file with
               | FileName f -> f
               | Contents _ ->
-                  Errors.raise_error "The OCaml backend does not work if the input is not a file"
+                  Errors.raise_error "This backend does not work if the input is not a file"
             in
-            let output_file =
+            let output_file (extension : string) : string =
               match output_file with
               | Some f -> f
-              | None -> Filename.remove_extension source_file ^ ".ml"
+              | None -> Filename.remove_extension source_file ^ extension
             in
-            Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
-            let oc = open_out output_file in
-            let fmt = Format.formatter_of_out_channel oc in
-            Cli.debug_print "Compiling program into OCaml...";
-            Lcalc.To_ocaml.format_program fmt prgm type_ordering;
-            close_out oc;
+            (match backend with
+            | Cli.OCaml ->
+                let output_file = output_file ".ml" in
+                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                let oc = open_out output_file in
+                let fmt = Format.formatter_of_out_channel oc in
+                Cli.debug_print "Compiling program into OCaml...";
+                Lcalc.To_ocaml.format_program fmt prgm type_ordering;
+                close_out oc
+            | Cli.Python ->
+                let prgm = Scalc.Compile_from_lambda.translate_program prgm in
+                let output_file = output_file ".py" in
+                Cli.debug_print "Compiling program into Python...";
+                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                let oc = open_out output_file in
+                let fmt = Format.formatter_of_out_channel oc in
+                Scalc.To_python.format_program fmt prgm type_ordering;
+                close_out oc
+            | _ -> assert false (* should not happen *));
             0
         | _ -> assert false
         (* should not happen *))

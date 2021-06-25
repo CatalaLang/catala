@@ -84,6 +84,8 @@ let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindl
        (Pos.get_position (Bindlib.unbox e2)))
     (Bindlib.box_list [ e1 ])
 
+let handle_default = Var.make ("handle_default", Pos.no_pos)
+
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
 type program = { decl_ctx : D.decl_ctx; scopes : (Var.t * expr Pos.marked) list }

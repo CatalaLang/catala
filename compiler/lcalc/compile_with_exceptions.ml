@@ -18,8 +18,6 @@ module A = Ast
 
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
 
-let handle_default pos = A.make_var (A.Var.make ("handle_default", pos), pos)
-
 let translate_lit (l : D.lit) : A.expr =
   match l with
   | D.LBool l -> A.ELit (A.LBool l)
@@ -42,7 +40,8 @@ let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
     List.map (fun except -> thunk_expr (translate_expr ctx except) pos_default) exceptions
   in
   let exceptions =
-    A.make_app (handle_default pos_default)
+    A.make_app
+      (A.make_var (A.handle_default, pos_default))
       [
         Bindlib.box_apply
           (fun exceptions -> (A.EArray exceptions, pos_default))

@@ -2,7 +2,7 @@
 
 This representation is the fifth in the compilation chain
 (see {{: index.html#architecture} Architecture}). Its main difference
-with the previous {{: Lcalc.html} default calculus} is the absence of the
+with the previous {{: Dcalc.html} default calculus} is the absence of the
 default term, which has been eliminated through diverse compilation schemes.
 
 The module describing the abstract syntax tree is:
@@ -22,11 +22,12 @@ Related modules:
 default calculus using catchable exceptions. This compilation scheme has been
 certified.
 
-{1 OCaml backend}
+{1 Backends}
 
 Related modules:
 
-{!modules: Lcalc.To_ocaml}
+{!modules: Lcalc.To_ocaml Lcalc.To_python Lcalc.Backends}
 
 The OCaml backend of the lambda calculus is merely a syntactic formatting,
 since the core of the OCaml value language is effectively a lambda calculus.
+

@@ -29,6 +29,13 @@ help : ../Makefile.common.mk
 		OCaml \
 		$<
 
+#> <target_file>.py			: Compiles the file to Python
+%.py: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $<
+	$(CATALA) \
+		Python \
+		$<
+
 #> <target_file>.tex			: Weaves the file to LaTeX
 %.tex: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $<

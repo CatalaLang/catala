@@ -193,4 +193,27 @@ champ d'application Test9:
   définition f.résidence égal à Guadeloupe
   règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 0€
+
+déclaration champ d'application Test10:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test10:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2003-02-22|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2013-09-30|
+    -- d_rémuneration_mensuelle: 300€
+    -- d_prise_en_charge: GardeAlternéePartageAllocations
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 30000 €
+  définition f.date_courante égal à |2020-04-20|
+  définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 99,37€
 ```

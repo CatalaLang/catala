@@ -38,7 +38,7 @@ and articles markers:
 
 ### Sub-heading (the more '#', the less important)
 
-#### [Legislative atom]
+#### Legislative atom
 ```
 
 Please look at the code of other examples to see how to format things properly.
@@ -53,19 +53,19 @@ to see if you've made any syntax errors. Once the text formatting is done, you
 can start to annotate each legislative atom (article, provision, etc.) with
 some Catala code. To open up a code section in Catala, simply use
 
-~~~markdown
+````markdown
 ```catala
 # In code sections, comments start with #
 scope Foo:
   <your code goes here>
 ```
-~~~
+````
 
 While all the code sections are equivalent in terms of execution, you can
 mark some as "metadata" so that they are printed differently on lawyer-facing
 documents. Here's how it works:
 
-~~~markdown
+````markdown
 > Begin metadata # > Début métadonnées en français
 
 ```catala
@@ -77,7 +77,7 @@ declaration structure FooBar:
 ```
 
 > End metadata # > Fin métadonnées en français
-~~~
+````
 
 Again, make sure to regularly check that your example is parsing correctly. The error message from the compiler should help you debug the syntax if need be. You can also
 live-test the programs you wrote by feeding them to the interpreter
@@ -124,7 +124,7 @@ general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
 Currently, Catala supports English and French legislative text via the
-`--language=en`, `--language=fr` or `--language=pl`  option.
+`--language=en`, `--language=fr` or `--language=pl` option.
 
 Technically, support for new languages can be added via a new lexer. If you want
 to add a new language, you can start from
