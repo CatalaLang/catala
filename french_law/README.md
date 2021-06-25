@@ -27,4 +27,4 @@ To see how to deploy Catala programs as a JS library, see
 ## Python
 
 To see how to deploy Catala programs as a Python library, see
-[the dedicated readme](Python/README.md).
+[the dedicated readme](python/README.md).
