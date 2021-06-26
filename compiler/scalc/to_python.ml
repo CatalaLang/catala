@@ -313,7 +313,10 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
          \t\t\treturn False@\n\
          @\n\
          \tdef __ne__(self, other: object) -> bool:@\n\
-         \t\treturn not (self == other)" format_struct_name struct_name
+         \t\treturn not (self == other)@\n\
+         @\n\
+         \tdef __str__(self) -> str:@\n\
+         \t\t@[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name struct_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun _fmt (struct_field, struct_field_type) ->
@@ -331,6 +334,16 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
            (fun _fmt (struct_field, _) ->
              Format.fprintf fmt "self.%a == other.%a" format_struct_field_name struct_field
                format_struct_field_name struct_field))
+        struct_fields format_struct_name struct_name
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+           (fun _fmt (struct_field, _) ->
+             Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
+        struct_fields
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun _fmt (struct_field, _) ->
+             Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
         struct_fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
@@ -354,7 +367,10 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
          @\n\
          @\n\
          \tdef __ne__(self, other: object) -> bool:@\n\
-         \t\treturn not (self == other)" format_enum_name enum_name
+         \t\treturn not (self == other)@\n\
+         @\n\
+         \tdef __str__(self) -> str:@\n\
+         \t\t@[<hov 4>return \"{}({})\".format(self.code, self.value)@]" format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun _fmt (i, enum_cons, enum_cons_type) ->

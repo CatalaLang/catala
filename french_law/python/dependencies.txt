@@ -4,3 +4,5 @@ mypy
 python-dateutil
 types-python-dateutil
 autopep8
+termcolor
+types-termcolor

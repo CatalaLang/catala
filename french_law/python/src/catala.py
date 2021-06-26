@@ -14,6 +14,8 @@ import datetime
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union
 from functools import reduce
+from enum import Enum
+import copy
 
 Alpha = TypeVar('Alpha')
 Beta = TypeVar('Beta')
@@ -114,7 +116,7 @@ class Decimal:
             return False
 
     def __str__(self) -> str:
-        return self.value.__str__()
+        return "{}".format(mpfr(self.value))
 
 
 class Money:
@@ -206,6 +208,9 @@ class Date:
         else:
             return False
 
+    def __str__(self) -> str:
+        return self.value.__str__()
+
 
 class Duration:
     def __init__(self, value: dateutil.relativedelta.relativedelta) -> None:
@@ -264,6 +269,9 @@ class Duration:
         else:
             return False
 
+    def __str__(self) -> str:
+        return self.value.__str__()
+
 
 class Unit:
     def __init__(self) -> None:
@@ -280,6 +288,9 @@ class Unit:
             return False
         else:
             return True
+
+    def __str__(self) -> str:
+        return "()"
 
 
 class SourcePosition:
@@ -298,8 +309,8 @@ class SourcePosition:
         self.law_headings = law_headings
 
     def __str__(self) -> str:
-        return "in file {}, from {}:{} to {}:{} ({})".format(
-            self.filename, self.start_line, self.start_column, self.end_line, self.end_column, ", ".join(self.law_headings))
+        return "in file {}, from {}:{} to {}:{}".format(
+            self.filename, self.start_line, self.start_column, self.end_line, self.end_column)
 
 # ==========
 # Exceptions
@@ -514,17 +525,46 @@ def no_input() -> Callable[[Unit], Alpha]:
 # =======
 
 
+class LogEventCode(Enum):
+    VariableDefinition = 0
+    BeginCall = 1
+    EndCall = 2
+    DecisionTaken = 3
+
+
+class LogEvent:
+    def __init__(self, code: LogEventCode, payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:
+        self.code = code
+        self.payload = payload
+
+
+log: List[LogEvent] = []
+
+
+def reset_log():
+    log = []
+
+
+def retrieve_log() -> List[LogEvent]:
+    return log
+
+
 def log_variable_definition(headings: List[str], value: Alpha) -> Alpha:
+    log.append(LogEvent(LogEventCode.VariableDefinition,
+               (headings, copy.deepcopy(value))))
     return value
 
 
 def log_begin_call(headings: List[str], f: Callable[[Alpha], Beta], value: Alpha) -> Beta:
+    log.append(LogEvent(LogEventCode.BeginCall, headings))
     return f(value)
 
 
 def log_end_call(headings: List[str], value: Alpha) -> Alpha:
+    log.append(LogEvent(LogEventCode.EndCall, headings))
     return value
 
 
 def log_decision_taken(pos: SourcePosition, value: bool) -> bool:
+    log.append(LogEvent(LogEventCode.DecisionTaken, pos))
     return value

@@ -3,8 +3,11 @@
 from datetime import date
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code
 from src.api import allocations_familiales, Enfant
+from src.catala import LogEvent, LogEventCode, reset_log, retrieve_log
 import timeit
 import argparse
+from typing import List
+from termcolor import colored
 
 
 def call_allocations_familiales() -> float:
@@ -32,6 +35,14 @@ def benchmark_iteration():
     assert (money_given == 99.37)
 
 
+def run_with_log() -> List[LogEvent]:
+    money_given = call_allocations_familiales()
+    assert (money_given == 99.37)
+    log = retrieve_log()
+    reset_log()
+    return log
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='French law library in Python')
@@ -45,6 +56,25 @@ if __name__ == '__main__':
         print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
             iterations))
         print(timeit.timeit(benchmark_iteration, number=iterations))
+    elif action == "show_log":
+        log = run_with_log()
+        indentation = 0
+        for log_event in log:
+            if log_event.code == LogEventCode.BeginCall:
+                print("{}{} {}".format(
+                    "".ljust(indentation), colored("Begin call:", "yellow"), colored(" >> ".join(log_event.payload), "magenta")))  # type: ignore
+                indentation += 2
+            elif log_event.code == LogEventCode.EndCall:
+                indentation -= 2
+                print("{}{} {}".format(
+                    "".ljust(indentation), colored("End call:", "yellow"), colored(" >> ".join(log_event.payload), "magenta")))  # type: ignore
+            elif log_event.code == LogEventCode.VariableDefinition:
+                headings, value = log_event.payload  # type: ignore
+                print("{}{} {} {} {}".format(
+                    "".ljust(indentation), colored("Variable definition:", "blue"), colored(" >> ".join(headings), "magenta"), colored(":=", "blue"), colored(value, "green")))  # type: ignore
+            elif log_event.code == LogEventCode.DecisionTaken:
+                print("{}{} {}".format(
+                    "".ljust(indentation), colored("Decision taken:", "green"), colored("{}".format(log_event.payload), "magenta")))  # type: ignore
     else:
         print("Action '{}' not recognized!".format(action))
         exit(-1)

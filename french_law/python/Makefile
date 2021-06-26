@@ -11,3 +11,6 @@ format:
 
 bench:
 	python main.py bench
+
+show_log:
+	python main.py show_log
