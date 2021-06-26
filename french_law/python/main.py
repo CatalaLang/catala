@@ -6,7 +6,7 @@ from src.api import allocations_familiales, Enfant
 from src.catala import LogEvent, LogEventCode, reset_log, retrieve_log
 import timeit
 import argparse
-from typing import List
+from typing import List, Any
 from termcolor import colored
 
 
@@ -43,6 +43,13 @@ def run_with_log() -> List[LogEvent]:
     return log
 
 
+def print_value(v: Any) -> str:
+    if isinstance(v, list):
+        return "[" + ",".join([str(x) for x in v]) + "]"
+    else:
+        return str(v)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='French law library in Python')
@@ -71,7 +78,7 @@ if __name__ == '__main__':
             elif log_event.code == LogEventCode.VariableDefinition:
                 headings, value = log_event.payload  # type: ignore
                 print("{}{} {} {} {}".format(
-                    "".ljust(indentation), colored("Variable definition:", "blue"), colored(" >> ".join(headings), "magenta"), colored(":=", "blue"), colored(value, "green")))  # type: ignore
+                    "".ljust(indentation), colored("Variable definition:", "blue"), colored(" >> ".join(headings), "magenta"), colored(":=", "blue"), colored(print_value(value), "green")))  # type: ignore
             elif log_event.code == LogEventCode.DecisionTaken:
                 print("{}{} {}".format(
                     "".ljust(indentation), colored("Decision taken:", "green"), colored("{}".format(log_event.payload), "magenta")))  # type: ignore
