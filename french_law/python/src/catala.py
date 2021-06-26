@@ -432,6 +432,10 @@ def date_of_numbers(year: int, month: int, day: int) -> Date:
     # 1 in that case because year=0 cases don't care about the actual year
     return Date(datetime.date(year if year != 0 else 1, month, day))
 
+
+def date_of_datetime(d: datetime.date) -> Date:
+    return Date(d)
+
 # ---------
 # Durations
 # ---------

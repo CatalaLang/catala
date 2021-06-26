@@ -227,7 +227,7 @@ type_french_law_library_python: generate_french_law_library_python
 
 run_french_law_library_benchmark_python: type_french_law_library_python
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) test
+	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
