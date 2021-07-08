@@ -48,6 +48,7 @@ let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : un
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
 
+(* TODO: to factorize. *)
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
@@ -62,6 +63,7 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
+  | Concat -> Format.fprintf fmt "@"
   | Map -> Format.fprintf fmt "Array.map"
   | Filter -> Format.fprintf fmt "array_filter"
 

@@ -61,7 +61,7 @@ type op_kind =
   | KRat
   | KMoney
   | KDate
-  | KDuration  (** All ops don't have a Kdate and KDuration *)
+  | KDuration  (** All ops don't have a KDate and KDuration. *)
 
 type ternop = Fold
 
@@ -80,6 +80,7 @@ type binop =
   | Eq
   | Neq
   | Map
+  | Concat
   | Filter
 
 type log_entry =

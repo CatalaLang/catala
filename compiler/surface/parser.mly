@@ -231,6 +231,7 @@ sum_op:
 | MINUSDEC { (Sub KDec, Pos.from_lpos $sloc) }
 | PLUS { (Add KInt, Pos.from_lpos $sloc) }
 | MINUS { (Sub KInt, Pos.from_lpos $sloc) }
+| CONCAT { (Concat, Pos.from_lpos $sloc) }
 
 sum_unop:
 | MINUS { (Minus KInt, Pos.from_lpos $sloc) }

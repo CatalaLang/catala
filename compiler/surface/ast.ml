@@ -177,6 +177,7 @@ type binop =
   | Gte of op_kind
   | Eq
   | Neq
+  | Concat
 [@@deriving
   visitors { variety = "map"; ancestors = [ "op_kind_map" ]; name = "binop_map"; nude = true },
     visitors { variety = "iter"; ancestors = [ "op_kind_iter" ]; name = "binop_iter"; nude = true }]

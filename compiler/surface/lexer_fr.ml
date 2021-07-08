@@ -483,6 +483,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "--" ->
       L.update_acc lexbuf;
       ALT
+  | "++" ->
+      L.update_acc lexbuf;
+      CONCAT
   | '.' ->
       L.update_acc lexbuf;
       DOT

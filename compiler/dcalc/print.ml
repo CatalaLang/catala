@@ -108,21 +108,23 @@ let format_op_kind (fmt : Format.formatter) (k : op_kind) =
   Format.fprintf fmt "%s"
     (match k with KInt -> "" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
+(** TODO: factorize formatting.*)
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
   match Pos.unmark op with
   | Add k -> format_operator fmt (Format.asprintf "+%a" format_op_kind k)
   | Sub k -> format_operator fmt (Format.asprintf "-%a" format_op_kind k)
   | Mult k -> format_operator fmt (Format.asprintf "*%a" format_op_kind k)
   | Div k -> format_operator fmt (Format.asprintf "/%a" format_op_kind k)
-  | And -> format_operator fmt (Format.asprintf "%s" "&&")
-  | Or -> format_operator fmt (Format.asprintf "%s" "||")
-  | Xor -> format_operator fmt (Format.asprintf "%s" "xor")
-  | Eq -> format_operator fmt (Format.asprintf "%s" "=")
-  | Neq -> format_operator fmt (Format.asprintf "%s" "!=")
+  | And -> format_operator fmt "&&"
+  | Or -> format_operator fmt "||"
+  | Xor -> format_operator fmt "xor"
+  | Eq -> format_operator fmt "="
+  | Neq -> format_operator fmt "!="
   | Lt k -> format_operator fmt (Format.asprintf "%s%a" "<" format_op_kind k)
   | Lte k -> format_operator fmt (Format.asprintf "%s%a" "<=" format_op_kind k)
   | Gt k -> format_operator fmt (Format.asprintf "%s%a" ">" format_op_kind k)
   | Gte k -> format_operator fmt (Format.asprintf "%s%a" ">=" format_op_kind k)
+  | Concat -> format_keyword fmt "++"
   | Map -> format_keyword fmt "map"
   | Filter -> format_keyword fmt "filter"
 

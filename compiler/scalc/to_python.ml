@@ -49,7 +49,7 @@ let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : un
 
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
-  | Add _ -> Format.fprintf fmt "+"
+  | Add _ | Concat -> Format.fprintf fmt "+"
   | Sub _ -> Format.fprintf fmt "-"
   | Mult _ -> Format.fprintf fmt "*"
   | Div D.KInt -> Format.fprintf fmt "//"
