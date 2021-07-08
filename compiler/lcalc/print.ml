@@ -57,11 +57,12 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
     infos
 
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
-  match exn with
-  | EmptyError -> Format.fprintf fmt "EmptyError"
-  | ConflictError -> Format.fprintf fmt "ConflictError"
-  | Crash -> Format.fprintf fmt "Crash"
-  | NoValueProvided -> Format.fprintf fmt "NoValueProvided"
+  Format.fprintf fmt
+    (match exn with
+    | EmptyError -> "EmptyError"
+    | ConflictError -> "ConflictError"
+    | Crash -> "Crash"
+    | NoValueProvided -> "NoValueProvided")
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
