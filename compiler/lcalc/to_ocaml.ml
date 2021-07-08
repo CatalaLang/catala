@@ -42,13 +42,13 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
     (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
-  match entry with
-  | VarDef _ -> Format.fprintf fmt ":="
-  | BeginCall -> Format.fprintf fmt "→ "
-  | EndCall -> Format.fprintf fmt "%s" "← "
-  | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
+  Format.fprintf fmt "%s"
+    (match entry with
+    | VarDef _ -> ":="
+    | BeginCall -> "→ "
+    | EndCall -> "← "
+    | PosRecordIfTrueBool -> "☛ ")
 
-(* TODO: to factorize. *)
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
