@@ -188,6 +188,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         match Pos.unmark (evaluate_operator ctx (Pos.same_pos_as (A.Binop A.Eq) op) args) with
         | A.ELit (A.LBool b) -> A.ELit (A.LBool (not b))
         | _ -> assert false (*should not happen *))
+    | A.Binop A.Concat, [ A.EArray es1; A.EArray es2 ] -> A.EArray (es1 @ es2)
     | A.Binop A.Map, [ _; A.EArray es ] ->
         A.EArray
           (List.map

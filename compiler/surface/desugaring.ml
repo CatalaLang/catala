@@ -44,6 +44,7 @@ let translate_binop (op : Ast.binop) : Dcalc.Ast.binop =
   | Gte l -> Gte (translate_op_kind l)
   | Eq -> Eq
   | Neq -> Neq
+  | Concat -> Concat
 
 let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
   match op with Not -> Not | Minus l -> Minus (translate_op_kind l)

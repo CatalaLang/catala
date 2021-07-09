@@ -165,6 +165,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
   | A.Binop A.Map -> arr (arr any any2) (arr array_any array_any2)
   | A.Binop A.Filter -> arr (arr any bt) (arr array_any array_any)
+  | A.Binop A.Concat -> arr array_any (arr array_any array_any)
   | A.Unop (A.Minus KInt) -> arr it it
   | A.Unop (A.Minus KRat) -> arr rt rt
   | A.Unop (A.Minus KMoney) -> arr mt mt

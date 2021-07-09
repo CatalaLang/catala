@@ -85,6 +85,7 @@ type binop =
   | Eq
   | Neq
   | Map
+  | Concat
   | Filter
 
 type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool

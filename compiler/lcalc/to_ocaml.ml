@@ -42,11 +42,12 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
     (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
-  match entry with
-  | VarDef _ -> Format.fprintf fmt ":="
-  | BeginCall -> Format.fprintf fmt "→ "
-  | EndCall -> Format.fprintf fmt "%s" "← "
-  | PosRecordIfTrueBool -> Format.fprintf fmt "☛ "
+  Format.fprintf fmt "%s"
+    (match entry with
+    | VarDef _ -> ":="
+    | BeginCall -> "→ "
+    | EndCall -> "← "
+    | PosRecordIfTrueBool -> "☛ ")
 
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
@@ -62,6 +63,7 @@ let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : un
   | Lte k -> Format.fprintf fmt "%s%a" "<=" format_op_kind k
   | Gt k -> Format.fprintf fmt "%s%a" ">" format_op_kind k
   | Gte k -> Format.fprintf fmt "%s%a" ">=" format_op_kind k
+  | Concat -> Format.fprintf fmt "@"
   | Map -> Format.fprintf fmt "Array.map"
   | Filter -> Format.fprintf fmt "array_filter"
 

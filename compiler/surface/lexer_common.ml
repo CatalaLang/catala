@@ -77,6 +77,7 @@ let token_list_language_agnostic : (string * token) list =
     (":", COLON);
     (";", SEMICOLON);
     ("--", ALT);
+    ("++", CONCAT);
   ]
 
 module type LocalisedLexer = sig

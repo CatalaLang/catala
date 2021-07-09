@@ -55,14 +55,15 @@ let format_operator (fmt : Format.formatter) (s : string) : unit =
   Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.green ] "%s" s)
 
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
-  match l with
-  | TUnit -> format_base_type fmt "unit"
-  | TBool -> format_base_type fmt "bool"
-  | TInt -> format_base_type fmt "integer"
-  | TRat -> format_base_type fmt "decimal"
-  | TMoney -> format_base_type fmt "money"
-  | TDuration -> format_base_type fmt "duration"
-  | TDate -> format_base_type fmt "date"
+  format_base_type fmt
+    (match l with
+    | TUnit -> "unit"
+    | TBool -> "bool"
+    | TInt -> "integer"
+    | TRat -> "decimal"
+    | TMoney -> "money"
+    | TDuration -> "duration"
+    | TDate -> "date")
 
 let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   let format_typ = format_typ ctx in
@@ -109,33 +110,35 @@ let format_op_kind (fmt : Format.formatter) (k : op_kind) =
     (match k with KInt -> "" | KRat -> "." | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
 let format_binop (fmt : Format.formatter) (op : binop Pos.marked) : unit =
-  match Pos.unmark op with
-  | Add k -> format_operator fmt (Format.asprintf "+%a" format_op_kind k)
-  | Sub k -> format_operator fmt (Format.asprintf "-%a" format_op_kind k)
-  | Mult k -> format_operator fmt (Format.asprintf "*%a" format_op_kind k)
-  | Div k -> format_operator fmt (Format.asprintf "/%a" format_op_kind k)
-  | And -> format_operator fmt (Format.asprintf "%s" "&&")
-  | Or -> format_operator fmt (Format.asprintf "%s" "||")
-  | Xor -> format_operator fmt (Format.asprintf "%s" "xor")
-  | Eq -> format_operator fmt (Format.asprintf "%s" "=")
-  | Neq -> format_operator fmt (Format.asprintf "%s" "!=")
-  | Lt k -> format_operator fmt (Format.asprintf "%s%a" "<" format_op_kind k)
-  | Lte k -> format_operator fmt (Format.asprintf "%s%a" "<=" format_op_kind k)
-  | Gt k -> format_operator fmt (Format.asprintf "%s%a" ">" format_op_kind k)
-  | Gte k -> format_operator fmt (Format.asprintf "%s%a" ">=" format_op_kind k)
-  | Map -> format_keyword fmt "map"
-  | Filter -> format_keyword fmt "filter"
+  format_operator fmt
+    (match Pos.unmark op with
+    | Add k -> Format.asprintf "+%a" format_op_kind k
+    | Sub k -> Format.asprintf "-%a" format_op_kind k
+    | Mult k -> Format.asprintf "*%a" format_op_kind k
+    | Div k -> Format.asprintf "/%a" format_op_kind k
+    | And -> "&&"
+    | Or -> "||"
+    | Xor -> "xor"
+    | Eq -> "="
+    | Neq -> "!="
+    | Lt k -> Format.asprintf "%s%a" "<" format_op_kind k
+    | Lte k -> Format.asprintf "%s%a" "<=" format_op_kind k
+    | Gt k -> Format.asprintf "%s%a" ">" format_op_kind k
+    | Gte k -> Format.asprintf "%s%a" ">=" format_op_kind k
+    | Concat -> "++"
+    | Map -> "map"
+    | Filter -> "filter")
 
 let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> format_keyword fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  match entry with
-  | VarDef _ -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ ")
-  | BeginCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ ")
-  | EndCall -> Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← ")
-  | PosRecordIfTrueBool ->
-      Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.green ] "☛ ")
+  Format.fprintf fmt "%s"
+    (match entry with
+    | VarDef _ -> Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ "
+    | BeginCall -> Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ "
+    | EndCall -> Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← "
+    | PosRecordIfTrueBool -> Utils.Cli.print_with_style [ ANSITerminal.green ] "☛ ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"
