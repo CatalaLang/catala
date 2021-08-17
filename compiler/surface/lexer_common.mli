@@ -14,17 +14,19 @@
 
 (** Auxiliary functions used by all lexers. *)
 
-val is_code : bool ref
-(** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
-    code or law. *)
+type lexing_context = Law | Code | Directive | Directive_args
 
-val code_string_acc : string ref
-(** Mutable string reference that accumulates the string representation of the body of code being
-    lexed. This string representation is used in the literate programming backends to faithfully
-    capture the spacing pattern of the original program *)
+val context : lexing_context ref
+(** Reference, used by the lexer as the mutable state to distinguish whether it is lexing code or
+    law. *)
+
+val code_buffer : Buffer.t
+(** Buffer that accumulates the string representation of the body of code being lexed. This string
+    representation is used in the literate programming backends to faithfully capture the spacing
+    pattern of the original program *)
 
 val update_acc : Sedlexing.lexbuf -> unit
-(** Updates {!val:code_string_acc} with the current lexeme *)
+(** Updates {!val:code_buffer} with the current lexeme *)
 
 val raise_lexer_error : Utils.Pos.t -> string -> 'a
 (** Error-generating helper *)

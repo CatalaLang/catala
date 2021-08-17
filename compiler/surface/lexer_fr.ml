@@ -100,6 +100,9 @@ let digit = [%sedlex.regexp? '0' .. '9']
 (** Regexp matching at least one space. *)
 let space_plus = [%sedlex.regexp? Plus white_space]
 
+(** Regexp matching white space but not newlines *)
+let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
+
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
@@ -115,8 +118,8 @@ let rec lex_code (lexbuf : lexbuf) : token =
       lex_code lexbuf
   | "```" ->
       (* End of code section *)
-      L.is_code := false;
-      END_CODE !L.code_string_acc
+      L.context := Law;
+      END_CODE (Buffer.contents L.code_buffer)
   | "champ", space_plus, "d\'application" ->
       L.update_acc lexbuf;
       SCOPE
@@ -503,64 +506,72 @@ let rec lex_code (lexbuf : lexbuf) : token =
       INT_LITERAL (Runtime.integer_of_string (Utf8.lexeme lexbuf))
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
+let rec lex_directive_args (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
+  match%sedlex lexbuf with
+  | '@', Star hspace, "p.", Star hspace, Plus digit ->
+      let s = Utf8.lexeme lexbuf in
+      let i = String.index s '.' in
+      AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
+  | Compl (white_space | '@'), Star (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
+  | Plus hspace -> lex_directive_args lexbuf
+  | '\n' | eof ->
+      L.context := Law;
+      END_DIRECTIVE
+  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+
+let rec lex_directive (lexbuf : lexbuf) : token =
+  let prev_lexeme = Utf8.lexeme lexbuf in
+  let prev_pos = lexing_positions lexbuf in
+  match%sedlex lexbuf with
+  | Plus hspace -> lex_directive lexbuf
+  | 'D', 0xE9, "but", Plus hspace, "m", 0xE9, "tadonn", 0xE9, "es" -> BEGIN_METADATA
+  | "Fin", Plus hspace, "m", 0xE9, "tadonn", 0xE9, "es" -> END_METADATA
+  | "Inclusion" -> LAW_INCLUDE
+  | ':', Star hspace ->
+      L.context := Directive_args;
+      COLON
+  | '\n' | eof ->
+      L.context := Law;
+      END_DIRECTIVE
+  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+
 (** Main lexing function used outside code blocks *)
 let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
-  let prev_pos = lexing_positions lexbuf in
-  let compl_catala =
-    [%sedlex.regexp?
-      ( Compl 'c'
-      | 'c', Compl 'a'
-      | "ca", Compl 't'
-      | "cat", Compl 'a'
-      | "cata", Compl 'l'
-      | "catal", Compl 'a'
-      | "catala", Compl (white_space | '\n') )]
-  in
-  match%sedlex lexbuf with
-  | "```catala" ->
-      L.is_code := true;
-      L.code_string_acc := "";
-
-      BEGIN_CODE
-  | eof -> EOF
-  | '>', Star white_space, 'D', 0xE9, "but m", 0xE9, "tadonn", 0xE9, "es" -> BEGIN_METADATA
-  | '>', Star white_space, "Fin m", 0xE9, "tadonn", 0xE9, "es" -> END_METADATA
-  | ( '>',
-      Star white_space,
-      "Inclusion:",
-      Star white_space,
-      Plus (Compl ('@' | '\n')),
-      Star white_space,
-      Opt ('@', Star white_space, "p.", Star white_space, Plus digit, Star white_space),
-      '\n' ) ->
-      let extract_components =
-        R.regexp ">\\s*Inclusion\\:\\s*([^@\\n]+)\\s*(@\\s*p\\.\\s*([0-9]+)|)"
-      in
-      let get_component = R.get_substring (R.exec ~rex:extract_components (Utf8.lexeme lexbuf)) in
-      let jorftext = R.regexp "JORFTEXT\\d{12}" in
-      let name = get_component 1 in
-      let pages = try Some (int_of_string (get_component 3)) with Not_found -> None in
-      let pos = lexing_positions lexbuf in
-      if R.pmatch ~rex:jorftext name then
-        LAW_INCLUDE (Ast.LegislativeText (name, Pos.from_lpos pos))
-      else if Filename.extension name = ".pdf" then
-        LAW_INCLUDE (Ast.PdfFile ((name, Pos.from_lpos pos), pages))
-      else LAW_INCLUDE (Ast.CatalaFile (name, Pos.from_lpos pos))
-  | Plus '#', Star white_space, Plus (Compl '\n'), Star white_space, '\n' ->
-      L.get_law_heading lexbuf
-  | Plus
-      (* Match non-special characters, i.e. characters that doesn't appear at the start of a
-         previous regexp. *)
-      ( Compl ('#' | '`' | '>')
-      (* Following literals allow to match grave accents as long as they don't conflict with the
-         [BEGIN_CODE] token, i.e. either there are no more than three consecutive ones or they must
-         not be followed by 'catala'. *)
-      | Rep ('`', 1 .. 2), Compl '`'
-      | "```", compl_catala ) ->
-      LAW_TEXT (Utf8.lexeme lexbuf)
-  | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
+  let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
+  let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
+  if at_bol then
+    match%sedlex lexbuf with
+    | eof -> EOF
+    | "```catala", Plus white_space ->
+        L.context := Code;
+        Buffer.clear L.code_buffer;
+        BEGIN_CODE
+    | '>', Star hspace ->
+        L.context := Directive;
+        BEGIN_DIRECTIVE
+    | Plus '#', Star hspace, Plus (Compl '\n'), Star hspace, ('\n' | eof) ->
+        L.get_law_heading lexbuf
+    | _ -> (
+        (* Nested match for lower priority; `_` matches length 0 *)
+        let lexbuf = lexbuf in
+        (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12 *)
+        match%sedlex lexbuf with
+        | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+        | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme)
+  else
+    match%sedlex lexbuf with
+    | eof -> EOF
+    | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
+    | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
     Surface.Lexer_common.is_code}. *)
-let lexer (lexbuf : lexbuf) : token = if !L.is_code then lex_code lexbuf else lex_law lexbuf
+let lexer (lexbuf : lexbuf) : token =
+  match !L.context with
+  | Law -> lex_law lexbuf
+  | Code -> lex_code lexbuf
+  | Directive -> lex_directive lexbuf
+  | Directive_args -> lex_directive_args lexbuf

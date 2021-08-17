@@ -35,17 +35,19 @@ let get_law_heading (lexbuf : lexbuf) : token =
   let precedence = calc_precedence (String.trim (get_substring 1)) in
   LAW_HEADING (title, article_id, article_expiration_date, precedence)
 
+type lexing_context = Law | Code | Directive | Directive_args
+
 (** Boolean reference, used by the lexer as the mutable state to distinguish whether it is lexing
     code or law. *)
-let is_code : bool ref = ref false
+let context : lexing_context ref = ref Law
 
 (** Mutable string reference that accumulates the string representation of the body of code being
     lexed. This string representation is used in the literate programming backends to faithfully
     capture the spacing pattern of the original program *)
-let code_string_acc : string ref = ref ""
+let code_buffer : Buffer.t = Buffer.create 4000
 
-(** Updates {!val:code_string_acc} with the current lexeme *)
-let update_acc (lexbuf : lexbuf) : unit = code_string_acc := !code_string_acc ^ Utf8.lexeme lexbuf
+(** Updates {!val:code_buffer} with the current lexeme *)
+let update_acc (lexbuf : lexbuf) : unit = Buffer.add_string code_buffer (Utf8.lexeme lexbuf)
 
 (** Error-generating helper *)
 let raise_lexer_error (loc : Pos.t) (token : string) =
