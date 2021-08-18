@@ -43,6 +43,8 @@ let token_list : (string * token) list =
     ("somme", SUM);
     ("rempli", FILLED);
     ("définition", DEFINITION);
+    ("étiquette", LABEL);
+    ("exception", EXCEPTION);
     ("égal à", DEFINED_AS);
     ("selon", MATCH);
     ("sous forme", WITH);
@@ -69,12 +71,12 @@ let token_list : (string * token) list =
     ("ou", OR);
     ("ou bien", XOR);
     ("non", NOT);
-    ("nombre", CARDINAL);
     ("maximum", MAXIMUM);
     ("minimum", MINIMUM);
     ("filtre", FILTER);
     ("application", MAP);
     ("initial", INIT);
+    ("nombre", CARDINAL);
     ("an", YEAR);
     ("mois", MONTH);
     ("jour", DAY);
@@ -83,6 +85,7 @@ let token_list : (string * token) list =
   ]
   @ L.token_list_language_agnostic
 
+(** Localised builtin functions *)
 let builtins : (string * Ast.builtin_expression) list =
   [
     ("entier_vers_décimal", Ast.IntToDec);
@@ -108,7 +111,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
-  | white_space | '\n' ->
+  | white_space ->
       (* Whitespaces *)
       L.update_acc lexbuf;
       lex_code lexbuf
@@ -280,9 +283,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "non" ->
       L.update_acc lexbuf;
       NOT
-  | "nombre" ->
-      L.update_acc lexbuf;
-      CARDINAL
   | "maximum" ->
       L.update_acc lexbuf;
       MAXIMUM
@@ -298,6 +298,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "initial" ->
       L.update_acc lexbuf;
       INIT
+  | "nombre" ->
+      L.update_acc lexbuf;
+      CARDINAL
   | "vrai" ->
       L.update_acc lexbuf;
       TRUE
@@ -313,7 +316,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "jour" ->
       L.update_acc lexbuf;
       DAY
-  | digit, Star (digit | white_space), Opt (',', Rep (digit, 0 .. 2)), Star white_space, 0x20AC ->
+  | digit, Star (digit | hspace), Opt (',', Rep (digit, 0 .. 2)), Star hspace, 0x20AC ->
       let extract_parts = R.regexp "([0-9]([0-9 ]*[0-9]|))(,([0-9]{0,2})|)" in
       let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 0 (String.length full_str - 1)) in
@@ -514,7 +517,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
       let s = Utf8.lexeme lexbuf in
       let i = String.index s '.' in
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
-  | Compl (white_space | '@'), Star (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
+  | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
   | '\n' | eof ->
       L.context := Law;
@@ -529,7 +532,7 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   | 'D', 0xE9, "but", Plus hspace, "m", 0xE9, "tadonn", 0xE9, "es" -> BEGIN_METADATA
   | "Fin", Plus hspace, "m", 0xE9, "tadonn", 0xE9, "es" -> END_METADATA
   | "Inclusion" -> LAW_INCLUDE
-  | ':', Star hspace ->
+  | ':' ->
       L.context := Directive_args;
       COLON
   | '\n' | eof ->
@@ -549,13 +552,14 @@ let lex_law (lexbuf : lexbuf) : token =
         L.context := Code;
         Buffer.clear L.code_buffer;
         BEGIN_CODE
-    | '>', Star hspace ->
+    | '>' ->
         L.context := Directive;
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus (Compl '\n'), Star hspace, ('\n' | eof) ->
         L.get_law_heading lexbuf
     | _ -> (
-        (* Nested match for lower priority; `_` matches length 0 *)
+        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+           sub-match at the same point *)
         let lexbuf = lexbuf in
         (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12 *)
         match%sedlex lexbuf with

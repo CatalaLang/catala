@@ -310,7 +310,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "day" ->
       L.update_acc lexbuf;
       DAY
-  | 0x24, Star white_space, digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)) ->
+  | 0x24, Star hspace, digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)) ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
       let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
@@ -552,7 +552,8 @@ let lex_law (lexbuf : lexbuf) : token =
     | Plus '#', Star hspace, Plus (Compl '\n'), Star hspace, ('\n' | eof) ->
         L.get_law_heading lexbuf
     | _ -> (
-        (* Nested match for lower priority; `_` matches length 0 *)
+        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+           sub-match at the same point *)
         let lexbuf = lexbuf in
         (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12 *)
         match%sedlex lexbuf with

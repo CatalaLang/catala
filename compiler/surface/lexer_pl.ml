@@ -312,12 +312,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "dzien" ->
       L.update_acc lexbuf;
       DAY
-  | ( Star white_space,
-      digit,
-      Star (digit | ','),
-      Opt ('.', Rep (digit, 0 .. 2)),
-      Star white_space,
-      "PLN" ) ->
+  | digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)), Star hspace, "PLN" ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
       let full_str = Utf8.lexeme lexbuf in
       let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
@@ -518,7 +513,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
       let s = Utf8.lexeme lexbuf in
       let i = String.index s '.' in
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
-  | Compl (white_space | '@'), Star (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
+  | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
   | '\n' | eof ->
       L.context := Law;
@@ -532,7 +527,7 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   | Plus hspace -> lex_directive lexbuf
   | "Poczatek", Plus hspace, "metadanych" -> BEGIN_METADATA
   | "Koniec", Plus hspace, "metadanych" -> END_METADATA
-  | "Include", Star hspace -> LAW_INCLUDE
+  | "Include" -> LAW_INCLUDE
   | ":" ->
       L.context := Directive_args;
       COLON
@@ -542,7 +537,7 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 (** Main lexing function used outside code blocks *)
-and lex_law (lexbuf : lexbuf) : token =
+let lex_law (lexbuf : lexbuf) : token =
   let prev_lexeme = Utf8.lexeme lexbuf in
   let ((_, start_pos) as prev_pos) = lexing_positions lexbuf in
   let at_bol = Lexing.(start_pos.pos_bol = start_pos.pos_cnum) in
@@ -553,13 +548,14 @@ and lex_law (lexbuf : lexbuf) : token =
         L.context := Code;
         Buffer.clear L.code_buffer;
         BEGIN_CODE
-    | '>', Star hspace ->
+    | '>' ->
         L.context := Directive;
         BEGIN_DIRECTIVE
     | Plus '#', Star hspace, Plus (Compl '\n'), Star hspace, ('\n' | eof) ->
         L.get_law_heading lexbuf
     | _ -> (
-        (* Nested match for lower priority; `_` matches length 0 *)
+        (* Nested match for lower priority; `_` matches length 0 so we effectively retry the
+           sub-match at the same point *)
         let lexbuf = lexbuf in
         (* workaround sedlex bug, see https://github.com/ocaml-community/sedlex/issues/12 *)
         match%sedlex lexbuf with
