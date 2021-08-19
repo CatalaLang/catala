@@ -22,7 +22,7 @@
 %}
 
 %parameter<Localisation: sig
-  val builtins: (string * Ast.builtin_expression) list
+  val lex_builtin: string -> Ast.builtin_expression option
 end>
 
 %type <Ast.source_file> source_file
@@ -67,7 +67,9 @@ qident:
 
 atomic_expression:
 | q = IDENT {
-    (try Builtin (List.assoc q Localisation.builtins) with Not_found -> Ident q),
+    (match Localisation.lex_builtin q with
+     | Some b -> Builtin b
+     | None -> Ident q),
     Pos.from_lpos $sloc }
 | l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
 | LPAREN e = expression RPAREN { e }
@@ -235,7 +237,7 @@ sum_op:
 | MINUSDEC { (Sub KDec, Pos.from_lpos $sloc) }
 | PLUS { (Add KInt, Pos.from_lpos $sloc) }
 | MINUS { (Sub KInt, Pos.from_lpos $sloc) }
-| CONCAT { (Concat, Pos.from_lpos $sloc) }
+| PLUSPLUS { (Concat, Pos.from_lpos $sloc) }
 
 sum_unop:
 | MINUS { (Minus KInt, Pos.from_lpos $sloc) }
@@ -436,11 +438,13 @@ scope_item:
 
 ident:
 | i = IDENT {
- if List.mem_assoc i Localisation.builtins then
-   Errors.raise_spanned_error
-     (Printf.sprintf "Reserved builtin name")
-     (Pos.from_lpos $sloc)
- else (i, Pos.from_lpos $sloc)
+ match Localisation.lex_builtin i with
+ | Some _ ->
+    Errors.raise_spanned_error
+      (Printf.sprintf "Reserved builtin name")
+      (Pos.from_lpos $sloc)
+ | None ->
+    (i, Pos.from_lpos $sloc)
 }
 
 condition_pos:

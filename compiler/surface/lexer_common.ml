@@ -79,15 +79,15 @@ let token_list_language_agnostic : (string * token) list =
     (":", COLON);
     (";", SEMICOLON);
     ("--", ALT);
-    ("++", CONCAT);
+    ("++", PLUSPLUS);
   ]
 
 module type LocalisedLexer = sig
   val token_list : (string * Tokens.token) list
   (** Same as {!val: token_list_language_agnostic}, but with tokens specialized to a given language. *)
 
-  val builtins : (string * Ast.builtin_expression) list
-  (** Associative list of string to their corresponding builtins *)
+  val lex_builtin : string -> Ast.builtin_expression option
+  (** Simple lexer for builtins *)
 
   val lex_code : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used in code blocks *)
