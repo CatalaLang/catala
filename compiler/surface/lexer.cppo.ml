@@ -299,10 +299,10 @@ let token_list : (string * token) list =
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
-  | MS_IntToDec, eof -> Some IntToDec
-  | MS_GetDay, eof -> Some GetDay
-  | MS_GetMonth, eof -> Some GetMonth
-  | MS_GetYear, eof -> Some GetYear
+  | MR_IntToDec, eof -> Some IntToDec
+  | MR_GetDay, eof -> Some GetDay
+  | MR_GetMonth, eof -> Some GetMonth
+  | MR_GetYear, eof -> Some GetYear
   | _ -> None
 
 (** Regexp matching any digit character.
