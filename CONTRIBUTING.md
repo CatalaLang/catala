@@ -104,9 +104,9 @@ need more, here is how one can be added:
   for scope parameters, variables or structure fields, since it won't compile
   anymore.
 - Add an element to the `builtin_expression` type in `surface/ast.ml(i)`
-- Add your builtin in the `builtins` list in `surface/lexer.ml`, and with proper
-  translations in all of the language-specific modules `surface/lexer_en.ml`,
-  `surface/lexer_fr.ml`, etc.
+- Add your builtin in the `builtins` list in `surface/lexer.cppo.ml`, and with proper
+  translations in all of the language-specific modules `surface/lexer_en.cppo.ml`,
+  `surface/lexer_fr.cppo.ml`, etc.
 - The rest can all be done by following the type errors downstream:
   - Add a corresponding element to the lower-level AST in `dcalc/ast.ml(i)`, type `unop`
   - Extend the translation accordingly in `surface/desugaring.ml`
