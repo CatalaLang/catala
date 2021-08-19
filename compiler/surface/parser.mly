@@ -29,6 +29,10 @@ end>
 
 %start source_file
 
+(* The token is returned for every line of law text, make them right-associative
+   so that we concat them efficiently as much as possible. *)
+%right LAW_TEXT
+
 %%
 
 typ_base:
