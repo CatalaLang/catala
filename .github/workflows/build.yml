@@ -55,4 +55,5 @@ jobs:
       - name: Make all
         run: |
           eval $(opam env)
+          export OCAMLRUNPARAM=b
           make all
