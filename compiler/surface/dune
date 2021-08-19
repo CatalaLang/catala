@@ -21,7 +21,7 @@
 (menhir
  (modules tokens parser)
  (merge_into parser)
- (flags --external-tokens Tokens --table))
+ (flags --external-tokens Tokens --table --explain))
 
 (documentation
  (package catala)

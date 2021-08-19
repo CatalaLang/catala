@@ -23,7 +23,11 @@
 
 %token EOF
 %token<string * string option * string option * int> LAW_HEADING
-%token<Ast.law_include> LAW_INCLUDE
+
+%token BEGIN_DIRECTIVE END_DIRECTIVE LAW_INCLUDE
+%token<int> AT_PAGE
+%token<string> DIRECTIVE_ARG
+
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE

@@ -29,6 +29,10 @@ end>
 
 %start source_file
 
+(* The token is returned for every line of law text, make them right-associative
+   so that we concat them efficiently as much as possible. *)
+%right LAW_TEXT
+
 %%
 
 typ_base:
@@ -550,7 +554,7 @@ code:
 | code = list(code_item) { (code, Pos.from_lpos $sloc) }
 
 metadata_block:
-| BEGIN_METADATA option(law_text) BEGIN_CODE code_and_pos = code text = END_CODE option(law_text)  END_METADATA {
+| BEGIN_DIRECTIVE BEGIN_METADATA END_DIRECTIVE option(law_text) BEGIN_CODE code_and_pos = code text = END_CODE option(law_text) BEGIN_DIRECTIVE END_METADATA END_DIRECTIVE {
   let (code, pos) = code_and_pos in
    (code, (text, pos))
 }
@@ -567,7 +571,7 @@ law_heading:
 }
 
 law_text:
-| text = LAW_TEXT { String.trim text }
+| lines = nonempty_list(LAW_TEXT) { String.trim (String.concat "" lines) }
 
 source_file_item:
 | text = law_text { LawText text }
@@ -582,8 +586,16 @@ source_file_item:
   let (code, source_repr) = code in
   CodeBlock (code, source_repr, true)
 }
-| includ = LAW_INCLUDE {
-  LawInclude includ
+| BEGIN_DIRECTIVE LAW_INCLUDE COLON args = nonempty_list(DIRECTIVE_ARG) page = option(AT_PAGE) END_DIRECTIVE {
+  let filename = String.trim (String.concat "" args) in
+  let pos = Pos.from_lpos $sloc in
+  let jorftext = Re.Pcre.regexp "JORFTEXT\\d{12}" in
+  if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
+    LawInclude (Ast.LegislativeText (filename, pos))
+  else if Filename.extension filename = ".pdf" || page <> None then
+    LawInclude (Ast.PdfFile ((filename, pos), page))
+  else
+    LawInclude (Ast.CatalaFile (filename, pos))
 }
 
 
