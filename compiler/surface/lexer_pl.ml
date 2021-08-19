@@ -314,9 +314,8 @@ let rec lex_code (lexbuf : lexbuf) : token =
       DAY
   | digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)), Star hspace, "PLN" ->
       let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
-      let full_str = Utf8.lexeme lexbuf in
-      let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in
-      let parts = R.get_substring (R.exec ~rex:extract_parts only_numbers_str) in
+      let str = Utf8.lexeme lexbuf in
+      let parts = R.get_substring (R.exec ~rex:extract_parts str) in
       (* Integer literal*)
       let units = parts 1 in
       let remove_commas = R.regexp "," in
