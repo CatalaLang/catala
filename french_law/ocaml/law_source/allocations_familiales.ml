@@ -96,8 +96,7 @@ let embed_element_prestations_familiales (x : element_prestations_familiales) : 
       | AllocationsFamiliales x -> ("AllocationsFamiliales", embed_unit x)
       | ComplementFamilial x -> ("ComplémentFamilial", embed_unit x)
       | AllocationLogement x -> ("AllocationLogement", embed_unit x)
-      | AllocationEducationEnfantHandicape x ->
-          ("AllocationÉducationEnfantHandicapé", embed_unit x)
+      | AllocationEducationEnfantHandicape x -> ("AllocationÉducationEnfantHandicapé", embed_unit x)
       | AllocationSoutienFamilial x -> ("AllocationSoutienFamilial", embed_unit x)
       | AllocationRentreeScolaire x -> ("AllocationRentréeScolaire", embed_unit x)
       | AllocationJournalierePresenceParentale x ->
@@ -259,8 +258,7 @@ let embed_enfant_le_plus_age_in (x : enfant_le_plus_age_in) : runtime_value =
   Struct
     ( [ "EnfantLePlusÂgé_in" ],
       [
-        ("enfants_in", unembeddable x.enfants_in);
-        ("le_plus_âgé_in", unembeddable x.le_plus_age_in);
+        ("enfants_in", unembeddable x.enfants_in); ("le_plus_âgé_in", unembeddable x.le_plus_age_in);
       ] )
 
 type allocations_familiales_out = {
@@ -570,8 +568,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -592,8 +590,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -618,8 +616,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -640,8 +638,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -666,8 +664,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -688,8 +686,8 @@ let smic (smic_in : smic_in) =
                        law_headings =
                          [
                            "Article 1";
-                           "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du \
-                            salaire minimum de croissance";
+                           "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire \
+                            minimum de croissance";
                            "Montant du salaire minimum de croissance";
                          ];
                      }
@@ -919,8 +917,8 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 \
                             relative à la revalorisation au 1er avril 2021 des prestations \
                             familiales servies en métropole, en Guadeloupe, en Guyane, en \
-                            Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et \
-                            dans le département de Mayotte";
+                            Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans \
+                            le département de Mayotte";
                            "Montant de la base mensuelle des allocations familiales";
                          ];
                      }
@@ -939,11 +937,11 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                        end_column = 34;
                        law_headings =
                          [
-                           "Instruction interministérielle no DSS/SD2B/2020/33 du 18 février \
-                            2020 relative à la revalorisation au 1er avril 2020 des prestations \
+                           "Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 \
+                            relative à la revalorisation au 1er avril 2020 des prestations \
                             familiales servies en métropole, en Guadeloupe, en Guyane, en \
-                            Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et \
-                            dans le département de Mayotte";
+                            Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans \
+                            le département de Mayotte";
                            "Montant de la base mensuelle des allocations familiales";
                          ];
                      }
@@ -962,9 +960,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                        end_column = 34;
                        law_headings =
                          [
-                           "Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 \
-                            relative à la revalorisation au 1er avril 2019 des prestations \
-                            familiales servies en métropole";
+                           "Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative \
+                            à la revalorisation au 1er avril 2019 des prestations familiales \
+                            servies en métropole";
                            "Montant de la base mensuelle des allocations familiales";
                          ];
                      }
@@ -1044,8 +1042,8 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                      [
                        "Article L751-1";
                        "Chapitre 1er : Généralités";
-                       "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à \
-                        la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                       "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la \
+                        Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
                        "Livre 7 : Régimes divers - Dispositions diverses";
                        "Partie législative";
                        "Code de la sécurité sociale";
@@ -2141,8 +2139,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre \
                             2019 relative à la revalorisation au 1er janvier 2020 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à La \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2168,8 +2166,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre \
                             2018 relative à la revalorisation au 1er janvier 2019 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2192,11 +2190,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        end_column = 69;
                        law_headings =
                          [
-                           "Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre \
-                            2017 relative à la revalorisation au 1er janvier 2018 des plafonds de \
+                           "Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 \
+                            relative à la revalorisation au 1er janvier 2018 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2294,8 +2292,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre \
                             2019 relative à la revalorisation au 1er janvier 2020 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à La \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2321,8 +2319,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre \
                             2018 relative à la revalorisation au 1er janvier 2019 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2345,11 +2343,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        end_column = 69;
                        law_headings =
                          [
-                           "Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre \
-                            2017 relative à la revalorisation au 1er janvier 2018 des plafonds de \
+                           "Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 \
+                            relative à la revalorisation au 1er janvier 2018 des plafonds de \
                             ressources d’attribution de certaines prestations familiales servies \
-                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la \
-                            Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte";
+                            en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à \
+                            Saint-Barthélemy, à Saint-Martin et à Mayotte";
                            "Montant des plafonds de ressources";
                          ];
                      }
@@ -2418,8 +2416,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        [
                          "Article L755-12";
                          "Chapitre 5 : Prestations familiales et prestations assimilées";
-                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à \
-                          la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la \
+                          Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
                          "Livre 7 : Régimes divers - Dispositions diverses";
                          "Partie législative";
                          "Code de la sécurité sociale";
@@ -2467,9 +2465,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            [
                              "Article L755-12";
                              "Chapitre 5 : Prestations familiales et prestations assimilées";
-                             "Titre 5 : Dispositions particulières à la Guadeloupe, à la \
-                              Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à \
-                              Saint-Martin";
+                             "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à \
+                              la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
                              "Livre 7 : Régimes divers - Dispositions diverses";
                              "Partie législative";
                              "Code de la sécurité sociale";
@@ -2698,8 +2695,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                        [
                          "Article L755-12";
                          "Chapitre 5 : Prestations familiales et prestations assimilées";
-                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à \
-                          la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                         "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la \
+                          Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
                          "Livre 7 : Régimes divers - Dispositions diverses";
                          "Partie législative";
                          "Code de la sécurité sociale";
@@ -2829,9 +2826,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                     est_enfant_le_plus_age_
                                     (log_variable_definition
                                        [
-                                         "AllocationsFamiliales";
-                                         "est_enfant_le_plus_âgé";
-                                         "input";
+                                         "AllocationsFamiliales"; "est_enfant_le_plus_âgé"; "input";
                                        ]
                                        unembeddable param_)))))
                        && param_.age

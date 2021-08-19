@@ -101,10 +101,10 @@ let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token
        (Cli.print_with_style syntax_hints_style "\"%s\"" token)
        msg)
     ((Some "Error token:", error_loc)
-     ::
-     (match last_good_loc with
-     | None -> []
-     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
+    ::
+    (match last_good_loc with
+    | None -> []
+    | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)

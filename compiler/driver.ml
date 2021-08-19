@@ -94,10 +94,9 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
              (output_file
-              ::
-              List.map
-                (fun ext -> Filename.remove_extension source_file ^ ext)
-                backend_extensions_list))
+             :: List.map
+                  (fun ext -> Filename.remove_extension source_file ^ ext)
+                  backend_extensions_list))
           (String.concat "\\\n" prgm.program_source_files)
           (String.concat "\\\n" prgm.program_source_files);
         0

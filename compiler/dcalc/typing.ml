@@ -70,7 +70,8 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter)
 let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
     (t2 : typ Pos.marked UnionFind.elem) : unit =
   let unify = unify ctx in
-  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx) t2); *)
+  (* Cli.debug_print (Format.asprintf "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
+     t2); *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let raise_type_error (t1_pos : Pos.t) (t2_pos : Pos.t) : 'a =

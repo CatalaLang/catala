@@ -97,8 +97,7 @@ let bench =
     Benchmark.latency1 ~style:Auto ~name:"Allocations familiales" (Int64.of_int num_iter) run_test
       ()
   in
-  Printf.printf
-    "Successful computations: %d (%.2f%%)\nTotal benefits awarded: %.2f€ (mean %.2f€)\n"
+  Printf.printf "Successful computations: %d (%.2f%%)\nTotal benefits awarded: %.2f€ (mean %.2f€)\n"
     !num_successful
     (Float.mul (Float.div (float_of_int !num_successful) (float_of_int num_iter)) 100.)
     !total_amount
