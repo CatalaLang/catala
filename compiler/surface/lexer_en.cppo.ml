@@ -85,7 +85,10 @@
 #define MS_TRUE "true"
 #define MS_FALSE "false"
 
+(* Specific delimiters *)
+
 #define MR_MONEY_OP_SUFFIX '$'
+#define MS_DECIMAL_SEPARATOR "."
 
 (* Builtins *)
 
@@ -108,8 +111,13 @@
 (* More complex cases *)
 
 #define MX_MONEY_AMOUNT \
-   0x24, Star hspace, digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)) -> \
-      let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in \
+   0x24, Star hspace, digit, Star (digit | ','), Opt (MS_DECIMAL_SEPARATOR, Rep (digit, 0 .. 2)) -> \
+      let extract_parts = \
+        Re.(compile @@ seq [ \
+            group (seq [ digit; opt (seq [ rep (alt [digit; char ',']); digit]) ]); \
+            opt (seq [ str MS_DECIMAL_SEPARATOR; group (repn digit 0 (Some 2))]) \
+        ]) \
+      in \
       let full_str = Utf8.lexeme lexbuf in \
       let only_numbers_str = String.trim (String.sub full_str 1 (String.length full_str - 1)) in \
       let parts = R.get_substring (R.exec ~rex:extract_parts only_numbers_str) in \
@@ -120,16 +128,7 @@
         Runtime.integer_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) \
       in \
       let cents = \
-        try Runtime.integer_of_string (parts 4) with Not_found -> Runtime.integer_of_int 0 \
+        try Runtime.integer_of_string (parts 2) with Not_found -> Runtime.integer_of_int 0 \
       in \
       L.update_acc lexbuf; \
       MONEY_AMOUNT (units, cents)
-
-#define MX_DECIMAL_LITERAL \
-   Plus digit, '.', Star digit -> \
-      let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in \
-      let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in \
-      (* Integer literal*) \
-      L.update_acc lexbuf; \
-      DECIMAL_LITERAL \
-        (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))

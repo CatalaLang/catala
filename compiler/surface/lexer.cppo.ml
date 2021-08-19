@@ -522,7 +522,17 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       DAY
   | MX_MONEY_AMOUNT
-  | MX_DECIMAL_LITERAL
+  | Plus digit, MS_DECIMAL_SEPARATOR, Star digit ->
+    let rex =
+      Re.(compile @@ whole_string @@ seq [
+          group (rep1 digit);
+          str MS_DECIMAL_SEPARATOR;
+          group (rep digit)
+        ]) in
+    let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
+    L.update_acc lexbuf;
+    DECIMAL_LITERAL
+      (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
   | "<=@" ->
       L.update_acc lexbuf;
       LESSER_EQUAL_DATE
