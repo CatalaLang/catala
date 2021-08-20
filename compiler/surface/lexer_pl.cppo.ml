@@ -93,7 +93,10 @@
 (* Specific delimiters *)
 
 #define MR_MONEY_OP_SUFFIX '$'
-#define MS_DECIMAL_SEPARATOR "."
+#define MC_DECIMAL_SEPARATOR '.'
+#define MR_MONEY_PREFIX ""
+#define MR_MONEY_DELIM ','
+#define MR_MONEY_SUFFIX Star hspace, "PLN"
 
 (* Builtins *)
 
@@ -112,27 +115,3 @@
       let s = Utf8.lexeme lexbuf in \
       let i = String.index s '.' in \
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
-
-(* More complex cases *)
-
-#define MX_MONEY_AMOUNT \
-   digit, Star (digit | ','), Opt (MS_DECIMAL_SEPARATOR, Rep (digit, 0 .. 2)), Star hspace, "PLN" -> \
-      let extract_parts = \
-        Re.(compile @@ seq [ \
-            group (seq [ digit; opt (seq [ rep (alt [digit; char ',']); digit]) ]); \
-            opt (seq [ str MS_DECIMAL_SEPARATOR; group (repn digit 0 (Some 2))]) \
-        ]) \
-      in \
-      let str = Utf8.lexeme lexbuf in \
-      let parts = R.get_substring (R.exec ~rex:extract_parts str) in \
-      (* Integer literal*) \
-      let units = parts 1 in \
-      let remove_commas = R.regexp "," in \
-      let units = \
-        Runtime.integer_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units) \
-      in \
-      let cents = \
-        try Runtime.integer_of_string (parts 2) with Not_found -> Runtime.integer_of_int 0 \
-      in \
-      L.update_acc lexbuf; \
-      MONEY_AMOUNT (units, cents)

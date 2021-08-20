@@ -521,12 +521,24 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_DAY ->
       L.update_acc lexbuf;
       DAY
-  | MX_MONEY_AMOUNT
-  | Plus digit, MS_DECIMAL_SEPARATOR, Star digit ->
+  | MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR, Rep (digit, 0 .. 2)), MR_MONEY_SUFFIX ->
+      let s = Utf8.lexeme lexbuf in
+      let units = Buffer.create (String.length s) in
+      let cents = Buffer.create 2 in
+      let buf = ref units in
+      for i = 0 to String.length s - 1 do
+        match s.[i] with
+        | '0'..'9' as c -> Buffer.add_char !buf c
+        | MC_DECIMAL_SEPARATOR -> buf := cents
+        | _ -> ()
+      done;
+      L.update_acc lexbuf;
+      MONEY_AMOUNT (Runtime.integer_of_string (Buffer.contents units), Runtime.integer_of_string (Buffer.contents cents))
+  | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
           group (rep1 digit);
-          str MS_DECIMAL_SEPARATOR;
+          char MC_DECIMAL_SEPARATOR;
           group (rep digit)
         ]) in
     let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
