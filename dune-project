@@ -61,7 +61,9 @@
   (js_of_ocaml-ppx
    (>= 3.8.0))
   (camomile
-   (>= 1.0.2))))
+   (>= 1.0.2))
+  (cppo
+   (>= 1))))
 
 (package
  (name french_law)

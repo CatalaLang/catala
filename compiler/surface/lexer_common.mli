@@ -46,8 +46,8 @@ module type LocalisedLexer = sig
   (** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the
       input language. *)
 
-  val builtins : (string * Ast.builtin_expression) list
-  (** Associative list of string to their corresponding builtins *)
+  val lex_builtin : string -> Ast.builtin_expression option
+  (** Simple lexer for builtins *)
 
   val lex_code : Sedlexing.lexbuf -> Tokens.token
   (** Main lexing function used in a code block *)

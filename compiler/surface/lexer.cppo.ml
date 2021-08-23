@@ -18,83 +18,292 @@ open Utils
 module L = Lexer_common
 module R = Re.Pcre
 
-(** Same as {!val: Surface.Lexer_common.token_list_language_agnostic}, but with tokens specialized
-    to Polish. *)
+(* The localised strings and regexps for the tokens and specific parsing rules
+   are defined as CPPO macros in the `lexer_XX.cppo.ml` files.
+
+   - `MS_*` macros define token strings
+   - `MR_*` are sedlex regexps matching the token (inferred from the strings if absent,
+     but should be present for any token containing spacing, and for any non-latin1
+     character)
+   - `MX_*` are full matching rules of the form `sedlex regexp -> ocaml expression`
+*)
+
+(* Avoid the need for defining the regexps when they are simple strings *)
+#ifndef MR_SCOPE
+  #define MR_SCOPE MS_SCOPE
+#endif
+#ifndef MR_CONSEQUENCE
+  #define MR_CONSEQUENCE MS_CONSEQUENCE
+#endif
+#ifndef MR_DATA
+  #define MR_DATA MS_DATA
+#endif
+#ifndef MR_DEPENDS
+  #define MR_DEPENDS MS_DEPENDS
+#endif
+#ifndef MR_DECLARATION
+  #define MR_DECLARATION MS_DECLARATION
+#endif
+#ifndef MR_CONTEXT
+  #define MR_CONTEXT MS_CONTEXT
+#endif
+#ifndef MR_DECREASING
+  #define MR_DECREASING MS_DECREASING
+#endif
+#ifndef MR_INCREASING
+  #define MR_INCREASING MS_INCREASING
+#endif
+#ifndef MR_OF
+  #define MR_OF MS_OF
+#endif
+#ifndef MR_COLLECTION
+  #define MR_COLLECTION MS_COLLECTION
+#endif
+#ifndef MR_ENUM
+  #define MR_ENUM MS_ENUM
+#endif
+#ifndef MR_INTEGER
+  #define MR_INTEGER MS_INTEGER
+#endif
+#ifndef MR_MONEY
+  #define MR_MONEY MS_MONEY
+#endif
+#ifndef MR_TEXT
+  #define MR_TEXT MS_TEXT
+#endif
+#ifndef MR_DECIMAL
+  #define MR_DECIMAL MS_DECIMAL
+#endif
+#ifndef MR_DATE
+  #define MR_DATE MS_DATE
+#endif
+#ifndef MR_DURATION
+  #define MR_DURATION MS_DURATION
+#endif
+#ifndef MR_BOOLEAN
+  #define MR_BOOLEAN MS_BOOLEAN
+#endif
+#ifndef MR_SUM
+  #define MR_SUM MS_SUM
+#endif
+#ifndef MR_FILLED
+  #define MR_FILLED MS_FILLED
+#endif
+#ifndef MR_DEFINITION
+  #define MR_DEFINITION MS_DEFINITION
+#endif
+#ifndef MR_LABEL
+  #define MR_LABEL MS_LABEL
+#endif
+#ifndef MR_EXCEPTION
+  #define MR_EXCEPTION MS_EXCEPTION
+#endif
+#ifndef MR_DEFINED_AS
+  #define MR_DEFINED_AS MS_DEFINED_AS
+#endif
+#ifndef MR_MATCH
+  #define MR_MATCH MS_MATCH
+#endif
+#ifndef MR_WILDCARD
+  #define MR_WILDCARD MS_WILDCARD
+#endif
+#ifndef MR_WITH
+  #define MR_WITH MS_WITH
+#endif
+#ifndef MR_UNDER_CONDITION
+  #define MR_UNDER_CONDITION MS_UNDER_CONDITION
+#endif
+#ifndef MR_IF
+  #define MR_IF MS_IF
+#endif
+#ifndef MR_THEN
+  #define MR_THEN MS_THEN
+#endif
+#ifndef MR_ELSE
+  #define MR_ELSE MS_ELSE
+#endif
+#ifndef MR_CONDITION
+  #define MR_CONDITION MS_CONDITION
+#endif
+#ifndef MR_CONTENT
+  #define MR_CONTENT MS_CONTENT
+#endif
+#ifndef MR_STRUCT
+  #define MR_STRUCT MS_STRUCT
+#endif
+#ifndef MR_ASSERTION
+  #define MR_ASSERTION MS_ASSERTION
+#endif
+#ifndef MR_VARIES
+  #define MR_VARIES MS_VARIES
+#endif
+#ifndef MR_WITH_V
+  #define MR_WITH_V MS_WITH_V
+#endif
+#ifndef MR_FOR
+  #define MR_FOR MS_FOR
+#endif
+#ifndef MR_ALL
+  #define MR_ALL MS_ALL
+#endif
+#ifndef MR_WE_HAVE
+  #define MR_WE_HAVE MS_WE_HAVE
+#endif
+#ifndef MR_FIXED
+  #define MR_FIXED MS_FIXED
+#endif
+#ifndef MR_BY
+  #define MR_BY MS_BY
+#endif
+#ifndef MR_RULE
+  #define MR_RULE MS_RULE
+#endif
+#ifndef MR_EXISTS
+  #define MR_EXISTS MS_EXISTS
+#endif
+#ifndef MR_IN
+  #define MR_IN MS_IN
+#endif
+#ifndef MR_SUCH
+  #define MR_SUCH MS_SUCH
+#endif
+#ifndef MR_THAT
+  #define MR_THAT MS_THAT
+#endif
+#ifndef MR_AND
+  #define MR_AND MS_AND
+#endif
+#ifndef MR_OR
+  #define MR_OR MS_OR
+#endif
+#ifndef MR_XOR
+  #define MR_XOR MS_XOR
+#endif
+#ifndef MR_NOT
+  #define MR_NOT MS_NOT
+#endif
+#ifndef MR_MAXIMUM
+  #define MR_MAXIMUM MS_MAXIMUM
+#endif
+#ifndef MR_MINIMUM
+  #define MR_MINIMUM MS_MINIMUM
+#endif
+#ifndef MR_FILTER
+  #define MR_FILTER MS_FILTER
+#endif
+#ifndef MR_MAP
+  #define MR_MAP MS_MAP
+#endif
+#ifndef MR_INIT
+  #define MR_INIT MS_INIT
+#endif
+#ifndef MR_CARDINAL
+  #define MR_CARDINAL MS_CARDINAL
+#endif
+#ifndef MR_YEAR
+  #define MR_YEAR MS_YEAR
+#endif
+#ifndef MR_MONTH
+  #define MR_MONTH MS_MONTH
+#endif
+#ifndef MR_DAY
+  #define MR_DAY MS_DAY
+#endif
+#ifndef MR_TRUE
+  #define MR_TRUE MS_TRUE
+#endif
+#ifndef MR_FALSE
+  #define MR_FALSE MS_FALSE
+#endif
+#ifndef MR_IntToDec
+  #define MR_IntToDec MS_IntToDec
+#endif
+#ifndef MR_GetDay
+  #define MR_GetDay MS_GetDay
+#endif
+#ifndef MR_GetMonth
+  #define MR_GetMonth MS_GetMonth
+#endif
+#ifndef MR_GetYear
+  #define MR_GetYear MS_GetYear
+#endif
+
 let token_list : (string * token) list =
   [
-    ("zakres", SCOPE);
-    ("konsekwencja", CONSEQUENCE);
-    ("data", DATA);
-    ("zalezy od", DEPENDS);
-    ("deklaracja", DECLARATION);
-    ("kontekst", CONTEXT);
-    ("malejacy", DECREASING);
-    ("rosnacy", INCREASING);
-    ("z", OF);
-    ("kolekcja", COLLECTION);
-    ("enumeracja", ENUM);
-    ("calkowita", INTEGER);
-    ("pieniądze", MONEY);
-    ("tekst", TEXT);
-    ("dziesiętny", DECIMAL);
-    ("czas", DATE);
-    ("czas trwania", DURATION);
-    ("zerojedynkowy", BOOLEAN);
-    ("suma", SUM);
-    ("spelnione", FILLED);
-    ("definicja", DEFINITION);
-    ("etykieta", LABEL);
-    ("wyjątek", EXCEPTION);
-    ("wynosi", DEFINED_AS);
-    ("pasuje", MATCH);
-    ("ze wzorem", WITH);
-    ("cokolwiek", WILDCARD);
-    ("pod warunkiem", UNDER_CONDITION);
-    ("jezeli", IF);
-    ("wtedy", THEN);
-    ("inaczej", ELSE);
-    ("typu", CONTENT);
-    ("struktura", STRUCT);
-    ("asercja", ASSERTION);
-    ("rozna", VARIES);
-    ("wraz z", WITH_V);
-    ("dla", FOR);
-    ("wszystkie", ALL);
-    ("mamy", WE_HAVE);
-    ("staloprzecinkowa", FIXED);
-    ("przez", BY);
-    ("zasada", RULE);
-    ("istnieje", EXISTS);
-    ("takie ze", SUCH);
-    ("to", THAT);
-    ("i", AND);
-    ("lub", OR);
-    ("xor", XOR);
-    ("nie", NOT);
-    ("maximum", MAXIMUM);
-    ("minimum", MINIMUM);
-    ("filtr", FILTER);
-    ("mapuj", MAP);
-    ("poczatkowy", INIT);
-    ("liczba", CARDINAL);
-    ("rok", YEAR);
-    ("miesiac", MONTH);
-    ("dzien", DAY);
-    ("prawda", TRUE);
-    ("falsz", FALSE);
+    (MS_SCOPE, SCOPE);
+    (MS_CONSEQUENCE, CONSEQUENCE);
+    (MS_DATA, DATA);
+    (MS_DEPENDS, DEPENDS);
+    (MS_DECLARATION, DECLARATION);
+    (MS_CONTEXT, CONTEXT);
+    (MS_DECREASING, DECREASING);
+    (MS_INCREASING, INCREASING);
+    (MS_OF, OF);
+    (MS_COLLECTION, COLLECTION);
+    (MS_ENUM, ENUM);
+    (MS_INTEGER, INTEGER);
+    (MS_MONEY, MONEY);
+    (MS_TEXT, TEXT);
+    (MS_DECIMAL, DECIMAL);
+    (MS_DATE, DATE);
+    (MS_DURATION, DURATION);
+    (MS_BOOLEAN, BOOLEAN);
+    (MS_SUM, SUM);
+    (MS_FILLED, FILLED);
+    (MS_DEFINITION, DEFINITION);
+    (MS_LABEL, LABEL);
+    (MS_EXCEPTION, EXCEPTION);
+    (MS_DEFINED_AS, DEFINED_AS);
+    (MS_MATCH, MATCH);
+    (MS_WILDCARD, WILDCARD);
+    (MS_WITH, WITH);
+    (MS_UNDER_CONDITION, UNDER_CONDITION);
+    (MS_IF, IF);
+    (MS_THEN, THEN);
+    (MS_ELSE, ELSE);
+    (MS_CONDITION, CONDITION);
+    (MS_CONTENT, CONTENT);
+    (MS_STRUCT, STRUCT);
+    (MS_ASSERTION, ASSERTION);
+    (MS_VARIES, VARIES);
+    (MS_WITH_V, WITH_V);
+    (MS_FOR, FOR);
+    (MS_ALL, ALL);
+    (MS_WE_HAVE, WE_HAVE);
+    (MS_FIXED, FIXED);
+    (MS_BY, BY);
+    (MS_RULE, RULE);
+    (MS_EXISTS, EXISTS);
+    (MS_IN, IN);
+    (MS_SUCH, SUCH);
+    (MS_THAT, THAT);
+    (MS_AND, AND);
+    (MS_OR, OR);
+    (MS_XOR, XOR);
+    (MS_NOT, NOT);
+    (MS_MAXIMUM, MAXIMUM);
+    (MS_MINIMUM, MINIMUM);
+    (MS_FILTER, FILTER);
+    (MS_MAP, MAP);
+    (MS_INIT, INIT);
+    (MS_CARDINAL, CARDINAL);
+    (MS_YEAR, YEAR);
+    (MS_MONTH, MONTH);
+    (MS_DAY, DAY);
+    (MS_TRUE, TRUE);
+    (MS_FALSE, FALSE);
   ]
   @ L.token_list_language_agnostic
 
-(** Localised builtin functions
-
-    @note (EmileRolley): shouldn't the builtin functions also be translated ? *)
-let builtins : (string * Ast.builtin_expression) list =
-  [
-    ("integer_to_decimal", IntToDec);
-    ("get_day", GetDay);
-    ("get_month", GetMonth);
-    ("get_year", GetYear);
-  ]
+(** Localised builtin functions *)
+let lex_builtin (s : string) : Ast.builtin_expression option =
+  let lexbuf = Utf8.from_string s in
+  match%sedlex lexbuf with
+  | MR_IntToDec, eof -> Some IntToDec
+  | MR_GetDay, eof -> Some GetDay
+  | MR_GetMonth, eof -> Some GetMonth
+  | MR_GetYear, eof -> Some GetYear
+  | _ -> None
 
 (** Regexp matching any digit character.
 
@@ -125,215 +334,217 @@ let rec lex_code (lexbuf : lexbuf) : token =
       (* End of code section *)
       L.context := Law;
       END_CODE (Buffer.contents L.code_buffer)
-  | "zakres" ->
+  | MR_SCOPE ->
       L.update_acc lexbuf;
       SCOPE
-  | "data" ->
+  | MR_DATA ->
       L.update_acc lexbuf;
       DATA
-  | "zalezy", space_plus, "od" ->
+  | MR_DEPENDS ->
       L.update_acc lexbuf;
       DEPENDS
-  | "deklaracja" ->
+  | MR_DECLARATION ->
       L.update_acc lexbuf;
       DECLARATION
-  | "kontekst" ->
+  | MR_CONTEXT ->
       L.update_acc lexbuf;
       CONTEXT
-  | "malejacy" ->
+  | MR_DECREASING ->
       L.update_acc lexbuf;
       DECREASING
-  | "rosnacy" ->
+  | MR_INCREASING ->
       L.update_acc lexbuf;
       INCREASING
-  | "z" ->
+  | MR_OF ->
       L.update_acc lexbuf;
       OF
-  | "kolekcja" ->
+  | MR_COLLECTION ->
       L.update_acc lexbuf;
       COLLECTION
-  | "enumeracja" ->
+  | MR_ENUM ->
       L.update_acc lexbuf;
       ENUM
-  | "calkowita" ->
+  | MR_INTEGER ->
       L.update_acc lexbuf;
       INTEGER
-  | "pieni", 0x0105, "dze" ->
+  | MR_MONEY ->
       L.update_acc lexbuf;
       MONEY
-  | "tekst" ->
+  | MR_TEXT ->
       L.update_acc lexbuf;
       TEXT
-  | "dziesi", 0x0119, "tny" ->
+  | MR_DECIMAL ->
       L.update_acc lexbuf;
       DECIMAL
-  | "czas" ->
+  | MR_DATE ->
       L.update_acc lexbuf;
       DATE
-  | "czas", space_plus, "trwania" ->
+  | MR_DURATION ->
       L.update_acc lexbuf;
       DURATION
-  | "zerojedynkowy" ->
+  | MR_BOOLEAN ->
       L.update_acc lexbuf;
       BOOLEAN
-  | "suma" ->
+  | MR_SUM ->
       L.update_acc lexbuf;
       SUM
-  | "spelnione" ->
+  | MR_FILLED ->
       L.update_acc lexbuf;
       FILLED
-  | "definicja" ->
+  | MR_DEFINITION ->
       L.update_acc lexbuf;
       DEFINITION
-  | "etykieta" ->
+  | MR_LABEL ->
       L.update_acc lexbuf;
       LABEL
-  | "wyj", 0x0105, "tek" ->
+  | MR_EXCEPTION ->
       L.update_acc lexbuf;
       EXCEPTION
-  | "wynosi" ->
+  | MR_DEFINED_AS ->
       L.update_acc lexbuf;
       DEFINED_AS
-  | "pasuje" ->
+  | MR_MATCH ->
       L.update_acc lexbuf;
       MATCH
-  | "ze", space_plus, "wzorem" ->
+  | MR_WITH ->
       L.update_acc lexbuf;
       WITH
-  | "cokolwiek" ->
+  | MR_WILDCARD ->
       L.update_acc lexbuf;
       WILDCARD
-  | "pod", space_plus, "warunkiem" ->
+  | MR_UNDER_CONDITION ->
       L.update_acc lexbuf;
       UNDER_CONDITION
-  | "jezeli" ->
+  | MR_IF ->
       L.update_acc lexbuf;
       IF
-  | "konsekwencja" ->
+  | MR_CONSEQUENCE ->
       L.update_acc lexbuf;
       CONSEQUENCE
-  | "wtedy" ->
+  | MR_THEN ->
       L.update_acc lexbuf;
       THEN
-  | "inaczej" ->
+  | MR_ELSE ->
       L.update_acc lexbuf;
       ELSE
-  | "warunek" ->
+  | MR_CONDITION ->
       L.update_acc lexbuf;
       CONDITION
-  | "typu" ->
+  | MR_CONTENT ->
       L.update_acc lexbuf;
       CONTENT
-  | "struktura" ->
+  | MR_STRUCT ->
       L.update_acc lexbuf;
       STRUCT
-  | "asercja" ->
+  | MR_ASSERTION ->
       L.update_acc lexbuf;
       ASSERTION
-  | "rozna" ->
+  | MR_VARIES ->
       L.update_acc lexbuf;
       VARIES
-  | "wraz", space_plus, "z" ->
+  | MR_WITH_V ->
       L.update_acc lexbuf;
       WITH_V
-  | "dla" ->
+  | MR_FOR ->
       L.update_acc lexbuf;
       FOR
-  | "wszystkie" ->
+  | MR_ALL ->
       L.update_acc lexbuf;
       ALL
-  | "mamy" ->
+  | MR_WE_HAVE ->
       L.update_acc lexbuf;
       WE_HAVE
-  | "staloprzecinkowa" ->
+  | MR_FIXED ->
       L.update_acc lexbuf;
       FIXED
-  | "przez" ->
+  | MR_BY ->
       L.update_acc lexbuf;
       BY
-  | "zasada" ->
-      (* 0xE8 is è *)
+  | MR_RULE ->
+      L.update_acc lexbuf;
       L.update_acc lexbuf;
       RULE
-  | "istnieje" ->
+  | MR_EXISTS ->
       L.update_acc lexbuf;
       EXISTS
-  | "in" ->
+  | MR_IN ->
       L.update_acc lexbuf;
       IN
-  | "takie", space_plus, "ze" ->
+  | MR_SUCH ->
       L.update_acc lexbuf;
       SUCH
-  | "to" ->
+  | MR_THAT ->
       L.update_acc lexbuf;
       THAT
-  | "i" ->
+  | MR_AND ->
       L.update_acc lexbuf;
       AND
-  | "lub" ->
+  | MR_OR ->
       L.update_acc lexbuf;
       OR
-  | "xor" ->
+  | MR_XOR ->
       L.update_acc lexbuf;
       XOR
-  | "nie" ->
+  | MR_NOT ->
       L.update_acc lexbuf;
       NOT
-  | "maximum" ->
+  | MR_MAXIMUM ->
       L.update_acc lexbuf;
       MAXIMUM
-  | "minimum" ->
+  | MR_MINIMUM ->
       L.update_acc lexbuf;
       MINIMUM
-  | "filtr" ->
+  | MR_FILTER ->
       L.update_acc lexbuf;
       FILTER
-  | "mapuj" ->
+  | MR_MAP ->
       L.update_acc lexbuf;
       MAP
-  | "poczatkowy" ->
+  | MR_INIT ->
       L.update_acc lexbuf;
       INIT
-  | "liczba" ->
+  | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL
-  | "prawda" ->
+  | MR_TRUE ->
       L.update_acc lexbuf;
       TRUE
-  | "falsz" ->
+  | MR_FALSE ->
       L.update_acc lexbuf;
       FALSE
-  | "rok" ->
+  | MR_YEAR ->
       L.update_acc lexbuf;
       YEAR
-  | "miesiac" ->
+  | MR_MONTH ->
       L.update_acc lexbuf;
       MONTH
-  | "dzien" ->
+  | MR_DAY ->
       L.update_acc lexbuf;
       DAY
-  | digit, Star (digit | ','), Opt ('.', Rep (digit, 0 .. 2)), Star hspace, "PLN" ->
-      let extract_parts = R.regexp "([0-9]([0-9,]*[0-9]|))(.([0-9]{0,2})|)" in
-      let str = Utf8.lexeme lexbuf in
-      let parts = R.get_substring (R.exec ~rex:extract_parts str) in
-      (* Integer literal*)
-      let units = parts 1 in
-      let remove_commas = R.regexp "," in
-      let units =
-        Runtime.integer_of_string (R.substitute ~rex:remove_commas ~subst:(fun _ -> "") units)
-      in
-      let cents =
-        try Runtime.integer_of_string (parts 4) with Not_found -> Runtime.integer_of_int 0
-      in
+  | MR_MONEY_PREFIX, digit, Opt (Star (digit | MR_MONEY_DELIM), digit), Opt (MC_DECIMAL_SEPARATOR, Rep (digit, 0 .. 2)), MR_MONEY_SUFFIX ->
+      let s = Utf8.lexeme lexbuf in
+      let units = Buffer.create (String.length s) in
+      let cents = Buffer.create 2 in
+      let buf = ref units in
+      for i = 0 to String.length s - 1 do
+        match s.[i] with
+        | '0'..'9' as c -> Buffer.add_char !buf c
+        | MC_DECIMAL_SEPARATOR -> buf := cents
+        | _ -> ()
+      done;
       L.update_acc lexbuf;
-      MONEY_AMOUNT (units, cents)
-  | Plus digit, '.', Star digit ->
-      let extract_code_title = R.regexp "([0-9]+)\\.([0-9]*)" in
-      let dec_parts = R.get_substring (R.exec ~rex:extract_code_title (Utf8.lexeme lexbuf)) in
-      (* Integer literal*)
-      L.update_acc lexbuf;
-      DECIMAL_LITERAL
-        (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
+      MONEY_AMOUNT (Runtime.integer_of_string (Buffer.contents units), Runtime.integer_of_string (Buffer.contents cents))
+  | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
+    let rex =
+      Re.(compile @@ whole_string @@ seq [
+          group (rep1 digit);
+          char MC_DECIMAL_SEPARATOR;
+          group (rep digit)
+        ]) in
+    let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
+    L.update_acc lexbuf;
+    DECIMAL_LITERAL
+      (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
   | "<=@" ->
       L.update_acc lexbuf;
       LESSER_EQUAL_DATE
@@ -373,28 +584,28 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | "/^" ->
       L.update_acc lexbuf;
       DIVDURATION
-  | "<=", 0x24 ->
+  | "<=", MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       LESSER_EQUAL_MONEY
-  | '<', 0x24 ->
+  | '<', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       LESSER_MONEY
-  | ">=", 0x24 ->
+  | ">=", MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       GREATER_EQUAL_MONEY
-  | '>', 0x24 ->
+  | '>', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       GREATER_MONEY
-  | '+', 0x24 ->
+  | '+', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       PLUSMONEY
-  | '-', 0x24 ->
+  | '-', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       MINUSMONEY
-  | '*', 0x24 ->
+  | '*', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       MULTMONEY
-  | '/', 0x24 ->
+  | '/', MR_MONEY_OP_SUFFIX ->
       L.update_acc lexbuf;
       DIVMONEY
   | "<=." ->
@@ -486,7 +697,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       ALT
   | "++" ->
       L.update_acc lexbuf;
-      CONCAT
+      PLUSPLUS
   | '.' ->
       L.update_acc lexbuf;
       DOT
@@ -524,9 +735,9 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
-  | "Poczatek", Plus hspace, "metadanych" -> BEGIN_METADATA
-  | "Koniec", Plus hspace, "metadanych" -> END_METADATA
-  | "Include" -> LAW_INCLUDE
+  | MR_BEGIN_METADATA -> BEGIN_METADATA
+  | MR_END_METADATA -> END_METADATA
+  | MR_LAW_INCLUDE -> LAW_INCLUDE
   | ":" ->
       L.context := Directive_args;
       COLON
