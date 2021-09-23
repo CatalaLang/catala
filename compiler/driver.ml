@@ -69,6 +69,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
       else if backend = "python" then Cli.Python
+      else if backend = "solidity" then Cli.Solidity
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -241,7 +242,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      result))
               results;
             0
-        | Cli.OCaml | Cli.Python ->
+        | Cli.OCaml | Cli.Python | Cli.Solidity ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
             let prgm =
@@ -279,6 +280,15 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                 let oc = open_out output_file in
                 let fmt = Format.formatter_of_out_channel oc in
                 Scalc.To_python.format_program fmt prgm type_ordering;
+                close_out oc
+            | Cli.Solidity ->
+                let prgm = Scalc.Compile_from_lambda.translate_program prgm in
+                let output_file = output_file ".sol" in
+                Cli.debug_print "Compiling program into Solidity...";
+                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                let oc = open_out output_file in
+                let fmt = Format.formatter_of_out_channel oc in
+                Scalc.To_solidity.format_program fmt prgm type_ordering;
                 close_out oc
             | _ -> assert false (* should not happen *));
             0
