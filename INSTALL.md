@@ -2,6 +2,23 @@
 
 ## Requirements
 
+### With Docker
+
+The Catala compiler is written using OCaml. The repository provides a `Dockerfile`
+to build a Docker image with all the dependencies required to build the Catala compiler.
+
+Start by installing Docker: https://docs.docker.com/get-docker/
+
+Then build the Docker image:
+
+    docker build . -t catala
+
+Finally, start a `bash` shell inside a new container created from the newly built image:
+
+    docker run -it -v $PWD:$PWD -w $PWD --name catala catala bash
+
+### Without Docker
+
 The Catala compiler is written using OCaml. First, you have to install `opam`,
 OCaml's distribution and package manager. Follow the [instructions on the `opam`
 website](https://opam.ocaml.org/doc/Install.html).
@@ -14,6 +31,8 @@ just use:
 
 If you get a `No switch 4.12.0 is currently installed` error message, follow
 the hint and enter `opam switch create 4.12.0`.
+
+## Dependencies
 
 Next, install all the OCaml packages that Catala depend on, as well as some
 git submodules, with
