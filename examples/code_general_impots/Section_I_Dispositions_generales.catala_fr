@@ -40,26 +40,16 @@ nature, déterminés conformément aux dispositions des articles 14 à 155,
 total dont sont retranchées les charges énumérées à l'article 156.
 
 ```catala
-déclaration structure RevenuNetGlobal:
-donnée revenus_fonciers contenu argent
-donnée bénéfices_industriels_commerciaux contenu argent
-donnée rémunérations_dirigeants contenu argent
-donnée bénéfices_agricoles contenu argent
-donnée traitements_salaires contenu argent
-donnée bénéfices_non_commerciaux contenu argent
-donnée revenus_capitaux_mobiliers contenu argent
-donnée plus_values contenu argent
-donnée total contenu argent
-
-déclaration champ d'application CalculImpotSurLeRevenu :
-  contexte revenu_net_global contenu RevenuNetGlobal
-
-champ d'application CalculImpotSurLeRevenu:
-  définition revenu_net_global.total égal à
-    revenu_net_global.revenus_fonciers + revenu_net_global.bénéfices_industriels_commerciaux
-    + revenu_net_global.rémunérations_dirigeants + revenu_net_global.bénéfices_agricoles
-    + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
-    + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
+champ d'application CalculImpôtSurLeRevenu:
+  définition revenu_net_global égal à
+    détail_revenu_net_global.revenus_fonciers +€
+    détail_revenu_net_global.bénéfices_industriels_commerciaux +€
+    détail_revenu_net_global.rémunérations_dirigeants +€
+    détail_revenu_net_global.bénéfices_agricoles +€
+    détail_revenu_net_global.traitements_salaires +€
+    détail_revenu_net_global.bénéfices_non_commerciaux +€
+    détail_revenu_net_global.revenus_capitaux_mobiliers +€
+    détail_revenu_net_global.plus_values
 ```
 
 ####### 0I : Définition du revenu net global
@@ -71,28 +61,13 @@ Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt 
 Celles dont le domicile fiscal est situé hors de France sont passibles de cet impôt en raison de leurs seuls revenus de source française.
 
 ```catala
-déclaration énumération DomicileFiscal:
--- France
--- HorsDeFrance
-
-déclaration structure MontantsSourcesRevenus:
-  donnée source_française contenu argent
-  donnée source_étrangère contenu argent
-
-déclaration structure Personne:
-  donnée domicile_fiscal contenu DomicileFiscal
-  donnée revenus contenu argent
-  donnée montants_sources_revenus contenu MontantsSourcesRevenus
-
-déclaration champ d'application CalculImpotSurLeRevenu :
-  contexte personne contenu Personne
-
-champ d'application CalculImpotSurLeRevenu:
-  définition personne.revenus égal à
-  si personne.domicileFiscal = France alors
-  montants_sources_revenus.source_française +€ montants_sources_revenus.source_étrangère
-  sinon
-  montants_sources_revenus.source_française
+champ d'application CalculImpôtSurLeRevenu:
+  définition revenus égal à
+    si domicile_fiscal = France alors
+      montants_sources_revenus.source_française +€
+        montants_sources_revenus.source_étrangère
+    sinon
+      montants_sources_revenus.source_française
 ```
 
 ######## Article 4 B
@@ -124,10 +99,10 @@ ou sont chargés de mission dans un pays étranger et qui ne sont pas soumis dan
 sur l'ensemble de leurs revenus.
 
 ```catala
-champ d'application CalculImpotSurLeRevenu:
- définition personne.domicile_fiscal égal à
+champ d'application CalculImpôtSurLeRevenu:
+ définition domicile_fiscal égal à
  si
-  personne.foyer_lieu_sejour_principal_france
-    alors France
+    personne.foyer_lieu_sejour_principal_france
+ alors France
  sinon HorsDeFrance
 ```
