@@ -1,7 +1,0 @@
-(executable
- (name catala)
- (modes native)
- (package catala)
- (modules catala)
- (public_name catala)
- (libraries catala))

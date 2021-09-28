@@ -13,7 +13,7 @@
   'main' : {
     'patterns' : [
       {
-        'begin' : '(@@)'
+        'begin' : '(^\\s*[\\#]+)'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_en'
@@ -24,7 +24,7 @@
             'include' : '#main__1'
           }
         ]
-        'end' : '(@@[\\+]*)'
+        'end' : '(\n)'
         'endCaptures' : {
           '1' : {
             'name' : 'markup.heading.title.catala_en'
@@ -32,7 +32,7 @@
         }
       }
       {
-        'begin' : '(@)'
+        'begin' : '(^\\s*[\\#]+\\s*\\[[^\]]\\s*\\])'
         'beginCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_en'
@@ -43,7 +43,7 @@
             'include' : '#main__2'
           }
         ]
-        'end' : '(@)'
+        'end' : '(\n)'
         'endCaptures' : {
           '1' : {
             'name' : 'markup.heading.subtitle.catala_en'
@@ -51,11 +51,11 @@
         }
       }
       {
-        'match' : '([^\\/])'
+        'match' : '([^`])'
         'name' : 'entity.law.catala_en'
       }
       {
-        'begin' : '(\\/\\*)'
+        'begin' : '(```catala)'
         'beginCaptures' : {
           '1' : {
             'name' : 'comment.block.documentation.catala_en'
@@ -66,7 +66,7 @@
             'include' : '#code'
           }
         ]
-        'end' : '(\\*\\/)'
+        'end' : '(```)'
         'endCaptures' : {
           '1' : {
             'name' : 'comment.block.documentation.catala_en'
@@ -100,11 +100,11 @@
         'name' : 'keyword.control.catala_en'
       }
       {
-        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception)\\b'
+        'match' : '\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b'
         'name' : 'keyword.other.catala_en'
       }
       {
-        'match' : '(\\|[0-9]+/[0-9]+/[0-9]+\\|)'
+        'match' : '(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)'
         'name' : 'constant.numeric.catala_en'
       }
       {
@@ -120,11 +120,11 @@
         'name' : 'punctuation.catala_en'
       }
       {
-        'match' : '(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|not|or|and|\\$|%|year|month|day)'
+        'match' : '(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|not|or|xor|and|\\$|%|year|month|day)'
         'name' : 'keyword.operator.catala_en'
       }
       {
-        'match' : '\\b(integer|boolean|date|money|text|decimal|number|sum)\\b'
+        'match' : '\\b(integer|boolean|date|duration|money|text|decimal|number|sum)\\b'
         'name' : 'support.type.catala_en'
       }
       {

@@ -2,64 +2,73 @@
 # Variables
 ##########################################
 
-LATEXMK=latexmk
+LATEXMK?=latexmk
 
-PYGMENTIZE_FR=../../syntax_highlighting/fr/pygments/pygments/env/bin/pygmentize
-PYGMENTIZE_EN=../../syntax_highlighting/en/pygments/pygments/env/bin/pygmentize
+CATALA=../../_build/default/compiler/catala.exe \
+	$(CATALA_OPTS) --language=$(CATALA_LANG)
 
-CATALA=dune exec --no-print-director ../../src/catala.exe -- $(CATALA_OPTS) --language=$(CATALA_LANG)
-
-LEGIFRANCE_CATALA=dune exec ../../src/legifrance_catala.exe --
-
-CATALA_EXE=../../_build/default/src/catala.exe
-
-ifeq ($(CATALA_LANG),fr)
-	PYGMENTIZE=$(PYGMENTIZE_FR)
-endif
-ifeq ($(CATALA_LANG),en)
-	PYGMENTIZE=$(PYGMENTIZE_EN)
-endif
+help : ../Makefile.common.mk
+	@sed -n 's/^#> //p' $<
 
 ##########################################
 # Targets
 ##########################################
 
-%.run: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+#> SCOPE=<ScopeName> <target_file>.run	: Runs the interpeter for the scope of the file
+%.run: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $<
-	@$(CATALA) \
+	$(CATALA) \
 		Interpret \
 		-s $(SCOPE) \
 		$<
 
-%.tex: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+#> <target_file>.ml			: Compiles the file to OCaml
+%.ml: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $<
+	$(CATALA) \
+		OCaml \
+		$<
+
+#> <target_file>.py			: Compiles the file to Python
+%.py: %.catala_$(CATALA_LANG)
+	@$(CATALA) Makefile $<
+	$(CATALA) \
+		Python \
+		$<
+
+#> <target_file>.tex			: Weaves the file to LaTeX
+%.tex: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $<
 	$(CATALA) \
 		--wrap \
-		--pygmentize=$(PYGMENTIZE) \
 		LaTeX \
 		$<
 
-%.html: %.catala_$(CATALA_LANG) $(CATALA_EXE)
+#> <target_file>.pdf			: Weaves the file to PDF (via LaTeX)
+%.pdf: %.tex
+	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
+
+#> <target_file>.html			: Weaves the file to HTML
+%.html: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $<
 	$(CATALA) \
 	--wrap \
-	--pygmentize=$(PYGMENTIZE) \
 	HTML \
 	$<
 
-%.pdf: %.tex
-	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
 
 ##########################################
 # Misceallenous
 ##########################################
 
+#> clean				: Removes intermediate files
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
 	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \
 		$(SRC:.catala_$(CATALA_LANG)=.d) \
 		_minted-$(SRC:.catala_$(CATALA_LANG)=) \
-		$(SRC:.catala_$(CATALA_LANG)=.html)
+		$(SRC:.catala_$(CATALA_LANG)=.html) \
+		$(SRC:.catala_$(CATALA_LANG)=.ml) \
 
 include $(wildcard $(SRC:.catala_$(CATALA_LANG)=.d))
 

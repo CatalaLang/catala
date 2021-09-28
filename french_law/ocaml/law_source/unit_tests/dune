@@ -1,0 +1,4 @@
+(executable
+ (name run_tests)
+ (modes native)
+ (libraries catala.runtime ANSITerminal))

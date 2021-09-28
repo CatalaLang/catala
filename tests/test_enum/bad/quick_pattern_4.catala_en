@@ -1,0 +1,18 @@
+## Test
+
+```catala
+declaration enumeration E:
+-- Case1
+-- Case2
+
+declaration enumeration F:
+-- Case3
+
+declaration scope A:
+context x content E
+context y content boolean
+
+scope A:
+definition x equals Case1
+definition y equals x with pattern Case3
+```

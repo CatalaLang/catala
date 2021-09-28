@@ -150,39 +150,23 @@ contexts [] {
 
 main : context {
 
-   : inline_push {
-      regex          \= (@@)
-      styles []       = .law_title;
-      : pop {
-         regex       \= (@@[\+]*)
-         styles []    = .law_title;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_title;
-      }
-   }
-
-   : inline_push {
-      regex          \= (@)
-      styles []       = .law_subtitle;
-      : pop {
-         regex       \= (@)
-         styles []    = .law_subtitle;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_subtitle;
-      }
+   : pattern {
+     regex \=  (^\s*[\#]+.*)
+     styles [] = .law_title;
    }
 
    : pattern {
-     regex \= ([^\/])
+     regex \=  (^\s*[\#]+\s*\[[^\]]\s*].*)
+     styles [] = .law_subtitle;
+   }
+
+   : pattern {
+     regex \= ([^`])
      styles [] = .law;
    }
 
    : push {
-      regex          \= (\/\*)
+      regex          \= (```catala)
       styles []       = .code_delimiter;
       context []       = code;
    }
@@ -193,7 +177,7 @@ main : context {
 code : context {
 
   : pop {
-    regex       \= (\*\/)
+    regex       \= (```)
     styles []    = .code_delimiter;
   }
 
@@ -218,7 +202,7 @@ code : context {
   }
 
   : pattern {
-    regex \= (\|[0-9]+/[0-9]+/[0-9]+\|)
+    regex \= (\|[0-9]+\-[0-9]+\-[0-9]+\|)
     styles [] = .literal_numeric ;
   }
 
@@ -240,12 +224,12 @@ code : context {
   }
 
   : pattern {
-     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|and|\$|%|year|month|day)
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|xor|and|\$|%|year|month|day)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(integer|boolean|date|money|text|decimal|number|sum)\b
+    regex \= \b(integer|boolean|date|duration|money|text|decimal|number|sum)\b
     styles [] = .primitive;
   }
 

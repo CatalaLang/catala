@@ -1,0 +1,16 @@
+## Wildcard cannot be used as single match case
+
+```catala
+declaration enumeration E:
+  -- Case1
+  -- Case2
+
+declaration scope A:
+  context x content E
+  context y content integer
+
+scope A:
+  definition x equals Case1
+  definition y equals match x with pattern
+    -- anything : 31
+```

@@ -1,0 +1,5 @@
+[RESULT] Computation successful! Results:
+[RESULT] f_xor_f = false
+[RESULT] f_xor_t = true
+[RESULT] t_xor_f = true
+[RESULT] t_xor_t = false

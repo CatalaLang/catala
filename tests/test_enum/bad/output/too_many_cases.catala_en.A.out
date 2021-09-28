@@ -1,0 +1,7 @@
+[ERROR] This case matches a constructor of enumeration E but previous case were matching constructors of enumeration F
+[ERROR] 
+[ERROR]   --> test_enum/bad/too_many_cases.catala_en
+[ERROR]    | 
+[ERROR] 21 |     -- Case4 : true
+[ERROR]    |        ^^^^^^^^^^^^
+[ERROR]    + Article

@@ -1,0 +1,13 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content money
+  context y content money
+  context z content money
+
+scope A:
+  definition x equals $123.54
+  definition y equals $8548,650.96
+  definition z equals $250,000,000 *$ ((x /$ y) *. 0.2 %)
+```

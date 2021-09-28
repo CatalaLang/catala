@@ -1,9 +1,0 @@
-@ Article @
-
-/*
-new scope RecursiveFunc:
-  param f content int fun of int 
-
-scope RecursiveFunc:
-  def f of x := f of x + 1
-*/

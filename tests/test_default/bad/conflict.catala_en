@@ -1,0 +1,10 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content integer
+
+scope A:
+  definition x under condition true consequence equals 1
+  definition x under condition true consequence equals 0
+```

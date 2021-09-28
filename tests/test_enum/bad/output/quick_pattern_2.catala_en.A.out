@@ -1,0 +1,24 @@
+[ERROR] Error during typechecking, incompatible types:
+[ERROR] --> F
+[ERROR] --> E
+[ERROR] 
+[ERROR] Error coming from typechecking the following expression:
+[ERROR]   --> test_enum/bad/quick_pattern_2.catala_en
+[ERROR]    | 
+[ERROR] 28 |   definition y equals x with pattern Case3
+[ERROR]    |                       ^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] Type F coming from expression:
+[ERROR]   --> test_enum/bad/quick_pattern_2.catala_en
+[ERROR]    | 
+[ERROR] 28 |   definition y equals x with pattern Case3
+[ERROR]    |                       ^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] Type E coming from expression:
+[ERROR]   --> test_enum/bad/quick_pattern_2.catala_en
+[ERROR]    | 
+[ERROR] 17 |   context x content E
+[ERROR]    |                     ^
+[ERROR]    + Article

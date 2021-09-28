@@ -1,0 +1,15 @@
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_exception/bad/two_exceptions.catala_en
+[ERROR]    | 
+[ERROR] 15 |   definition x equals 2
+[ERROR]    |              ^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_exception/bad/two_exceptions.catala_en
+[ERROR]    | 
+[ERROR] 12 |   definition x equals 1
+[ERROR]    |              ^
+[ERROR]    + Test

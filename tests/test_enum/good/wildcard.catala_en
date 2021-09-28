@@ -1,0 +1,37 @@
+## Unit testing for wildcard in patterns
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+  -- Case3
+```
+
+### Simple case
+
+```catala
+declaration scope Simple_case:
+  context x content E
+  context y content integer
+
+scope Simple_case:
+  definition x equals Case1 content 2
+  definition y equals match x with pattern
+    -- Case2 : 42
+    -- anything : 31
+```
+
+### Simple case 2
+
+```catala
+declaration scope Simple_case_2:
+  context x content E
+  context y content integer
+
+scope Simple_case_2:
+  definition x equals Case3
+  definition y equals match x with pattern
+    -- Case2 : 42
+    -- Case1 of i : i
+    -- anything : 31
+```

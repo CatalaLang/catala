@@ -1,0 +1,15 @@
+[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_func/bad/bad_func.catala_en
+[ERROR]    | 
+[ERROR] 15 |   definition f of x under condition not b consequence equals x * x
+[ERROR]    |                                     ^^^^^
+[ERROR]    + Article
+[ERROR] 
+[ERROR] This justification is true:
+[ERROR]   --> test_func/bad/bad_func.catala_en
+[ERROR]    | 
+[ERROR] 14 |   definition f of x under condition (x >= x) consequence equals x + x
+[ERROR]    |                                      ^^^^^^
+[ERROR]    + Article

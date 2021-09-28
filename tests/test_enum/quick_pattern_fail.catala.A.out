@@ -1,6 +1,0 @@
-[ERROR] The name of this constructor has not been defined before, maybe it is a typo?
-[ERROR] 
-[ERROR]   --> test_enum/quick_pattern_fail.catala
-[ERROR]    | 
-[ERROR] 15 |   def y := x with Case3
-[ERROR]    |                   ^^^^^

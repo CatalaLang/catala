@@ -1,0 +1,15 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content integer
+  context y content integer
+  context z content integer
+
+scope A:
+  definition y under condition x < 0 consequence equals - x
+  definition y under condition x >= 0 consequence equals x
+  definition z under condition y >= 1 consequence equals 10 / y
+  definition z under condition y < 1 consequence equals y
+  definition x equals z
+```

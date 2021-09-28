@@ -1,9 +1,10 @@
-@@Include: ../section_132.catala_en@@
+> Include: ../section_132.catala_en
 
-@Test@
-/*
+### Test
+
+```catala
 declaration scope TestSection132_1:
-  context section_132 scope QualifiedEmployeeDiscount 
+  context section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_1:
   definition section_132.customer_price equals $1500
@@ -13,11 +14,11 @@ scope TestSection132_1:
   assertion section_132.employee_discount = $500
   assertion section_132.gross_profit_percentage = 0.4
   assertion section_132.qualified_employee_discount = $500
-*/
+```
 
-/*
+```catala
 declaration scope TestSection132_2:
-  context section_132 scope QualifiedEmployeeDiscount 
+  context section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_2:
   definition section_132.customer_price equals $1500
@@ -27,11 +28,11 @@ scope TestSection132_2:
   assertion section_132.employee_discount = $500
   assertion section_132.gross_profit_percentage = 0.2
   assertion section_132.qualified_employee_discount = $300.00
-*/
+```
 
-/*
+```catala
 declaration scope TestSection132_3:
-  context section_132 scope QualifiedEmployeeDiscount 
+  context section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_3:
   definition section_132.customer_price equals $1500
@@ -39,4 +40,4 @@ scope TestSection132_3:
   definition section_132.discount_type equals Services
   assertion section_132.employee_discount = $500
   assertion section_132.qualified_employee_discount = $300
-*/
+```

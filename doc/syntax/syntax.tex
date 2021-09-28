@@ -1,0 +1,1505 @@
+\documentclass[a3paper,landscape]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1cm,right=1cm,top=1cm,bottom=1cm]{geometry}
+\usepackage{multicol}
+\usepackage{bookman}
+\usepackage{booktabs}
+\usepackage{minted}
+
+\pagestyle{empty}
+
+\newcommand{\li}[1]{\texttt{#1}}
+\begin{document}
+\begin{center}
+  2021-03-15
+  \hfill
+  {\Huge\bfseries\sffamily
+    Catala Syntax Cheat Sheet}
+  \hfill
+  v.0.2.0
+\end{center}
+\hrule
+
+\begin{multicols*}{2}
+
+  \section*{Literate programming}
+  \begin{center}
+    \begin{tabular}{p{0.15\columnwidth}p{0.275\columnwidth}p{0.275\columnwidth}}
+      \toprule
+      Feature        & English syntax & French syntax \\\midrule
+      Heading        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+## Foo
+### Bar
+\end{minted}
+      \vspace*{-1.75em}
+                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+## Foo
+### Bar
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Code block     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+```
+\end{minted}
+      \vspace*{-1.75em}
+                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Metadata block &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+> Begin metadata
+> End metadata
+\end{minted}
+      \vspace*{-1.75em}
+                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+> Début métadonnées
+> Fin métadonnées
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      File inclusion &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+> Include: foo.catala_en
+\end{minted}
+      \vspace*{-1.75em}
+                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+> Inclusion: foo.catala_fr
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \newcommand*\FancyVerbStartString{```catala}
+  \newcommand*\FancyVerbStopString{```}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  \section*{Metadata declaration}
+  \begin{tabular}{p{0.22\columnwidth}p{0.3\columnwidth}p{0.425\columnwidth}}
+    \toprule
+    Feature                 & English syntax & French syntax \\\midrule
+    Structure declaration   &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+declaration structure Foo:
+  data bar content integer
+  data baz content boolean
+```
+\end{minted}
+    \vspace*{-1.75em}
+                            &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+déclaration structure Foo:
+  donnée bar contenu entier
+  donnée baz contenu booléen
+```
+\end{minted}
+    \vspace*{-1.75em}
+    \\
+    Enumeration declaration &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+declaration enumeration Foo:
+  -- Bar content integer
+  -- Baz
+```
+\end{minted}
+    \vspace*{-1.75em}
+                            &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+déclaration énumeration Foo:
+  -- Bar contenu entier
+  -- Baz
+```
+\end{minted}
+    \vspace*{-1.75em}                                        \\
+    Scope declaration       &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+declaration scope Foo:
+  context bar content integer
+  context baz condition
+  context fizz scope Buzz
+```
+\end{minted}
+    \vspace*{-1.75em}
+                            &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+déclaration champ d'application Foo:
+  contexte bar contenu entier
+  contexte baz condition
+  contexte fizz champ d'application Buzz
+```
+\end{minted}
+    \vspace*{-1.75em}                                        \\
+    \bottomrule
+  \end{tabular}
+
+
+
+
+
+
+
+
+
+
+
+  \section*{Types}
+  \begin{center}
+    \begin{tabular}{p{0.175\columnwidth}p{0.2\columnwidth}p{0.2\columnwidth}}
+      \toprule
+      Feature          & English syntax & French syntax \\\midrule
+      Natural integers &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+integer
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+entier
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Rational numbers &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+decimal
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+décimal
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Booleans         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+boolean
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+booléen
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+money
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+argent
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date             &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+date
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+date
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Duration         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+duration
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+durée
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Function         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+Foo depends on Bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+Foo dépend de Bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Collection       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+collection Foo
+```
+\end{minted}
+      \vspace*{-1.75em}
+                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+collection Foo
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+
+
+
+
+  \section*{Literals}
+  \begin{center}
+    \begin{tabular}{p{0.15\columnwidth}p{0.275\columnwidth}p{0.275\columnwidth}}
+      \toprule
+      Feature   & English syntax & French syntax \\\midrule
+      Integers  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+65536
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+65536
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimals  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+65536.262144
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+65536.262144
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+$1,234,567.89
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+1 234 567,89 €
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+|2021-01-31|
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+|2021-31-01|
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Durations &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+254 day  4 month  1 year
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+254 jour  4 mois  1 an
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Boolean   &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+true    false
+```
+\end{minted}
+      \vspace*{-1.75em}
+                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+vrai    faux
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+
+
+
+
+  \section*{Scope use and related items}
+  \begin{center}
+    \begin{tabular}{p{0.22\columnwidth}p{0.35\columnwidth}p{0.35\columnwidth}}
+      \toprule
+      Feature                                 & English syntax & French syntax \\\midrule
+      Scope use                               &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+scope Foo: ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+champ d'application Foo: ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Use-wide condition                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+scope Foo
+  under condition bar: ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+champ d'application Foo
+  sous condition bar: ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Unconditional definition                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+definition foo equals ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+définition foo égal à ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Conditional definition                  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+definition foo under condition
+  bar consequence equals ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+définition foo sous condition
+  bar conséquence égal à ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Rule\newline(definition for conditions) &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+rule foo under condition
+  bar consequence fulfilled
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+règle foo sous condition
+  bar conséquence rempli
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Negative rule                           &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+rule foo under condition
+  bar consequence not fulfilled
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+règle foo sous condition
+  bar conséquence non rempli
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Function definition/rule                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+definition foo of  bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+définition foo de bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Labeled definition or rule              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+label foo definition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+étiquette foo définition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Exception to label                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+exception foo definition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+exception foo définition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Exception to implicit                   &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+exception definition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+exception définition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Assertion                               &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+assertion...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+assertion ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+
+
+
+
+  \section*{Expressions}
+  \begin{center}
+    \begin{tabular}{p{0.2\columnwidth}p{0.375\columnwidth}p{0.345\columnwidth}}
+      \toprule
+      Feature                           & English syntax & French syntax \\\midrule
+      Pattern matching                  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+match ... with pattern
+ -- Foo of foo: ...
+ -- Bar : ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+selon ... sous forme
+  -- Foo de foo: ...
+  -- Bar: ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Pattern test and optional binding &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... with pattern Foo
+... with pattern Bar of bar and ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... sous forme Foo
+... sous forme Bar de bar et
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Constructor injection             &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+Foo content ...       Bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+Foo contenu ...       Bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Structure literal                 &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+Foo { -- bar: ... -- baz: ...}
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+Foo { -- bar: ... -- baz: ...}
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Structure field access            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(...).foo
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(...).foo
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Function call                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Subscope variable                 &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+foo.bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+foo.bar
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Conditional                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+if ... then ... else ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+si ... alors ... sinon
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+  \section*{Collections}
+  \begin{center}
+    \begin{tabular}{p{0.175\columnwidth}p{0.325\columnwidth}p{0.4\columnwidth}}
+      \toprule
+      Feature            & English syntax & French syntax \\\midrule
+      Collection literal &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+[ ...; ...; ...]
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+[ ...; ...; ...]
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Presence test      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... in ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... dans ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Cardinal           &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+number of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+nombre de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Existence test     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+exists foo in ... such that ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+existe foo dans ... tel que ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      For all test       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+for all foo in ... we have ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+pour tout foo dans ... on a ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      For all test       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+for all foo in ... we have ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+pour tout foo dans ... on a ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Map/filter         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+map for foo in ... of ...
+filter for foo in ... of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+application pour foo dans ... de ...
+filtre pour foo dans ... de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Aggregation        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+sum money for foo in ... of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+somme argent pour foo dans ... de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Conditional count  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+number for foo in ... of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+nombre pour foo dans ... de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Extremum           &
+      \vspace*{-1.75em}
+      \begin{minted}[fontsize=\scriptsize]{catala_en}
+```catala
+maximum integer initial ... for ... in ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}[fontsize=\scriptsize]{catala_fr}
+```catala
+maximum entier initial ... pour ... dans ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Arg-extremum       &
+      \vspace*{-1.75em}
+      \begin{minted}[fontsize=\tiny]{catala_en}
+```catala
+content minimum decimal initial ... for ... in ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                         &
+      \vspace*{-1.75em}
+      \begin{minted}[fontsize=\scriptsize]{catala_fr}
+```catala
+contenu minimum décimal initial ... pour ... dans ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+
+  \section*{Operators}
+  \begin{center}
+    \begin{tabular}{p{0.2\columnwidth}p{0.3\columnwidth}p{0.3\columnwidth}}
+      \toprule
+      Feature                         & English syntax & French syntax \\\midrule
+      Integer to decimal              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+integer_to_decimal of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+entier_vers_décimal de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date parts                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+get_day of ...
+get_month of ...
+get_year of ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+accès_jour de ...
+accès_mois de ...
+accès_année de ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Logical inclusive or            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... or ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... ou ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Logical exclusive or            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... xor ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... ou bien ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Logical and                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... and ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... et ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Polymorphic structural equality &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+... = ...
+... != ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+... = ...
+... != ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Integer sum                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(integer) + (integer)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(entier) + (entier)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Integer substraction            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(integer) - (integer)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(entier) - (entier)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Integer multiplication          &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(integer) * (integer)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(entier) * (entier)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Integer division                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(integer) / (integer)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(entier) / (entier)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Integer comparison              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+<   <=   >   >=
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+<   <=   >   >=
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimal sum                     &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(decimal) +. (decimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(décimal) +. (décimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimal substraction            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(decimal) -. (decimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(décimal) -. (décimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimal multiplication          &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(decimal) *. (decimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(décimal) *. (décimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimal division                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(decimal) /. (decimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(décimal) /. (décimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Decimal comparison              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+<.   <=.   >.   >=.
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+<.   <=.   >.   >=.
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money sum                       &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(money) +$ (money)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(argent) +€ (argent)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money substraction              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(money) -$ (money)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(argent) -€ (argent)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money multiplication            &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(money) *$ (decimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(argent) *€ (décimal)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money division                  &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(money) /$ (money)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(argent) /€ (argent)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Money comparison                &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+<$   <=$   >$   >=$
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+<€   <=€   >€   >=€
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date sum                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(date) +@ (duration)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(date) +@ (durée)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date substraction               &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(date) -@ (date)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(date) -@ (date)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Date comparison                 &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+<@   <=@   >@   >=@
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+<@   <=@   >@   >=@
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Duration sum                    &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(duration) +^ (duration)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(durée) +^ (durée)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Duration substraction           &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(duration) -^ (duration)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(durée) -^ (durée)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Duration division               &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+(duration) /^ (duration)
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+(durée) /^ (durée)
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      Duration comparison             &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+<^   <=^   >^   >=^
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                      &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+<^   <=^   >^   >=^
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+
+
+\end{multicols*}
+\end{document}

@@ -1,0 +1,18 @@
+## Article
+
+```catala
+declaration structure Foo:
+  data f content integer
+
+declaration structure Bar:
+  data f content integer
+  data g content integer
+
+declaration scope A:
+  context x content Foo
+  context y content integer
+
+scope A:
+  definition x equals Foo { -- f: 1 }
+  definition y equals x.Foo.g
+```

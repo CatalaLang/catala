@@ -1,50 +1,52 @@
-@@Inclusion: ../allocations_familiales.catala_fr@@
+> Inclusion: ../allocations_familiales.catala_fr
 
-@Tests@
+## Tests
 
-/*
+### Tests
+
+```catala
 déclaration champ d'application Données:
-  contexte enfant1 contenu Enfant 
-  contexte enfant2 contenu Enfant 
-  contexte enfant3 contenu Enfant 
-  contexte enfant4 contenu Enfant 
+  contexte enfant1 contenu Enfant
+  contexte enfant2 contenu Enfant
+  contexte enfant3 contenu Enfant
+  contexte enfant4 contenu Enfant
 
 champ d'application Données:
   définition enfant1 égal à Enfant {
     -- identifiant: 1
-    -- fin_obligation_scolaire : |01/08/2023|
-    -- date_de_naissance: |01/01/2007|
+    -- obligation_scolaire : Pendant
+    -- date_de_naissance: |2007-01-01|
     -- âge: 13
     -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant2 égal à Enfant {
     -- identifiant: 2
-    -- fin_obligation_scolaire : |01/08/2019|
-    -- date_de_naissance: |01/01/2003|
+    -- obligation_scolaire : Après
+    -- date_de_naissance: |2003-01-01|
     -- âge: 18
     -- rémuneration_mensuelle: 1000€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant3 égal à Enfant {
     -- identifiant: 3
-    -- fin_obligation_scolaire : |01/08/2019|
-    -- date_de_naissance: |01/01/2003|
+    -- obligation_scolaire : Après
+    -- date_de_naissance: |2003-01-01|
     -- âge: 18
     -- rémuneration_mensuelle: 400€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant4 égal à Enfant {
     -- identifiant: 4
-    -- fin_obligation_scolaire : |01/08/2016|
-    -- date_de_naissance: |01/01/1999|
+    -- obligation_scolaire : Après
+    -- date_de_naissance: |1999-01-01|
     -- âge: 21
     -- rémuneration_mensuelle: 0€
-    -- pris_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- garde_alternée: NonGardeUnique
+    -- prise_en_charge: EffectiveEtPermanente
+    -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
 
 déclaration champ d'application Test1:
@@ -52,12 +54,11 @@ déclaration champ d'application Test1:
   contexte f champ d'application PrestationsFamiliales
 
 champ d'application Test1:
-  définition f.âge_l512_3_2_alternatif égal à Absent
-  définition f.date_courante égal à |01/05/2020| 
+  définition f.date_courante égal à |2020-05-01|
   définition f.prestation_courante égal à AllocationsFamiliales
   définition f.résidence égal à Métropole
   assertion (f.droit_ouvert de données.enfant1)
   assertion (non (f.droit_ouvert de données.enfant2))
   assertion (f.droit_ouvert de données.enfant3)
   assertion (non (f.droit_ouvert de données.enfant4))
-*/
+```

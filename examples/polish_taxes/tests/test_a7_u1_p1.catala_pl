@@ -1,0 +1,23 @@
+> Include: ../podatek_od_czynnosci_cywilnoprawnych/rozdzial_3.catala_pl
+
+## [Test - Art. 7 ustęp 1 punkt 1]
+
+```catala
+deklaracja zakres Test_A7_U1_P1_PPa:
+  kontekst sprzedaz zakres UmowaSprzedazy
+
+zakres Test_A7_U1_P1_PPa:
+  definicja sprzedaz.kwota wynosi 100 PLN
+
+  asercja sprzedaz.podatek = 2 PLN
+
+
+deklaracja zakres Test_A7_U1_P1_PPb:
+  kontekst sprzedaz zakres UmowaSprzedazy
+
+zakres Test_A7_U1_P1_PPb:
+  definicja sprzedaz.kwota wynosi 100 PLN
+  definicja sprzedaz.inne_prawa_majatkowe wynosi prawda
+
+  asercja sprzedaz.podatek = 1 PLN
+```

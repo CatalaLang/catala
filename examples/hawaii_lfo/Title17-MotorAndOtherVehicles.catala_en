@@ -1,0 +1,164 @@
+## Title17
+
+> Begin metadata
+
+```catala
+declaration enumeration Violation_83_135:
+  -- Section286_102
+  -- Section286_122
+  -- Section286_130
+  -- Section286_131
+  -- Section286_132
+  -- Section286_133
+  -- Section286_134
+  -- Other_83_135
+
+declaration structure Offense:
+  data date_of content date
+  data violation content Violation_83_135
+
+declaration scope Defendant:
+  context priors content collection Offense
+  # Only a number of years...
+  context age content integer
+
+declaration scope Penalty286_83_135:
+
+  # Inputs:
+
+  context fine content money
+  context days content duration
+  context loses_right_to_drive_until_18 condition
+  context offense content Offense
+  context defendant scope Defendant
+
+  # Internal:
+
+  context priors_same_offense content integer
+
+  context max_fine content money
+  context min_fine content money
+  context max_days content duration
+
+  context paragraph_a_applies condition
+  context paragraph_b_applies condition
+  context paragraph_c_applies condition
+
+  context fine_ok condition
+  context days_ok condition
+
+  # Outcomes:
+
+  context ok condition
+```
+> End metadata
+
+## 286-136 Penalty
+
+```catala
+scope Penalty286_83_135:
+
+  rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
+  consequence fulfilled
+
+  rule days_ok under condition days <=^ max_days
+  consequence fulfilled
+
+  rule ok under condition fine_ok and days_ok
+  consequence fulfilled
+```
+
+§(a) Except as provided in subsection (b), any person who
+violates section 286-102, 286-122, 286-130, 286-131, 286-132, 286-133, or
+286-134 shall be fined not more than $1,000 or imprisoned not more than thirty
+days, or both. Any person who violates any other section in this part shall be
+fined not more than $1,000.
+
+```catala
+scope Penalty286_83_135:
+
+  rule paragraph_a_applies under condition
+    (not paragraph_b_applies) and
+    (not paragraph_c_applies)
+  consequence fulfilled
+
+  definition min_fine under condition
+    paragraph_a_applies
+  consequence equals $0
+
+  definition max_fine equals $1000
+
+  label max_days_a
+  definition max_days under condition
+    paragraph_a_applies
+  consequence equals 0 day
+
+  exception max_days_a definition max_days under condition
+    paragraph_a_applies and
+    offense.violation with pattern Section286_102 or
+    offense.violation with pattern Section286_122 or
+    offense.violation with pattern Section286_130 or
+    offense.violation with pattern Section286_131 or
+    offense.violation with pattern Section286_132 or
+    offense.violation with pattern Section286_133 or
+    offense.violation with pattern Section286_134
+  consequence equals 30 day
+```
+
+(b) Any person who is convicted of violating section 286-102, 286-122, 286-130,
+286-131, 286-132, 286-133, or 286-134 shall be subject to a minimum fine of $500
+and a maximum fine of $1,000, or imprisoned not more than one year, or both, if
+the person has two or more prior convictions for the same offense in the
+preceding five-year period.
+
+```catala
+scope Penalty286_83_135:
+
+  # Under subsection (b) (1996), it is the date the defendant committed the current
+  # offense for which he or she is being prosecuted that is used to determine
+  # whether the defendant has two or more prior convictions for the same offense in
+  # the preceding five-year period. 118 H. 259 (App.), 188 P.3d 773 (2008).
+
+  # TODO: need to figure out how years are defined
+  definition priors_same_offense equals
+    number for prior in defendant.priors of (
+     prior.violation = offense.violation and
+        prior.date_of +@ 5 year <=@ offense.date_of
+    )
+
+  rule paragraph_b_applies under condition
+    (not (offense.violation with pattern Other_83_135)) and
+    priors_same_offense >= 2 and
+    not paragraph_c_applies
+  consequence fulfilled
+
+  definition min_fine under condition
+    paragraph_b_applies
+  consequence equals $500
+
+  definition max_days under condition
+    paragraph_b_applies
+  consequence equals 1 year
+```
+
+(c) Notwithstanding subsections (a) and (b), a minor under the age of eighteen
+under the jurisdiction of the family court who is subject to this section shall
+either lose the right to drive a motor vehicle until the age of eighteen or be
+subject to a fine of $500. [L 1967, c 214, pt of §2; HRS §286-136; am L 1993, c
+214, §7; am L 1996, c 169, §3; am L 2003, c 69, §5]
+
+```catala
+scope Penalty286_83_135:
+
+  rule paragraph_c_applies under condition
+    # TODO: check what happens if the offense is committed on the day of the
+    # birthday
+    defendant.age < 18 # and minor and under the jurisdiction etc.
+  consequence fulfilled
+
+  # TODO: use a boolean xor
+  exception definition fine_ok under condition paragraph_c_applies
+  # TODO: = and != are usually left-associative
+  consequence equals ((fine = $500) != loses_right_to_drive_until_18)
+
+```

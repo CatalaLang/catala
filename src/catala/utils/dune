@@ -1,8 +1,0 @@
-(library
- (name utils)
- (public_name catala.utils)
- (libraries cmdliner ANSITerminal))
-
-(documentation
- (package catala)
- (mld_files utils))

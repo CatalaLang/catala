@@ -1,14 +1,14 @@
-@@Inclusion: ../tutoriel_fr.catala_fr@@
+> Inclusion: ../tutoriel_fr.catala_fr
 
-@Test@
+#### Test
 
-/*
+```catala
 déclaration champ d'application TestUnitaire1:
   contexte calcul_impôt champ d'application NouveauCalculImpôtRevenu
 
 champ d'application TestUnitaire1:
   définition
-    calcul_impôt.personne 
+    calcul_impôt.personne
   égal à
     Personne {
       -- revenu: 230 000€
@@ -26,4 +26,4 @@ champ d'application TestUnitaire2:
   }
 
   assertion calcul_impôt.impôt_revenu = 0,00 €
-*/
+```

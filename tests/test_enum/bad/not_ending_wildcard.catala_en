@@ -1,0 +1,37 @@
+## Wildcard must be the last case
+
+```catala
+declaration enumeration E:
+  -- Case1
+  -- Case2
+```
+
+### Wildcard can't be the first case
+
+```catala
+declaration scope First_case:
+  context x content E
+  context y content integer
+
+scope First_case:
+  definition x equals Case1
+  definition y equals match x with pattern
+    -- anything : 31
+    -- Case2 : 42
+	-- Case1 : 42
+```
+
+### Wildcard can't be the a middle case
+
+```catala
+declaration scope Middle_case:
+  context x content E
+  context y content integer
+
+scope Middle_case:
+  definition x equals Case1
+  definition y equals match x with pattern
+    -- Case2 : 42
+    -- anything : 31
+	-- Case1 : 42
+```

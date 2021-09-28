@@ -1,0 +1,43 @@
+[ERROR] Cyclic dependency detected between exceptions!
+[ERROR] 
+[ERROR] Cycle exception exception_exception_x, declared:
+[ERROR]   --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]    | 
+[ERROR] 16 |   label exception_exception_x
+[ERROR]    |         ^^^^^^^^^^^^^^^^^^^^^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Used here in the definition of another cycle exception exception_x:
+[ERROR]   --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]    | 
+[ERROR] 17 |   exception exception_x
+[ERROR]    |             ^^^^^^^^^^^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Cycle exception exception_x, declared:
+[ERROR]   --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]    | 
+[ERROR] 12 |   label exception_x
+[ERROR]    |         ^^^^^^^^^^^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Used here in the definition of another cycle exception base_x:
+[ERROR]   --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]    | 
+[ERROR] 13 |   exception base_x
+[ERROR]    |             ^^^^^^
+[ERROR]    + Test
+[ERROR] 
+[ERROR] Cycle exception base_x, declared:
+[ERROR]  --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]   | 
+[ERROR] 8 |   label base_x
+[ERROR]   |         ^^^^^^
+[ERROR]   + Test
+[ERROR] 
+[ERROR] Used here in the definition of another cycle exception exception_exception_x:
+[ERROR]  --> test_exception/bad/exceptions_cycle.catala_en
+[ERROR]   | 
+[ERROR] 9 |   exception exception_exception_x
+[ERROR]   |             ^^^^^^^^^^^^^^^^^^^^^
+[ERROR]   + Test

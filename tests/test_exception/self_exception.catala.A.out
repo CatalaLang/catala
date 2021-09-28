@@ -1,6 +1,0 @@
-[ERROR] Cannot define rule as an exception to itself
-[ERROR] 
-[ERROR]  --> test_exception/self_exception.catala
-[ERROR]   | 
-[ERROR] 9 |   exception base_y
-[ERROR]   |             ^^^^^^

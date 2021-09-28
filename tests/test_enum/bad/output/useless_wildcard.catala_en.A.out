@@ -1,0 +1,10 @@
+[WARNING] Unreachable match case, all constructors of the enumeration E are already specified
+[WARNING] 
+[WARNING]   --> test_enum/bad/useless_wildcard.catala_en
+[WARNING]    | 
+[WARNING] 17 |     -- anything : 31
+[WARNING]    |        ^^^^^^^^^^^^^
+[WARNING]    + Useless wildcard
+[RESULT] Computation successful! Results:
+[RESULT] x = Case1 ()
+[RESULT] y = 42

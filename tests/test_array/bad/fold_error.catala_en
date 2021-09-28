@@ -1,0 +1,11 @@
+## Article
+
+```catala
+declaration scope A:
+  context list content collection integer
+  context list_high_count content integer
+
+scope A:
+  definition list equals [0; 5; 6; 7; 1; 64; 12]
+  definition list_high_count equals number for m in list of (m >=$ $7)
+```

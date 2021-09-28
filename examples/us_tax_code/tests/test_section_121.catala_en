@@ -1,35 +1,35 @@
-@@Include: ../section_121.catala_en@@
+> Include: ../section_121.catala_en
 
-@Testing paragraph (a)@
+## Testing paragraph (a)
 
-/*
+```catala
 declaration scope Data:
-  context period_four_years_recent content Period 
-  context period_one_year_recent content Period 
+  context period_four_years_recent content Period
+  context period_one_year_recent content Period
   context period_two_years_middle content Period
   context date_of_sale_or_exchange content date
   context gain_from_sale_or_exchange_of_property content money
   context return_date content date
-  context person_ok_1 content PersonalData 
-  context person_ok_2 content PersonalData 
+  context person_ok_1 content PersonalData
+  context person_ok_2 content PersonalData
   context person_ko_1 content PersonalData
   context person_ko_2 content PersonalData
 
 scope Data:
-  definition date_of_sale_or_exchange equals |01/01/2021|
-  definition return_date equals |01/01/2021|
+  definition date_of_sale_or_exchange equals |2021-01-01|
+  definition return_date equals |2021-01-01|
   definition gain_from_sale_or_exchange_of_property equals $350,000
   definition period_four_years_recent equals Period {
-    -- begin: |01/01/2017|
-    -- end: |01/01/2021|
+    -- begin: |2017-01-01|
+    -- end: |2021-01-01|
   }
   definition period_one_year_recent equals Period {
-    -- begin: |01/01/2019|
-    -- end: |01/01/2020|
+    -- begin: |2019-01-01|
+    -- end: |2020-01-01|
   }
   definition period_two_years_middle equals Period {
-    -- begin: |01/01/2015|
-    -- end: |01/02/2017|
+    -- begin: |2015-01-01|
+    -- end: |2017-01-02|
   }
   definition person_ok_1 equals PersonalData {
     -- property_ownage: [period_four_years_recent]
@@ -38,7 +38,7 @@ scope Data:
   }
   definition person_ok_2 equals PersonalData {
     -- property_ownage: [period_four_years_recent]
-    -- property_usage_as_principal_residence: 
+    -- property_usage_as_principal_residence:
       [period_two_years_middle; period_one_year_recent]
     -- other_section_121a_sale: NoOtherSaleWhereSection121aApplied
   }
@@ -53,11 +53,11 @@ scope Data:
     -- property_usage_as_principal_residence: [period_two_years_middle]
     -- other_section_121a_sale: NoOtherSaleWhereSection121aApplied
   }
-  
 
-  
 
-########################### Testing Section121a ################################
+
+
+####################### Testing Section121SinglePerson #########################
 
 declaration scope Test1:
   context scope121a scope Section121SinglePerson
@@ -65,11 +65,12 @@ declaration scope Test1:
 
 scope Test1:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
-  definition scope121a.gain_from_sale_or_exchange_of_property equals 
+  definition scope121a.gain_from_sale_or_exchange_of_property equals
     data_.gain_from_sale_or_exchange_of_property
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
   definition scope121a.property_usage_as_principal_residence equals
      [data_.period_four_years_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion scope121a.requirements_met
 
 declaration scope Test2:
@@ -78,11 +79,12 @@ declaration scope Test2:
 
 scope Test2:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
-  definition scope121a.gain_from_sale_or_exchange_of_property equals 
+  definition scope121a.gain_from_sale_or_exchange_of_property equals
     data_.gain_from_sale_or_exchange_of_property
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
-  definition scope121a.property_usage_as_principal_residence equals 
+  definition scope121a.property_usage_as_principal_residence equals
     [data_.period_one_year_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion not scope121a.requirements_met
 
 declaration scope Test3:
@@ -91,11 +93,12 @@ declaration scope Test3:
 
 scope Test3:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
-  definition scope121a.gain_from_sale_or_exchange_of_property equals 
+  definition scope121a.gain_from_sale_or_exchange_of_property equals
     data_.gain_from_sale_or_exchange_of_property
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
-  definition scope121a.property_usage_as_principal_residence equals 
+  definition scope121a.property_usage_as_principal_residence equals
     [data_.period_two_years_middle]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion not scope121a.requirements_met
 
 declaration scope Test4:
@@ -104,39 +107,40 @@ declaration scope Test4:
 
 scope Test4:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
-  definition scope121a.gain_from_sale_or_exchange_of_property equals 
+  definition scope121a.gain_from_sale_or_exchange_of_property equals
     data_.gain_from_sale_or_exchange_of_property
   definition scope121a.property_ownage equals [data_.period_four_years_recent]
-  definition scope121a.property_usage_as_principal_residence equals 
+  definition scope121a.property_usage_as_principal_residence equals
     [data_.period_two_years_middle; data_.period_one_year_recent]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
   assertion scope121a.requirements_met
 
-########################### Testing Section121 ################################
+###################### Testing Section121TwoPersons ############################
 
 declaration scope Test5:
-    context scope121 scope Section121
+    context scope121 scope Section121TwoPersons
     context data_ scope Data
 
-scope Test5: 
+scope Test5:
    definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
    definition scope121.return_date equals data_.return_date
-   definition scope121.gain_from_sale_or_exchange_of_property equals 
+   definition scope121.gain_from_sale_or_exchange_of_property equals
      data_.gain_from_sale_or_exchange_of_property
    definition scope121.return_type equals SingleReturn content data_.person_ok_1
    assertion scope121.income_excluded_from_gross_income = $250,000
 
 declaration scope Test6:
-    context scope121 scope Section121
+    context scope121 scope Section121TwoPersons
     context data_ scope Data
 
-scope Test6: 
+scope Test6:
    definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
    definition scope121.return_date equals data_.return_date
-   definition scope121.gain_from_sale_or_exchange_of_property equals 
+   definition scope121.gain_from_sale_or_exchange_of_property equals
      data_.gain_from_sale_or_exchange_of_property
    definition scope121.return_type equals JointReturn content (JointReturn {
       -- person1: data_.person_ok_1
       -- person2: data_.person_ok_2
    })
    assertion scope121.income_excluded_from_gross_income = $350,000
-*/
+```

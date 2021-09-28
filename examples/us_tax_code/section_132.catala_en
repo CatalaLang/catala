@@ -1,7 +1,7 @@
-@@Section 132@@
+## Section 132
 
-@@Begin metadata@@
-/*
+> Begin metadata
+```catala
 # We only formalize part (c) here
 declaration enumeration DiscountType:
   -- Property
@@ -19,25 +19,27 @@ declaration scope QualifiedEmployeeDiscount:
   context is_services content boolean
 
 scope QualifiedEmployeeDiscount:
-  definition is_property equals match discount_type with pattern 
-    -- Property: true 
+  definition is_property equals match discount_type with pattern
+    -- Property: true
     -- Services: false
   definition is_services equals match discount_type with pattern
-    -- Property: false 
+    -- Property: false
     -- Services: true
-*/
-@@End metadata@@
+```
+> End metadata
 
 
-@@(c) Qualified employee discount defined@@+
+### (c) Qualified employee discount defined
  For purposes of this section—
 
-@(1) Qualified employee discount@
-The term “qualified employee discount” means any employee discount with respect 
+#### (1) Qualified employee discount
+
+The term “qualified employee discount” means any employee discount with respect
 to qualified property or services to the extent such discount does not exceed—
-(A) in the case of property, the gross profit percentage of the price at which 
+(A) in the case of property, the gross profit percentage of the price at which
 the property is being offered by the employer to customers, or
-/*
+
+```catala
 scope QualifiedEmployeeDiscount :
   definition qualified_employee_discount
     under condition is_property consequence
@@ -46,10 +48,12 @@ scope QualifiedEmployeeDiscount :
       customer_price *$ gross_profit_percentage
     then customer_price *$ gross_profit_percentage
     else employee_discount
-*/
-(B) in the case of services, 20 percent of the price at which the services are 
+```
+
+(B) in the case of services, 20 percent of the price at which the services are
 being offered by the employer to customers.
-/*
+
+```catala
 scope QualifiedEmployeeDiscount :
 definition qualified_employee_discount
   under condition is_services consequence
@@ -64,57 +68,69 @@ scope QualifiedEmployeeDiscount under condition is_services:
     # We provide a default value here so that the computations run smooth.
     definition aggregate_cost equals $0
     definition gross_profit_percentage equals 0%
-*/
-@@(2) Gross profit percentage@@++
+```
 
-@(A) In general@
+#### (2) Gross profit percentage
+
+##### (A) In general
+
 The term “gross profit percentage” means the percent which—
 
-(i) the excess of the aggregate sales price of property sold by the employer 
+(i) the excess of the aggregate sales price of property sold by the employer
 to customers over the aggregate cost of such property to the employer, is of
 
 (ii) the aggregate sale price of such property.
-/*
+
+```catala
 scope QualifiedEmployeeDiscount under condition is_property:
   assertion customer_price >=$ aggregate_cost
 
   definition gross_profit_percentage equals
     (customer_price -$ aggregate_cost) /$ customer_price
-*/
-@(B) Determination of gross profit percentage@
+```
+
+##### (B) Determination of gross profit percentage
+
 Gross profit percentage shall be determined on the basis of—
 
-(i) all property offered to customers in the ordinary course of the line of 
-business of the employer in which the employee is performing services (or a 
+(i) all property offered to customers in the ordinary course of the line of
+business of the employer in which the employee is performing services (or a
 reasonable classification of property selected by the employer), and
 
 (ii) the employer’s experience during a representative period.
-/*
+
+```catala
 # (i) and (ii) are subjective criteria for determining the gross profit
 # percentage ; we do not formalize them
-*/
-@(3) Employee discount defined@
+```
+
+##### (3) Employee discount defined
+
 The term “employee discount” means the amount by which—
 
-(A) the price at which the property or services are provided by the employer to 
+(A) the price at which the property or services are provided by the employer to
 an employee for use by such employee, is less than
 
-(B) the price at which such property or services are being offered by the 
+(B) the price at which such property or services are being offered by the
 employer to customers.
-/*
+
+```catala
 scope QualifiedEmployeeDiscount:
   assertion customer_price >=$ employee_price
 
   definition employee_discount equals
     customer_price -$ employee_price
-*/
-@(4) Qualified property or services@
-The term “qualified property or services” means any property (other than real 
-property and other than personal property of a kind held for investment) or 
-services which are offered for sale to customers in the ordinary course of 
-the line of business of the employer in which the employee is performing 
+```
+
+##### (4) Qualified property or services
+
+The term “qualified property or services” means any property (other than real
+property and other than personal property of a kind held for investment) or
+services which are offered for sale to customers in the ordinary course of
+the line of business of the employer in which the employee is performing
 services.
-/*
+
+```catala
 # Again, this is for subjectively determining what item qualifies for a
 # discount, not formalizing
-*/
+```

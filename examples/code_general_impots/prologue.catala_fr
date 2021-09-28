@@ -1,7 +1,7 @@
-@@Prologue@@
+## Prologue
 
-@@Début métadonnées@@
-/*
+> Début métadonnées
+```catala
 déclaration énumération DomicileFiscal:
 -- France
 -- HorsDeFrance
@@ -13,7 +13,7 @@ déclaration structure MontantsSourcesRevenus:
 déclaration structure Personne:
   donnée domicile_fiscal contenu DomicileFiscal
   donnée revenus contenu argent
-  donnée montants_sources_revenus contenu MontantsSourcesRevenus 
+  donnée montants_sources_revenus contenu MontantsSourcesRevenus
    donnée foyer_lieu_sejour_principal_france contenu booléen
 
 déclaration structure ActivitéProfessionnelle:
@@ -23,5 +23,5 @@ déclaration structure ActivitéProfessionnelle:
 
 déclaration champ d'application CalculImpotSurLeRevenu :
   contexte personne contenu Personne
-*/
-@@Fin métadonnées@@
+```
+> Fin métadonnées
