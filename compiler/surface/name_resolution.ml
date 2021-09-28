@@ -350,7 +350,7 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
     Errors.raise_multispanned_error
       (Format.asprintf "%s name \"%s\" already defined" msg
          (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
-      [ (Some "first definition", Pos.get_position use); (Some "second definition", pos) ]
+      [ (Some "First definition:", Pos.get_position use); (Some "Second definition:", pos) ]
   in
   match Pos.unmark item with
   | ScopeDecl decl -> (

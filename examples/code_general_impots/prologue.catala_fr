@@ -1,0 +1,38 @@
+## Prologue
+
+> Début métadonnées
+```catala
+déclaration énumération DomicileFiscal:
+-- France
+-- HorsDeFrance
+
+déclaration structure MontantsSourcesRevenus:
+  donnée source_française contenu argent
+  donnée source_étrangère contenu argent
+
+déclaration structure Personne:
+  donnée foyer_lieu_sejour_principal_france contenu booléen
+
+déclaration structure ActivitéProfessionnelle:
+ donnée exercée_en_france contenu booléen
+ donnée est_accessoire contenu booléen
+
+déclaration structure DétailRevenuNetGlobal:
+  donnée revenus_fonciers contenu argent
+  donnée bénéfices_industriels_commerciaux contenu argent
+  donnée rémunérations_dirigeants contenu argent
+  donnée bénéfices_agricoles contenu argent
+  donnée traitements_salaires contenu argent
+  donnée bénéfices_non_commerciaux contenu argent
+  donnée revenus_capitaux_mobiliers contenu argent
+  donnée plus_values contenu argent
+
+déclaration champ d'application CalculImpôtSurLeRevenu :
+  contexte personne contenu Personne
+  contexte détail_revenu_net_global contenu DétailRevenuNetGlobal
+  contexte revenu_net_global contenu argent
+  contexte revenus contenu argent
+  contexte montants_sources_revenus contenu MontantsSourcesRevenus
+  contexte domicile_fiscal contenu DomicileFiscal
+```
+> Fin métadonnées

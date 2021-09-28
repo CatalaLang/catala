@@ -1,13 +1,13 @@
 [ERROR] struct name "S" already defined
 [ERROR] 
-[ERROR] first definition
+[ERROR] First definition:
 [ERROR]  --> test_struct/bad/bug_107.catala_en
 [ERROR]   | 
 [ERROR] 4 | declaration structure S:
 [ERROR]   |                       ^
 [ERROR]   + https://github.com/CatalaLang/catala/issues/107
 [ERROR] 
-[ERROR] second definition
+[ERROR] Second definition:
 [ERROR]  --> test_struct/bad/bug_107.catala_en
 [ERROR]   | 
 [ERROR] 8 | declaration structure S:
