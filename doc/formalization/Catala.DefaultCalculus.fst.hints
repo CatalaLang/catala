@@ -1,5 +1,5 @@
 [
-  "ÈRZ<\u0003\u001a\u0014]\u001bàós˜\u001a ",
+  "^ÖÒ\u0019æœ¦R³ïi¨\n\u001c6",
   [
     [
       "Catala.DefaultCalculus.ty",
@@ -8,7 +8,7 @@
       1,
       [ "@query" ],
       0,
-      "12150cad5f4ddd027a123d3c1158bd22"
+      "f9fc150dd19183938eeb34ba6bdbd657"
     ],
     [
       "Catala.DefaultCalculus.__proj__TArrow__item__tin",
@@ -20,7 +20,7 @@
         "refinement_interpretation_Tm_refine_6c84f3c20063b6c55689598b28b1a4ee"
       ],
       0,
-      "f5a4a5e56629567a3f3abebc47a175f6"
+      "f3d2b8f547abda0782f87d707c869b8d"
     ],
     [
       "Catala.DefaultCalculus.__proj__TArrow__item__tout",
@@ -32,7 +32,7 @@
         "refinement_interpretation_Tm_refine_6c84f3c20063b6c55689598b28b1a4ee"
       ],
       0,
-      "32aa6b12103fab987cab73d2805b8c4c"
+      "ae852addd65be90b335b6bb218cd95e5"
     ],
     [
       "Catala.DefaultCalculus.exp",
@@ -51,7 +51,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "5c21ef04a7f1a272f0a758c0f9d4157f"
+      "9d2a37207e7e44a0aa6f895ac36f1711"
     ],
     [
       "Catala.DefaultCalculus.__proj__EVar__item__v",
@@ -63,7 +63,7 @@
         "refinement_interpretation_Tm_refine_f7bcdc7958786fcb60dfc7f410094686"
       ],
       0,
-      "86d09cadd40705978f79fb65229cc940"
+      "05f351ca93ca78b5c20d9328736cafe5"
     ],
     [
       "Catala.DefaultCalculus.__proj__EApp__item__fn",
@@ -75,7 +75,7 @@
         "refinement_interpretation_Tm_refine_1dc7fa6b1909b346c3b5a4d1713e7f4d"
       ],
       0,
-      "f936cabcaa864c9de9ef7060d4beda9e"
+      "78ec509aeb281285063fdd61420f514c"
     ],
     [
       "Catala.DefaultCalculus.__proj__EApp__item__arg",
@@ -87,7 +87,7 @@
         "refinement_interpretation_Tm_refine_1dc7fa6b1909b346c3b5a4d1713e7f4d"
       ],
       0,
-      "9a2c69a981e794b9f0b928d48bf90ae3"
+      "32f71b14277a31a4820bb616728f3bd2"
     ],
     [
       "Catala.DefaultCalculus.__proj__EApp__item__tau_arg",
@@ -99,7 +99,7 @@
         "refinement_interpretation_Tm_refine_1dc7fa6b1909b346c3b5a4d1713e7f4d"
       ],
       0,
-      "ab25b3f78be3cc5aabd9f1fd351a0bc1"
+      "fd0ed4fe677d8fede0d42bcbc67941cd"
     ],
     [
       "Catala.DefaultCalculus.__proj__EAbs__item__vty",
@@ -111,7 +111,7 @@
         "refinement_interpretation_Tm_refine_896bdd339800e419f43bc3a1f12b68b5"
       ],
       0,
-      "74f08bfcc019ccad07bdf4b110444b3e"
+      "7826102b160ea54aa1f02dd7f88fa29d"
     ],
     [
       "Catala.DefaultCalculus.__proj__EAbs__item__body",
@@ -123,7 +123,7 @@
         "refinement_interpretation_Tm_refine_896bdd339800e419f43bc3a1f12b68b5"
       ],
       0,
-      "a8f6ac1b8b1eadf6a785be3fe9fb927a"
+      "7075e86600a1b931d7638df53c3d7644"
     ],
     [
       "Catala.DefaultCalculus.__proj__ELit__item__l",
@@ -135,7 +135,7 @@
         "refinement_interpretation_Tm_refine_6ccee90986879ff2274b72e5bc3434cf"
       ],
       0,
-      "ff76bf58b2a6d5314cdde4b538aba56c"
+      "1fb7b5d0d6bbc1c9f454281a01f5d2e5"
     ],
     [
       "Catala.DefaultCalculus.__proj__EIf__item__test",
@@ -147,7 +147,7 @@
         "refinement_interpretation_Tm_refine_a1447562c281df3bff097b9d339c29e3"
       ],
       0,
-      "cd48dc9eb173c293455593df0f6845f8"
+      "e0826990f2bf12b896b259ea7a29ef9c"
     ],
     [
       "Catala.DefaultCalculus.__proj__EIf__item__btrue",
@@ -159,7 +159,7 @@
         "refinement_interpretation_Tm_refine_a1447562c281df3bff097b9d339c29e3"
       ],
       0,
-      "64ea55616f7ddf6ca1e471e4aaff7d9b"
+      "3e0b50e34c3d0856d8063655fa3c78b9"
     ],
     [
       "Catala.DefaultCalculus.__proj__EIf__item__bfalse",
@@ -171,7 +171,7 @@
         "refinement_interpretation_Tm_refine_a1447562c281df3bff097b9d339c29e3"
       ],
       0,
-      "cd4749573d6077d9736cda47882cdfee"
+      "abe0700812430ee14bee827a916c4c36"
     ],
     [
       "Catala.DefaultCalculus.__proj__EDefault__item__exceptions",
@@ -183,7 +183,7 @@
         "refinement_interpretation_Tm_refine_64bbba607bea708c1ff8c3fa0d85aa12"
       ],
       0,
-      "cf49a90661edd3f0858eb2722af413f4"
+      "2c8da04378b45ddc9e70997245b3d392"
     ],
     [
       "Catala.DefaultCalculus.__proj__EDefault__item__just",
@@ -195,7 +195,7 @@
         "refinement_interpretation_Tm_refine_64bbba607bea708c1ff8c3fa0d85aa12"
       ],
       0,
-      "c9df05fe32fbcde1f09ce17d029667ea"
+      "71722c3137aef8a070db92954483c125"
     ],
     [
       "Catala.DefaultCalculus.__proj__EDefault__item__cons",
@@ -207,7 +207,7 @@
         "refinement_interpretation_Tm_refine_64bbba607bea708c1ff8c3fa0d85aa12"
       ],
       0,
-      "93ff28a22eb5be2147e7adea388d6cfd"
+      "c9b5aa06f3d4f96ce9c2dd3b36b4e95e"
     ],
     [
       "Catala.DefaultCalculus.__proj__EDefault__item__tau",
@@ -219,7 +219,7 @@
         "refinement_interpretation_Tm_refine_64bbba607bea708c1ff8c3fa0d85aa12"
       ],
       0,
-      "ae54db2c6ac7a040b9bb50d0307b53ec"
+      "fc5a0984f34fcd69654e5047e1be4a72"
     ],
     [
       "Catala.DefaultCalculus.is_renaming_prop",
@@ -235,7 +235,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "a5871f23ea914484dbc8d47a28d16241"
+      "47c120cc648999657f8b75f2e0dbf98d"
     ],
     [
       "Catala.DefaultCalculus.is_renaming_size",
@@ -247,7 +247,7 @@
         "refinement_interpretation_Tm_refine_1c1d1c6e28a4d07ae30d44381ee0d524"
       ],
       0,
-      "0d5c9fb7f30a119d4b46e222cefd114a"
+      "1646f35ef9996dc3507029920875e4cb"
     ],
     [
       "Catala.DefaultCalculus.increment",
@@ -261,7 +261,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4ee76b70ce018b172689339c1f9ba1a7"
+      "58c826601d51afd33df888b64778cf63"
     ],
     [
       "Catala.DefaultCalculus.increment_is_renaming",
@@ -277,7 +277,7 @@
         "projection_inverse_Catala.DefaultCalculus.EVar_v"
       ],
       0,
-      "6e078d9ccf128e72e747d681859fec07"
+      "a33ba95b81f3dfeb49bb013dce518b46"
     ],
     [
       "Catala.DefaultCalculus.subst",
@@ -344,7 +344,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "2ac81019ed65010c01639cde5ce4bd24"
+      "d204a4c04ff4bc41a8e408f2c793af32"
     ],
     [
       "Catala.DefaultCalculus.subst",
@@ -365,7 +365,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "0d5ade8a32c11b981665f8671b91057a"
+      "f33db5ddb71da97242c740564a00705e"
     ],
     [
       "Catala.DefaultCalculus.subst",
@@ -404,7 +404,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "91b895d6b22c636592ada525fa8b6e21"
+      "999f67f38fe11e22b56ff48356f22e05"
     ],
     [
       "Catala.DefaultCalculus.var_to_exp_beta",
@@ -419,7 +419,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4919dd145a17c7faf0fa0134990f7e24"
+      "dfbbef2a7fec7f91a01db5caddc3f504"
     ],
     [
       "Catala.DefaultCalculus.empty_count_result",
@@ -428,7 +428,7 @@
       1,
       [ "@query", "assumption_Catala.DefaultCalculus.exp__uu___haseq" ],
       0,
-      "05a61ea6afa54b936185f89ab9f81057"
+      "454de250dadf437ce9064f8c2faea487"
     ],
     [
       "Catala.DefaultCalculus.__proj__OneNonEmpty__item___0",
@@ -440,7 +440,7 @@
         "refinement_interpretation_Tm_refine_73db3433a5536656aa27657eb477efcf"
       ],
       0,
-      "4c9e376e3b1d380a9a228dc4cde9412d"
+      "ae7f3ffcfdaa53938d6fe23884ff4317"
     ],
     [
       "Catala.DefaultCalculus.exceptions_count_result",
@@ -449,7 +449,7 @@
       1,
       [ "@query", "assumption_Catala.DefaultCalculus.exp__uu___haseq" ],
       0,
-      "5b75d806bc2195f123968f463592e8c7"
+      "3bbdf3db8159f245ce2f2b1c10d6f185"
     ],
     [
       "Catala.DefaultCalculus.__proj__SomeStep__item___0",
@@ -461,7 +461,7 @@
         "refinement_interpretation_Tm_refine_562b75d472a96c36a24c70375d81f26c"
       ],
       0,
-      "177794c807654230fd0f2a3c1064cb12"
+      "f118d5761b19e05ce48da02ba76c2f6b"
     ],
     [
       "Catala.DefaultCalculus.empty_count",
@@ -486,7 +486,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "33fab59152a25fb11ae6416f0c1d7ffa"
+      "f6427a407f48df6b59262b4edde385d8"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -503,7 +503,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "a7c323cfaba27d5e7df545707c3ca4ed"
+      "bc2f87497f995ee90a31614799faef5d"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -515,7 +515,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "c09544ba3d4ab4c6a612329534698084"
+      "b11c90217682aba8d32a382aa9725984"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -536,7 +536,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "74d07d02a774893a2736842e43273b3f"
+      "24f79481280d552251146950686604be"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -569,7 +569,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "85964bd5932ba9afbd2878998276dcb3"
+      "0b662622406376d0a2bd18937e18ed5e"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -594,7 +594,7 @@
         "projection_inverse_BoxInt_proj_0", "well-founded-ordering-on-nat"
       ],
       0,
-      "6720e36dd54fb92ae3cf738f1b6d99c7"
+      "0d237febd87140396125c39c4ddc415b"
     ],
     [
       "Catala.DefaultCalculus.step_app",
@@ -616,7 +616,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "48361c5e0ee8cdfa9389b377a1e1034e"
+      "0cd9555520b3ca27b77b9ee22f77a1a3"
     ],
     [
       "Catala.DefaultCalculus.extend",
@@ -631,7 +631,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "959e0ad7f119bf608ef98c6b407085a9"
+      "b4d7124ea3722a753e1998e8e1c6eb80"
     ],
     [
       "Catala.DefaultCalculus.typing",
@@ -653,7 +653,7 @@
         "subterm_ordering_Catala.DefaultCalculus.EIf"
       ],
       0,
-      "c00bf7a3d4293b2ca0d3f471a94a7443"
+      "0cab940a4adca30ec6c107f4bd65ab7e"
     ],
     [
       "Catala.DefaultCalculus.typing",
@@ -668,7 +668,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "a912ce2537d5bd5b8efac5742694d5e0"
+      "4e3b314f9599171e039bda02fbe32288"
     ],
     [
       "Catala.DefaultCalculus.is_bool_value_cannot_be_abs",
@@ -694,7 +694,7 @@
         "typing_tok_Catala.DefaultCalculus.TBool@tok"
       ],
       0,
-      "fcce91fe26fc2f7278f943781c702e71"
+      "96fcf67d7e9d68c08815d5b863cc5d75"
     ],
     [
       "Catala.DefaultCalculus.typing_conserved_by_list_reduction",
@@ -711,7 +711,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "4cb4f790bd65800755bf9b124baf211b"
+      "26ee0e9ab80a19918e4ab06c7aee8d1d"
     ],
     [
       "Catala.DefaultCalculus.progress",
@@ -798,7 +798,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "4dbdda6ef73e359692b6571a7ac927de"
+      "dd491009ff9878ade2d35c8a0b85322d"
     ],
     [
       "Catala.DefaultCalculus.progress",
@@ -925,7 +925,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "5b33ceef79d8a11910f5923459b91078"
+      "679a7f3e7e17536eec0ea6f54aff9c71"
     ],
     [
       "Catala.DefaultCalculus.progress",
@@ -996,7 +996,7 @@
         "typing_FStar.List.Tot.Base.for_all"
       ],
       0,
-      "49410cf76d076b55772b0c9a4b2de111"
+      "08a419c32cc4a72f098d5ba10436fdfc"
     ],
     [
       "Catala.DefaultCalculus.empty_count_preserves_type",
@@ -1062,7 +1062,7 @@
         "unit_typing"
       ],
       0,
-      "c276ecd52a1dcec3934e865400780d2b"
+      "244f9100ad5c28fa85f738e2670fd162"
     ],
     [
       "Catala.DefaultCalculus.substitution_extensionnal",
@@ -1125,7 +1125,7 @@
         "true_interp"
       ],
       0,
-      "f5242e01fdb2ece7a83caa64523ecd2a"
+      "988376e56f3be5f5faa5177a5f4bce4b"
     ],
     [
       "Catala.DefaultCalculus.substitution_extensionnal",
@@ -1153,7 +1153,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "01210c300d902daad597be384d236e96"
+      "9fccb768658c208db732cb784b5ae99a"
     ],
     [
       "Catala.DefaultCalculus.subst_typing",
@@ -1165,7 +1165,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "17d57ea9dcdbf3e5529ae5c016b6e267"
+      "a9581b31b098f8c6ed0c28a5af28af64"
     ],
     [
       "Catala.DefaultCalculus.substitution_preserves_typing",
@@ -1307,7 +1307,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "aa3a6a24f4728c912a06d82c99426292"
+      "17d841d14a1131d163065fbd7aabaaba"
     ],
     [
       "Catala.DefaultCalculus.substitution_preserves_typing",
@@ -1356,7 +1356,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "c519c453b0f1a9388f56d0535bc50cb3"
+      "b393907a80bc0e092e77f702ffaf264a"
     ],
     [
       "Catala.DefaultCalculus.preservation",
@@ -1369,7 +1369,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "3bf4fe76ba9dfb3c52e3ed63de7adcae"
+      "2caf5bf722b94a214563c4b58dfd0592"
     ],
     [
       "Catala.DefaultCalculus.preservation",
@@ -1555,7 +1555,7 @@
         "unit_typing"
       ],
       0,
-      "1e47a11fea34c5c271443a4b0f90e428"
+      "1f5c06cb5572febc9e2355e796f50834"
     ],
     [
       "Catala.DefaultCalculus.preservation",
@@ -1568,13 +1568,13 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "0e7a6af020959c58c04caab0a14b1921"
+      "b3bcc3a1d16fea99e6f6a223fe293e0f"
     ],
     [
       "Catala.DefaultCalculus.preservation",
       4,
-      3,
-      1,
+      4,
+      2,
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Catala.DefaultCalculus.step.fuel_instrumented",
@@ -1602,7 +1602,6 @@
         "data_elim_Catala.DefaultCalculus.EDefault",
         "data_elim_FStar.Pervasives.Native.Some",
         "data_typing_intro_Catala.DefaultCalculus.EDefault@tok",
-        "data_typing_intro_Catala.DefaultCalculus.ELit@tok",
         "data_typing_intro_Catala.DefaultCalculus.TUnit@tok",
         "disc_equation_FStar.Pervasives.Native.None",
         "disc_equation_FStar.Pervasives.Native.Some",
@@ -1630,6 +1629,7 @@
         "projection_inverse_Catala.DefaultCalculus.EDefault_just",
         "projection_inverse_Catala.DefaultCalculus.EDefault_tau",
         "projection_inverse_Catala.DefaultCalculus.ELit_l",
+        "projection_inverse_FStar.Pervasives.Native.None_a",
         "projection_inverse_FStar.Pervasives.Native.Some_v",
         "projection_inverse_Prims.Cons_a",
         "projection_inverse_Prims.Cons_hd",
@@ -1640,7 +1640,6 @@
         "refinement_interpretation_Tm_refine_94ff508dba60a98364daca65da372e14",
         "refinement_interpretation_Tm_refine_adf079fdab7afb98eae06afbf41efee1",
         "subterm_ordering_Prims.Cons",
-        "token_correspondence_Catala.DefaultCalculus.step.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.step_exceptions_left_to_right.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.typing.fuel_instrumented",
         "token_correspondence_Catala.DefaultCalculus.typing_list.fuel_instrumented",
@@ -1648,12 +1647,11 @@
         "typing_Catala.DefaultCalculus.step",
         "typing_Catala.DefaultCalculus.step_exceptions_left_to_right",
         "typing_Catala.DefaultCalculus.typing",
-        "typing_tok_Catala.DefaultCalculus.LConflictError@tok",
         "typing_tok_Catala.DefaultCalculus.TBool@tok", "unit_inversion",
         "unit_typing"
       ],
       0,
-      "8027f16b03d414235a16bb198765a509"
+      "0ffcc137baddae54cd5223d99bb5fffa"
     ]
   ]
 ]

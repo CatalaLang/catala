@@ -1,0 +1,15 @@
+## Test all 'xor' combinations
+
+```catala
+declaration scope TestXor:
+  context t_xor_t content boolean
+  context t_xor_f content boolean
+  context f_xor_t content boolean
+  context f_xor_f content boolean
+
+scope TestXor:
+  definition t_xor_t equals true xor true
+  definition f_xor_t equals false xor true
+  definition t_xor_f equals true xor false
+  definition f_xor_f equals false xor false
+```

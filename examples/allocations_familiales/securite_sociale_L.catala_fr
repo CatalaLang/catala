@@ -8,7 +8,7 @@
 
 ###### Chapitre 1er : Liste des prestations
 
-#### [Article L511-1|LEGIARTI000038834530]
+####### Article L511-1|LEGIARTI000038834530
 
 Les prestations familiales comprennent :
 
@@ -36,7 +36,7 @@ Les prestations familiales comprennent :
 
 ###### Chapitre 2 : Champ d'application
 
-#### [Article L512-3|LEGIARTI000038834523]
+####### Article L512-3|LEGIARTI000038834523
 
 Sous réserve des règles particulières à chaque prestation,
 ouvre droit aux prestations familiales :
@@ -46,7 +46,8 @@ ouvre droit aux prestations familiales :
 ```catala
 champ d'application PrestationsFamiliales :
   règle droit_ouvert de enfant sous condition
-    (date_courante <=@ enfant.fin_obligation_scolaire)
+    enfant.obligation_scolaire sous forme Avant ou
+    enfant.obligation_scolaire sous forme Pendant
   conséquence rempli
 ```
 
@@ -55,17 +56,19 @@ tout enfant dont la rémunération éventuelle n'excède pas un plafond.
 
 ```catala
 champ d'application PrestationsFamiliales :
+  règle droit_ouvert de enfant sous condition
+    enfant.obligation_scolaire sous forme Après et
+    (enfant.rémuneration_mensuelle <=€ plafond_l512_3_2) et
+    (enfant.âge < âge_l512_3_2)
+  conséquence rempli
+
   # On définit les conditions hors âge d'abord car elles
   # sont référencées plus tard dans l'article L521-1
   règle conditions_hors_âge de enfant sous condition
-    (date_courante <=@ enfant.fin_obligation_scolaire) ou
+    enfant.obligation_scolaire sous forme Avant ou
+    enfant.obligation_scolaire sous forme Pendant ou
+    enfant.obligation_scolaire sous forme Après et
     (enfant.rémuneration_mensuelle <=€ plafond_l512_3_2)
-  conséquence rempli
-
-  règle droit_ouvert de enfant sous condition
-    (date_courante >@ enfant.fin_obligation_scolaire) et
-    (conditions_hors_âge de enfant) et
-    (enfant.âge < âge_l512_3_2)
   conséquence rempli
 
 champ d'application AllocationsFamiliales:
@@ -79,22 +82,16 @@ de logement mentionnés aux 3° et 4° de l'article L. 511-1 , l'âge limite
 peut être différent de celui mentionné au 2° du présent article.
 
 ```catala
-champ d'application PrestationsFamiliales :
-  définition âge_l512_3_2 sous condition
-    (âge_l512_3_2_alternatif sous forme Présent) et
-    (prestation_courante = ComplémentFamilial ou
-     prestation_courante = AllocationLogement)
-  conséquence égal à
-    selon âge_l512_3_2_alternatif sous forme
-      -- Présent de âge : âge
-      -- Absent: 0
+# Sera géré avec une exception dans Catala. Le texte est équivalent
+# à une méta-propriété du code à vérifier : i.e. pas d'exceptions pour
+# cet âge azutre part que pour Complément Familial ou AllocationLogement.
 ```
 
 ##### Titre 2 : Prestations générales d'entretien
 
 ###### Chapitre 1er : Allocations familiales
 
-#### [Article L521-1|LEGIARTI000029963006]
+####### Article L521-1|LEGIARTI000029963006
 
 Les allocations familiales sont dues à partir du deuxième enfant à charge.
 
@@ -117,18 +114,15 @@ celles de l'âge pour l'ouverture du droit aux allocations familiales.
 champ d'application AllocationsFamiliales :
   assertion fixé montant_versé par décret
 
-  # Ici, l'ouverture du droit aux allocations familiales est conditionné
-  # au fait d'avoir deux enfants à charges qui répondent aux conditions
-  # d'ouverture du droit à une prestation familiale. Pour cette raison,
-  # nous nous référons ici aux conditions_hors_âge de prestations_familiales
-  règle conditions_hors_âge de enfant sous condition
-    prestations_familiales.conditions_hors_âge de enfant
-  conséquence  rempli
-
   règle droit_ouvert_forfaitaire de enfant sous condition
-    (nombre de enfants_à_charge >= nombre_enfants_l521_1) et
+    # nombre_enfants_alinéa_2_l521_3 sera défini dans l'article R521-3
+    (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_3) et
+    # Puisqu'un enfant ne garde un âge donné que pour une période d'un an,
+    # cette condition assure que l'allocation ne peut être distribuée que pour
+    # un an.
     (enfant.âge = prestations_familiales.âge_l512_3_2) et
-    (conditions_hors_âge de enfant)
+    (enfant.a_déjà_ouvert_droit_aux_allocations_familiales) et
+    (prestations_familiales.conditions_hors_âge de enfant)
   conséquence rempli
 ```
 
@@ -179,16 +173,20 @@ champ d'application AllocationsFamiliales :
   assertion fixé montant_versé_complément par décret
 ```
 
-#### [Article L521-2|LEGIARTI000006743210]
+####### Article L521-2|LEGIARTI000006743210
 
 Les allocations sont versées à la personne qui assume, dans quelques conditions
 que ce soit, la charge effective et permanente de l'enfant.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  définition prise_en_compte de enfant égal à Complète
+  définition prise_en_compte de enfant sous condition
+    enfant.prise_en_charge sous forme EffectiveEtPermanente
+  conséquence égal à PriseEnCompte.Complète
 
-  définition versement de enfant égal à Normal
+  définition versement de enfant sous condition
+    enfant.prise_en_charge sous forme EffectiveEtPermanente
+  conséquence égal à VersementAllocations.Normal
 ```
 
 En cas de résidence alternée de l'enfant au domicile de chacun des parents telle
@@ -202,27 +200,23 @@ les conditions d'application du présent alinéa.
 ```catala
 champ d'application AllocationsFamiliales :
   # Premier cas : garde alternée, parents désignent un unique allocataire
-  exception
   définition prise_en_compte de enfant sous condition
-    enfant.garde_alternée sous forme OuiAllocataireUnique
-  conséquence égal à Complète
+    enfant.prise_en_charge sous forme GardeAlternéeAllocataireUnique
+  conséquence égal à PriseEnCompte.Complète
 
-  exception
   définition versement de enfant sous condition
-    enfant.garde_alternée sous forme OuiAllocataireUnique
-  conséquence égal à Normal
+    enfant.prise_en_charge sous forme GardeAlternéeAllocataireUnique
+  conséquence égal à VersementAllocations.Normal
 
   # Deuxième cas : garde alternée, parents partagent la charge pour
   # l'allocation
-  exception
   définition prise_en_compte de enfant sous condition
-    enfant.garde_alternée sous forme OuiPartageAllocations
-  conséquence égal à Partagée
+    enfant.prise_en_charge sous forme GardeAlternéePartageAllocations
+  conséquence égal à PriseEnCompte.Partagée
 
-  exception
   définition versement de enfant sous condition
-    enfant.garde_alternée sous forme OuiPartageAllocations
-  conséquence égal à Normal
+    enfant.prise_en_charge sous forme GardeAlternéePartageAllocations
+  conséquence égal à VersementAllocations.Normal
 ```
 
 Lorsque la personne qui assume la charge effective et permanente de l'enfant ne
@@ -231,7 +225,13 @@ du droit aux allocations familiales, ce droit s'ouvre du chef du père ou,
 à défaut, du chef de la mère.
 
 ```catala
-# Non formalisé pour le calcul du montant des allocations
+champ d'application AllocationsFamiliales :
+  assertion
+    personne_charge_effective_permanente_est_parent ou
+    (
+      (non personne_charge_effective_permanente_est_parent) et
+      personne_charge_effective_permanente_remplit_titre_I
+    )
 ```
 
 Lorsqu'un enfant est confié au service d'aide sociale à l'enfance, les
@@ -249,11 +249,26 @@ de l'enfant dans son foyer.
 
 ```catala
 champ d'application AllocationsFamiliales :
-  exception
+ définition prise_en_compte de enfant sous condition
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeAuxServicesSociaux
+  conséquence égal à PriseEnCompte.Zéro
+
   définition versement de enfant sous condition
-    enfant.prise_en_charge_par_services_sociaux sous forme
-      OuiAllocationVerséeAuxServicesSociaux
-  conséquence égal à AllocationVerséeAuxServicesSociaux
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeAuxServicesSociaux
+  conséquence égal à VersementAllocations.AllocationVerséeAuxServicesSociaux
+
+  définition prise_en_compte de enfant sous condition
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeÀLaFamille
+  conséquence égal à PriseEnCompte.Complète
+
+
+  définition versement de enfant sous condition
+    enfant.prise_en_charge sous forme
+      ServicesSociauxAllocationVerséeÀLaFamille
+  conséquence égal à VersementAllocations.Normal
 ```
 
 Un décret en Conseil d'Etat fixe les conditions d'application du présent
@@ -272,7 +287,7 @@ d) enfants confiés à un service public, à une institution privée, à un part
 # est confié à un service social.
 ```
 
-#### [Article L521-3|LEGIARTI000006743289]
+####### Article L521-3|LEGIARTI000006743289
 
 Chacun des enfants à charge, à l'exception du plus âgé, ouvre droit à partir
 d'un âge minimum à une majoration des allocations familiales.
@@ -282,7 +297,7 @@ champ d'application AllocationsFamiliales :
   règle droit_ouvert_majoration de enfant
   sous condition
     (non (est_enfant_le_plus_âgé de enfant)) et
-    (enfant.âge >= âge_limite_alinéa_1_l521_3 de enfant)
+    (enfant.âge >= âge_minimum_alinéa_1_l521_3 de enfant)
   conséquence rempli
 ```
 
@@ -297,7 +312,7 @@ champ d'application AllocationsFamiliales :
   sous condition
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >=
       nombre_enfants_alinéa_2_l521_3) et
-    (enfant.âge >= âge_limite_alinéa_1_l521_3 de enfant)
+    (enfant.âge >= âge_minimum_alinéa_1_l521_3 de enfant)
   conséquence rempli
 ```
 
@@ -305,7 +320,7 @@ champ d'application AllocationsFamiliales :
 
 ###### Chapitre 1er : Etablissement du salaire de base
 
-#### [Article L551-1|LEGIARTI000031688371]
+####### Article L551-1|LEGIARTI000031688371
 
 Le montant des prestations familiales est déterminé d'après des bases
 mensuelles de calcul revalorisées au 1er avril de chaque année par application
@@ -323,7 +338,7 @@ champ d'application PrestationsFamiliales :
 
 ###### Chapitre 1er : Généralités
 
-#### [Article L751-1|LEGIARTI000031323778]
+####### Article L751-1|LEGIARTI000031323778
 
 Les dispositions du présent titre s'appliquent en Guadeloupe, en Guyane,
 en Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin à
@@ -331,6 +346,9 @@ l'ensemble des bénéficiaires de la législation générale de sécurité
 sociale, y compris les membres des professions agricoles.
 
 ```catala
+# Angle mort: ici nous n'avons pas formalisé la partie sur la législation
+# générale de sécurité sociale et les membres des professions agricoles.
+
 champ d'application PrestationsFamiliales :
   règle régime_outre_mer_l751_1 sous condition
     (résidence = Guadeloupe) ou
@@ -344,7 +362,7 @@ champ d'application PrestationsFamiliales :
 
 ###### Chapitre 5 : Prestations familiales et prestations assimilées
 
-#### [Article L755-3|LEGIARTI000033728786]
+####### Article L755-3|LEGIARTI000033728786
 
 Les dispositions des articles L. 512-1 à L. 512-4 , L. 513-1 , L. 521-2 ,
 L. 552-1 , L. 553-1 , L. 553-2 , L. 553-4 , L. 582-1 , L. 582-2 , L. 583-3
@@ -357,7 +375,7 @@ fixée en application de l'article L. 551-1 .
 # Aucun changement dans le code, puisque les articles restent applicables
 ```
 
-#### [Article L755-11|LEGIARTI000031323803]
+####### Article L755-11|LEGIARTI000031323803
 
 Les conditions d'attribution des allocations familiales et de leurs majorations
 fixées par les articles L. 521-1 et L. 521-3 sont applicables dans les
@@ -370,12 +388,18 @@ collectivités mentionnées à l'article L. 751-1.
 Toutefois, les dispositions de l'article L. 755-12 restent en vigueur aussi
 longtemps que le présent chapitre V est applicable.
 
-#### [Article L755-12|LEGIARTI000029962999]
+####### Article L755-12|LEGIARTI000029962999
 
 Les allocations familiales sont dues, pour tout enfant, à la personne qui a
 effectivement la charge de celui-ci.
 
 ```catala
+# TODO Liane: Angle mort, ici c'est marqué "effectivement la charge" mais dans l'article de
+# L521-2 il faut charge effective ET permanente. Pourquoi cette différence ?
+# Quelles conséquences pratiques ?
+# Apparemment en 1987 il y avait encore des exceptions pour certains agents
+# publics d'outre-mer
+
 champ d'application AllocationsFamiliales:
   exception
   règle droit_ouvert_base sous condition

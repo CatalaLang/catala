@@ -150,30 +150,14 @@ contexts [] {
 
 main : context {
 
-   : inline_push {
-      regex          \= (\#\#)
-      styles []       = .law_title;
-      : pop {
-         regex       \= (\n)
-         styles []    = .law_title;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_title;
-      }
+   : pattern {
+     regex \=  (^\s*[\#]+.*)
+     styles [] = .law_title;
    }
 
-   : inline_push {
-      regex          \= (@)
-      styles []       = .law_subtitle;
-      : pop {
-         regex       \= (@)
-         styles []    = .law_subtitle;
-      }
-      : pattern {
-        regex \= (.)
-        styles [] = .law_subtitle;
-      }
+   : pattern {
+     regex \=  (^\s*[\#]+\s*\[[^\]]\s*].*)
+     styles [] = .law_subtitle;
    }
 
    : pattern {
@@ -218,7 +202,7 @@ code : context {
   }
 
   : pattern {
-    regex \= (\|[0-9]+/[0-9]+/[0-9]+\|)
+    regex \= (\|[0-9]+\-[0-9]+\-[0-9]+\|)
     styles [] = .literal_numeric ;
   }
 
@@ -240,7 +224,7 @@ code : context {
   }
 
   : pattern {
-     regex \= (\-\>|\+\.|\+\@|\+\^|\+\u20ac|\+|\-\.|\-\@|\-\^|\-\u20ac|\-|\*\.|\*\@|\*\^|\*\u20ac|\*|/\.|/\@|/\^|/\u20ac|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\u20ac|>=\u20ac|<=\u20ac|<\u20ac|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|non|ou|et|\u20ac|%|an|mois|jour)
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\u20ac|\+|\-\.|\-\@|\-\^|\-\u20ac|\-|\*\.|\*\@|\*\^|\*\u20ac|\*|/\.|/\@|/\^|/\u20ac|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\u20ac|>=\u20ac|<=\u20ac|<\u20ac|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|non|ou\s+bien|ou|et|\u20ac|%|an|mois|jour)
      styles [] = .operator;
   }
 

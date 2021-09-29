@@ -1,0 +1,11 @@
+## Test
+
+```catala
+declaration scope A:
+  context y content integer
+
+scope A:
+  label base_y
+  exception base_y
+  definition y equals 0
+```

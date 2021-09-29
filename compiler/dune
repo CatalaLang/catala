@@ -1,0 +1,33 @@
+(library
+ (name driver)
+ (public_name catala.driver)
+ (libraries utils surface desugared literate dcalc lcalc scalc runtime)
+ (modules driver))
+
+(library
+ (name runtime)
+ (public_name catala.runtime)
+ (libraries calendar zarith zarith_stubs_js)
+ (modules runtime))
+
+(executable
+ (name catala_web)
+ (modes byte js)
+ (package catala)
+ (public_name catala_web)
+ (modules catala_web)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries catala.driver js_of_ocaml))
+
+(executable
+ (name catala)
+ (modes native)
+ (package catala)
+ (modules catala)
+ (public_name catala)
+ (libraries catala.driver))
+
+(documentation
+ (package catala)
+ (mld_files index))

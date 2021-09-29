@@ -1,0 +1,12 @@
+## Article
+
+```catala
+declaration scope TestBool:
+  context foo content boolean
+  context bar content integer
+
+scope TestBool:
+  definition bar equals 1
+  definition foo under condition bar >= 0 consequence equals true
+  definition foo under condition bar < 0 consequence equals false
+```

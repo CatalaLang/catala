@@ -1,0 +1,258 @@
+# This file is part of the Catala compiler, a specification language for tax and social benefits
+# computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
+# <denis.merigoux@inria.fr>
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License
+# is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+# or implied. See the License for the specific language governing permissions and limitations under
+# the License.
+
+
+name                   = catala_pl
+file_extensions []     = catala_pl;
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.comment : style {
+   color                 = light_green
+   italic                = true
+   textmate_scope        = comment.line
+   pygments_scope        = Comment.Single
+}
+
+.sc_id : style {
+   textmate_scope        = meta.variable_id
+   pygments_scope        = String
+   color = violet_red
+}
+
+.sc_id_def : style {
+   textmate_scope        = entity.name.function
+   pygments_scope        = Name.Variable
+   color = orange
+}
+
+
+.cc_id : style {
+   color                 = light_blue
+   textmate_scope        = entity.name.class
+   pygments_scope        = Name.Class
+}
+
+
+.law_title : style {
+   color                 = yellow
+   italic                = false
+   textmate_scope        = markup.heading.title
+   pygments_scope        = Generic.Heading
+}
+
+.law_subtitle : style {
+   color                 = gold
+   italic                = true
+   textmate_scope        = markup.heading.subtitle
+   pygments_scope        = Generic.Heading
+}
+
+.law : style {
+   color                 = light_yellow
+   italic                = false
+   textmate_scope        = entity.law
+   pygments_scope        = String
+}
+
+.code_delimiter : style {
+   color                 = grey
+   italic                = false
+   textmate_scope        = comment.block.documentation
+   pygments_scope        = String
+}
+
+.primitive : style {
+   color                = purple
+   textmate_scope       = support.type
+   pygments_scope       = Keyword.Type
+}
+
+.whitespace : style {
+   textmate_scope = text
+   pygments_scope = String
+}
+
+.keyword_expression : style {
+   color     = pink
+   textmate_scope        = keyword.control
+   pygments_scope        = Keyword.Reserved
+}
+
+.keyword_rule : style {
+   color     = cyan
+   textmate_scope        = keyword.other
+   pygments_scope        = Keyword.Declaration
+}
+
+.punctuation : style {
+   color     = red_2
+   ace_scope             = punctuation
+   textmate_scope        = punctuation
+   pygments_scope        = Operator
+}
+
+.literal : style {
+   color = green
+   textmate_scope        = constant
+   pygments_scope        = Keyword.Constant
+}
+
+.literal_numeric : style {
+   color = violet
+   textmate_scope        = constant.numeric
+   pygments_scope        = Number.Integer
+}
+
+
+.operator : style {
+   color                 = brown
+   textmate_scope        = keyword.operator
+   pygments_scope        = Operator
+}
+
+}
+
+#################################################
+## Parse contexts
+#################################################
+
+__LOWER_CHARS \= a-ząćęłńóśżź
+
+__UPPER_CHARS \= A-ZĄĆĘŁŃÓŚŻŹ
+
+__SC_ID \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
+
+__SC_ID_COMPOSED \= [$${__LOWER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\'\.]*
+
+__CC_ID \= [$${__UPPER_CHARS}][$${__LOWER_CHARS}$${__UPPER_CHARS}0-9_\']*
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+
+   : pattern {
+     regex \=  (^\s*[\#]+.*)
+     styles [] = .law_title;
+   }
+
+   : pattern {
+     regex \=  (^\s*[\#]+\s*\[[^\]]\s*].*)
+     styles [] = .law_subtitle;
+   }
+
+   : pattern {
+     regex \= ([^`])
+     styles [] = .law;
+   }
+
+   : push {
+      regex          \= (```catala)
+      styles []       = .code_delimiter;
+      context []       = code;
+   }
+
+}
+
+
+code : context {
+
+  : pop {
+    regex       \= (```)
+    styles []    = .code_delimiter;
+  }
+
+  : pattern {
+    regex \= (\s*\#.*$)
+    styles [] = .comment ;
+  }
+
+  : pattern {
+    regex \=  (kontekst)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .sc_id_def;
+  }
+
+  : pattern {
+    regex \= \b(pasuje|ze\s+wzorem|staloprzecinkowa|przez|malejacy|rosnacy|rozna|wraz z|mamy|w|takich ze|istnieje|dla|wszystkie|z|jezeli|wtedy|inaczej|poczatkowy)\b
+    styles [] = .keyword_expression ;
+  }
+
+  : pattern {
+    regex \=  \b(zakres|zalezy\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek)\b
+    styles [] = .keyword_rule ;
+  }
+
+  : pattern {
+    regex \= (\|[0-9]+\-[0-9]+\-[0-9]+\|)
+    styles [] = .literal_numeric ;
+  }
+
+  : pattern {
+    regex \= \b(prawda|falsz)\b
+    styles [] = .literal ;
+  }
+
+
+  : pattern {
+    regex \= \b([0-9]+(,[0.9]*|))\b
+    styles [] = .literal_numeric ;
+  }
+
+
+  : pattern {
+     regex \= (\-\-|\;|\.|\,|\:|\(|\)|\[|\]|\{|\})
+     styles [] = .punctuation;
+  }
+
+  : pattern {
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\^|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|nie|lub|xor|i|\$|%|rok|miesiac|dzien)
+     styles [] = .operator;
+  }
+
+  : pattern {
+    regex \= \b(calkowita|zerojedynkowy|czas|czas trwania|pieniądze|warunek|tekst|dziesiętny|suma)\b
+    styles [] = .primitive;
+  }
+
+  : pattern {
+    regex \= \b($${__CC_ID})(\.)($${__SC_ID})\b
+    styles [] = .cc_id, .punctuation, .sc_id_def ;
+  }
+
+  : pattern {
+    regex \= \b($${__SC_ID})(\.)($${__SC_ID_COMPOSED})\b
+    styles [] = .sc_id_def, .punctuation, .sc_id ;
+  }
+
+  : pattern {
+    regex \= \b($${__SC_ID})\b
+    styles [] = .sc_id_def ;
+  }
+
+  : pattern {
+    regex \= \b($${__CC_ID})\b
+    styles [] = .cc_id ;
+  }
+
+}
+
+}

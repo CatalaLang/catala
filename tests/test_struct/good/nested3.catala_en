@@ -1,0 +1,35 @@
+## Article
+
+```catala
+declaration structure S:
+  data x content integer
+  data y content boolean
+
+declaration structure T:
+  data a content S
+  data b content S
+
+declaration scope A:
+  context t content T
+
+declaration scope B:
+  context t content T
+  context a scope A
+  context out content integer
+
+scope A:
+  definition t equals T {
+    -- a : S {
+      -- x : 0
+      -- y : false
+    }
+    -- b : S {
+      -- x : 1
+      -- y : true
+    }
+  }
+
+scope B:
+  definition t equals a.t
+  definition out equals if t.a.y then t.a.x else (if t.b.y then t.b.x else 42)
+```

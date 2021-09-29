@@ -29,7 +29,7 @@ l'entête.
 L'unité de division fondamentale est l'article, encadré par un simple arobase.
 Étudions un exemple ficitif qui définit un impôt sur le revenu.
 
-#### [Article 1]
+#### Article 1
 
 L'impôt sur le revenu d'un individu est calculé en tant qu'un pourcentage
 fixe des revenus d'une personne pour une année.
@@ -60,7 +60,6 @@ Commençons notre section métadonnées en déclarant l'information sur le type
 personne :
 
 > Début métadonnées
-
 ```catala
 déclaration structure Personne:
   # Le nom de la structure "Personne", doit commencer
@@ -75,7 +74,6 @@ déclaration structure Personne:
   # "revenu" and "nombre_enfants" commençent par une lettre minuscule,
   # ils adhèrent à la convention snake_case
 ```
-
 > Fin métadonnées
 
 Cette structure contient deux champs de de données, "revenu" et "nombre_enfants".
@@ -88,7 +86,6 @@ Parfois, la loi donne une énumération de différentes situations. Ces énumér
 sont modélisés en Catala par le type énumération, comme suit :
 
 > Début métadonnées
-
 ```catala
 déclaration énumération CréditImpôt:
 # Le nom "CréditImpôt" s'écrit aussi en CamelCase
@@ -102,7 +99,6 @@ déclaration énumération CréditImpôt:
 # d'impôt. Cela signifie que si vous êtes dans la situation
 # "CréditImpôtEnfants", vous aurez aussi accès à ce nombre d'enfants.
 ```
-
 > Fin métadonnées
 
 En informatique, une telle énumération est appelée "type somme" ou simplement
@@ -118,7 +114,6 @@ traditionnelle. Les champs d'application doivent avoir été déclarés
 préalablement dans les métadonnées, de la manière suivante:
 
 > Début métadonnées
-
 ```catala
 déclaration champ d'application CalculImpôtRevenu:
   # Les champs d'application utilisent le CamelCase
@@ -129,13 +124,12 @@ déclaration champ d'application CalculImpôtRevenu:
   contexte pourcentage_fixe contenu décimal
   contexte impôt_revenu contenu argent
 ```
-
 > Fin métadonnées
 
 Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
 de l'article 1 qui a été copié ci-dessous.
 
-#### [Article 1]
+#### Article 1
 
 L'impôt sur le revenu pour une personne est défini comme un pourcentage fixe
 des revenus de la personne pour une année.
@@ -169,7 +163,7 @@ Mais dans l'article 1, une question reste sans réponse: quelle est la valeur
 de la pourcentage fixe? Souvent, des valeurs précises sont définis ailleurs
 dans les sources législatives. Ici, supposons que nous avons:
 
-#### [Article 2]
+#### Article 2
 
 Le pourcentage fixe mentionné à l'article 1 est égal à 20%.
 
@@ -188,7 +182,7 @@ proche possible de sa localisation dans le texte.
 Jusqu'à là tout va bien mais maintenant le texte législatif présente quelques
 difficultés. Supposons que le troisième article dispose :
 
-#### [Article 3]
+#### Article 3
 
 Si l'individu a à sa charge deux ou plus enfants alors
 le pourcentage fixe mentionné à l'article 1 vaut 15 %.
@@ -224,7 +218,6 @@ Catala vous permet de définir des fonctions partout dans vos données. Voici
 définir un calcul de l'impôt sur le revenu à deux tranches :
 
 > Début métadonnées
-
 ```catala
 déclaration structure DeuxTranches:
   donnée seuil contenu argent
@@ -235,12 +228,11 @@ déclaration champ d'application CalculImpôtDeuxTranches :
   contexte tranches contenu DeuxTranches
   contexte formule_imposition contenu argent dépend de argent
 ```
-
 > Fin métadonnées
 
 Et dans le code :
 
-#### [Article4]
+#### Article4
 
 Le montant d'impôt pour le calcul à deux tranches
 est égal au montant d'impôt dans chaque tranche multiplié
@@ -263,7 +255,7 @@ Maintenant que nous avons défini notre champ d'application utilitaire pour
 calculer un impôt à deux tranches, nous voulons l'utiliser dans notre champ
 d'application principal de calcul de l'impôt.
 
-#### [Article 5]
+#### Article 5
 
 Pour les individus dont le revenu est supérieur à 100 000€,
 l'impôt sur le revenu de l'article 1 est de 40% du revenu au-dessus de
@@ -289,7 +281,7 @@ champ d'application NouveauCalculImpôtRevenu :
     deux_tranches.formule_imposition de personne.revenu
 ```
 
-#### [Article 6]
+#### Article 6
 
 Les personnes ayant moins de 10 000€ de revenus sont exemptés de l'impôt
 sur le revenu prévu à l'article 1.
@@ -319,7 +311,7 @@ définissez est une bonne pratique appelée "tests unitaires" dans la
 communauté du génie logicielle. Les cas de test sont définis dans des
 champ d'application :
 
-#### [Tester NouveauCalculImpotRevenu]
+#### Tester NouveauCalculImpotRevenu
 
 ```catala
 déclaration champ d'application Test1:
@@ -375,7 +367,7 @@ est une simple exception à l'article 5. Dans la loi, il est implicite que
 si l'article 6 est applicable, alors son application est prioritaire
 sur l'article 5.
 
-#### [Régler correctement le calcul]
+#### Régler correctement le calcul
 
 Cette priorité implicite doit être explicitement déclaré en Catala. Voici une
 version correcte du champ d'application NouveauCalculImpotRevenu :

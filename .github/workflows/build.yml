@@ -29,48 +29,31 @@ jobs:
         with:
           # OCaml cache files are stored in `~/.opam` on Linux/macOS
           path: ~/.opam
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'legifrance_catala.opam') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
       - name: Set up OCaml
-        uses: avsm/setup-ocaml@v1.1.3
+        uses: avsm/setup-ocaml@v1
         with:
           # Version of the OCaml compiler to initialise
-          ocaml-version: 4.09.1
+          ocaml-version: 4.11.0
 
       - name: Install dependencies
         run: |
           eval $(opam env)
           make dependencies
           sudo apt update
-          sudo apt install python3-dev python3-setuptools man2html rsync colordiff
+          sudo apt install python3-dev python3-setuptools man2html rsync colordiff libmpc-dev
           sudo python3 -m pip install --upgrade pip
           sudo python3 -m pip install virtualenv
           sudo make pygments
+          ./french_law/python/setup_env.sh
 
-      - name: Make compiler
+      - name: Make all
         run: |
           eval $(opam env)
-          make build
-      - name: Run interpreter tests
-        run: |
-          eval $(opam env)
-          make tests
-
-      - name: Build and test French law library
-        run: |
-          eval $(opam env)
-          make build_french_law_library build_french_law_library_js
-
-      - name: Run compiled code tests
-        run: |
-          eval $(opam env)
-          make tests_ml
-
-      - name: Make assets and documentation
-        run: |
-          eval $(opam env)
-          make website-assets doc
+          export OCAMLRUNPARAM=b
+          make all

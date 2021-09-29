@@ -28,7 +28,7 @@
       <array>
         <dict>
           <key>begin</key>
-          <string>([\#]+)</string>
+          <string>(^\s*[\#]+)</string>
           <key>beginCaptures</key>
           <dict>
             <key>1</key>
@@ -57,7 +57,7 @@
         </dict>
         <dict>
           <key>begin</key>
-          <string>([\#]+\s*\[[^\]]\s*\])</string>
+          <string>(^\s*[\#]+\s*\[[^\]]\s*\])</string>
           <key>beginCaptures</key>
           <dict>
             <key>1</key>
@@ -161,13 +161,13 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b</string>
+          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception|n'importe\s+quel)\b</string>
           <key>name</key>
           <string>keyword.other.catala_fr</string>
         </dict>
         <dict>
           <key>match</key>
-          <string>(\|[0-9]+/[0-9]+/[0-9]+\|)</string>
+          <string>(\|[0-9]+\-[0-9]+\-[0-9]+\|)</string>
           <key>name</key>
           <string>constant.numeric.catala_fr</string>
         </dict>
@@ -191,7 +191,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\x{20ac}|\+|\-\.|\-\@|\-\^|\-\x{20ac}|\-|\*\.|\*\@|\*\^|\*\x{20ac}|\*|/\.|/\@|/\^|/\x{20ac}|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\x{20ac}|&gt;=\x{20ac}|&lt;=\x{20ac}|&lt;\x{20ac}|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|non|ou|et|\x{20ac}|%|an|mois|jour)</string>
+          <string>(\-\&gt;|\+\.|\+\@|\+\^|\+\x{20ac}|\+|\-\.|\-\@|\-\^|\-\x{20ac}|\-|\*\.|\*\@|\*\^|\*\x{20ac}|\*|/\.|/\@|/\^|/\x{20ac}|/|\!|&gt;\.|&gt;=\.|&lt;=\.|&lt;\.|&gt;\@|&gt;=\@|&lt;=\@|&lt;\@|&gt;\x{20ac}|&gt;=\x{20ac}|&lt;=\x{20ac}|&lt;\x{20ac}|&gt;\^|&gt;=\^|&lt;=\^|&lt;\^|&gt;|&gt;=|&lt;=|&lt;|=|non|ou\s+bien|ou|et|\x{20ac}|%|an|mois|jour)</string>
           <key>name</key>
           <string>keyword.operator.catala_fr</string>
         </dict>

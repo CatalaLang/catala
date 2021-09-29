@@ -2,7 +2,7 @@
 
 ## Tests
 
-### [Tests]
+### Tests
 
 ```catala
 déclaration champ d'application Données:
@@ -17,36 +17,36 @@ champ d'application Données:
     -- d_identifiant: 1
     -- d_date_de_naissance: |2007-01-01|
     -- d_rémuneration_mensuelle: 0€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant2 égal à EnfantEntrée {
     -- d_identifiant: 2
     -- d_date_de_naissance: |2009-01-01|
     -- d_rémuneration_mensuelle: 0€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant3 égal à EnfantEntrée {
     -- d_identifiant: 3
     -- d_date_de_naissance: |2003-01-01|
     -- d_rémuneration_mensuelle: 400€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: OuiPartageAllocations
+    -- d_prise_en_charge: GardeAlternéePartageAllocations
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant4 égal à EnfantEntrée {
     -- d_identifiant: 4
     -- d_date_de_naissance: |2001-01-01|
     -- d_rémuneration_mensuelle: 1100€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
   définition enfant5 égal à EnfantEntrée {
     -- d_identifiant: 5
     -- d_date_de_naissance: |2000-01-01|
     -- d_rémuneration_mensuelle: 0€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }
 
 déclaration champ d'application Test1:
@@ -59,6 +59,7 @@ champ d'application Test1:
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 351,26€
 
 déclaration champ d'application Test2:
@@ -71,6 +72,7 @@ champ d'application Test2:
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 216,27€
 
 
@@ -83,7 +85,8 @@ champ d'application Test3:
   définition f.ressources_ménage égal à 63540 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Guyane
-  assertion f.montant_versé = 12,18€
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 24,35 €
 
 déclaration champ d'application Test4:
   contexte f champ d'application InterfaceAllocationsFamiliales
@@ -94,6 +97,7 @@ champ d'application Test4:
   définition f.ressources_ménage égal à 67 250 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 99,37€
 
 déclaration champ d'application Test5:
@@ -105,6 +109,7 @@ champ d'application Test5:
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 0,00€
 
 déclaration champ d'application Test6:
@@ -115,19 +120,20 @@ champ d'application Test6:
     -- d_identifiant: 0
     -- d_date_de_naissance: |2009-11-10|
     -- d_rémuneration_mensuelle: 439€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2020-09-25|
     -- d_rémuneration_mensuelle: 1949€
-    -- d_prise_en_charge_par_services_sociaux: NonPriseEnChargeFamille
-    -- d_garde_alternée: NonGardeUnique
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
   }]
   définition f.ressources_ménage égal à 78 830 €
   définition f.date_courante égal à |2020-05-01|
   définition f.résidence égal à Guadeloupe
-  assertion f.montant_versé = 132,49€
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 66,25€
 
 déclaration champ d'application Test7:
   contexte f champ d'application InterfaceAllocationsFamiliales
@@ -139,7 +145,75 @@ champ d'application Test7:
   définition f.ressources_ménage égal à 30 000 €
   définition f.date_courante égal à |2021-02-01|
   définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
   assertion f.montant_versé = 417,51€
 
+déclaration champ d'application Test8:
+  contexte f champ d'application InterfaceAllocationsFamiliales
 
+champ d'application Test8:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2004-01-01|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2005-01-01|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 69945 €
+  définition f.date_courante égal à |2021-01-01|
+  définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 197,74€
+
+déclaration champ d'application Test9:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test9:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2001-07-27|
+    -- d_rémuneration_mensuelle: 1258€
+    -- d_prise_en_charge: ServicesSociauxAllocationVerséeAuxServicesSociaux
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2008-04-27|
+    -- d_rémuneration_mensuelle: 1766€
+    -- d_prise_en_charge: ServicesSociauxAllocationVerséeAuxServicesSociaux
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 75786 €
+  définition f.date_courante égal à |2020-05-01|
+  définition f.résidence égal à Guadeloupe
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 0€
+
+déclaration champ d'application Test10:
+  contexte f champ d'application InterfaceAllocationsFamiliales
+
+champ d'application Test10:
+  définition f.enfants égal à [EnfantEntrée {
+    -- d_identifiant: 0
+    -- d_date_de_naissance: |2003-02-22|
+    -- d_rémuneration_mensuelle: 0€
+    -- d_prise_en_charge: EffectiveEtPermanente
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  };EnfantEntrée {
+    -- d_identifiant: 1
+    -- d_date_de_naissance: |2013-09-30|
+    -- d_rémuneration_mensuelle: 300€
+    -- d_prise_en_charge: GardeAlternéePartageAllocations
+    -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+  }]
+  définition f.ressources_ménage égal à 30000 €
+  définition f.date_courante égal à |2020-04-20|
+  définition f.résidence égal à Métropole
+  règle f.personne_charge_effective_permanente_est_parent rempli
+  assertion f.montant_versé = 99,37€
 ```

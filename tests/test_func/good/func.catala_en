@@ -1,0 +1,22 @@
+## Article
+
+```catala
+declaration scope S:
+  context f content integer depends on integer
+  context b content boolean
+  context out content integer
+
+declaration scope R:
+  context s scope S
+  context r content integer
+
+scope S:
+  definition f of x under condition (x >= x) consequence equals x + x
+  definition f of x under condition not b consequence equals x * x
+  definition b equals false
+  definition out equals f of 5
+
+scope R:
+  definition s.f of x equals x + x * x
+  definition r equals s.out
+```

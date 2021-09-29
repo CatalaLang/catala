@@ -1,0 +1,33 @@
+{0 Lambda calculus}
+
+This representation is the fifth in the compilation chain
+(see {{: index.html#architecture} Architecture}). Its main difference
+with the previous {{: Dcalc.html} default calculus} is the absence of the
+default term, which has been eliminated through diverse compilation schemes.
+
+The module describing the abstract syntax tree is:
+
+{!modules: Lcalc.Ast}
+
+This intermediate representation corresponds to the lambda calculus
+presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
+
+{1 Compilation from default calculus }
+
+Related modules:
+
+{!modules: Lcalc.Compile_with_exceptions}
+
+{!module: Lcalc.Compile_with_exceptions} compiles the default term of the
+default calculus using catchable exceptions. This compilation scheme has been
+certified.
+
+{1 Backends}
+
+Related modules:
+
+{!modules: Lcalc.To_ocaml Lcalc.To_python Lcalc.Backends}
+
+The OCaml backend of the lambda calculus is merely a syntactic formatting,
+since the core of the OCaml value language is effectively a lambda calculus.
+

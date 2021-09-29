@@ -1,18 +1,16 @@
-## Code général des impôts
+## Livre premier : Assiette et liquidation de l'impôt
 
-### Livre premier : Assiette et liquidation de l'impôt
+### Première Partie : Impôts d'État
 
-#### Première Partie : Impôts d'État
+#### Titre premier : Impôts directs et taxes assimilées
 
-##### Titre premier : Impôts directs et taxes assimilées
+##### Chapitre premier : Impôt sur le revenu
 
-###### Chapitre premier : Impôt sur le revenu
+###### Section I : Dispositions générales
 
-####### Section I : Dispositions générales
+####### 0I : Définition du revenu net global
 
-######## 0I : Définition du revenu net global
-
-######### [Article 1 A]
+######## Article 1 A
 
 Il est établi un impôt annuel unique sur le revenu des personnes physiques
 désigné sous le nom d'impôt sur le revenu. Cet impôt frappe le revenu net
@@ -42,58 +40,69 @@ nature, déterminés conformément aux dispositions des articles 14 à 155,
 total dont sont retranchées les charges énumérées à l'article 156.
 
 ```catala
-déclaration structure RevenuNetGlobal:
-donnée revenus_fonciers contenu argent
-donnée bénéfices_industriels_commerciaux contenu argent
-donnée rémunérations_dirigeants contenu argent
-donnée bénéfices_agricoles contenu argent
-donnée traitements_salaires contenu argent
-donnée bénéfices_non_commerciaux contenu argent
-donnée revenus_capitaux_mobiliers contenu argent
-donnée plus_values contenu argent
-donnée total contenu argent
-
-déclaration champ d'application CalculImpotSurLeRevenu :
-  contexte revenu_net_global contenu RevenuNetGlobal
-
-champ d'application CalculImpotSurLeRevenu:
-  définition revenu_net_global.total égal à
-    revenu_net_global.revenus_fonciers + revenu_net_global.bénéfices_industriels_commerciaux
-    + revenu_net_global.rémunérations_dirigeants + revenu_net_global.bénéfices_agricoles
-    + revenu_net_global.traitements_salaires + revenu_net_global.bénéfices_non_commerciaux
-    + revenu_net_global.revenus_capitaux_mobiliers + revenu_net_global.plus_values
+champ d'application CalculImpôtSurLeRevenu:
+  définition revenu_net_global égal à
+    détail_revenu_net_global.revenus_fonciers +€
+    détail_revenu_net_global.bénéfices_industriels_commerciaux +€
+    détail_revenu_net_global.rémunérations_dirigeants +€
+    détail_revenu_net_global.bénéfices_agricoles +€
+    détail_revenu_net_global.traitements_salaires +€
+    détail_revenu_net_global.bénéfices_non_commerciaux +€
+    détail_revenu_net_global.revenus_capitaux_mobiliers +€
+    détail_revenu_net_global.plus_values
 ```
 
-######## 0I : Définition du revenu net global
+####### 0I : Définition du revenu net global
 
-######### [Article 4 A]
+######## Article 4 A
 
 Les personnes qui ont en France leur domicile fiscal sont passibles de l'impôt sur le revenu en raison de l'ensemble de leurs revenus.
 
 Celles dont le domicile fiscal est situé hors de France sont passibles de cet impôt en raison de leurs seuls revenus de source française.
 
 ```catala
-déclaration énumération DomicileFiscal:
--- France
--- HorsDeFrance
+champ d'application CalculImpôtSurLeRevenu:
+  définition revenus égal à
+    si domicile_fiscal = France alors
+      montants_sources_revenus.source_française +€
+        montants_sources_revenus.source_étrangère
+    sinon
+      montants_sources_revenus.source_française
+```
 
-déclaration structure MontantsSourcesRevenus:
-  donnée source_française contenu argent
-  donnée source_étrangère contenu argent
+######## Article 4 B
 
-déclaration structure Personne:
-  donnée domicile_fiscal contenu DomicileFiscal
-  donnée revenus contenu argent
-  donnée montants_sources_revenus contenu MontantsSourcesRevenus
+1. Sont considérées comme ayant leur domicile fiscal en France au sens de l'article 4 A :
 
-déclaration champ d'application CalculImpotSurLeRevenu :
-  contexte personne contenu Personne
+a. Les personnes qui ont en France leur foyer ou le lieu de leur séjour principal ;
 
-champ d'application CalculImpotSurLeRevenu:
-  définition personne.revenus égal à
-  si personne.domicileFiscal = France alors
-  montants_sources_revenus.source_française +€ montants_sources_revenus.source_étrangère
-  sinon
-  montants_sources_revenus.source_française
+b. Celles qui exercent en France une activité professionnelle, salariée ou non,
+à moins qu'elles ne justifient que cette activité y est exercée à titre accessoire ;
 
+Les dirigeants des entreprises dont le siège est situé en France
+et qui y réalisent un chiffre d'affaires annuel supérieur à 250 millions d'euros
+sont considérés comme exerçant en France leur activité professionnelle à titre principal,
+à moins qu'ils ne rapportent la preuve contraire.
+Pour les entreprises qui contrôlent d'autres entreprises dans les conditions définies
+à l'article L. 233-16 du code de commerce, le chiffre d'affaires s'entend de la somme de leur chiffre d'affaires
+et de celui des entreprises qu'elles contrôlent.
+
+Les dirigeants mentionnés au deuxième alinéa du présent b s'entendent du président du conseil d'administration
+lorsqu'il assume la direction générale de la société, du directeur général, des directeurs généraux délégués, du président
+et des membres du directoire, des gérants et des autres dirigeants ayant des fonctions analogues ;
+
+c. Celles qui ont en France le centre de leurs intérêts économiques.
+
+2. Sont également considérés comme ayant leur domicile fiscal en France les agents de l'Etat,
+des collectivités territoriales et de la fonction publique hospitalière qui exercent leurs fonctions
+ou sont chargés de mission dans un pays étranger et qui ne sont pas soumis dans ce pays à un impôt personnel
+sur l'ensemble de leurs revenus.
+
+```catala
+champ d'application CalculImpôtSurLeRevenu:
+ définition domicile_fiscal égal à
+ si
+    personne.foyer_lieu_sejour_principal_france
+ alors France
+ sinon HorsDeFrance
 ```

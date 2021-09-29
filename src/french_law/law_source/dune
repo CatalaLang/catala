@@ -1,4 +1,0 @@
-(library
- (name law_source)
- (public_name catala.law_source)
- (libraries runtime))

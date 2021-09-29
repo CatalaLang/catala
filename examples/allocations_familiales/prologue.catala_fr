@@ -5,30 +5,27 @@ allocations familiales, il est nécessaire de définir les structures de donnée
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
 > Début métadonnées
-
 ```catala
-déclaration structure Personne:
-  donnée numéro_sécurité_sociale contenu entier
+déclaration énumération PriseEnCharge :
+  -- GardeAlternéePartageAllocations
+  -- GardeAlternéeAllocataireUnique
+  -- EffectiveEtPermanente
+  -- ServicesSociauxAllocationVerséeÀLaFamille
+  -- ServicesSociauxAllocationVerséeAuxServicesSociaux
 
-déclaration énumération GardeAlternée :
-  -- OuiPartageAllocations
-  -- OuiAllocataireUnique
-  -- NonGardeUnique
-
-déclaration énumération PriseEnChargeServiceSociaux:
-  -- OuiAllocationVerséeÀLaFamille
-  -- OuiAllocationVerséeAuxServicesSociaux
-  -- NonPriseEnChargeFamille
+déclaration énumération SituationObligationScolaire:
+  -- Avant
+  -- Pendant
+  -- Après
 
 déclaration structure Enfant :
   donnée identifiant contenu entier
-  donnée fin_obligation_scolaire contenu date
+  donnée obligation_scolaire contenu SituationObligationScolaire
   donnée rémuneration_mensuelle contenu argent
   donnée date_de_naissance contenu date
   donnée âge contenu entier
-  donnée garde_alternée contenu GardeAlternée
-  donnée prise_en_charge_par_services_sociaux contenu
-    PriseEnChargeServiceSociaux
+  donnée prise_en_charge contenu PriseEnCharge
+  donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
 
 déclaration énumération Collectivité :
   -- Guadeloupe
@@ -46,17 +43,14 @@ déclaration champ d'application Smic :
   contexte résidence contenu Collectivité
   contexte brut_horaire contenu argent
 
-déclaration énumération PriseEnCompteÉvaluationMontant:
+déclaration énumération PriseEnCompte:
   -- Complète
   -- Partagée
+  -- Zéro
 
 déclaration énumération VersementAllocations:
   -- Normal
   -- AllocationVerséeAuxServicesSociaux
-
-déclaration énumération ÂgeAlternatif:
-  -- Absent
-  -- Présent contenu entier
 
 déclaration énumération ÉlémentPrestationsFamiliales:
   -- PrestationAccueilJeuneEnfant
@@ -73,7 +67,6 @@ déclaration champ d'application PrestationsFamiliales:
   contexte conditions_hors_âge condition dépend de Enfant
   contexte plafond_l512_3_2 contenu argent
   contexte âge_l512_3_2 contenu entier
-  contexte âge_l512_3_2_alternatif contenu ÂgeAlternatif
   contexte régime_outre_mer_l751_1 condition
   contexte date_courante contenu date
   contexte prestation_courante contenu ÉlémentPrestationsFamiliales
@@ -86,34 +79,34 @@ champ d'application PrestationsFamiliales:
   définition smic.date_courante égal à date_courante
 
 déclaration champ d'application AllocationFamilialesAvril2008:
-  contexte âge_limite_alinéa_1_l521_3 contenu entier
-
-déclaration énumération StockageEnfant:
-  -- PasEnfant
-  -- UnEnfant contenu Enfant
+  contexte âge_minimum_alinéa_1_l521_3 contenu entier
 
 déclaration champ d'application EnfantLePlusÂgé:
   contexte enfants contenu collection Enfant
   contexte le_plus_âgé contenu Enfant
 
 déclaration champ d'application AllocationsFamiliales:
+
+  # Variables concernant le ménage
+  contexte personne_charge_effective_permanente_est_parent condition
+  contexte personne_charge_effective_permanente_remplit_titre_I condition
+  contexte ressources_ménage contenu argent
+  contexte résidence contenu Collectivité
+
+  # Date à laquelle le calcul est effectué
+  contexte date_courante contenu date
+
+  # Variables concernant les enfants du ménage
   contexte enfants_à_charge contenu collection Enfant
   contexte enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
-  contexte date_courante contenu date
-  contexte résidence contenu Collectivité
-  contexte ressources_ménage contenu argent
-  contexte prise_en_compte contenu
-    PriseEnCompteÉvaluationMontant dépend de Enfant
-  contexte versement contenu
-    VersementAllocations dépend de Enfant
+  contexte prise_en_compte contenu PriseEnCompte dépend de Enfant
+  contexte versement contenu VersementAllocations dépend de Enfant
 
   contexte montant_versé contenu argent
 
+  # Variables liées à la base des allications familiales
   contexte droit_ouvert_base condition
-  contexte droit_ouvert_majoration condition dépend de Enfant
-  contexte montant_versé_base contenu argent
-  contexte montant_avec_garde_alternée_base contenu argent
   contexte montant_initial_base contenu argent
   contexte montant_initial_base_premier_enfant contenu argent
   contexte montant_initial_base_deuxième_enfant contenu argent
@@ -121,27 +114,36 @@ déclaration champ d'application AllocationsFamiliales:
   contexte rapport_enfants_total_moyen contenu décimal
   contexte nombre_moyen_enfants contenu décimal
   contexte nombre_total_enfants contenu décimal
+  contexte montant_avec_garde_alternée_base contenu argent
+  contexte montant_versé_base contenu argent
 
+  # Variables liées à l'allocation forfaitaire
   contexte droit_ouvert_forfaitaire condition dépend de Enfant
+  contexte montant_versé_forfaitaire_par_enfant contenu argent
   contexte montant_versé_forfaitaire contenu argent
 
-  contexte montant_versé_majoration contenu argent
-  contexte montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  # Variables liées aux majorations des allocations familiales
+  contexte droit_ouvert_majoration condition dépend de Enfant
+  contexte montant_initial_métropole_majoration contenu argent dépend de Enfant
   contexte montant_initial_majoration contenu argent dépend de Enfant
+  contexte montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  contexte montant_versé_majoration contenu argent
 
+  # Variables liées au complément dégressif
   contexte droit_ouvert_complément condition
-  contexte montant_versé_complément_pour_base_et_majoration contenu argent
   contexte montant_base_complément_pour_base_et_majoration contenu argent
+  contexte complément_dégressif contenu argent dépend de argent
+  contexte montant_versé_complément_pour_base_et_majoration contenu argent
   contexte montant_versé_complément_pour_forfaitaire contenu argent
-  contexte dépassement_plafond_ressources contenu argent dépend de argent
 
+  # Sous-champs d'applications
   contexte prestations_familiales champ d'application PrestationsFamiliales
   contexte version_avril_2008 champ d'application AllocationFamilialesAvril2008
   contexte enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
 
-  contexte conditions_hors_âge condition dépend de Enfant
+  # Plafonds, âges limites et autres constantes
   contexte nombre_enfants_l521_1 contenu entier
-  contexte âge_limite_alinéa_1_l521_3 contenu entier dépend de Enfant
+  contexte âge_minimum_alinéa_1_l521_3 contenu entier dépend de Enfant
   contexte nombre_enfants_alinéa_2_l521_3 contenu entier
   contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
   contexte plafond_I_d521_3 contenu argent
@@ -156,5 +158,4 @@ champ d'application AllocationsFamiliales:
     résidence
 
 ```
-
 > Fin métadonnées

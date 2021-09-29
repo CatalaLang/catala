@@ -1,6 +1,6 @@
 > Include: ../tutorial_en.catala_en
 
-## [Test]
+## Test
 
 ```catala
 declaration scope UnitTest1:

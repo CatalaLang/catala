@@ -23,12 +23,12 @@ ace.define(
         start: [
           {
             token: "markup.heading.title",
-            regex: "([#]+)",
+            regex: "(^s*[#]+)",
             push: "main__1",
           },
           {
             token: "markup.heading.subtitle",
-            regex: "([#]+s*[[^]]s*])",
+            regex: "(^s*[#]+s*[[^]]s*])",
             push: "main__2",
           },
           {
@@ -67,11 +67,11 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|collection|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tiquette|exception)\\b",
+              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|collection|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tiquette|exception|n'importe\\s+quel)\\b",
           },
           {
             token: "constant.numeric",
-            regex: "(\\|[0-9]+/[0-9]+/[0-9]+\\|)",
+            regex: "(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)",
           },
           {
             token: "constant",
@@ -88,7 +88,7 @@ ace.define(
           {
             token: "keyword.operator",
             regex:
-              "(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\u20ac|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\u20ac|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\u20ac|\\*|/\\.|/\\@|/\\^|/\\u20ac|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\u20ac|>=\\u20ac|<=\\u20ac|<\\u20ac|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|non|ou|et|\\u20ac|%|an|mois|jour)",
+              "(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\u20ac|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\u20ac|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\u20ac|\\*|/\\.|/\\@|/\\^|/\\u20ac|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\u20ac|>=\\u20ac|<=\\u20ac|<\\u20ac|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|non|ou\\s+bien|ou|et|\\u20ac|%|an|mois|jour)",
           },
           {
             token: "support.type",

@@ -1,0 +1,9 @@
+## 'xor' should be a boolean operator
+
+```catala
+declaration scope TestXorWithInt:
+  context test_var content integer
+
+scope TestXorWithInt:
+  definition test_var equals 10 xor 20
+```

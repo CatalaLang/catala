@@ -8,7 +8,7 @@
       1,
       [ "@query" ],
       0,
-      "8de2ec0ff3dee94558714e126cccaca4"
+      "0e311e55c6adcf97ececac5dd9a61c53"
     ],
     [
       "Catala.LambdaCalculus.__proj__TArrow__item__tin",
@@ -20,7 +20,7 @@
         "refinement_interpretation_Tm_refine_e0df9c7637802e33e8c31682fffa5ba6"
       ],
       0,
-      "bbccaed5704979c55a559a1c31a1834c"
+      "87405cb79d852640cd955a508fa53697"
     ],
     [
       "Catala.LambdaCalculus.__proj__TArrow__item__tout",
@@ -32,7 +32,7 @@
         "refinement_interpretation_Tm_refine_e0df9c7637802e33e8c31682fffa5ba6"
       ],
       0,
-      "8fab8bc658b169864bda6f068334f6ce"
+      "789de8a72ff29de292515f0c853a91d4"
     ],
     [
       "Catala.LambdaCalculus.__proj__TList__item__elts",
@@ -44,7 +44,7 @@
         "refinement_interpretation_Tm_refine_d983dccc0214b834973ff1399f92beb8"
       ],
       0,
-      "76268d2f639e4f5bc0d502f45d867c56"
+      "7f1846b71fe8bcbf2a13fb6ba299a817"
     ],
     [
       "Catala.LambdaCalculus.__proj__TOption__item__a",
@@ -56,7 +56,7 @@
         "refinement_interpretation_Tm_refine_3d558d916dde713422174b28b39dc533"
       ],
       0,
-      "a870f36b0cd10999ebf920fdb3271420"
+      "b500e52f927c6fa9f95258a13e2f2bc3"
     ],
     [
       "Catala.LambdaCalculus.lit",
@@ -65,7 +65,7 @@
       1,
       [ "@query", "assumption_Catala.LambdaCalculus.err__uu___haseq" ],
       0,
-      "2030bcfc0e28da947ac45fe58c6cc1e0"
+      "5e6ce25851abdb93d9e5d78d97a18b59"
     ],
     [
       "Catala.LambdaCalculus.__proj__LError__item__err",
@@ -77,7 +77,7 @@
         "refinement_interpretation_Tm_refine_03c5f53bf3c3d998eb9852e335e5f83b"
       ],
       0,
-      "d752ee7fff2be31ce886ccaa29ba767d"
+      "44b3e279e6f9cdeb11b4887c749b66be"
     ],
     [
       "Catala.LambdaCalculus.exp",
@@ -98,7 +98,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "cf66495fa49d61cfc6a9e34bd2fc8af5"
+      "2a5e6e9a46fb03e85d5d09bf9b6c7ccb"
     ],
     [
       "Catala.LambdaCalculus.__proj__EVar__item__v",
@@ -110,7 +110,7 @@
         "refinement_interpretation_Tm_refine_ba87924536b02a4efbb171a9a3f24dc1"
       ],
       0,
-      "807ab3c72e77bd5e5ab1f522508b0a7e"
+      "4e113c94c6ebf7cae84a79d1b6980774"
     ],
     [
       "Catala.LambdaCalculus.__proj__EApp__item__fn",
@@ -122,7 +122,7 @@
         "refinement_interpretation_Tm_refine_a719520990feb006edba4632bf1de67c"
       ],
       0,
-      "56a9590f38fef0e368dc49671f13e429"
+      "5369de316813ed5967b9b4d207bf1700"
     ],
     [
       "Catala.LambdaCalculus.__proj__EApp__item__arg",
@@ -134,7 +134,7 @@
         "refinement_interpretation_Tm_refine_a719520990feb006edba4632bf1de67c"
       ],
       0,
-      "0fee0a2cf90edf2e7cbe779d3eea1678"
+      "6620ffb9a81fd6e942e7e9b54ba957cf"
     ],
     [
       "Catala.LambdaCalculus.__proj__EApp__item__tau_arg",
@@ -146,7 +146,7 @@
         "refinement_interpretation_Tm_refine_a719520990feb006edba4632bf1de67c"
       ],
       0,
-      "ec68032617fc4491889b91e0c2f408e8"
+      "52f10ad5aa895f9deb915f9ee8f669eb"
     ],
     [
       "Catala.LambdaCalculus.__proj__EAbs__item__vty",
@@ -158,7 +158,7 @@
         "refinement_interpretation_Tm_refine_64f2adea38011f2f250c3e2a8698555e"
       ],
       0,
-      "250cdd4d1befbdb320f34f541a3fad3c"
+      "b35a51a46ee83d7ea300022694a62bca"
     ],
     [
       "Catala.LambdaCalculus.__proj__EAbs__item__body",
@@ -170,7 +170,7 @@
         "refinement_interpretation_Tm_refine_64f2adea38011f2f250c3e2a8698555e"
       ],
       0,
-      "84a7bff35e43a7943088a46289aa9efd"
+      "eb5dc1df75878e4e70e01cb0a8d74bdf"
     ],
     [
       "Catala.LambdaCalculus.__proj__EThunk__item__body",
@@ -182,7 +182,7 @@
         "refinement_interpretation_Tm_refine_fa1bc5d4438d467178933555e84bfdb0"
       ],
       0,
-      "e1588468dca9ea1d839943321335c987"
+      "acfa67613af2e2b652f95b3a311e2ab0"
     ],
     [
       "Catala.LambdaCalculus.__proj__ELit__item__l",
@@ -194,7 +194,7 @@
         "refinement_interpretation_Tm_refine_b8b77a9f0a7ac5cbd4fe272d4407c47b"
       ],
       0,
-      "800974582885f0c85300d2cc343e0024"
+      "bde3011fa4a1e78ff3e0b9b869fec8fa"
     ],
     [
       "Catala.LambdaCalculus.__proj__EIf__item__test",
@@ -206,7 +206,7 @@
         "refinement_interpretation_Tm_refine_f36dce8ad972049e00d02a4e8af7bfcf"
       ],
       0,
-      "c10a6ab0e827e474db114afa930cfa82"
+      "d9c5401295c054aeca11b0942773a415"
     ],
     [
       "Catala.LambdaCalculus.__proj__EIf__item__btrue",
@@ -218,7 +218,7 @@
         "refinement_interpretation_Tm_refine_f36dce8ad972049e00d02a4e8af7bfcf"
       ],
       0,
-      "2b105d57bd4707b3446049bcbbe78f3b"
+      "f3bc0404e7cb9db46a7e45b940ab3ab8"
     ],
     [
       "Catala.LambdaCalculus.__proj__EIf__item__bfalse",
@@ -230,7 +230,7 @@
         "refinement_interpretation_Tm_refine_f36dce8ad972049e00d02a4e8af7bfcf"
       ],
       0,
-      "d63561aa21b29c97fe7412d848a9aebb"
+      "feba0dcfd4b637e530d3f1df55692b26"
     ],
     [
       "Catala.LambdaCalculus.__proj__ESome__item__s",
@@ -242,7 +242,7 @@
         "refinement_interpretation_Tm_refine_20fa929526977a65cb1df84b45438b8d"
       ],
       0,
-      "e1fff2f2dacdee4e4db9ddad56903cf0"
+      "3026bf7c38e36947da44fe3de9d93b13"
     ],
     [
       "Catala.LambdaCalculus.__proj__EMatchOption__item__arg",
@@ -254,7 +254,7 @@
         "refinement_interpretation_Tm_refine_57367977d238cf27e36a3ef56ad291f4"
       ],
       0,
-      "d5f58d23a25a05fe4fc1ecf70c37416b"
+      "a6cf19275df5278a353cb59137e52bac"
     ],
     [
       "Catala.LambdaCalculus.__proj__EMatchOption__item__tau_some",
@@ -266,7 +266,7 @@
         "refinement_interpretation_Tm_refine_57367977d238cf27e36a3ef56ad291f4"
       ],
       0,
-      "f8564b4f8e934a645c18d48aedebe858"
+      "57b98f77d487ad63b2027c4eaeeb8674"
     ],
     [
       "Catala.LambdaCalculus.__proj__EMatchOption__item__none",
@@ -278,7 +278,7 @@
         "refinement_interpretation_Tm_refine_57367977d238cf27e36a3ef56ad291f4"
       ],
       0,
-      "46c3bbed626fb87616e634b004ffdd67"
+      "84986ecb0e5990a650cb69c1bf7b7282"
     ],
     [
       "Catala.LambdaCalculus.__proj__EMatchOption__item__some",
@@ -290,7 +290,7 @@
         "refinement_interpretation_Tm_refine_57367977d238cf27e36a3ef56ad291f4"
       ],
       0,
-      "b4df29a440b197f8345d040a7d6c05da"
+      "9a416e0463745168114d4004ded3a8c1"
     ],
     [
       "Catala.LambdaCalculus.__proj__EList__item__l",
@@ -302,7 +302,7 @@
         "refinement_interpretation_Tm_refine_01736dfac08f9723e991fedf308a456b"
       ],
       0,
-      "554be0743f7d47c871372140e4b71a09"
+      "295bb443a75c1bacb1dc3e58f011c90c"
     ],
     [
       "Catala.LambdaCalculus.__proj__ECatchEmptyError__item__to_try",
@@ -314,7 +314,7 @@
         "refinement_interpretation_Tm_refine_9a40a813c12283df68af10f9acc20e9e"
       ],
       0,
-      "07b4feecbf6fa06a0d64f3994820b78b"
+      "52b1f8f0f063a04889f7f3e3c8c7501d"
     ],
     [
       "Catala.LambdaCalculus.__proj__ECatchEmptyError__item__catch_with",
@@ -326,7 +326,7 @@
         "refinement_interpretation_Tm_refine_9a40a813c12283df68af10f9acc20e9e"
       ],
       0,
-      "ad9284dcc3fff5f6779ee0b78c6ce2fd"
+      "8cc3f0b443adb97e45890741c8c844ce"
     ],
     [
       "Catala.LambdaCalculus.__proj__EFoldLeft__item__f",
@@ -338,7 +338,7 @@
         "refinement_interpretation_Tm_refine_65688a1c5ad79fa9ee8734e7ef72d1b7"
       ],
       0,
-      "11682f08873245cc93fce0e4ba007c55"
+      "e87d4a16d12dc19fe148715242fdba9d"
     ],
     [
       "Catala.LambdaCalculus.__proj__EFoldLeft__item__init",
@@ -350,7 +350,7 @@
         "refinement_interpretation_Tm_refine_65688a1c5ad79fa9ee8734e7ef72d1b7"
       ],
       0,
-      "174e572bf31a43995981ae5ac6e6bb36"
+      "c7d869d6294328efe5209691a8111bb2"
     ],
     [
       "Catala.LambdaCalculus.__proj__EFoldLeft__item__tau_init",
@@ -362,7 +362,7 @@
         "refinement_interpretation_Tm_refine_65688a1c5ad79fa9ee8734e7ef72d1b7"
       ],
       0,
-      "8e2595ca05da87bd542403f5c20633c7"
+      "4ff553418ce428f8ac6a9977798eb1a4"
     ],
     [
       "Catala.LambdaCalculus.__proj__EFoldLeft__item__l",
@@ -374,7 +374,7 @@
         "refinement_interpretation_Tm_refine_65688a1c5ad79fa9ee8734e7ef72d1b7"
       ],
       0,
-      "f202c595c2392dc47e5cfe10dac07177"
+      "6c77d28a91cafa8e4a8b6da09644f430"
     ],
     [
       "Catala.LambdaCalculus.__proj__EFoldLeft__item__tau_elt",
@@ -386,7 +386,7 @@
         "refinement_interpretation_Tm_refine_65688a1c5ad79fa9ee8734e7ef72d1b7"
       ],
       0,
-      "3b3b3b8f5880d96d70b5339425204617"
+      "ea174cb63e7a3ed6fa0d162c27bb721e"
     ],
     [
       "Catala.LambdaCalculus.is_value",
@@ -402,7 +402,7 @@
         "subterm_ordering_Catala.LambdaCalculus.ESome"
       ],
       0,
-      "59567df5b16387c44cbd971535258c7e"
+      "d5c93964e0fcd7d4a58d041faa44a609"
     ],
     [
       "Catala.LambdaCalculus.is_value",
@@ -419,7 +419,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "f6f09e0cad6439bfa25cf2f1f595bea6"
+      "4250df247014a087fdd788c3533f106a"
     ],
     [
       "Catala.LambdaCalculus.is_renaming_prop",
@@ -435,7 +435,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "217a0c6ccdce03a3a4273001c6149c43"
+      "a1ec58e609bd64e52bebe12ca171e36e"
     ],
     [
       "Catala.LambdaCalculus.is_renaming_size",
@@ -447,7 +447,7 @@
         "refinement_interpretation_Tm_refine_e7ef4ddcb37f8c967ca2870b656141e3"
       ],
       0,
-      "beb9c51c18139eeb226255828fbafc87"
+      "f6be76141a7830bfa1599d9faee514f6"
     ],
     [
       "Catala.LambdaCalculus.increment",
@@ -461,7 +461,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4f71c622ce69cd8abd4dd84f56b02f65"
+      "826f38c893b00b91d12ab4196fa88ee1"
     ],
     [
       "Catala.LambdaCalculus.increment_is_renaming",
@@ -477,7 +477,7 @@
         "projection_inverse_Catala.LambdaCalculus.EVar_v"
       ],
       0,
-      "d575a68308c59405356b557e01fc2a85"
+      "47bf36691b2a4a823b18e4d352bacff5"
     ],
     [
       "Catala.LambdaCalculus.subst",
@@ -572,7 +572,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "8729ef20b50c0be16ced54716c51e6d9"
+      "30e77d01469e0b97a5bb4ec7a83dcdc4"
     ],
     [
       "Catala.LambdaCalculus.subst",
@@ -595,7 +595,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "652d96ce304667f0ced54b058ad2f97c"
+      "2deb362b7ec990eb62110370c8d238d8"
     ],
     [
       "Catala.LambdaCalculus.subst",
@@ -634,7 +634,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "66365e1fa44a46cad61420cdbcc5e8b4"
+      "320594af148d303e54dc789f4113981e"
     ],
     [
       "Catala.LambdaCalculus.var_to_exp_beta",
@@ -649,7 +649,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "baf1dc778c2652e71750817e4dfd1ec5"
+      "e245ace6d1b8bf9373b14df4f867d690"
     ],
     [
       "Catala.LambdaCalculus.list_step_result",
@@ -662,7 +662,7 @@
         "kinding_Catala.LambdaCalculus.exp@tok"
       ],
       0,
-      "736d635b5a29da13ac84ed36d58726b2"
+      "3604773b754f8447f78790e4955f636a"
     ],
     [
       "Catala.LambdaCalculus.__proj__Good__item___0",
@@ -674,7 +674,7 @@
         "refinement_interpretation_Tm_refine_a6e7ab89f661323296c36eb1747076b6"
       ],
       0,
-      "01e5997352294f98df0ebb15b3314b27"
+      "c52f7d3c9aee3436269c7e10abdf42c3"
     ],
     [
       "Catala.LambdaCalculus.__proj__Error__item___0",
@@ -686,7 +686,7 @@
         "refinement_interpretation_Tm_refine_c5b4d354da344d8cd86bdf12541d59c0"
       ],
       0,
-      "b1ad150bd6ad4bc5d9b136bc69133301"
+      "2a376f52fd138a18a8bb1a4be11990b3"
     ],
     [
       "Catala.LambdaCalculus.is_not_bad",
@@ -702,7 +702,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "add5d7152901a3ec00c8ce034b01989f"
+      "6bb65a2141176c759d3cfe80d1454415"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -719,7 +719,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "749e1da01f4a8659865e5dd66727e18a"
+      "f2a5c1280bd052394d2582552562ea5e"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -731,7 +731,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "75fd805108b24efbcef483629868303b"
+      "181b225b79b7d02249595851c45ed58d"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -743,7 +743,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "5843a642b88bf50fbf77ad85340a1345"
+      "a730f7989e50fe7a82a052d3357d460a"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -770,7 +770,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "f0735b14edde035f7deb94085b9b6bbf"
+      "f4ab78374ab6c164ca022933d9001346"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -782,7 +782,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "823c41dd1061aeed0bbb3c58941a11f1"
+      "1481331f0ec24a1739aa3b12fa8b2cef"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -815,7 +815,7 @@
         "typing_Catala.LambdaCalculus.is_value"
       ],
       0,
-      "1eed5729dccbbe490fbbbc0f3b165442"
+      "5bcaae97487e368fd2d9fb45ded53799"
     ],
     [
       "Catala.LambdaCalculus.step_app",
@@ -851,7 +851,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "cae0f4a76913633da31475a5fa514df2"
+      "cfd79511cb01c06fc61027f1af38f141"
     ],
     [
       "Catala.LambdaCalculus.extend",
@@ -866,7 +866,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "8423da4c4c6744d1c9d2663d8b3e45fe"
+      "055548d3ff1af27ae05e1347d43241c1"
     ],
     [
       "Catala.LambdaCalculus.typing",
@@ -894,7 +894,7 @@
         "subterm_ordering_Catala.LambdaCalculus.EThunk"
       ],
       0,
-      "23c50f39f5fe5bb9e66be250d5586cda"
+      "40bf7072490113404bf28f2bdaa7cd15"
     ],
     [
       "Catala.LambdaCalculus.typing",
@@ -911,7 +911,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "79670879d71b99c8f3fed539711896ab"
+      "c5c4fa980bdb5d2f6c751f27fe4c7b52"
     ],
     [
       "Catala.LambdaCalculus.is_bool_value_cannot_be_abs",
@@ -939,7 +939,7 @@
         "typing_tok_Catala.LambdaCalculus.TBool@tok"
       ],
       0,
-      "1179fb7dd55fa4fa68715269af71445d"
+      "1ecd002c0642e08ee395fe39000c208d"
     ],
     [
       "Catala.LambdaCalculus.typing_conserved_by_list_reduction",
@@ -956,7 +956,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "5fc7ec88715d4b68b1c959089dd7b501"
+      "bccaa71046651a63e01c914dc27265b4"
     ],
     [
       "Catala.LambdaCalculus.size_for_progress",
@@ -998,7 +998,7 @@
         "subterm_ordering_Catala.LambdaCalculus.EThunk"
       ],
       0,
-      "0ed20890bdc4d2a427666f2739d89301"
+      "3eff628fe238bbea2021f8d7d5a84235"
     ],
     [
       "Catala.LambdaCalculus.size_for_progress",
@@ -1020,7 +1020,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "ddb34c1cbff5b588aeea0eea59cf6c53"
+      "090549f4e2ca6594f744032f0e49541c"
     ],
     [
       "Catala.LambdaCalculus.lemma_size_fold_step",
@@ -1067,7 +1067,7 @@
         "typing_tok_Catala.LambdaCalculus.ENone@tok"
       ],
       0,
-      "e8e903157510795394e5958d95d08ada"
+      "2d6a1bcb40667bec4c4e82fa54ee4e7b"
     ],
     [
       "Catala.LambdaCalculus.lemma_size_fold_f",
@@ -1094,7 +1094,7 @@
         "typing_Catala.LambdaCalculus.size_for_progress"
       ],
       0,
-      "a68e8cb24dc6be13d457a909913c6bc7"
+      "c7eb0606a328c8247fa68f56dbeb2dc0"
     ],
     [
       "Catala.LambdaCalculus.lemma_size_fold_init",
@@ -1120,7 +1120,7 @@
         "token_correspondence_Catala.LambdaCalculus.size_for_progress.fuel_instrumented"
       ],
       0,
-      "ff8214e7fa2b4374d3cc0097680bf181"
+      "28cbf400e760cf1343d7298b52383da8"
     ],
     [
       "Catala.LambdaCalculus.lemma_size_fold_l",
@@ -1147,7 +1147,7 @@
         "typing_Catala.LambdaCalculus.size_for_progress"
       ],
       0,
-      "b6438c9acd74b9fc96737f3bf7141be0"
+      "787ccf1eec3cde9722698427cd22c917"
     ],
     [
       "Catala.LambdaCalculus.progress",
@@ -1156,7 +1156,7 @@
       2,
       [ "@query" ],
       0,
-      "f1dbb5de672c8c0a65ae1ef0914766cf"
+      "fc1c0c4374692ba34e9b35149b4135db"
     ],
     [
       "Catala.LambdaCalculus.progress",
@@ -1339,7 +1339,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "8e8e471453f35981acc2b77b61e16011"
+      "1a727fc1746265d817a3155e0a5e2cd5"
     ],
     [
       "Catala.LambdaCalculus.progress",
@@ -1348,7 +1348,7 @@
       2,
       [ "@query" ],
       0,
-      "e3d828df7df188144d2719b9b0247a82"
+      "db945381124fb742158d229c45adc679"
     ],
     [
       "Catala.LambdaCalculus.progress",
@@ -1427,7 +1427,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "ffa6f467dceade56ba1aa7cbee1777c7"
+      "1e54549db87ae7bee99379999bcea455"
     ],
     [
       "Catala.LambdaCalculus.substitution_extensionnal",
@@ -1519,7 +1519,7 @@
         "true_interp", "typing_tok_Catala.LambdaCalculus.ENone@tok"
       ],
       0,
-      "a767ec62f9b851bfa2114c36b15c04cc"
+      "f54d0a707cef68e009feb483a192f332"
     ],
     [
       "Catala.LambdaCalculus.substitution_extensionnal",
@@ -1550,7 +1550,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "8fed6da686196f65ad6f9267ec127539"
+      "db8688eee6a0661b7a6d54ffad888cd0"
     ],
     [
       "Catala.LambdaCalculus.subst_typing",
@@ -1562,7 +1562,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "45e2a42eeb6ff38d73ac3925fa13a1b5"
+      "85e833e849bccbed2de5eab2884806cc"
     ],
     [
       "Catala.LambdaCalculus.substitution_preserves_typing",
@@ -1740,7 +1740,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "503e1308cd7f0194f0a88a292ec7c5a4"
+      "4557d2bcd77fb6338b3789bf69c2b5e6"
     ],
     [
       "Catala.LambdaCalculus.substitution_preserves_typing",
@@ -1792,7 +1792,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "60db2b6decbf8571a30717ad0aa54a6e"
+      "7ad9ca8b2d5c0b0ae8bea3c26e5efd1e"
     ],
     [
       "Catala.LambdaCalculus.preservation",
@@ -1813,7 +1813,7 @@
         "typing_Catala.LambdaCalculus.uu___is_Error"
       ],
       0,
-      "5dbaf0f7d6769730448331e005017428"
+      "b885510315594c78804893f5c418efe0"
     ],
     [
       "Catala.LambdaCalculus.preservation",
@@ -2004,7 +2004,7 @@
         "unit_typing"
       ],
       0,
-      "b5d4cbedd5a681dfd5dcbd0be26ca0a0"
+      "e55d162bf2923d776361c9b2d0ae781f"
     ],
     [
       "Catala.LambdaCalculus.preservation",
@@ -2025,7 +2025,7 @@
         "typing_Catala.LambdaCalculus.uu___is_Error"
       ],
       0,
-      "100a2d01a40bb6cf7867b44bf94f1fd0"
+      "39edd1d9172620df4366a04073969284"
     ],
     [
       "Catala.LambdaCalculus.preservation",
@@ -2109,7 +2109,7 @@
         "unit_typing"
       ],
       0,
-      "207e9c5fd253624a7049b15163e1d5ae"
+      "376eb0108f4a454de4735876e7bc5672"
     ],
     [
       "Catala.LambdaCalculus.subst_by_identity_is_identity",
@@ -2211,7 +2211,7 @@
         "typing_tok_Catala.LambdaCalculus.ENone@tok"
       ],
       0,
-      "fc26110757db955805ecd1af420837ec"
+      "3c6bfa9970a7c86fc5a56ccd63301fd9"
     ],
     [
       "Catala.LambdaCalculus.subst_by_identity_is_identity",
@@ -2240,7 +2240,7 @@
         "typing_Catala.LambdaCalculus.identity_var_to_exp"
       ],
       0,
-      "8ef12925c8c020c90f37048bc07abd4b"
+      "c43b3c306ac7eb485636fa0fb73ea36a"
     ],
     [
       "Catala.LambdaCalculus.typing_empty_can_be_extended",
@@ -2269,7 +2269,7 @@
         "typing_Tm_abs_683fecef0f32ab9df689545bd34ec676"
       ],
       0,
-      "e2d5abc6fdc10316d10362c338d39919"
+      "32b9533f89a7349a06bce6a7b93e1e0f"
     ]
   ]
 ]

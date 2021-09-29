@@ -38,13 +38,12 @@ and articles markers:
 
 ### Sub-heading (the more '#', the less important)
 
-#### [Legislative atom]
+#### Legislative atom
 ```
 
 Please look at the code of other examples to see how to format things properly.
 While formatting the text, don't forget regularly to try and parse your example
 using for instance
-
 
 ```
 make -C examples/foo foo.tex
@@ -54,19 +53,19 @@ to see if you've made any syntax errors. Once the text formatting is done, you
 can start to annotate each legislative atom (article, provision, etc.) with
 some Catala code. To open up a code section in Catala, simply use
 
-~~~markdown
+````markdown
 ```catala
 # In code sections, comments start with #
 scope Foo:
   <your code goes here>
 ```
-~~~
+````
 
 While all the code sections are equivalent in terms of execution, you can
 mark some as "metadata" so that they are printed differently on lawyer-facing
 documents. Here's how it works:
 
-~~~markdown
+````markdown
 > Begin metadata # > Début métadonnées en français
 
 ```catala
@@ -78,7 +77,7 @@ declaration structure FooBar:
 ```
 
 > End metadata # > Fin métadonnées en français
-~~~
+````
 
 Again, make sure to regularly check that your example is parsing correctly. The error message from the compiler should help you debug the syntax if need be. You can also
 live-test the programs you wrote by feeding them to the interpreter
@@ -92,17 +91,73 @@ You can look at the
 [online OCaml documentation](https://catala-lang.org/ocaml_docs/) for the
 different modules' interfaces as well as high-level architecture documentation.
 
+Please note that the `ocamlformat` version this project uses is `0.18.0`.
+Using another version may cause spurious diffs to appear in your pull requests.
+
+### Example: adding a builtin function
+
+The language provides a limited number of builtin functions, which are sometimes
+needed for things that can't easily be expressed in Catala itself; in case you
+need more, here is how one can be added:
+
+- Choose a name wisely. Be ready to patch any code that already used the name
+  for scope parameters, variables or structure fields, since it won't compile
+  anymore.
+- Add an element to the `builtin_expression` type in `surface/ast.ml(i)`
+- Add your builtin in the `builtins` list in `surface/lexer.cppo.ml`, and with
+  proper translations in all of the language-specific modules
+  `surface/lexer_en.cppo.ml`, `surface/lexer_fr.cppo.ml`, etc. Don't forget the
+  macro at the beginning of `lexer.cppo.ml`.
+- The rest can all be done by following the type errors downstream:
+  - Add a corresponding element to the lower-level AST in `dcalc/ast.ml(i)`, type `unop`
+  - Extend the translation accordingly in `surface/desugaring.ml`
+  - Extend the printer (`dcalc/print.ml`) and the typer with correct type
+    information (`dcalc/typing.ml`)
+  - Finally, provide the implementations:
+    - in `lcalc/to_ocaml.ml`, function `format_unop`
+    - in `dcalc/interpreter.ml`, function `evaluate_operator`
+- Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
+
 ## Internationalization
 
 The Catala language should be adapted to any legislative text that follows a
-general-to-specifics statutes order. Therefore, there exists  multiple versions
+general-to-specifics statutes order. Therefore, there exists multiple versions
 of the Catala surface syntax, adapted to the language of the legislative text.
 
-Currently, Catala supports English and French legislative text via the
-`--language=en` or `--language=fr` option.
+Currently, Catala supports English, French and Polish legislative text via the
+`--language=en`, `--language=fr` or `--language=pl` options.
 
-Technically, support for new languages can be added via a new lexer. If you want
-to add a new language, you can start from
-[existing lexer examples](src/catala/catala_surface/lexer_fr.ml), tweak and open
-a pull request. If you don't feel familiar enough with OCaml to do so, please
-leave an issue on this repository.
+To add support for a new language:
+- the basic syntax localisation is defined in
+  `compiler/surface/lexer_xx.cppo.ml` where `xx` is the language code (`en`,
+  `fr`...)
+- copy the files from another language, e.g.
+  [english](compiler/surface/lexer_en.cppo.ml), then replace the strings with your
+  translations. Be careful with the following:
+  - The file must be encoded in latin-1
+  - For a given token `FOO`, define `MS_FOO` to be the string version of the
+    keyword. Due to the encoding, use `\xNN` [escape
+    sequences](https://ocaml.org/manual/lex.html#escape-sequence) for utf8
+    characters.
+  - If the string contains spaces or non-latin1 characters, you need to define
+    `MR_FOO` as well with a regular expression in [sedlex
+    format](https://github.com/ocaml-community/sedlex#lexer-specifications).
+    Replace spaces with `", space_plus, "`, and unicode characters with `",
+    0xNNNN, "` where `NNNN` is the hexadecimal unicode codepoint.
+
+  **Hint:** You may get syntax errors with unhelpful locations because of
+  `sedlex`. In that case the command `ocamlc
+  _build/default/compiler/surface/lexer_xx.ml` may point you to the source of the
+  error.
+- add your translation to the compilation rules:
+  - in `compiler/surface/dune`, copying another `parser_xx.cppo.ml` rule
+  - in the `extensions` list in `compiler/driver.ml`
+  - add a corresponding variant to `compiler/utils/cli.ml` `backend_lang`, try
+    to run `make build` and follow all type errors and `match non exhaustive`
+    warnings to be sure it is well handled everywhere.
+- you may want to add syntax highlighting support, see `syntax_highlighting/`
+  and the rules in `Makefile`
+- add examples and documentation!
+
+Feel free to open a pull request for discussion even if you couldn't go through
+all these steps, the `lexer_xx.cppo.ml` file is the important part.

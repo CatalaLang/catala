@@ -44,6 +44,13 @@ TEST_FILES_SCOPES_FR=$(foreach TEST_FILE,$(TEST_FILES),\
 	) \
 )
 
-tests: $(TEST_FILES_SCOPES_EN) $(TEST_FILES_SCOPES_FR)
+TEST_FILES_SCOPES_PL=$(foreach TEST_FILE,$(TEST_FILES),\
+	$(foreach TEST_SCOPE,\
+		$(shell grep -Po "deklaracja zakres [^:]*" $(TEST_FILE) | cut -d " " -f 3), \
+		$(word 1,$(subst /, ,$(TEST_FILE))).$(word 1,$(subst ., ,$(word 3,$(subst /, ,$(TEST_FILE))))).$(TEST_SCOPE).run \
+	) \
+)
+
+tests: $(TEST_FILES_SCOPES_EN) $(TEST_FILES_SCOPES_FR) $(TEST_FILES_SCOPES_PL)
 
 .FORCE:

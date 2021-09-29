@@ -1,0 +1,14 @@
+## Article
+
+```catala
+declaration scope A:
+  context x content boolean
+  context y content integer
+
+declaration scope B:
+  context a scope A
+
+scope B:
+  definition a.x equals true
+  definition a.y equals if a.x then 0 else 1
+```

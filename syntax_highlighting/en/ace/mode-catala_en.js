@@ -23,12 +23,12 @@ ace.define(
         start: [
           {
             token: "markup.heading.title",
-            regex: "([#]+)",
+            regex: "(^s*[#]+)",
             push: "main__1",
           },
           {
             token: "markup.heading.subtitle",
-            regex: "([#]+s*[[^]]s*])",
+            regex: "(^s*[#]+s*[[^]]s*])",
             push: "main__2",
           },
           {
@@ -67,11 +67,11 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception)\\b",
+              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b",
           },
           {
             token: "constant.numeric",
-            regex: "(\\|[0-9]+/[0-9]+/[0-9]+\\|)",
+            regex: "(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)",
           },
           {
             token: "constant",
@@ -88,7 +88,7 @@ ace.define(
           {
             token: "keyword.operator",
             regex:
-              "(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|not|or|and|\\$|%|year|month|day)",
+              "(\\-\\>|\\+\\.|\\+\\@|\\+\\^|\\+\\$|\\+|\\-\\.|\\-\\@|\\-\\^|\\-\\$|\\-|\\*\\.|\\*\\@|\\*\\^|\\*\\$|\\*|/\\.|/\\@|/\\^|/\\$|/|\\!|>\\.|>=\\.|<=\\.|<\\.|>\\@|>=\\@|<=\\@|<\\@|>\\$|>=\\$|<=\\$|<\\$|>\\^|>=\\^|<=\\^|<\\^|>|>=|<=|<|=|not|or|xor|and|\\$|%|year|month|day)",
           },
           {
             token: "support.type",

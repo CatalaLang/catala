@@ -1,6 +1,0 @@
-(executable
- (name run_tests)
- (modes native)
- (package catala)
- (public_name run_french_law_tests)
- (libraries catala ANSITerminal))

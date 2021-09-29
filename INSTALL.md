@@ -2,25 +2,44 @@
 
 ## Requirements
 
+### With Docker
+
+The Catala compiler is written using OCaml. The repository provides a `Dockerfile`
+to build a Docker image with all the dependencies required to build the Catala compiler.
+
+Start by installing Docker: https://docs.docker.com/get-docker/
+
+Then build the Docker image:
+
+    docker build . -t catala
+
+Finally, start a `bash` shell inside a new container created from the newly built image:
+
+    docker run -it -v $PWD:$PWD -w $PWD --name catala catala bash
+
+### Without Docker
+
 The Catala compiler is written using OCaml. First, you have to install `opam`,
 OCaml's distribution and package manager. Follow the [instructions on the `opam`
 website](https://opam.ocaml.org/doc/Install.html).
 
 Next, you will need to use the correct version of OCaml. Catala has been tested
-with OCaml compiler versions that are at least 4.09.1. To switch to OCaml 4.09.1.,
+with OCaml compiler versions that are at least 4.12.0. To switch to OCaml 4.12.0.,
 just use:
 
-    opam switch 4.09.1
+    opam switch 4.12.0
 
-If you get a `No switch 4.09.1 is currently installed` error message, follow
-the hint and enter `opam switch create 4.09.1`.
+If you get a `No switch 4.12.0 is currently installed` error message, follow
+the hint and enter `opam switch create 4.12.0`.
+
+## Dependencies
 
 Next, install all the OCaml packages that Catala depend on, as well as some
 git submodules, with
 
     make dependencies
 
-This should ensure everything is set up for developping on the Catala compiler!
+This should ensure everything is set up for developing on the Catala compiler!
 
 Other features for generation of files and literate programming also require
 the following executables to be present
@@ -119,7 +138,8 @@ augmented with the Catala plugin, simply enter
     sudo make pygments
 
 This will execute the
-script `syntax_highlighting/fr/pygments/set_up_pygments.sh` and
+script `syntax_highlighting/fr/pygments/set_up_pygments.sh`,
+`syntax_highlighting/pl/pygments/set_up_pygments.sh` and
 `syntax_highlighting/en/pygments/set_up_pygments.sh`.
 
 The scripts patch your `pigmentize` executable, used for instance by the `minted` LaTeX package.
