@@ -735,8 +735,6 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   let prev_pos = lexing_positions lexbuf in
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
-  | MR_BEGIN_METADATA -> BEGIN_METADATA
-  | MR_END_METADATA -> END_METADATA
   | MR_LAW_INCLUDE -> LAW_INCLUDE
   | ":" ->
       L.context := Directive_args;
@@ -754,10 +752,14 @@ let lex_law (lexbuf : lexbuf) : token =
   if at_bol then
     match%sedlex lexbuf with
     | eof -> EOF
-    | "```catala", Plus white_space ->
+    | "```catala", Star white_space, ('\n' | eof) ->
         L.context := Code;
         Buffer.clear L.code_buffer;
         BEGIN_CODE
+    | "```catala-metadata", Star white_space, ('\n' | eof) ->
+        L.context := Code;
+        Buffer.clear L.code_buffer;
+        BEGIN_METADATA
     | '>' ->
         L.context := Directive;
         BEGIN_DIRECTIVE

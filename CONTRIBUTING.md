@@ -66,17 +66,13 @@ mark some as "metadata" so that they are printed differently on lawyer-facing
 documents. Here's how it works:
 
 ````markdown
-> Begin metadata # > Début métadonnées en français
-
-```catala
+```catala-metadata
 declaration structure FooBar:
   data foo content boolean
   data bar content money
 
 <your structure/enumeration/scope declarations goes here>
 ```
-
-> End metadata # > Fin métadonnées en français
 ````
 
 Again, make sure to regularly check that your example is parsing correctly. The error message from the compiler should help you debug the syntax if need be. You can also

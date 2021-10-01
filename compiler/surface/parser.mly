@@ -558,7 +558,7 @@ code:
 | code = list(code_item) { (code, Pos.from_lpos $sloc) }
 
 metadata_block:
-| BEGIN_DIRECTIVE BEGIN_METADATA END_DIRECTIVE option(law_text) BEGIN_CODE code_and_pos = code text = END_CODE option(law_text) BEGIN_DIRECTIVE END_METADATA END_DIRECTIVE {
+|  BEGIN_METADATA option(law_text) code_and_pos = code text = END_CODE {
   let (code, pos) = code_and_pos in
    (code, (text, pos))
 }

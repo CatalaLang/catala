@@ -25,6 +25,25 @@
         'name' : 'entity.law.catala_pl'
       }
       {
+        'begin' : '(```catala-metadata)'
+        'beginCaptures' : {
+          '1' : {
+            'name' : 'comment.block.documentation.catala_pl'
+          }
+        }
+        'patterns' : [
+          {
+            'include' : '#code'
+          }
+        ]
+        'end' : '(```)'
+        'endCaptures' : {
+          '1' : {
+            'name' : 'comment.block.documentation.catala_pl'
+          }
+        }
+      }
+      {
         'begin' : '(```catala)'
         'beginCaptures' : {
           '1' : {

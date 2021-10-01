@@ -18,8 +18,7 @@ La quotité disponible est la part des biens et droits successoraux qui n'est
 pas réservée par la loi et dont le défunt a pu disposer librement par des
 libéralités.
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration structure Enfant:
   donnée identifiant contenu entier
   donnée a_renoncé_à_la_succession contenu booléen
@@ -42,7 +41,6 @@ déclaration champ d'application RéserveHéréditaire:
   contexte patrimoine_assiette_réserve_héréditaire contenu argent
   contexte montant_réserve_héréditaire contenu argent
 ```
-> Fin métadonnées
 
 ######## Article 913 | LEGIARTI000006435557
 

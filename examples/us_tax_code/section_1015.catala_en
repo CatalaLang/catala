@@ -1,8 +1,6 @@
 ## Section 1015
 
-> Begin metadata
-
-```catala
+```catala-metadata
 declaration enumeration AcquisitionMethod:
   -- Gift
   -- Trust
@@ -31,7 +29,6 @@ declaration scope BasisOfGift:
   context transferor content Transferor
   context gift_tax_paid content money
 ```
-> End metadata
 
 ### (a) Gifts after December 31, 1920
 

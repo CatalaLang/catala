@@ -1,7 +1,6 @@
 ## Section 132
 
-> Begin metadata
-```catala
+```catala-metadata
 # We only formalize part (c) here
 declaration enumeration DiscountType:
   -- Property
@@ -26,8 +25,6 @@ scope QualifiedEmployeeDiscount:
     -- Property: false
     -- Services: true
 ```
-> End metadata
-
 
 ### (c) Qualified employee discount defined
  For purposes of this section—

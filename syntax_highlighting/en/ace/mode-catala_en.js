@@ -37,6 +37,14 @@ ace.define(
           },
           {
             token: "comment.block.documentation",
+            regex: "(```catala-metadata)",
+            push: "code",
+          },
+          {
+            defaultToken: "text",
+          },
+          {
+            token: "comment.block.documentation",
             regex: "(```catala)",
             push: "code",
           },
