@@ -220,7 +220,7 @@ generate_french_law_library_python:\
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) format
 
-#> type_french_law_library_python	: Types the French law library Python sources with mypy
+#> type_french_law_library_python		: Types the French law library Python sources with mypy
 type_french_law_library_python: generate_french_law_library_python
 	. $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate ;\
 	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
