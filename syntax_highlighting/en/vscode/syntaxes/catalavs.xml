@@ -92,6 +92,35 @@
         </dict>
         <dict>
           <key>begin</key>
+          <string>(```catala-metadata)</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>comment.block.documentation.catala_en</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array>
+            <dict>
+              <key>include</key>
+              <string>#code</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>(```)</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>comment.block.documentation.catala_en</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>begin</key>
           <string>(```catala)</string>
           <key>beginCaptures</key>
           <dict>

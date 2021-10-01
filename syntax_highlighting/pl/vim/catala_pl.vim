@@ -19,7 +19,6 @@ endif
 
 syn match PreProc "^\s*#.*$"
 syn match Include "^\s*>\s*Include:.*$"
-syn match Define "^\s*>\s*\(Begin\|End\)\s\+metadata\s*$"
 
 
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
@@ -48,10 +47,13 @@ syn region sc_id_def_dot_sc_id contained contains=punctuation
       \ matchgroup=sc_id end="\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region code transparent matchgroup=Ignore start="```catala" matchgroup=Ignore end="```"
-      \ contains=ALLBUT, PreProc, Include, Define
+      \ contains=ALLBUT, PreProc, Include
+
+syn region metadata transparent matchgroup=Ignore start="```catala-metadata" matchgroup=Ignore end="```"
+      \ contains=ALLBUT, PreProc, Include
 
 " Synchronizes the position where redrawing start at the start of a code block.
-syntax sync match codeSync grouphere code "```catala"
+syntax sync match codeSync grouphere code "```catala\w*"
 
 hi link sc_id_def Identifier
 hi link sc_id Function

@@ -171,6 +171,12 @@ main : context {
       context []       = code;
    }
 
+   : push {
+      regex          \= (```catala-metadata)
+      styles []       = .code_delimiter;
+      context []       = code;
+   }
+
 }
 
 

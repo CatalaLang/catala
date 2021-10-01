@@ -17,6 +17,7 @@ class CatalaEnLexer(RegexLexer):
             (u'(^[\#]+)', bygroups(Generic.Heading), 'main__1'),
             (u'(^[\#]+\s*\[[^\]]\s*])', bygroups(Generic.Heading), 'main__2'),
             (u'([^`\\n\\r])', bygroups(Text)),
+            (u'(```catala-metadata)', bygroups(Text), 'code'),
             (u'(```catala)', bygroups(Text), 'code'),
             ('(\n|\r|\r\n)', Text),
             ('.', Text),
