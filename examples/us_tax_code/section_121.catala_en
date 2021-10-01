@@ -1,7 +1,6 @@
 ## Section 121
 
-> Begin metadata
-```catala
+```catala-metadata
 declaration structure Period:
   data begin content date
   data end content date
@@ -157,7 +156,6 @@ scope Section121TwoPasses:
   definition income_excluded_from_gross_income equals
     second_pass.income_excluded_from_gross_income
 ```
-> End metadata
 
 ### (a) Exclusion
 

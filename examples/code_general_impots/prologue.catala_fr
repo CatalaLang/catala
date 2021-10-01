@@ -1,7 +1,6 @@
 ## Prologue
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration énumération DomicileFiscal:
 -- France
 -- HorsDeFrance
@@ -35,4 +34,3 @@ déclaration champ d'application CalculImpôtSurLeRevenu :
   contexte montants_sources_revenus contenu MontantsSourcesRevenus
   contexte domicile_fiscal contenu DomicileFiscal
 ```
-> Fin métadonnées

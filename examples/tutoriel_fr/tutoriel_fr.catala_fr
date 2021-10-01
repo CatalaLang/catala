@@ -59,8 +59,7 @@ la forme et les types de données contenues dans la loi.
 Commençons notre section métadonnées en déclarant l'information sur le type
 personne :
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration structure Personne:
   # Le nom de la structure "Personne", doit commencer
   # par une lettre majuscule: c'est la convention CamelCase.
@@ -74,7 +73,6 @@ déclaration structure Personne:
   # "revenu" and "nombre_enfants" commençent par une lettre minuscule,
   # ils adhèrent à la convention snake_case
 ```
-> Fin métadonnées
 
 Cette structure contient deux champs de de données, "revenu" et "nombre_enfants".
 Les structures sont utiles pour regrouper des données qui vont ensemble.
@@ -85,8 +83,7 @@ les données mais vous devrez viser à optimiser la lisibilité du code.
 Parfois, la loi donne une énumération de différentes situations. Ces énumérations
 sont modélisés en Catala par le type énumération, comme suit :
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration énumération CréditImpôt:
 # Le nom "CréditImpôt" s'écrit aussi en CamelCase
 -- AucunCréditImpôt
@@ -99,7 +96,6 @@ déclaration énumération CréditImpôt:
 # d'impôt. Cela signifie que si vous êtes dans la situation
 # "CréditImpôtEnfants", vous aurez aussi accès à ce nombre d'enfants.
 ```
-> Fin métadonnées
 
 En informatique, une telle énumération est appelée "type somme" ou simplement
 énumération. La combinaison de structures et d'énumération permet au programmeur
@@ -113,8 +109,7 @@ Les champs d'application sont proches des fonctions en termes de programmation
 traditionnelle. Les champs d'application doivent avoir été déclarés
 préalablement dans les métadonnées, de la manière suivante:
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration champ d'application CalculImpôtRevenu:
   # Les champs d'application utilisent le CamelCase
   contexte personne contenu Personne
@@ -124,7 +119,6 @@ déclaration champ d'application CalculImpôtRevenu:
   contexte pourcentage_fixe contenu décimal
   contexte impôt_revenu contenu argent
 ```
-> Fin métadonnées
 
 Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
 de l'article 1 qui a été copié ci-dessous.
@@ -217,8 +211,7 @@ Catala vous permet de définir des fonctions partout dans vos données. Voici
 à quoi cela ressemble dans la définition des métadonnées quand nous voulons
 définir un calcul de l'impôt sur le revenu à deux tranches :
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration structure DeuxTranches:
   donnée seuil contenu argent
   donnée taux1 contenu décimal
@@ -228,7 +221,6 @@ déclaration champ d'application CalculImpôtDeuxTranches :
   contexte tranches contenu DeuxTranches
   contexte formule_imposition contenu argent dépend de argent
 ```
-> Fin métadonnées
 
 Et dans le code :
 

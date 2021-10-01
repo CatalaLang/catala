@@ -57,8 +57,7 @@ inside the law.
 Let's start our metadata section by declaring the type information for the
 individual:
 
-> Begin metadata
-```catala
+```catala-metadata
 declaration structure Individual:
   # The name of the structure "Individual", must start with an
   # uppercase letter: this is the CamelCase convention.
@@ -71,7 +70,6 @@ declaration structure Individual:
   # "income" and "number_of_children" start by a lowercase letter,
   # they follow the snake_case convention
 ```
-> End metadata
 
 This structure contains two data fields, "income" and "number_of_children". Structures are
 useful to group together data that goes together. Usually, you
@@ -82,8 +80,7 @@ but you should aim to optimize code readability.
 Sometimes, the law gives an enumeration of different situations. These
 enumerations are modeled in Catala using an enumeration type, like:
 
-> Begin metadata
-```catala
+```catala-metadata
 declaration enumeration TaxCredit:
 # The name "TaxCredit" is also written in CamelCase
 -- NoTaxCredit
@@ -95,7 +92,6 @@ declaration enumeration TaxCredit:
 # by the tax credit. This means that if you're in the "ChildrenTaxCredit"
 # situation, you will also have access to this number of children
 ```
-> End metadata
 
 In computer science terms, such an enumeration is called a "sum type" or simply
 an enum. The combination of structures and enumerations allow the Catala
@@ -107,8 +103,7 @@ to define the logical context in which these data will evolve. This is done in
 Catala using "scopes". Scopes are close to functions in terms of traditional
 programming. Scopes also have to be declared in metadata, so here we go:
 
-> Begin metadata
-```catala
+```catala-metadata
 declaration scope IncomeTaxComputation:
   # Scope names use CamelCase
   context individual content Individual
@@ -118,7 +113,6 @@ declaration scope IncomeTaxComputation:
   context fixed_percentage content decimal
   context income_tax content money
 ```
-> End metadata
 
 We now have everything to annotate the contents of article 1, which is copied
 over below.
@@ -208,8 +202,7 @@ Catala lets you define functions anywhere in your data. Here's what it looks
 like in the metadata definition when we want to define a two-brackets tax
 computation:
 
-> Begin metadata
-```catala
+```catala-metadata
 declaration structure TwoBrackets:
   data breakpoint content money
   data rate1 content decimal
@@ -219,7 +212,6 @@ declaration scope TwoBracketsTaxComputation :
   context brackets content TwoBrackets
   context tax_formula content money depends on money
 ```
-> End metadata
 
 And in the code:
 

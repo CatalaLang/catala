@@ -102,8 +102,6 @@
 
 (* Directives *)
 
-#define MR_BEGIN_METADATA "Begin", Plus hspace, "metadata"
-#define MR_END_METADATA "End", Plus hspace, "metadata"
 #define MR_LAW_INCLUDE "Include"
 #define MX_AT_PAGE \
    '@', Star hspace, "p.", Star hspace, Plus digit -> \

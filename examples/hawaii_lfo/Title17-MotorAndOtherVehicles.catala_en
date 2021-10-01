@@ -1,8 +1,6 @@
 ## Title17
 
-> Begin metadata
-
-```catala
+```catala-metadata
 declaration enumeration Violation_83_135:
   -- Section286_102
   -- Section286_122
@@ -51,7 +49,6 @@ declaration scope Penalty286_83_135:
 
   context ok condition
 ```
-> End metadata
 
 ## 286-136 Penalty
 

@@ -4,8 +4,7 @@ Avant de présenter les textes réglementaires qui régissent le calcul des
 allocations familiales, il est nécessaire de définir les structures de données
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
-> Début métadonnées
-```catala
+```catala-metadata
 déclaration énumération PriseEnCharge :
   -- GardeAlternéePartageAllocations
   -- GardeAlternéeAllocataireUnique
@@ -158,4 +157,3 @@ champ d'application AllocationsFamiliales:
     résidence
 
 ```
-> Fin métadonnées
