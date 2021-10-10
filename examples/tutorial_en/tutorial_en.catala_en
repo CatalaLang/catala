@@ -18,14 +18,14 @@ French law, you would use the ".catala_fr" extension.
 You can write any kind of plain text in Catala, and it will be printed as is
 in PDF or HTML output. You can split your text into short lines, those
 will appear as a single paragraph in the output. If you want to create a
-new paragrah, you have to leave a blank line in the source.
+new paragraph, you have to leave a blank line in the source.
 
 Catala allows you to declare section or subsection headers as it is done
 here, with the "at" symbol repeated twice. You can define heading of lower
 importance by adding increasing numbers of "+" after the title of the heading.
 
 The fundamental division unit is the article, introduced by a single "at".
-Let's analyse a fictional example that defines an income tax.
+Let's analyze a fictional example that defines an income tax.
 
 #### Article 1
 
@@ -96,7 +96,7 @@ declaration enumeration TaxCredit:
 In computer science terms, such an enumeration is called a "sum type" or simply
 an enum. The combination of structures and enumerations allow the Catala
 programmer to declare all possible shapes of data, as they are equivalent to
-the powerful notion of "algebraic datatypes".
+the powerful notion of "algebraic data types".
 
 We've defined and typed the data that the program will manipulate. Now we have
 to define the logical context in which these data will evolve. This is done in
@@ -129,9 +129,9 @@ scope IncomeTaxComputation:
 ```
 
 In the code, we are defining inside our scope the amount of the income tax
-according to the formula described in the article. When defining formulae,
+according to the formula described in the article. When defining formulas,
 you have access to all the usual arithmetic operators: addition "+",
-substraction "-", multiplication "*" and division (slash).
+subtraction "-", multiplication "*" and division (slash).
 
 However, in the Catala code, you can see that we use "*$" to multiply the
 individual income by the fixed percentage. The $ suffix indicates that we
@@ -140,7 +140,7 @@ you have to keep track of what you are dealing with: is it money ? Is it
 an integer? Using just "+" or "*" can be ambiguous in terms of rounding,
 since money is usually rounded at the cent. So to disambiguate, we suffix these
 operations with something that indicates the type of what we manipulate.
-The suffixes are "$" for money "." for decimals, "at" (like in email adresses)
+The suffixes are "$" for money "." for decimals, "at" (like in email addresses)
 for dates and the hat symbol for durations. If you forget the suffix, the Catala type
 checker will display an error message that will help you put it where it
 belongs.
@@ -151,7 +151,7 @@ legislative source. Here, let's suppose we have:
 
 #### Article 2
 
-The fixed percentage mentionned at article 1 is equal to 20 %.
+The fixed percentage mentioned at article 1 is equal to 20 %.
 
 ```catala
 scope IncomeTaxComputation:
@@ -171,7 +171,7 @@ suppose the third article says:
 #### Article 3
 
 If the individual is in charge of 2 or more children, then the fixed
-percentage mentionned at article 1 is equal to 15 %.
+percentage mentioned at article 1 is equal to 15 %.
 
 ```catala
 # How to redefine fixed_percentage?
@@ -179,7 +179,7 @@ percentage mentionned at article 1 is equal to 15 %.
 
 This article actually gives another definition for the fixed percentage, which
 was already defined in article 2. However, article 3 defines the percentage
-conditionnally to the individual having more than 2 children. Catala allows
+conditionally to the individual having more than 2 children. Catala allows
 you precisely to redefine a variable under a condition:
 
 ```catala
@@ -262,7 +262,7 @@ scope NewIncomeTaxComputation :
 
 #### Article 6
 
-Individuals earning less than $10,000 are exempted of the income tax mentionned
+Individuals earning less than $10,000 are exempted of the income tax mentioned
 at article 1.
 
 ```catala
@@ -343,7 +343,7 @@ applicable, then it takes precedence over article 5.
 
 #### Fixing the computation
 
-This implicit precedence has to be explicitely declared in Catala. Here is a
+This implicit precedence has to be explicitly declared in Catala. Here is a
 fixed version of the NewIncomeTaxComputation scope:
 
 ```catala
