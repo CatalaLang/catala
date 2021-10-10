@@ -21,10 +21,10 @@ will appear as a single paragraph in the output. If you want to create a
 new paragraph, you have to leave a blank line in the source.
 
 Catala allows you to declare section or subsection headers as it is done
-here, with the "at" symbol repeated twice. You can define heading of lower
-importance by adding increasing numbers of "+" after the title of the heading.
+here, with the "#" symbol. You can define heading of lower
+importance by adding increasing numbers of "#" after the title of the heading.
 
-The fundamental division unit is the article, introduced by a single "at".
+The fundamental division unit is the article, introduced by a single "#".
 Let's analyze a fictional example that defines an income tax.
 
 #### Article 1
