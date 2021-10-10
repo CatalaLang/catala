@@ -140,8 +140,8 @@ you have to keep track of what you are dealing with: is it money ? Is it
 an integer? Using just "+" or "*" can be ambiguous in terms of rounding,
 since money is usually rounded at the cent. So to disambiguate, we suffix these
 operations with something that indicates the type of what we manipulate.
-The suffixes are "$" for money "." for decimals, "at" (like in email addresses)
-for dates and the hat symbol for durations. If you forget the suffix, the Catala type
+The suffixes are "$" for money, "." for decimals, "@" (`at` like in email addresses)
+for dates and the "^" (hat) symbol for durations. If you forget the suffix, the Catala type
 checker will display an error message that will help you put it where it
 belongs.
 
