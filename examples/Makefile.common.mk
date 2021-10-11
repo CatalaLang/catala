@@ -56,6 +56,12 @@ help : ../Makefile.common.mk
 	HTML \
 	$<
 
+%.spellok: %.catala_$(CATALA_LANG) ../whitelist.$(CATALA_LANG)
+	aspell list --lang=$(CATALA_LANG) --mode=markdown --camel-case --add-wordlists=../whitelist.$(CATALA_LANG) <$< | tee "$<".errors
+	@# list of mispelled words must be empty
+	@test ! -s "$<".errors
+	@touch $@
+
 
 ##########################################
 # Misceallenous

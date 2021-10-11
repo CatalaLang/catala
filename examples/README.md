@@ -37,6 +37,7 @@ file `examples/foo/foo.catala_en`) list.
 - `foo.tex`: builds the LaTeX literate programming output from the Catala program
 - `foo.pdf`: compiles `foo.tex` using `latexmk`
 - `foo.html`: builds the HTML literate programming output from the Catala program
+- `foo.spell.ok`: runs aspell on the file, given the `whitelist.<language>` files.
 
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.

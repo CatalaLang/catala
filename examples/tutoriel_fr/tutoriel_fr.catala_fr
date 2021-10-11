@@ -11,23 +11,21 @@ en informatique devraient pouvoir s'en sortir.
 Pour commencer à écrire un programme Catala, vous devez partir du texte
 d'une source législative qui va justifier le code que vous écrirez.
 Concrètement, cela signifie faire un copier-coller du texte de la loi dans
-un fichier de source Catala et le formatter afin que Catala puisse le comprendre.
+un fichier de source Catala et le formater afin que Catala puisse le comprendre.
 Les fichiers de source Catala ont l'extension ".catala_en" en version anglaise.
 Si vous écriviez un programme Catala pour une loi française, vous devrez utiliser
 l'extension ".catala_fr".
 
 Vous pouvez écrire n'importe quel texte simple en Catala, cela sera affiché
 sans modification dans une sortie PDF ou HTML. Vous pouvez découper votre texte
-en de courtes lignes, cela apparaîtera comme un seul paragraphe dans la sortie.
+en de courtes lignes, cela apparaîtra comme un seul paragraphe dans la sortie.
 Si vous voulez créer un nouveau paragraphe laisser une ligne vierge dans la source.
 
 Catala vous permet de déclarer des entêtes de section ou de sous-section,
-en les précédant et les suivant de deux arobases. Vous pouvez
-diminuer l'importance du titre en augmentant le nombre de "+" après le titre de
+en les précédant et les suivant de deux signes dièze "#". Vous pouvez
+diminuer l'importance du titre en augmentant le nombre de "#" après le titre de
 l'entête.
-
-L'unité de division fondamentale est l'article, encadré par un simple arobase.
-Étudions un exemple ficitif qui définit un impôt sur le revenu.
+Étudions un exemple fictif qui définit un impôt sur le revenu.
 
 #### Article 1
 
@@ -136,7 +134,7 @@ champ d'application CalculImpôtRevenu:
 
 Dans le code, nous définissons à l'intérieur de notre champ d'application
 le montant d'impôt sur le revenu selon la formule décrit dans l'article.
-Quand nous définissons des fomules, vous avez accès à tous les opérateurs
+Quand nous définissons des formules, vous avez accès à tous les opérateurs
 arithmétiques habituels : addition "+", soustraction "-", multiplication "*"
 et division (barre oblique).
 
