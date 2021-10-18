@@ -47,9 +47,9 @@
   (re
    (>= 1.9.0))
   (zarith
-   (= 1.11))
+   (>= 1.12))
   (zarith_stubs_js
-   (= v0.14.0))
+   (>= v0.14.1))
   (ocamlgraph
    (>= 1.8.8))
   (calendar
