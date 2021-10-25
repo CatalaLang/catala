@@ -142,7 +142,8 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
   let output = really_input_string oc (in_channel_length oc) in
   close_in oc;
   (* Remove code blocks delimiters needed by [Pygments]. *)
-  output |> remove_cb_first_lines |> remove_cb_last_lines
+  let trimmed_output = output |> remove_cb_first_lines |> remove_cb_last_lines in
+  trimmed_output
 
 (** {1 Weaving} *)
 
@@ -157,7 +158,7 @@ let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatte
       Format.fprintf fmt "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (if metadata then " code-metadata" else "")
         (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("```catala" ^ pprinted_c ^ "```") c) language)
+        (pygmentize_code (Pos.same_pos_as ("```catala\n" ^ pprinted_c ^ "```") c) language)
   | A.LawHeading (heading, children) ->
       let h_number = heading.law_heading_precedence + 1 in
       Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n" h_number
