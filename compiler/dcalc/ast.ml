@@ -151,27 +151,13 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
 let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
-       (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
-       (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
 let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
-    (e1 : expr Pos.marked list Bindlib.box) (e2 : expr Pos.marked Bindlib.box) :
+    (e1 : expr Pos.marked Bindlib.box list) (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
     expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs xs e2
-       (Pos.get_position (Bindlib.unbox e2))
-       taus
-       (Pos.get_position (Bindlib.unbox e2)))
-    e1
+  make_app (make_abs xs e2 pos taus pos) e1 pos
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 

@@ -166,13 +166,15 @@ val make_let_in :
   typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_multiple_let_in :
   Var.t array ->
   typ Pos.marked list ->
-  expr Pos.marked list Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
   expr Pos.marked Bindlib.box ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
