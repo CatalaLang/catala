@@ -2,6 +2,6 @@
 
 with pkgs;
 ocamlPackages.callPackage ./. {
-    bindlib = ocamlPackages.callPackage ./.nix/bindlib.nix {};
-    unionfind = ocamlPackages.callPackage ./.nix/unionfind.nix {};
+  bindlib = ocamlPackages.callPackage ./.nix/bindlib.nix { };
+  unionfind = ocamlPackages.callPackage ./.nix/unionfind.nix { };
 }

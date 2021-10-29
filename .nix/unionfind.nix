@@ -1,7 +1,4 @@
-{ lib
-, fetchurl
-, buildDunePackage
-}:
+{ lib, fetchurl, buildDunePackage }:
 
 buildDunePackage rec {
   pname = "unionFind";
@@ -12,7 +9,8 @@ buildDunePackage rec {
   useDune2 = true;
 
   src = fetchurl {
-    url = "https://gitlab.inria.fr/fpottier/unionFind/-/archive/20200320/archive.tar.gz";
+    url =
+      "https://gitlab.inria.fr/fpottier/unionFind/-/archive/20200320/archive.tar.gz";
     hash = "sha256-szIwK9QyAw6fIIWDOiiyfyrEFZaaErGPRLkGhIK9STI=";
   };
 

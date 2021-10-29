@@ -1,7 +1,4 @@
-{ lib
-, fetchFromGitHub
-, buildDunePackage
-}:
+{ lib, fetchFromGitHub, buildDunePackage }:
 
 # We need the very last version "bleeding edge" since previous versions don't use dune.
 
@@ -23,7 +20,8 @@ buildDunePackage rec {
 
   meta = with lib; {
     homepage = "https://rlepigre.github.io/ocaml-bindlib/";
-    description = "Bindlib is a library allowing the manipulation of data structures with bound variables";
+    description =
+      "Bindlib is a library allowing the manipulation of data structures with bound variables";
     license = licenses.lgpl3;
     maintainers = [ ];
   };

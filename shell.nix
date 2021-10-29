@@ -1,10 +1,11 @@
-{ pkgs? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs> { } }:
 
 with pkgs;
-let pkg = ocamlPackages.callPackage ./. {
-    bindlib = ocamlPackages.callPackage ./.nix/bindlib.nix {};
-    unionfind = ocamlPackages.callPackage ./.nix/unionfind.nix {};
-};
+let
+  pkg = ocamlPackages.callPackage ./. {
+    bindlib = ocamlPackages.callPackage ./.nix/bindlib.nix { };
+    unionfind = ocamlPackages.callPackage ./.nix/unionfind.nix { };
+  };
 in mkShell {
   inputsFrom = [ pkg ];
   buildInputs = pkg.propagatedBuildInputs ++ [
