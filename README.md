@@ -60,7 +60,7 @@ can also do
     opam pin add catala --dev-repo
 
 However, if you wish to get the latest developments of the compiler, you probably
-want to compile it from the sources of this repository. For that, see
+want to compile it from the sources of this repository or use nix. For that, see
 [the dedicated readme](INSTALL.md).
 
 ## Usage

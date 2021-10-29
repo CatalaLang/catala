@@ -17,7 +17,24 @@ Finally, start a `bash` shell inside a new container created from the newly buil
 
     docker run -it -v $PWD:$PWD -w $PWD --name catala catala bash
 
-### Without Docker
+### With nix
+
+The repository provides nix files to build or develop the catala compiler.
+
+Once [nix is installed](https://nixos.org/manual/nix/stable/#ch-installing-binary),
+it is possible to enter a development shell:
+
+    nix-shell
+
+or to build the Catala compiler, documentation and runtime library:
+
+    nix-build release.nix
+
+Dependencies not yet in nixpkgs (`bindlib` and `unionFind` at the moment of writing)
+are hardcoded inside the `.nix` directory. The `default.nix` should be compatible with
+nixpkgs, if it finds a maintainer.
+
+### With opam
 
 The Catala compiler is written using OCaml. First, you have to install `opam`,
 OCaml's distribution and package manager. Follow the [instructions on the `opam`
