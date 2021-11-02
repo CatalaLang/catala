@@ -46,6 +46,11 @@ type expr =
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
+  (* TODO: temporary *)
+  | EMatchopt of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | ESome of expr Pos.marked
+  | ENone
+
 module Var = struct
   type t = expr Bindlib.var
 

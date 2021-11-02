@@ -327,6 +327,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         format_exception
         (exc, Pos.get_position e)
         format_with_parens e2
+  | ESome _ | ENone | EMatchopt _ -> failwith "todo"
 
 let format_struct_embedding (fmt : Format.formatter)
     ((struct_name, struct_fields) : D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list)
