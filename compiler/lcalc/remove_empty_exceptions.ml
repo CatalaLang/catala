@@ -42,8 +42,6 @@ let (and+) x y = Bindlib.box_pair x y
 let rec translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box =
   let same_pos x = Pos.same_pos_as x e in
   match Pos.unmark e with
-  | D.EVar v ->
-    D.VarMap.find (Pos.unmark v) ctx
   | D.ETuple (args, s) ->
     let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
     same_pos @@ A.ETuple (args, s)
@@ -59,23 +57,21 @@ let rec translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked B
     same_pos @@ A.EMatch (e1, cases, en)
   | D.EArray es ->
     let+ es = Bindlib.box_list (List.map (translate_expr ctx) es) in 
-    same_pos @@ A.EArray es
+    same_pos @@ A.ESome (same_pos @@ A.EArray es)
   | D.EOp op ->
-    Bindlib.box @@ same_pos @@  A.EOp op
-  | D.EIfThenElse (e1, e2, e3) ->
-    let+ e1 = translate_expr ctx e1
-    and+ e2 = translate_expr ctx e2
-    and+ e3 = translate_expr ctx e3 in
-    same_pos @@ A.EIfThenElse (e1, e2, e3)
+    Bindlib.box @@ same_pos @@  A.ESome (same_pos @@ A.EOp op)
   | D.EAssert e1 ->
     let+ e1 = translate_expr ctx e1 in
     same_pos (A.EAssert e1)
   | D.EApp (e1, args) ->
+    (* e1 args* *)
+    (* match e1 with | None -> None | Some e1 -> e1 args* *)
     let+ e1 = translate_expr ctx e1
     and+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
     same_pos @@ A.EApp (e1, args)
   | D.EAbs ((binder, pos_binder), ts) ->
-      (* let bla = e1 in matchopt bla with None -> None | Some x -> e2 *)
+      (* fun vars: tys -> body *)
+      (* Some (fun vars: [|tys|] -> body) *)
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
         Array.fold_right
@@ -87,34 +83,53 @@ let rec translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked B
       in
       let lc_vars = Array.of_list lc_vars in
       let new_body = translate_expr ctx body in
-      let new_binder = Bindlib.bind_mvar lc_vars new_body in
-      Bindlib.box_apply
-        (fun new_binder -> Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
-        new_binder
+      let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
+      same_pos @@ A.EAbs ((new_binder, pos_binder), ts)
+
+  | D.EIfThenElse (e1, e2, e3) ->
+    let+ e1 = translate_expr ctx e1
+    and+ e2 = translate_expr ctx e2
+    and+ e3 = translate_expr ctx e3 in
+    let x = A.Var.make ("e1", snd e1 ) in
+    (* same_pos @@
+      A.make_let_in x (T.TOption T.TBool)
+        (Pos.same_pos_as e1 e1)
+        (same_pos @@ A.EMatchopt(A.make_var x, A.ENone, A.EAbs A.EIfThenElse (A.make_var x, e2, e3))) *)
+    assert false
   | D.ECatch (e1, exc, e2) ->
     begin match exc with
     | EmptyError ->
-      (* let bla = e1 in matchopt bla with None -> e2 | Some _ -> bla *)
-      (* (fun bla -> matchopt bla with None -> e2 | Some _ -> bla) e1 *)
-      
-      failwith "todo"
+      begin
+        (* let bla = e1 in matchopt bla with None -> e2 | Some _ -> bla *)
+        (* (fun bla -> matchopt bla with None -> e2 | Some _ -> bla) e1 *)
+        let+ e1 = translate_expr ctx e1
+        and+ e2 = translate_expr ctx e2 in
+        (* todo: /!\ exponential cost. Use let in instead *)
+        same_pos @@ A.EMatchopt(e1, e2, e1)
+      end
     | _ ->
-      Bindlib.box_apply2
-        (fun e1 e2 -> Pos.same_pos_as (A.ECatch (e1, exc, e2)) e)
-        (translate_expr ctx e1) (translate_expr ctx e2)
+      let+ e1 = translate_expr ctx e1 
+      and+ e2 = translate_expr ctx e2 in
+      same_pos @@ A.ECatch (e1, exc, e2)
     end
   | D.ERaise exc ->
-    begin match exc with
-    | EmptyError ->
-      Bindlib.box @@ same_pos A.ENone
-    | _ -> Bindlib.box (Pos.same_pos_as (A.ERaise exc) e)
-    end
-
-
-  | D.ELit l -> Bindlib.box (same_pos (A.ESome (same_pos (translate_lit l))))
-  | D.EMatchopt _ 
-  | D.ENone
-  | D.ESome _ -> failwith "todo"
+    Bindlib.box begin match exc with
+    | EmptyError -> same_pos @@ A.ENone
+    | _ -> same_pos @@ A.ERaise exc
+  end
+  | D.EVar v -> D.VarMap.find (Pos.unmark v) ctx
+  | D.EMatchopt (e1, e2, e3) ->
+    let+ e1 = translate_expr ctx e1
+    and+ e2 = translate_expr ctx e2
+    and+ e3 = translate_expr ctx e3 in
+    same_pos @@ A.EMatchopt (e1, e2, e3)
+  | D.ELit l ->
+    Bindlib.box @@ same_pos  @@ A.ESome (same_pos (translate_lit l))
+  | D.ENone ->
+    Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ A.ENone)
+  | D.ESome e1 ->
+    let+ e1 = translate_expr ctx e1 in
+    same_pos @@ A.ESome (same_pos @@ A.ESome e1)
 
 
 let translate_program (prgm : D.program) : A.program =

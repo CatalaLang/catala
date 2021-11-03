@@ -40,6 +40,7 @@ type typ =
   | TEnum of typ Pos.marked list * EnumName.t
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
+  | TOption of typ Pos.marked
   | TAny
 
 type date = Runtime.date
