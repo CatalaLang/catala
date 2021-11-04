@@ -95,6 +95,13 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+  val make_let_in' :
+  Var.t ->
+  Dcalc.Ast.typ Pos.marked ->
+  expr Pos.marked ->
+  expr Pos.marked ->
+  expr Pos.marked 
+
 val handle_default : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder

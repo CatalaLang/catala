@@ -102,10 +102,21 @@ let rec translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked B
       begin
         (* let bla = e1 in matchopt bla with None -> e2 | Some _ -> bla *)
         (* (fun bla -> matchopt bla with None -> e2 | Some _ -> bla) e1 *)
-        let+ e1 = translate_expr ctx e1
-        and+ e2 = translate_expr ctx e2 in
+
+        let pos = snd e1 in
+        let x_var = (A.Var.make ("e1", pos), pos) in
+
+        let e1 = translate_expr ctx e1 in
+        let e2 = translate_expr ctx e2 in
+        let x = A.make_var x_var in
         (* todo: /!\ exponential cost. Use let in instead *)
-        same_pos @@ A.EMatchopt(e1, e2, e1)
+
+        let body = let+ e2 = e2 and+ x = x in
+          same_pos @@ A.EMatchopt(x, e2, x) in
+
+        let tau = assert false in
+
+        A.make_let_in (fst x_var) tau e1 body
       end
     | _ ->
       let+ e1 = translate_expr ctx e1 
