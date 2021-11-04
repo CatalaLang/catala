@@ -95,12 +95,12 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
-  val make_let_in' :
+val make_letopt_in:
   Var.t ->
   Dcalc.Ast.typ Pos.marked ->
-  expr Pos.marked ->
-  expr Pos.marked ->
-  expr Pos.marked 
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
 
 val handle_default : Var.t
 

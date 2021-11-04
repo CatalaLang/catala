@@ -47,6 +47,24 @@ type expr =
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
   (* TODO: temporary *)
+
+  (* semantics of ESome and ENone should be easy to comprehend. *)
+  (* The semantics of EMatchopt i've choosen are as following : 
+  
+  Context : 
+
+  C := ...
+     | matchopt [.] e2 e3
+  
+  And the rules :
+
+  ----------------------------------
+  matchopt (Some e1) e2 e3 ~~> e3 e1
+
+  --------------------------
+  matchopt None e2 e3 ~~> e2
+  
+  *)
   | EMatchopt of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ESome of expr Pos.marked
   | ENone
@@ -88,6 +106,30 @@ let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindl
        [ tau ]
        (Pos.get_position (Bindlib.unbox e2)))
     (Bindlib.box_list [ e1 ])
+
+
+let (let+) x f = Bindlib.box_apply f x
+let (and+) x y =Bindlib.box_pair x y
+
+let make_letopt_in
+  (x: Var.t)
+  (tau: D.typ Pos.marked)
+  (e1: expr Pos.marked Bindlib.box)
+  (e2: expr Pos.marked Bindlib.box)
+: expr Pos.marked Bindlib.box =
+
+  let pos = Pos.get_position (Bindlib.unbox e2) in
+
+  let+ e2 = make_abs
+    (Array.of_list [ x ])
+    e2
+    (Pos.get_position (Bindlib.unbox e2))
+    [ tau ]
+    (Pos.get_position (Bindlib.unbox e2))
+  and+ e1 = e1 in
+
+  (EMatchopt (e1, (ENone, pos) , e2), pos)
+  
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
