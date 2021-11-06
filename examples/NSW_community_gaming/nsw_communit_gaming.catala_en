@@ -1,0 +1,67 @@
+```catala
+# Copyright © Aïda Ibrahim -- LaBRI/Université de Nantes
+```
+
+
+##
+```catala-metadata
+declaration structure SocialHousie:
+  data socialPurpose content boolean
+  data totalValuePrizePerSession content money
+  data applicationOf2007Licence content boolean
+  data jackpotPrizeValue content money
+  data totalValueExpenses content money
+  data totalInvestmentPerParticipant content money
+  data investmentReturn content boolean
+
+declaration scope GamingAuthorized :
+  context socialHousie content SocialHousie
+  context authorized condition
+  context purpose content boolean
+  context licence content boolean
+  context prizePrice content boolean
+  context maxJackpotValue content boolean
+  context returnInvestment content boolean
+```
+
+
+(a) the gaming activity is conducted solely for social purposes,
+```catala
+scope GamingAuthorized :
+  definition purpose equals (socialHousie.socialPurpose = true)
+```
+
+(b) the gaming activity is not conducted on premises to which a licence
+under theLiquor Act 2007 relates,
+```catala
+scope GamingAuthorized :
+  definition licence equals (socialHousie.applicationOf2007Licence = false)
+```
+
+(c) except as provided by paragraph (d), the total value of all of the
+ available prizes for 1 session of the gaming activity does not exceed $40,
+```catala
+scope GamingAuthorized :
+  definition prizePrice equals (socialHousie.totalValuePrizePerSession <=$ $40)
+```
+
+(d) if 1 or more individual prizes are not won, the value of any jackpot prize
+does not exceed $200,
+```catala
+scope GamingAuthorized :
+  definition maxJackpotValue equals (socialHousie.jackpotPrizeValue <=$ $200)
+```
+
+(e) the total amount invested by participants in a session of the gaming
+activity,after the costs of prizes and expenses of conducting the session are
+deducted,is returned to participants.
+```catala
+scope GamingAuthorized :
+  definition returnInvestment equals (socialHousie.investmentReturn = true)
+
+
+scope GamingAuthorized :
+  rule authorized
+  under condition purpose and licence and prizePrice and maxJackpotValue and returnInvestment
+  consequence fulfilled
+  ```

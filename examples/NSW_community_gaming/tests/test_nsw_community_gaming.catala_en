@@ -1,0 +1,94 @@
+```catala
+# Copyright © Aïda Ibrahim -- LaBRI/Université de Nantes
+```
+
+> Include: ../nsw_communit_gaming.catala_en
+
+## Test1
+
+```catala
+declaration scope Test1:
+  context my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurpose: true
+      -- totalValuePrizePerSession: $200000
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $0
+      -- totalValueExpenses: $0
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized = false
+```
+
+## Test2
+```catala
+
+declaration scope Test2:
+  context my_gaming scope GamingAuthorized
+
+scope Test2:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurpose: true
+      -- totalValuePrizePerSession: $20
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $140
+      -- totalValueExpenses: $140
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized = true
+```
+
+## Test3
+
+```catala
+declaration scope Test3:
+  context my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurpose: true
+      -- totalValuePrizePerSession: $2
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $345
+      -- totalValueExpenses: $0
+      -- totalInvestmentPerParticipant: $0
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized = false
+```
+
+## Test4
+
+```catala
+
+declaration scope Test4:
+  context my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+      my_gaming.socialHousie
+  equals
+    SocialHousie {
+      -- socialPurpose: true
+      -- totalValuePrizePerSession: $40
+      -- applicationOf2007Licence: false
+      -- jackpotPrizeValue: $160
+      -- totalValueExpenses: $240
+      -- totalInvestmentPerParticipant: $60
+      -- investmentReturn: true
+  }
+  assertion my_gaming.authorized = true
+```
