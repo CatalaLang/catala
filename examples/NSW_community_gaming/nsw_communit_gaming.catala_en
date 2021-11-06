@@ -67,9 +67,7 @@ deducted,is returned to participants.
 scope GamingAuthorized :
   definition returnInvestment equals socialHousie.investmentReturn
 
-
-scope GamingAuthorized :
-  rule authorized
-  under condition purpose and licence and prizePrice and maxJackpotValue and returnInvestment
+  rule authorized under condition
+     purpose and licence and prizePrice and maxJackpotValue and returnInvestment
   consequence fulfilled
 ```
