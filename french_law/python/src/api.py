@@ -34,7 +34,8 @@ def allocations_familiales(
         ressources_menage: int,
         residence: Collectivite_Code,
         personne_charge_effective_permanente_est_parent: bool,
-        personne_charge_effective_permanente_remplit_titre_I: bool
+        personne_charge_effective_permanente_remplit_titre_I: bool,
+        avait_enfant_a_charge_avant_1er_janvier_2012: bool
 ):
     out = interface_allocations_familiales(InterfaceAllocationsFamilialesIn(
         date_courante_in=lambda _: date_of_datetime(date_courante),
@@ -45,6 +46,7 @@ def allocations_familiales(
         personne_charge_effective_permanente_est_parent_in=lambda _: personne_charge_effective_permanente_est_parent,
         personne_charge_effective_permanente_remplit_titre_I_in=lambda _: personne_charge_effective_permanente_remplit_titre_I,
         enfants_a_charge_in=no_input(),
-        montant_verse_in=no_input()
+        montant_verse_in=no_input(),
+        avait_enfant_a_charge_avant_1er_janvier_2012_in=lambda _: avait_enfant_a_charge_avant_1er_janvier_2012
     ))
     return money_to_float(out.montant_verse_out)

@@ -21,5 +21,6 @@ val compute_allocations_familiales :
   residence:Allocations_familiales.collectivite ->
   is_parent:bool ->
   fills_title_I:bool ->
+  had_rights_open_before_2012:bool ->
   float
 (** Usage *)

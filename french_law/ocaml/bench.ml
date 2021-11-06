@@ -63,11 +63,14 @@ let run_test () =
   let children = Array.init num_children random_children in
   let income = Random.int 100000 in
   let current_date = Runtime.date_of_numbers 2020 05 01 in
-  let residence = if Random.bool () then AF.Metropole () else AF.Guadeloupe () in
+  let residence =
+    let x = Random.int 2 in
+    match x with 0 -> AF.Metropole () | 1 -> AF.Guadeloupe () | _ -> AF.Mayotte ()
+  in
   try
     let amount =
       Api.compute_allocations_familiales ~current_date ~income ~residence ~children ~is_parent:true
-        ~fills_title_I:true
+        ~fills_title_I:true ~had_rights_open_before_2012:(Random.bool ())
     in
     incr num_successful;
     total_amount := Float.add !total_amount amount
