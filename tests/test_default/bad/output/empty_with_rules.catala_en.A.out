@@ -1,7 +1,7 @@
 [ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
-[ERROR] 
-[ERROR]  --> test_default/bad/empty_with_rules.catala_en
-[ERROR]   | 
-[ERROR] 5 |   context x content integer
-[ERROR]   |           ^
-[ERROR]   + Article
+
+ --> test_default/bad/empty_with_rules.catala_en
+  | 
+5 |   context x content integer
+  |           ^
+  + Article

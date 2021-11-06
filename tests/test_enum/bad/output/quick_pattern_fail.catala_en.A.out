@@ -1,7 +1,7 @@
 [ERROR] The name of this constructor has not been defined before, maybe it is a typo?
-[ERROR] 
-[ERROR]   --> test_enum/bad/quick_pattern_fail.catala_en
-[ERROR]    | 
-[ERROR] 15 |   definition y equals x with pattern Case3
-[ERROR]    |                                      ^^^^^
-[ERROR]    + Article
+
+  --> test_enum/bad/quick_pattern_fail.catala_en
+   | 
+15 |   definition y equals x with pattern Case3
+   |                                      ^^^^^
+   + Article

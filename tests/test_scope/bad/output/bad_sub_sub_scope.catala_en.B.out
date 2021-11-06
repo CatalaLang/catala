@@ -1,15 +1,15 @@
 [ERROR] There is a conflict between multiple exceptions for assigning the same variable.
-[ERROR] 
-[ERROR] This justification is true:
-[ERROR]   --> test_scope/bad/bad_sub_sub_scope.catala_en
-[ERROR]    | 
-[ERROR] 25 |   definition y under condition a2.x + 1 = 2 consequence equals 1
-[ERROR]    |                                ^^^^^^^^^^^^
-[ERROR]    + Article
-[ERROR] 
-[ERROR] This justification is true:
-[ERROR]   --> test_scope/bad/bad_sub_sub_scope.catala_en
-[ERROR]    | 
-[ERROR] 24 |   definition y under condition a2.x = 1 consequence equals 1
-[ERROR]    |                                ^^^^^^^^
-[ERROR]    + Article
+
+This justification is true:
+  --> test_scope/bad/bad_sub_sub_scope.catala_en
+   | 
+25 |   definition y under condition a2.x + 1 = 2 consequence equals 1
+   |                                ^^^^^^^^^^^^
+   + Article
+
+This justification is true:
+  --> test_scope/bad/bad_sub_sub_scope.catala_en
+   | 
+24 |   definition y under condition a2.x = 1 consequence equals 1
+   |                                ^^^^^^^^
+   + Article

@@ -1,11 +1,11 @@
 [ERROR] The constructor Case3 of enum E is missing from this pattern matching
-[ERROR] 
-[ERROR]   --> test_enum/bad/missing_case.catala_en
-[ERROR]    | 
-[ERROR] 14 |   definition out equals match e with pattern
-[ERROR]    |                         ^^^^^^^^^^^^^^^^^^^
-[ERROR] 15 |     -- Case1 of i : i = 0
-[ERROR]    |     ^^^^^^^^^^^^^^^^^^^^^
-[ERROR] 16 |     -- Case2 of b : b
-[ERROR]    |     ^^^^^^^^^^^^^^^^^^
-[ERROR]    + Article
+
+  --> test_enum/bad/missing_case.catala_en
+   | 
+14 |   definition out equals match e with pattern
+   |                         ^^^^^^^^^^^^^^^^^^^
+15 |     -- Case1 of i : i = 0
+   |     ^^^^^^^^^^^^^^^^^^^^^
+16 |     -- Case2 of b : b
+   |     ^^^^^^^^^^^^^^^^^^
+   + Article

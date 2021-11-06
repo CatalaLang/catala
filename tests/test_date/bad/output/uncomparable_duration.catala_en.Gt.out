@@ -1,15 +1,15 @@
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
-[ERROR] 
-[ERROR]   --> test_date/bad/uncomparable_duration.catala_en
-[ERROR]    | 
-[ERROR] 30 |   definition d equals 1 month >^ 2 day
-[ERROR]    |                       ^^^^^^^
-[ERROR]    + `UncomparableDurations` exception management
-[ERROR]    +-+ `<=^` operator
-[ERROR] 
-[ERROR]   --> test_date/bad/uncomparable_duration.catala_en
-[ERROR]    | 
-[ERROR] 30 |   definition d equals 1 month >^ 2 day
-[ERROR]    |                                  ^^^^^
-[ERROR]    + `UncomparableDurations` exception management
-[ERROR]    +-+ `<=^` operator
+
+  --> test_date/bad/uncomparable_duration.catala_en
+   | 
+30 |   definition d equals 1 month >^ 2 day
+   |                       ^^^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator
+
+  --> test_date/bad/uncomparable_duration.catala_en
+   | 
+30 |   definition d equals 1 month >^ 2 day
+   |                                  ^^^^^
+   + `UncomparableDurations` exception management
+   +-+ `<=^` operator

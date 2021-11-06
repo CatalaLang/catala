@@ -1,7 +1,7 @@
 [ERROR] Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used as single match case)
-[ERROR] 
-[ERROR]   --> test_enum/bad/ambiguous_wildcard.catala_en
-[ERROR]    | 
-[ERROR] 15 |     -- anything : 31
-[ERROR]    |        ^^^^^^^^^^^^^
-[ERROR]    + Wildcard cannot be used as single match case
+
+  --> test_enum/bad/ambiguous_wildcard.catala_en
+   | 
+15 |     -- anything : 31
+   |        ^^^^^^^^^^^^^
+   + Wildcard cannot be used as single match case

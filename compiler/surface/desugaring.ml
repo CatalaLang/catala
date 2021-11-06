@@ -206,10 +206,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resoluti
               "Impossible to specify decimal amounts of days, months or years" pos
         | LDate date ->
             if Pos.unmark date.literal_date_month > 12 then
-              Errors.raise_spanned_error "Month number bigger than 12"
+              Errors.raise_spanned_error "There is an error in this date: the month number is bigger than 12"
                 (Pos.get_position date.literal_date_month);
             if Pos.unmark date.literal_date_day > 31 then
-              Errors.raise_spanned_error "Month number bigger than 31"
+              Errors.raise_spanned_error "There is an error in this date: the day number is bigger than 31"
                 (Pos.get_position date.literal_date_day);
             Scopelang.Ast.ELit
               (Dcalc.Ast.LDate
