@@ -15,7 +15,7 @@ scope Test1:
       my_gaming.socialHousie
   equals
     SocialHousie {
-      -- socialPurpose: true
+      -- socialPurposeOnly: true
       -- totalValuePrizePerSession: $200000
       -- applicationOf2007Licence: false
       -- jackpotPrizeValue: $0
@@ -37,7 +37,7 @@ scope Test2:
       my_gaming.socialHousie
   equals
     SocialHousie {
-      -- socialPurpose: true
+      -- socialPurposeOnly: true
       -- totalValuePrizePerSession: $20
       -- applicationOf2007Licence: false
       -- jackpotPrizeValue: $140
@@ -45,7 +45,7 @@ scope Test2:
       -- totalInvestmentPerParticipant: $0
       -- investmentReturn: true
   }
-  assertion my_gaming.authorized = true
+  assertion my_gaming.authorized
 ```
 
 ## Test3
@@ -59,7 +59,7 @@ scope Test3:
       my_gaming.socialHousie
   equals
     SocialHousie {
-      -- socialPurpose: true
+      -- socialPurposeOnly: true
       -- totalValuePrizePerSession: $2
       -- applicationOf2007Licence: false
       -- jackpotPrizeValue: $345
@@ -67,7 +67,7 @@ scope Test3:
       -- totalInvestmentPerParticipant: $0
       -- investmentReturn: true
   }
-  assertion my_gaming.authorized = false
+  assertion not my_gaming.authorized
 ```
 
 ## Test4
@@ -82,7 +82,7 @@ scope Test4:
       my_gaming.socialHousie
   equals
     SocialHousie {
-      -- socialPurpose: true
+      -- socialPurposeOnly: true
       -- totalValuePrizePerSession: $40
       -- applicationOf2007Licence: false
       -- jackpotPrizeValue: $160
@@ -90,5 +90,5 @@ scope Test4:
       -- totalInvestmentPerParticipant: $60
       -- investmentReturn: true
   }
-  assertion my_gaming.authorized = true
+  assertion my_gaming.authorized
 ```
