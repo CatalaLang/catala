@@ -64,7 +64,7 @@ suite executed using
 
 You can isolate a part of the regression suite by invoking:
 
-    TEST_FILES=examples/tests/foo/foo_tests.catala_en make -C examples tests
+    TEST_FILES=foo/tests/foo_tests.catala_en make -C examples tests
 
 ## Adding an example
 
