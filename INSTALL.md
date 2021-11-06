@@ -44,12 +44,12 @@ This should ensure everything is set up for developing on the Catala compiler!
 Other features for generation of files and literate programming also require
 the following executables to be present
 
-    man2html virtualenv python3 rsync colordiff
+    man2html virtualenv python3 rsync colordiff pygmentize
 
 please install them if they're not here. On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-dev python3-setuptools man2html rsync colordiff
+    sudo apt install python3-dev python3-setuptools python3-pygments man2html rsync colordiff
     sudo python3 -m pip install --upgrade pip
     sudo python3 -m pip install virtualenv
 
