@@ -1,8 +1,6 @@
 > Inclusion: ../allocations_familiales.catala_fr
 
-## Tests
-
-### Tests
+# Tests
 
 ```catala
 déclaration champ d'application Données:
