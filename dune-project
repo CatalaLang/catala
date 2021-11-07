@@ -2,7 +2,7 @@
 
 (name catala)
 
-(version 0.4.0)
+(version 0.5.0)
 
 (generate_opam_files true)
 
@@ -75,6 +75,6 @@
   (ocaml
    (>= 4.08.0))
   (catala
-   (>= 0.4.0))))
+   (>= 0.5.0))))
 
 (using menhir 2.1)

@@ -95,7 +95,7 @@ let catala_t f =
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
 
-let version = "0.4.0"
+let version = "0.5.0"
 
 let info =
   let doc =
