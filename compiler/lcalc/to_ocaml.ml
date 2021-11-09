@@ -327,7 +327,12 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         format_exception
         (exc, Pos.get_position e)
         format_with_parens e2
-  | ESome _ | ENone | EMatchopt _ -> failwith "todo"
+  | ESome e1 ->
+    Format.fprintf fmt "@[<hov 2> Some@ %a@ @]" format_with_parens e1
+  | ENone -> Format.fprintf fmt "None@"
+  | EMatchopt (e1, e2, e3) ->
+    let x = assert false in
+    Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n| None ->@[<hov 2>@ %a@]@\n| Some %a ->@[<hov 2>@ %a@ %a@]" format_expr e1 format_with_parens e2 format_var x format_with_parens e3 format_var x
 
 let format_struct_embedding (fmt : Format.formatter)
     ((struct_name, struct_fields) : D.StructName.t * (D.StructFieldName.t * D.typ Pos.marked) list)

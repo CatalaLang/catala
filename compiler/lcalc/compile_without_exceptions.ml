@@ -56,9 +56,9 @@ let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
   in
   exceptions
 
-(* non-existing for the moment. *)
 and translate_typ (t: D.typ Pos.marked) : D.typ Pos.marked =
-  let _ = t in assert false
+  (* Hack: If the type is D.TAny, it means for the compiler to not put any type annotation.*)
+  Pos.same_pos_as D.TAny t
 
 and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box =
 
@@ -74,7 +74,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       let pos = Pos.get_position(Bindlib.unbox e1) in
       let x = A.Var.make ("e1", pos) in
-      let tau = failwith "todo" in
+      let tau = (D.TAny, pos) in
 
       let e2 = 
         let+ e1 = Bindlib.box (A.EVar (x, pos)) in
@@ -89,7 +89,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let pos = Pos.get_position(Bindlib.unbox e1) in
       let x = A.Var.make ("e1", pos) in
 
-      let tau = failwith "todo" in
+      let tau = (D.TAny, pos) in
 
       let e2 =
         let+ e1 = Bindlib.box (A.EVar (x, pos)) in
@@ -102,7 +102,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     let pos = Pos.get_position(Bindlib.unbox e1) in
     let x = A.Var.make ("e1", pos) in
 
-    let tau = failwith "todo" in
+    let tau = (D.TAny, pos) in
 
     let e2 =
       let+ e1 = Bindlib.box (A.EVar (x, pos))
@@ -125,7 +125,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let x = A.Var.make ("e1", pos) in
 
       (* we can say staticly what is the type of tau here. *)
-      let tau = failwith "todo" in
+      let tau = (D.TAny, pos) in
 
       let e2 = 
         let+ e1 = Bindlib.box (A.EVar (x, pos))
@@ -136,11 +136,24 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       A.make_letopt_in x tau e1 e2
 
-  | D.EAssert _e1 ->
+  | D.EAssert e1 ->
     (* don't know the semantic of EAssert. *)
     (* Bindlib.box_apply (fun e1 -> Pos.same_pos_as (A.EAssert e1) e) (translate_expr ctx e1) *)
 
-    failwith "todo"
+    
+
+    let e1 = translate_expr ctx e1 in
+    let pos = Pos.get_position (Bindlib.unbox e1) in
+    let x  = A.Var.make ("e1", pos) in
+    let tau = (D.TAny, pos) in
+
+    let e2 =
+      let+ e1 = Bindlib.box (A.EVar (x, pos)) in
+
+      same_pos @@ A.EAssert (e1, pos)
+    in
+
+    A.make_letopt_in x tau e1 e2
 
   | D.ErrorOnEmpty arg ->
 
@@ -148,7 +161,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     let x = A.Var.make ("e1", pos) in
     let arg = translate_expr ctx arg in
 
-    let tau = failwith "todo" in
+    let tau = (D.TAny, pos) in
 
     let+ e2 = A.make_abs
     (Array.of_list [ x ])
@@ -165,7 +178,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     let pos = Pos.get_position(Bindlib.unbox e1) in
     let x = A.Var.make ("e1", pos) in
 
-    let tau = failwith "todo" in
+    let tau = (D.TAny, pos) in
 
     let e2 =
       let+ e1 = Bindlib.box (A.EVar (x, pos))
@@ -193,8 +206,6 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
-
-(* no change here *)
 let translate_program (prgm : D.program) : A.program =
   {
     scopes =

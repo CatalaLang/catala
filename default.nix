@@ -34,7 +34,7 @@ buildDunePackage rec {
   ];
   doCheck = true;
 
-  patches = [ ./.nix/no-web.patch ];
+  # patches = [ ./.nix/no-web.patch ];
 
   meta = with lib; {
     homepage = "https://catala-lang.org";

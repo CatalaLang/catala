@@ -243,7 +243,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             0
         | Cli.OCaml | Cli.Python ->
             Cli.debug_print "Compiling program into lambda calculus...";
-            let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
+            let prgm = Lcalc.Compile_without_exceptions.translate_program prgm in
             let prgm =
               if optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";
