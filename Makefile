@@ -48,9 +48,10 @@ build:
 	@$(MAKE) --no-print-directory format
 	dune build $(COMPILER_DIR)/catala.exe
 
-#> js_build				: Builds the Web-compatible JS version of the Catala compiler
+#> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala_web.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala.bc.js --profile release
+	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js --profile release
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
