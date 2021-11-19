@@ -27,27 +27,27 @@ declaration scope GamingAuthorized:
 (a) the gaming activity is conducted by or on behalf of a charitable organisation,
 ```catala
 scope GamingAuthorized:
-definition benefitingOrg equals only charityHousie.typeOrg(Charitable)
+definition benefitingOrg equals (charityHousie.typeOrg with pattern OrganisationType.Charitable)
 #definition benefitingOrg equals Charitable
 #benefitingOrg = (charityHousie.typeOrg = Charitable)
 ```
 (b) not less than 12.5% of the gross proceeds of the gaming activity are paid to the benefiting org
 ```catala
 scope GamingAuthorized:
-definition minimumProceeds  equals charityHousie.proceedsToBenefitingOrganisation <=$ charityHousie.grossProceeds *$ $12.5 %
+definition minimumProceeds  equals charityHousie.proceedsToBenefitingOrganisation <=$ charityHousie.grossProceeds *$ 12.5 %
 ```
 (c)the total value of the expenses of conducting the gaming activity (excluding
 the cost of prizes) does not exceed 12.5% of the gross proceeds of the gaming activity
 ```catala
 scope GamingAuthorized:
-definition expenses equals (charityHousie.totalValueOfExpenses -$ charityHousie.totalValueOfThePrizes)<=$ charityHousie.grossProceeds *$ $12.5 %
+definition expenses equals (charityHousie.totalValueOfExpenses -$ charityHousie.totalValueOfThePrizes)<=$ charityHousie.grossProceeds *$ 12.5 %
 ```
 (d) the total value of all of the prizes for 1 session of the gaming activity does not
 exceed $10,000 and does not exceed 75% of the gross proceeds from the gaming activity
 ```catala
 scope GamingAuthorized:
 definition prizesTotal equals (charityHousie.totalValueOfThePrizes <=$ $10,000)
-and (charityHousie.totalValueOfThePrizes <=$ charityHousie.grossProceeds*$ $75%)
+and (charityHousie.totalValueOfThePrizes <=$ charityHousie.grossProceeds*$ 75 %)
 #definition prizesTotal equals (charityHousie.totalValuePrizePerSession <=$ 10.000)
 #and (charityHousie.totalValuePrizePerSession <= (charityHousie.grossProceeds*$ 75%))
 ```

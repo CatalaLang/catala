@@ -1,0 +1,34 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_charity_housie.catala_en
+
+## Test1
+
+```catala
+
+declaration scope Test5:
+  context my_gaming scope GamingAuthorized
+
+scope Test5:
+  definition
+      my_gaming.charityHousie
+  equals
+    CharityHousie {
+      -- typeOrg: Charitable
+      -- grossProceeds: $200
+      -- totalValueOfThePrizes: $10
+      -- totalValueOfExpenses: $10
+      -- maxTicketsPerParticipant: 5
+      -- proceedsToBenefitingOrganisation: $80
+  }
+  assertion my_gaming.authorized = false
+```
+
+data typeOrg content OrganisationType
+data grossProceeds content money
+data totalValueOfThePrizes content money
+data totalValueOfExpenses content money
+data maxTicketsPerParticipant content integer
+data proceedsToBenefitingOrganisation content money
