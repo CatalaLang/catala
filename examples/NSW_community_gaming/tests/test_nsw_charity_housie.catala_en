@@ -8,10 +8,10 @@
 
 ```catala
 
-declaration scope Test5:
+declaration scope Test1:
   context my_gaming scope GamingAuthorized
 
-scope Test5:
+scope Test1:
   definition
       my_gaming.charityHousie
   equals
