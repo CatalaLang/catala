@@ -7,3 +7,4 @@ compiler/**/.merlin
 legifrance_oauth*
 *.html
 .vscode/
+.DS_Store
