@@ -108,6 +108,7 @@ let avoid_keywords (s : string) : string =
     | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct" | "then" | "to"
     | "true" | "try" | "type" | "val" | "virtual" | "when" | "while" | "with" ->
         true
+    | "x" -> true (* i need a variable to make the translation *)
     | _ -> false
   then s ^ "_"
   else s
@@ -331,7 +332,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
     Format.fprintf fmt "@[<hov 2> Some@ %a@ @]" format_with_parens e1
   | ENone -> Format.fprintf fmt "None@"
   | EMatchopt (e1, e2, e3) ->
-    let x = assert false in
+    let x = Ast.Var.make ("x", Pos.no_pos) in
     Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n| None ->@[<hov 2>@ %a@]@\n| Some %a ->@[<hov 2>@ %a@ %a@]" format_expr e1 format_with_parens e2 format_var x format_with_parens e3 format_var x
 
 let format_struct_embedding (fmt : Format.formatter)

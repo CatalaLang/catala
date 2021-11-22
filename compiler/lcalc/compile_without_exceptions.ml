@@ -106,7 +106,16 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
     let e2 =
       let+ e1 = Bindlib.box (A.EVar (x, pos))
-      and+ cases = Bindlib.box_list (List.map (translate_expr ctx) cases) in
+      (* there is an issue here. *)
+      and+ cases = cases
+        |> List.map (fun e' -> translate_expr ctx e')
+        |> List.map (function
+          | A.ESome e'' -> e''
+          | _ -> assert false
+        )
+        |> assert false
+        |> Bindlib.box_list
+      in
       same_pos @@ A.EMatch ((e1, pos), cases, en)
     in
 

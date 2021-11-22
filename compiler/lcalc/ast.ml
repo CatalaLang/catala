@@ -26,6 +26,7 @@ type lit =
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
+
 type expr =
   | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list * D.StructName.t option
@@ -117,6 +118,8 @@ let make_letopt_in
   (e1: expr Pos.marked Bindlib.box)
   (e2: expr Pos.marked Bindlib.box)
 : expr Pos.marked Bindlib.box =
+
+(* let%opt x: tau = e1 in e2 == matchopt e1 with | None -> None | Some x -> e2 *)
 
   let pos = Pos.get_position (Bindlib.unbox e2) in
 
