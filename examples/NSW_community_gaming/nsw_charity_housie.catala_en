@@ -34,7 +34,7 @@ definition benefitingOrg equals (charityHousie.typeOrg with pattern Organisation
 (b) not less than 12.5% of the gross proceeds of the gaming activity are paid to the benefiting org
 ```catala
 scope GamingAuthorized:
-definition minimumProceeds  equals charityHousie.proceedsToBenefitingOrganisation <=$ charityHousie.grossProceeds *$ 12.5 %
+definition minimumProceeds  equals charityHousie.proceedsToBenefitingOrganisation >=$ charityHousie.grossProceeds *$ 12.5 %
 ```
 (c)the total value of the expenses of conducting the gaming activity (excluding
 the cost of prizes) does not exceed 12.5% of the gross proceeds of the gaming activity
