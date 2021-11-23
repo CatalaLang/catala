@@ -1,0 +1,59 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+```catala-metadata
+declaration enumeration OrganisationType:
+-- Charitable
+--NonProfit
+--NonCharitable
+--ProfitOrg
+
+declaration structure NoDrawLottery:
+  data typeOrg content OrganisationType
+  data grossProceeds content money
+  data totalValueOfThePrizes content money
+  data proceedsToBenefitingOrg content money
+  data maxTickets content integer
+
+declaration scope GamingAuthorized:
+  context noDrawLottery content NoDrawLottery
+  context authorized condition
+  context benefitingOrg content boolean
+  context minimumProceeds content boolean
+  context maxValueOfPrizes content boolean
+  context maxTicketsProduced content boolean
+```
+
+A no-draw lottery is a permitted gaming activity for the purposes of section 10 of the
+Act if the following requirements are complied with—
+(a) the gaming activity is conducted by or on behalf of a charitable organisation
+or a non-profit organisation,
+```catala
+scope GamingAuthorized:
+definition benefitingOrg equals noDrawLottery.typeOrg with pattern OrganisationType.Charitable
+or noDrawLottery.typeOrg with pattern OrganisationType.NonProfit
+
+```
+(b) not less than 40% of the gross proceeds of the gaming activity are paid to the
+benefiting organisation,
+```catala
+scope GamingAuthorized:
+definition minimumProceeds equals noDrawLottery.proceedsToBenefitingOrg >=$ noDrawLottery.grossProceeds *$ 40 %
+
+```
+(c) the total value of all of the prizes does not exceed $5,000,
+```catala
+scope GamingAuthorized:
+definition maxValueOfPrizes equals noDrawLottery.totalValueOfThePrizes <=$ $5,000
+```
+(d) the total number of tickets produced or obtained for sale for the lottery does
+not exceed 3,000.
+```catala
+scope GamingAuthorized:
+definition maxTicketsProduced equals noDrawLottery.maxTickets <= 3000
+
+scope GamingAuthorized:
+  rule authorized
+  under condition benefitingOrg and minimumProceeds and maxValueOfPrizes and maxTicketsProduced
+  consequence fulfilled
+```
