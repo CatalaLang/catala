@@ -25,10 +25,3 @@ scope Test1:
   }
   assertion my_gaming.authorized = true
 ```
-
-data typeOrg content OrganisationType
-data grossProceeds content money
-data totalValueOfThePrizes content money
-data totalValueOfExpenses content money
-data maxTicketsPerParticipant content integer
-data proceedsToBenefitingOrganisation content money

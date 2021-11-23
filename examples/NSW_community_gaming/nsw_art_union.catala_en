@@ -39,7 +39,7 @@ benefiting organisation,
 ```catala
 scope GamingAuthorized:
 definition minimumProceeds equals (artUnion.proceedsToBenefitingOrg >=$ artUnion.grossProceeds *$ 30 %)
-and
+
 definition benefitingOrg equals artUnion.typeOrg with pattern BenefitingOrganisation.Charitable or
  artUnion.typeOrg with pattern BenefitingOrganisation.NonProfit or artUnion.typeOrg with pattern BenefitingOrganisation.ObjectOfPublicOrCharitableCharacter
 
