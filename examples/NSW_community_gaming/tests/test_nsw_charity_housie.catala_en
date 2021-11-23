@@ -22,7 +22,7 @@ scope Test1:
       -- totalValueOfExpenses: $10
       -- maxTicketsPerParticipant: 5
       -- proceedsToBenefitingOrganisation: $80
-  }.
+  }
   assertion my_gaming.authorized = true
 ```
 
