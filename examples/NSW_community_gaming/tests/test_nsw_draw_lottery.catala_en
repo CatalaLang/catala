@@ -1,0 +1,74 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_draw_lottery.catala_en
+
+## Test1
+```catala
+declaration scope Test1:
+  context my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+    my_gaming.drawLottery
+  equals
+    DrawLottery {
+      -- typeOrg: NonProfit
+      -- grossProceeds: $3000
+      -- proceedsToBenefitingOrg: $1500
+      -- totalValueOfThePrizes: $4000
+    }
+  assertion my_gaming.authorized = true
+```
+## Test2
+```catala
+declaration scope Test2:
+  context my_gaming scope GamingAuthorized
+
+scope Test2:
+  definition
+    my_gaming.drawLottery
+  equals
+    DrawLottery {
+      -- typeOrg: NonProfit
+      -- grossProceeds: $3000
+      -- proceedsToBenefitingOrg: $500
+      -- totalValueOfThePrizes: $4000
+    }
+  assertion my_gaming.authorized = false
+```
+## Test3
+```catala
+declaration scope Test3:
+  context my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+    my_gaming.drawLottery
+  equals
+    DrawLottery {
+      -- typeOrg: Charitable
+      -- grossProceeds: $35000
+      -- proceedsToBenefitingOrg: $25000
+      -- totalValueOfThePrizes: $44000
+    }
+  assertion my_gaming.authorized = false
+```
+## Test4
+```catala
+declaration scope Test4:
+  context my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+    my_gaming.drawLottery
+  equals
+    DrawLottery {
+      -- typeOrg: Charitable
+      -- grossProceeds: $3500
+      -- proceedsToBenefitingOrg: $2500
+      -- totalValueOfThePrizes: $400
+    }
+  assertion my_gaming.authorized = true
+```

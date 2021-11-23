@@ -1,0 +1,20 @@
+```catala
+# Copyright © Aïda Ibrahim and Hugo Gimbert -- LaBRI/CNRS/Université de Bordeaux/Université de Nantes
+```
+
+> Include: ../nsw_progressive_lottery_2.catala_en
+
+## Test1
+```catala
+declaration scope Test1:
+  context my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+      -- maximumAmountMoneyPrize: $6000
+    }
+  assertion my_gaming.authorized = true
+```
