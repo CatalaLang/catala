@@ -52,7 +52,6 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-
   (* TODO: temporary *)
   | EMatchopt of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ESome of expr Pos.marked
@@ -95,7 +94,7 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
-val make_letopt_in:
+val make_letopt_in :
   Var.t ->
   Dcalc.Ast.typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
