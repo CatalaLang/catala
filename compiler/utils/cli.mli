@@ -64,6 +64,7 @@ val catala_t :
   bool ->
   bool ->
   bool ->
+  bool ->
   string ->
   string option ->
   int option ->
@@ -74,7 +75,7 @@ val catala_t :
   'a) ->
   'a Cmdliner.Term.t
 (** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt optimize
+    [catala_t file debug unstyled wrap_weaved_output avoid_exceptions backend language max_prec_digits_opt trace_opt optimize
     ex_scope output] *)
 
 val version : string

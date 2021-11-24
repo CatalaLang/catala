@@ -26,9 +26,9 @@ let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "p
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
-    (wrap_weaved_output : bool) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)
-    (output_file : string option) : int =
+    (wrap_weaved_output : bool) (avoid_exceptions : bool) (backend : string)
+    (language : string option) (max_prec_digits : int option) (trace : bool) (optimize : bool)
+    (ex_scope : string option) (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
@@ -243,7 +243,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             0
         | Cli.OCaml | Cli.Python ->
             Cli.debug_print "Compiling program into lambda calculus...";
-            let prgm = Lcalc.Compile_without_exceptions.translate_program prgm in
+            let prgm =
+              if avoid_exceptions then Lcalc.Compile_without_exceptions.translate_program prgm
+              else Lcalc.Compile_with_exceptions.translate_program prgm
+            in
             let prgm =
               if optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";

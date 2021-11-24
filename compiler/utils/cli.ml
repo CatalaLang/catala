@@ -52,6 +52,11 @@ let trace_opt =
   Arg.(
     value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the interpreter's computation")
 
+let avoid_exceptions =
+  Arg.(
+    value & flag
+    & info [ "avoid_exceptions" ] ~doc:"Compiles the default calculus without exceptions")
+
 let wrap_weaved_output =
   Arg.(
     value & flag
@@ -92,7 +97,7 @@ let output =
 
 let catala_t f =
   Term.(
-    const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
+    const f $ file $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
 
 let version = "0.5.0"

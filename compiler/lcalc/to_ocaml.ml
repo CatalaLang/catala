@@ -41,7 +41,7 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
     (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
-let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
+let _format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
   Format.fprintf fmt "%s"
     (match entry with
     | VarDef _ -> ":="
@@ -88,9 +88,10 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   match Pos.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
-  | Log (entry, infos) ->
-      Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry format_uid_list
-        infos
+  | Log (_entry, _infos) ->
+      (* Errors.raise_spanned_error "Internal error: a log operator has not been caught by the
+         expression match" (Pos.get_position op) *)
+      Format.fprintf fmt "Fun.id"
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
@@ -108,7 +109,6 @@ let avoid_keywords (s : string) : string =
     | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct" | "then" | "to"
     | "true" | "try" | "type" | "val" | "virtual" | "when" | "while" | "with" ->
         true
-    | "x" -> true (* i need a variable to make the translation *)
     | _ -> false
   then s ^ "_"
   else s
@@ -169,7 +169,9 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
+  let lowercase_name =
+    to_lowercase (to_ascii (Bindlib.name_of v) ^ "_" ^ string_of_int (Bindlib.uid_of v))
+  in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
@@ -329,7 +331,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (exc, Pos.get_position e)
         format_with_parens e2
   | ESome e1 -> Format.fprintf fmt "@[<hov 2> Some@ %a@ @]" format_with_parens e1
-  | ENone -> Format.fprintf fmt "None@"
+  | ENone -> Format.fprintf fmt "None"
   | EMatchopt (e1, e2, e3) ->
       let x = Ast.Var.make ("x", Pos.no_pos) in
       Format.fprintf fmt
