@@ -108,12 +108,26 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let+ e1 = Bindlib.box (A.EVar (x, pos))
       (* there is an issue here. *)
       and+ cases = cases
-        |> List.map (fun e' -> translate_expr ctx e')
-        |> List.map (function
-          | A.ESome e'' -> e''
-          | _ -> assert false
-        )
-        |> assert false
+        |> List.map (fun (e', _pos) ->
+            match e' with
+            | D.EAbs ((binder, pos_binder), ts) ->
+              begin 
+                let vars, body = Bindlib.unmbind binder in
+                let ctx, lc_vars =
+                  Array.fold_right
+                    (fun var (ctx, lc_vars) ->
+                      let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
+                      let lc_var_expr = A.make_var (lc_var, pos_binder) in
+                      (D.VarMap.add var lc_var_expr ctx, lc_var :: lc_vars))
+                    vars (ctx, [])
+                in
+                let lc_vars = Array.of_list lc_vars in
+                let new_body = translate_expr ctx body in
+                let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
+                same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts)
+              end
+            | _ -> assert false
+          )
         |> Bindlib.box_list
       in
       same_pos @@ A.EMatch ((e1, pos), cases, en)
