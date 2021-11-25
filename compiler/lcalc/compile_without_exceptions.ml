@@ -27,7 +27,7 @@ let translate_lit (l : D.lit) : A.expr =
   | D.LUnit -> A.ELit A.LUnit
   | D.LDate d -> A.ELit (A.LDate d)
   | D.LDuration d -> A.ELit (A.LDuration d)
-  | D.LEmptyError -> A.ENone
+  | D.LEmptyError -> fst @@ Bindlib.unbox @@ A.make_none Pos.no_pos
 
 let ( let+ ) x f = Bindlib.box_apply f x
 

@@ -89,35 +89,15 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 
 let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
-       (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
-       (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+
+  let pos = Pos.get_position (Bindlib.unbox e2) in
+  make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
+
 
 let ( let+ ) x f = Bindlib.box_apply f x
 
 let ( and+ ) x y = Bindlib.box_pair x y
 
-let make_letopt_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  (* let%opt x: tau = e1 in e2 == matchopt e1 with | None -> None | Some x -> e2 *)
-  let pos = Pos.get_position (Bindlib.unbox e2) in
-
-  let+ e2 =
-    make_abs
-      (Array.of_list [ x ])
-      e2
-      (Pos.get_position (Bindlib.unbox e2))
-      [ tau ]
-      (Pos.get_position (Bindlib.unbox e2))
-  and+ e1 = e1 in
-
-  (EMatchopt (e1, (ENone, pos), e2), pos)
 
 
 let option_enum = D.EnumName.fresh ("eoption", Pos.no_pos)
@@ -151,6 +131,19 @@ let make_matchopt
   mark @@ EMatch (e, [e_none; e_some], option_enum)
 
 
+
+let make_letopt_in
+  (x : Var.t)
+  (tau : D.typ Pos.marked)
+  (e1 : expr Pos.marked Bindlib.box)
+  (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+  (* let%opt x: tau = e1 in e2 == matchopt e1 with | None -> None | Some x -> e2 *)
+  let pos = Pos.get_position (Bindlib.unbox e2) in
+
+  make_matchopt
+    e1
+    (make_none pos)
+    (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos)
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
