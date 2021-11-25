@@ -119,6 +119,39 @@ let make_letopt_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bi
 
   (EMatchopt (e1, (ENone, pos), e2), pos)
 
+
+let option_enum = D.EnumName.fresh ("eoption", Pos.no_pos)
+
+let make_none (pos: Pos.t) =
+  (* Hack: type is not printed in to_ocaml, so I ignore it. *)
+
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
+  Bindlib.box @@ mark @@ EInj (mark @@ ELit LUnit, 0, option_enum, [])
+
+let make_some (e: expr Pos.marked Bindlib.box): expr Pos.marked Bindlib.box =
+
+  let pos = Pos.get_position @@ Bindlib.unbox e in
+  let mark: 'a -> 'a Pos.marked = Pos.mark pos in
+
+  let+ e = e in
+  mark @@ EInj (e, 1, option_enum, [])
+
+let make_matchopt
+  (e: expr Pos.marked Bindlib.box)
+  (e_none: expr Pos.marked Bindlib.box)
+  (e_some: expr Pos.marked Bindlib.box): expr Pos.marked Bindlib.box =
+
+  let pos = Pos.get_position @@ Bindlib.unbox e in
+  let mark: 'a -> 'a Pos.marked = Pos.mark pos in
+
+  let+ e = e
+  and+ e_none = e_none
+  and+ e_some = e_some in
+
+  mark @@ EMatch (e, [e_none; e_some], option_enum)
+
+
+
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder

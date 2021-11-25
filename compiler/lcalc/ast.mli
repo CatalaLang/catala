@@ -101,6 +101,19 @@ val make_letopt_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val make_none :
+  Pos.t -> expr Pos.marked Bindlib.box
+
+val make_some :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
+val make_matchopt:
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
 val handle_default : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
