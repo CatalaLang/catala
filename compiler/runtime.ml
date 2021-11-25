@@ -31,6 +31,10 @@ type source_position = {
   law_headings : string list;
 }
 
+type 'a eoption =
+  | ENone of unit
+  | ESome of 'a
+
 exception EmptyError
 
 exception AssertionFailed
