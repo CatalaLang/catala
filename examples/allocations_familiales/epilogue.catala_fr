@@ -18,6 +18,7 @@ champ d'application EnfantLePlusÂgé:
       -- âge: 0
       -- prise_en_charge: EffectiveEtPermanente
       -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
+      -- bénéficie_titre_personnel_aide_personnelle_logement: faux
     }
     pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.âge
 
@@ -125,5 +126,8 @@ champ d'application InterfaceAllocationsFamiliales:
         sinon Après))
       -- a_déjà_ouvert_droit_aux_allocations_familiales:
         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
+      -- bénéficie_titre_personnel_aide_personnelle_logement:
+      # TODO: ajouter champ interface
+        vrai
     }
 ```
