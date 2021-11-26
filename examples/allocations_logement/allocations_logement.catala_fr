@@ -64,7 +64,9 @@ déclaration énumération SituationFamiliale:
 ##### Article L822-2 | LEGIARTI000038814944
 
 I.-Peuvent bénéficier d'une aide personnelle au logement :
+
 1° Les personnes de nationalité française ;
+
 2° Les personnes de nationalité étrangère remplissant les conditions
 prévues par les deux premiers alinéas de l'article L. 512-2 du
 code de la sécurité sociale.
@@ -88,7 +90,7 @@ Les sous-locataires, sous les mêmes conditions, peuvent également en bénéfic
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette cas_base règle condition_logement sous condition
+  étiquette l822_2 règle condition_logement sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: vrai
       -- RésidentLogementFoyer: vrai
@@ -117,7 +119,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
       -- ParentOuAutre.Autre: faux)
 
-  étiquette cas_exception exception cas_base
+  étiquette l822_3_1 exception l822_2
   règle condition_logement sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: usufruit_ou_propriété_famille
@@ -132,7 +134,7 @@ Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logeme
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception cas_exception règle condition_logement sous condition
+  exception l822_3_1 règle condition_logement sous condition
     usufruit_ou_propriété_famille et
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
