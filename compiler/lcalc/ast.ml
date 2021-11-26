@@ -100,7 +100,17 @@ let ( and+ ) x y = Bindlib.box_pair x y
 
 
 
-let option_enum = D.EnumName.fresh ("eoption", Pos.no_pos)
+let option_enum: D.EnumName.t = D.EnumName.fresh ("eoption", Pos.no_pos)
+
+let none_constr: D.EnumConstructor.t = D.EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr: D.EnumConstructor.t = D.EnumConstructor.fresh ("ESome", Pos.no_pos)
+
+
+let option_enum_config: (D.EnumConstructor.t * D.typ Pos.marked) list =
+  [
+    none_constr, (D.TLit D.TUnit, Pos.no_pos);
+    some_constr, (D.TAny, Pos.no_pos);
+  ]
 
 let make_none (pos: Pos.t) =
   (* Hack: type is not printed in to_ocaml, so I ignore it. *)

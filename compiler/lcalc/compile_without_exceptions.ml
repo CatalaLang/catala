@@ -19,14 +19,15 @@ module A = Ast
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
 
 let translate_lit (l : D.lit) : A.expr =
+  let build lit = fst @@ Bindlib.unbox @@ A.make_some (Bindlib.box (Pos.mark Pos.no_pos (A.ELit lit))) in
   match l with
-  | D.LBool l -> A.ELit (A.LBool l)
-  | D.LInt i -> A.ELit (A.LInt i)
-  | D.LRat r -> A.ELit (A.LRat r)
-  | D.LMoney m -> A.ELit (A.LMoney m)
-  | D.LUnit -> A.ELit A.LUnit
-  | D.LDate d -> A.ELit (A.LDate d)
-  | D.LDuration d -> A.ELit (A.LDuration d)
+  | D.LBool l -> build (A.LBool l)
+  | D.LInt i -> build (A.LInt i)
+  | D.LRat r -> build (A.LRat r)
+  | D.LMoney m -> build (A.LMoney m)
+  | D.LUnit -> build A.LUnit
+  | D.LDate d -> build (A.LDate d)
+  | D.LDuration d -> build (A.LDuration d)
   | D.LEmptyError -> fst @@ Bindlib.unbox @@ A.make_none Pos.no_pos
 
 let ( let+ ) x f = Bindlib.box_apply f x
@@ -132,7 +133,9 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       Bindlib.box_apply
         (fun es -> same_pos @@ A.ESome (same_pos @@ A.EArray es))
         (Bindlib.box_list (List.map (translate_expr ctx) es))
-  | D.ELit l -> Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ translate_lit l)
+  | D.ELit l ->
+    Bindlib.box @@ same_pos @@ translate_lit l
+    (* Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ translate_lit l) *)
   | D.EOp op -> Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ A.EOp op)
   | D.EIfThenElse (e1, e2, e3) ->
       let e1 = translate_expr ctx e1 in
@@ -163,6 +166,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
                same_pos @@ A.EAssert (e1, pos) in
 
       A.make_letopt_in x tau e1 e2
+
   | D.ErrorOnEmpty arg ->
       let pos = Pos.get_position arg in
       let x = A.Var.make ("e1", pos) in
@@ -170,14 +174,18 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       let tau = (D.TAny, pos) in
 
-      let+ e2 =
+      let e2 =
         A.make_abs
           (Array.of_list [ x ])
           (Bindlib.box @@ same_pos @@ A.EVar (x, pos))
           pos [ tau ] pos
-      and+ e1 = arg in
+      and e1 = arg in
 
-      same_pos @@ A.EMatchopt (e1, same_pos @@ A.ERaise A.NoValueProvided, e2)
+      A.make_matchopt
+        e1
+        (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
+        e2
+
   | D.EApp (e1, args) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
@@ -227,5 +235,9 @@ let translate_program (prgm : D.program) : A.program =
            ([], D.VarMap.empty) prgm.scopes
        in
        List.rev acc);
-    decl_ctx = prgm.decl_ctx;
+    decl_ctx = {
+      ctx_enums = prgm.decl_ctx.ctx_enums
+      |> D.EnumMap.add A.option_enum A.option_enum_config;
+      ctx_structs = prgm.decl_ctx.ctx_structs;
+    }
   }
