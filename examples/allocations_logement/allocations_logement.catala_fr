@@ -111,13 +111,14 @@ quels que soient leurs formes et leurs objets.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   définition usufruit_ou_propriété_famille égal à
     (selon ménage.logement.propriétaire sous forme
-      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: vrai
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
       -- ParentOuAutre.Autre: faux) ou
     (selon ménage.logement.usufruit sous forme
-      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: vrai
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
       -- ParentOuAutre.Autre: faux)
 
-  étiquette cas_exception exception cas_base règle condition_logement sous condition
+  étiquette cas_exception exception cas_base
+  règle condition_logement sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: usufruit_ou_propriété_famille
       -- n'importe quel: faux
@@ -133,17 +134,16 @@ Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logeme
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception cas_exception règle condition_logement sous condition
     usufruit_ou_propriété_famille et
-    ((selon ménage.logement.propriétaire sous forme
-      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: parts
-      -- ParentOuAutre.Autre: 0,0) +.
+    (selon ménage.logement.propriétaire sous forme
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_propriété et
     (selon ménage.logement.usufruit sous forme
-      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: parts
-      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_propriétés_usufruits)
-  # TODO: déterminer si c'est la somme qui doit être inférieure au seuil ou si
-  # c'est propriété et usufruit séparément qui doivent être inférieur au seuil
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_usufruit
   conséquence rempli
 
-  assertion seuil_l822_3_parts_propriétés_usufruits <. 20 %
+  assertion seuil_l822_3_parts_propriété <. 20 %
+  assertion seuil_l822_3_parts_usufruit <. 20 %
 ```
 
 ###### Article L822-4 | LEGIARTI000038814940
