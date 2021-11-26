@@ -1,0 +1,167 @@
+> Inclusion: prologue.catala_fr
+
+# Code de la construction et de l'habitation
+
+## Partie législative
+
+### Livre VIII : Aides personnelles au logement
+
+#### Titre II : Dispositions communes aux aides personnelles au logement
+
+##### Chapitre Ier : Principes généraux
+
+###### Section 1 : Définition
+
+####### Article L821-1 | LEGIARTI000038814980
+
+Les aides personnelles au logement ainsi que les primes accordées
+aux bénéficiaires de ces aides afin qu'ils déménagent pour s'assurer
+des conditions de logement plus adaptées sont régies par le présent livre.
+
+Les aides personnelles au logement comprennent :
+1° L'aide personnalisée au logement ;
+2° Les allocations de logement :
+a) L'allocation de logement familiale ;
+b) L'allocation de logement sociale.
+
+```catala-metadata
+déclaration énumération TypeAidePersonnelleLogement:
+  -- AidePersonnaliséeLogement
+  -- AllocationLogementFamiliale
+  -- AllocationLogementSociale
+```
+###### Section 2 : Règles de non-cumul
+
+####### Sous-section 1 : Aides personnelles au logement
+
+######## Article L821-2 | LEGIARTI000038814974
+
+Les aides personnelles au logement sont accordées au titre de
+la résidence principale.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  assertion ménage.logement.résidence_principale
+```
+
+##### Chapitre II : Conditions générales d'attribution
+
+###### Article L822-1 | LEGIARTI000038814948
+
+Les dispositions du présent livre relatives au bénéficiaire, à
+la résidence principale ou à la prise en compte des ressources
+applicables au conjoint, sont applicables, dans les mêmes conditions,
+au partenaire lié par un pacte civil de solidarité ou au concubin.
+
+```catala-metadata
+déclaration énumération SituationFamiliale:
+  -- Célibataire
+  -- Mariés
+  -- Pacsés
+  -- Concubins
+```
+
+##### Article L822-2 | LEGIARTI000038814944
+
+I.-Peuvent bénéficier d'une aide personnelle au logement :
+1° Les personnes de nationalité française ;
+2° Les personnes de nationalité étrangère remplissant les conditions
+prévues par les deux premiers alinéas de l'article L. 512-2 du
+code de la sécurité sociale.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_nationalité sous condition
+    selon demandeur.nationalité sous forme
+    -- Française: vrai
+    -- Étrangère: demandeur.satisfait_conditions_l512_2_code_sécurité_sociale
+  conséquence rempli
+```
+
+II.-Parmi les personnes mentionnées au I, peuvent bénéficier d'une aide
+personnelle au logement celles remplissant les conditions prévues par le
+présent livre pour son attribution qui sont locataires, résidents en
+logement-foyer ou qui accèdent à la propriété d'un local à usage exclusif
+d'habitation et constituant leur résidence principale.
+
+Les sous-locataires, sous les mêmes conditions, peuvent également en bénéficier.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette cas_base règle condition_logement sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Locataire: vrai
+      -- RésidentLogementFoyer: vrai
+      -- AccessionPropriétéLocalUsageExclusifHabitation:
+        ménage.logement.résidence_principale
+      -- SousLocataire: vrai
+      -- ModeOccupation.Autre: faux
+  conséquence rempli
+```
+
+###### Article L822-3 | LEGIARTI000038814942
+
+Les aides personnelles au logement ne sont pas dues aux personnes locataires
+d'un logement dont elles-mêmes, leurs conjoints ou l'un de leurs ascendants
+ou descendants, jouissent d'une part de la propriété ou de l'usufruit,
+personnellement ou par l'intermédiaire de parts sociales de sociétés,
+quels que soient leurs formes et leurs objets.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition usufruit_ou_propriété_famille égal à
+    (selon ménage.logement.propriétaire sous forme
+      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: vrai
+      -- ParentOuAutre.Autre: faux) ou
+    (selon ménage.logement.usufruit sous forme
+      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: vrai
+      -- ParentOuAutre.Autre: faux)
+
+  étiquette cas_exception exception cas_base règle condition_logement sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Locataire: usufruit_ou_propriété_famille
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+Par dérogation à la règle posée au premier alinéa, ces aides peuvent être
+versées si l'ensemble des parts de propriété et d'usufruit du logement
+ainsi détenues est inférieur à des seuils fixés par voie réglementaire.
+Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logement.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception cas_exception règle condition_logement sous condition
+    usufruit_ou_propriété_famille et
+    ((selon ménage.logement.propriétaire sous forme
+      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) +.
+    (selon ménage.logement.usufruit sous forme
+      -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_propriétés_usufruits)
+  # TODO: déterminer si c'est la somme qui doit être inférieure au seuil ou si
+  # c'est propriété et usufruit séparément qui doivent être inférieur au seuil
+  conséquence rempli
+
+  assertion seuil_l822_3_parts_propriétés_usufruits <. 20 %
+```
+
+###### Article L822-4 | LEGIARTI000038814940
+
+Les aides personnelles au logement ne sont pas dues si le local est loué ou
+sous-loué en partie à des tiers, sauf s'il s'agit d'une personne âgée ou
+handicapée adulte qui a passé un contrat conforme aux dispositions de
+l'article L. 442-1 du code de l'action sociale et des familles ou d'une
+personne de moins de trente ans.
+
+Pour l'attribution d'une aide personnelle au logement, ces personnes sont
+assimilées à des locataires, au titre de la partie du logement qu'elles
+occupent.
+
+Toutefois, les conditions fixées à l'article L. 822-3 du présent code
+s'appliquent également au locataire, au sous-locataire et au propriétaire.
+
+Pour l'attribution d'une aide personnelle au logement, en cas d'intermédiation
+locative et en cas d'application des dispositions de l'article L. 442-8-1 du
+présent code prévoyant une sous-location totale du logement, le sous-locataire
+est assimilé au locataire.

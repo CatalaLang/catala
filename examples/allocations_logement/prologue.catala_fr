@@ -1,0 +1,54 @@
+# Prologue
+
+```catala-metadata
+déclaration énumération PrestationReçue:
+  -- AllocationsFamiliales
+  -- ComplémentFamilial
+  -- AllocationJeuneEnfant
+  -- AllocationSoutienFamilial
+  -- AllocationSoutienEnfantHandicapé
+
+déclaration énumération ModeOccupation:
+  -- Locataire
+  -- RésidentLogementFoyer
+  -- AccessionPropriétéLocalUsageExclusifHabitation
+  -- SousLocataire
+  -- Autre
+
+déclaration énumération ParentOuAutre:
+  -- DemandeurOuConjoinOuAscendantOuDescendantsPotentiellementViaPartsSociétés contenu décimal
+  -- Autre
+
+déclaration structure Logement:
+  donnée résidence_principale contenu booléen
+  donnée mode_occupation contenu ModeOccupation
+  donnée propriétaire contenu ParentOuAutre
+  donnée usufruit contenu ParentOuAutre
+
+déclaration structure EnfantÀCharge:
+  donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
+
+déclaration structure Ménage:
+  donnée prestations_reçues contenu collection PrestationReçue
+  donnée logement contenu Logement
+  donnée enfants_à_charge contenu collection EnfantÀCharge
+  donnée situation_familiale contenu SituationFamiliale
+
+déclaration structure Demandeur:
+  donnée satisfait_conditions_l512_2_code_sécurité_sociale contenu booléen
+  donnée nationalité contenu Nationalité
+
+déclaration énumération Nationalité:
+  -- Française
+  -- Étrangère
+
+déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
+  contexte ménage contenu Ménage
+  contexte demandeur contenu Demandeur
+  contexte bénéficie_prestation_mentionnée_l542_1_1 condition
+  contexte enfant_pris_en_compte_non_éligibilité contenu booléen dépend de EnfantÀCharge
+  contexte condition_nationalité condition
+  contexte condition_logement condition
+  contexte usufruit_ou_propriété_famille contenu booléen
+  contexte seuil_l822_3_parts_propriétés_usufruits contenu décimal
+```
