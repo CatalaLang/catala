@@ -125,11 +125,10 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
   | A.LawHeading (heading, children) ->
       Format.fprintf fmt "\\%s*{%s}\n\n"
         (match heading.law_heading_precedence with
-        | 0 -> "chapter"
-        | 1 -> "section"
-        | 2 -> "subsection"
-        | 4 -> "subsubsection"
-        | 5 -> "paragraph"
+        | 0 -> "section"
+        | 1 -> "subsection"
+        | 2 -> "subsubsection"
+        | 3 -> "paragraph"
         | _ -> "subparagraph")
         (pre_latexify (Pos.unmark heading.law_heading_name));
       Format.pp_print_list
@@ -148,7 +147,8 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
   | A.CodeBlock (_, c, false) ->
       Format.fprintf fmt
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-         ```catala%s```\n\
+         ```catala\n\
+         %s```\n\
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) - 1)
@@ -163,7 +163,8 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
          \\begin{minted}[numbersep=9mm, firstnumber=%d, label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
-         ```catala%s```\n\
+         ```catala\n\
+         %s```\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
         metadata_title metadata_title
