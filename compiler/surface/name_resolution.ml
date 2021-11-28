@@ -464,13 +464,25 @@ let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.
               (fun s_ctxt ->
                 match s_ctxt with
                 | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) rule_name s_ctxt.label_idmap;
-                      })
+                | Some s_ctxt -> (
+                    match Desugared.Ast.IdentMap.find_opt (Pos.unmark label) s_ctxt.label_idmap with
+                    | Some existing_label ->
+                        Errors.raise_multispanned_error
+                          "This label has already been given to a rule defining this variable, \
+                           please pick a new one."
+                          [
+                            (Some "Duplicate label:", Pos.get_position label);
+                            ( Some "Existing rule with same label:",
+                              Pos.get_position (Desugared.Ast.RuleName.get_info existing_label) );
+                          ]
+                    | None ->
+                        Some
+                          {
+                            s_ctxt with
+                            label_idmap =
+                              Desugared.Ast.IdentMap.add (Pos.unmark label) rule_name
+                                s_ctxt.label_idmap;
+                          }))
               ctxt.scopes;
         }
   in
@@ -537,14 +549,25 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
               (fun s_ctxt ->
                 match s_ctxt with
                 | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
-                            s_ctxt.label_idmap;
-                      })
+                | Some s_ctxt -> (
+                    match Desugared.Ast.IdentMap.find_opt (Pos.unmark label) s_ctxt.label_idmap with
+                    | Some existing_label ->
+                        Errors.raise_multispanned_error
+                          "This label has already been given to a rule defining this variable, \
+                           please pick a new one."
+                          [
+                            (Some "Duplicate label:", Pos.get_position label);
+                            ( Some "Existing rule with same label:",
+                              Pos.get_position (Desugared.Ast.RuleName.get_info existing_label) );
+                          ]
+                    | None ->
+                        Some
+                          {
+                            s_ctxt with
+                            label_idmap =
+                              Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
+                                s_ctxt.label_idmap;
+                          }))
               ctxt.scopes;
         }
   in
