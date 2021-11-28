@@ -1,5 +1,5 @@
 { lib, fetchFromGitHub, buildDunePackage, ansiterminal, sedlex_2, menhir
-, unionfind, bindlib, cmdliner, re, zarith, zarith_stubs_js, ocamlgraph
+, menhirLib, unionfind, bindlib, cmdliner, re, zarith, zarith_stubs_js, ocamlgraph
 , calendar, visitors, benchmark, js_of_ocaml, js_of_ocaml-ppx, camomile, cppo }:
 
 buildDunePackage rec {
@@ -16,6 +16,7 @@ buildDunePackage rec {
     ansiterminal
     sedlex_2
     menhir
+    menhirLib
     cmdliner
     re
     zarith
