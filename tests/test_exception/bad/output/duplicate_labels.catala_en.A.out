@@ -1,4 +1,4 @@
-[ERROR] This label has already been given to a rule defining this variable, please pick a new one.
+[ERROR] This label has already been given to another rule, please pick a new one since labels should be unique.
 
 Duplicate label:
   --> test_exception/bad/duplicate_labels.catala_en
