@@ -999,23 +999,11 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     program_scopes = Scopelang.Ast.ScopeMap.add scope_uid scope_updated prgm.program_scopes;
   }
 
-(** Translates a {!type: Surface.Ast.rule} into the corresponding {!type: Surface.Ast.definition} *)
-let rule_to_def (rule : Ast.rule) : Ast.definition =
-  let consequence_expr = Ast.Literal (Ast.LBool (Pos.unmark rule.rule_consequence)) in
-  {
-    Ast.definition_label = rule.rule_label;
-    Ast.definition_exception_to = rule.rule_exception_to;
-    Ast.definition_name = rule.rule_name;
-    Ast.definition_parameter = rule.rule_parameter;
-    Ast.definition_condition = rule.rule_condition;
-    Ast.definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
-  }
-
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
 let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
-  let def = rule_to_def rule in
+  let def = Ast.rule_to_def rule in
   process_def precond scope ctxt prgm def
 
 (** Translates assertions *)

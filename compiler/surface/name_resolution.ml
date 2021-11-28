@@ -449,15 +449,6 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
     match d.Ast.definition_label with
     | None -> ctxt
     | Some label ->
-        let definition_name =
-          Desugared.Ast.RuleName.fresh
-            (match d.definition_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  d.definition_name
-            | Some label -> label)
-        in
         {
           ctxt with
           scopes =
@@ -481,7 +472,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                           {
                             s_ctxt with
                             label_idmap =
-                              Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
+                              Desugared.Ast.IdentMap.add (Pos.unmark label) d.Ast.definition_id
                                 s_ctxt.label_idmap;
                           }))
               ctxt.scopes;
@@ -531,17 +522,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
 let process_scope_use_item (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (sitem : Ast.scope_use_item Pos.marked) : context =
   match Pos.unmark sitem with
-  | Rule r ->
-      process_definition ctxt s_name
-        {
-          definition_label = r.rule_label;
-          definition_exception_to = r.rule_exception_to;
-          definition_name = r.rule_name;
-          definition_parameter = r.rule_parameter;
-          definition_condition = r.rule_condition;
-          definition_expr =
-            Pos.map_under_mark (fun b -> Ast.Literal (Ast.LBool b)) r.rule_consequence;
-        }
+  | Rule r -> process_definition ctxt s_name (Ast.rule_to_def r)
   | Definition d -> process_definition ctxt s_name d
   | _ -> ctxt
 

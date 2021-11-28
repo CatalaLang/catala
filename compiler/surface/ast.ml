@@ -325,6 +325,7 @@ type rule = {
   rule_parameter : ident Pos.marked option;
   rule_condition : expression Pos.marked option;
   rule_name : qident Pos.marked;
+  rule_id : Desugared.Ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Pos.marked;
 }
 [@@deriving
@@ -347,6 +348,7 @@ type definition = {
   definition_name : qident Pos.marked;
   definition_parameter : ident Pos.marked option;
   definition_condition : expression Pos.marked option;
+  definition_id : Desugared.Ast.RuleName.t; [@opaque]
   definition_expr : expression Pos.marked;
 }
 [@@deriving
@@ -567,3 +569,18 @@ type program = { program_items : law_structure list; program_source_files : (str
     visitors { variety = "iter"; ancestors = [ "law_structure_iter" ]; name = "program_iter" }]
 
 type source_file = law_structure list
+
+(** {1 Helpers}*)
+
+(** Translates a {!type: rule} into the corresponding {!type: definition} *)
+let rule_to_def (rule : rule) : definition =
+  let consequence_expr = Literal (LBool (Pos.unmark rule.rule_consequence)) in
+  {
+    definition_label = rule.rule_label;
+    definition_exception_to = rule.rule_exception_to;
+    definition_name = rule.rule_name;
+    definition_parameter = rule.rule_parameter;
+    definition_condition = rule.rule_condition;
+    definition_id = rule.rule_id;
+    definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
+  }
