@@ -1,0 +1,19 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content integer
+  context y content integer
+
+scope A:
+  label base_x
+  definition x under condition y >= 0 consequence equals -1
+
+  label base_x
+  definition x under condition y <= 0 consequence equals 1
+
+  exception base_x
+  definition x under condition y = 0 consequence equals 0
+
+  definition y equals 0
+```

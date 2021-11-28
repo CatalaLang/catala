@@ -1,0 +1,15 @@
+[ERROR] This label has already been given to a rule defining this variable, please pick a new one.
+
+Duplicate label:
+  --> test_exception/bad/duplicate_labels.catala_en
+   | 
+12 |   label base_x
+   |         ^^^^^^
+   + Test
+
+Existing rule with same label:
+ --> test_exception/bad/duplicate_labels.catala_en
+  | 
+9 |   label base_x
+  |         ^^^^^^
+  + Test
