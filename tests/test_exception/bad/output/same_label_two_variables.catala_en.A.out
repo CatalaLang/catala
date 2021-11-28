@@ -1,0 +1,17 @@
+[ERROR] This label has already been given to another rule, please pick a new one since labels should be unique.
+
+Duplicate label:
+  --> test_exception/bad/same_label_two_variables.catala_en
+   | 
+13 |   label base
+   |         ^^^^
+   + Test
+
+Existing rule with same label:
+  --> test_exception/bad/same_label_two_variables.catala_en
+   | 
+10 |   label base
+   |   ^^^^^^^^^
+11 |   definition x equals -1
+   |   ^^^^^^^^^^^^^^^^^^^^^^^
+   + 

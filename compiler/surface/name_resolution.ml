@@ -28,6 +28,7 @@ type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleNam
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
   label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
+      (** Set of rules attached to a label *)
   default_rulemap : unique_rulename Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
@@ -469,8 +470,8 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                     match Desugared.Ast.IdentMap.find_opt (Pos.unmark label) s_ctxt.label_idmap with
                     | Some existing_label ->
                         Errors.raise_multispanned_error
-                          "This label has already been given to a rule defining this variable, \
-                           please pick a new one."
+                          "This label has already been given to another rule, please pick a new \
+                           one since labels should be unique."
                           [
                             (Some "Duplicate label:", Pos.get_position label);
                             ( Some "Existing rule with same label:",
