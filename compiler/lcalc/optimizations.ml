@@ -14,59 +14,124 @@
 open Utils
 open Ast
 
-let rec peephole_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+let ( let+ ) x f = Bindlib.box_apply f x
+let ( and+ ) x y = Bindlib.box_pair x y
+
+let transform
+  (t: 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+  (ctx: 'a)
+  (e: expr Pos.marked): expr Pos.marked Bindlib.box =
+  (* calls [t ctx] on every direct childs of [e], then rebuild an abstract syntax tree modified. Used in other transformations. *)
+
+  let default_mark e' = Pos.mark (Pos.get_position e) e' in
   match Pos.unmark e with
-  | EVar (v, pos) -> Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var v)
+  | EVar (v, pos) ->
+    let+ v = Bindlib.box_var v in
+    (v, pos)
+
   | ETuple (args, n) ->
-      Bindlib.box_apply
-        (fun args -> (ETuple (args, n), Pos.get_position e))
-        (Bindlib.box_list (List.map peephole_expr args))
+    let+ args = args 
+      |> List.map (t ctx)
+      |> Bindlib.box_list
+    in
+    default_mark @@ ETuple (args, n)
+
   | ETupleAccess (e1, i, n, ts) ->
-      Bindlib.box_apply
-        (fun e1 -> (ETupleAccess (e1, i, n, ts), Pos.get_position e))
-        (peephole_expr e1)
+    let+ e1 = t ctx e1 in
+    default_mark @@ ETupleAccess (e1, i, n, ts)
+
   | EInj (e1, i, n, ts) ->
-      Bindlib.box_apply (fun e1 -> (EInj (e1, i, n, ts), Pos.get_position e)) (peephole_expr e1)
+    let+ e1 = t ctx e1 in
+    default_mark @@ EInj (e1, i, n, ts)
+
   | EMatch (arg, cases, n) ->
-      Bindlib.box_apply2
-        (fun arg cases -> (EMatch (arg, cases, n), Pos.get_position e))
-        (peephole_expr arg)
-        (Bindlib.box_list (List.map peephole_expr cases))
+    let+ arg = t ctx arg
+    and+ cases = cases
+      |> List.map (t ctx)
+      |> Bindlib.box_list
+    in
+    default_mark @@ EMatch (arg, cases, n)
+
   | EArray args ->
-      Bindlib.box_apply
-        (fun args -> (EArray args, Pos.get_position e))
-        (Bindlib.box_list (List.map peephole_expr args))
+    let+ args = args
+      |> List.map (t ctx)
+      |> Bindlib.box_list
+    in
+    default_mark @@ EArray args
+
   | EAbs ((binder, pos_binder), ts) ->
-      let vars, body = Bindlib.unmbind binder in
-      let body = peephole_expr body in
-      Bindlib.box_apply
-        (fun binder -> (EAbs ((binder, pos_binder), ts), Pos.get_position e))
-        (Bindlib.bind_mvar vars body)
+    let vars, body = Bindlib.unmbind binder in
+    let body = t ctx body in
+    let+ binder = Bindlib.bind_mvar vars body in
+    default_mark @@ EAbs ((binder, pos_binder), ts)
+  
   | EApp (e1, args) ->
-      Bindlib.box_apply2
-        (fun e1 args -> (EApp (e1, args), Pos.get_position e))
-        (peephole_expr e1)
-        (Bindlib.box_list (List.map peephole_expr args))
-  | EAssert e1 -> Bindlib.box_apply (fun e1 -> (EAssert e1, Pos.get_position e)) (peephole_expr e1)
+    let+ e1 = t ctx e1
+    and+ args = args
+      |> List.map (t ctx)
+      |> Bindlib.box_list
+    in
+    default_mark @@ EApp (e1, args)
+  
+  | EAssert e1 ->
+    let+ e1 = t ctx e1 in
+    default_mark @@ EAssert e1
+  
   | EIfThenElse (e1, e2, e3) ->
-      Bindlib.box_apply3
-        (fun e1 e2 e3 ->
-          match Pos.unmark e1 with
-          | ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]) -> e2
-          | ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) -> e3
-          | _ -> (EIfThenElse (e1, e2, e3), Pos.get_position e))
-        (peephole_expr e1) (peephole_expr e2) (peephole_expr e3)
+    let+ e1 = t ctx e1
+    and+ e2 = t ctx e2
+    and+ e3 = t ctx e3 in
+    default_mark @@ EIfThenElse (e1, e2, e3)
+
   | ECatch (e1, exn, e2) ->
-      Bindlib.box_apply2
-        (fun e1 e2 ->
-          ( (match Pos.unmark e2 with
-            | ERaise exn2 when exn2 = exn -> Pos.unmark e1
-            | _ -> ECatch (e1, exn, e2)),
-            Pos.get_position e ))
-        (peephole_expr e1) (peephole_expr e2)
-  | ERaise _ | ELit _ | EOp _ | ENone | ESome _ | EMatchopt _ -> Bindlib.box e
+    let+ e1 = t ctx e1
+    and+ e2 = t ctx e2 in
+    default_mark @@ ECatch (e1, exn, e2)
+  
+  (* temporary *)
+  | ESome e1 ->
+    let+ e1 = t ctx e1 in
+    default_mark @@ ESome e1
+  
+  | ERaise _ | ELit _ | EOp _ | ENone -> Bindlib.box e
+
+
+let rec iota_expr (_: unit) (e: expr Pos.marked) : expr Pos.marked Bindlib.box =
+  let default_mark e' = Pos.mark (Pos.get_position e) e' in
+  match Pos.unmark e with
+  | EMatch ((EInj (e1, i, n', _ts), _), cases, n)
+    when (Dcalc.Ast.EnumName.compare n n' = 0) ->
+
+    let+ e1 = transform iota_expr () e1
+    and+ case = transform iota_expr () (List.nth cases i) in
+    default_mark @@ EApp (case, [e1])
+
+  | _ -> transform iota_expr () e
+
+let iota_optimizations (p : program) : program =
+  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (iota_expr () e))) p.scopes }
+
+
+let rec peephole_expr (_: unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+
+  let default_mark e' = Pos.mark (Pos.get_position e) e' in
+
+  match Pos.unmark e with
+  | EIfThenElse (e1, e2, e3) ->
+    let+ e1 = transform peephole_expr () e1
+    and+ e2 = transform peephole_expr () e2
+    and+ e3 = transform peephole_expr () e3 in
+      begin match Pos.unmark e1 with
+      | ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _)]) -> e2
+      | ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _)]) -> e3
+      | _ -> default_mark @@ EIfThenElse (e1, e2, e3)
+    end
+  | _ -> transform peephole_expr () e
 
 let peephole_optimizations (p : program) : program =
-  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr e))) p.scopes }
+  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr () e))) p.scopes }
 
-let optimize_program (p : program) : program = peephole_optimizations p
+let optimize_program (p : program) : program =
+  p
+  |> iota_optimizations
+  |> peephole_optimizations
