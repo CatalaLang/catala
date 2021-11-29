@@ -44,21 +44,8 @@ type expr =
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
-  | ECatch of expr Pos.marked * except * expr Pos.marked (* TODO: temporary *)
-  (* semantics of ESome and ENone should be easy to comprehend. *)
-  (* The semantics of EMatchopt i've choosen are as following :
+  | ECatch of expr Pos.marked * except * expr Pos.marked 
 
-     Context :
-
-     C := ... | matchopt [.] e2 e3
-
-     And the rules :
-
-     ---------------------------------- matchopt (Some e1) e2 e3 ~~> e3 e1
-
-     -------------------------- matchopt None e2 e3 ~~> e2 *)
-  | ESome of expr Pos.marked
-  | ENone
 
 module Var = struct
   type t = expr Bindlib.var
@@ -124,6 +111,10 @@ let make_some (e: expr Pos.marked Bindlib.box): expr Pos.marked Bindlib.box =
 
   let+ e = e in
   mark @@ EInj (e, 1, option_enum, [])
+
+let make_some' (e: expr Pos.marked): expr =
+
+    EInj (e, 1, option_enum, [])
 
 let make_matchopt
   (e: expr Pos.marked Bindlib.box)

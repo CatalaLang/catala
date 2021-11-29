@@ -180,7 +180,3 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"
-  | ENone -> Format.fprintf fmt "%a@ " format_keyword "None"
-  | ESome e' ->
-      Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "(" format_expr e'
-        format_punctuation "("

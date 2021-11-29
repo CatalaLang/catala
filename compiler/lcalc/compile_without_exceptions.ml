@@ -131,13 +131,19 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       A.make_letopt_in x tau e1 e2
   | D.EArray es ->
-      Bindlib.box_apply
-        (fun es -> same_pos @@ A.ESome (same_pos @@ A.EArray es))
-        (Bindlib.box_list (List.map (translate_expr ctx) es))
+
+    let+ es = es
+      |> List.map (translate_expr ctx)
+      |> Bindlib.box_list
+    in
+
+    same_pos @@ A.make_some' (same_pos @@ A.EArray es)
+
   | D.ELit l ->
     Bindlib.box @@ same_pos @@ translate_lit l
-    (* Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ translate_lit l) *)
-  | D.EOp op -> Bindlib.box @@ same_pos @@ A.ESome (same_pos @@ A.EOp op)
+  | D.EOp op -> 
+
+    Bindlib.box @@ same_pos @@ A.make_some' (same_pos @@ A.EOp op)
   | D.EIfThenElse (e1, e2, e3) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
@@ -223,7 +229,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let lc_vars = Array.of_list lc_vars in
       let new_body = translate_expr ctx body in
       let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
-      same_pos @@ A.ESome (same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts))
+      same_pos @@ A.make_some' (same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts))
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 

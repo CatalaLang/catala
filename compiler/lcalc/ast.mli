@@ -52,9 +52,6 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-  (* TODO: temporary *)
-  | ESome of expr Pos.marked
-  | ENone
 
 (** {1 Variable helpers} *)
 
@@ -112,6 +109,10 @@ val make_none :
 val make_some :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
+
+val make_some' :
+  expr Pos.marked ->
+  expr
 
 val make_matchopt:
   expr Pos.marked Bindlib.box ->

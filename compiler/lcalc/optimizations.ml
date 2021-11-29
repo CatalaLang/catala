@@ -87,13 +87,8 @@ let transform
     let+ e1 = t ctx e1
     and+ e2 = t ctx e2 in
     default_mark @@ ECatch (e1, exn, e2)
-  
-  (* temporary *)
-  | ESome e1 ->
-    let+ e1 = t ctx e1 in
-    default_mark @@ ESome e1
-  
-  | ERaise _ | ELit _ | EOp _ | ENone -> Bindlib.box e
+
+  | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
 
 let rec iota_expr (_: unit) (e: expr Pos.marked) : expr Pos.marked Bindlib.box =
