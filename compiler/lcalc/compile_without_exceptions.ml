@@ -103,8 +103,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       let e2 =
         let+ e1 = Bindlib.box (A.EVar (x, pos))
-        (* there is an issue here. *)
-            and+ cases =
+        and+ cases =
           cases
           |> List.map (fun (e', _pos) ->
                  match e' with
@@ -125,6 +124,8 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
                  | _ -> assert false)
           |> Bindlib.box_list
         in
+
+        assert (List.for_all (fun (x, _) -> match x with A.EAbs _ -> true | _ -> false) cases);
         same_pos @@ A.EMatch ((e1, pos), cases, en)
       in
 
@@ -174,18 +175,27 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       let tau = (D.TAny, pos) in
 
-      let e2 =
+      let e3 =
         A.make_abs
           (Array.of_list [ x ])
           (Bindlib.box @@ same_pos @@ A.EVar (x, pos))
           pos [ tau ] pos
-      and e1 = arg in
+      and e1 = arg
+      and e2 = 
+        A.make_abs
+          (Array.of_list [ x ])
+          (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
+          pos [ tau ] pos
+    in
 
       A.make_matchopt
         e1
-        (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
         e2
+        e3
 
+  | D.EApp ((D.EOp op, pos), args) ->
+    let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
+    same_pos @@ A.EApp ((A.EOp op, pos), args)
   | D.EApp (e1, args) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in

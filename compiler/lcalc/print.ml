@@ -184,8 +184,3 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | ESome e' ->
       Format.fprintf fmt "@[<hov 2>%a%a%a@]" format_punctuation "(" format_expr e'
         format_punctuation "("
-  | EMatchopt (e1, e2, e3) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ @[<hov 2>%a%a%a%a@ %a%a%a%a@]@]" format_keyword
-        "match" format_expr e1 format_keyword "with" format_punctuation "\n|" format_keyword "None"
-        format_punctuation "->" format_expr e2 format_punctuation "\n|" format_keyword "Some"
-        format_punctuation "->" format_expr e3

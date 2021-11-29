@@ -57,7 +57,6 @@ type expr =
      ---------------------------------- matchopt (Some e1) e2 e3 ~~> e3 e1
 
      -------------------------- matchopt None e2 e3 ~~> e2 *)
-  | EMatchopt of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ESome of expr Pos.marked
   | ENone
 
@@ -152,7 +151,7 @@ let make_letopt_in
 
   make_matchopt
     e1
-    (make_none pos)
+    (make_abs (Array.of_list [ x ]) (make_none pos) pos [ tau ] pos)
     (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos)
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
