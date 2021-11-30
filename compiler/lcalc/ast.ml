@@ -44,8 +44,7 @@ type expr =
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
-  | ECatch of expr Pos.marked * except * expr Pos.marked 
-
+  | ECatch of expr Pos.marked * except * expr Pos.marked
 
 module Var = struct
   type t = expr Bindlib.var
@@ -75,73 +74,51 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 
 let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-
   let pos = Pos.get_position (Bindlib.unbox e2) in
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
-
 
 let ( let+ ) x f = Bindlib.box_apply f x
 
 let ( and+ ) x y = Bindlib.box_pair x y
 
+let option_enum : D.EnumName.t = D.EnumName.fresh ("eoption", Pos.no_pos)
 
+let none_constr : D.EnumConstructor.t = D.EnumConstructor.fresh ("ENone", Pos.no_pos)
 
-let option_enum: D.EnumName.t = D.EnumName.fresh ("eoption", Pos.no_pos)
+let some_constr : D.EnumConstructor.t = D.EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-let none_constr: D.EnumConstructor.t = D.EnumConstructor.fresh ("ENone", Pos.no_pos)
-let some_constr: D.EnumConstructor.t = D.EnumConstructor.fresh ("ESome", Pos.no_pos)
+let option_enum_config : (D.EnumConstructor.t * D.typ Pos.marked) list =
+  [ (none_constr, (D.TLit D.TUnit, Pos.no_pos)); (some_constr, (D.TAny, Pos.no_pos)) ]
 
-
-let option_enum_config: (D.EnumConstructor.t * D.typ Pos.marked) list =
-  [
-    none_constr, (D.TLit D.TUnit, Pos.no_pos);
-    some_constr, (D.TAny, Pos.no_pos);
-  ]
-
-let make_none (pos: Pos.t) =
+let make_none (pos : Pos.t) =
   (* Hack: type is not printed in to_ocaml, so I ignore it. *)
-
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
   Bindlib.box @@ mark @@ EInj (mark @@ ELit LUnit, 0, option_enum, [])
 
-let make_some (e: expr Pos.marked Bindlib.box): expr Pos.marked Bindlib.box =
-
+let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox e in
-  let mark: 'a -> 'a Pos.marked = Pos.mark pos in
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 
   let+ e = e in
   mark @@ EInj (e, 1, option_enum, [])
 
-let make_some' (e: expr Pos.marked): expr =
+let make_some' (e : expr Pos.marked) : expr = EInj (e, 1, option_enum, [])
 
-    EInj (e, 1, option_enum, [])
-
-let make_matchopt
-  (e: expr Pos.marked Bindlib.box)
-  (e_none: expr Pos.marked Bindlib.box)
-  (e_some: expr Pos.marked Bindlib.box): expr Pos.marked Bindlib.box =
-
+let make_matchopt (e : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
+    (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox e in
-  let mark: 'a -> 'a Pos.marked = Pos.mark pos in
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 
-  let+ e = e
-  and+ e_none = e_none
-  and+ e_some = e_some in
+  let+ e = e and+ e_none = e_none and+ e_some = e_some in
 
-  mark @@ EMatch (e, [e_none; e_some], option_enum)
+  mark @@ EMatch (e, [ e_none; e_some ], option_enum)
 
-
-
-let make_letopt_in
-  (x : Var.t)
-  (tau : D.typ Pos.marked)
-  (e1 : expr Pos.marked Bindlib.box)
-  (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+let make_letopt_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   (* let%opt x: tau = e1 in e2 == matchopt e1 with | None -> None | Some x -> e2 *)
   let pos = Pos.get_position (Bindlib.unbox e2) in
 
-  make_matchopt
-    e1
+  make_matchopt e1
     (make_abs (Array.of_list [ x ]) (make_none pos) pos [ tau ] pos)
     (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos)
 

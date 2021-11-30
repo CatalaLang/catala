@@ -19,7 +19,9 @@ module A = Ast
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
 
 let translate_lit (l : D.lit) : A.expr =
-  let build lit = fst @@ Bindlib.unbox @@ A.make_some (Bindlib.box (Pos.mark Pos.no_pos (A.ELit lit))) in
+  let build lit =
+    fst @@ Bindlib.unbox @@ A.make_some (Bindlib.box (Pos.mark Pos.no_pos (A.ELit lit)))
+  in
   match l with
   | D.LBool l -> build (A.LBool l)
   | D.LInt i -> build (A.LInt i)
@@ -131,19 +133,11 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
       A.make_letopt_in x tau e1 e2
   | D.EArray es ->
+      let+ es = es |> List.map (translate_expr ctx) |> Bindlib.box_list in
 
-    let+ es = es
-      |> List.map (translate_expr ctx)
-      |> Bindlib.box_list
-    in
-
-    same_pos @@ A.make_some' (same_pos @@ A.EArray es)
-
-  | D.ELit l ->
-    Bindlib.box @@ same_pos @@ translate_lit l
-  | D.EOp op -> 
-
-    Bindlib.box @@ same_pos @@ A.make_some' (same_pos @@ A.EOp op)
+      same_pos @@ A.make_some' (same_pos @@ A.EArray es)
+  | D.ELit l -> Bindlib.box @@ same_pos @@ translate_lit l
+  | D.EOp op -> Bindlib.box @@ same_pos @@ A.make_some' (same_pos @@ A.EOp op)
   | D.EIfThenElse (e1, e2, e3) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
@@ -173,7 +167,6 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
                same_pos @@ A.EAssert (e1, pos) in
 
       A.make_letopt_in x tau e1 e2
-
   | D.ErrorOnEmpty arg ->
       let pos = Pos.get_position arg in
       let x = A.Var.make ("e1", pos) in
@@ -187,21 +180,17 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
           (Bindlib.box @@ same_pos @@ A.EVar (x, pos))
           pos [ tau ] pos
       and e1 = arg
-      and e2 = 
+      and e2 =
         A.make_abs
           (Array.of_list [ x ])
           (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
           pos [ tau ] pos
-    in
+      in
 
-      A.make_matchopt
-        e1
-        e2
-        e3
-
+      A.make_matchopt e1 e2 e3
   | D.EApp ((D.EOp op, pos), args) ->
-    let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
-    same_pos @@ A.EApp ((A.EOp op, pos), args)
+      let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
+      same_pos @@ A.EApp ((A.EOp op, pos), args)
   | D.EApp (e1, args) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
@@ -229,7 +218,8 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let lc_vars = Array.of_list lc_vars in
       let new_body = translate_expr ctx body in
       let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
-      same_pos @@ A.make_some' (same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts))
+      same_pos
+      @@ A.make_some' (same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts))
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
@@ -251,9 +241,9 @@ let translate_program (prgm : D.program) : A.program =
            ([], D.VarMap.empty) prgm.scopes
        in
        List.rev acc);
-    decl_ctx = {
-      ctx_enums = prgm.decl_ctx.ctx_enums
-      |> D.EnumMap.add A.option_enum A.option_enum_config;
-      ctx_structs = prgm.decl_ctx.ctx_structs;
-    }
+    decl_ctx =
+      {
+        ctx_enums = prgm.decl_ctx.ctx_enums |> D.EnumMap.add A.option_enum A.option_enum_config;
+        ctx_structs = prgm.decl_ctx.ctx_structs;
+      };
   }

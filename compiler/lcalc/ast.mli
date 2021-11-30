@@ -97,24 +97,21 @@ val make_letopt_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val option_enum : Dcalc.Ast.EnumName.t
 
-val option_enum: Dcalc.Ast.EnumName.t
-val none_constr: Dcalc.Ast.EnumConstructor.t
-val some_constr: Dcalc.Ast.EnumConstructor.t
-val option_enum_config: (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list
+val none_constr : Dcalc.Ast.EnumConstructor.t
 
-val make_none :
-  Pos.t -> expr Pos.marked Bindlib.box
+val some_constr : Dcalc.Ast.EnumConstructor.t
 
-val make_some :
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
+val option_enum_config : (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list
 
-val make_some' :
-  expr Pos.marked ->
-  expr
+val make_none : Pos.t -> expr Pos.marked Bindlib.box
 
-val make_matchopt:
+val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
+
+val make_some' : expr Pos.marked -> expr
+
+val make_matchopt :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
