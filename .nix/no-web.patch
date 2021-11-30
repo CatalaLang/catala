@@ -1,7 +1,7 @@
-diff --git a/compiler/catala_web.ml b/compiler/catala_web.ml
+diff --git a/compiler/catala_web_interpreter.ml b/compiler/catala_web_interpreter.ml
 deleted file mode 100644
 index 31d5289..0000000
---- a/compiler/catala_web.ml
+--- a/compiler/catala_web_interpreter.ml
 +++ /dev/null
 @@ -1,16 +0,0 @@
 -open Driver
@@ -27,13 +27,13 @@ index d192291..994c528 100644
 @@ -10,16 +10,6 @@
   (libraries calendar zarith zarith_stubs_js)
   (modules runtime))
- 
+
 -(executable
-- (name catala_web)
+- (name catala_web_interpreter)
 - (modes byte js)
 - (package catala)
-- (public_name catala_web)
-- (modules catala_web)
+- (public_name catala_web_interpreter)
+- (modules catala_web_interpreter)
 - (preprocess
 -  (pps js_of_ocaml-ppx))
 - (libraries catala.driver js_of_ocaml))

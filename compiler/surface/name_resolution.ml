@@ -28,6 +28,7 @@ type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleNam
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
   label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
+      (** Set of rules attached to a label *)
   default_rulemap : unique_rulename Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
@@ -442,78 +443,6 @@ let get_def_key (name : Ast.qident) (scope_uid : Scopelang.Ast.ScopeName.t) (ctx
       Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
   | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
 
-let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.rule) : context =
-  (* Process the label map first *)
-  let ctxt =
-    match r.Ast.rule_label with
-    | None -> ctxt
-    | Some label ->
-        let rule_name =
-          Desugared.Ast.RuleName.fresh
-            (match r.rule_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  r.rule_name
-            | Some label -> label)
-        in
-        {
-          ctxt with
-          scopes =
-            Scopelang.Ast.ScopeMap.update s_name
-              (fun s_ctxt ->
-                match s_ctxt with
-                | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) rule_name s_ctxt.label_idmap;
-                      })
-              ctxt.scopes;
-        }
-  in
-  (* And update the map of default rulenames for unlabeled exceptions *)
-  match r.Ast.rule_exception_to with
-  (* If this definition is an exception, it cannot be a default definition *)
-  | UnlabeledException | ExceptionToLabel _ -> ctxt
-  (* If it is not an exception, we need to distinguish between several cases *)
-  | NotAnException ->
-      let def_key =
-        get_def_key (Pos.unmark r.rule_name) s_name ctxt (Pos.get_position r.rule_consequence)
-      in
-      let scope_ctxt = Scopelang.Ast.ScopeMap.find s_name ctxt.scopes in
-      let rulemap =
-        match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
-        (* There was already a default definition for this key. If we need it, it is ambiguous *)
-        | Some old ->
-            Desugared.Ast.ScopeDefMap.add def_key
-              (Ambiguous
-                 ([ Pos.get_position r.rule_name ]
-                 @
-                 match old with
-                 | Ambiguous old -> old
-                 | Unique n -> [ Pos.get_position (Desugared.Ast.RuleName.get_info n) ]))
-              scope_ctxt.default_rulemap
-        (* No definition has been set yet for this key *)
-        | None -> (
-            match r.Ast.rule_label with
-            (* This default definition has a label. This is not allowed for unlabeled exceptions *)
-            | Some _ ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Ambiguous [ Pos.get_position r.rule_name ])
-                  scope_ctxt.default_rulemap
-            (* This is a possible default definition for this key. We create and store a fresh
-               rulename *)
-            | None ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Unique (Desugared.Ast.RuleName.fresh (Pos.same_pos_as "default" r.rule_name)))
-                  scope_ctxt.default_rulemap)
-      in
-      let new_scope_ctxt = { scope_ctxt with default_rulemap = rulemap } in
-      { ctxt with scopes = Scopelang.Ast.ScopeMap.add s_name new_scope_ctxt ctxt.scopes }
-
 let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
     context =
   (* Process the label map first *)
@@ -521,15 +450,6 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
     match d.Ast.definition_label with
     | None -> ctxt
     | Some label ->
-        let definition_name =
-          Desugared.Ast.RuleName.fresh
-            (match d.definition_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  d.definition_name
-            | Some label -> label)
-        in
         {
           ctxt with
           scopes =
@@ -537,14 +457,25 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
               (fun s_ctxt ->
                 match s_ctxt with
                 | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
-                            s_ctxt.label_idmap;
-                      })
+                | Some s_ctxt -> (
+                    match Desugared.Ast.IdentMap.find_opt (Pos.unmark label) s_ctxt.label_idmap with
+                    | Some existing_label ->
+                        Errors.raise_multispanned_error
+                          "This label has already been given to another rule, please pick a new \
+                           one since labels should be unique."
+                          [
+                            (Some "Duplicate label:", Pos.get_position label);
+                            ( Some "Existing rule with same label:",
+                              Pos.get_position (Desugared.Ast.RuleName.get_info existing_label) );
+                          ]
+                    | None ->
+                        Some
+                          {
+                            s_ctxt with
+                            label_idmap =
+                              Desugared.Ast.IdentMap.add (Pos.unmark label) d.Ast.definition_id
+                                s_ctxt.label_idmap;
+                          }))
               ctxt.scopes;
         }
   in
@@ -592,7 +523,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
 let process_scope_use_item (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (sitem : Ast.scope_use_item Pos.marked) : context =
   match Pos.unmark sitem with
-  | Rule r -> process_rule ctxt s_name r
+  | Rule r -> process_definition ctxt s_name (Ast.rule_to_def r)
   | Definition d -> process_definition ctxt s_name d
   | _ -> ctxt
 

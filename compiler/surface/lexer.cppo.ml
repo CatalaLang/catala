@@ -462,7 +462,6 @@ let rec lex_code (lexbuf : lexbuf) : token =
       BY
   | MR_RULE ->
       L.update_acc lexbuf;
-      L.update_acc lexbuf;
       RULE
   | MR_EXISTS ->
       L.update_acc lexbuf;

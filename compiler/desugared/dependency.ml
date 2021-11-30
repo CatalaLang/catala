@@ -224,9 +224,9 @@ let build_exceptions_graph (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeD
             else
               Errors.raise_spanned_error
                 (Format.asprintf
-                   "This rule has been declared as an exception to an incorrect label: \"%a\" is \
-                    not a label attached to a definition of \"%a\""
-                   Ast.RuleName.format_t exc_r Ast.ScopeDef.format_t def_info)
+                   "This rule has been declared as an exception to an incorrect label: this label \
+                    is not attached to a definition of \"%a\""
+                   Ast.ScopeDef.format_t def_info)
                 pos)
       def g
   in
@@ -247,11 +247,15 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
                 (Format.asprintf "%a" Ast.RuleName.format_t v, Ast.RuleName.get_info v)
               in
               let succs = ExceptionsDependencies.succ_e g v in
-              let _, edge_pos, succ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
-              let succ_str = Format.asprintf "%a" Ast.RuleName.format_t succ in
+              let _, edge_pos, _ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
               [
-                (Some ("Cycle exception " ^ var_str ^ ", declared:"), Pos.get_position var_info);
-                ( Some ("Used here in the definition of another cycle exception " ^ succ_str ^ ":"),
+                ( Some
+                    ("Cyclic exception for definition of variable \"" ^ var_str
+                   ^ "\", declared here:"),
+                  Pos.get_position var_info );
+                ( Some
+                    ("Used here in the definition of another cyclic exception for defining \""
+                   ^ var_str ^ "\":"),
                   edge_pos );
               ])
             scc))

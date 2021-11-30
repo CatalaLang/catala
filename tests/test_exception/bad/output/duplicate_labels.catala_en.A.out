@@ -1,0 +1,17 @@
+[ERROR] This label has already been given to another rule, please pick a new one since labels should be unique.
+
+Duplicate label:
+  --> test_exception/bad/duplicate_labels.catala_en
+   |
+12 |   label base_x
+   |         ^^^^^^
+   + Test
+
+Existing rule with same label:
+  --> test_exception/bad/duplicate_labels.catala_en
+   |
+ 9 |   label base_x
+   |   ^^^^^^^^^^^
+10 |   definition x under condition y >= 0 consequence equals -1
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   +

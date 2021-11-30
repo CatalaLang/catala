@@ -77,18 +77,19 @@ get the compiler up and working up to `make build`. You can also set up the
 syntax highlighting for your editor.
 
 Then, create the directory `examples/foo`. In there, create a master source
-file `foo.catala` that will be the root of your Catala program.
-You can then start programming in `foo.catala`, or split up your example
-into multiple files. In the later case, `foo.catala` must only contain
+file `foo.catala_en` (or `foo.catala_fr`, etc. depending on your language)
+that will be the root of your Catala program. You can then start programming
+in `foo.catala_en`, or split up your example into multiple files. In the later case,
+`foo.catala_en` must only contain
 something like this:
 
 ```markdown
 # Master file
 
-> Include: bar.catala
+> Include: bar.catala_en
 ```
 
-where `examples/bar.catala` is another source file containing code for your
+where `examples/bar.catala_en` is another source file containing code for your
 example. Make sure you start by including some content in the source files,
 like
 
@@ -101,7 +102,7 @@ with the following contents:
 
 ```Makefile
 CATALA_LANG=en # or fr/pl if your source code is in French/Polish
-SRC=foo.catala
+SRC=foo.catala_en
 
 include ../Makefile.common.mk
 ```

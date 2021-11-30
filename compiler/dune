@@ -11,18 +11,18 @@
  (modules runtime))
 
 (executable
- (name catala_web)
+ (name catala_web_interpreter)
  (modes byte js)
  (package catala)
- (public_name catala_web)
- (modules catala_web)
+ (public_name catala_web_interpreter)
+ (modules catala_web_interpreter)
  (preprocess
   (pps js_of_ocaml-ppx))
  (libraries catala.driver js_of_ocaml))
 
 (executable
  (name catala)
- (modes native)
+ (modes native js)
  (package catala)
  (modules catala)
  (public_name catala)
