@@ -7,5 +7,24 @@
 ## Test1
 
 ```catala
+
+declaration scope Test1:
+  context my_gaming scope GamingAuthorized
+
+scope Test1:
+  definition
+      my_gaming.clubBingo
+  equals
+    ClubBingo {
+      -- registeredClub: true
+      -- totalValuePrizePerGame: $50
+      -- bonusPrizeMaxValue: $0
+      -- bonusPrizeOffered : false
+      -- prizeContent: false
+
+  }
+  assertion my_gaming.authorized = true
+```
+```catala
 #TODO
 ```

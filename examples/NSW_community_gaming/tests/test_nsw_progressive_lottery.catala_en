@@ -14,26 +14,57 @@ scope Test1:
     my_gaming.progressiveLottery
   equals
     ProgressiveLottery {
-      -- maxAmountPayable: $6000
-      -- totalValueOfThePrizes: $31000
+      -- maxAmountPayable: $ 6,000
+      -- totalValueOfThePrizes: $ 31,000
       -- holdsAuthority: true
     }
   assertion my_gaming.authorized = true
 ```
-
 ## Test2
 ```catala
 declaration scope Test2:
   context my_gaming scope GamingAuthorized
 
-  scope Test2:
-    definition
+scope Test2:
+  definition
     my_gaming.progressiveLottery
   equals
     ProgressiveLottery {
-        -- maxAmountPayable: $6000
-        -- totalValueOfThePrizes: $5000
-        -- holdsAuthority: false
-      }
+      -- maxAmountPayable: $6000
+      -- totalValueOfThePrizes: $5000
+      -- holdsAuthority: false
+    }
   assertion my_gaming.authorized = true
+```
+## Test3
+```catala
+declaration scope Test3:
+  context my_gaming scope GamingAuthorized
+
+scope Test3:
+  definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+      -- maxAmountPayable: $ 9,000
+      -- totalValueOfThePrizes: $ 21,000
+      -- holdsAuthority: true
+    }
+  assertion my_gaming.authorized = false
+```
+## Test4
+```catala
+declaration scope Test4:
+  context my_gaming scope GamingAuthorized
+
+scope Test4:
+  definition
+    my_gaming.progressiveLottery
+  equals
+    ProgressiveLottery {
+      -- maxAmountPayable: $ 8,000
+      -- totalValueOfThePrizes: $ 31,000
+      -- holdsAuthority: true
+    }
+  assertion my_gaming.authorized = false
 ```

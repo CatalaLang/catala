@@ -1,16 +1,18 @@
 ###
 ```catala-metadata
+
 declaration structure ClubBingo:
-  data registredClub content boolean
+  data registeredClub content boolean
   data totalValuePrizePerGame content money
   data bonusPrizeMaxValue content money
+  data bonusPrizeOffered content boolean
   data prizeContent content boolean
 
 declaration scope GamingAuthorized:
   context clubBingo content ClubBingo
   context authorized condition
   context conductor content boolean
-  context prizeValue content boolean
+  context prizeValueIsSmall content boolean
   context bonusPrize content boolean
   context contentPrize content boolean
 ```
@@ -19,25 +21,28 @@ declaration scope GamingAuthorized:
     (a)  it is conducted by or on the authority of a registered club on the registered club premises for the purpose of attracting patronage to the club’s facilities,
 ```catala
 scope GamingAuthorized:
-  definition conductor equals ClubBingo.registredClubOnly
+  definition conductor equals clubBingo.registeredClub  
 ```
     (b)  except as provided by paragraph (c), the total value of all of the available prizes for 1 game of the gaming activity does not exceed $70,
-    ```catala
-scope GamingAuthorized:
-  definition prizeValue equals ClubBingo.totalValuePrizePerGame <=$ $70
-    ```
-    (c)  if a bonus prize is offered at the end of a session of club bingo, only 1 prize of a value not exceeding $70 may be offered,
-    ```catala
-scope GamingAuthorized:
-  definition bonusPrize equals ClubBingo.bonusPrizeMaxValue <=$ $70
-    ```
-    (d)  none of the prizes consist of or include money.
-    ```catala
-scope GamingAuthorized:
-  definition contentPrize equals not ClubBingo.prizeContent
 
+```catala
+scope GamingAuthorized:
+  definition prizeValueIsSmall equals (clubBingo.totalValuePrizePerGame <=$ $70)
+```
+
+(c)  if a bonus prize is offered at the end of a session of club bingo, only 1 prize of a value not exceeding $70 may be offered,
+```catala
+scope GamingAuthorized:
+  definition bonusPrize equals
+     ( (clubBingo.bonusPrizeMaxValue <=$ $70) or (not clubBingo.bonusPrizeOffered) )
+```
+
+(d)  none of the prizes consist of or include money.
+```catala
+scope GamingAuthorized:
+  definition contentPrize equals not clubBingo.prizeContent
 
 rule authorized under condition
-  conductor and prizeValue and bonusPrize and contentPrize
+  conductor and prizeValueIsSmall and bonusPrize and contentPrize
 consequence fulfilled
 ```
