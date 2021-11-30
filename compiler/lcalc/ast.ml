@@ -122,6 +122,21 @@ let make_letopt_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bi
     (make_abs (Array.of_list [ x ]) (make_none pos) pos [ tau ] pos)
     (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos)
 
+
+let make_bindopt
+  (pos: Pos.t)
+  (tau: D.typ Pos.marked)
+  (e1: expr Pos.marked Bindlib.box)
+  (e2: expr Bindlib.var -> expr Pos.marked Bindlib.box)
+: expr Pos.marked Bindlib.box =
+
+  let x = Var.make ("unit", pos) in
+  let v = Var.make ("v", pos) in
+
+  make_matchopt e1
+    (make_abs (Array.of_list [x]) (make_none pos) (pos) [D.TLit D.TUnit, pos] pos)
+    (make_abs (Array.of_list [v]) (e2 v) pos [tau] pos)
+
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder

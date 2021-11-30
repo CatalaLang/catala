@@ -72,101 +72,99 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   | D.ETupleAccess (e1, i, s, ts) ->
       let e1 = translate_expr ctx e1 in
 
-      (* e1 : [|'a|] array option *)
       let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
       let tau = (D.TAny, pos) in
 
       let new_e new_e1_var =
-        let+ e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
-        same_pos @@ A.ETupleAccess ((e1, pos), i, s, ts)
+        let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
+        same_pos @@ A.ETupleAccess ((new_e1, pos), i, s, ts)
       in
 
-      A.make_letopt_in tau e1 e2
+      A.make_bindopt pos tau e1 new_e
+
   | D.EInj (e1, i, en, ts) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
-
       let tau = (D.TAny, pos) in
 
-      let e2 =
-        let+ e1 = Bindlib.box (A.EVar (x, pos)) in
-        same_pos @@ A.EInj ((e1, pos), i, en, ts)
+      let new_e new_e1_var =
+        let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
+        same_pos @@ A.EInj ((new_e1, pos), i, en, ts)
       in
 
-      A.make_letopt_in x tau e1 e2
+      A.make_bindopt pos tau e1 new_e
+
   | D.EMatch (e1, cases, en) ->
-      let e1 = translate_expr ctx e1 in
-      let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
+    let e1 = translate_expr ctx e1 in
+    let pos = Pos.get_position (Bindlib.unbox e1) in
+    let tau = (D.TAny, pos) in
 
-      let tau = (D.TAny, pos) in
-
-      let e2 =
-        let+ e1 = Bindlib.box (A.EVar (x, pos))
-        and+ cases =
-          cases
-          |> List.map (fun (e', _pos) ->
-                 match e' with
-                 | D.EAbs ((binder, pos_binder), ts) ->
-                     let vars, body = Bindlib.unmbind binder in
-                     let ctx, lc_vars =
-                       Array.fold_right
-                         (fun var (ctx, lc_vars) ->
-                           let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
-                           let lc_var_expr = A.make_var (lc_var, pos_binder) in
-                           (D.VarMap.add var lc_var_expr ctx, lc_var :: lc_vars))
-                         vars (ctx, [])
-                     in
-                     let lc_vars = Array.of_list lc_vars in
-                     let new_body = translate_expr ctx body in
-                     let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
-                     same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts)
-                 | _ -> assert false)
-          |> Bindlib.box_list
-        in
-
+    let new_e new_e1_var =
+      let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos))
+      and+ cases =
+        cases
+        |> List.map (fun (e', _pos) ->
+                match e' with
+                | D.EAbs ((binder, pos_binder), ts) ->
+                    let vars, body = Bindlib.unmbind binder in
+                    let ctx, lc_vars =
+                      Array.fold_right
+                        (fun var (ctx, lc_vars) ->
+                          let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
+                          let lc_var_expr = A.make_var (lc_var, pos_binder) in
+                          (D.VarMap.add var lc_var_expr ctx, lc_var :: lc_vars))
+                        vars (ctx, [])
+                    in
+                    let lc_vars = Array.of_list lc_vars in
+                    let new_body = translate_expr ctx body in
+                    let+ new_binder = Bindlib.bind_mvar lc_vars new_body in
+                    same_pos @@ A.EAbs ((new_binder, pos_binder), List.map translate_typ ts)
+                | _ -> assert false)
+        |> Bindlib.box_list
+      in
         assert (List.for_all (fun (x, _) -> match x with A.EAbs _ -> true | _ -> false) cases);
-        same_pos @@ A.EMatch ((e1, pos), cases, en)
+
+        same_pos @@ A.EMatch ((new_e1, pos), cases, en)
       in
 
-      A.make_letopt_in x tau e1 e2
+      A.make_bindopt pos tau e1 new_e
+
   | D.EArray es ->
       let+ es = es |> List.map (translate_expr ctx) |> Bindlib.box_list in
-
       same_pos @@ A.make_some' (same_pos @@ A.EArray es)
+
   | D.ELit l -> Bindlib.box @@ same_pos @@ translate_lit l
   | D.EOp op -> Bindlib.box @@ same_pos @@ A.make_some' (same_pos @@ A.EOp op)
   | D.EIfThenElse (e1, e2, e3) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
-
-      (* we can say staticly what is the type of tau here. *)
       let tau = (D.TAny, pos) in
 
-      let e2 =
-        let+ e1 = Bindlib.box (A.EVar (x, pos))
+
+
+      let new_e e1_new_var =
+        let+ e1_new = Bindlib.box (A.EVar (e1_new_var, pos))
         and+ e2 = translate_expr ctx e2
         and+ e3 = translate_expr ctx e3 in
-        same_pos @@ A.EIfThenElse ((e1, pos), e2, e3)
+        same_pos @@ A.EIfThenElse ((e1_new, pos), e2, e3)
       in
 
-      A.make_letopt_in x tau e1 e2
+      A.make_bindopt pos tau e1 new_e
+
   | D.EAssert e1 ->
       (* don't know the semantic of EAssert. *)
       (* Bindlib.box_apply (fun e1 -> Pos.same_pos_as (A.EAssert e1) e) (translate_expr ctx e1) *)
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
       let tau = (D.TAny, pos) in
 
-      let e2 = let+ e1 = Bindlib.box (A.EVar (x, pos)) in
+      let new_e e1_new_var =
+        let+ e1_new = Bindlib.box (A.EVar (e1_new_var, pos)) in
+        same_pos @@ A.EAssert (e1_new, pos)
+      in
 
-               same_pos @@ A.EAssert (e1, pos) in
+      A.make_bindopt pos tau e1 new_e
 
-      A.make_letopt_in x tau e1 e2
   | D.ErrorOnEmpty arg ->
       let pos = Pos.get_position arg in
       let x = A.Var.make ("e1", pos) in
@@ -192,19 +190,21 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
       same_pos @@ A.EApp ((A.EOp op, pos), args)
   | D.EApp (e1, args) ->
-      let e1 = translate_expr ctx e1 in
-      let pos = Pos.get_position (Bindlib.unbox e1) in
-      let x = A.Var.make ("e1", pos) in
+    let e1 = translate_expr ctx e1 in
+    let pos = Pos.get_position (Bindlib.unbox e1) in
+    let tau = (D.TAny, pos) in
 
-      let tau = (D.TAny, pos) in
-
-      let e2 =
-        let+ e1 = Bindlib.box (A.EVar (x, pos))
-        and+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
-        same_pos @@ A.EApp ((e1, pos), args)
+    let new_e new_e1_var =
+      let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos))
+      and+ args = args
+        |> List.map (translate_expr ctx)
+        |> Bindlib.box_list
       in
+      same_pos @@ A.EApp ((new_e1, pos), args)
+    in
 
-      A.make_letopt_in x tau e1 e2
+    A.make_bindopt pos tau e1 new_e
+
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =

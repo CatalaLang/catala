@@ -117,6 +117,13 @@ val make_matchopt :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val make_bindopt :
+  Pos.t ->
+  Dcalc.Ast.typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  (expr Bindlib.var -> expr Pos.marked Bindlib.box) ->
+  expr Pos.marked Bindlib.box
+
 val handle_default : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
