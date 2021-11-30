@@ -22,7 +22,7 @@ let transform (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 
     (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract syntax tree modified.
      Used in other transformations. *)
-  let default_mark e' = Pos.mark (Pos.get_position e) e' in
+  let default_mark e' = Pos.same_pos_as e' e in
   match Pos.unmark e with
   | EVar (v, pos) ->
       let+ v = Bindlib.box_var v in

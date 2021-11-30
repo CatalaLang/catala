@@ -77,12 +77,12 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let x = A.Var.make ("e1", pos) in
       let tau = (D.TAny, pos) in
 
-      let e2 =
-        let+ e1 = Bindlib.box (A.EVar (x, pos)) in
+      let new_e new_e1_var =
+        let+ e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
         same_pos @@ A.ETupleAccess ((e1, pos), i, s, ts)
       in
 
-      A.make_letopt_in x tau e1 e2
+      A.make_letopt_in tau e1 e2
   | D.EInj (e1, i, en, ts) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
