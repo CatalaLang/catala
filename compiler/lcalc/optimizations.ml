@@ -18,7 +18,7 @@ let ( let+ ) x f = Bindlib.box_apply f x
 
 let ( and+ ) x y = Bindlib.box_pair x y
 
-let transform (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a)
+let visitor_map (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a)
     (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract syntax tree modified.
      Used in other transformations. *)
@@ -65,9 +65,9 @@ let rec iota_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   let default_mark e' = Pos.mark (Pos.get_position e) e' in
   match Pos.unmark e with
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n) when Dcalc.Ast.EnumName.compare n n' = 0 ->
-      let+ e1 = transform iota_expr () e1 and+ case = transform iota_expr () (List.nth cases i) in
+      let+ e1 = visitor_map iota_expr () e1 and+ case = visitor_map iota_expr () (List.nth cases i) in
       default_mark @@ EApp (case, [ e1 ])
-  | _ -> transform iota_expr () e
+  | _ -> visitor_map iota_expr () e
 
 let iota_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (iota_expr () e))) p.scopes }
@@ -77,14 +77,14 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib
 
   match Pos.unmark e with
   | EIfThenElse (e1, e2, e3) -> (
-      let+ e1 = transform peephole_expr () e1
-      and+ e2 = transform peephole_expr () e2
-      and+ e3 = transform peephole_expr () e3 in
+      let+ e1 = visitor_map peephole_expr () e1
+      and+ e2 = visitor_map peephole_expr () e2
+      and+ e3 = visitor_map peephole_expr () e3 in
       match Pos.unmark e1 with
       | ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]) -> e2
       | ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) -> e3
       | _ -> default_mark @@ EIfThenElse (e1, e2, e3))
-  | _ -> transform peephole_expr () e
+  | _ -> visitor_map peephole_expr () e
 
 let peephole_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr () e))) p.scopes }
