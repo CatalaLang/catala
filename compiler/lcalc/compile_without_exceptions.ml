@@ -185,7 +185,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
           pos [ tau ] pos
       in
 
-      A.make_matchopt e1 e2 e3
+      A.make_some @@ A.make_matchopt e1 e2 e3
   | D.EApp (e1, args) ->
     let e1 = translate_expr ctx e1 in
     let pos = Pos.get_position (Bindlib.unbox e1) in
