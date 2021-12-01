@@ -76,7 +76,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let tau = (D.TAny, pos) in
 
       let new_e new_e1_var =
-        let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
+        let+ new_e1 = Bindlib.box_var new_e1_var in
         same_pos @@ A.ETupleAccess ((new_e1, pos), i, s, ts)
       in
 
@@ -88,7 +88,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let tau = (D.TAny, pos) in
 
       let new_e new_e1_var =
-        let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos)) in
+        let+ new_e1 = Bindlib.box_var new_e1_var in
         same_pos @@ A.EInj ((new_e1, pos), i, en, ts)
       in
 
@@ -100,7 +100,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     let tau = (D.TAny, pos) in
 
     let new_e new_e1_var =
-      let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos))
+      let+ new_e1 = Bindlib.box_var new_e1_var
       and+ cases =
         cases
         |> List.map (fun (e', _pos) ->
@@ -142,8 +142,8 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
 
 
-      let new_e e1_new_var =
-        let+ e1_new = Bindlib.box (A.EVar (e1_new_var, pos))
+      let new_e new_e1_var =
+        let+ e1_new = Bindlib.box_var new_e1_var
         and+ e2 = translate_expr ctx e2
         and+ e3 = translate_expr ctx e3 in
         same_pos @@ A.EIfThenElse ((e1_new, pos), e2, e3)
@@ -158,8 +158,8 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let pos = Pos.get_position (Bindlib.unbox e1) in
       let tau = (D.TAny, pos) in
 
-      let new_e e1_new_var =
-        let+ e1_new = Bindlib.box (A.EVar (e1_new_var, pos)) in
+      let new_e new_e1_var =
+        let+ e1_new = Bindlib.box_var new_e1_var in
         same_pos @@ A.EAssert (e1_new, pos)
       in
 
@@ -186,16 +186,13 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       in
 
       A.make_matchopt e1 e2 e3
-  | D.EApp ((D.EOp op, pos), args) ->
-      let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
-      same_pos @@ A.EApp ((A.EOp op, pos), args)
   | D.EApp (e1, args) ->
     let e1 = translate_expr ctx e1 in
     let pos = Pos.get_position (Bindlib.unbox e1) in
     let tau = (D.TAny, pos) in
 
     let new_e new_e1_var =
-      let+ new_e1 = Bindlib.box (A.EVar (new_e1_var, pos))
+      let+ new_e1 = Bindlib.box_var new_e1_var
       and+ args = args
         |> List.map (translate_expr ctx)
         |> Bindlib.box_list
