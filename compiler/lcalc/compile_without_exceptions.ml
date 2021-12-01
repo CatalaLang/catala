@@ -175,7 +175,7 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let e3 =
         A.make_abs
           (Array.of_list [ x ])
-          (Bindlib.box @@ same_pos @@ A.EVar (x, pos))
+          (let+ v = Bindlib.box_var x in (v, pos))
           pos [ tau ] pos
       and e1 = arg
       and e2 =
