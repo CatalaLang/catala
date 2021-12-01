@@ -134,7 +134,42 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       same_pos @@ A.make_some' (same_pos @@ A.EArray es)
 
   | D.ELit l -> Bindlib.box @@ same_pos @@ translate_lit l
-  | D.EOp op -> Bindlib.box @@ same_pos @@ A.make_some' (same_pos @@ A.EOp op)
+  | D.EOp _op ->
+    Errors.raise_spanned_error "Internal error: generic operator are not yet supported." (Pos.get_position e)
+  | D.EApp((D.EOp op, pos), args) ->
+
+    begin
+    let xs = List.mapi (fun i arg -> A.Var.make (Printf.sprintf "x_%d" i, Pos.get_position arg)) args in
+
+
+    let dummy = A.Var.make ("unit", pos) in
+
+    let e' final = args
+    |> List.map (translate_expr ctx)
+    |> List.combine xs
+    |> List.fold_left (fun acc (x, arg) ->
+      A.make_matchopt
+        arg
+        (A.make_abs (Array.of_list [dummy]) (A.make_none pos) (pos) [D.TLit D.TUnit, pos] pos)
+        (A.make_abs (Array.of_list [x]) acc pos [D.TAny, pos] pos)
+      ) final
+    in
+
+    let new_e =
+      let+ args_var = xs
+        |> List.map (fun x -> Bindlib.box_var x)
+        |> Bindlib.box_list
+      in
+
+      let args_var = args_var
+        |> List.combine args
+        |> List.map (fun (arg, x) -> Pos.same_pos_as x arg)
+      in
+       same_pos @@ A.make_some' @@ same_pos @@ A.EApp ((A.EOp op, pos), args_var)
+    in
+
+    e' new_e
+    end
   | D.EIfThenElse (e1, e2, e3) ->
       let e1 = translate_expr ctx e1 in
       let pos = Pos.get_position (Bindlib.unbox e1) in
