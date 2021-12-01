@@ -215,6 +215,25 @@ let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) ->
   in
   match except with Some x -> x | None -> if just () then cons () else raise EmptyError
 
+let handle_default_opt: 'a. 'a eoption array -> (unit -> bool eoption) -> (unit -> 'a eoption) -> 'a eoption = 
+  fun exceptions just cons ->
+    let except = 
+      Array.fold_left
+      (fun acc except ->
+        match acc, except with
+        | ENone _, _ -> except
+        | ESome _, ENone _ -> acc
+        | ESome _, ESome _ -> raise ConflictError)
+      (ENone ()) exceptions
+    in
+    match except with
+    | ESome _ -> except
+    | ENone _ -> begin
+      match just () with
+      | ESome b -> if b then cons () else ENone ()
+      | ENone _ -> ENone ()
+    end
+
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
 let ( *$ ) (i1 : money) (i2 : decimal) : money =

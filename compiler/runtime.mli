@@ -175,6 +175,9 @@ val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
 (** @raise EmptyError
     @raise ConflictError *)
 
+val handle_default_opt: 'a eoption array -> (unit -> bool eoption) -> (unit -> 'a eoption) -> 'a eoption
+(** @raise ConflictError *)
+
 val no_input : unit -> 'a
 
 (**{1 Operators} *)
