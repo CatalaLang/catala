@@ -18,8 +18,10 @@ let ( let+ ) x f = Bindlib.box_apply f x
 
 let ( and+ ) x y = Bindlib.box_pair x y
 
-let visitor_map (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a)
-    (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+let visitor_map
+  (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+  (ctx : 'a)
+  (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract syntax tree modified.
      Used in other transformations. *)
   let default_mark e' = Pos.same_pos_as e' e in
@@ -67,6 +69,19 @@ let rec iota_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   | EMatch ((EInj (e1, i, n', _ts), _), cases, n) when Dcalc.Ast.EnumName.compare n n' = 0 ->
       let+ e1 = visitor_map iota_expr () e1 and+ case = visitor_map iota_expr () (List.nth cases i) in
       default_mark @@ EApp (case, [ e1 ])
+
+  | EMatch (e', cases, n) when begin
+      cases
+      |> List.mapi (fun i (case, _pos) ->
+        match case with
+        | EInj (_ei, i', n', _ts') ->
+          i = i' && (* n = n' *) (Dcalc.Ast.EnumName.compare n n' = 0)
+        | _ -> false
+      )
+      |> List.for_all Fun.id
+    end ->
+    visitor_map iota_expr () e'
+
   | _ -> visitor_map iota_expr () e
 
 let iota_optimizations (p : program) : program =
