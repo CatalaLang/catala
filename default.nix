@@ -23,9 +23,9 @@
 
 buildDunePackage rec {
   pname = "catala";
-  version = "0.3.0";
+  version = "0.5.0";
 
-  minimumOCamlVersion = "4.08";
+  minimumOCamlVersion = "4.11";
 
   src = ./.;
 
@@ -54,7 +54,7 @@ buildDunePackage rec {
   ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
   doCheck = true;
 
-  # patches = [ ./.nix/no-web.patch ];
+  patches = [ ./.nix/no-web.patch ];
 
   meta = with lib; {
     homepage = "https://catala-lang.org";
