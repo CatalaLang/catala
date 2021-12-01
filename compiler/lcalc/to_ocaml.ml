@@ -89,9 +89,8 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
-      (* Errors.raise_spanned_error "Internal error: a log operator has not been caught by the
-         expression match" (Pos.get_position op) *)
-      Format.fprintf fmt "Fun.id"
+      Errors.raise_spanned_error "Internal error: a log operator has not been caught by the
+         expression match" (Pos.get_position op)
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
