@@ -169,13 +169,13 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   let lowercase_name =
-    to_lowercase (to_ascii (Bindlib.name_of v) ^ "_" ^ string_of_int (Bindlib.uid_of v))
+    to_lowercase (to_ascii (Bindlib.name_of v) (* ^ "_" ^ string_of_int (Bindlib.uid_of v) *))
   in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
-  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
+  if List.mem lowercase_name ["handle_default"; "handle_default_opt"] || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
     Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name

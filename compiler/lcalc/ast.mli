@@ -90,13 +90,6 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
-val make_letopt_in :
-  Var.t ->
-  Dcalc.Ast.typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box ->
-  expr Pos.marked Bindlib.box
-
 val option_enum : Dcalc.Ast.EnumName.t
 
 val none_constr : Dcalc.Ast.EnumConstructor.t
@@ -121,7 +114,14 @@ val make_bindopt :
   Pos.t ->
   Dcalc.Ast.typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
-  (expr Bindlib.var -> expr Pos.marked Bindlib.box) ->
+  (expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box) ->
+  expr Pos.marked Bindlib.box
+
+val make_bindmopt:
+  (Pos.t) ->
+  (Dcalc.Ast.typ Pos.marked list) ->
+  (expr Pos.marked Bindlib.box list) ->
+  (expr Pos.marked Bindlib.box list -> expr Pos.marked Bindlib.box) ->
   expr Pos.marked Bindlib.box
 
 val handle_default : Var.t

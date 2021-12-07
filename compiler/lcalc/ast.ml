@@ -113,29 +113,54 @@ let make_matchopt (e : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bi
 
   mark @@ EMatch (e, [ e_none; e_some ], option_enum)
 
-let make_letopt_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  (* let%opt x: tau = e1 in e2 == matchopt e1 with | None -> None | Some x -> e2 *)
-  let pos = Pos.get_position (Bindlib.unbox e2) in
-
-  make_matchopt e1
-    (make_abs (Array.of_list [ x ]) (make_none pos) pos [ tau ] pos)
-    (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos)
+  let make_matchopt'
+    (pos: Pos.t)
+    (tau: D.typ Pos.marked)
+    (arg: expr Pos.marked Bindlib.box)
+    (e_none: expr Pos.marked Bindlib.box)
+    (e_some: expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box)
+  : expr Pos.marked Bindlib.box =
+  
+    let x = Var.make ("unit", pos) in
+    let v = Var.make ("v", pos) in
+  
+    make_matchopt arg
+      (make_abs (Array.of_list [x]) (e_none) (pos) [D.TLit D.TUnit, pos] pos)
+      (make_abs (Array.of_list [v]) (e_some (let+ v = Bindlib.box_var v in (v, pos))) pos [tau] pos)
 
 
 let make_bindopt
-  (pos: Pos.t)
-  (tau: D.typ Pos.marked)
-  (e1: expr Pos.marked Bindlib.box)
-  (e2: expr Bindlib.var -> expr Pos.marked Bindlib.box)
-: expr Pos.marked Bindlib.box =
+    (pos: Pos.t)
+    (tau: D.typ Pos.marked)
+    (e1: expr Pos.marked Bindlib.box)
+    (e2: expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box)
+  : expr Pos.marked Bindlib.box =
 
-  let x = Var.make ("unit", pos) in
-  let v = Var.make ("v", pos) in
+    make_matchopt' pos tau e1 (make_none pos) e2
 
-  make_matchopt e1
-    (make_abs (Array.of_list [x]) (make_none pos) (pos) [D.TLit D.TUnit, pos] pos)
-    (make_abs (Array.of_list [v]) (e2 v) pos [tau] pos)
+
+let make_bindmopt
+    (pos: Pos.t)
+    (taus: D.typ Pos.marked list)
+    (e1s: expr Pos.marked Bindlib.box list)
+    (e2s: expr Pos.marked Bindlib.box list -> expr Pos.marked Bindlib.box)
+  : expr Pos.marked Bindlib.box =
+
+  let dummy = Var.make ("unit", pos) in
+  let vs = List.mapi (fun i _ -> Var.make (Format.sprintf "v_%i" i, pos)) e1s in
+
+  let e1' final = List.combine (List.combine vs taus) e1s
+    |> List.fold_left (fun acc ((x, tau), arg) ->
+      make_matchopt arg
+        (make_abs (Array.of_list [dummy]) (make_none pos) pos [D.TLit D.TUnit, pos] pos)
+        (make_abs (Array.of_list [x]) acc pos [tau] pos)
+    ) final
+  in
+
+  e1' (make_some (e2s (List.map (fun v -> let+ v = Bindlib.box_var v in (v, pos)) vs)))
+
+
+    
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
