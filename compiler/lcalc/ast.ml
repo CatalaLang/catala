@@ -139,6 +139,8 @@ let make_bindopt
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 
+let handle_default_opt = Var.make ("handle_default_opt", Pos.no_pos)
+
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
 type program = { decl_ctx : D.decl_ctx; scopes : (Var.t * expr Pos.marked) list }

@@ -126,6 +126,8 @@ val make_bindopt :
 
 val handle_default : Var.t
 
+val handle_default_opt : Var.t
+
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
 type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : (Var.t * expr Pos.marked) list }
