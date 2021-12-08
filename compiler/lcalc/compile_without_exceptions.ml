@@ -43,9 +43,6 @@ let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) : A.expr Pos.ma
   let dummy_var = A.Var.make ("_", pos) in
   A.make_abs [| dummy_var |] e pos [ (D.TAny, pos) ] pos
 
-
-(* let translate_binder (ctx: ctx) = assert false *)
-
 let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
     (just : D.expr Pos.marked) (cons : D.expr Pos.marked) (pos_default : Pos.t) :
     A.expr Pos.marked Bindlib.box =
@@ -243,7 +240,9 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
-  | D.ErrorOnEmpty _ -> assert false (* todo: error message *)
+  | D.ErrorOnEmpty _ ->
+
+    Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e)
 
 let translate_expr_toplevel (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box =
 
@@ -271,24 +270,23 @@ let translate_expr_toplevel (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.mar
 
     A.make_matchopt e1 e2 e3
 
-  | _ -> 
-    (match Pos.unmark e with
-    | D.EVar _ -> Printf.printf "EVar\n"
-    | D.ETuple _ -> Printf.printf "ETuple\n"
-    | D.ETupleAccess _ -> Printf.printf "ETupleAccess\n"
-    | D.EInj _ -> Printf.printf "EInj\n"
-    | D.EMatch _ -> Printf.printf "EMatch\n"
-    | D.EArray _ -> Printf.printf "EArray\n"
-    | D.ELit _ -> Printf.printf "ELit\n"
-    | D.EAbs _ -> Printf.printf "EAbs\n"
-    | D.EApp _ -> Printf.printf "EApp\n"
-    | D.EAssert _ -> Printf.printf "EAssert\n"
-    | D.EOp _ -> Printf.printf "EOp\n"
-    | D.EIfThenElse _ -> Printf.printf "EIfThenElse\n"
-    | D.ErrorOnEmpty _ -> Printf.printf "ErrorOnEmpty\n"
-    | D.EDefault _ -> Printf.printf "EDefault\n");
-    assert false (* todo: error message*)
-
+  | _ ->
+    let s = (match Pos.unmark e with
+    | D.EVar _ -> Printf.sprintf "EVar"
+    | D.ETuple _ -> Printf.sprintf "ETuple"
+    | D.ETupleAccess _ -> Printf.sprintf "ETupleAccess"
+    | D.EInj _ -> Printf.sprintf "EInj"
+    | D.EMatch _ -> Printf.sprintf "EMatch"
+    | D.EArray _ -> Printf.sprintf "EArray"
+    | D.ELit _ -> Printf.sprintf "ELit"
+    | D.EAbs _ -> Printf.sprintf "EAbs"
+    | D.EApp _ -> Printf.sprintf "EApp"
+    | D.EAssert _ -> Printf.sprintf "EAssert"
+    | D.EOp _ -> Printf.sprintf "EOp"
+    | D.EIfThenElse _ -> Printf.sprintf "EIfThenElse"
+    | D.ErrorOnEmpty _ -> Printf.sprintf "ErrorOnEmpty"
+    | D.EDefault _ -> Printf.sprintf "EDefault") in
+    Errors.raise_spanned_error (Printf.sprintf "Internal error: Found %s different to Error on empty at the toplevel when compiling using the --avoid_exception option." s) (Pos.get_position e)
 let translate_program (prgm : D.program) : A.program =
 {
     scopes =
