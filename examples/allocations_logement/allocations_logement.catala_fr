@@ -159,22 +159,175 @@ personne de moins de trente ans.
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette cas_base_l822_4 règle condition_logement
-  sous condition loué_ou_sous_loué_à_des_tiers
+  sous condition
+    loué_ou_sous_loué_à_des_tiers sous forme Non
   conséquence non rempli
 
-  exception cas_base_l822_4 rège condition_logement
+exception cas_base_l822_4 rège condition_logement
   sous condition
+    selon loué_ou_sous_loué_à_des_tiers sous forme
+    -- Non: faux
+    -- Oui de personne: personne.age <= 30 ou personne.conforme_article_l442_1
+  conséquence rempli
 ```
 
 Pour l'attribution d'une aide personnelle au logement, ces personnes sont
 assimilées à des locataires, au titre de la partie du logement qu'elles
 occupent.
 
+```catala
+# Pas d'ajout nécessaire
+```
+
 Toutefois, les conditions fixées à l'article L. 822-3 du présent code
 s'appliquent également au locataire, au sous-locataire et au propriétaire.
+
+```catala
+# Pas d'ajout nécessaire
+```
 
 Pour l'attribution d'une aide personnelle au logement, en cas d'intermédiation
 locative et en cas d'application des dispositions de l'article L. 442-8-1 du
 présent code prévoyant une sous-location totale du logement, le sous-locataire
 est assimilé au locataire.
 
+```catala
+
+```
+
+
+###### Article L822-5 | LEGIARTI000038814936
+
+Les aides personnelles au logement ne sont dues qu'aux personnes payant un minimum
+de loyer, compte tenu de leurs ressources et de la valeur en capital de leur
+patrimoine, lorsque cette valeur est supérieure à un montant fixé par voie
+réglementaire.
+
+```catala
+
+# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
+# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
+# de cette forme là.
+
+
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
+    si patrimoine >$ seuil_l822_5_patrimoine alors
+      patrimoine
+    sinon
+      0€
+
+```
+
+
+
+Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur d'une
+aide personnelle au logement ou son conjoint est bénéficiaire de l'allocation
+aux adultes handicapés prévue à l'article L. 821-1 du code de la sécurité sociale
+ou de l'allocation d'éducation de l'enfant handicapé prévue à l'article L. 541-1
+du même code, la valeur en capital du patrimoine appréciée pour l'ensemble du ménage
+n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
+
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette l822_5_2 exception l822_5_1 définition patrimoine_pris_en_compte égal à 0€
+  sous condition existe prestation dans ménage.prestations_reçues tel que
+    (prestation = AllocationSoutienEnfantHandicapé) ou 
+    (prestation = AllocationAdulteHandicapé)
+
+```
+
+La même dérogation s'applique au demandeur d'une aide personnelle au logement
+résidant dans un établissement d'hébergement pour personnes âgées dépendantes
+ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
+l'action sociale et des familles.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_5_2 définition patrimoine_pris_en_compte égal à 0€
+  sous condition logement.est_ehpad_ou_maison_autonomie_l313_12_asf
+
+```
+
+
+###### Article L822-6 | LEGIARTI000038814934
+
+
+La détermination ainsi que les conditions de prise en compte des ressources et de
+la valeur du patrimoine sont définies par voie réglementaire.
+
+
+Les conditions de prise en compte des ressources, notamment les périodes de référence
+retenues, peuvent varier en fonction de la nature des ressources.
+
+```catala
+
+# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
+# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
+# de cette forme là.
+
+```
+
+###### Article L822-7 | LEGIARTI000038814932
+
+La prise en compte des ressources peut relever de dispositions spécifiques,
+lorsque le demandeur est âgé de moins de vingt-cinq ans et qu'il dispose d'un
+contrat de travail autre qu'un contrat à durée indéterminée.
+
+```catala
+# Todo juridique: que se passe-t-il si le demandeur est dans un ménage
+
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
+    (demandeur.age <= 25) et non (selon demandeur.contrat_de_travail sous forme CDI)
+  conséquence rempli
+
+```
+
+
+###### Article L822-8 | LEGIARTI000038814930
+
+Les personnes rattachées au foyer fiscal de leurs parents, lorsque ces derniers
+sont assujettis à l'impôt sur la fortune immobilière en application de l'article
+964 du code général des impôts, ne peuvent bénéficier d'aucune aide personnelle au
+logement. Cette condition est appréciée pour chacun des membres du ménage.
+
+
+```catala
+# todo juridique: la condition, si elle est vérifiée par un membre du ménage
+# enlève-t-elle le droit aux APL pour l'ensemble des membres du ménage ?
+
+# Pour l'instant l'interpretation est que aucun membre du ménage ne doit être
+# rattaché à des parents payant l'ifi.
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception règle condition_non_ouverture_l822_8
+  sous condition condition_rattaché_foyer_fiscal_parent_ifi
+  conséquence rempli
+```
+
+###### Article L822-9 | LEGIARTI000038814926
+
+Pour ouvrir droit à une aide personnelle au logement, le logement doit répondre à
+des exigences de décence définies en application des deux premiers alinéas de
+l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports
+locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
+
+```catala
+# todo informatique: structure inverse de la structure avec des conditions chainées
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception règle condition_non_ouverture_l822_9_decence_logement
+  sous condition logement.logement_decent_l89_462
+  conséquence rempli
+```
+
+Lorsque le logement est loué en colocation, formalisée par la conclusion de plusieurs
+contrats entre les locataires et le bailleur, il est tenu compte, pour apprécier
+s'il répond à ces mêmes exigences, de l'ensemble des éléments, équipements et
+pièces dont dispose chaque colocataire.
+
+```catala
+# ne nécessite pas de code particulier
+```
+
+Les modalités d'application du présent article sont fixées par voie réglementaire.

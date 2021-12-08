@@ -7,6 +7,13 @@ déclaration énumération PrestationReçue:
   -- AllocationJeuneEnfant
   -- AllocationSoutienFamilial
   -- AllocationSoutienEnfantHandicapé
+  -- AllocationAdulteHandicapé
+
+déclaration énumération TypeContratTravail:
+  -- CDI
+  -- Autres
+
+
 
 déclaration énumération ModeOccupation:
   -- Locataire
@@ -19,12 +26,22 @@ déclaration énumération ParentOuAutre:
   -- DemandeurOuConjointOuParentOuViaPartsSociétés contenu décimal
   -- Autre
 
+déclaration structure PersonneSousLocation:
+  donnée age contenu entier
+  donnée conforme_article_l442_1 contenu booléen
+
+déclaration énumération LouéOuSousLouéÀDesTiers:
+  -- Non
+  -- Oui contenu PersonneSousLocation
+
 déclaration structure Logement:
   donnée résidence_principale contenu booléen
+  donnée est_ehpad_ou_maison_autonomie_l313_12_asf contenu booléen
   donnée mode_occupation contenu ModeOccupation
   donnée propriétaire contenu ParentOuAutre
-  donnée loué_ou_sous_loué_à_des_tiers contenu booléen
+  donnée loué_ou_sous_loué_à_des_tiers contenu LouéOuSousLouéÀDesTiers
   donnée usufruit contenu ParentOuAutre
+  donnée logement_decent_l89_462 contenu booléen
 
 déclaration structure EnfantÀCharge:
   donnée bénéficie_titre_personnel_aide_personnelle_logement
@@ -35,10 +52,13 @@ déclaration structure Ménage:
   donnée logement contenu Logement
   donnée enfants_à_charge contenu collection EnfantÀCharge
   donnée situation_familiale contenu SituationFamiliale
+  donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
 
 déclaration structure Demandeur:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
     contenu booléen
+  donnée age contenu entier
+  donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
 
 déclaration énumération Nationalité:
@@ -48,6 +68,7 @@ déclaration énumération Nationalité:
 déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   contexte ménage contenu Ménage
   contexte demandeur contenu Demandeur
+  contexte condition_spécifique_prise_en_compte_revenus_demandeur condition
   contexte bénéficie_prestation_mentionnée_l542_1_1 condition
   contexte enfant_pris_en_compte_non_éligibilité
     contenu booléen dépend de EnfantÀCharge
@@ -56,4 +77,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   contexte usufruit_ou_propriété_famille contenu booléen
   contexte seuil_l822_3_parts_propriété contenu décimal
   contexte seuil_l822_3_parts_usufruit contenu décimal
+  contexte condition_non_ouverture_l822_8 condition
+  contexte condition_non_ouverture_l822_9_decence_logement condition
 ```
