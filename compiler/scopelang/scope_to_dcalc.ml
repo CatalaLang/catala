@@ -494,7 +494,7 @@ let translate_rules (ctx : ctx) (rules : Ast.rule list)
 
 let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     (sctx : scope_sigs_ctx) (scope_name : Ast.ScopeName.t) (sigma : Ast.scope_decl) :
-    Dcalc.Ast.expr Pos.marked Bindlib.box * Dcalc.Ast.struct_ctx =
+    Dcalc.Ast.scope_body * Dcalc.Ast.struct_ctx =
   let ctx = empty_ctx struct_ctx enum_ctx sctx scope_name in
   let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
   let scope_variables, _, scope_input_var, scope_input_struct_name, scope_return_struct_name =
@@ -588,8 +588,7 @@ let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
 
   (Dcalc.Ast.TArrow (input_typ, result_typ), pos)
 
-let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName.t) :
-    Dcalc.Ast.program * Dcalc.Ast.expr Pos.marked * Dependency.TVertex.t list =
+let translate_program (prgm : Ast.program) : Dcalc.Ast.program * Dependency.TVertex.t list =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in
   Dependency.check_for_cycle_in_scope scope_dependencies;
   let types_ordering = Dependency.check_type_cycles prgm.program_structs prgm.program_enums in
@@ -640,30 +639,19 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
           scope_return_struct_name ))
       prgm.program_scopes
   in
-  (* the final expression on which we build on is the variable of the top-level scope that we are
-     returning *)
-  let acc =
-    Dcalc.Ast.make_var
-      (let _, x, _, _, _ = Ast.ScopeMap.find top_level_scope_name sctx in
-       (x, Pos.no_pos))
-  in
   (* the resulting expression is the list of definitions of all the scopes, ending with the
      top-level scope. *)
-  let whole_program_expr, scopes, decl_ctx =
+  let (scopes, decl_ctx)
+        : (Ast.ScopeName.t * Dcalc.Ast.expr Bindlib.var * Dcalc.Ast.scope_body) list * _ =
     List.fold_right
-      (fun scope_name (acc, scopes, decl_ctx) ->
+      (fun scope_name
+           ((scopes, decl_ctx) :
+             (Ast.ScopeName.t * Dcalc.Ast.expr Bindlib.var * Dcalc.Ast.scope_body) list * _) ->
         let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
-        let pos_scope = Pos.get_position (Ast.ScopeName.get_info scope.scope_decl_name) in
-        let scope_expr, scope_out_struct =
+        let scope_body, scope_out_struct =
           translate_scope_decl struct_ctx enum_ctx sctx scope_name scope
         in
-        let scope_sig, dvar, _, scope_input_struct_name, scope_return_struct_name =
-          Ast.ScopeMap.find scope_name sctx
-        in
-        let scope_typ =
-          build_scope_typ_from_sig scope_sig scope_input_struct_name scope_return_struct_name
-            pos_scope
-        in
+        let _, dvar, _, _, _ = Ast.ScopeMap.find scope_name sctx in
         let decl_ctx =
           {
             decl_ctx with
@@ -673,9 +661,7 @@ let translate_program (prgm : Ast.program) (top_level_scope_name : Ast.ScopeName
                 decl_ctx.Dcalc.Ast.ctx_structs scope_out_struct;
           }
         in
-        ( Dcalc.Ast.make_let_in dvar scope_typ scope_expr acc pos_scope,
-          (scope_name, dvar, Bindlib.unbox scope_expr) :: scopes,
-          decl_ctx ))
-      scope_ordering (acc, [], decl_ctx)
+        ((scope_name, dvar, scope_body) :: scopes, decl_ctx))
+      scope_ordering ([], decl_ctx)
   in
-  ({ scopes; decl_ctx }, Bindlib.unbox whole_program_expr, types_ordering)
+  ({ scopes; decl_ctx }, types_ordering)

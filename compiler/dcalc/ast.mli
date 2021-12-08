@@ -131,6 +131,24 @@ type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
+type binder = (expr, expr Pos.marked) Bindlib.binder
+
+type scope_let_kind =
+  | DestructuringInputStruct
+  | ScopeVarDefinition
+  | CallingSubScope
+  | DestructuringSubScopeResults
+
+type scope_let = {
+  scope_let_var : expr Bindlib.var;
+  scope_let_kind : scope_let_kind;
+  scope_let_expr : expr Pos.marked;
+}
+
+type scope_body = { scope_body_lets : scope_let list; scope_result : expr Pos.marked }
+
+type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
+
 (** {1 Variable helpers} *)
 
 module Var : sig
@@ -176,7 +194,3 @@ val make_multiple_let_in :
   expr Pos.marked Bindlib.box ->
   Pos.t ->
   expr Pos.marked Bindlib.box
-
-type binder = (expr, expr Pos.marked) Bindlib.binder
-
-type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * Var.t * expr Pos.marked) list }
