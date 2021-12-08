@@ -159,15 +159,15 @@ personne de moins de trente ans.
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette cas_base_l822_4 règle condition_logement
-  sous condition
-    loué_ou_sous_loué_à_des_tiers sous forme Non
+  sous condition 
+    ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme Non
   conséquence non rempli
 
-exception cas_base_l822_4 rège condition_logement
+exception cas_base_l822_4 règle condition_logement
   sous condition
-    selon loué_ou_sous_loué_à_des_tiers sous forme
+    selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- Non: faux
-    -- Oui de personne: personne.age <= 30 ou personne.conforme_article_l442_1
+    -- Oui de personne: personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
   conséquence rempli
 ```
 
@@ -212,8 +212,8 @@ réglementaire.
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
-    si patrimoine >$ seuil_l822_5_patrimoine alors
-      patrimoine
+    si demandeur.patrimoine >€ seuil_l822_5_patrimoine alors
+      demandeur.patrimoine
     sinon
       0€
 
@@ -231,10 +231,11 @@ n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette l822_5_2 exception l822_5_1 définition patrimoine_pris_en_compte égal à 0€
+  étiquette l822_5_2 exception l822_5_1 définition patrimoine_pris_en_compte
   sous condition existe prestation dans ménage.prestations_reçues tel que
     (prestation = AllocationSoutienEnfantHandicapé) ou 
     (prestation = AllocationAdulteHandicapé)
+  conséquence égal à 0€
 
 ```
 
@@ -245,8 +246,9 @@ l'action sociale et des familles.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception l822_5_2 définition patrimoine_pris_en_compte égal à 0€
-  sous condition logement.est_ehpad_ou_maison_autonomie_l313_12_asf
+  exception l822_5_2 définition patrimoine_pris_en_compte
+  sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
+  conséquence égal à 0€
 
 ```
 
@@ -280,7 +282,7 @@ contrat de travail autre qu'un contrat à durée indéterminée.
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
-    (demandeur.age <= 25) et non (selon demandeur.contrat_de_travail sous forme CDI)
+    (demandeur.age_demandeur <= 25) et non (demandeur.contrat_de_travail sous forme CDI)
   conséquence rempli
 
 ```
@@ -301,8 +303,8 @@ logement. Cette condition est appréciée pour chacun des membres du ménage.
 # Pour l'instant l'interpretation est que aucun membre du ménage ne doit être
 # rattaché à des parents payant l'ifi.
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception règle condition_non_ouverture_l822_8
-  sous condition condition_rattaché_foyer_fiscal_parent_ifi
+  règle condition_non_ouverture_l822_8
+  sous condition ménage.condition_rattaché_foyer_fiscal_parent_ifi
   conséquence rempli
 ```
 
@@ -316,8 +318,8 @@ locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 ```catala
 # todo informatique: structure inverse de la structure avec des conditions chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception règle condition_non_ouverture_l822_9_decence_logement
-  sous condition logement.logement_decent_l89_462
+  règle condition_non_ouverture_l822_9_decence_logement
+  sous condition ménage.logement.logement_decent_l89_462
   conséquence rempli
 ```
 

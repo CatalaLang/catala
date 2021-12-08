@@ -27,7 +27,7 @@ déclaration énumération ParentOuAutre:
   -- Autre
 
 déclaration structure PersonneSousLocation:
-  donnée age contenu entier
+  donnée age_personne_sous_location contenu entier
   donnée conforme_article_l442_1 contenu booléen
 
 déclaration énumération LouéOuSousLouéÀDesTiers:
@@ -57,9 +57,10 @@ déclaration structure Ménage:
 déclaration structure Demandeur:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
     contenu booléen
-  donnée age contenu entier
+  donnée age_demandeur contenu entier
   donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
+  donnée patrimoine contenu argent
 
 déclaration énumération Nationalité:
   -- Française
@@ -77,6 +78,8 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   contexte usufruit_ou_propriété_famille contenu booléen
   contexte seuil_l822_3_parts_propriété contenu décimal
   contexte seuil_l822_3_parts_usufruit contenu décimal
+  contexte seuil_l822_5_patrimoine contenu argent
+  contexte patrimoine_pris_en_compte contenu argent
   contexte condition_non_ouverture_l822_8 condition
   contexte condition_non_ouverture_l822_9_decence_logement condition
 ```
