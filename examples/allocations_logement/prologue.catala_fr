@@ -23,6 +23,7 @@ déclaration structure Logement:
   donnée résidence_principale contenu booléen
   donnée mode_occupation contenu ModeOccupation
   donnée propriétaire contenu ParentOuAutre
+  donnée loué_ou_sous_loué_à_des_tiers contenu booléen
   donnée usufruit contenu ParentOuAutre
 
 déclaration structure EnfantÀCharge:

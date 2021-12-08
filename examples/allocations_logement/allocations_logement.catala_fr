@@ -156,6 +156,16 @@ handicapée adulte qui a passé un contrat conforme aux dispositions de
 l'article L. 442-1 du code de l'action sociale et des familles ou d'une
 personne de moins de trente ans.
 
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette cas_base_l822_4 règle condition_logement
+  sous condition loué_ou_sous_loué_à_des_tiers
+  conséquence non rempli
+
+  exception cas_base_l822_4 rège condition_logement
+  sous condition
+```
+
 Pour l'attribution d'une aide personnelle au logement, ces personnes sont
 assimilées à des locataires, au titre de la partie du logement qu'elles
 occupent.
@@ -167,3 +177,4 @@ Pour l'attribution d'une aide personnelle au logement, en cas d'intermédiation
 locative et en cas d'application des dispositions de l'article L. 442-8-1 du
 présent code prévoyant une sous-location totale du logement, le sous-locataire
 est assimilé au locataire.
+
