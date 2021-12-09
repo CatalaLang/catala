@@ -131,8 +131,8 @@ type scope_let_kind =
   | ScopeVarDefinition
   | SubScopeVarDefinition
   | CallingSubScope
-  | Assertion
   | DestructuringSubScopeResults
+  | Assertion
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;

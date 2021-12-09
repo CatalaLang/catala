@@ -425,34 +425,44 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
             Ast.ScopeName.get_info subname;
           ]
       in
+
       let result_tuple_var = Dcalc.Ast.Var.make ("result", pos_sigma) in
-      let results_bindings_xs = List.map (fun (_, _, v) -> v) all_subscope_vars_dcalc in
-      let results_bindings_taus =
-        List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc
-      in
-      let results_bindings_e1s =
-        List.mapi
-          (fun i _ ->
-            Bindlib.box_apply
-              (fun r ->
-                ( Dcalc.Ast.ETupleAccess
-                    ( r,
-                      i,
-                      Some called_scope_return_struct,
-                      List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
-                  pos_sigma ))
-              (Dcalc.Ast.make_var (result_tuple_var, pos_sigma)))
-          all_subscope_vars_dcalc
-      in
       let result_tuple_typ =
         ( Dcalc.Ast.TTuple
             ( List.map (fun (_, tau, _) -> (tau, pos_sigma)) all_subscope_vars_dcalc,
               Some called_scope_return_struct ),
           pos_sigma )
       in
-      ( [ ([ result_tuple_var ], pos_sigma); (results_bindings_xs, pos_sigma) ],
-        [ [ result_tuple_typ ]; results_bindings_taus ],
-        [ [ call_expr ]; results_bindings_e1s ],
+      let call_scope_let =
+        {
+          Dcalc.Ast.scope_let_var = (result_tuple_var, pos_sigma);
+          Dcalc.Ast.scope_let_kind = Dcalc.Ast.CallingSubScope;
+          Dcalc.Ast.scope_let_typ = result_tuple_typ;
+          Dcalc.Ast.scope_let_expr = Bindlib.unbox call_expr;
+        }
+      in
+      let result_bindings_lets =
+        List.mapi
+          (fun i (_, tau, v) ->
+            {
+              Dcalc.Ast.scope_let_var = (v, pos_sigma);
+              Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
+              Dcalc.Ast.scope_let_kind = Dcalc.Ast.DestructuringSubScopeResults;
+              Dcalc.Ast.scope_let_expr =
+                Bindlib.unbox
+                  (Bindlib.box_apply
+                     (fun r ->
+                       ( Dcalc.Ast.ETupleAccess
+                           ( r,
+                             i,
+                             Some called_scope_return_struct,
+                             List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
+                         pos_sigma ))
+                     (Dcalc.Ast.make_var (result_tuple_var, pos_sigma)));
+            })
+          all_subscope_vars_dcalc
+      in
+      ( call_scope_let :: result_bindings_lets,
         {
           ctx with
           subscope_vars =

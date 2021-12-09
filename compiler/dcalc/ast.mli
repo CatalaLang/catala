@@ -133,13 +133,15 @@ type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
+(** This kind annotation signals that the let-binding respects a structural invariant. These
+    invariants concern the shape of the expression in the let-binding, and are documented below. *)
 type scope_let_kind =
-  | DestructuringInputStruct
-  | ScopeVarDefinition
-  | SubScopeVarDefinition
-  | CallingSubScope
-  | Assertion
-  | DestructuringSubScopeResults
+  | DestructuringInputStruct  (** [let x = input.field]*)
+  | ScopeVarDefinition  (** [let x = error_on_empty e]*)
+  | SubScopeVarDefinition  (** [let s.x = fun _ -> e] *)
+  | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
+  | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
+  | Assertion  (** [let _ = assert e]*)
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
@@ -147,8 +149,14 @@ type scope_let = {
   scope_let_typ : typ Pos.marked;
   scope_let_expr : expr Pos.marked;
 }
+(** A scope let-binding has all the information necessary to make a proper let-binding expression,
+    plus an annotation for the kind of the let-binding that comes from the compilation of a
+    {!module: Scopelang.Ast} statement. *)
 
 type scope_body = { scope_body_lets : scope_let list; scope_result : expr Pos.marked }
+(** Instead of being a single expression, we give a little more ad-hoc structure to the scope body
+    by decomposing it in an ordered list of let-bindings, and a result expression that uses the
+    let-binded variables. *)
 
 type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
 
