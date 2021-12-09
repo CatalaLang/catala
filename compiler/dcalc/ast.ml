@@ -141,7 +141,11 @@ type scope_let = {
   scope_let_expr : expr Pos.marked;
 }
 
-type scope_body = { scope_body_lets : scope_let list; scope_result : expr Pos.marked }
+type scope_body = {
+  scope_body_lets : scope_let list;
+  scope_body_result : expr Pos.marked;
+  scope_body_args : (expr Bindlib.var Pos.marked * typ Pos.marked) list;
+}
 
 type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
 
@@ -179,3 +183,7 @@ let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
     (e1 : expr Pos.marked Bindlib.box list) (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
     expr Pos.marked Bindlib.box =
   make_app (make_abs xs e2 pos taus pos) e1 pos
+
+let build_whole_program_expr (_p : program) = failwith "unimplemented"
+
+let build_whole_scope_expr (_p : scope_body) = failwith "unimplemented"

@@ -578,27 +578,17 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     Ast.StructMap.add scope_input_struct_name scope_input_struct_fields
       (Ast.StructMap.singleton scope_return_struct_name scope_return_struct_fields)
   in
-  ( { Dcalc.Ast.scope_body_lets = input_destructurings @ rules; Dcalc.Ast.scope_result = return_exp },
+  ( {
+      Dcalc.Ast.scope_body_lets = input_destructurings @ rules;
+      Dcalc.Ast.scope_body_result = return_exp;
+      Dcalc.Ast.scope_body_args =
+        List.map
+          (fun (scopelang_var, ty, v) ->
+            ( (v, Pos.get_position (Ast.ScopeVarMap.find scopelang_var sigma.scope_sig)),
+              (ty, Pos.get_position (Ast.ScopeVar.get_info scopelang_var)) ))
+          scope_variables;
+    },
     new_struct_ctx )
-
-let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
-    (scope_input_struct_name : Ast.StructName.t) (scope_return_struct_name : Ast.StructName.t)
-    (pos : Pos.t) : Dcalc.Ast.typ Pos.marked =
-  let result_typ =
-    ( Dcalc.Ast.TTuple
-        (List.map (fun (_, tau) -> (tau, pos)) scope_sig, Some scope_return_struct_name),
-      pos )
-  in
-  let input_typ =
-    ( Dcalc.Ast.TTuple
-        ( List.map
-            (fun (_, tau) -> (Dcalc.Ast.TArrow ((TLit TUnit, pos), (tau, pos)), pos))
-            scope_sig,
-          Some scope_input_struct_name ),
-      pos )
-  in
-
-  (Dcalc.Ast.TArrow (input_typ, result_typ), pos)
 
 let translate_program (prgm : Ast.program) : Dcalc.Ast.program * Dependency.TVertex.t list =
   let scope_dependencies = Dependency.build_program_dep_graph prgm in

@@ -138,7 +138,9 @@ let translate_program (prgm : D.program) : A.program =
              let new_acc =
                ( new_n,
                  Bindlib.unbox
-                   (translate_expr (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx) e) )
+                   (translate_expr
+                      (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
+                      (D.build_whole_scope_expr e)) )
                :: acc
              in
              let new_ctx = D.VarMap.add n new_n ctx in

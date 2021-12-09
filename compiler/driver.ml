@@ -183,9 +183,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           exit 0
         end;
         Cli.debug_print "Translating to default calculus...";
-        let prgm, prgm_expr, type_ordering =
-          Scopelang.Scope_to_dcalc.translate_program prgm scope_uid
-        in
+        let prgm, type_ordering = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgrm_dcalc_expr = Dcalc.Ast.build_whole_program_expr prgm in
         let prgm =
           if optimize then begin
             Cli.debug_print "Optimizing default calculus...";
@@ -203,21 +202,21 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           in
           if Option.is_some ex_scope then
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_expr prgm.decl_ctx)
-              (let _, _, e = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
-               e)
-          else Format.fprintf fmt "%a\n" (Dcalc.Print.format_expr prgm.decl_ctx) prgm_expr;
+              (Dcalc.Print.format_scope prgm.decl_ctx)
+              (let _, _, s = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
+               s)
+          else Format.fprintf fmt "%a\n" (Dcalc.Print.format_expr prgm.decl_ctx) prgrm_dcalc_expr;
           at_end ();
           exit 0
         end;
         Cli.debug_print "Typechecking...";
-        let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgm_expr in
+        let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
            typ); *)
         match backend with
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
-            let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgm_expr in
+            let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr in
             let out_regex = Re.Pcre.regexp "\\_out$" in
             let results =
               List.map

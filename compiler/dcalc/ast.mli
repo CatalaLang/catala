@@ -153,7 +153,11 @@ type scope_let = {
     plus an annotation for the kind of the let-binding that comes from the compilation of a
     {!module: Scopelang.Ast} statement. *)
 
-type scope_body = { scope_body_lets : scope_let list; scope_result : expr Pos.marked }
+type scope_body = {
+  scope_body_lets : scope_let list;
+  scope_body_result : expr Pos.marked;
+  scope_body_args : (expr Bindlib.var Pos.marked * typ Pos.marked) list;
+}
 (** Instead of being a single expression, we give a little more ad-hoc structure to the scope body
     by decomposing it in an ordered list of let-bindings, and a result expression that uses the
     let-binded variables. *)
@@ -205,3 +209,9 @@ val make_multiple_let_in :
   expr Pos.marked Bindlib.box ->
   Pos.t ->
   expr Pos.marked Bindlib.box
+
+(** {1 AST manipulation helper}*)
+
+val build_whole_scope_expr : scope_body -> expr Pos.marked
+
+val build_whole_program_expr : program -> expr Pos.marked

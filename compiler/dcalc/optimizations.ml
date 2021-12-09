@@ -68,7 +68,24 @@ let rec peephole_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
 let peephole_optimizations (p : program) : program =
   {
     p with
-    scopes = List.map (fun (name, var, e) -> (name, var, Bindlib.unbox (peephole_expr e))) p.scopes;
+    scopes =
+      List.map
+        (fun (name, var, body) ->
+          ( name,
+            var,
+            {
+              body with
+              scope_body_lets =
+                List.map
+                  (fun let_binding ->
+                    {
+                      let_binding with
+                      scope_let_expr = Bindlib.unbox (peephole_expr let_binding.scope_let_expr);
+                    })
+                  body.scope_body_lets;
+              scope_body_result = Bindlib.unbox (peephole_expr body.scope_body_result);
+            } ))
+        p.scopes;
   }
 
 let optimize_program (p : program) : program = peephole_optimizations p
