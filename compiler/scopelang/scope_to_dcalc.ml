@@ -304,9 +304,14 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           (Dcalc.Ast.VarDef (Pos.unmark tau))
           [ (sigma_name, pos_sigma); a_name ]
       in
-      ( [ ([ a_var ], Pos.get_position a) ],
-        [ [ tau ] ],
-        [ [ merged_expr ] ],
+      ( [
+          {
+            Dcalc.Ast.scope_let_var = (a_var, Pos.get_position a);
+            Dcalc.Ast.scope_let_typ = tau;
+            Dcalc.Ast.scope_let_expr = Bindlib.unbox merged_expr;
+            Dcalc.Ast.scope_let_kind = Dcalc.Ast.ScopeVarDefinition;
+          };
+        ],
         {
           ctx with
           scope_vars = Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau) ctx.scope_vars;
@@ -332,9 +337,15 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           [ (Dcalc.Ast.TLit TUnit, var_def_pos) ]
           var_def_pos
       in
-      ( [ ([ a_var ], Pos.get_position a_name) ],
-        [ [ (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos) ] ],
-        [ [ thunked_new_e ] ],
+      ( [
+          {
+            Dcalc.Ast.scope_let_var = (a_var, Pos.get_position a_name);
+            Dcalc.Ast.scope_let_typ =
+              (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos);
+            Dcalc.Ast.scope_let_expr = Bindlib.unbox thunked_new_e;
+            Dcalc.Ast.scope_let_kind = Dcalc.Ast.SubScopeVarDefinition;
+          };
+        ],
         {
           ctx with
           subscope_vars =
@@ -453,9 +464,17 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         } )
   | Assertion e ->
       let new_e = translate_expr ctx e in
-      ( [ ([ Dcalc.Ast.Var.make ("_", Pos.get_position e) ], Pos.get_position e) ],
-        [ [ (Dcalc.Ast.TLit TUnit, Pos.get_position e) ] ],
-        [ [ Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e ] ],
+      ( [
+          {
+            Dcalc.Ast.scope_let_var =
+              (Dcalc.Ast.Var.make ("_", Pos.get_position e), Pos.get_position e);
+            Dcalc.Ast.scope_let_typ = (Dcalc.Ast.TLit TUnit, Pos.get_position e);
+            Dcalc.Ast.scope_let_expr =
+              Bindlib.unbox
+                (Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e);
+            Dcalc.Ast.scope_let_kind = Dcalc.Ast.Assertion;
+          };
+        ],
         ctx )
 
 let translate_rules (ctx : ctx) (rules : Ast.rule list)
@@ -506,7 +525,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
       (fun i (_, tau, v) ->
         {
           Dcalc.Ast.scope_let_kind = Dcalc.Ast.DestructuringInputStruct;
-          Dcalc.Ast.scope_let_var = v;
+          Dcalc.Ast.scope_let_var = (v, pos_sigma);
           Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
           Dcalc.Ast.scope_let_expr =
             Bindlib.unbox

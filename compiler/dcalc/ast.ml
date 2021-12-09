@@ -129,11 +129,13 @@ type binder = (expr, expr Pos.marked) Bindlib.binder
 type scope_let_kind =
   | DestructuringInputStruct
   | ScopeVarDefinition
+  | SubScopeVarDefinition
   | CallingSubScope
+  | Assertion
   | DestructuringSubScopeResults
 
 type scope_let = {
-  scope_let_var : expr Bindlib.var;
+  scope_let_var : expr Bindlib.var Pos.marked;
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ Pos.marked;
   scope_let_expr : expr Pos.marked;
