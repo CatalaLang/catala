@@ -17,6 +17,8 @@ module D = Dcalc.Ast
 module A = Ast
 
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
+(** This environment contains a mapping between the variables in Dcalc and their correspondance in
+    Lcalc. *)
 
 let translate_lit (l : D.lit) : A.expr =
   match l with

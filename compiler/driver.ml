@@ -204,7 +204,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_scope prgm.decl_ctx)
               (let _, _, s = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
-               s)
+               (scope_uid, s))
           else Format.fprintf fmt "%a\n" (Dcalc.Print.format_expr prgm.decl_ctx) prgrm_dcalc_expr;
           at_end ();
           exit 0

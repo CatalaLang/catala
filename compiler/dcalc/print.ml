@@ -273,5 +273,6 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"
 
-let format_scope (_ctx : decl_ctx) (_fmt : Format.formatter) (_s : scope_body) =
-  failwith "unimplemented"
+let format_scope (ctx : decl_ctx) (fmt : Format.formatter) ((n, s) : Ast.ScopeName.t * scope_body) =
+  Format.fprintf fmt "@[<hov 2>let %a = %a@]" Ast.ScopeName.format_t n (format_expr ctx)
+    (Ast.build_whole_scope_expr s)
