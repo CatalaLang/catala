@@ -286,11 +286,7 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     translations. The list is actually a list of list because we want to group in assignments that
     are independent of each other to speed up the translation by minimizing Bindlib.bind_mvar *)
 let translate_rule (ctx : ctx) (rule : Ast.rule)
-    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
-    Dcalc.Ast.Var.t list Pos.marked list
-    * Dcalc.Ast.typ Pos.marked list list
-    * Dcalc.Ast.expr Pos.marked Bindlib.box list list
-    * ctx =
+    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) : Dcalc.Ast.scope_let list * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
@@ -464,33 +460,26 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
 
 let translate_rules (ctx : ctx) (rules : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
-    (sigma_return_struct_name : Ast.StructName.t) : Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
-  let vars, taus, exprs, new_ctx =
+    (sigma_return_struct_name : Ast.StructName.t) :
+    Dcalc.Ast.scope_let list * Dcalc.Ast.expr Pos.marked * ctx =
+  let scope_lets, new_ctx =
     List.fold_left
-      (fun (vars, taus, exprs, ctx) rule ->
-        let new_vars, new_taus, new_exprs, new_ctx =
-          translate_rule ctx rule (sigma_name, pos_sigma)
-        in
-        (vars @ new_vars, taus @ new_taus, exprs @ new_exprs, new_ctx))
-      ([], [], [], ctx) rules
+      (fun (scope_lets, ctx) rule ->
+        let new_scope_lets, new_ctx = translate_rule ctx rule (sigma_name, pos_sigma) in
+        (scope_lets @ new_scope_lets, new_ctx))
+      ([], ctx) rules
   in
   let scope_variables = Ast.ScopeVarMap.bindings new_ctx.scope_vars in
   let return_exp =
-    Bindlib.box_apply
-      (fun args -> (Dcalc.Ast.ETuple (args, Some sigma_return_struct_name), pos_sigma))
-      (Bindlib.box_list
-         (List.map
-            (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
-            scope_variables))
+    Bindlib.unbox
+      (Bindlib.box_apply
+         (fun args -> (Dcalc.Ast.ETuple (args, Some sigma_return_struct_name), pos_sigma))
+         (Bindlib.box_list
+            (List.map
+               (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
+               scope_variables)))
   in
-  let let_bindings_chain =
-    List.fold_right
-      (fun ((vars, pos), taus, exprs) acc ->
-        Dcalc.Ast.make_multiple_let_in (Array.of_list vars) taus exprs acc pos)
-      (List.map2 (fun x (y, z) -> (x, y, z)) vars (List.map2 (fun x y -> (x, y)) taus exprs))
-      return_exp
-  in
-  (let_bindings_chain, new_ctx)
+  (scope_lets, return_exp, new_ctx)
 
 let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     (sctx : scope_sigs_ctx) (scope_name : Ast.ScopeName.t) (sigma : Ast.scope_decl) :
@@ -501,7 +490,9 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     Ast.ScopeMap.find sigma.scope_decl_name sctx
   in
   let pos_sigma = Pos.get_position sigma_info in
-  let rules, ctx = translate_rules ctx sigma.scope_decl_rules sigma_info scope_return_struct_name in
+  let rules, return_exp, ctx =
+    translate_rules ctx sigma.scope_decl_rules sigma_info scope_return_struct_name
+  in
   let scope_variables =
     List.map
       (fun (x, tau) ->
@@ -510,33 +501,30 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
       scope_variables
   in
   (* first we create variables from the fields of the input struct *)
-  let rules =
-    let xs = Array.of_list (List.map (fun (_, _, v) -> v) scope_variables) in
-    let taus =
-      List.map
-        (fun (_, tau, _) ->
-          (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma))
-        scope_variables
-    in
-    let e1s =
-      List.mapi
-        (fun i _ ->
-          Bindlib.box_apply
-            (fun r ->
-              ( Dcalc.Ast.ETupleAccess
-                  ( r,
-                    i,
-                    Some scope_input_struct_name,
-                    List.map
-                      (fun (_, t, _) ->
-                        ( Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (t, pos_sigma)),
-                          pos_sigma ))
-                      scope_variables ),
-                pos_sigma ))
-            (Dcalc.Ast.make_var (scope_input_var, pos_sigma)))
-        scope_variables
-    in
-    Dcalc.Ast.make_multiple_let_in xs taus e1s rules pos_sigma
+  let input_destructurings =
+    List.mapi
+      (fun i (_, tau, v) ->
+        {
+          Dcalc.Ast.scope_let_kind = Dcalc.Ast.DestructuringInputStruct;
+          Dcalc.Ast.scope_let_var = v;
+          Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
+          Dcalc.Ast.scope_let_expr =
+            Bindlib.unbox
+              (Bindlib.box_apply
+                 (fun r ->
+                   ( Dcalc.Ast.ETupleAccess
+                       ( r,
+                         i,
+                         Some scope_input_struct_name,
+                         List.map
+                           (fun (_, t, _) ->
+                             ( Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (t, pos_sigma)),
+                               pos_sigma ))
+                           scope_variables ),
+                     pos_sigma ))
+                 (Dcalc.Ast.make_var (scope_input_var, pos_sigma)));
+        })
+      scope_variables
   in
   let scope_return_struct_fields =
     List.map
@@ -561,12 +549,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
     Ast.StructMap.add scope_input_struct_name scope_input_struct_fields
       (Ast.StructMap.singleton scope_return_struct_name scope_return_struct_fields)
   in
-  ( Dcalc.Ast.make_abs [| scope_input_var |] rules pos_sigma
-      [
-        ( Dcalc.Ast.TTuple (List.map snd scope_input_struct_fields, Some scope_input_struct_name),
-          pos_sigma );
-      ]
-      pos_sigma,
+  ( { Dcalc.Ast.scope_body_lets = input_destructurings @ rules; Dcalc.Ast.scope_result = return_exp },
     new_struct_ctx )
 
 let build_scope_typ_from_sig (scope_sig : (Ast.ScopeVar.t * Dcalc.Ast.typ) list)
