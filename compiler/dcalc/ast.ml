@@ -138,12 +138,12 @@ type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ Pos.marked;
-  scope_let_expr : expr Pos.marked;
+  scope_let_expr : expr Pos.marked Bindlib.box;
 }
 
 type scope_body = {
   scope_body_lets : scope_let list;
-  scope_body_result : expr Pos.marked;
+  scope_body_result : expr Pos.marked Bindlib.box;
   scope_body_arg : expr Bindlib.var;
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
@@ -187,12 +187,9 @@ let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos
       (fun scope_let acc ->
         make_let_in
           (Pos.unmark scope_let.scope_let_var)
-          scope_let.scope_let_typ
-          (Bindlib.box scope_let.scope_let_expr)
-          acc
+          scope_let.scope_let_typ scope_let.scope_let_expr acc
           (Pos.get_position scope_let.scope_let_var))
-      body.scope_body_lets
-      (Bindlib.box body.scope_body_result)
+      body.scope_body_lets body.scope_body_result
   in
   make_abs
     (Array.of_list [ body.scope_body_arg ])

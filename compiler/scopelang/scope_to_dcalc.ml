@@ -308,7 +308,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           {
             Dcalc.Ast.scope_let_var = (a_var, Pos.get_position a);
             Dcalc.Ast.scope_let_typ = tau;
-            Dcalc.Ast.scope_let_expr = Bindlib.unbox merged_expr;
+            Dcalc.Ast.scope_let_expr = merged_expr;
             Dcalc.Ast.scope_let_kind = Dcalc.Ast.ScopeVarDefinition;
           };
         ],
@@ -342,7 +342,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
             Dcalc.Ast.scope_let_var = (a_var, Pos.get_position a_name);
             Dcalc.Ast.scope_let_typ =
               (Dcalc.Ast.TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos);
-            Dcalc.Ast.scope_let_expr = Bindlib.unbox thunked_new_e;
+            Dcalc.Ast.scope_let_expr = thunked_new_e;
             Dcalc.Ast.scope_let_kind = Dcalc.Ast.SubScopeVarDefinition;
           };
         ],
@@ -438,7 +438,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           Dcalc.Ast.scope_let_var = (result_tuple_var, pos_sigma);
           Dcalc.Ast.scope_let_kind = Dcalc.Ast.CallingSubScope;
           Dcalc.Ast.scope_let_typ = result_tuple_typ;
-          Dcalc.Ast.scope_let_expr = Bindlib.unbox call_expr;
+          Dcalc.Ast.scope_let_expr = call_expr;
         }
       in
       let result_bindings_lets =
@@ -449,16 +449,15 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
               Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
               Dcalc.Ast.scope_let_kind = Dcalc.Ast.DestructuringSubScopeResults;
               Dcalc.Ast.scope_let_expr =
-                Bindlib.unbox
-                  (Bindlib.box_apply
-                     (fun r ->
-                       ( Dcalc.Ast.ETupleAccess
-                           ( r,
-                             i,
-                             Some called_scope_return_struct,
-                             List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
-                         pos_sigma ))
-                     (Dcalc.Ast.make_var (result_tuple_var, pos_sigma)));
+                Bindlib.box_apply
+                  (fun r ->
+                    ( Dcalc.Ast.ETupleAccess
+                        ( r,
+                          i,
+                          Some called_scope_return_struct,
+                          List.map (fun (_, t, _) -> (t, pos_sigma)) all_subscope_vars_dcalc ),
+                      pos_sigma ))
+                  (Dcalc.Ast.make_var (result_tuple_var, pos_sigma));
             })
           all_subscope_vars_dcalc
       in
@@ -480,8 +479,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
               (Dcalc.Ast.Var.make ("_", Pos.get_position e), Pos.get_position e);
             Dcalc.Ast.scope_let_typ = (Dcalc.Ast.TLit TUnit, Pos.get_position e);
             Dcalc.Ast.scope_let_expr =
-              Bindlib.unbox
-                (Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e);
+              Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert new_e) e) new_e;
             Dcalc.Ast.scope_let_kind = Dcalc.Ast.Assertion;
           };
         ],
@@ -538,20 +536,19 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
           Dcalc.Ast.scope_let_var = (v, pos_sigma);
           Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
           Dcalc.Ast.scope_let_expr =
-            Bindlib.unbox
-              (Bindlib.box_apply
-                 (fun r ->
-                   ( Dcalc.Ast.ETupleAccess
-                       ( r,
-                         i,
-                         Some scope_input_struct_name,
-                         List.map
-                           (fun (_, t, _) ->
-                             ( Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (t, pos_sigma)),
-                               pos_sigma ))
-                           scope_variables ),
-                     pos_sigma ))
-                 (Dcalc.Ast.make_var (scope_input_var, pos_sigma)));
+            Bindlib.box_apply
+              (fun r ->
+                ( Dcalc.Ast.ETupleAccess
+                    ( r,
+                      i,
+                      Some scope_input_struct_name,
+                      List.map
+                        (fun (_, t, _) ->
+                          ( Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (t, pos_sigma)),
+                            pos_sigma ))
+                        scope_variables ),
+                  pos_sigma ))
+              (Dcalc.Ast.make_var (scope_input_var, pos_sigma));
         })
       scope_variables
   in
@@ -580,7 +577,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
   in
   ( {
       Dcalc.Ast.scope_body_lets = input_destructurings @ rules;
-      Dcalc.Ast.scope_body_result = return_exp;
+      Dcalc.Ast.scope_body_result = Bindlib.box return_exp;
       Dcalc.Ast.scope_body_input_struct = scope_input_struct_name;
       Dcalc.Ast.scope_body_output_struct = scope_return_struct_name;
       Dcalc.Ast.scope_body_arg = scope_input_var;

@@ -147,7 +147,7 @@ type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ Pos.marked;
-  scope_let_expr : expr Pos.marked;
+  scope_let_expr : expr Pos.marked Bindlib.box;
 }
 (** A scope let-binding has all the information necessary to make a proper let-binding expression,
     plus an annotation for the kind of the let-binding that comes from the compilation of a
@@ -155,7 +155,7 @@ type scope_let = {
 
 type scope_body = {
   scope_body_lets : scope_let list;
-  scope_body_result : expr Pos.marked;
+  scope_body_result : expr Pos.marked Bindlib.box;
   scope_body_arg : expr Bindlib.var;
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
