@@ -156,7 +156,9 @@ type scope_let = {
 type scope_body = {
   scope_body_lets : scope_let list;
   scope_body_result : expr Pos.marked;
-  scope_body_args : (expr Bindlib.var Pos.marked * typ Pos.marked) list;
+  scope_body_arg : expr Bindlib.var;
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
 }
 (** Instead of being a single expression, we give a little more ad-hoc structure to the scope body
     by decomposing it in an ordered list of let-bindings, and a result expression that uses the
@@ -202,16 +204,10 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
-val make_multiple_let_in :
-  Var.t array ->
-  typ Pos.marked list ->
-  expr Pos.marked Bindlib.box list ->
-  expr Pos.marked Bindlib.box ->
-  Pos.t ->
-  expr Pos.marked Bindlib.box
+(** {1 AST manipulation helpers}*)
 
-(** {1 AST manipulation helper}*)
+val build_whole_scope_expr : decl_ctx -> scope_body -> Pos.t -> expr Pos.marked Bindlib.box
+(** Usage: [build_whole_scope_expr ctx body scope_position] where [scope_position] corresponds to
+    the line of the scope declaration for instance. *)
 
-val build_whole_scope_expr : scope_body -> expr Pos.marked
-
-val build_whole_program_expr : program -> expr Pos.marked
+val build_whole_program_expr : program -> expr Pos.marked Bindlib.box

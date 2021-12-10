@@ -581,12 +581,9 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
   ( {
       Dcalc.Ast.scope_body_lets = input_destructurings @ rules;
       Dcalc.Ast.scope_body_result = return_exp;
-      Dcalc.Ast.scope_body_args =
-        List.map
-          (fun (scopelang_var, ty, v) ->
-            ( (v, Pos.get_position (Ast.ScopeVarMap.find scopelang_var sigma.scope_sig)),
-              (ty, Pos.get_position (Ast.ScopeVar.get_info scopelang_var)) ))
-          scope_variables;
+      Dcalc.Ast.scope_body_input_struct = scope_input_struct_name;
+      Dcalc.Ast.scope_body_output_struct = scope_return_struct_name;
+      Dcalc.Ast.scope_body_arg = scope_input_var;
     },
     new_struct_ctx )
 

@@ -135,14 +135,16 @@ let translate_program (prgm : D.program) : A.program =
     scopes =
       (let acc, _ =
          List.fold_left
-           (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (_, n, e) ->
+           (fun ((acc, ctx) : _ * A.Var.t D.VarMap.t) (scope_name, n, e) ->
              let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
              let new_acc =
                ( new_n,
                  Bindlib.unbox
                    (translate_expr
                       (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
-                      (D.build_whole_scope_expr e)) )
+                      (Bindlib.unbox
+                         (D.build_whole_scope_expr prgm.decl_ctx e
+                            (Pos.get_position (Dcalc.Ast.ScopeName.get_info scope_name))))) )
                :: acc
              in
              let new_ctx = D.VarMap.add n new_n ctx in

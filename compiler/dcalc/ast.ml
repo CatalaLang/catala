@@ -144,7 +144,9 @@ type scope_let = {
 type scope_body = {
   scope_body_lets : scope_let list;
   scope_body_result : expr Pos.marked;
-  scope_body_args : (expr Bindlib.var Pos.marked * typ Pos.marked) list;
+  scope_body_arg : expr Bindlib.var;
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
 }
 
 type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
@@ -179,11 +181,50 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
-let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
-    (e1 : expr Pos.marked Bindlib.box list) (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
-  make_app (make_abs xs e2 pos taus pos) e1 pos
+let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
+  let body_expr =
+    List.fold_right
+      (fun scope_let acc ->
+        make_let_in
+          (Pos.unmark scope_let.scope_let_var)
+          scope_let.scope_let_typ
+          (Bindlib.box scope_let.scope_let_expr)
+          acc
+          (Pos.get_position scope_let.scope_let_var))
+      body.scope_body_lets
+      (Bindlib.box body.scope_body_result)
+  in
+  make_abs
+    (Array.of_list [ body.scope_body_arg ])
+    body_expr pos_scope
+    [
+      ( TTuple
+          ( List.map snd (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
+            Some body.scope_body_input_struct ),
+        pos_scope );
+    ]
+    pos_scope
 
-let build_whole_program_expr (_p : program) = failwith "unimplemented"
+let build_scope_typ_from_sig (ctx : decl_ctx) (scope_input_struct_name : StructName.t)
+    (scope_return_struct_name : StructName.t) (pos : Pos.t) : typ Pos.marked =
+  let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
+  let result_typ = (TTuple (List.map snd scope_sig, Some scope_return_struct_name), pos) in
+  let input_typ =
+    ( TTuple
+        ( List.map (fun (_, tau) -> (TArrow ((TLit TUnit, pos), tau), pos)) scope_sig,
+          Some scope_input_struct_name ),
+      pos )
+  in
+  (TArrow (input_typ, result_typ), pos)
 
-let build_whole_scope_expr (_p : scope_body) = failwith "unimplemented"
+let build_whole_program_expr (p : program) =
+  List.fold_right
+    (fun (scope_name, scope_var, scope_body) acc ->
+      let pos = Pos.get_position (ScopeName.get_info scope_name) in
+      make_let_in scope_var
+        (build_scope_typ_from_sig p.decl_ctx scope_body.scope_body_input_struct
+           scope_body.scope_body_output_struct pos)
+        (build_whole_scope_expr p.decl_ctx scope_body pos)
+        acc pos)
+    p.scopes
+    (Bindlib.box (ELit LUnit, Pos.no_pos))
