@@ -184,7 +184,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         end;
         Cli.debug_print "Translating to default calculus...";
         let prgm, type_ordering = Scopelang.Scope_to_dcalc.translate_program prgm in
-        let prgrm_dcalc_expr = Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm) in
+        let prgrm_dcalc_expr = Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid) in
         if backend = Cli.Dcalc then begin
           let fmt, at_end =
             match output_file with
@@ -204,8 +204,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         end;
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
-        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" Dcalc.Print.format_typ
-           typ); *)
+        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" (Dcalc.Print.format_typ
+           prgm.decl_ctx) typ); *)
         match backend with
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";

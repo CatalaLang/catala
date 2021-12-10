@@ -210,4 +210,6 @@ val build_whole_scope_expr : decl_ctx -> scope_body -> Pos.t -> expr Pos.marked 
 (** Usage: [build_whole_scope_expr ctx body scope_position] where [scope_position] corresponds to
     the line of the scope declaration for instance. *)
 
-val build_whole_program_expr : program -> expr Pos.marked Bindlib.box
+val build_whole_program_expr : program -> ScopeName.t -> expr Pos.marked Bindlib.box
+(** Usage: [build_whole_program_expr program main_scope] builds an expression corresponding to the
+    main program and returning the main scope as a function. *)

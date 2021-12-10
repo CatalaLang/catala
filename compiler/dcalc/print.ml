@@ -79,7 +79,10 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
            (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
         ts
-  | TTuple (_, Some s) -> Format.fprintf fmt "%a" Ast.StructName.format_t s
+  | TTuple (args, Some s) ->
+      Format.fprintf fmt "%a [%a]" Ast.StructName.format_t s
+        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ") format_typ)
+        args
   | TEnum (_, e) -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1 format_punctuation "→"

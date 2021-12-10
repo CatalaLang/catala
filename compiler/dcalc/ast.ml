@@ -205,16 +205,19 @@ let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos
 let build_scope_typ_from_sig (ctx : decl_ctx) (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t) (pos : Pos.t) : typ Pos.marked =
   let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
-  let result_typ = (TTuple (List.map snd scope_sig, Some scope_return_struct_name), pos) in
-  let input_typ =
-    ( TTuple
-        ( List.map (fun (_, tau) -> (TArrow ((TLit TUnit, pos), tau), pos)) scope_sig,
-          Some scope_input_struct_name ),
-      pos )
-  in
+  let scope_return_typ = StructMap.find scope_return_struct_name ctx.ctx_structs in
+  let result_typ = (TTuple (List.map snd scope_return_typ, Some scope_return_struct_name), pos) in
+  let input_typ = (TTuple (List.map snd scope_sig, Some scope_input_struct_name), pos) in
   (TArrow (input_typ, result_typ), pos)
 
-let build_whole_program_expr (p : program) =
+let build_whole_program_expr (p : program) (main_scope : ScopeName.t) =
+  let end_result =
+    make_var
+      (let _, x, _ =
+         List.find (fun (s_name, _, _) -> ScopeName.compare main_scope s_name = 0) p.scopes
+       in
+       (x, Pos.no_pos))
+  in
   List.fold_right
     (fun (scope_name, scope_var, scope_body) acc ->
       let pos = Pos.get_position (ScopeName.get_info scope_name) in
@@ -223,5 +226,4 @@ let build_whole_program_expr (p : program) =
            scope_body.scope_body_output_struct pos)
         (build_whole_scope_expr p.decl_ctx scope_body pos)
         acc pos)
-    p.scopes
-    (Bindlib.box (ELit LUnit, Pos.no_pos))
+    p.scopes end_result
