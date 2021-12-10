@@ -488,7 +488,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
 let translate_rules (ctx : ctx) (rules : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (sigma_return_struct_name : Ast.StructName.t) :
-    Dcalc.Ast.scope_let list * Dcalc.Ast.expr Pos.marked * ctx =
+    Dcalc.Ast.scope_let list * Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
   let scope_lets, new_ctx =
     List.fold_left
       (fun (scope_lets, ctx) rule ->
@@ -498,13 +498,12 @@ let translate_rules (ctx : ctx) (rules : Ast.rule list)
   in
   let scope_variables = Ast.ScopeVarMap.bindings new_ctx.scope_vars in
   let return_exp =
-    Bindlib.unbox
-      (Bindlib.box_apply
-         (fun args -> (Dcalc.Ast.ETuple (args, Some sigma_return_struct_name), pos_sigma))
-         (Bindlib.box_list
-            (List.map
-               (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
-               scope_variables)))
+    Bindlib.box_apply
+      (fun args -> (Dcalc.Ast.ETuple (args, Some sigma_return_struct_name), pos_sigma))
+      (Bindlib.box_list
+         (List.map
+            (fun (_, (dcalc_var, _)) -> Dcalc.Ast.make_var (dcalc_var, pos_sigma))
+            scope_variables))
   in
   (scope_lets, return_exp, new_ctx)
 
@@ -534,7 +533,8 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
         {
           Dcalc.Ast.scope_let_kind = Dcalc.Ast.DestructuringInputStruct;
           Dcalc.Ast.scope_let_var = (v, pos_sigma);
-          Dcalc.Ast.scope_let_typ = (tau, pos_sigma);
+          Dcalc.Ast.scope_let_typ =
+            (Dcalc.Ast.TArrow ((Dcalc.Ast.TLit TUnit, pos_sigma), (tau, pos_sigma)), pos_sigma);
           Dcalc.Ast.scope_let_expr =
             Bindlib.box_apply
               (fun r ->
@@ -577,7 +577,7 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
   in
   ( {
       Dcalc.Ast.scope_body_lets = input_destructurings @ rules;
-      Dcalc.Ast.scope_body_result = Bindlib.box return_exp;
+      Dcalc.Ast.scope_body_result = return_exp;
       Dcalc.Ast.scope_body_input_struct = scope_input_struct_name;
       Dcalc.Ast.scope_body_output_struct = scope_return_struct_name;
       Dcalc.Ast.scope_body_arg = scope_input_var;

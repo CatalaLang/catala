@@ -274,5 +274,5 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
         format_expr e' format_punctuation ")"
 
 let format_scope (ctx : decl_ctx) (fmt : Format.formatter) ((n, s) : Ast.ScopeName.t * scope_body) =
-  Format.fprintf fmt "@[<hov 2>let %a = %a@]" Ast.ScopeName.format_t n (format_expr ctx)
+  Format.fprintf fmt "@[<hov 2>let %a =@ %a@]" Ast.ScopeName.format_t n (format_expr ctx)
     (Bindlib.unbox (Ast.build_whole_scope_expr ctx s (Pos.get_position (Ast.ScopeName.get_info n))))
