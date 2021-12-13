@@ -43,3 +43,5 @@ val format_unop : Format.formatter -> Ast.unop Pos.marked -> unit
 val format_var : Format.formatter -> Ast.Var.t -> unit
 
 val format_expr : Ast.decl_ctx -> Format.formatter -> Ast.expr Pos.marked -> unit
+
+val format_scope : Ast.decl_ctx -> Format.formatter -> Ast.ScopeName.t * Ast.scope_body -> unit
