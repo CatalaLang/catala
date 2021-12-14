@@ -124,6 +124,33 @@ type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
+type binder = (expr, expr Pos.marked) Bindlib.binder
+
+type scope_let_kind =
+  | DestructuringInputStruct
+  | ScopeVarDefinition
+  | SubScopeVarDefinition
+  | CallingSubScope
+  | DestructuringSubScopeResults
+  | Assertion
+
+type scope_let = {
+  scope_let_var : expr Bindlib.var Pos.marked;
+  scope_let_kind : scope_let_kind;
+  scope_let_typ : typ Pos.marked;
+  scope_let_expr : expr Pos.marked Bindlib.box;
+}
+
+type scope_body = {
+  scope_body_lets : scope_let list;
+  scope_body_result : expr Pos.marked Bindlib.box;
+  scope_body_arg : expr Bindlib.var;
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
+}
+
+type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
+
 module Var = struct
   type t = expr Bindlib.var
 
@@ -154,11 +181,49 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
-let make_multiple_let_in (xs : Var.t array) (taus : typ Pos.marked list)
-    (e1 : expr Pos.marked Bindlib.box list) (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
-    expr Pos.marked Bindlib.box =
-  make_app (make_abs xs e2 pos taus pos) e1 pos
+let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
+  let body_expr =
+    List.fold_right
+      (fun scope_let acc ->
+        make_let_in
+          (Pos.unmark scope_let.scope_let_var)
+          scope_let.scope_let_typ scope_let.scope_let_expr acc
+          (Pos.get_position scope_let.scope_let_var))
+      body.scope_body_lets body.scope_body_result
+  in
+  make_abs
+    (Array.of_list [ body.scope_body_arg ])
+    body_expr pos_scope
+    [
+      ( TTuple
+          ( List.map snd (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
+            Some body.scope_body_input_struct ),
+        pos_scope );
+    ]
+    pos_scope
 
-type binder = (expr, expr Pos.marked) Bindlib.binder
+let build_scope_typ_from_sig (ctx : decl_ctx) (scope_input_struct_name : StructName.t)
+    (scope_return_struct_name : StructName.t) (pos : Pos.t) : typ Pos.marked =
+  let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
+  let scope_return_typ = StructMap.find scope_return_struct_name ctx.ctx_structs in
+  let result_typ = (TTuple (List.map snd scope_return_typ, Some scope_return_struct_name), pos) in
+  let input_typ = (TTuple (List.map snd scope_sig, Some scope_input_struct_name), pos) in
+  (TArrow (input_typ, result_typ), pos)
 
-type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * Var.t * expr Pos.marked) list }
+let build_whole_program_expr (p : program) (main_scope : ScopeName.t) =
+  let end_result =
+    make_var
+      (let _, x, _ =
+         List.find (fun (s_name, _, _) -> ScopeName.compare main_scope s_name = 0) p.scopes
+       in
+       (x, Pos.no_pos))
+  in
+  List.fold_right
+    (fun (scope_name, scope_var, scope_body) acc ->
+      let pos = Pos.get_position (ScopeName.get_info scope_name) in
+      make_let_in scope_var
+        (build_scope_typ_from_sig p.decl_ctx scope_body.scope_body_input_struct
+           scope_body.scope_body_output_struct pos)
+        (build_whole_scope_expr p.decl_ctx scope_body pos)
+        acc pos)
+    p.scopes end_result

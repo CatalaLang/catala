@@ -131,6 +131,41 @@ type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
 
 type decl_ctx = { ctx_enums : enum_ctx; ctx_structs : struct_ctx }
 
+type binder = (expr, expr Pos.marked) Bindlib.binder
+
+(** This kind annotation signals that the let-binding respects a structural invariant. These
+    invariants concern the shape of the expression in the let-binding, and are documented below. *)
+type scope_let_kind =
+  | DestructuringInputStruct  (** [let x = input.field]*)
+  | ScopeVarDefinition  (** [let x = error_on_empty e]*)
+  | SubScopeVarDefinition  (** [let s.x = fun _ -> e] *)
+  | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
+  | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
+  | Assertion  (** [let _ = assert e]*)
+
+type scope_let = {
+  scope_let_var : expr Bindlib.var Pos.marked;
+  scope_let_kind : scope_let_kind;
+  scope_let_typ : typ Pos.marked;
+  scope_let_expr : expr Pos.marked Bindlib.box;
+}
+(** A scope let-binding has all the information necessary to make a proper let-binding expression,
+    plus an annotation for the kind of the let-binding that comes from the compilation of a
+    {!module: Scopelang.Ast} statement. *)
+
+type scope_body = {
+  scope_body_lets : scope_let list;
+  scope_body_result : expr Pos.marked Bindlib.box;
+  scope_body_arg : expr Bindlib.var;
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
+}
+(** Instead of being a single expression, we give a little more ad-hoc structure to the scope body
+    by decomposing it in an ordered list of let-bindings, and a result expression that uses the
+    let-binded variables. *)
+
+type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
+
 (** {1 Variable helpers} *)
 
 module Var : sig
@@ -169,14 +204,12 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
-val make_multiple_let_in :
-  Var.t array ->
-  typ Pos.marked list ->
-  expr Pos.marked Bindlib.box list ->
-  expr Pos.marked Bindlib.box ->
-  Pos.t ->
-  expr Pos.marked Bindlib.box
+(** {1 AST manipulation helpers}*)
 
-type binder = (expr, expr Pos.marked) Bindlib.binder
+val build_whole_scope_expr : decl_ctx -> scope_body -> Pos.t -> expr Pos.marked Bindlib.box
+(** Usage: [build_whole_scope_expr ctx body scope_position] where [scope_position] corresponds to
+    the line of the scope declaration for instance. *)
 
-type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * Var.t * expr Pos.marked) list }
+val build_whole_program_expr : program -> ScopeName.t -> expr Pos.marked Bindlib.box
+(** Usage: [build_whole_program_expr program main_scope] builds an expression corresponding to the
+    main program and returning the main scope as a function. *)
