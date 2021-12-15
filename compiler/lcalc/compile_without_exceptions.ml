@@ -244,52 +244,94 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
 
     Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e)
 
-let translate_expr_toplevel (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box =
 
-  let same_pos e' = Pos.same_pos_as e' e in
-  match Pos.unmark e with
-  | D.ErrorOnEmpty arg ->
-    let pos = Pos.get_position arg in
-    let x = A.Var.make ("result", pos) in
-    let arg = translate_expr ctx arg in
+let translate_scope_let (ctx: ctx) (s: D.scope_let) : A.expr Bindlib.box =
 
-    let tau = (D.TAny, pos) in
+  let {
+    scope_let_var;
+    scope_let_kind;
+    scope_let_typ;
+    scope_let_expr;
+  } = s in
 
-    let e3 =
-      A.make_abs
-        (Array.of_list [ x ])
-        (let+ v = Bindlib.box_var x in (v, pos))
-        pos [ tau ] pos
-    and e1 = arg
-    and e2 =
-      A.make_abs
-        (Array.of_list [ x ])
-        (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
-        pos [ tau ] pos
-    in
+  (* I need to match on the expression. *)
+  let expr' : A.expr Bindlib.box =
+    let+ expr = scope_let_expr in
+    match scope_let_kind, scope_let_typ, expr with
+    | ScopeVarDefinition, typ, D.ErrorOnEmpty arg ->
+      (* ~> match [| arg |] with None -> raise NoValueProvided | Some x -> x *)
+      let pos = Pos.get_position arg in
+      let x = A.Var.make ("result", pos) in
+      let arg = translate_expr ctx arg in
 
-    A.make_matchopt e1 e2 e3
+      let tau = (D.TAny, pos) in
 
-  | _ ->
-    let s = (match Pos.unmark e with
-    | D.EVar _ -> Printf.sprintf "EVar"
-    | D.ETuple _ -> Printf.sprintf "ETuple"
-    | D.ETupleAccess _ -> Printf.sprintf "ETupleAccess"
-    | D.EInj _ -> Printf.sprintf "EInj"
-    | D.EMatch _ -> Printf.sprintf "EMatch"
-    | D.EArray _ -> Printf.sprintf "EArray"
-    | D.ELit _ -> Printf.sprintf "ELit"
-    | D.EAbs _ -> Printf.sprintf "EAbs"
-    | D.EApp _ -> Printf.sprintf "EApp"
-    | D.EAssert _ -> Printf.sprintf "EAssert"
-    | D.EOp _ -> Printf.sprintf "EOp"
-    | D.EIfThenElse _ -> Printf.sprintf "EIfThenElse"
-    | D.ErrorOnEmpty _ -> Printf.sprintf "ErrorOnEmpty"
-    | D.EDefault _ -> Printf.sprintf "EDefault") in
-    Errors.raise_spanned_error (Printf.sprintf "Internal error: Found %s different to Error on empty at the toplevel when compiling using the --avoid_exception option." s) (Pos.get_position e)
+      let e3 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (let+ v = Bindlib.box_var x in (v, pos))
+          pos [ tau ] pos
+      and e1 = arg
+      and e2 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
+          pos [ tau ] pos
+      in
+
+      A.make_matchopt e1 e2 e3
+
+    | Assertion, typ, expr ->
+      let pos = Pos.get_position arg in
+      let x = A.Var.make ("result", pos) in
+      let arg = translate_expr ctx expr in
+
+      let tau = (D.TAny, pos) in
+
+      let e3 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (let+ v = Bindlib.box_var x in (v, pos))
+          pos [ tau ] pos
+      and e1 = arg
+      and e2 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
+          pos [ tau ] pos
+      in
+
+      A.make_matchopt e1 e2 e3
+
+    | SubScopeVarDefinition, typ, expr ->
+      assert false
+
+    | DestructuringInputStruct, typ, expr ->
+      assert false
+
+    | DestructuringSubScopeResults, typ, expr ->
+      assert false
+
+    | CallingSubScope, typ, expr ->
+      assert false
+
+    
+
+
+    | kind, typ, expr ->
+      Errors.raise_spanned_error (Printf.sprintf "Internal error: Found %s different to Error on empty at the toplevel when compiling using the --avoid_exception option." s) (Pos.get_position e)
+  in
+
+  expr'
+
+let translate_scope_body (ctx: ctx) (s: D.scope_body): A.expr = assert false
+
+
+
 let translate_program (prgm : D.program) : A.program =
 {
     scopes =
+    (* todo: réécrire *)
       (let acc, _ =
          List.fold_left
            (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (_, n, e) ->
