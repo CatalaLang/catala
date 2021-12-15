@@ -16,10 +16,8 @@ open Utils
 module D = Dcalc.Ast
 module A = Ast
 
-type ctx = {
-  env: A.expr Pos.marked Bindlib.box D.VarMap.t;
-  env_pure: bool D.VarMap.t; (* true if it is pure (without opt) *)
-}
+type info = {boxed_expr: A.expr Pos.marked Bindlib.box; var: A.expr Bindlib.var; is_pure: bool}
+type ctx = info D.VarMap.t 
 
 let translate_lit (l : D.lit) : A.expr =
   let build lit =
@@ -70,14 +68,11 @@ and translate_binder (ctx: ctx) ((binder, pos_binder): (D.expr, D.expr Pos.marke
   let vars, body = Bindlib.unmbind binder in
   let ctx, lc_vars =
     Array.fold_right
-      (fun var (ctx, lc_vars) ->
+      begin fun var (ctx, lc_vars) ->
         let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
         let lc_var_expr = A.make_var (lc_var, pos_binder) in
-        let new_ctx = {
-          env=D.VarMap.add var lc_var_expr ctx.env;
-          env_pure=D.VarMap.add var false ctx.env_pure;
-        } in
-        (new_ctx, lc_var :: lc_vars))
+        let new_ctx = D.VarMap.add var {boxed_expr=lc_var_expr; is_pure= false; var= lc_var} ctx in
+        (new_ctx, lc_var :: lc_vars) end
       vars (ctx, [])
   in
   let lc_vars = Array.of_list lc_vars in
@@ -89,11 +84,13 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   let same_pos e' = Pos.same_pos_as e' e in
   match Pos.unmark e with
   | D.EVar v ->
-    (if D.VarMap.find (Pos.unmark v) ctx.env_pure then
+
+    let info = D.VarMap.find (Pos.unmark v) ctx in
+    (if info.is_pure then
       A.make_some
     else
       Fun.id)
-    (D.VarMap.find (Pos.unmark v) ctx.env)
+    info.boxed_expr
   | D.ETuple (args, s) ->
       let+ args = Bindlib.box_list (List.map (translate_expr ctx) args) in
       Pos.same_pos_as (A.ETuple (args, s)) e
@@ -245,20 +242,20 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e)
 
 
-let translate_scope_let (ctx: ctx) (s: D.scope_let) : A.expr Bindlib.box =
+let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Bindlib.box =
 
-  let {
-    scope_let_var;
-    scope_let_kind;
-    scope_let_typ;
-    scope_let_expr;
-  } = s in
+  match s with {
+    D.scope_let_var = var;
+    D.scope_let_kind = kind;
+    D.scope_let_typ = typ;
+    D.scope_let_expr = expr;
+  } ->
 
   (* I need to match on the expression. *)
   let expr' : A.expr Bindlib.box =
-    let+ expr = scope_let_expr in
-    match scope_let_kind, scope_let_typ, expr with
-    | ScopeVarDefinition, typ, D.ErrorOnEmpty arg ->
+    let+ expr = expr in
+    match kind, typ, expr with
+    | ScopeVarDefinition, typ, (D.ErrorOnEmpty arg, pos) -> begin
       (* ~> match [| arg |] with None -> raise NoValueProvided | Some x -> x *)
       let pos = Pos.get_position arg in
       let x = A.Var.make ("result", pos) in
@@ -280,8 +277,8 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : A.expr Bindlib.box =
       in
 
       A.make_matchopt e1 e2 e3
-
-    | Assertion, typ, expr ->
+    end
+    | Assertion, typ, expr -> begin
       let pos = Pos.get_position arg in
       let x = A.Var.make ("result", pos) in
       let arg = translate_expr ctx expr in
@@ -302,9 +299,22 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : A.expr Bindlib.box =
       in
 
       A.make_matchopt e1 e2 e3
+    end
+    | SubScopeVarDefinition, typ, (D.EAbs ((binder, pos), tau), pos) ->
+      begin
+      let v, body = Bindlib.unbind binder in
 
-    | SubScopeVarDefinition, typ, expr ->
-      assert false
+      let _ = 1 +. 2.0 in
+      let body' =
+        let+ body = body in
+        translate_expr ctx body
+      in
+
+      (* there is no need to add the binded var to the context since we know it is thunked *)
+
+
+      A.make_abs (Array.of_list [v] body') body' [D.TAny, pos] pos
+    end
 
     | DestructuringInputStruct, typ, expr ->
       assert false
@@ -322,33 +332,90 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : A.expr Bindlib.box =
       Errors.raise_spanned_error (Printf.sprintf "Internal error: Found %s different to Error on empty at the toplevel when compiling using the --avoid_exception option." s) (Pos.get_position e)
   in
 
-  expr'
+  (expr', ctx)
 
-let translate_scope_body (ctx: ctx) (s: D.scope_body): A.expr = assert false
+let void = assert false
 
+(* let translate_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
+  let body_expr =
+    List.fold_right
+      (fun scope_let acc ->
+        make_let_in
+          (Pos.unmark scope_let.scope_let_var)
+          scope_let.scope_let_typ scope_let.scope_let_expr acc
+          (Pos.get_position scope_let.scope_let_var))
+      body.scope_body_lets body.scope_body_result
+  in
+  make_abs
+    (Array.of_list [ body.scope_body_arg ])
+    body_expr pos_scope
+    [
+      ( TTuple
+          ( List.map snd (StructMap.find body.scope_body_input_struct ctx.ctx_structs),
+            Some body.scope_body_input_struct ),
+        pos_scope );
+    ]
+    pos_scope *)
+
+let translate_scope_body (ctx: ctx) (s: D.scope_body): A.expr Pos.marked Bindlib.box =
+match s with {
+  D.scope_body_lets=lets;
+  D.scope_body_result=result;
+  D.scope_body_arg=arg;
+  D.scope_body_input_struct=input_struct;
+  D.scope_body_output_struct=output_struct;
+} -> begin
+  (* first we add to the input the ctx *)
+  let ctx = add_pure ctx arg in
+
+  (* then, we compute the lets bindings and modification to the ctx *)
+  (* todo: once we update to ocaml 4.11, use fold_left_map instead of fold_left + List.rev *)
+  let ctx, acc = ListLabels.fold_left lets
+    ~init:(ctx, [])
+    ~f:begin fun (ctx, acc) (s: D.scope_let) ->
+      let ctx, e = translate_scope_let ctx s in
+      (ctx, (s.scope_let_var, D.TAny, e)::acc)
+    end
+  in
+  let acc = List.rev acc in
+
+  (* we now have the context for the final transformation: the result *)
+  (* todo: alaid, result is boxed and hence incompatible with translate_expr... *)
+  let result = translate_expr ctx (Bindlib.unbox result) in
+
+  (* finally, we can recombine everything using nested let ... = ... in *)
+  let body =
+    ListLabels.fold_left acc
+    ~init:result
+    ~f:(fun (body: (A.expr * Pos.t) Bindlib.box) (v, tau, e) -> 
+      A.make_let_in (D.VarMap.find v ctx).var tau e body
+    )
+  in
+  void
+end
 
 
 let translate_program (prgm : D.program) : A.program =
-{
-    scopes =
-    (* todo: réécrire *)
-      (let acc, _ =
-         List.fold_left
-           (fun ((acc, ctx) : 'a * A.Var.t D.VarMap.t) (_, n, e) ->
-             let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
-             let new_acc =
-               ( new_n,
-                 Bindlib.unbox
-                   (translate_expr_toplevel {
-                    env=D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx;
-                    env_pure=D.VarMap.map (fun _ -> true) ctx } e) )
-               :: acc
-             in
-             let new_ctx = D.VarMap.add n new_n ctx in
-             (new_acc, new_ctx))
-           ([], D.VarMap.empty) prgm.scopes
-       in
-       List.rev acc);
+  let new_scopes = (prgm.scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list)
+    |> ListLabels.fold_left
+      ~init:([], D.VarMap.empty)
+      ~f:begin fun (acc, ctx) (_, n, e) ->
+        let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
+        let env: ctx = {
+          env=D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx;
+          env_pure=D.VarMap.map (fun _ -> true) ctx
+          } in
+        let new_e = translate_scope_body env e in
+        let new_acc = (new_n, Bindlib.unbox new_e) :: acc in
+        let new_ctx = D.VarMap.add n new_n ctx in
+
+        (new_acc, new_ctx)
+      end
+    |> fst
+    |> List.rev
+  in
+  {
+    scopes = new_scopes;
     decl_ctx =
       {
         ctx_enums = prgm.decl_ctx.ctx_enums |> D.EnumMap.add A.option_enum A.option_enum_config;
