@@ -3,7 +3,7 @@
  (public_name catala.dcalc)
  (libraries bindlib unionFind utils re camomile runtime)
  (preprocess
-  (pps visitors.ppx)))
+  (pps visitors.ppx ppx_deriving.show)))
 
 (documentation
  (package catala)

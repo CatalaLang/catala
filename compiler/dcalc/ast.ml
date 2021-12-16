@@ -33,6 +33,7 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
+[@@ deriving show]
 
 type struct_name = StructName.t
 
@@ -40,11 +41,12 @@ type enum_name = EnumName.t
 
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list * struct_name option
-  | TEnum of typ Pos.marked list * enum_name
+  | TTuple of typ Pos.marked list * (struct_name [@opaque]) option
+  | TEnum of typ Pos.marked list * (enum_name [@opaque])
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
+[@@ deriving show]
 
 type date = Runtime.date
 
@@ -66,9 +68,12 @@ type lit =
   | LDate of date
   | LDuration of duration
 
+
 type op_kind = KInt | KRat | KMoney | KDate | KDuration
+[@@ deriving show]
 
 type ternop = Fold
+[@@ deriving show]
 
 type binop =
   | And
@@ -87,36 +92,41 @@ type binop =
   | Map
   | Concat
   | Filter
+[@@ deriving show]
 
 type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
+[@@ deriving show]
 
 type unop =
   | Not
   | Minus of op_kind
-  | Log of log_entry * (Utils.Uid.MarkedString.info list[@opaque])
+  | Log of log_entry * (Utils.Uid.MarkedString.info list [@opaque])
   | Length
   | IntToRat
   | GetDay
   | GetMonth
   | GetYear
+[@@ deriving show]
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
+[@@ deriving show]
 
 type expr =
-  | EVar of (expr Bindlib.var[@opaque]) Pos.marked
-  | ETuple of expr Pos.marked list * struct_name option
-  | ETupleAccess of expr Pos.marked * int * struct_name option * typ Pos.marked list
-  | EInj of expr Pos.marked * int * enum_name * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list * enum_name
+  | EVar of (expr Bindlib.var [@opaque]) Pos.marked
+  | ETuple of expr Pos.marked list * (struct_name [@opaque]) option
+  | ETupleAccess of expr Pos.marked * int * (struct_name [@opaque]) option * typ Pos.marked list
+  | EInj of expr Pos.marked * int * (enum_name [@opaque]) * typ Pos.marked list
+  | EMatch of expr Pos.marked * expr Pos.marked list * (enum_name [@opaque])
   | EArray of expr Pos.marked list
-  | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
+  | ELit of (lit [@opaque])
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
+[@@ deriving show]
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

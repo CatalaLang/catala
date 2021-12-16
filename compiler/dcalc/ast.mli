@@ -124,6 +124,7 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
+[@@deriving show]
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

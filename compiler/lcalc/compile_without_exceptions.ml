@@ -248,6 +248,44 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
     Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e)
 
 
+let rec translate_scope_vardefinition ctx expr: A.expr Pos.marked Bindlib.box =
+  match expr with
+
+  | D.ErrorOnEmpty arg, pos_expr ->
+  begin
+    (* ~> match [| arg |] with None -> raise NoValueProvided | Some x -> x *)
+    let pos_arg = Pos.get_position arg in
+    let x = A.Var.make ("result", pos_arg) in
+    let arg = translate_expr ctx arg in
+
+    let tau = (D.TAny, pos_arg) in
+
+    let e3 =
+      A.make_abs
+        (Array.of_list [ x ])
+        (let+ v = Bindlib.box_var x in (v, pos_arg))
+        pos_arg [ tau ] pos_arg
+    and e1 = arg
+    and e2 =
+      A.make_abs
+        (Array.of_list [ x ])
+        (Bindlib.box @@ (A.ERaise A.NoValueProvided, pos_expr))
+        pos_arg [ tau ] pos_arg
+    in
+
+    A.make_matchopt e1 e2 e3
+  end
+
+  | D.EApp((D.EOp (D.Unop (D.Log (le, l))), pos_log), [e']), pos ->
+
+    let+ e' = translate_scope_vardefinition ctx e' in
+    A.EApp((A.EOp (D.Unop (D.Log (le, l))), pos_log), [e']), pos
+
+  | (expr, pos) ->
+
+    Errors.raise_spanned_error (Printf.sprintf "Internal error: Found unexpected expression when compiling an expression using the --avoid_exception option. ''Full'' term: %s" (D.show_expr expr)) pos
+
+
 let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Pos.marked Bindlib.box =
 
   match s with {
@@ -263,29 +301,8 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Pos.marked Bi
 
     let same_pos e' = Pos.same_pos_as e' expr in
     match kind, typ, expr with
-    | ScopeVarDefinition, _typ, (D.ErrorOnEmpty arg, _pos) -> begin
-      (* ~> match [| arg |] with None -> raise NoValueProvided | Some x -> x *)
-      let pos = Pos.get_position arg in
-      let x = A.Var.make ("result", pos) in
-      let arg = translate_expr ctx arg in
-
-      let tau = (D.TAny, pos) in
-
-      let e3 =
-        A.make_abs
-          (Array.of_list [ x ])
-          (let+ v = Bindlib.box_var x in (v, pos))
-          pos [ tau ] pos
-      and e1 = arg
-      and e2 =
-        A.make_abs
-          (Array.of_list [ x ])
-          (Bindlib.box @@ same_pos @@ A.ERaise A.NoValueProvided)
-          pos [ tau ] pos
-      in
-
-      A.make_matchopt e1 e2 e3
-    end
+    | ScopeVarDefinition, _typ, expr -> 
+      translate_scope_vardefinition ctx expr
     | Assertion, _typ, expr -> begin
       let pos = Pos.get_position expr in
       let x = A.Var.make ("result", pos) in
@@ -332,7 +349,7 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Pos.marked Bi
     
 
 
-    | kind, _typ, _expr ->
+    | kind, _typ, (expr, pos) ->
 
       let kind_s = match kind with
       | ScopeVarDefinition -> "ScopeVarDefinition"
@@ -341,8 +358,25 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Pos.marked Bi
       | DestructuringInputStruct -> "DestructuringInputStruct"
       | DestructuringSubScopeResults -> "DestructuringSubScopeResults"
       | CallingSubScope -> "CallingSubScope" in
+
+      let expr_s =  match expr with
+      | EVar _ -> "EVar"
+      | ETuple _ -> "ETuple"
+      | ETupleAccess _ -> "ETupleAccess"
+      | EInj _ -> "EInj"
+      | EMatch _ -> "EMatch"
+      | EArray _ -> "EArray"
+      | ELit _ -> "ELit"
+      | EAbs _ -> "EAbs"
+      | EApp _ -> "EApp"
+      | EAssert _ -> "EAssert"
+      | EOp _ -> "EOp"
+      | EDefault _ -> "EDefault"
+      | EIfThenElse _ -> "EIfThenElse"
+      | ErrorOnEmpty _ -> "ErrorOnEmpty"
+      in
  
-      Errors.raise_spanned_error (Printf.sprintf "Internal error: Found %s different to Error on empty at the toplevel when compiling using the --avoid_exception option." kind_s) (Pos.get_position expr)
+      Errors.raise_spanned_error (Printf.sprintf "Internal error: Found unexpected %s when compiling an expression containing %s using the --avoid_exception option. ''Full'' term: %s" kind_s expr_s (D.show_expr expr)) pos
   in
 
   let is_pure = match kind with
@@ -391,7 +425,7 @@ match s with {
     ListLabels.fold_left acc
     ~init:result
     ~f:(fun (body: (A.expr * Pos.t) Bindlib.box) ((v, pos), tau, e) ->
-      A.make_let_in (D.VarMap.find v ctx).var (tau, pos) e body
+      A.make_let_in (D.VarMap.find v ctx2).var (tau, pos) e body
     )
   in
   
@@ -414,7 +448,7 @@ let translate_program (prgm : D.program) : A.program =
           {expr; var=new_var; is_pure=true}
         ) ctx in
 
-        let new_n = (D.VarMap.find n env).var in
+        let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
         let new_e = translate_scope_body env e in
 
         let new_acc = (new_n, Bindlib.unbox new_e) :: acc in

@@ -18,6 +18,7 @@
 , js_of_ocaml-ppx
 , camomile
 , cppo
+, ppx_deriving
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -48,6 +49,8 @@ buildDunePackage rec {
     js_of_ocaml-ppx
     camomile
     cppo
+
+    ppx_deriving
 
     unionfind
     bindlib
