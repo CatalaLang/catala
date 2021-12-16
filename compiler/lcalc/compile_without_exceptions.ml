@@ -329,6 +329,15 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let) : ctx * A.expr Pos.marked Bi
       begin
       let vs, body = Bindlib.unmbind binder in
 
+      (* we need to add them to the context momentally *)
+
+      let ctx = ArrayLabels.fold_left vs
+        ~init:ctx
+        ~f:(fun ctx (v: D.expr Bindlib.var) ->
+          add_var pos_binder v false ctx 
+          )
+      in
+
       let vs' = Array.map (fun v -> (D.VarMap.find v ctx).var) vs in
 
       let body' = translate_expr ctx body in
