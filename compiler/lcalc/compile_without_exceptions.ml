@@ -243,9 +243,35 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
-  | D.ErrorOnEmpty _ ->
+  | D.ErrorOnEmpty arg ->
 
-    Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e)
+    (* we need to be carefull on this one *)
+
+    begin
+      (* ~> match [| arg |] with None -> raise NoValueProvided | Some x -> x *)
+      let pos_arg = Pos.get_position arg in
+      let x = A.Var.make ("result", pos_arg) in
+      let arg = translate_expr ctx arg in
+  
+      let tau = (D.TAny, pos_arg) in
+  
+      let e3 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (let+ v = Bindlib.box_var x in (v, pos_arg))
+          pos_arg [ tau ] pos_arg
+      and e1 = arg
+      and e2 =
+        A.make_abs
+          (Array.of_list [ x ])
+          (Bindlib.box @@ (A.ERaise A.NoValueProvided, Pos.get_position e))
+          pos_arg [ tau ] pos_arg
+      in
+  
+      A.make_some @@ A.make_matchopt e1 e2 e3
+    end
+
+    (* Errors.raise_spanned_error "Internal error: Error on empty found in incorrect place when compiling using the --avoid_exception option." (Pos.get_position e) *)
 
 
 let rec translate_scope_vardefinition ctx expr: A.expr Pos.marked Bindlib.box =
