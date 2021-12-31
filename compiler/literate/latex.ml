@@ -25,15 +25,11 @@ module C = Cli
 
 (** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) =
-  let percent = R.regexp "%" in
-  let s = R.substitute ~rex:percent ~subst:(fun _ -> "\\%") s in
-  let dollar = R.regexp "\\$" in
-  let s = R.substitute ~rex:dollar ~subst:(fun _ -> "\\$") s in
-  let premier = R.regexp "1er" in
-  let s = R.substitute ~rex:premier ~subst:(fun _ -> "1\\textsuperscript{er}") s in
-  let underscore = R.regexp "\\_" in
-  let s = R.substitute ~rex:underscore ~subst:(fun _ -> "\\_") s in
-  s
+  let substitute s (old_s, new_s) = R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s in
+  List.fold_left substitute s
+    [
+      ("\\$", "\\$"); ("%", "\\%"); ("\\_", "\\_"); ("\\#", "\\#"); ("1er", "1\\textsuperscript{er}");
+    ]
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
