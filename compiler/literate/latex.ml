@@ -24,12 +24,17 @@ module C = Cli
 (** {1 Helpers} *)
 
 (** Espaces various LaTeX-sensitive characters *)
-let pre_latexify (s : string) =
+let pre_latexify (s : string) : string =
   let substitute s (old_s, new_s) = R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s in
-  List.fold_left substitute s
-    [
-      ("\\$", "\\$"); ("%", "\\%"); ("\\_", "\\_"); ("\\#", "\\#"); ("1er", "1\\textsuperscript{er}");
-    ]
+  [
+    ("\\$", "\\$");
+    ("%", "\\%");
+    ("\\_", "\\_");
+    ("\\#", "\\#");
+    ("1er", "1\\textsuperscript{er}");
+    ("\\^", "\\textasciicircum");
+  ]
+  |> List.fold_left substitute s
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
@@ -37,11 +42,11 @@ let pre_latexify (s : string) =
 let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) =
   Format.fprintf fmt
-    "\\documentclass[11pt, a4paper]{article}\n\n\
+    "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
      \\usepackage[T1]{fontenc}\n\
      \\usepackage[utf8]{inputenc}\n\
      \\usepackage{amssymb}\n\
-     \\usepackage[%s]{babel}\n\
+     \\usepackage{babel}\n\
      \\usepackage{lmodern}\n\
      \\usepackage{minted}\n\
      \\usepackage{newunicodechar}\n\
@@ -139,7 +144,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
         (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
         file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
+  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t |> math_syms_replace)
   | A.CodeBlock (_, c, false) ->
       Format.fprintf fmt
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
