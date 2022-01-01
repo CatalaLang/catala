@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="120"/>
   <h3 align="center">
-	Catala
+	<big>Catala</big>
   </h3>
   <p align="center">
    <a href="https://catala-lang.org/ocaml_docs/"><strong>Explore the docs »</strong></a>
@@ -16,7 +16,7 @@
   </p>
 
 ![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
-	
+
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official

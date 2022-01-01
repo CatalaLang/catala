@@ -5,6 +5,8 @@ to locate your own Catala programs in this directory, since programs in this
 directory will receive first-class support during the alpha and beta stage
 of the Catala programming language development.
 
+<strong>[Browse examples online »](https://catala-lang.org/en/examples)</strong>
+
 ## List of examples
 
 - `allocations_familiales/`: computation of the French family benefits, based
@@ -41,6 +43,8 @@ file `examples/foo/foo.catala_en`) list.
 
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
+
+> **Remark**: don't forget to run `make pygments` before generating LaTex or PDF files.
 
 ## Testing examples
 
