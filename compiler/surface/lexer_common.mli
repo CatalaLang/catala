@@ -32,8 +32,8 @@ val raise_lexer_error : Utils.Pos.t -> string -> 'a
 (** Error-generating helper *)
 
 val token_list_language_agnostic : (string * Tokens.token) list
-(** Associative list matching each punctuation string part of the Catala syntax with its {!module:
-    Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
+(** Associative list matching each punctuation string part of the Catala syntax with its
+    {!Surface.Parser} token. Same for all the input languages (English, French, etc.) *)
 
 val calc_precedence : string -> int
 (** Calculates the precedence according a matched regex of the form : '[#]+' *)
@@ -43,8 +43,8 @@ val get_law_heading : Sedlexing.lexbuf -> Tokens.token
 
 module type LocalisedLexer = sig
   val token_list : (string * Tokens.token) list
-  (** Same as {!val: token_list_language_agnostic}, but with tokens whose string varies with the
-      input language. *)
+  (** Same as {!val: Surface.Lexer_common.token_list_language_agnostic}, but with tokens whose
+      string varies with the input language. *)
 
   val lex_builtin : string -> Ast.builtin_expression option
   (** Simple lexer for builtins *)
@@ -56,6 +56,6 @@ module type LocalisedLexer = sig
   (** Main lexing function used outside code blocks *)
 
   val lexer : Sedlexing.lexbuf -> Tokens.token
-  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
-      {!val: is_code}. *)
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law} depending of the
+      current {!val: Surface.Lexer_common.context}. *)
 end
