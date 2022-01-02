@@ -25,5 +25,5 @@ are eliminated in favor of tagged unions.
 
 Related modules:
 
-{!modules: Lcalc.To_python}
+{!modules: Scalc.To_python}
 

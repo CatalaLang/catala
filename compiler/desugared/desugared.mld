@@ -1,9 +1,9 @@
 {0 Desugared representation }
 
-This representation is the second in the compilation chain 
-(see {{: index.html#architecture} Architecture}). Its main difference 
-with {{: surface.html} the surface representation} is that the legislative 
-text has been discarded and all the definitions of each variables have been 
+This representation is the second in the compilation chain
+(see {{: index.html#architecture} Architecture}). Its main difference
+with {{: surface.html} the surface representation} is that the legislative
+text has been discarded and all the definitions of each variables have been
 collected in the same place rather than being scattered across the code base.
 
 The module describing the abstract syntax tree is:
@@ -18,13 +18,13 @@ Related modules:
 
 Before the translation to the {{: scopelang.html} scope language},
 {!module: Desugared.Dependency} checks that within
-a scope, there is no computational circular dependency between the variables 
+a scope, there is no computational circular dependency between the variables
 of the scope. When the dependency graph is a DAG,
-{!module: Desugared.Desugared_to_scope} performs a topological ordering to 
-produce an ordered list of the scope definitions compatible with the 
-computation order. All the graph computations are done using the 
+{!module: Desugared.Desugared_to_scope} performs a topological ordering to
+produce an ordered list of the scope definitions compatible with the
+computation order. All the graph computations are done using the
 {{:http://ocamlgraph.lri.fr/} Ocamlgraph} library.
 
 The other important piece of work performed by
 {!module: Desugared.Desugared_to_scope} is the construction of the default trees
-(see {!constructor: Dcalc.Ast.EDefault}) from the list of prioritized rules.
+(see {!Dcalc.Ast.EDefault}) from the list of prioritized rules.

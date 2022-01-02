@@ -26,7 +26,7 @@ certified.
 
 Related modules:
 
-{!modules: Lcalc.To_ocaml Lcalc.To_python Lcalc.Backends}
+{!modules: Lcalc.To_ocaml Scalc.To_python Lcalc.Backends}
 
 The OCaml backend of the lambda calculus is merely a syntactic formatting,
 since the core of the OCaml value language is effectively a lambda calculus.

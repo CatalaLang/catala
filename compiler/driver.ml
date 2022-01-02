@@ -19,7 +19,7 @@ module Pos = Utils.Pos
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = [ ("en", Cli.En); ("fr", Cli.Fr); ("pl", Cli.Pl) ]
 
-(** Associates a file extension with its corresponding {!type: Cli.frontend_lang} string
+(** Associates a file extension with its corresponding {!type: Cli.backend_lang} string
     representation. *)
 let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl") ]
 
