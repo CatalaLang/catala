@@ -27,7 +27,8 @@ type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleNam
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
-  label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
+  label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
+  label_groups : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t;
 }
 
 type scope_context = {
@@ -139,6 +140,12 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
      the original subscope *)
   | Desugared.Ast.ScopeDef.Var x ->
       is_var_cond ctxt x
+
+let label_groups (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t)
+    (def : Desugared.Ast.ScopeDef.t) : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
+  (Desugared.Ast.ScopeDefMap.find def
+     (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
+    .label_groups
 
 (** {1 Declarations pass} *)
 
@@ -474,6 +481,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                                    definition key *)
                                 default_exception_rulename = None;
                                 label_idmap = Desugared.Ast.IdentMap.empty;
+                                label_groups = Desugared.Ast.LabelMap.empty;
                               }
                             ~some:(fun x -> x)
                             def_key_ctx
@@ -483,28 +491,17 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                         let def_key_ctx =
                           match d.Ast.definition_label with
                           | None -> def_key_ctx
-                          | Some label -> (
-                              match
-                                Desugared.Ast.IdentMap.find_opt (Pos.unmark label)
-                                  def_key_ctx.label_idmap
-                              with
-                              | Some existing_label ->
-                                  Errors.raise_multispanned_error
-                                    "This label has already been given to another rule, please \
-                                     pick a new one since labels should be unique."
-                                    [
-                                      (Some "Duplicate label:", Pos.get_position label);
-                                      ( Some "Existing rule with same label:",
-                                        Pos.get_position
-                                          (Desugared.Ast.RuleName.get_info existing_label) );
-                                    ]
-                              | None ->
-                                  {
-                                    def_key_ctx with
-                                    label_idmap =
-                                      Desugared.Ast.IdentMap.add (Pos.unmark label)
-                                        d.Ast.definition_id def_key_ctx.label_idmap;
-                                  })
+                          | Some label ->
+                              {
+                                def_key_ctx with
+                                label_idmap =
+                                  Desugared.Ast.IdentMap.update (Pos.unmark label)
+                                    (fun existing_label ->
+                                      match existing_label with
+                                      | Some existing_label -> Some existing_label
+                                      | None -> Some (Desugared.Ast.LabelName.fresh label))
+                                    def_key_ctx.label_idmap;
+                              }
                         in
                         (* And second, we update the map of default rulenames for unlabeled
                            exceptions *)
@@ -551,11 +548,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                                   | None ->
                                       {
                                         def_key_ctx with
-                                        default_exception_rulename =
-                                          Some
-                                            (Unique
-                                               (Desugared.Ast.RuleName.fresh
-                                                  (Pos.same_pos_as "default" d.definition_name)));
+                                        default_exception_rulename = Some (Unique d.definition_id);
                                       }))
                         in
                         Some def_key_ctx)

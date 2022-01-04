@@ -878,19 +878,18 @@ let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option
 
 (** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
 let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t Pos.marked)
+    (def_key : Desugared.Ast.ScopeDef.t Pos.marked) (rule_id : Desugared.Ast.RuleName.t)
     (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (exception_to_rule : Desugared.Ast.RuleName.t Pos.marked option)
-    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
-    Desugared.Ast.rule =
+    (exception_to_rules : Pos.t Desugared.Ast.RuleMap.t) (just : Ast.expression Pos.marked option)
+    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
   let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
   let just = merge_conditions precond just (Pos.get_position def_key) in
   let cons = translate_expr scope ctxt cons in
   {
-    just;
-    cons;
-    parameter =
+    rule_just = just;
+    rule_cons = cons;
+    rule_parameter =
       (let def_key_typ = Name_resolution.get_def_typ ctxt (Pos.unmark def_key) in
        match (Pos.unmark def_key_typ, param_uid) with
        | Scopelang.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
@@ -903,7 +902,8 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
              "This definition has a parameter but its type is not a function"
              (Pos.get_position (Bindlib.unbox cons))
        | _ -> None);
-    exception_to_rule;
+    rule_exception_to_rules = exception_to_rules;
+    rule_id;
   }
 
 (** Wrapper around {!val: process_default} that performs some name disambiguation *)
@@ -926,76 +926,54 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
         (Some (Pos.same_pos_as param_var param), ctxt)
   in
   let scope_updated =
-    let x_def, x_type, is_cond =
+    let scope_def =
       match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
       | Some def -> def
       | None ->
-          ( Desugared.Ast.RuleMap.empty,
-            Name_resolution.get_def_typ ctxt def_key,
-            Name_resolution.is_def_cond ctxt def_key )
+          {
+            scope_def_rules = Desugared.Ast.RuleMap.empty;
+            scope_def_typ = Name_resolution.get_def_typ ctxt def_key;
+            scope_def_is_condition = Name_resolution.is_def_cond ctxt def_key;
+            scope_def_label_groups = Name_resolution.label_groups ctxt scope_uid def_key;
+          }
     in
-    let rule_name =
-      match def.Ast.definition_label with
-      | None -> None
-      | Some label ->
-          Some (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap)
-    in
-    let rule_name =
-      match rule_name with
-      | Some x -> x
-      | None ->
-          Desugared.Ast.RuleName.fresh
-            (match def.definition_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  def.definition_name
-            | Some label -> label)
-    in
-    let is_exception (def : Ast.definition) =
-      match def.Ast.definition_exception_to with NotAnException -> false | _ -> true
-    in
-    (* If we had previously defined a rulename for this default definition during the elaboration of
-       default exceptions, this trumps the newly generated name. *)
-    let rule_name =
-      if is_exception def then rule_name
-      else
-        match scope_def_ctxt.default_exception_rulename with
-        | None | Some (Name_resolution.Ambiguous _) -> rule_name
-        | Some (Name_resolution.Unique x) -> x
-    in
-    let parent_rule =
+    let rule_name = def.definition_id in
+    let parent_rules =
       match def.Ast.definition_exception_to with
-      | NotAnException -> None
-      | UnlabeledException ->
-          Some
-            (match scope_def_ctxt.default_exception_rulename with
-            (* This should have been caught previously by check_unlabeled_exception *)
-            | None | Some (Name_resolution.Ambiguous _) -> assert false
-            | Some (Name_resolution.Unique name) -> Pos.same_pos_as name def.Ast.definition_name)
-      | ExceptionToLabel label ->
-          Some
-            (try
-               Pos.same_pos_as
+      | NotAnException -> Desugared.Ast.RuleMap.empty
+      | UnlabeledException -> (
+          match scope_def_ctxt.default_exception_rulename with
+          (* This should have been caught previously by check_unlabeled_exception *)
+          | None | Some (Name_resolution.Ambiguous _) -> assert false
+          | Some (Name_resolution.Unique name) ->
+              Desugared.Ast.RuleMap.singleton name (Pos.get_position def.Ast.definition_name))
+      | ExceptionToLabel label -> (
+          try
+            Desugared.Ast.RuleSet.fold
+              (fun parent_rule (acc : Pos.t Desugared.Ast.RuleMap.t) ->
+                Desugared.Ast.RuleMap.add parent_rule (Pos.get_position label) acc)
+              (Desugared.Ast.LabelMap.find
                  (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap)
-                 label
-             with Not_found ->
-               Errors.raise_spanned_error
-                 (Format.asprintf "Unknown label for the scope variable %a: \"%s\""
-                    Desugared.Ast.ScopeDef.format_t def_key (Pos.unmark label))
-                 (Pos.get_position label))
+                 scope_def.scope_def_label_groups)
+              Desugared.Ast.RuleMap.empty
+          with Not_found ->
+            Errors.raise_spanned_error
+              (Format.asprintf "Unknown label for the scope variable %a: \"%s\""
+                 Desugared.Ast.ScopeDef.format_t def_key (Pos.unmark label))
+              (Pos.get_position label))
     in
-    let x_def =
-      Desugared.Ast.RuleMap.add rule_name
-        (process_default new_ctxt scope_uid
-           (def_key, Pos.get_position def.definition_name)
-           param_uid precond parent_rule def.definition_condition def.definition_expr)
-        x_def
+    let scope_def =
+      {
+        scope_def with
+        scope_def_rules =
+          Desugared.Ast.RuleMap.add rule_name
+            (process_default new_ctxt scope_uid
+               (def_key, Pos.get_position def.definition_name)
+               rule_name param_uid precond parent_rules def.definition_condition def.definition_expr)
+            scope_def.scope_def_rules;
+      }
     in
-    {
-      scope with
-      scope_defs = Desugared.Ast.ScopeDefMap.add def_key (x_def, x_type, is_cond) scope.scope_defs;
-    }
+    { scope with scope_defs = Desugared.Ast.ScopeDefMap.add def_key scope_def scope.scope_defs }
   in
   {
     prgm with
@@ -1137,7 +1115,12 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                   (fun _ v acc ->
                     let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
                     Desugared.Ast.ScopeDefMap.add (Desugared.Ast.ScopeDef.Var v)
-                      (Desugared.Ast.RuleMap.empty, x, y)
+                      {
+                        Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                        Desugared.Ast.scope_def_typ = x;
+                        Desugared.Ast.scope_def_label_groups = Desugared.Ast.LabelMap.empty;
+                        Desugared.Ast.scope_def_is_condition = y;
+                      }
                       acc)
                   s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty;
               Desugared.Ast.scope_assertions = [];

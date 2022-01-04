@@ -26,6 +26,12 @@ module RuleMap : Map.S with type key = RuleName.t
 
 module RuleSet : Set.S with type elt = RuleName.t
 
+module LabelName : Uid.Id with type info = Uid.MarkedString.info
+
+module LabelMap : Map.S with type key = LabelName.t
+
+module LabelSet : Set.S with type elt = LabelName.t
+
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef : sig
   type t =
@@ -48,10 +54,12 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 (** {1 AST} *)
 
 type rule = {
-  just : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  exception_to_rule : RuleName.t Pos.marked option;
+  rule_id : RuleName.t;
+  rule_just : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  rule_cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
+  rule_exception_to_rules : Pos.t RuleMap.t;
+      (** To each parent exception rule is attached the position of the exception label*)
 }
 
 val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
@@ -68,12 +76,18 @@ type meta_assertion =
   | FixedBy of reference_typ Pos.marked
   | VariesWith of unit * variation_typ Pos.marked option
 
+type scope_def = {
+  scope_def_rules : rule RuleMap.t;
+  scope_def_typ : Scopelang.Ast.typ Pos.marked;
+  scope_def_is_condition : bool;
+  scope_def_label_groups : RuleSet.t LabelMap.t;
+}
+
 type scope = {
   scope_vars : Scopelang.Ast.ScopeVarSet.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs :
-    (rule RuleMap.t * Scopelang.Ast.typ Pos.marked * bool) (* is it a condition? *) ScopeDefMap.t;
+  scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
