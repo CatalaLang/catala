@@ -26,6 +26,12 @@ module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
 
 module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
 
+module LabelName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+
+module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
+
+module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
+
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef = struct
   type t =
@@ -67,32 +73,35 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 (** {1 AST} *)
 
 type rule = {
-  just : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  exception_to_rule : RuleName.t Pos.marked option;
+  rule_id : RuleName.t;
+  rule_just : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  rule_cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
+  rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
 let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
   {
-    just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
-    cons = Bindlib.box (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
-    parameter =
+    rule_just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
+    rule_cons = Bindlib.box (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, pos);
+    rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None);
-    exception_to_rule = None;
+    rule_exception_to_rules = (RuleSet.empty, pos);
+    rule_id = RuleName.fresh ("empty", pos);
   }
 
 let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
   {
-    just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), pos);
-    cons = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
-    parameter =
+    rule_just = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), pos);
+    rule_cons = Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), pos);
+    rule_parameter =
       (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None);
-    exception_to_rule = None;
+    rule_exception_to_rules = (RuleSet.empty, pos);
+    rule_id = RuleName.fresh ("always_false", pos);
   }
 
 type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
@@ -105,12 +114,18 @@ type meta_assertion =
   | FixedBy of reference_typ Pos.marked
   | VariesWith of unit * variation_typ Pos.marked option
 
+type scope_def = {
+  scope_def_rules : rule RuleMap.t;
+  scope_def_typ : Scopelang.Ast.typ Pos.marked;
+  scope_def_is_condition : bool;
+  scope_def_label_groups : RuleSet.t LabelMap.t;
+}
+
 type scope = {
   scope_vars : Scopelang.Ast.ScopeVarSet.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
-  scope_defs :
-    (rule RuleMap.t * Scopelang.Ast.typ Pos.marked * bool) (* is it a condition? *) ScopeDefMap.t;
+  scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
@@ -138,8 +153,8 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
     (fun _ rule acc ->
       let locs =
         Scopelang.Ast.LocationSet.union
-          (Scopelang.Ast.locations_used (Bindlib.unbox rule.just))
-          (Scopelang.Ast.locations_used (Bindlib.unbox rule.cons))
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.rule_just))
+          (Scopelang.Ast.locations_used (Bindlib.unbox rule.rule_cons))
       in
       add_locs acc locs)
     def ScopeDefMap.empty

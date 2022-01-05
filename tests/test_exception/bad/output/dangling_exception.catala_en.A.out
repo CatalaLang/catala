@@ -1,4 +1,4 @@
-[ERROR] This rule has been declared as an exception to an incorrect label: this label is not attached to a definition of "x"
+[ERROR] Unknown label for the scope variable x: "base_y"
 
   --> test_exception/bad/dangling_exception.catala_en
    | 
