@@ -18,6 +18,7 @@ champ d'application Données:
     -- rémuneration_mensuelle: 0€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant2 égal à Enfant {
     -- identifiant: 2
@@ -27,6 +28,7 @@ champ d'application Données:
     -- rémuneration_mensuelle: 1000€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant3 égal à Enfant {
     -- identifiant: 3
@@ -36,6 +38,7 @@ champ d'application Données:
     -- rémuneration_mensuelle: 400€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant4 égal à Enfant {
     -- identifiant: 4
@@ -45,6 +48,7 @@ champ d'application Données:
     -- rémuneration_mensuelle: 0€
     -- prise_en_charge: EffectiveEtPermanente
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
 
 déclaration champ d'application Test1:

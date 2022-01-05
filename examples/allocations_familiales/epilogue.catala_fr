@@ -128,6 +128,6 @@ champ d'application InterfaceAllocationsFamiliales:
         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
       -- bénéficie_titre_personnel_aide_personnelle_logement:
       # TODO: ajouter champ interface
-        vrai
+        faux
     }
 ```
