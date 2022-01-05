@@ -155,7 +155,9 @@ type enfant = {
   age: integer;
   prise_en_charge:
   prise_en_charge;
-  a_deja_ouvert_droit_aux_allocations_familiales: bool;
+  a_deja_ouvert_droit_aux_allocations_familiales:
+  bool;
+  beneficie_titre_personnel_aide_personnelle_logement: bool;
 }
 
 let embed_enfant (x: enfant) : runtime_value = Struct(["Enfant"],
@@ -169,7 +171,9 @@ let embed_enfant (x: enfant) : runtime_value = Struct(["Enfant"],
     ("prise_en_charge", embed_prise_en_charge
     x.prise_en_charge);
     ("a_déjà_ouvert_droit_aux_allocations_familiales", embed_bool
-    x.a_deja_ouvert_droit_aux_allocations_familiales)])
+    x.a_deja_ouvert_droit_aux_allocations_familiales);
+    ("bénéficie_titre_personnel_aide_personnelle_logement", embed_bool
+    x.beneficie_titre_personnel_aide_personnelle_logement)])
 
 
 
@@ -734,27 +738,8 @@ let smic =
          (try (date_courante_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=41;
-                    start_column=12; end_line=41; end_column=25;
-                    law_headings=["Prologue"]} true))
-               (fun (_: _) ->
-                  handle_default ([||])
-                    (fun (_: _) -> (log_decision_taken
-                       {filename = ""; start_line=0; start_column=1;
-                         end_line=0; end_column=1; law_headings=[]} false))
-                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
-         (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=41; start_column=12;
-           end_line=41; end_column=25; law_headings=["Prologue"]})))))
-    in
-    let residence_ : collectivite = ((log_variable_definition
-      ["Smic"; "résidence"] (embed_collectivite)
-      (try
-         (try (residence_ ()) with EmptyError ->
-            (handle_default ([||])
-               (fun (_: _) -> (log_decision_taken
                   {filename = "./prologue.catala_fr"; start_line=42;
-                    start_column=12; end_line=42; end_column=21;
+                    start_column=12; end_line=42; end_column=25;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -764,7 +749,26 @@ let smic =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./prologue.catala_fr"; start_line=42; start_column=12;
-           end_line=42; end_column=21; law_headings=["Prologue"]})))))
+           end_line=42; end_column=25; law_headings=["Prologue"]})))))
+    in
+    let residence_ : collectivite = ((log_variable_definition
+      ["Smic"; "résidence"] (embed_collectivite)
+      (try
+         (try (residence_ ()) with EmptyError ->
+            (handle_default ([||])
+               (fun (_: _) -> (log_decision_taken
+                  {filename = "./prologue.catala_fr"; start_line=43;
+                    start_column=12; end_line=43; end_column=21;
+                    law_headings=["Prologue"]} true))
+               (fun (_: _) ->
+                  handle_default ([||])
+                    (fun (_: _) -> (log_decision_taken
+                       {filename = ""; start_line=0; start_column=1;
+                         end_line=0; end_column=1; law_headings=[]} false))
+                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
+         (raise (NoValueProvided
+         {filename = "./prologue.catala_fr"; start_line=43; start_column=12;
+           end_line=43; end_column=21; law_headings=["Prologue"]})))))
     in
     let brut_horaire_ : money = ((log_variable_definition
       ["Smic"; "brut_horaire"] (embed_money)
@@ -774,8 +778,8 @@ let smic =
                ([|(fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -796,8 +800,8 @@ let smic =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -833,8 +837,8 @@ let smic =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -855,8 +859,8 @@ let smic =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -892,8 +896,8 @@ let smic =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -914,8 +918,8 @@ let smic =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=43;
-                            start_column=12; end_line=43; end_column=24;
+                          {filename = "./prologue.catala_fr"; start_line=44;
+                            start_column=12; end_line=44; end_column=24;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -949,8 +953,8 @@ let smic =
                                                                 ())))))))))))))
                             (fun (_: _) -> money_of_cents_string "1003")))|])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=43;
-                    start_column=12; end_line=43; end_column=24;
+                  {filename = "./prologue.catala_fr"; start_line=44;
+                    start_column=12; end_line=44; end_column=24;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -959,8 +963,8 @@ let smic =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=43; start_column=12;
-           end_line=43; end_column=24; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=44; start_column=12;
+           end_line=44; end_column=24; law_headings=["Prologue"]})))))
     in
     {date_courante_out = date_courante_; residence_out = residence_;
        brut_horaire_out = brut_horaire_}
@@ -979,8 +983,8 @@ let allocation_familiales_avril2008 =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=81;
-                       start_column=12; end_line=81; end_column=39;
+                     {filename = "./prologue.catala_fr"; start_line=82;
+                       start_column=12; end_line=82; end_column=39;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -1002,8 +1006,8 @@ let allocation_familiales_avril2008 =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=81; start_column=12;
-           end_line=81; end_column=39; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=82; start_column=12;
+           end_line=82; end_column=39; law_headings=["Prologue"]})))))
     in
     {age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_}
 
@@ -1021,8 +1025,8 @@ let enfant_le_plus_age =
          (try (enfants_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=84;
-                    start_column=12; end_line=84; end_column=19;
+                  {filename = "./prologue.catala_fr"; start_line=85;
+                    start_column=12; end_line=85; end_column=19;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1031,8 +1035,8 @@ let enfant_le_plus_age =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=84; start_column=12;
-           end_line=84; end_column=19; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=85; start_column=12;
+           end_line=85; end_column=19; law_headings=["Prologue"]})))))
     in
     let le_plus_age_ : enfant = ((log_variable_definition
       ["EnfantLePlusÂgé"; "le_plus_âgé"] (embed_enfant)
@@ -1041,8 +1045,8 @@ let enfant_le_plus_age =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=85;
-                       start_column=12; end_line=85; end_column=23;
+                     {filename = "./prologue.catala_fr"; start_line=86;
+                       start_column=12; end_line=86; end_column=23;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -1069,6 +1073,8 @@ let enfant_le_plus_age =
                                 age = (integer_of_string "0");
                                 prise_en_charge = (EffectiveEtPermanente ());
                                 a_deja_ouvert_droit_aux_allocations_familiales =
+                                  false;
+                                beneficie_titre_personnel_aide_personnelle_logement =
                                   false} enfants_)))) with EmptyError ->
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
@@ -1076,8 +1082,8 @@ let enfant_le_plus_age =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=85; start_column=12;
-           end_line=85; end_column=23; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=86; start_column=12;
+           end_line=86; end_column=23; law_headings=["Prologue"]})))))
     in
     {enfants_out = enfants_; le_plus_age_out = le_plus_age_}
 
@@ -1117,8 +1123,8 @@ let prestations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=68;
-                       start_column=12; end_line=68; end_column=24;
+                     {filename = "./prologue.catala_fr"; start_line=69;
+                       start_column=12; end_line=69; end_column=24;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -1140,8 +1146,8 @@ let prestations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=68; start_column=12;
-           end_line=68; end_column=24; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=69; start_column=12;
+           end_line=69; end_column=24; law_headings=["Prologue"]})))))
     in
     let date_courante_ : date = ((log_variable_definition
       ["PrestationsFamiliales"; "date_courante"] (embed_date)
@@ -1149,29 +1155,8 @@ let prestations_familiales =
          (try (date_courante_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=70;
-                    start_column=12; end_line=70; end_column=25;
-                    law_headings=["Prologue"]} true))
-               (fun (_: _) ->
-                  handle_default ([||])
-                    (fun (_: _) -> (log_decision_taken
-                       {filename = ""; start_line=0; start_column=1;
-                         end_line=0; end_column=1; law_headings=[]} false))
-                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
-         (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=70; start_column=12;
-           end_line=70; end_column=25; law_headings=["Prologue"]})))))
-    in
-    let prestation_courante_ : element_prestations_familiales =
-      ((log_variable_definition
-      ["PrestationsFamiliales"; "prestation_courante"]
-      (embed_element_prestations_familiales)
-      (try
-         (try (prestation_courante_ ()) with EmptyError ->
-            (handle_default ([||])
-               (fun (_: _) -> (log_decision_taken
                   {filename = "./prologue.catala_fr"; start_line=71;
-                    start_column=12; end_line=71; end_column=31;
+                    start_column=12; end_line=71; end_column=25;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1181,16 +1166,18 @@ let prestations_familiales =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./prologue.catala_fr"; start_line=71; start_column=12;
-           end_line=71; end_column=31; law_headings=["Prologue"]})))))
+           end_line=71; end_column=25; law_headings=["Prologue"]})))))
     in
-    let residence_ : collectivite = ((log_variable_definition
-      ["PrestationsFamiliales"; "résidence"] (embed_collectivite)
+    let prestation_courante_ : element_prestations_familiales =
+      ((log_variable_definition
+      ["PrestationsFamiliales"; "prestation_courante"]
+      (embed_element_prestations_familiales)
       (try
-         (try (residence_ ()) with EmptyError ->
+         (try (prestation_courante_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
                   {filename = "./prologue.catala_fr"; start_line=72;
-                    start_column=12; end_line=72; end_column=21;
+                    start_column=12; end_line=72; end_column=31;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1200,7 +1187,26 @@ let prestations_familiales =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./prologue.catala_fr"; start_line=72; start_column=12;
-           end_line=72; end_column=21; law_headings=["Prologue"]})))))
+           end_line=72; end_column=31; law_headings=["Prologue"]})))))
+    in
+    let residence_ : collectivite = ((log_variable_definition
+      ["PrestationsFamiliales"; "résidence"] (embed_collectivite)
+      (try
+         (try (residence_ ()) with EmptyError ->
+            (handle_default ([||])
+               (fun (_: _) -> (log_decision_taken
+                  {filename = "./prologue.catala_fr"; start_line=73;
+                    start_column=12; end_line=73; end_column=21;
+                    law_headings=["Prologue"]} true))
+               (fun (_: _) ->
+                  handle_default ([||])
+                    (fun (_: _) -> (log_decision_taken
+                       {filename = ""; start_line=0; start_column=1;
+                         end_line=0; end_column=1; law_headings=[]} false))
+                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
+         (raise (NoValueProvided
+         {filename = "./prologue.catala_fr"; start_line=73; start_column=12;
+           end_line=73; end_column=21; law_headings=["Prologue"]})))))
     in
     let base_mensuelle_ : money = ((log_variable_definition
       ["PrestationsFamiliales"; "base_mensuelle"] (embed_money)
@@ -1210,8 +1216,8 @@ let prestations_familiales =
                ([|(fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=74;
-                            start_column=12; end_line=74; end_column=26;
+                          {filename = "./prologue.catala_fr"; start_line=75;
+                            start_column=12; end_line=75; end_column=26;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -1230,8 +1236,8 @@ let prestations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=74;
-                            start_column=12; end_line=74; end_column=26;
+                          {filename = "./prologue.catala_fr"; start_line=75;
+                            start_column=12; end_line=75; end_column=26;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -1250,8 +1256,8 @@ let prestations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=74;
-                            start_column=12; end_line=74; end_column=26;
+                          {filename = "./prologue.catala_fr"; start_line=75;
+                            start_column=12; end_line=75; end_column=26;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -1268,8 +1274,8 @@ let prestations_familiales =
                                      (date_of_numbers 2020 4 1)))))
                             (fun (_: _) -> money_of_cents_string "41316")))|])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=74;
-                    start_column=12; end_line=74; end_column=26;
+                  {filename = "./prologue.catala_fr"; start_line=75;
+                    start_column=12; end_line=75; end_column=26;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1278,8 +1284,8 @@ let prestations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=74; start_column=12;
-           end_line=74; end_column=26; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=75; start_column=12;
+           end_line=75; end_column=26; law_headings=["Prologue"]})))))
     in
     let smic_dot_date_courante_ : unit -> date =
       (fun (_: unit) -> (log_variable_definition
@@ -1287,14 +1293,14 @@ let prestations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=73;
-                    start_column=12; end_line=73; end_column=16;
+                  {filename = "./prologue.catala_fr"; start_line=74;
+                    start_column=12; end_line=74; end_column=16;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=78;
-                         start_column=14; end_line=78; end_column=32;
+                       {filename = "./prologue.catala_fr"; start_line=79;
+                         start_column=14; end_line=79; end_column=32;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) -> date_courante_))) with EmptyError ->
             (handle_default ([||])
@@ -1309,14 +1315,14 @@ let prestations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=73;
-                    start_column=12; end_line=73; end_column=16;
+                  {filename = "./prologue.catala_fr"; start_line=74;
+                    start_column=12; end_line=74; end_column=16;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=77;
-                         start_column=14; end_line=77; end_column=28;
+                       {filename = "./prologue.catala_fr"; start_line=78;
+                         start_column=14; end_line=78; end_column=28;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) -> residence_))) with EmptyError ->
             (handle_default ([||])
@@ -1345,15 +1351,15 @@ let prestations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=69;
-                       start_column=12; end_line=69; end_column=35;
+                     {filename = "./prologue.catala_fr"; start_line=70;
+                       start_column=12; end_line=70; end_column=35;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
                           {filename = "./securite_sociale_L.catala_fr";
-                            start_line=354; start_column=5;
-                            end_line=359; end_column=30;
+                            start_line=357; start_column=5;
+                            end_line=362; end_column=30;
                             law_headings=["Article L751-1";
                                            "Chapitre 1er : Généralités";
                                            "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
@@ -1373,8 +1379,8 @@ let prestations_familiales =
                        end_line=0; end_column=1; law_headings=[]} true))
                   (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=69; start_column=12;
-           end_line=69; end_column=35; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=70; start_column=12;
+           end_line=70; end_column=35; law_headings=["Prologue"]})))))
     in
     let plafond_l512_3_2_ : money = ((log_variable_definition
       ["PrestationsFamiliales"; "plafond_l512_3_2"] (embed_money)
@@ -1384,8 +1390,8 @@ let prestations_familiales =
                (try
                   (handle_default ([||])
                      (fun (_: _) -> (log_decision_taken
-                        {filename = "./prologue.catala_fr"; start_line=67;
-                          start_column=12; end_line=67; end_column=28;
+                        {filename = "./prologue.catala_fr"; start_line=68;
+                          start_column=12; end_line=68; end_column=28;
                           law_headings=["Prologue"]} true))
                      (fun (_: _) ->
                         handle_default ([||])
@@ -1426,8 +1432,8 @@ let prestations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=67; start_column=12;
-           end_line=67; end_column=28; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=68; start_column=12;
+           end_line=68; end_column=28; law_headings=["Prologue"]})))))
     in
     let conditions_hors_age_ : enfant -> bool = ((log_variable_definition
       ["PrestationsFamiliales"; "conditions_hors_âge"] (unembeddable)
@@ -1438,15 +1444,15 @@ let prestations_familiales =
                  (try
                     (handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=66;
-                            start_column=12; end_line=66; end_column=31;
+                          {filename = "./prologue.catala_fr"; start_line=67;
+                            start_column=12; end_line=67; end_column=31;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./securite_sociale_L.catala_fr";
-                                 start_line=68; start_column=5;
-                                 end_line=71; end_column=57;
+                                 start_line=71; start_column=5;
+                                 end_line=74; end_column=57;
                                  law_headings=["Article L512-3";
                                                 "Chapitre 2 : Champ d'application";
                                                 "Titre 1 : Champ d'application - Généralités";
@@ -1477,12 +1483,12 @@ let prestations_familiales =
                             end_line=0; end_column=1; law_headings=[]} true))
                        (fun (_: _) -> false))) with EmptyError -> (raise
                  (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=66;
-                   start_column=12; end_line=66; end_column=31;
+                 {filename = "./prologue.catala_fr"; start_line=67;
+                   start_column=12; end_line=67; end_column=31;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=66; start_column=12;
-           end_line=66; end_column=31; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=67; start_column=12;
+           end_line=67; end_column=31; law_headings=["Prologue"]})))))
     in
     let droit_ouvert_ : enfant -> bool = ((log_variable_definition
       ["PrestationsFamiliales"; "droit_ouvert"] (unembeddable)
@@ -1490,82 +1496,94 @@ let prestations_familiales =
          (try (droit_ouvert_ ()) with EmptyError ->
             (fun (param_: enfant) ->
                try
-                 (handle_default
-                    ([|(fun (_: _) ->
-                          handle_default ([||])
-                            (fun (_: _) -> (log_decision_taken
-                               {filename = "./prologue.catala_fr";
-                                 start_line=65; start_column=12;
-                                 end_line=65; end_column=24;
-                                 law_headings=["Prologue"]} true))
-                            (fun (_: _) ->
-                               handle_default ([||])
-                                 (fun (_: _) -> (log_decision_taken
-                                    {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=60; start_column=5;
-                                      end_line=62; end_column=32;
-                                      law_headings=["Article L512-3";
-                                                     "Chapitre 2 : Champ d'application";
-                                                     "Titre 1 : Champ d'application - Généralités";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie législative";
-                                                     "Code de la sécurité sociale"]}
-                                    ((match (param_.obligation_scolaire)
-                                       with
-                                       Avant _ -> false
-                                       | Pendant _ -> false
-                                       | Apres _ -> true) &&
-                                       (((param_.remuneration_mensuelle) <=$
-                                           plafond_l512_3_2_) &&
-                                          ((param_.age) <! age_l512_3_2_)))))
-                                 (fun (_: _) -> true)));
-                       (fun (_: _) ->
-                          handle_default ([||])
-                            (fun (_: _) -> (log_decision_taken
-                               {filename = "./prologue.catala_fr";
-                                 start_line=65; start_column=12;
-                                 end_line=65; end_column=24;
-                                 law_headings=["Prologue"]} true))
-                            (fun (_: _) ->
-                               handle_default ([||])
-                                 (fun (_: _) -> (log_decision_taken
-                                    {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=49; start_column=5;
-                                      end_line=50; end_column=50;
-                                      law_headings=["Article L512-3";
-                                                     "Chapitre 2 : Champ d'application";
-                                                     "Titre 1 : Champ d'application - Généralités";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie législative";
-                                                     "Code de la sécurité sociale"]}
-                                    ((match (param_.obligation_scolaire)
-                                       with
-                                       Avant _ -> true
-                                       | Pendant _ -> false
-                                       | Apres _ -> false) ||
-                                       (match (param_.obligation_scolaire)
-                                       with
-                                       Avant _ -> false
-                                       | Pendant _ -> true
-                                       | Apres _ -> false))))
-                                 (fun (_: _) -> true)))|])
-                    (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=65;
-                         start_column=12; end_line=65; end_column=24;
-                         law_headings=["Prologue"]} true))
-                    (fun (_: _) ->
-                       handle_default ([||])
-                         (fun (_: _) -> (log_decision_taken
-                            {filename = ""; start_line=0; start_column=1;
-                              end_line=0; end_column=1; law_headings=
-                              []} true)) (fun (_: _) -> false))) with
-                 EmptyError -> (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=65;
-                   start_column=12; end_line=65; end_column=24;
+                 (try
+                    (try
+                       (handle_default ([||])
+                          (fun (_: _) -> (log_decision_taken
+                             {filename = "./prologue.catala_fr";
+                               start_line=66; start_column=12;
+                               end_line=66; end_column=24;
+                               law_headings=["Prologue"]} true))
+                          (fun (_: _) ->
+                             handle_default ([||])
+                               (fun (_: _) -> (log_decision_taken
+                                  {filename = "./autres_codes.catala_fr";
+                                    start_line=24; start_column=5;
+                                    end_line=24; end_column=63;
+                                    law_headings=["Article L821-3";
+                                                   "Sous-section 1 : Aides personnelles au logement";
+                                                   "Section 2 : Règles de non-cumul";
+                                                   "Chapitre Ier : Principes généraux";
+                                                   "Titre II : Dispositions communes aux aides personnelles au logement";
+                                                   "Livre VIII : Aides personnelles au logement";
+                                                   "Partie législative";
+                                                   "Code de la construction et de l'habitation"]}
+                                  (param_.beneficie_titre_personnel_aide_personnelle_logement)))
+                               (fun (_: _) -> false))) with EmptyError ->
+                       (handle_default
+                          ([|(fun (_: _) ->
+                                handle_default ([||])
+                                  (fun (_: _) -> (log_decision_taken
+                                     {filename = "./securite_sociale_L.catala_fr";
+                                       start_line=52; start_column=5;
+                                       end_line=53; end_column=50;
+                                       law_headings=["Article L512-3";
+                                                      "Chapitre 2 : Champ d'application";
+                                                      "Titre 1 : Champ d'application - Généralités";
+                                                      "Livre 5 : Prestations familiales et prestations assimilées";
+                                                      "Partie législative";
+                                                      "Code de la sécurité sociale"]}
+                                     ((match (param_.obligation_scolaire)
+                                        with
+                                        Avant _ -> true
+                                        | Pendant _ -> false
+                                        | Apres _ -> false) ||
+                                        (match (param_.obligation_scolaire)
+                                        with
+                                        Avant _ -> false
+                                        | Pendant _ -> true
+                                        | Apres _ -> false))))
+                                  (fun (_: _) -> true));
+                             (fun (_: _) ->
+                                handle_default ([||])
+                                  (fun (_: _) -> (log_decision_taken
+                                     {filename = "./securite_sociale_L.catala_fr";
+                                       start_line=63; start_column=5;
+                                       end_line=65; end_column=32;
+                                       law_headings=["Article L512-3";
+                                                      "Chapitre 2 : Champ d'application";
+                                                      "Titre 1 : Champ d'application - Généralités";
+                                                      "Livre 5 : Prestations familiales et prestations assimilées";
+                                                      "Partie législative";
+                                                      "Code de la sécurité sociale"]}
+                                     ((match (param_.obligation_scolaire)
+                                        with
+                                        Avant _ -> false
+                                        | Pendant _ -> false
+                                        | Apres _ -> true) &&
+                                        (((param_.remuneration_mensuelle) <=$
+                                            plafond_l512_3_2_) &&
+                                           ((param_.age) <! age_l512_3_2_)))))
+                                  (fun (_: _) -> true))|])
+                          (fun (_: _) -> (log_decision_taken
+                             {filename = "./prologue.catala_fr";
+                               start_line=66; start_column=12;
+                               end_line=66; end_column=24;
+                               law_headings=["Prologue"]} false))
+                          (fun (_: _) -> raise EmptyError))) with EmptyError
+                    ->
+                    (handle_default ([||])
+                       (fun (_: _) -> (log_decision_taken
+                          {filename = ""; start_line=0; start_column=1;
+                            end_line=0; end_column=1; law_headings=[]} true))
+                       (fun (_: _) -> false))) with EmptyError -> (raise
+                 (NoValueProvided
+                 {filename = "./prologue.catala_fr"; start_line=66;
+                   start_column=12; end_line=66; end_column=24;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=65; start_column=12;
-           end_line=65; end_column=24; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=66; start_column=12;
+           end_line=66; end_column=24; law_headings=["Prologue"]})))))
     in
     {droit_ouvert_out = droit_ouvert_;
        conditions_hors_age_out = conditions_hors_age_;
@@ -1722,8 +1740,8 @@ let allocations_familiales =
             EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=90;
-                    start_column=12; end_line=90; end_column=59;
+                  {filename = "./prologue.catala_fr"; start_line=91;
+                    start_column=12; end_line=91; end_column=59;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1732,8 +1750,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=90; start_column=12;
-           end_line=90; end_column=59; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=91; start_column=12;
+           end_line=91; end_column=59; law_headings=["Prologue"]})))))
     in
     let personne_charge_effective_permanente_remplit_titre__i_ : bool =
       ((log_variable_definition
@@ -1744,8 +1762,8 @@ let allocations_familiales =
             with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=91;
-                    start_column=12; end_line=91; end_column=64;
+                  {filename = "./prologue.catala_fr"; start_line=92;
+                    start_column=12; end_line=92; end_column=64;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1754,8 +1772,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=91; start_column=12;
-           end_line=91; end_column=64; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=92; start_column=12;
+           end_line=92; end_column=64; law_headings=["Prologue"]})))))
     in
     let ressources_menage_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "ressources_ménage"] (embed_money)
@@ -1763,27 +1781,8 @@ let allocations_familiales =
          (try (ressources_menage_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=92;
-                    start_column=12; end_line=92; end_column=29;
-                    law_headings=["Prologue"]} true))
-               (fun (_: _) ->
-                  handle_default ([||])
-                    (fun (_: _) -> (log_decision_taken
-                       {filename = ""; start_line=0; start_column=1;
-                         end_line=0; end_column=1; law_headings=[]} false))
-                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
-         (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=92; start_column=12;
-           end_line=92; end_column=29; law_headings=["Prologue"]})))))
-    in
-    let residence_ : collectivite = ((log_variable_definition
-      ["AllocationsFamiliales"; "résidence"] (embed_collectivite)
-      (try
-         (try (residence_ ()) with EmptyError ->
-            (handle_default ([||])
-               (fun (_: _) -> (log_decision_taken
                   {filename = "./prologue.catala_fr"; start_line=93;
-                    start_column=12; end_line=93; end_column=21;
+                    start_column=12; end_line=93; end_column=29;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1793,16 +1792,16 @@ let allocations_familiales =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./prologue.catala_fr"; start_line=93; start_column=12;
-           end_line=93; end_column=21; law_headings=["Prologue"]})))))
+           end_line=93; end_column=29; law_headings=["Prologue"]})))))
     in
-    let date_courante_ : date = ((log_variable_definition
-      ["AllocationsFamiliales"; "date_courante"] (embed_date)
+    let residence_ : collectivite = ((log_variable_definition
+      ["AllocationsFamiliales"; "résidence"] (embed_collectivite)
       (try
-         (try (date_courante_ ()) with EmptyError ->
+         (try (residence_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=96;
-                    start_column=12; end_line=96; end_column=25;
+                  {filename = "./prologue.catala_fr"; start_line=94;
+                    start_column=12; end_line=94; end_column=21;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1811,8 +1810,27 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=96; start_column=12;
-           end_line=96; end_column=25; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=94; start_column=12;
+           end_line=94; end_column=21; law_headings=["Prologue"]})))))
+    in
+    let date_courante_ : date = ((log_variable_definition
+      ["AllocationsFamiliales"; "date_courante"] (embed_date)
+      (try
+         (try (date_courante_ ()) with EmptyError ->
+            (handle_default ([||])
+               (fun (_: _) -> (log_decision_taken
+                  {filename = "./prologue.catala_fr"; start_line=97;
+                    start_column=12; end_line=97; end_column=25;
+                    law_headings=["Prologue"]} true))
+               (fun (_: _) ->
+                  handle_default ([||])
+                    (fun (_: _) -> (log_decision_taken
+                       {filename = ""; start_line=0; start_column=1;
+                         end_line=0; end_column=1; law_headings=[]} false))
+                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
+         (raise (NoValueProvided
+         {filename = "./prologue.catala_fr"; start_line=97; start_column=12;
+           end_line=97; end_column=25; law_headings=["Prologue"]})))))
     in
     let enfants_a_charge_ : enfant array = ((log_variable_definition
       ["AllocationsFamiliales"; "enfants_à_charge"]
@@ -1821,8 +1839,8 @@ let allocations_familiales =
          (try (enfants_a_charge_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=99;
-                    start_column=12; end_line=99; end_column=28;
+                  {filename = "./prologue.catala_fr"; start_line=100;
+                    start_column=12; end_line=100; end_column=28;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -1831,8 +1849,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=99; start_column=12;
-           end_line=99; end_column=28; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=100; start_column=12;
+           end_line=100; end_column=28; law_headings=["Prologue"]})))))
     in
     let prise_en_compte_ : enfant -> prise_en_compte =
       ((log_variable_definition ["AllocationsFamiliales"; "prise_en_compte"]
@@ -1846,15 +1864,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=102; start_column=12;
-                                 end_line=102; end_column=27;
+                                 start_line=103; start_column=12;
+                                 end_line=103; end_column=27;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=263; start_column=5;
-                                      end_line=264; end_column=48;
+                                      start_line=266; start_column=5;
+                                      end_line=267; end_column=48;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -1876,15 +1894,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=102; start_column=12;
-                                 end_line=102; end_column=27;
+                                 start_line=103; start_column=12;
+                                 end_line=103; end_column=27;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=253; start_column=5;
-                                      end_line=254; end_column=56;
+                                      start_line=256; start_column=5;
+                                      end_line=257; end_column=56;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -1906,15 +1924,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=102; start_column=12;
-                                 end_line=102; end_column=27;
+                                 start_line=103; start_column=12;
+                                 end_line=103; end_column=27;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=214; start_column=5;
-                                      end_line=214; end_column=70;
+                                      start_line=217; start_column=5;
+                                      end_line=217; end_column=70;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -1936,15 +1954,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=102; start_column=12;
-                                 end_line=102; end_column=27;
+                                 start_line=103; start_column=12;
+                                 end_line=103; end_column=27;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=204; start_column=5;
-                                      end_line=204; end_column=69;
+                                      start_line=207; start_column=5;
+                                      end_line=207; end_column=69;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -1966,15 +1984,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=102; start_column=12;
-                                 end_line=102; end_column=27;
+                                 start_line=103; start_column=12;
+                                 end_line=103; end_column=27;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=184; start_column=5;
-                                      end_line=184; end_column=60;
+                                      start_line=187; start_column=5;
+                                      end_line=187; end_column=60;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -1993,8 +2011,8 @@ let allocations_familiales =
                                     | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
                                      false))) (fun (_: _) -> Complete ())))|])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=102;
-                         start_column=12; end_line=102; end_column=27;
+                       {filename = "./prologue.catala_fr"; start_line=103;
+                         start_column=12; end_line=103; end_column=27;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) ->
                        handle_default ([||])
@@ -2003,12 +2021,12 @@ let allocations_familiales =
                               end_line=0; end_column=1; law_headings=
                               []} false)) (fun (_: _) -> raise EmptyError)))
                  with EmptyError -> (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=102;
-                   start_column=12; end_line=102; end_column=27;
+                 {filename = "./prologue.catala_fr"; start_line=103;
+                   start_column=12; end_line=103; end_column=27;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=102; start_column=12;
-           end_line=102; end_column=27; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=103; start_column=12;
+           end_line=103; end_column=27; law_headings=["Prologue"]})))))
     in
     let versement_ : enfant -> versement_allocations =
       ((log_variable_definition ["AllocationsFamiliales"; "versement"]
@@ -2022,15 +2040,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=103; start_column=12;
-                                 end_line=103; end_column=21;
+                                 start_line=104; start_column=12;
+                                 end_line=104; end_column=21;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=269; start_column=5;
-                                      end_line=270; end_column=48;
+                                      start_line=272; start_column=5;
+                                      end_line=273; end_column=48;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -2052,15 +2070,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=103; start_column=12;
-                                 end_line=103; end_column=21;
+                                 start_line=104; start_column=12;
+                                 end_line=104; end_column=21;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=258; start_column=5;
-                                      end_line=259; end_column=56;
+                                      start_line=261; start_column=5;
+                                      end_line=262; end_column=56;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -2084,15 +2102,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=103; start_column=12;
-                                 end_line=103; end_column=21;
+                                 start_line=104; start_column=12;
+                                 end_line=104; end_column=21;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=218; start_column=5;
-                                      end_line=218; end_column=70;
+                                      start_line=221; start_column=5;
+                                      end_line=221; end_column=70;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -2114,15 +2132,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=103; start_column=12;
-                                 end_line=103; end_column=21;
+                                 start_line=104; start_column=12;
+                                 end_line=104; end_column=21;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=208; start_column=5;
-                                      end_line=208; end_column=69;
+                                      start_line=211; start_column=5;
+                                      end_line=211; end_column=69;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -2144,15 +2162,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=103; start_column=12;
-                                 end_line=103; end_column=21;
+                                 start_line=104; start_column=12;
+                                 end_line=104; end_column=21;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./securite_sociale_L.catala_fr";
-                                      start_line=188; start_column=5;
-                                      end_line=188; end_column=60;
+                                      start_line=191; start_column=5;
+                                      end_line=191; end_column=60;
                                       law_headings=["Article L521-2";
                                                      "Chapitre 1er : Allocations familiales";
                                                      "Titre 2 : Prestations générales d'entretien";
@@ -2171,8 +2189,8 @@ let allocations_familiales =
                                     | ServicesSociauxAllocationVerseeAuxServicesSociaux _ ->
                                      false))) (fun (_: _) -> Normal ())))|])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=103;
-                         start_column=12; end_line=103; end_column=21;
+                       {filename = "./prologue.catala_fr"; start_line=104;
+                         start_column=12; end_line=104; end_column=21;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) ->
                        handle_default ([||])
@@ -2181,12 +2199,12 @@ let allocations_familiales =
                               end_line=0; end_column=1; law_headings=
                               []} false)) (fun (_: _) -> raise EmptyError)))
                  with EmptyError -> (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=103;
-                   start_column=12; end_line=103; end_column=21;
+                 {filename = "./prologue.catala_fr"; start_line=104;
+                   start_column=12; end_line=104; end_column=21;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=103; start_column=12;
-           end_line=103; end_column=21; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=104; start_column=12;
+           end_line=104; end_column=21; law_headings=["Prologue"]})))))
     in
     let avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
       ((log_variable_definition
@@ -2197,8 +2215,8 @@ let allocations_familiales =
             EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=120;
-                    start_column=12; end_line=120; end_column=56;
+                  {filename = "./prologue.catala_fr"; start_line=121;
+                    start_column=12; end_line=121; end_column=56;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -2207,8 +2225,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=120; start_column=12;
-           end_line=120; end_column=56; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=121; start_column=12;
+           end_line=121; end_column=56; law_headings=["Prologue"]})))))
     in
     let nombre_enfants_l521_1_ : integer = ((log_variable_definition
       ["AllocationsFamiliales"; "nombre_enfants_l521_1"] (embed_integer)
@@ -2217,8 +2235,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=151;
-                       start_column=12; end_line=151; end_column=33;
+                     {filename = "./prologue.catala_fr"; start_line=152;
+                       start_column=12; end_line=152; end_column=33;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -2240,8 +2258,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=151; start_column=12;
-           end_line=151; end_column=33; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=152; start_column=12;
+           end_line=152; end_column=33; law_headings=["Prologue"]})))))
     in
     let nombre_enfants_alinea_2_l521_3_ : integer = ((log_variable_definition
       ["AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3"]
@@ -2251,8 +2269,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=153;
-                       start_column=12; end_line=153; end_column=42;
+                     {filename = "./prologue.catala_fr"; start_line=154;
+                       start_column=12; end_line=154; end_column=42;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -2274,8 +2292,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=153; start_column=12;
-           end_line=153; end_column=42; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=154; start_column=12;
+           end_line=154; end_column=42; law_headings=["Prologue"]})))))
     in
     let result_ : allocation_familiales_avril2008_out = ((log_end_call
       ["AllocationsFamiliales"; "version_avril_2008";
@@ -2294,14 +2312,14 @@ let allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=146;
-                    start_column=12; end_line=146; end_column=34;
+                  {filename = "./prologue.catala_fr"; start_line=147;
+                    start_column=12; end_line=147; end_column=34;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=161;
-                         start_column=14; end_line=161; end_column=50;
+                       {filename = "./prologue.catala_fr"; start_line=162;
+                         start_column=14; end_line=162; end_column=50;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) -> date_courante_))) with EmptyError ->
             (handle_default ([||])
@@ -2319,14 +2337,14 @@ let allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=146;
-                    start_column=12; end_line=146; end_column=34;
+                  {filename = "./prologue.catala_fr"; start_line=147;
+                    start_column=12; end_line=147; end_column=34;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=159;
-                         start_column=14; end_line=159; end_column=56;
+                       {filename = "./prologue.catala_fr"; start_line=160;
+                         start_column=14; end_line=160; end_column=56;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) -> AllocationsFamiliales ()))) with
             EmptyError ->
@@ -2343,14 +2361,14 @@ let allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=146;
-                    start_column=12; end_line=146; end_column=34;
+                  {filename = "./prologue.catala_fr"; start_line=147;
+                    start_column=12; end_line=147; end_column=34;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=163;
-                         start_column=14; end_line=163; end_column=46;
+                       {filename = "./prologue.catala_fr"; start_line=164;
+                         start_column=14; end_line=164; end_column=46;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) -> residence_))) with EmptyError ->
             (handle_default ([||])
@@ -2409,14 +2427,14 @@ let allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=148;
-                    start_column=12; end_line=148; end_column=30;
+                  {filename = "./prologue.catala_fr"; start_line=149;
+                    start_column=12; end_line=149; end_column=30;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=32;
-                         start_column=14; end_line=32; end_column=40;
+                       {filename = "./epilogue.catala_fr"; start_line=33;
+                         start_column=14; end_line=33; end_column=40;
                          law_headings=["Règles diverses"; "Épilogue";
                                         "Décrets divers"]} true))
                     (fun (_: _) -> enfants_a_charge_))) with EmptyError ->
@@ -2453,8 +2471,8 @@ let allocations_familiales =
                        (handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=152; start_column=12;
-                               end_line=152; end_column=39;
+                               start_line=153; start_column=12;
+                               end_line=153; end_column=39;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2493,12 +2511,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} false))
                        (fun (_: _) -> raise EmptyError))) with EmptyError ->
                  (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=152;
-                   start_column=12; end_line=152; end_column=39;
+                 {filename = "./prologue.catala_fr"; start_line=153;
+                   start_column=12; end_line=153; end_column=39;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=152; start_column=12;
-           end_line=152; end_column=39; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=153; start_column=12;
+           end_line=153; end_column=39; law_headings=["Prologue"]})))))
     in
     let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
       ((log_variable_definition
@@ -2511,15 +2529,15 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=100;
-                       start_column=12; end_line=100; end_column=62;
+                     {filename = "./prologue.catala_fr"; start_line=101;
+                       start_column=12; end_line=101; end_column=62;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
                           {filename = "./securite_sociale_L.catala_fr";
-                            start_line=75; start_column=14;
-                            end_line=75; end_column=64;
+                            start_line=78; start_column=14;
+                            end_line=78; end_column=64;
                             law_headings=["Article L512-3";
                                            "Chapitre 2 : Champ d'application";
                                            "Titre 1 : Champ d'application - Généralités";
@@ -2546,8 +2564,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=100; start_column=12;
-           end_line=100; end_column=62; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=101; start_column=12;
+           end_line=101; end_column=62; law_headings=["Prologue"]})))))
     in
     let est_enfant_le_plus_age_ : enfant -> bool = ((log_variable_definition
       ["AllocationsFamiliales"; "est_enfant_le_plus_âgé"] (unembeddable)
@@ -2558,15 +2576,15 @@ let allocations_familiales =
                  (try
                     (handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=154;
-                            start_column=12; end_line=154; end_column=34;
+                          {filename = "./prologue.catala_fr"; start_line=155;
+                            start_column=12; end_line=155; end_column=34;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./epilogue.catala_fr";
-                                 start_line=33; start_column=14;
-                                 end_line=33; end_column=36;
+                                 start_line=34; start_column=14;
+                                 end_line=34; end_column=36;
                                  law_headings=["Règles diverses";
                                                 "Épilogue";
                                                 "Décrets divers"]} true))
@@ -2579,12 +2597,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} false))
                        (fun (_: _) -> raise EmptyError))) with EmptyError ->
                  (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=154;
-                   start_column=12; end_line=154; end_column=34;
+                 {filename = "./prologue.catala_fr"; start_line=155;
+                   start_column=12; end_line=155; end_column=34;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=154; start_column=12;
-           end_line=154; end_column=34; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=155; start_column=12;
+           end_line=155; end_column=34; law_headings=["Prologue"]})))))
     in
     let plafond__i_i_d521_3_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "plafond_II_d521_3"] (embed_money)
@@ -2596,8 +2614,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=156; start_column=12;
-                               end_line=156; end_column=29;
+                               start_line=157; start_column=12;
+                               end_line=157; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2623,8 +2641,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=156; start_column=12;
-                               end_line=156; end_column=29;
+                               start_line=157; start_column=12;
+                               end_line=157; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2649,8 +2667,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=156; start_column=12;
-                               end_line=156; end_column=29;
+                               start_line=157; start_column=12;
+                               end_line=157; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2675,8 +2693,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=156; start_column=12;
-                               end_line=156; end_column=29;
+                               start_line=157; start_column=12;
+                               end_line=157; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2698,8 +2716,8 @@ let allocations_familiales =
                                           (array_length
                                              enfants_a_charge_droit_ouvert_prestation_familiale_))))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=156;
-                       start_column=12; end_line=156; end_column=29;
+                     {filename = "./prologue.catala_fr"; start_line=157;
+                       start_column=12; end_line=157; end_column=29;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -2727,8 +2745,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=156; start_column=12;
-           end_line=156; end_column=29; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=157; start_column=12;
+           end_line=157; end_column=29; law_headings=["Prologue"]})))))
     in
     let plafond__i_d521_3_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "plafond_I_d521_3"] (embed_money)
@@ -2740,8 +2758,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=155; start_column=12;
-                               end_line=155; end_column=28;
+                               start_line=156; start_column=12;
+                               end_line=156; end_column=28;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2767,8 +2785,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=155; start_column=12;
-                               end_line=155; end_column=28;
+                               start_line=156; start_column=12;
+                               end_line=156; end_column=28;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2793,8 +2811,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=155; start_column=12;
-                               end_line=155; end_column=28;
+                               start_line=156; start_column=12;
+                               end_line=156; end_column=28;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2819,8 +2837,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=155; start_column=12;
-                               end_line=155; end_column=28;
+                               start_line=156; start_column=12;
+                               end_line=156; end_column=28;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -2842,8 +2860,8 @@ let allocations_familiales =
                                           (array_length
                                              enfants_a_charge_droit_ouvert_prestation_familiale_))))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=155;
-                       start_column=12; end_line=155; end_column=28;
+                     {filename = "./prologue.catala_fr"; start_line=156;
+                       start_column=12; end_line=156; end_column=28;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -2871,8 +2889,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=155; start_column=12;
-           end_line=155; end_column=28; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=156; start_column=12;
+           end_line=156; end_column=28; law_headings=["Prologue"]})))))
     in
     let droit_ouvert_complement_ : bool = ((log_variable_definition
       ["AllocationsFamiliales"; "droit_ouvert_complément"] (embed_bool)
@@ -2882,15 +2900,15 @@ let allocations_familiales =
                (try
                   (handle_default ([||])
                      (fun (_: _) -> (log_decision_taken
-                        {filename = "./prologue.catala_fr"; start_line=139;
-                          start_column=12; end_line=139; end_column=35;
+                        {filename = "./prologue.catala_fr"; start_line=140;
+                          start_column=12; end_line=140; end_column=35;
                           law_headings=["Prologue"]} true))
                      (fun (_: _) ->
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./securite_sociale_L.catala_fr";
-                               start_line=426; start_column=5;
-                               end_line=427; end_column=71;
+                               start_line=429; start_column=5;
+                               end_line=430; end_column=71;
                                law_headings=["Article L755-12";
                                               "Chapitre 5 : Prestations familiales et prestations assimilées";
                                               "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
@@ -2905,8 +2923,8 @@ let allocations_familiales =
                           (fun (_: _) -> false))) with EmptyError ->
                   (handle_default ([||])
                      (fun (_: _) -> (log_decision_taken
-                        {filename = "./epilogue.catala_fr"; start_line=30;
-                          start_column=9; end_line=30; end_column=32;
+                        {filename = "./epilogue.catala_fr"; start_line=31;
+                          start_column=9; end_line=31; end_column=32;
                           law_headings=["Règles diverses"; "Épilogue";
                                          "Décrets divers"]} true))
                      (fun (_: _) -> true))) with EmptyError ->
@@ -2916,8 +2934,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} true))
                   (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=139; start_column=12;
-           end_line=139; end_column=35; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=140; start_column=12;
+           end_line=140; end_column=35; law_headings=["Prologue"]})))))
     in
     let droit_ouvert_forfaitaire_ : enfant -> bool =
       ((log_variable_definition
@@ -2931,15 +2949,15 @@ let allocations_familiales =
                        (handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=127; start_column=12;
-                               end_line=127; end_column=36;
+                               start_line=128; start_column=12;
+                               end_line=128; end_column=36;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./securite_sociale_L.catala_fr";
-                                    start_line=420; start_column=6;
-                                    end_line=421; end_column=72;
+                                    start_line=423; start_column=6;
+                                    end_line=424; end_column=72;
                                     law_headings=["Article L755-12";
                                                    "Chapitre 5 : Prestations familiales et prestations assimilées";
                                                    "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
@@ -2955,8 +2973,8 @@ let allocations_familiales =
                        (handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./securite_sociale_L.catala_fr";
-                               start_line=119; start_column=5;
-                               end_line=125; end_column=59;
+                               start_line=122; start_column=5;
+                               end_line=128; end_column=59;
                                law_headings=["Article L521-1";
                                               "Chapitre 1er : Allocations familiales";
                                               "Titre 2 : Prestations générales d'entretien";
@@ -2990,12 +3008,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} true))
                        (fun (_: _) -> false))) with EmptyError -> (raise
                  (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=127;
-                   start_column=12; end_line=127; end_column=36;
+                 {filename = "./prologue.catala_fr"; start_line=128;
+                   start_column=12; end_line=128; end_column=36;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=127; start_column=12;
-           end_line=127; end_column=36; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=128; start_column=12;
+           end_line=128; end_column=36; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_quatrieme_enfant_et_plus_mayotte_ : money =
       ((log_variable_definition
@@ -3008,8 +3026,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=124;
-                       start_column=12; end_line=124; end_column=65;
+                     {filename = "./prologue.catala_fr"; start_line=125;
+                       start_column=12; end_line=125; end_column=65;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -3039,8 +3057,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=124; start_column=12;
-           end_line=124; end_column=65; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=125; start_column=12;
+           end_line=125; end_column=65; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_troisieme_enfant_mayotte_ : money =
       ((log_variable_definition
@@ -3055,8 +3073,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3084,8 +3102,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3113,8 +3131,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3142,8 +3160,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3171,8 +3189,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3200,8 +3218,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3229,8 +3247,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3258,8 +3276,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3287,8 +3305,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3316,8 +3334,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=123; start_column=12;
-                               end_line=123; end_column=57;
+                               start_line=124; start_column=12;
+                               end_line=124; end_column=57;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3342,8 +3360,8 @@ let allocations_familiales =
                                        *$ (decimal_of_string "0.0463")) else
                                     (money_of_cents_string "0"))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=123;
-                       start_column=12; end_line=123; end_column=57;
+                     {filename = "./prologue.catala_fr"; start_line=124;
+                       start_column=12; end_line=124; end_column=57;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -3369,8 +3387,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=123; start_column=12;
-           end_line=123; end_column=57; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=124; start_column=12;
+           end_line=124; end_column=57; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_deuxieme_enfant_mayotte_ : money =
       ((log_variable_definition
@@ -3385,8 +3403,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3414,8 +3432,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3443,8 +3461,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3472,8 +3490,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3501,8 +3519,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3530,8 +3548,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3559,8 +3577,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3588,8 +3606,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3617,8 +3635,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3646,8 +3664,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=122; start_column=12;
-                               end_line=122; end_column=56;
+                               start_line=123; start_column=12;
+                               end_line=123; end_column=56;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3672,8 +3690,8 @@ let allocations_familiales =
                                        *$ (decimal_of_string "0.232")) else
                                     (money_of_cents_string "0"))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=122;
-                       start_column=12; end_line=122; end_column=56;
+                     {filename = "./prologue.catala_fr"; start_line=123;
+                       start_column=12; end_line=123; end_column=56;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -3699,8 +3717,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=122; start_column=12;
-           end_line=122; end_column=56; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=123; start_column=12;
+           end_line=123; end_column=56; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_premier_enfant_mayotte_ : money =
       ((log_variable_definition
@@ -3715,8 +3733,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3740,8 +3758,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3771,8 +3789,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3802,8 +3820,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3833,8 +3851,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3864,8 +3882,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3895,8 +3913,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3926,8 +3944,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3957,8 +3975,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -3988,8 +4006,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -4019,8 +4037,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=121; start_column=12;
-                               end_line=121; end_column=55;
+                               start_line=122; start_column=12;
+                               end_line=122; end_column=55;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -4047,8 +4065,8 @@ let allocations_familiales =
                                        *$ (decimal_of_string "0.145")) else
                                     (money_of_cents_string "0"))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=121;
-                       start_column=12; end_line=121; end_column=55;
+                     {filename = "./prologue.catala_fr"; start_line=122;
+                       start_column=12; end_line=122; end_column=55;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -4074,8 +4092,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=121; start_column=12;
-           end_line=121; end_column=55; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=122; start_column=12;
+           end_line=122; end_column=55; law_headings=["Prologue"]})))))
     in
     let nombre_total_enfants_ : decimal = ((log_variable_definition
       ["AllocationsFamiliales"; "nombre_total_enfants"] (embed_decimal)
@@ -4084,8 +4102,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=115;
-                       start_column=12; end_line=115; end_column=32;
+                     {filename = "./prologue.catala_fr"; start_line=116;
+                       start_column=12; end_line=116; end_column=32;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -4111,8 +4129,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=115; start_column=12;
-           end_line=115; end_column=32; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=116; start_column=12;
+           end_line=116; end_column=32; law_headings=["Prologue"]})))))
     in
     let nombre_moyen_enfants_ : decimal = ((log_variable_definition
       ["AllocationsFamiliales"; "nombre_moyen_enfants"] (embed_decimal)
@@ -4121,8 +4139,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=114;
-                       start_column=12; end_line=114; end_column=32;
+                     {filename = "./prologue.catala_fr"; start_line=115;
+                       start_column=12; end_line=115; end_column=32;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -4167,8 +4185,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=114; start_column=12;
-           end_line=114; end_column=32; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=115; start_column=12;
+           end_line=115; end_column=32; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_premier_enfant_ : money =
       ((log_variable_definition
@@ -4180,8 +4198,8 @@ let allocations_familiales =
                (try
                   (handle_default ([||])
                      (fun (_: _) -> (log_decision_taken
-                        {filename = "./prologue.catala_fr"; start_line=110;
-                          start_column=12; end_line=110; end_column=47;
+                        {filename = "./prologue.catala_fr"; start_line=111;
+                          start_column=12; end_line=111; end_column=47;
                           law_headings=["Prologue"]} true))
                      (fun (_: _) ->
                         handle_default ([||])
@@ -4223,8 +4241,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=110; start_column=12;
-           end_line=110; end_column=47; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=111; start_column=12;
+           end_line=111; end_column=47; law_headings=["Prologue"]})))))
     in
     let droit_ouvert_base_ : bool = ((log_variable_definition
       ["AllocationsFamiliales"; "droit_ouvert_base"] (embed_bool)
@@ -4236,8 +4254,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=108; start_column=12;
-                               end_line=108; end_column=29;
+                               start_line=109; start_column=12;
+                               end_line=109; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -4258,15 +4276,15 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=108; start_column=12;
-                               end_line=108; end_column=29;
+                               start_line=109; start_column=12;
+                               end_line=109; end_column=29;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./securite_sociale_L.catala_fr";
-                                    start_line=406; start_column=5;
-                                    end_line=407; end_column=72;
+                                    start_line=409; start_column=5;
+                                    end_line=410; end_column=72;
                                     law_headings=["Article L755-12";
                                                    "Chapitre 5 : Prestations familiales et prestations assimilées";
                                                    "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
@@ -4280,15 +4298,15 @@ let allocations_familiales =
                                         >=! (integer_of_string "1")))))
                                (fun (_: _) -> true)))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=108;
-                       start_column=12; end_line=108; end_column=29;
+                     {filename = "./prologue.catala_fr"; start_line=109;
+                       start_column=12; end_line=109; end_column=29;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
                           {filename = "./securite_sociale_L.catala_fr";
-                            start_line=101; start_column=5;
-                            end_line=101; end_column=70;
+                            start_line=104; start_column=5;
+                            end_line=104; end_column=70;
                             law_headings=["Article L521-1";
                                            "Chapitre 1er : Allocations familiales";
                                            "Titre 2 : Prestations générales d'entretien";
@@ -4305,8 +4323,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} true))
                   (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=108; start_column=12;
-           end_line=108; end_column=29; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=109; start_column=12;
+           end_line=109; end_column=29; law_headings=["Prologue"]})))))
     in
     let droit_ouvert_majoration_ : enfant -> bool = ((log_variable_definition
       ["AllocationsFamiliales"; "droit_ouvert_majoration"] (unembeddable)
@@ -4319,15 +4337,15 @@ let allocations_familiales =
                        (handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=132; start_column=12;
-                               end_line=132; end_column=35;
+                               start_line=133; start_column=12;
+                               end_line=133; end_column=35;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./securite_sociale_L.catala_fr";
-                                    start_line=313; start_column=5;
-                                    end_line=315; end_column=58;
+                                    start_line=316; start_column=5;
+                                    end_line=318; end_column=58;
                                     law_headings=["Article L521-3";
                                                    "Chapitre 1er : Allocations familiales";
                                                    "Titre 2 : Prestations générales d'entretien";
@@ -4357,8 +4375,8 @@ let allocations_familiales =
                        (handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./securite_sociale_L.catala_fr";
-                               start_line=299; start_column=5;
-                               end_line=300; end_column=58;
+                               start_line=302; start_column=5;
+                               end_line=303; end_column=58;
                                law_headings=["Article L521-3";
                                               "Chapitre 1er : Allocations familiales";
                                               "Titre 2 : Prestations générales d'entretien";
@@ -4401,12 +4419,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} true))
                        (fun (_: _) -> false))) with EmptyError -> (raise
                  (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=132;
-                   start_column=12; end_line=132; end_column=35;
+                 {filename = "./prologue.catala_fr"; start_line=133;
+                   start_column=12; end_line=133; end_column=35;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=132; start_column=12;
-           end_line=132; end_column=35; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=133; start_column=12;
+           end_line=133; end_column=35; law_headings=["Prologue"]})))))
     in
     let complement_degressif_ : money -> money = ((log_variable_definition
       ["AllocationsFamiliales"; "complément_dégressif"] (unembeddable)
@@ -4420,8 +4438,8 @@ let allocations_familiales =
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./prologue.catala_fr";
-                                    start_line=141; start_column=12;
-                                    end_line=141; end_column=32;
+                                    start_line=142; start_column=12;
+                                    end_line=142; end_column=32;
                                     law_headings=["Prologue"]} true))
                                (fun (_: _) ->
                                   handle_default ([||])
@@ -4452,8 +4470,8 @@ let allocations_familiales =
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./prologue.catala_fr";
-                                    start_line=141; start_column=12;
-                                    end_line=141; end_column=32;
+                                    start_line=142; start_column=12;
+                                    end_line=142; end_column=32;
                                     law_headings=["Prologue"]} true))
                                (fun (_: _) ->
                                   handle_default ([||])
@@ -4481,8 +4499,8 @@ let allocations_familiales =
                                          ((decimal_of_string "1.") /&
                                             (decimal_of_string "12.")))))|])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=141;
-                            start_column=12; end_line=141; end_column=32;
+                          {filename = "./prologue.catala_fr"; start_line=142;
+                            start_column=12; end_line=142; end_column=32;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4505,12 +4523,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} false))
                        (fun (_: _) -> raise EmptyError))) with EmptyError ->
                  (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=141;
-                   start_column=12; end_line=141; end_column=32;
+                 {filename = "./prologue.catala_fr"; start_line=142;
+                   start_column=12; end_line=142; end_column=32;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=141; start_column=12;
-           end_line=141; end_column=32; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=142; start_column=12;
+           end_line=142; end_column=32; law_headings=["Prologue"]})))))
     in
     let montant_verse_forfaitaire_par_enfant_ : money =
       ((log_variable_definition
@@ -4522,8 +4540,8 @@ let allocations_familiales =
                ([|(fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=128;
-                            start_column=12; end_line=128; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=129;
+                            start_column=12; end_line=129; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4544,8 +4562,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=128;
-                            start_column=12; end_line=128; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=129;
+                            start_column=12; end_line=129; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4568,8 +4586,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=128;
-                            start_column=12; end_line=128; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=129;
+                            start_column=12; end_line=129; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4588,8 +4606,8 @@ let allocations_familiales =
                                prestations_familiales_dot_base_mensuelle_ *$
                                  (decimal_of_string "0.20234"))))|])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=128;
-                    start_column=12; end_line=128; end_column=48;
+                  {filename = "./prologue.catala_fr"; start_line=129;
+                    start_column=12; end_line=129; end_column=48;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -4598,8 +4616,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=128; start_column=12;
-           end_line=128; end_column=48; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=129; start_column=12;
+           end_line=129; end_column=48; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_troisieme_enfant_et_plus_ : money =
       ((log_variable_definition
@@ -4612,8 +4630,8 @@ let allocations_familiales =
                ([|(fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=112;
-                            start_column=12; end_line=112; end_column=57;
+                          {filename = "./prologue.catala_fr"; start_line=113;
+                            start_column=12; end_line=113; end_column=57;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4643,8 +4661,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=112;
-                            start_column=12; end_line=112; end_column=57;
+                          {filename = "./prologue.catala_fr"; start_line=113;
+                            start_column=12; end_line=113; end_column=57;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4676,8 +4694,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=112;
-                            start_column=12; end_line=112; end_column=57;
+                          {filename = "./prologue.catala_fr"; start_line=113;
+                            start_column=12; end_line=113; end_column=57;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4705,8 +4723,8 @@ let allocations_familiales =
                                           -! (integer_of_string "2")))) else
                                  (money_of_cents_string "0"))))|])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=112;
-                    start_column=12; end_line=112; end_column=57;
+                  {filename = "./prologue.catala_fr"; start_line=113;
+                    start_column=12; end_line=113; end_column=57;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -4715,8 +4733,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=112; start_column=12;
-           end_line=112; end_column=57; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=113; start_column=12;
+           end_line=113; end_column=57; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_deuxieme_enfant_ : money =
       ((log_variable_definition
@@ -4728,8 +4746,8 @@ let allocations_familiales =
                ([|(fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=111;
-                            start_column=12; end_line=111; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=112;
+                            start_column=12; end_line=112; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4755,8 +4773,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=111;
-                            start_column=12; end_line=111; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=112;
+                            start_column=12; end_line=112; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4784,8 +4802,8 @@ let allocations_familiales =
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=111;
-                            start_column=12; end_line=111; end_column=48;
+                          {filename = "./prologue.catala_fr"; start_line=112;
+                            start_column=12; end_line=112; end_column=48;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -4809,8 +4827,8 @@ let allocations_familiales =
                                     *$ (decimal_of_string "0.32")) else
                                  (money_of_cents_string "0"))))|])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./prologue.catala_fr"; start_line=111;
-                    start_column=12; end_line=111; end_column=48;
+                  {filename = "./prologue.catala_fr"; start_line=112;
+                    start_column=12; end_line=112; end_column=48;
                     law_headings=["Prologue"]} true))
                (fun (_: _) ->
                   handle_default ([||])
@@ -4819,8 +4837,8 @@ let allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=111; start_column=12;
-           end_line=111; end_column=48; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=112; start_column=12;
+           end_line=112; end_column=48; law_headings=["Prologue"]})))))
     in
     let rapport_enfants_total_moyen_ : decimal = ((log_variable_definition
       ["AllocationsFamiliales"; "rapport_enfants_total_moyen"]
@@ -4830,8 +4848,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=113;
-                       start_column=12; end_line=113; end_column=39;
+                     {filename = "./prologue.catala_fr"; start_line=114;
+                       start_column=12; end_line=114; end_column=39;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -4858,8 +4876,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=113; start_column=12;
-           end_line=113; end_column=39; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=114; start_column=12;
+           end_line=114; end_column=39; law_headings=["Prologue"]})))))
     in
     let montant_initial_metropole_majoration_ : enfant -> money =
       ((log_variable_definition
@@ -4874,15 +4892,15 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=133; start_column=12;
-                                 end_line=133; end_column=48;
+                                 start_line=134; start_column=12;
+                                 end_line=134; end_column=48;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
                                  (fun (_: _) -> (log_decision_taken
                                     {filename = "./epilogue.catala_fr";
-                                      start_line=27; start_column=5;
-                                      end_line=27; end_column=44;
+                                      start_line=28; start_column=5;
+                                      end_line=28; end_column=44;
                                       law_headings=["Règles diverses";
                                                      "Épilogue";
                                                      "Décrets divers"]}
@@ -4905,8 +4923,8 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=133; start_column=12;
-                                 end_line=133; end_column=48;
+                                 start_line=134; start_column=12;
+                                 end_line=134; end_column=48;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
@@ -4943,8 +4961,8 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=133; start_column=12;
-                                 end_line=133; end_column=48;
+                                 start_line=134; start_column=12;
+                                 end_line=134; end_column=48;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
@@ -4983,8 +5001,8 @@ let allocations_familiales =
                           handle_default ([||])
                             (fun (_: _) -> (log_decision_taken
                                {filename = "./prologue.catala_fr";
-                                 start_line=133; start_column=12;
-                                 end_line=133; end_column=48;
+                                 start_line=134; start_column=12;
+                                 end_line=134; end_column=48;
                                  law_headings=["Prologue"]} true))
                             (fun (_: _) ->
                                handle_default ([||])
@@ -5017,8 +5035,8 @@ let allocations_familiales =
                                     prestations_familiales_dot_base_mensuelle_
                                       *$ (decimal_of_string "0.16"))))|])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./prologue.catala_fr"; start_line=133;
-                         start_column=12; end_line=133; end_column=48;
+                       {filename = "./prologue.catala_fr"; start_line=134;
+                         start_column=12; end_line=134; end_column=48;
                          law_headings=["Prologue"]} true))
                     (fun (_: _) ->
                        handle_default ([||])
@@ -5027,12 +5045,12 @@ let allocations_familiales =
                               end_line=0; end_column=1; law_headings=
                               []} false)) (fun (_: _) -> raise EmptyError)))
                  with EmptyError -> (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=133;
-                   start_column=12; end_line=133; end_column=48;
+                 {filename = "./prologue.catala_fr"; start_line=134;
+                   start_column=12; end_line=134; end_column=48;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=133; start_column=12;
-           end_line=133; end_column=48; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=134; start_column=12;
+           end_line=134; end_column=48; law_headings=["Prologue"]})))))
     in
     let montant_verse_forfaitaire_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_versé_forfaitaire"] (embed_money)
@@ -5041,8 +5059,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=129;
-                       start_column=12; end_line=129; end_column=37;
+                     {filename = "./prologue.catala_fr"; start_line=130;
+                       start_column=12; end_line=130; end_column=37;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5088,8 +5106,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=129; start_column=12;
-           end_line=129; end_column=37; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=130; start_column=12;
+           end_line=130; end_column=37; law_headings=["Prologue"]})))))
     in
     let montant_initial_base_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_initial_base"] (embed_money)
@@ -5101,8 +5119,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=109; start_column=12;
-                               end_line=109; end_column=32;
+                               start_line=110; start_column=12;
+                               end_line=110; end_column=32;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -5127,8 +5145,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=109; start_column=12;
-                               end_line=109; end_column=32;
+                               start_line=110; start_column=12;
+                               end_line=110; end_column=32;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -5150,8 +5168,8 @@ let allocations_familiales =
                                (fun (_: _) ->
                                   montant_initial_base_premier_enfant_)))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=109;
-                       start_column=12; end_line=109; end_column=32;
+                     {filename = "./prologue.catala_fr"; start_line=110;
+                       start_column=12; end_line=110; end_column=32;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5176,8 +5194,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=109; start_column=12;
-           end_line=109; end_column=32; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=110; start_column=12;
+           end_line=110; end_column=32; law_headings=["Prologue"]})))))
     in
     let montant_initial_majoration_ : enfant -> money =
       ((log_variable_definition
@@ -5192,8 +5210,8 @@ let allocations_familiales =
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./prologue.catala_fr";
-                                    start_line=134; start_column=12;
-                                    end_line=134; end_column=38;
+                                    start_line=135; start_column=12;
+                                    end_line=135; end_column=38;
                                     law_headings=["Prologue"]} true))
                                (fun (_: _) ->
                                   handle_default ([||])
@@ -5238,8 +5256,8 @@ let allocations_familiales =
                              handle_default ([||])
                                (fun (_: _) -> (log_decision_taken
                                   {filename = "./prologue.catala_fr";
-                                    start_line=134; start_column=12;
-                                    end_line=134; end_column=38;
+                                    start_line=135; start_column=12;
+                                    end_line=135; end_column=38;
                                     law_headings=["Prologue"]} true))
                                (fun (_: _) ->
                                   handle_default ([||])
@@ -5285,8 +5303,8 @@ let allocations_familiales =
                                        prestations_familiales_dot_base_mensuelle_
                                          *$ (decimal_of_string "0.0369"))))|])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=134;
-                            start_column=12; end_line=134; end_column=38;
+                          {filename = "./prologue.catala_fr"; start_line=135;
+                            start_column=12; end_line=135; end_column=38;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -5322,12 +5340,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} false))
                        (fun (_: _) -> raise EmptyError))) with EmptyError ->
                  (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=134;
-                   start_column=12; end_line=134; end_column=38;
+                 {filename = "./prologue.catala_fr"; start_line=135;
+                   start_column=12; end_line=135; end_column=38;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=134; start_column=12;
-           end_line=134; end_column=38; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=135; start_column=12;
+           end_line=135; end_column=38; law_headings=["Prologue"]})))))
     in
     let montant_verse_complement_pour_forfaitaire_ : money =
       ((log_variable_definition
@@ -5342,8 +5360,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=143; start_column=12;
-                               end_line=143; end_column=53;
+                               start_line=144; start_column=12;
+                               end_line=144; end_column=53;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -5374,8 +5392,8 @@ let allocations_familiales =
                         handle_default ([||])
                           (fun (_: _) -> (log_decision_taken
                              {filename = "./prologue.catala_fr";
-                               start_line=143; start_column=12;
-                               end_line=143; end_column=53;
+                               start_line=144; start_column=12;
+                               end_line=144; end_column=53;
                                law_headings=["Prologue"]} true))
                           (fun (_: _) ->
                              handle_default ([||])
@@ -5403,8 +5421,8 @@ let allocations_familiales =
                                     ((decimal_of_string "1.") /&
                                        (decimal_of_string "12.")))))|])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=143;
-                       start_column=12; end_line=143; end_column=53;
+                     {filename = "./prologue.catala_fr"; start_line=144;
+                       start_column=12; end_line=144; end_column=53;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5426,8 +5444,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=143; start_column=12;
-           end_line=143; end_column=53; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=144; start_column=12;
+           end_line=144; end_column=53; law_headings=["Prologue"]})))))
     in
     let montant_avec_garde_alternee_base_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_avec_garde_alternée_base"]
@@ -5437,8 +5455,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=116;
-                       start_column=12; end_line=116; end_column=44;
+                     {filename = "./prologue.catala_fr"; start_line=117;
+                       start_column=12; end_line=117; end_column=44;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5463,8 +5481,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=116; start_column=12;
-           end_line=116; end_column=44; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=117; start_column=12;
+           end_line=117; end_column=44; law_headings=["Prologue"]})))))
     in
     let montant_avec_garde_alternee_majoration_ : enfant -> money =
       ((log_variable_definition
@@ -5477,8 +5495,8 @@ let allocations_familiales =
                  (try
                     (handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./prologue.catala_fr"; start_line=135;
-                            start_column=12; end_line=135; end_column=50;
+                          {filename = "./prologue.catala_fr"; start_line=136;
+                            start_column=12; end_line=136; end_column=50;
                             law_headings=["Prologue"]} true))
                        (fun (_: _) ->
                           handle_default ([||])
@@ -5532,12 +5550,12 @@ let allocations_familiales =
                             end_line=0; end_column=1; law_headings=[]} false))
                        (fun (_: _) -> raise EmptyError))) with EmptyError ->
                  (raise (NoValueProvided
-                 {filename = "./prologue.catala_fr"; start_line=135;
-                   start_column=12; end_line=135; end_column=50;
+                 {filename = "./prologue.catala_fr"; start_line=136;
+                   start_column=12; end_line=136; end_column=50;
                    law_headings=["Prologue"]})))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=135; start_column=12;
-           end_line=135; end_column=50; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=136; start_column=12;
+           end_line=136; end_column=50; law_headings=["Prologue"]})))))
     in
     let montant_verse_base_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_versé_base"] (embed_money)
@@ -5546,14 +5564,14 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=117;
-                       start_column=12; end_line=117; end_column=30;
+                     {filename = "./prologue.catala_fr"; start_line=118;
+                       start_column=12; end_line=118; end_column=30;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./epilogue.catala_fr"; start_line=36;
-                            start_column=14; end_line=36; end_column=32;
+                          {filename = "./epilogue.catala_fr"; start_line=37;
+                            start_column=14; end_line=37; end_column=32;
                             law_headings=["Règles diverses"; "Épilogue";
                                            "Décrets divers"]} true))
                        (fun (_: _) ->
@@ -5566,8 +5584,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=117; start_column=12;
-           end_line=117; end_column=30; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=118; start_column=12;
+           end_line=118; end_column=30; law_headings=["Prologue"]})))))
     in
     let montant_verse_majoration_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_versé_majoration"] (embed_money)
@@ -5576,14 +5594,14 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=136;
-                       start_column=12; end_line=136; end_column=36;
+                     {filename = "./prologue.catala_fr"; start_line=137;
+                       start_column=12; end_line=137; end_column=36;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./epilogue.catala_fr"; start_line=38;
-                            start_column=14; end_line=38; end_column=38;
+                          {filename = "./epilogue.catala_fr"; start_line=39;
+                            start_column=14; end_line=39; end_column=38;
                             law_headings=["Règles diverses"; "Épilogue";
                                            "Décrets divers"]} true))
                        (fun (_: _) ->
@@ -5614,8 +5632,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=136; start_column=12;
-           end_line=136; end_column=36; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=137; start_column=12;
+           end_line=137; end_column=36; law_headings=["Prologue"]})))))
     in
     let montant_base_complement_pour_base_et_majoration_ : money =
       ((log_variable_definition
@@ -5627,8 +5645,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=140;
-                       start_column=12; end_line=140; end_column=59;
+                     {filename = "./prologue.catala_fr"; start_line=141;
+                       start_column=12; end_line=141; end_column=59;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5652,8 +5670,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=140; start_column=12;
-           end_line=140; end_column=59; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=141; start_column=12;
+           end_line=141; end_column=59; law_headings=["Prologue"]})))))
     in
     let montant_verse_complement_pour_base_et_majoration_ : money =
       ((log_variable_definition
@@ -5665,8 +5683,8 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=142;
-                       start_column=12; end_line=142; end_column=60;
+                     {filename = "./prologue.catala_fr"; start_line=143;
+                       start_column=12; end_line=143; end_column=60;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
@@ -5705,8 +5723,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=142; start_column=12;
-           end_line=142; end_column=60; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=143; start_column=12;
+           end_line=143; end_column=60; law_headings=["Prologue"]})))))
     in
     let montant_verse_ : money = ((log_variable_definition
       ["AllocationsFamiliales"; "montant_versé"] (embed_money)
@@ -5715,14 +5733,14 @@ let allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./prologue.catala_fr"; start_line=105;
-                       start_column=12; end_line=105; end_column=25;
+                     {filename = "./prologue.catala_fr"; start_line=106;
+                       start_column=12; end_line=106; end_column=25;
                        law_headings=["Prologue"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./epilogue.catala_fr"; start_line=44;
-                            start_column=14; end_line=44; end_column=27;
+                          {filename = "./epilogue.catala_fr"; start_line=45;
+                            start_column=14; end_line=45; end_column=27;
                             law_headings=["Règles diverses"; "Épilogue";
                                            "Décrets divers"]} true))
                        (fun (_: _) ->
@@ -5741,8 +5759,8 @@ let allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./prologue.catala_fr"; start_line=105; start_column=12;
-           end_line=105; end_column=25; law_headings=["Prologue"]})))))
+         {filename = "./prologue.catala_fr"; start_line=106; start_column=12;
+           end_line=106; end_column=25; law_headings=["Prologue"]})))))
     in
     let _ : unit =
       (if 
@@ -5850,31 +5868,8 @@ let interface_allocations_familiales =
          (try (date_courante_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=72;
-                    start_column=12; end_line=72; end_column=25;
-                    law_headings=["Interface du programme"; "Épilogue";
-                                   "Décrets divers"]} true))
-               (fun (_: _) ->
-                  handle_default ([||])
-                    (fun (_: _) -> (log_decision_taken
-                       {filename = ""; start_line=0; start_column=1;
-                         end_line=0; end_column=1; law_headings=[]} false))
-                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
-         (raise (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=72; start_column=12;
-           end_line=72; end_column=25;
-           law_headings=["Interface du programme"; "Épilogue";
-                          "Décrets divers"]})))))
-    in
-    let enfants_ : enfant_entree array = ((log_variable_definition
-      ["InterfaceAllocationsFamiliales"; "enfants"]
-      (embed_array (embed_enfant_entree))
-      (try
-         (try (enfants_ ()) with EmptyError ->
-            (handle_default ([||])
-               (fun (_: _) -> (log_decision_taken
                   {filename = "./epilogue.catala_fr"; start_line=73;
-                    start_column=12; end_line=73; end_column=19;
+                    start_column=12; end_line=73; end_column=25;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -5885,18 +5880,19 @@ let interface_allocations_familiales =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./epilogue.catala_fr"; start_line=73; start_column=12;
-           end_line=73; end_column=19;
+           end_line=73; end_column=25;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
-    let ressources_menage_ : money = ((log_variable_definition
-      ["InterfaceAllocationsFamiliales"; "ressources_ménage"] (embed_money)
+    let enfants_ : enfant_entree array = ((log_variable_definition
+      ["InterfaceAllocationsFamiliales"; "enfants"]
+      (embed_array (embed_enfant_entree))
       (try
-         (try (ressources_menage_ ()) with EmptyError ->
+         (try (enfants_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=76;
-                    start_column=12; end_line=76; end_column=29;
+                  {filename = "./epilogue.catala_fr"; start_line=74;
+                    start_column=12; end_line=74; end_column=19;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -5906,19 +5902,19 @@ let interface_allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} false))
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=76; start_column=12;
-           end_line=76; end_column=29;
+         {filename = "./epilogue.catala_fr"; start_line=74; start_column=12;
+           end_line=74; end_column=19;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
-    let residence_ : collectivite = ((log_variable_definition
-      ["InterfaceAllocationsFamiliales"; "résidence"] (embed_collectivite)
+    let ressources_menage_ : money = ((log_variable_definition
+      ["InterfaceAllocationsFamiliales"; "ressources_ménage"] (embed_money)
       (try
-         (try (residence_ ()) with EmptyError ->
+         (try (ressources_menage_ ()) with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
                   {filename = "./epilogue.catala_fr"; start_line=77;
-                    start_column=12; end_line=77; end_column=21;
+                    start_column=12; end_line=77; end_column=29;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -5929,7 +5925,29 @@ let interface_allocations_familiales =
                     (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
          {filename = "./epilogue.catala_fr"; start_line=77; start_column=12;
-           end_line=77; end_column=21;
+           end_line=77; end_column=29;
+           law_headings=["Interface du programme"; "Épilogue";
+                          "Décrets divers"]})))))
+    in
+    let residence_ : collectivite = ((log_variable_definition
+      ["InterfaceAllocationsFamiliales"; "résidence"] (embed_collectivite)
+      (try
+         (try (residence_ ()) with EmptyError ->
+            (handle_default ([||])
+               (fun (_: _) -> (log_decision_taken
+                  {filename = "./epilogue.catala_fr"; start_line=78;
+                    start_column=12; end_line=78; end_column=21;
+                    law_headings=["Interface du programme"; "Épilogue";
+                                   "Décrets divers"]} true))
+               (fun (_: _) ->
+                  handle_default ([||])
+                    (fun (_: _) -> (log_decision_taken
+                       {filename = ""; start_line=0; start_column=1;
+                         end_line=0; end_column=1; law_headings=[]} false))
+                    (fun (_: _) -> raise EmptyError)))) with EmptyError ->
+         (raise (NoValueProvided
+         {filename = "./epilogue.catala_fr"; start_line=78; start_column=12;
+           end_line=78; end_column=21;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
@@ -5942,8 +5960,8 @@ let interface_allocations_familiales =
             EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=79;
-                    start_column=12; end_line=79; end_column=59;
+                  {filename = "./epilogue.catala_fr"; start_line=80;
+                    start_column=12; end_line=80; end_column=59;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -5953,8 +5971,8 @@ let interface_allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=79; start_column=12;
-           end_line=79; end_column=59;
+         {filename = "./epilogue.catala_fr"; start_line=80; start_column=12;
+           end_line=80; end_column=59;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
@@ -5967,8 +5985,8 @@ let interface_allocations_familiales =
             with EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=80;
-                    start_column=12; end_line=80; end_column=64;
+                  {filename = "./epilogue.catala_fr"; start_line=81;
+                    start_column=12; end_line=81; end_column=64;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -5978,8 +5996,8 @@ let interface_allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=80; start_column=12;
-           end_line=80; end_column=64;
+         {filename = "./epilogue.catala_fr"; start_line=81; start_column=12;
+           end_line=81; end_column=64;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
@@ -5992,8 +6010,8 @@ let interface_allocations_familiales =
             EmptyError ->
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=81;
-                    start_column=12; end_line=81; end_column=56;
+                  {filename = "./epilogue.catala_fr"; start_line=82;
+                    start_column=12; end_line=82; end_column=56;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
@@ -6003,8 +6021,8 @@ let interface_allocations_familiales =
                          end_line=0; end_column=1; law_headings=[]} true))
                     (fun (_: _) -> false)))) with EmptyError -> (raise
          (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=81; start_column=12;
-           end_line=81; end_column=56;
+         {filename = "./epilogue.catala_fr"; start_line=82; start_column=12;
+           end_line=82; end_column=56;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
@@ -6016,15 +6034,15 @@ let interface_allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./epilogue.catala_fr"; start_line=74;
-                       start_column=12; end_line=74; end_column=28;
+                     {filename = "./epilogue.catala_fr"; start_line=75;
+                       start_column=12; end_line=75; end_column=28;
                        law_headings=["Interface du programme"; "Épilogue";
                                       "Décrets divers"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./epilogue.catala_fr"; start_line=112;
-                            start_column=14; end_line=112; end_column=30;
+                          {filename = "./epilogue.catala_fr"; start_line=113;
+                            start_column=14; end_line=113; end_column=30;
                             law_headings=["Article L131-1";
                                            "Interface du programme";
                                            "Épilogue"; "Décrets divers"]}
@@ -6056,16 +6074,17 @@ let interface_allocations_familiales =
                                   prise_en_charge =
                                     (enfant_.d_prise_en_charge);
                                   a_deja_ouvert_droit_aux_allocations_familiales =
-                                    (enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales)})
-                            enfants_))) with EmptyError ->
+                                    (enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales);
+                                  beneficie_titre_personnel_aide_personnelle_logement =
+                                    false}) enfants_))) with EmptyError ->
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
                      {filename = ""; start_line=0; start_column=1;
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=74; start_column=12;
-           end_line=74; end_column=28;
+         {filename = "./epilogue.catala_fr"; start_line=75; start_column=12;
+           end_line=75; end_column=28;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in
@@ -6079,15 +6098,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=90;
-                         start_column=20; end_line=90; end_column=67;
+                       {filename = "./epilogue.catala_fr"; start_line=91;
+                         start_column=20; end_line=91; end_column=67;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]}
                        personne_charge_effective_permanente_est_parent_))
@@ -6108,15 +6127,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=93;
-                         start_column=20; end_line=93; end_column=72;
+                       {filename = "./epilogue.catala_fr"; start_line=94;
+                         start_column=20; end_line=94; end_column=72;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]}
                        personne_charge_effective_permanente_remplit_titre__i_))
@@ -6134,15 +6153,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=86;
-                         start_column=14; end_line=86; end_column=54;
+                       {filename = "./epilogue.catala_fr"; start_line=87;
+                         start_column=14; end_line=87; end_column=54;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]} true))
                     (fun (_: _) -> ressources_menage_))) with EmptyError ->
@@ -6159,15 +6178,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=87;
-                         start_column=14; end_line=87; end_column=46;
+                       {filename = "./epilogue.catala_fr"; start_line=88;
+                         start_column=14; end_line=88; end_column=46;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]} true))
                     (fun (_: _) -> residence_))) with EmptyError ->
@@ -6184,15 +6203,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=84;
-                         start_column=14; end_line=84; end_column=50;
+                       {filename = "./epilogue.catala_fr"; start_line=85;
+                         start_column=14; end_line=85; end_column=50;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]} true))
                     (fun (_: _) -> date_courante_))) with EmptyError ->
@@ -6211,15 +6230,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=85;
-                         start_column=14; end_line=85; end_column=53;
+                       {filename = "./epilogue.catala_fr"; start_line=86;
+                         start_column=14; end_line=86; end_column=53;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]} true))
                     (fun (_: _) -> enfants_a_charge_))) with EmptyError ->
@@ -6239,15 +6258,15 @@ let interface_allocations_familiales =
          (try
             (handle_default ([||])
                (fun (_: _) -> (log_decision_taken
-                  {filename = "./epilogue.catala_fr"; start_line=75;
-                    start_column=12; end_line=75; end_column=34;
+                  {filename = "./epilogue.catala_fr"; start_line=76;
+                    start_column=12; end_line=76; end_column=34;
                     law_headings=["Interface du programme"; "Épilogue";
                                    "Décrets divers"]} true))
                (fun (_: _) ->
                   handle_default ([||])
                     (fun (_: _) -> (log_decision_taken
-                       {filename = "./epilogue.catala_fr"; start_line=96;
-                         start_column=20; end_line=96; end_column=64;
+                       {filename = "./epilogue.catala_fr"; start_line=97;
+                         start_column=20; end_line=97; end_column=64;
                          law_headings=["Interface du programme"; "Épilogue";
                                         "Décrets divers"]}
                        avait_enfant_a_charge_avant_1er_janvier_2012_))
@@ -6481,15 +6500,15 @@ let interface_allocations_familiales =
             (try
                (handle_default ([||])
                   (fun (_: _) -> (log_decision_taken
-                     {filename = "./epilogue.catala_fr"; start_line=78;
-                       start_column=12; end_line=78; end_column=25;
+                     {filename = "./epilogue.catala_fr"; start_line=79;
+                       start_column=12; end_line=79; end_column=25;
                        law_headings=["Interface du programme"; "Épilogue";
                                       "Décrets divers"]} true))
                   (fun (_: _) ->
                      handle_default ([||])
                        (fun (_: _) -> (log_decision_taken
-                          {filename = "./epilogue.catala_fr"; start_line=88;
-                            start_column=14; end_line=88; end_column=27;
+                          {filename = "./epilogue.catala_fr"; start_line=89;
+                            start_column=14; end_line=89; end_column=27;
                             law_headings=["Interface du programme";
                                            "Épilogue"; "Décrets divers"]}
                           true))
@@ -6502,8 +6521,8 @@ let interface_allocations_familiales =
                        end_line=0; end_column=1; law_headings=[]} false))
                   (fun (_: _) -> raise EmptyError)))) with EmptyError ->
          (raise (NoValueProvided
-         {filename = "./epilogue.catala_fr"; start_line=78; start_column=12;
-           end_line=78; end_column=25;
+         {filename = "./epilogue.catala_fr"; start_line=79; start_column=12;
+           end_line=79; end_column=25;
            law_headings=["Interface du programme"; "Épilogue";
                           "Décrets divers"]})))))
     in

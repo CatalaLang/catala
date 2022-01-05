@@ -60,6 +60,7 @@ type enfant = {
   age : integer;
   prise_en_charge : prise_en_charge;
   a_deja_ouvert_droit_aux_allocations_familiales : bool;
+  beneficie_titre_personnel_aide_personnelle_logement: bool;
 }
 
 type interface_allocations_familiales_out = {
