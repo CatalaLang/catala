@@ -18,12 +18,30 @@ open Utils
 
 (** {1 Rule tree construction} *)
 
-type rule_tree = Leaf of Ast.rule | Node of rule_tree list * Ast.rule
+(** Intermediate representation for the exception tree of rules for a particular scope definition. *)
+type rule_tree =
+  | Leaf of Ast.rule list  (** Rules defining a base case piecewise. List is non-empty. *)
+  | Node of rule_tree list * Ast.rule list
+      (** A list of exceptions to a non-empty list of rules defining a base case piecewise. *)
 
 (** Transforms a flat list of rules into a tree, taking into account the priorities declared between
     rules *)
 let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) : rule_tree list =
   let exc_graph = Dependency.build_exceptions_graph def def_info in
+  Cli.debug_print
+    (Format.asprintf "For definition %a, the exception vertices are: %a" Ast.ScopeDef.format_t
+       def_info
+       (Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ")
+          (fun fmt ruleset ->
+            Format.fprintf fmt "[%a]"
+              (Format.pp_print_list
+                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ")
+                 (fun fmt (rule : Ast.RuleName.t) ->
+                   Format.fprintf fmt "%s"
+                     (Pos.to_string_short (Pos.get_position (Ast.RuleName.get_info rule)))))
+              (List.of_seq (Ast.RuleSet.to_seq ruleset))))
+       (Dependency.ExceptionsDependencies.fold_vertex (fun v acc -> v :: acc) exc_graph []));
   Dependency.check_for_exception_cycle exc_graph;
   (* we start by the base cases: they are the vertices which have no successors *)
   let base_cases =
@@ -33,11 +51,14 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
         else base_cases)
       exc_graph []
   in
-  let rec build_tree (base_case : Ast.RuleName.t) : rule_tree =
-    let exceptions = Dependency.ExceptionsDependencies.pred exc_graph base_case in
+  let rec build_tree (base_cases : Ast.RuleSet.t) : rule_tree =
+    let exceptions = Dependency.ExceptionsDependencies.pred exc_graph base_cases in
+    let base_case_as_rule_list =
+      List.map (fun r -> Ast.RuleMap.find r def) (List.of_seq (Ast.RuleSet.to_seq base_cases))
+    in
     match exceptions with
-    | [] -> Leaf (Ast.RuleMap.find base_case def)
-    | _ -> Node (List.map build_tree exceptions, Ast.RuleMap.find base_case def)
+    | [] -> Leaf base_case_as_rule_list
+    | _ -> Node (List.map build_tree exceptions, base_case_as_rule_list)
   in
   List.map build_tree base_cases
 
@@ -47,14 +68,14 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
 let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
     (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
     Scopelang.Ast.expr Pos.marked Bindlib.box =
-  let exceptions, rule =
+  let exceptions, base_rules =
     match tree with Leaf r -> ([], r) | Node (exceptions, r) -> (exceptions, r)
   in
   (* because each rule has its own variable parameter and we want to convert the whole rule tree
      into a function, we need to perform some alpha-renaming of all the expressions *)
-  let substitute_parameter (e : Scopelang.Ast.expr Pos.marked Bindlib.box) :
+  let substitute_parameter (e : Scopelang.Ast.expr Pos.marked Bindlib.box) (rule : Ast.rule) :
       Scopelang.Ast.expr Pos.marked Bindlib.box =
-    match (is_func, rule.rule_parameter) with
+    match (is_func, rule.Ast.rule_parameter) with
     | Some new_param, Some (old_param, _) ->
         let binder = Bindlib.bind_var old_param e in
         Bindlib.box_apply2
@@ -64,18 +85,39 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
     | _ -> assert false
     (* should not happen *)
   in
-  let just = substitute_parameter rule.Ast.rule_just in
-  let cons = substitute_parameter rule.Ast.rule_cons in
+  let base_just_list =
+    List.map (fun rule -> substitute_parameter rule.Ast.rule_just rule) base_rules
+  in
+  let base_cons_list =
+    List.map (fun rule -> substitute_parameter rule.Ast.rule_cons rule) base_rules
+  in
+  let default_containing_base_cases =
+    Bindlib.box_apply2
+      (fun base_just_list base_cons_list ->
+        ( Scopelang.Ast.EDefault
+            ( List.map2
+                (fun base_just base_cons ->
+                  (Scopelang.Ast.EDefault ([], base_just, base_cons), Pos.get_position base_just))
+                base_just_list base_cons_list,
+              (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), def_pos),
+              (Scopelang.Ast.ELit Dcalc.Ast.LEmptyError, def_pos) ),
+          def_pos ))
+      (Bindlib.box_list base_just_list) (Bindlib.box_list base_cons_list)
+  in
   let exceptions =
     Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false def_pos is_func) exceptions)
   in
   let default =
-    Bindlib.box_apply3
-      (fun exceptions just cons ->
-        (Scopelang.Ast.EDefault (exceptions, just, cons), Pos.get_position just))
-      exceptions just cons
+    Bindlib.box_apply2
+      (fun exceptions default_containing_base_cases ->
+        ( Scopelang.Ast.EDefault
+            ( exceptions,
+              (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), def_pos),
+              default_containing_base_cases ),
+          def_pos ))
+      exceptions default_containing_base_cases
   in
-  match (is_func, rule.rule_parameter) with
+  match (is_func, (List.hd base_rules).Ast.rule_parameter) with
   | None, None -> default
   | Some new_param, Some (_, typ) ->
       if toplevel then
@@ -137,8 +179,8 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
        (match top_list with
        | [] ->
            (* In this case, there are no rules to define the expression *)
-           Leaf top_value
-       | _ -> Node (top_list, top_value)))
+           Leaf [ top_value ]
+       | _ -> Node (top_list, [ top_value ])))
 
 (** Translates a scope *)
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =

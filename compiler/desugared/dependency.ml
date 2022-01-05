@@ -240,10 +240,24 @@ let build_exceptions_graph (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeD
                      (Ast.RuleSet.to_seq rule_set2))))
         all_rule_sets_pointed_to_by_exceptions)
     all_rule_sets_pointed_to_by_exceptions;
+  (* Then we add the exception graph vertices by taking all those sets of rules pointed to by
+     exceptions, and adding the remaining rules not pointed as separate singleton set vertices *)
   let g =
     List.fold_left
       (fun g rule_set -> ExceptionsDependencies.add_vertex g rule_set)
       ExceptionsDependencies.empty all_rule_sets_pointed_to_by_exceptions
+  in
+  let g =
+    Ast.RuleMap.fold
+      (fun (rule_name : Ast.RuleName.t) _ g ->
+        if
+          List.exists
+            (fun rule_set_pointed_to_by_exceptions ->
+              Ast.RuleSet.mem rule_name rule_set_pointed_to_by_exceptions)
+            all_rule_sets_pointed_to_by_exceptions
+        then g
+        else ExceptionsDependencies.add_vertex g (Ast.RuleSet.singleton rule_name))
+      def g
   in
   (* then we add the edges *)
   let g =
@@ -252,7 +266,8 @@ let build_exceptions_graph (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeD
         (* Right now, exceptions can only consist of one rule, we may want to relax that constraint
            later in the development of Catala. *)
         let exception_to_ruleset, pos = rule.Ast.rule_exception_to_rules in
-        if ExceptionsDependencies.mem_vertex g exception_to_ruleset then
+        if Ast.RuleSet.is_empty exception_to_ruleset then g (* we don't add an edge*)
+        else if ExceptionsDependencies.mem_vertex g exception_to_ruleset then
           if exception_to_ruleset = Ast.RuleSet.singleton rule_name then
             Errors.raise_spanned_error "Cannot define rule as an exception to itself" pos
           else

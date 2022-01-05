@@ -363,7 +363,6 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
              the term was well-typed"
             (Pos.get_position e1))
   | EDefault (exceptions, just, cons) -> (
-      let exceptions_orig = exceptions in
       let exceptions = List.map (evaluate_expr ctx) exceptions in
       let empty_count = List.length (List.filter is_empty_error exceptions) in
       match List.length exceptions - empty_count with
@@ -381,12 +380,12 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
       | _ ->
           Errors.raise_multispanned_error
-            "There is a conflict between multiple exceptions for assigning the same variable."
+            "There is a conflict between multiple validd consequences for assigning the same \
+             variable."
             (List.map
-               (fun (_, except) -> (Some "This justification is true:", Pos.get_position except))
-               (List.filter
-                  (fun (sub, _) -> not (is_empty_error sub))
-                  (List.map2 (fun x y -> (x, y)) exceptions exceptions_orig))))
+               (fun except ->
+                 (Some "This consequence has a valid justification:", Pos.get_position except))
+               (List.filter (fun sub -> not (is_empty_error sub)) exceptions)))
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr ctx cond) with
       | ELit (LBool true) -> evaluate_expr ctx et
