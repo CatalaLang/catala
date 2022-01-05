@@ -928,15 +928,15 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
   in
   let scope_updated =
     let scope_def =
-      match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
-      | Some def -> def
-      | None ->
-          {
-            scope_def_rules = Desugared.Ast.RuleMap.empty;
-            scope_def_typ = Name_resolution.get_def_typ ctxt def_key;
-            scope_def_is_condition = Name_resolution.is_def_cond ctxt def_key;
-            scope_def_label_groups = Name_resolution.label_groups ctxt scope_uid def_key;
-          }
+      {
+        Desugared.Ast.scope_def_rules =
+          (match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
+          | Some def -> def.scope_def_rules
+          | None -> Desugared.Ast.RuleMap.empty);
+        scope_def_typ = Name_resolution.get_def_typ ctxt def_key;
+        scope_def_is_condition = Name_resolution.is_def_cond ctxt def_key;
+        scope_def_label_groups = Name_resolution.label_groups ctxt scope_uid def_key;
+      }
     in
     let rule_name = def.definition_id in
     let parent_rules =
@@ -950,9 +950,10 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
               (Desugared.Ast.RuleSet.singleton name, Pos.get_position def.Ast.definition_name))
       | ExceptionToLabel label -> (
           try
-            ( Desugared.Ast.LabelMap.find
-                (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap)
-                scope_def.scope_def_label_groups,
+            let label_id =
+              Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap
+            in
+            ( Desugared.Ast.LabelMap.find label_id scope_def.scope_def_label_groups,
               Pos.get_position def.Ast.definition_name )
           with Not_found ->
             Errors.raise_spanned_error

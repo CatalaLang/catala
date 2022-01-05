@@ -492,15 +492,31 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                           match d.Ast.definition_label with
                           | None -> def_key_ctx
                           | Some label ->
+                              let new_label_idmap =
+                                Desugared.Ast.IdentMap.update (Pos.unmark label)
+                                  (fun existing_label ->
+                                    match existing_label with
+                                    | Some existing_label -> Some existing_label
+                                    | None -> Some (Desugared.Ast.LabelName.fresh label))
+                                  def_key_ctx.label_idmap
+                              in
+                              let label_id =
+                                Desugared.Ast.IdentMap.find (Pos.unmark label) new_label_idmap
+                              in
                               {
                                 def_key_ctx with
-                                label_idmap =
-                                  Desugared.Ast.IdentMap.update (Pos.unmark label)
-                                    (fun existing_label ->
-                                      match existing_label with
-                                      | Some existing_label -> Some existing_label
-                                      | None -> Some (Desugared.Ast.LabelName.fresh label))
-                                    def_key_ctx.label_idmap;
+                                label_idmap = new_label_idmap;
+                                label_groups =
+                                  Desugared.Ast.LabelMap.update label_id
+                                    (fun group ->
+                                      match group with
+                                      | None ->
+                                          Some (Desugared.Ast.RuleSet.singleton d.definition_id)
+                                      | Some existing_group ->
+                                          Some
+                                            (Desugared.Ast.RuleSet.add d.definition_id
+                                               existing_group))
+                                    def_key_ctx.label_groups;
                               }
                         in
                         (* And second, we update the map of default rulenames for unlabeled

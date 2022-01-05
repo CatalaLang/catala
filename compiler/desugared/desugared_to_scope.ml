@@ -28,20 +28,6 @@ type rule_tree =
     rules *)
 let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) : rule_tree list =
   let exc_graph = Dependency.build_exceptions_graph def def_info in
-  Cli.debug_print
-    (Format.asprintf "For definition %a, the exception vertices are: %a" Ast.ScopeDef.format_t
-       def_info
-       (Format.pp_print_list
-          ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ")
-          (fun fmt ruleset ->
-            Format.fprintf fmt "[%a]"
-              (Format.pp_print_list
-                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ")
-                 (fun fmt (rule : Ast.RuleName.t) ->
-                   Format.fprintf fmt "%s"
-                     (Pos.to_string_short (Pos.get_position (Ast.RuleName.get_info rule)))))
-              (List.of_seq (Ast.RuleSet.to_seq ruleset))))
-       (Dependency.ExceptionsDependencies.fold_vertex (fun v acc -> v :: acc) exc_graph []));
   Dependency.check_for_exception_cycle exc_graph;
   (* we start by the base cases: they are the vertices which have no successors *)
   let base_cases =
