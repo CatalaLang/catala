@@ -13,12 +13,15 @@ legislative source that will justify the code that you will write. Concretely,
 that means copy-pasting the text of the law into a Catala source file and
 formatting it according so that Catala can understand it. Catala source files
 have the ".catala_en" extension. If you were to write a Catala program for a
-French law, you would use the ".catala_fr" extension.
+French law, you would use the ".catala_fr" extension; for Polish law,
+"catala_pl", etc.
 
 You can write any kind of plain text in Catala, and it will be printed as is
-in PDF or HTML output. You can split your text into short lines, those
-will appear as a single paragraph in the output. If you want to create a
-new paragraph, you have to leave a blank line in the source.
+in PDF or HTML output. You can split your text into short lines of less than
+80 characters, terminal-style, and those will appear as a single paragraph
+in the output. If you want to create a new paragraph, you have to leave a blank
+line in the source. The syntax for non-code text in a Catala program follows
+a subset of Markdown that supports titles and Catala block codes.
 
 Catala allows you to declare section or subsection headers as it is done
 here, with the "#" symbol. You can define heading of lower
