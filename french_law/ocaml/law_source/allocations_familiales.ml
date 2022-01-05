@@ -1183,19 +1183,20 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     ((match param_.obligation_scolaire with
-                      | Avant _ -> true
+                     (((match param_.obligation_scolaire with
+                       | Avant _ -> true
+                       | Pendant _ -> false
+                       | Apres _ -> false)
+                      || (match param_.obligation_scolaire with
+                         | Avant _ -> false
+                         | Pendant _ -> true
+                         | Apres _ -> false)
+                      ||
+                      match param_.obligation_scolaire with
+                      | Avant _ -> false
                       | Pendant _ -> false
-                      | Apres _ -> false)
-                     || (match param_.obligation_scolaire with
-                        | Avant _ -> false
-                        | Pendant _ -> true
-                        | Apres _ -> false)
-                     || (match param_.obligation_scolaire with
-                        | Avant _ -> false
-                        | Pendant _ -> false
-                        | Apres _ -> true)
-                        && param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
+                      | Apres _ -> true)
+                     && param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
                  then true
                  else raise EmptyError
                with EmptyError -> false

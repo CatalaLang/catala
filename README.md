@@ -1,14 +1,53 @@
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="100"/>
-</center>
+<div align="center">
+  <img src="https://github.com/CatalaLang/catala/raw/master/doc/images/logo.png" alt="Catala logo" width="120"/>
+  <h3 align="center">
+	<big>Catala</big>
+  </h3>
+  <p align="center">
+   <a href="https://catala-lang.org/ocaml_docs/"><strong>Explore the docs »</strong></a>
+   <br/>
+   <a href="https://catala-lang.org/en/examples/tutorial">View Tutorial</a>
+   •
+   <a href="https://github.com/CatalaLang/catala/issues">Report Bug</a>
+   •
+   <a href="https://github.com/CatalaLang/catala/blob/master/CONTRIBUTING.md">Contribute</a>
+   •
+   <a href="https://zulip.catala-lang.org/">Join Zulip Chat</a>
+  </p>
 
-# Catala [![Catala chat][chat-image]][chat-link] ![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
+![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
 You can join the Catala community on [Zulip][chat-link]!
+</div>
+
+<br>
+
+<details>
+  <summary>Table of Contents</summary>
+
+<!-- vim-markdown-toc GitLab -->
+
+* [Concepts](#concepts)
+* [Building and installation](#building-and-installation)
+* [Usage](#usage)
+* [Examples](#examples)
+* [API](#api)
+* [Contributing](#contributing)
+* [Test suite](#test-suite)
+* [Documentation](#documentation)
+  * [Formal semantics](#formal-semantics)
+  * [Compiler documentation](#compiler-documentation)
+* [License](#license)
+* [Limitations and disclaimer](#limitations-and-disclaimer)
+* [Pierre Catala](#pierre-catala)
+
+<!-- vim-markdown-toc -->
+
+</details>
 
 ## Concepts
 
@@ -23,9 +62,9 @@ cases, etc. that contain information about the socio-fiscal mechanism that
 you want to implement. Then, you can proceed to annotate the text article by
 article, in your favorite text editor :
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="450"/>
-</center>
+<div align="center">
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/ScreenShotVSCode.png" alt="Screenshot" height="350"/>
+</div>
 
 Once your code is complete and tested, you can use the Catala
 compiler to produce a lawyer-readable PDF version of your
@@ -34,9 +73,9 @@ in collaboration with law professionals to ensure that the code
 can be reviewed and certified correct by the domain experts, which
 are in this case lawyers and not programmers.
 
-<center>
-<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="400"/>
-</center>
+<div align="center">
+<img src="https://github.com/CatalaLang/catala/raw/master/doc/images/CatalaScreenShot.png" alt="Screenshot" height="350"/>
+</div>
 
 The Catala language is special because its logical structure mimics
 the logical structure of the law. Indeed, the core concept of

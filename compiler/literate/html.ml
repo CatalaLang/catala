@@ -47,18 +47,6 @@ let remove_cb_first_lines : string -> string =
 let remove_cb_last_lines : string -> string =
   R.substitute ~rex:(R.regexp "<.*\n*</pre>") ~subst:(function _ -> "</pre>")
 
-(** Partial application allowing to substitute operators by their unicode representation. *)
-let substitute_arithmetics_op : string -> string =
-  R.substitute ~rex:(R.regexp "!=|<=|>=|--|->|\\*|\\/") ~subst:(function
-    | "!=" -> "≠"
-    | "<=" -> "≤"
-    | ">=" -> "≥"
-    | "--" -> "—"
-    | "->" -> "→"
-    | "*" -> "×"
-    | "/" -> "÷"
-    | s -> s)
-
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
@@ -154,11 +142,10 @@ let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatte
       let t = pre_html t in
       if t = "" then () else Format.fprintf fmt "<p class='law-text'>%s</p>" t
   | A.CodeBlock (_, c, metadata) ->
-      let pprinted_c = substitute_arithmetics_op (Pos.unmark c) in
       Format.fprintf fmt "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
         (if metadata then " code-metadata" else "")
         (Pos.get_file (Pos.get_position c))
-        (pygmentize_code (Pos.same_pos_as ("```catala\n" ^ pprinted_c ^ "```") c) language)
+        (pygmentize_code (Pos.same_pos_as ("```catala\n" ^ Pos.unmark c ^ "```") c) language)
   | A.LawHeading (heading, children) ->
       let h_number = heading.law_heading_precedence + 1 in
       Format.fprintf fmt "<h%d class='law-heading'><a href='%s'>%s</a></h%d>\n" h_number

@@ -385,6 +385,9 @@ rule:
       rule_parameter = param_applied;
       rule_condition = cond;
       rule_name = name;
+      rule_id = Desugared.Ast.RuleName.fresh
+        (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
+          Pos.from_lpos $sloc);
       rule_consequence = cons;
   }, $sloc)
 }
@@ -413,6 +416,10 @@ definition:
       definition_name = name;
       definition_parameter = param;
       definition_condition = cond;
+      definition_id =
+        Desugared.Ast.RuleName.fresh
+          (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
+            Pos.from_lpos $sloc);
       definition_expr = e;
     }, $sloc)
 }

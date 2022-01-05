@@ -778,8 +778,8 @@ let lex_law (lexbuf : lexbuf) : token =
     | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
-    Surface.Lexer_common.is_code}. *)
+(** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law}
+    depending of the current {!val: Surface.Lexer_common.context}. *)
 let lexer (lexbuf : lexbuf) : token =
   match !L.context with
   | Law -> lex_law lexbuf

@@ -1,6 +1,25 @@
-{ lib, fetchFromGitHub, buildDunePackage, ansiterminal, sedlex_2, menhir
-, unionfind, bindlib, cmdliner, re, zarith, zarith_stubs_js, ocamlgraph
-, calendar, visitors, benchmark, js_of_ocaml, js_of_ocaml-ppx, camomile, cppo }:
+{ lib
+, fetchFromGitHub
+, buildDunePackage
+, ansiterminal
+, sedlex_2
+, menhir
+, unionfind
+, bindlib
+, cmdliner
+, re
+, zarith
+, zarith_stubs_js
+, ocamlgraph
+, calendar
+, visitors
+, benchmark
+, js_of_ocaml
+, js_of_ocaml-ppx
+, camomile
+, cppo
+, menhirLib ? null #for nixos-unstable compatibility.
+}:
 
 buildDunePackage rec {
   pname = "catala";
@@ -16,6 +35,7 @@ buildDunePackage rec {
     ansiterminal
     sedlex_2
     menhir
+    menhirLib
     cmdliner
     re
     zarith
@@ -31,7 +51,7 @@ buildDunePackage rec {
 
     unionfind
     bindlib
-  ];
+  ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
   doCheck = true;
 
   patches = [ ./.nix/no-web.patch ];

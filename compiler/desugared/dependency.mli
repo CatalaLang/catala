@@ -61,7 +61,7 @@ val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
 
 (** {1 Exceptions dependency graph} *)
 
-module ExceptionsDependencies : Graph.Sig.P with type V.t = Ast.RuleName.t and type E.label = Edge.t
+module ExceptionsDependencies : Graph.Sig.P with type V.t = Ast.RuleSet.t and type E.label = Edge.t
 
 val build_exceptions_graph : Ast.rule Ast.RuleMap.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
 

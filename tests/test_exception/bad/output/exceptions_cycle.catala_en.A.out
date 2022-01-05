@@ -1,43 +1,55 @@
 [ERROR] Cyclic dependency detected between exceptions!
 
-Cycle exception exception_exception_x, declared:
+Cyclic exception for definition of variable "x", declared here:
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
 16 |   label exception_exception_x
-   |         ^^^^^^^^^^^^^^^^^^^^^
-   + Test
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+17 |   exception exception_x
+   |   ^^^^^^^^^^^^^^^^^^^^^
+18 |   definition x equals 2
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+   + 
 
-Used here in the definition of another cycle exception exception_x:
+Used here in the definition of another cyclic exception for defining "x":
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
-17 |   exception exception_x
-   |             ^^^^^^^^^^^
+18 |   definition x equals 2
+   |              ^
    + Test
 
-Cycle exception exception_x, declared:
+Cyclic exception for definition of variable "x", declared here:
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
 12 |   label exception_x
-   |         ^^^^^^^^^^^
-   + Test
+   |   ^^^^^^^^^^^^^^^^
+13 |   exception base_x
+   |   ^^^^^^^^^^^^^^^^
+14 |   definition x equals 1
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+   + 
 
-Used here in the definition of another cycle exception base_x:
+Used here in the definition of another cyclic exception for defining "x":
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
-13 |   exception base_x
-   |             ^^^^^^
+14 |   definition x equals 1
+   |              ^
    + Test
 
-Cycle exception base_x, declared:
- --> test_exception/bad/exceptions_cycle.catala_en
-  | 
-8 |   label base_x
-  |         ^^^^^^
-  + Test
+Cyclic exception for definition of variable "x", declared here:
+  --> test_exception/bad/exceptions_cycle.catala_en
+   | 
+ 8 |   label base_x
+   |   ^^^^^^^^^^^
+ 9 |   exception exception_exception_x
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 |   definition x equals 0
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+   + 
 
-Used here in the definition of another cycle exception exception_exception_x:
- --> test_exception/bad/exceptions_cycle.catala_en
-  | 
-9 |   exception exception_exception_x
-  |             ^^^^^^^^^^^^^^^^^^^^^
-  + Test
+Used here in the definition of another cyclic exception for defining "x":
+  --> test_exception/bad/exceptions_cycle.catala_en
+   | 
+10 |   definition x equals 0
+   |              ^
+   + Test

@@ -23,12 +23,17 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t Pos.marked
+
+type scope_def_context = {
+  default_exception_rulename : unique_rulename option;
+  label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
+  label_groups : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t;
+}
 
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
-  label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
-  default_rulemap : unique_rulename Desugared.Ast.ScopeDefMap.t;
+  scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
@@ -135,6 +140,12 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
      the original subscope *)
   | Desugared.Ast.ScopeDef.Var x ->
       is_var_cond ctxt x
+
+let label_groups (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t)
+    (def : Desugared.Ast.ScopeDef.t) : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
+  (Desugared.Ast.ScopeDefMap.find def
+     (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
+    .label_groups
 
 (** {1 Declarations pass} *)
 
@@ -368,8 +379,7 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
               Scopelang.Ast.ScopeMap.add scope_uid
                 {
                   var_idmap = Desugared.Ast.IdentMap.empty;
-                  label_idmap = Desugared.Ast.IdentMap.empty;
-                  default_rulemap = Desugared.Ast.ScopeDefMap.empty;
+                  scope_defs_contexts = Desugared.Ast.ScopeDefMap.empty;
                   sub_scopes_idmap = Desugared.Ast.IdentMap.empty;
                   sub_scopes = Scopelang.Ast.SubScopeMap.empty;
                 }
@@ -442,157 +452,130 @@ let get_def_key (name : Ast.qident) (scope_uid : Scopelang.Ast.ScopeName.t) (ctx
       Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
   | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
 
-let process_rule (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (r : Ast.rule) : context =
-  (* Process the label map first *)
-  let ctxt =
-    match r.Ast.rule_label with
-    | None -> ctxt
-    | Some label ->
-        let rule_name =
-          Desugared.Ast.RuleName.fresh
-            (match r.rule_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  r.rule_name
-            | Some label -> label)
-        in
-        {
-          ctxt with
-          scopes =
-            Scopelang.Ast.ScopeMap.update s_name
-              (fun s_ctxt ->
-                match s_ctxt with
-                | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) rule_name s_ctxt.label_idmap;
-                      })
-              ctxt.scopes;
-        }
-  in
-  (* And update the map of default rulenames for unlabeled exceptions *)
-  match r.Ast.rule_exception_to with
-  (* If this definition is an exception, it cannot be a default definition *)
-  | UnlabeledException | ExceptionToLabel _ -> ctxt
-  (* If it is not an exception, we need to distinguish between several cases *)
-  | NotAnException ->
-      let def_key =
-        get_def_key (Pos.unmark r.rule_name) s_name ctxt (Pos.get_position r.rule_consequence)
-      in
-      let scope_ctxt = Scopelang.Ast.ScopeMap.find s_name ctxt.scopes in
-      let rulemap =
-        match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
-        (* There was already a default definition for this key. If we need it, it is ambiguous *)
-        | Some old ->
-            Desugared.Ast.ScopeDefMap.add def_key
-              (Ambiguous
-                 ([ Pos.get_position r.rule_name ]
-                 @
-                 match old with
-                 | Ambiguous old -> old
-                 | Unique n -> [ Pos.get_position (Desugared.Ast.RuleName.get_info n) ]))
-              scope_ctxt.default_rulemap
-        (* No definition has been set yet for this key *)
-        | None -> (
-            match r.Ast.rule_label with
-            (* This default definition has a label. This is not allowed for unlabeled exceptions *)
-            | Some _ ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Ambiguous [ Pos.get_position r.rule_name ])
-                  scope_ctxt.default_rulemap
-            (* This is a possible default definition for this key. We create and store a fresh
-               rulename *)
-            | None ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Unique (Desugared.Ast.RuleName.fresh (Pos.same_pos_as "default" r.rule_name)))
-                  scope_ctxt.default_rulemap)
-      in
-      let new_scope_ctxt = { scope_ctxt with default_rulemap = rulemap } in
-      { ctxt with scopes = Scopelang.Ast.ScopeMap.add s_name new_scope_ctxt ctxt.scopes }
-
 let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
     context =
-  (* Process the label map first *)
-  let ctxt =
-    match d.Ast.definition_label with
-    | None -> ctxt
-    | Some label ->
-        let definition_name =
-          Desugared.Ast.RuleName.fresh
-            (match d.definition_label with
-            | None ->
-                Pos.map_under_mark
-                  (fun qident -> String.concat "." (List.map (fun i -> Pos.unmark i) qident))
-                  d.definition_name
-            | Some label -> label)
-        in
-        {
-          ctxt with
-          scopes =
-            Scopelang.Ast.ScopeMap.update s_name
-              (fun s_ctxt ->
-                match s_ctxt with
-                | None -> assert false (* should not happen *)
-                | Some s_ctxt ->
-                    Some
-                      {
-                        s_ctxt with
-                        label_idmap =
-                          Desugared.Ast.IdentMap.add (Pos.unmark label) definition_name
-                            s_ctxt.label_idmap;
-                      })
-              ctxt.scopes;
-        }
-  in
-  (* And update the map of default rulenames for unlabeled exceptions *)
-  match d.Ast.definition_exception_to with
-  (* If this definition is an exception, it cannot be a default definition *)
-  | UnlabeledException | ExceptionToLabel _ -> ctxt
-  (* If it is not an exception, we need to distinguish between several cases *)
-  | NotAnException ->
-      let def_key =
-        get_def_key (Pos.unmark d.definition_name) s_name ctxt (Pos.get_position d.definition_expr)
-      in
-      let scope_ctxt = Scopelang.Ast.ScopeMap.find s_name ctxt.scopes in
-      let rulemap =
-        match Desugared.Ast.ScopeDefMap.find_opt def_key scope_ctxt.default_rulemap with
-        (* There was already a default definition for this key. If we need it, it is ambiguous *)
-        | Some old ->
-            Desugared.Ast.ScopeDefMap.add def_key
-              (Ambiguous
-                 ([ Pos.get_position d.definition_name ]
-                 @
-                 match old with
-                 | Ambiguous old -> old
-                 | Unique n -> [ Pos.get_position (Desugared.Ast.RuleName.get_info n) ]))
-              scope_ctxt.default_rulemap
-        (* No definition has been set yet for this key *)
-        | None -> (
-            match d.Ast.definition_label with
-            (* This default definition has a label. This is not allowed for unlabeled exceptions *)
-            | Some _ ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Ambiguous [ Pos.get_position d.definition_name ])
-                  scope_ctxt.default_rulemap
-            (* This is a possible default definition for this key. We create and store a fresh
-               rulename *)
-            | None ->
-                Desugared.Ast.ScopeDefMap.add def_key
-                  (Unique
-                     (Desugared.Ast.RuleName.fresh (Pos.same_pos_as "default" d.definition_name)))
-                  scope_ctxt.default_rulemap)
-      in
-      let new_scope_ctxt = { scope_ctxt with default_rulemap = rulemap } in
-      { ctxt with scopes = Scopelang.Ast.ScopeMap.add s_name new_scope_ctxt ctxt.scopes }
+  (* We update the definition context inside the big context *)
+  {
+    ctxt with
+    scopes =
+      Scopelang.Ast.ScopeMap.update s_name
+        (fun (s_ctxt : scope_context option) ->
+          let def_key =
+            get_def_key (Pos.unmark d.definition_name) s_name ctxt
+              (Pos.get_position d.definition_expr)
+          in
+          match s_ctxt with
+          | None -> assert false (* should not happen *)
+          | Some s_ctxt ->
+              Some
+                {
+                  s_ctxt with
+                  scope_defs_contexts =
+                    Desugared.Ast.ScopeDefMap.update def_key
+                      (fun def_key_ctx ->
+                        let def_key_ctx : scope_def_context =
+                          Option.fold
+                            ~none:
+                              {
+                                (* Here, this is the first time we encounter a definition for this
+                                   definition key *)
+                                default_exception_rulename = None;
+                                label_idmap = Desugared.Ast.IdentMap.empty;
+                                label_groups = Desugared.Ast.LabelMap.empty;
+                              }
+                            ~some:(fun x -> x)
+                            def_key_ctx
+                        in
+                        (* First, we update the def key context with information about the
+                           definition's label*)
+                        let def_key_ctx =
+                          match d.Ast.definition_label with
+                          | None -> def_key_ctx
+                          | Some label ->
+                              let new_label_idmap =
+                                Desugared.Ast.IdentMap.update (Pos.unmark label)
+                                  (fun existing_label ->
+                                    match existing_label with
+                                    | Some existing_label -> Some existing_label
+                                    | None -> Some (Desugared.Ast.LabelName.fresh label))
+                                  def_key_ctx.label_idmap
+                              in
+                              let label_id =
+                                Desugared.Ast.IdentMap.find (Pos.unmark label) new_label_idmap
+                              in
+                              {
+                                def_key_ctx with
+                                label_idmap = new_label_idmap;
+                                label_groups =
+                                  Desugared.Ast.LabelMap.update label_id
+                                    (fun group ->
+                                      match group with
+                                      | None ->
+                                          Some (Desugared.Ast.RuleSet.singleton d.definition_id)
+                                      | Some existing_group ->
+                                          Some
+                                            (Desugared.Ast.RuleSet.add d.definition_id
+                                               existing_group))
+                                    def_key_ctx.label_groups;
+                              }
+                        in
+                        (* And second, we update the map of default rulenames for unlabeled
+                           exceptions *)
+                        let def_key_ctx =
+                          match d.Ast.definition_exception_to with
+                          (* If this definition is an exception, it cannot be a default
+                             definition *)
+                          | UnlabeledException | ExceptionToLabel _ -> def_key_ctx
+                          (* If it is not an exception, we need to distinguish between several
+                             cases *)
+                          | NotAnException -> (
+                              match def_key_ctx.default_exception_rulename with
+                              (* There was already a default definition for this key. If we need it,
+                                 it is ambiguous *)
+                              | Some old ->
+                                  {
+                                    def_key_ctx with
+                                    default_exception_rulename =
+                                      Some
+                                        (Ambiguous
+                                           ([ Pos.get_position d.definition_name ]
+                                           @
+                                           match old with
+                                           | Ambiguous old -> old
+                                           | Unique (_, pos) -> [ pos ]));
+                                  }
+                              (* No definition has been set yet for this key *)
+                              | None -> (
+                                  match d.Ast.definition_label with
+                                  (* This default definition has a label. This is not allowed for
+                                     unlabeled exceptions *)
+                                  | Some _ ->
+                                      {
+                                        def_key_ctx with
+                                        default_exception_rulename =
+                                          Some (Ambiguous [ Pos.get_position d.definition_name ]);
+                                      }
+                                  (* This is a possible default definition for this key. We create
+                                     and store a fresh rulename *)
+                                  | None ->
+                                      {
+                                        def_key_ctx with
+                                        default_exception_rulename =
+                                          Some
+                                            (Unique
+                                               (d.definition_id, Pos.get_position d.definition_name));
+                                      }))
+                        in
+                        Some def_key_ctx)
+                      s_ctxt.scope_defs_contexts;
+                })
+        ctxt.scopes;
+  }
 
 let process_scope_use_item (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (sitem : Ast.scope_use_item Pos.marked) : context =
   match Pos.unmark sitem with
-  | Rule r -> process_rule ctxt s_name r
+  | Rule r -> process_definition ctxt s_name (Ast.rule_to_def r)
   | Definition d -> process_definition ctxt s_name d
   | _ -> ctxt
 
