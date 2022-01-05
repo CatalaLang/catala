@@ -54,7 +54,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
      into a function, we need to perform some alpha-renaming of all the expressions *)
   let substitute_parameter (e : Scopelang.Ast.expr Pos.marked Bindlib.box) :
       Scopelang.Ast.expr Pos.marked Bindlib.box =
-    match (is_func, rule.parameter) with
+    match (is_func, rule.rule_parameter) with
     | Some new_param, Some (old_param, _) ->
         let binder = Bindlib.bind_var old_param e in
         Bindlib.box_apply2
@@ -64,8 +64,8 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
     | _ -> assert false
     (* should not happen *)
   in
-  let just = substitute_parameter rule.Ast.just in
-  let cons = substitute_parameter rule.Ast.cons in
+  let just = substitute_parameter rule.Ast.rule_just in
+  let cons = substitute_parameter rule.Ast.rule_cons in
   let exceptions =
     Bindlib.box_list (List.map (rule_tree_to_expr ~toplevel:false def_pos is_func) exceptions)
   in
@@ -75,7 +75,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
         (Scopelang.Ast.EDefault (exceptions, just, cons), Pos.get_position just))
       exceptions just cons
   in
-  match (is_func, rule.parameter) with
+  match (is_func, rule.rule_parameter) with
   | None, None -> default
   | Some new_param, Some (_, typ) ->
       if toplevel then
@@ -98,7 +98,7 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (typ : Scopelang.Ast.typ Pos.marked) (is_cond : bool) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
-  let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.parameter in
+  let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.rule_parameter in
   let all_rules_func = Ast.RuleMap.for_all is_func def in
   let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
   let is_def_func : Scopelang.Ast.typ Pos.marked option =
@@ -117,12 +117,13 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
         "some definitions of the same variable are functions while others aren't"
         (List.map
            (fun (_, r) ->
-             (Some "This definition is a function:", Pos.get_position (Bindlib.unbox r.Ast.cons)))
+             ( Some "This definition is a function:",
+               Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
            (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
-                Pos.get_position (Bindlib.unbox r.Ast.cons) ))
+                Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
             (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)))
   in
   let top_list = def_map_to_tree def_info def in
@@ -150,9 +151,10 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
          (fun vertex ->
            match vertex with
            | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) ->
-               let var_def, var_typ, is_cond =
-                 Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs
-               in
+               let scope_def = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+               let var_def = scope_def.scope_def_rules in
+               let var_typ = scope_def.scope_def_typ in
+               let is_cond = scope_def.scope_def_is_condition in
                let expr_def = translate_def (Ast.ScopeDef.Var var) var_def var_typ is_cond in
                [
                  Scopelang.Ast.Definition
@@ -170,7 +172,10 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                in
                let sub_scope_vars_redefs =
                  Ast.ScopeDefMap.mapi
-                   (fun def_key (def, def_typ, is_cond) ->
+                   (fun def_key scope_def ->
+                     let def = scope_def.Ast.scope_def_rules in
+                     let def_typ = scope_def.scope_def_typ in
+                     let is_cond = scope_def.scope_def_is_condition in
                      match def_key with
                      | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
                      | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
@@ -211,7 +216,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_sig =
     Scopelang.Ast.ScopeVarSet.fold
       (fun var acc ->
-        let _, typ, _ = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+        let typ = (Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs).scope_def_typ in
         Scopelang.Ast.ScopeVarMap.add var typ acc)
       scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
   in

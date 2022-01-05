@@ -881,8 +881,9 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
     (def_key : Desugared.Ast.ScopeDef.t Pos.marked) (rule_id : Desugared.Ast.RuleName.t)
     (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (exception_to_rules : Pos.t Desugared.Ast.RuleMap.t) (just : Ast.expression Pos.marked option)
-    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
+    (exception_to_rules : Desugared.Ast.RuleSet.t Pos.marked)
+    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
+    Desugared.Ast.rule =
   let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
   let just = merge_conditions precond just (Pos.get_position def_key) in
   let cons = translate_expr scope ctxt cons in
@@ -940,22 +941,19 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     let rule_name = def.definition_id in
     let parent_rules =
       match def.Ast.definition_exception_to with
-      | NotAnException -> Desugared.Ast.RuleMap.empty
+      | NotAnException -> (Desugared.Ast.RuleSet.empty, Pos.get_position def.Ast.definition_name)
       | UnlabeledException -> (
           match scope_def_ctxt.default_exception_rulename with
           (* This should have been caught previously by check_unlabeled_exception *)
           | None | Some (Name_resolution.Ambiguous _) -> assert false
           | Some (Name_resolution.Unique name) ->
-              Desugared.Ast.RuleMap.singleton name (Pos.get_position def.Ast.definition_name))
+              (Desugared.Ast.RuleSet.singleton name, Pos.get_position def.Ast.definition_name))
       | ExceptionToLabel label -> (
           try
-            Desugared.Ast.RuleSet.fold
-              (fun parent_rule (acc : Pos.t Desugared.Ast.RuleMap.t) ->
-                Desugared.Ast.RuleMap.add parent_rule (Pos.get_position label) acc)
-              (Desugared.Ast.LabelMap.find
-                 (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap)
-                 scope_def.scope_def_label_groups)
-              Desugared.Ast.RuleMap.empty
+            ( Desugared.Ast.LabelMap.find
+                (Desugared.Ast.IdentMap.find (Pos.unmark label) scope_def_ctxt.label_idmap)
+                scope_def.scope_def_label_groups,
+              Pos.get_position def.Ast.definition_name )
           with Not_found ->
             Errors.raise_spanned_error
               (Format.asprintf "Unknown label for the scope variable %a: \"%s\""

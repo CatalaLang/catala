@@ -128,7 +128,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   in
   let g =
     Ast.ScopeDefMap.fold
-      (fun def_key (def, _, _) g ->
+      (fun def_key scope_def g ->
+        let def = scope_def.Ast.scope_def_rules in
         let fv = Ast.free_variables def in
         Ast.ScopeDefMap.fold
           (fun fv_def fv_def_pos g ->
@@ -186,7 +187,9 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
 (** {2 Graph declaration} *)
 
 module ExceptionVertex = struct
-  include Ast.RuleName
+  include Ast.RuleSet
+
+  let hash (x : t) : int = Ast.RuleSet.fold (fun r acc -> Int.logxor (Ast.RuleName.hash r) acc) x 0
 
   let equal x y = compare x y = 0
 end
@@ -202,32 +205,69 @@ module ExceptionsSCC = Graph.Components.Make (ExceptionsDependencies)
 
 let build_exceptions_graph (def : Ast.rule Ast.RuleMap.t) (def_info : Ast.ScopeDef.t) :
     ExceptionsDependencies.t =
-  (* first we add the vertices *)
-  let g =
+  (* first we collect all the rule sets referred by exceptions *)
+  let all_rule_sets_pointed_to_by_exceptions : Ast.RuleSet.t list =
     Ast.RuleMap.fold
-      (fun rule_name _ g -> ExceptionsDependencies.add_vertex g rule_name)
-      def ExceptionsDependencies.empty
+      (fun _rule_name rule acc ->
+        if Ast.RuleSet.is_empty (Pos.unmark rule.Ast.rule_exception_to_rules) then acc
+        else Pos.unmark rule.Ast.rule_exception_to_rules :: acc)
+      def []
+  in
+  (* we make sure these sets are either disjoint or equal ; should be a syntactic invariant since
+     you currently can't assign two labels to a single rule but an extra check is valuable since
+     this is a required invariant for the graph to be sound *)
+  List.iter
+    (fun rule_set1 ->
+      List.iter
+        (fun rule_set2 ->
+          if Ast.RuleSet.equal rule_set1 rule_set2 then ()
+          else if Ast.RuleSet.disjoint rule_set1 rule_set2 then ()
+          else
+            Errors.raise_multispanned_error
+              "Definitions or rules grouped by different labels overlap, whereas these groups \
+               shoule be disjoint"
+              (List.of_seq
+                 (Seq.map
+                    (fun rule ->
+                      ( Some "Rule or definition from the first group:",
+                        Pos.get_position (Ast.RuleName.get_info rule) ))
+                    (Ast.RuleSet.to_seq rule_set1))
+              @ List.of_seq
+                  (Seq.map
+                     (fun rule ->
+                       ( Some "Rule or definition from the second group:",
+                         Pos.get_position (Ast.RuleName.get_info rule) ))
+                     (Ast.RuleSet.to_seq rule_set2))))
+        all_rule_sets_pointed_to_by_exceptions)
+    all_rule_sets_pointed_to_by_exceptions;
+  let g =
+    List.fold_left
+      (fun g rule_set -> ExceptionsDependencies.add_vertex g rule_set)
+      ExceptionsDependencies.empty all_rule_sets_pointed_to_by_exceptions
   in
   (* then we add the edges *)
   let g =
     Ast.RuleMap.fold
       (fun rule_name rule g ->
-        match rule.Ast.exception_to_rule with
-        | None -> g
-        | Some (exc_r, pos) ->
-            if ExceptionsDependencies.mem_vertex g exc_r then
-              if exc_r = rule_name then
-                Errors.raise_spanned_error "Cannot define rule as an exception to itself" pos
-              else
-                let edge = ExceptionsDependencies.E.create rule_name pos exc_r in
-                ExceptionsDependencies.add_edge_e g edge
-            else
-              Errors.raise_spanned_error
-                (Format.asprintf
-                   "This rule has been declared as an exception to an incorrect label: this label \
-                    is not attached to a definition of \"%a\""
-                   Ast.ScopeDef.format_t def_info)
-                pos)
+        (* Right now, exceptions can only consist of one rule, we may want to relax that constraint
+           later in the development of Catala. *)
+        let exception_to_ruleset, pos = rule.Ast.rule_exception_to_rules in
+        if ExceptionsDependencies.mem_vertex g exception_to_ruleset then
+          if exception_to_ruleset = Ast.RuleSet.singleton rule_name then
+            Errors.raise_spanned_error "Cannot define rule as an exception to itself" pos
+          else
+            let edge =
+              ExceptionsDependencies.E.create (Ast.RuleSet.singleton rule_name) pos
+                exception_to_ruleset
+            in
+            ExceptionsDependencies.add_edge_e g edge
+        else
+          Errors.raise_spanned_error
+            (Format.asprintf
+               "This rule has been declared as an exception to an incorrect label: this label is \
+                not attached to a definition of \"%a\""
+               Ast.ScopeDef.format_t def_info)
+            pos)
       def g
   in
   g
@@ -242,11 +282,12 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
       (Format.asprintf "Cyclic dependency detected between exceptions!")
       (List.flatten
          (List.map
-            (fun (v : Ast.RuleName.t) ->
+            (fun (vs : Ast.RuleSet.t) ->
+              let v = Ast.RuleSet.choose vs in
               let var_str, var_info =
                 (Format.asprintf "%a" Ast.RuleName.format_t v, Ast.RuleName.get_info v)
               in
-              let succs = ExceptionsDependencies.succ_e g v in
+              let succs = ExceptionsDependencies.succ_e g vs in
               let _, edge_pos, _ = List.find (fun (_, _, succ) -> List.mem succ scc) succs in
               [
                 ( Some

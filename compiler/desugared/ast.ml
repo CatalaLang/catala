@@ -77,7 +77,7 @@ type rule = {
   rule_just : Scopelang.Ast.expr Pos.marked Bindlib.box;
   rule_cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
   rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  rule_exception_to_rules : Pos.t RuleMap.t;
+  rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
 let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
@@ -88,7 +88,7 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
       (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None);
-    rule_exception_to_rules = RuleMap.empty;
+    rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("empty", pos);
   }
 
@@ -100,7 +100,7 @@ let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.mark
       (match have_parameter with
       | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
       | None -> None);
-    rule_exception_to_rules = RuleMap.empty;
+    rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("always_false", pos);
   }
 

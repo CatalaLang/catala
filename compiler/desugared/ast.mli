@@ -58,8 +58,7 @@ type rule = {
   rule_just : Scopelang.Ast.expr Pos.marked Bindlib.box;
   rule_cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
   rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
-  rule_exception_to_rules : Pos.t RuleMap.t;
-      (** To each parent exception rule is attached the position of the exception label*)
+  rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
 val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
