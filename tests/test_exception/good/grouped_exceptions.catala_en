@@ -42,6 +42,6 @@ If the person is disabled, the benefit is equal to $2000.
 ```catala
 scope Benefit:
   exception benefits_base_case
-  definition benefit under condition person.is_disabled consequence equals $2000
+  definition benefit under condition person.disabled consequence equals $2000
 ```
 

@@ -23,7 +23,7 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t Pos.marked
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
@@ -542,11 +542,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                                            @
                                            match old with
                                            | Ambiguous old -> old
-                                           | Unique n ->
-                                               [
-                                                 Pos.get_position
-                                                   (Desugared.Ast.RuleName.get_info n);
-                                               ]));
+                                           | Unique (_, pos) -> [ pos ]));
                                   }
                               (* No definition has been set yet for this key *)
                               | None -> (
@@ -564,7 +560,10 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
                                   | None ->
                                       {
                                         def_key_ctx with
-                                        default_exception_rulename = Some (Unique d.definition_id);
+                                        default_exception_rulename =
+                                          Some
+                                            (Unique
+                                               (d.definition_id, Pos.get_position d.definition_name));
                                       }))
                         in
                         Some def_key_ctx)

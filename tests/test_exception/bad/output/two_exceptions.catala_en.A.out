@@ -1,15 +1,15 @@
-[ERROR] There is a conflict between multiple exceptions for assigning the same variable.
+[ERROR] There is a conflict between multiple validd consequences for assigning the same variable.
 
-This justification is true:
+This consequence has a valid justification:
   --> test_exception/bad/two_exceptions.catala_en
    | 
 15 |   definition x equals 2
-   |              ^
+   |                       ^
    + Test
 
-This justification is true:
+This consequence has a valid justification:
   --> test_exception/bad/two_exceptions.catala_en
    | 
 12 |   definition x equals 1
-   |              ^
+   |                       ^
    + Test

@@ -1,4 +1,4 @@
-[ERROR] Unknown label for variable x: "base_y"
+[ERROR] Unknown label for the scope variable x: "base_y"
 
   --> test_exception/bad/dangling_exception.catala_en
    | 

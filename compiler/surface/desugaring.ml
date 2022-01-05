@@ -946,8 +946,8 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
           match scope_def_ctxt.default_exception_rulename with
           (* This should have been caught previously by check_unlabeled_exception *)
           | None | Some (Name_resolution.Ambiguous _) -> assert false
-          | Some (Name_resolution.Unique name) ->
-              (Desugared.Ast.RuleSet.singleton name, Pos.get_position def.Ast.definition_name))
+          | Some (Name_resolution.Unique (name, pos)) -> (Desugared.Ast.RuleSet.singleton name, pos)
+          )
       | ExceptionToLabel label -> (
           try
             let label_id =
@@ -1032,33 +1032,22 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
     (item : Ast.scope_use_item Pos.marked) : unit =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Pos.unmark item with
-  | Ast.Rule rule -> (
-      let def_key =
-        Name_resolution.get_def_key (Pos.unmark rule.rule_name) scope ctxt
-          (Pos.get_position rule.rule_name)
+  | Ast.Rule _ | Ast.Definition _ -> (
+      let def_key, exception_to =
+        match Pos.unmark item with
+        | Ast.Rule rule ->
+            ( Name_resolution.get_def_key (Pos.unmark rule.rule_name) scope ctxt
+                (Pos.get_position rule.rule_name),
+              rule.rule_exception_to )
+        | Ast.Definition def ->
+            ( Name_resolution.get_def_key (Pos.unmark def.definition_name) scope ctxt
+                (Pos.get_position def.definition_name),
+              def.definition_exception_to )
+        | _ -> assert false
+        (* should not happen *)
       in
       let scope_def_ctxt = Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts in
-      match rule.rule_exception_to with
-      | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
-      (* If this is an unlabeled exception, we check that it has a unique default definition *)
-      | Ast.UnlabeledException -> (
-          match scope_def_ctxt.default_exception_rulename with
-          | None ->
-              Errors.raise_spanned_error "This exception does not have a corresponding definition"
-                (Pos.get_position item)
-          | Some (Ambiguous pos) ->
-              Errors.raise_multispanned_error
-                "This exception can refer to several definitions. Try using labels to disambiguate"
-                ([ (Some "Ambiguous exception", Pos.get_position item) ]
-                @ List.map (fun p -> (Some "Candidate definition", p)) pos)
-          | Some (Unique _) -> ()))
-  | Ast.Definition def -> (
-      let def_key =
-        Name_resolution.get_def_key (Pos.unmark def.definition_name) scope ctxt
-          (Pos.get_position def.definition_name)
-      in
-      let scope_def_ctxt = Desugared.Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts in
-      match def.definition_exception_to with
+      match exception_to with
       | Ast.NotAnException | Ast.ExceptionToLabel _ -> ()
       (* If this is an unlabeled exception, we check that it has a unique default definition *)
       | Ast.UnlabeledException -> (

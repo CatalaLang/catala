@@ -14,8 +14,8 @@ Cyclic exception for definition of variable "x", declared here:
 Used here in the definition of another cyclic exception for defining "x":
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
-17 |   exception exception_x
-   |             ^^^^^^^^^^^
+18 |   definition x equals 2
+   |              ^
    + Test
 
 Cyclic exception for definition of variable "x", declared here:
@@ -32,8 +32,8 @@ Cyclic exception for definition of variable "x", declared here:
 Used here in the definition of another cyclic exception for defining "x":
   --> test_exception/bad/exceptions_cycle.catala_en
    | 
-13 |   exception base_x
-   |             ^^^^^^
+14 |   definition x equals 1
+   |              ^
    + Test
 
 Cyclic exception for definition of variable "x", declared here:
@@ -48,8 +48,8 @@ Cyclic exception for definition of variable "x", declared here:
    + 
 
 Used here in the definition of another cyclic exception for defining "x":
- --> test_exception/bad/exceptions_cycle.catala_en
-  | 
-9 |   exception exception_exception_x
-  |             ^^^^^^^^^^^^^^^^^^^^^
-  + Test
+  --> test_exception/bad/exceptions_cycle.catala_en
+   | 
+10 |   definition x equals 0
+   |              ^
+   + Test

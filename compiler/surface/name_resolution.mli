@@ -23,7 +23,7 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t Pos.marked
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
