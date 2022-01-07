@@ -36,25 +36,27 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
 let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked list) : Expr.expr =
   match op with
   | Ternop _top ->
-      (match args with
-        | [_; _; _] -> ()
+      let _e1, _e2, _e3 = match args with
+        | [e1; e2; e3] -> e1, e2, e3
+
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed ternary operator application"
-      );
+      in
 
       failwith "[Z3 encoding] ternary operator application not supported"
 
   | Binop bop ->
-      (match args with
-        | [_; _] -> ()
+      let e1, e2 = match args with
+        | [e1 ; e2] -> e1, e2
+
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed binary operator application"
-      );
+      in
 
       (match bop with
-      | And -> Boolean.mk_and ctx (List.map (translate_expr ctx) args)
+      | And -> Boolean.mk_and ctx [translate_expr ctx e1; translate_expr ctx e2]
 
-      | Or -> Boolean.mk_or ctx (List.map (translate_expr ctx) args)
+      | Or -> Boolean.mk_or ctx [translate_expr ctx e1; translate_expr ctx e2]
 
       | Xor -> failwith "[Z3 encoding] application of binary operator Xor not supported"
       | Add _ -> failwith "[Z3 encoding] application of binary operator Add not supported"
@@ -73,16 +75,20 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       )
 
   | Unop uop ->
-      (match args with
-        | [_] -> ()
+      let e1 = match args with
+        | [e1] -> e1
+
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed unary operator application"
-      );
+      in
 
       (match uop with
       | Not -> failwith "[Z3 encoding] application of unary operator Not not supported"
       | Minus _ -> failwith "[Z3 encoding] application of unary operator Minus not supported"
-      | Log _ ->  failwith "[Z3 encoding] Ill-formed VC: Logs should not appear in the VC"
+
+      (* Omitting the log from the VC *)
+      | Log _ -> translate_expr ctx e1
+
       | Length -> failwith "[Z3 encoding] application of unary operator Length not supported"
       | IntToRat -> failwith "[Z3 encoding] application of unary operator IntToRat not supported"
       | GetDay -> failwith "[Z3 encoding] application of unary operator GetDay not supported"
