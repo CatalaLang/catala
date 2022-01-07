@@ -86,7 +86,15 @@ and translate_expr (ctx:context) (vc : expr Pos.marked) : Expr.expr =
   | EAssert _ ->  failwith "[Z3 encoding] EAssert unsupported"
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
-  | EIfThenElse _ ->  failwith "[Z3 encoding] EIfThenElse unsupported"
+
+  | EIfThenElse (e_if, e_then, e_else) -> 
+      (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
+      let z3_if = translate_expr ctx e_if in
+      Boolean.mk_and ctx [
+        Boolean.mk_implies ctx z3_if (translate_expr ctx e_then);
+        Boolean.mk_implies ctx (Boolean.mk_not ctx z3_if) (translate_expr ctx e_else)
+      ]
+
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
 (** [solve_vc] is the main entry point of this module.
