@@ -23,7 +23,9 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
       if b then Boolean.mk_true ctx else Boolean.mk_false ctx
 
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
-  | LInt _ -> failwith "[Z3 encoding] LInt literals not supported"
+
+  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx (Runtime.integer_to_int n)
+
   | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
   | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported"
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
@@ -63,7 +65,14 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Sub _ -> failwith "[Z3 encoding] application of binary operator Sub not supported"
       | Mult _ -> failwith "[Z3 encoding] application of binary operator Mult not supported"
       | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
-      | Lt _ -> failwith "[Z3 encoding] application of binary operator Lt not supported"
+
+      | Lt op_kind ->
+        (match op_kind with
+        | KInt -> Arithmetic.mk_lt ctx (translate_expr ctx e1) (translate_expr ctx e2)
+
+        | _ -> failwith "[Z3 encoding] application of binary operator Lt for non-integers not supported"
+        )
+
       | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
       | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
       | Gte _ -> failwith "[Z3 encoding] application of binary operator Gte not supported"
