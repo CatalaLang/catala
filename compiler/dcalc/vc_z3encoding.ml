@@ -13,7 +13,7 @@
    the License. *)
 
 open Utils
-open Ast 
+open Ast
 open Z3
 
 (** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
@@ -23,9 +23,9 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
       if b then Boolean.mk_true ctx else Boolean.mk_false ctx
 
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
-  | LInt _ -> failwith "[Z3 encoding] LInt literals not supported" 
-  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported" 
-  | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported" 
+  | LInt _ -> failwith "[Z3 encoding] LInt literals not supported"
+  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
+  | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported"
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
   | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
@@ -37,11 +37,11 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
   match op with
   | Ternop _top ->
       (match args with
-        | [_; _; _] -> () 
+        | [_; _; _] -> ()
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed ternary operator application"
       );
-      
+
       failwith "[Z3 encoding] ternary operator application not supported"
 
   | Binop bop ->
@@ -50,7 +50,7 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed binary operator application"
       );
-      
+
       (match bop with
       | And -> Boolean.mk_and ctx (List.map (translate_expr ctx) args)
 
@@ -62,7 +62,7 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Mult _ -> failwith "[Z3 encoding] application of binary operator Mult not supported"
       | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
       | Lt _ -> failwith "[Z3 encoding] application of binary operator Lt not supported"
-      | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"  
+      | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
       | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
       | Gte _ -> failwith "[Z3 encoding] application of binary operator Gte not supported"
       | Eq -> failwith "[Z3 encoding] application of binary operator Eq not supported"
@@ -72,14 +72,23 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Filter -> failwith "[Z3 encoding] application of binary operator Filter not supported"
       )
 
-  | Unop _op -> 
+  | Unop uop ->
       (match args with
         | [_] -> ()
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed unary operator application"
       );
-      
-     failwith "[Z3 encoding] unary operator application not supported"
+
+      (match uop with
+      | Not -> failwith "[Z3 encoding] application of unary operator Not not supported"
+      | Minus _ -> failwith "[Z3 encoding] application of unary operator Minus not supported"
+      | Log _ ->  failwith "[Z3 encoding] Ill-formed VC: Logs should not appear in the VC"
+      | Length -> failwith "[Z3 encoding] application of unary operator Length not supported"
+      | IntToRat -> failwith "[Z3 encoding] application of unary operator IntToRat not supported"
+      | GetDay -> failwith "[Z3 encoding] application of unary operator GetDay not supported"
+      | GetMonth -> failwith "[Z3 encoding] application of unary operator GetMonth not supported"
+      | GetYear -> failwith "[Z3 encoding] application of unary operator GetYear not supported"
+      )
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
 and translate_expr (ctx:context) (vc : expr Pos.marked) : Expr.expr =
@@ -104,7 +113,7 @@ and translate_expr (ctx:context) (vc : expr Pos.marked) : Expr.expr =
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
 
-  | EIfThenElse (e_if, e_then, e_else) -> 
+  | EIfThenElse (e_if, e_then, e_else) ->
       (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
       let z3_if = translate_expr ctx e_if in
       Boolean.mk_and ctx [
@@ -122,7 +131,7 @@ let solve_vc (vcs : expr Pos.marked list) : unit =
 
   let cfg = [("model", "true"); ("proof", "false")] in
 	let ctx = (mk_context cfg) in
-  
+
   let solver = Solver.mk_solver ctx None in
 
   let z3_vcs = List.map (translate_expr ctx) vcs in
@@ -134,6 +143,6 @@ let solve_vc (vcs : expr Pos.marked list) : unit =
   if (Solver.check solver []) = SATISFIABLE then
     Printf.printf "Success: Empty unreachable\n"
   else
-    (* TODO: Print model as error message for Catala debugging purposes *) 
+    (* TODO: Print model as error message for Catala debugging purposes *)
     Printf.printf "Failure: Empty reachable\n"
 
