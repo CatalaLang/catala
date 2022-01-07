@@ -16,9 +16,24 @@ open Utils
 open Ast 
 open Z3
 
+(** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
+let translate_lit (ctx : context) (l : lit) : Expr.expr =
+  match l with
+  | LBool b ->
+      if b then Boolean.mk_true ctx else Boolean.mk_false ctx
+
+  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
+  | LInt _ -> failwith "[Z3 encoding] LInt literals not supported" 
+  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported" 
+  | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported" 
+  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
+  | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
+  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
+
+
 (** [translate_op] returns the Z3 expression corresponding to the
     application of [op] to the arguments [args] **)
-let rec translate_op (ctx:context) (op : operator) (args : expr Pos.marked list) : Expr.expr =
+let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked list) : Expr.expr =
   match op with
   | Ternop _top ->
       (match args with
@@ -75,7 +90,9 @@ and translate_expr (ctx:context) (vc : expr Pos.marked) : Expr.expr =
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch _ -> failwith "[Z3 encoding] EMatch unsupported"
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
-  | ELit _ -> failwith "[Z3 encoding] ELit unsupported"
+
+  | ELit l -> translate_lit ctx l
+
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
 
   | EApp (head, args) -> (match Pos.unmark head with
