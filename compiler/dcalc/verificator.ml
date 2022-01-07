@@ -33,6 +33,8 @@ let disjunction (args : expr Pos.marked list) (pos : Pos.t) =
       | _ -> (EApp ((EOp (Binop Or), pos), [ arg; acc ]), pos))
     acc list
 
+(** [generate_vc_must_not_return_empty_e] returns the logical expression [b] such that if [b] is
+    true, then [e] will never return an empty error. *)
 let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked) : expr Pos.marked =
   let out =
     match Pos.unmark e with
@@ -45,6 +47,9 @@ let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked)
     | ETupleAccess (e1, _, _, _) | EInj (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 ->
         (generate_vc_must_not_return_empty ctx) e1
     | EAbs (binder, _) ->
+        (* Hot take: for a function never to return an empty error when called, it has to do
+           so whatever its input. So we universally quantify over the variable of the function
+           when inspecting the body, resulting in simply traversing through in the code here. *)
         let _, body = Bindlib.unmbind (Pos.unmark binder) in
         (generate_vc_must_not_return_empty ctx) body
     | EApp (f, args) ->
@@ -56,7 +61,11 @@ let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked)
           (List.map (generate_vc_must_not_return_empty ctx) [ e1; e2; e3 ])
           (Pos.get_position e)
     | ELit LEmptyError -> Pos.same_pos_as (ELit (LBool false)) e
-    | EVar _ | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool true)) e
+    | EVar _
+    (* Per default calculus semantics, you cannot call a function with an argument
+       that evaluates to the empty error. Thus, all variable evaluate to non-empty-error terms. *)
+    | ELit _ | EOp _ ->
+        Pos.same_pos_as (ELit (LBool true)) e
     | EDefault (exceptions, just, cons) ->
         (* <e1 ... en | ejust :- econs > never returns empty if and only if:
            - first we look if e1 .. en ejust can return empty;
