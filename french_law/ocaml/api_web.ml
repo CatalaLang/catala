@@ -39,6 +39,8 @@ class type enfant_entree =
         - "Confié aux service sociaux, allocation versée aux services sociaux" *)
 
     method aDejaOuvertDroitAuxAllocationsFamiliales : bool Js.t Js.readonly_prop
+
+    method beneficieATitrePersonnelAidePersonnelleAuLogement : bool Js.t Js.readonly_prop
   end
 
 class type allocations_familiales_input =
@@ -217,6 +219,8 @@ let _ =
                        Array.map
                          (fun (child : enfant_entree Js.t) ->
                            {
+                             AF.d_beneficie_titre_personnel_aide_personnelle_logement =
+                               Js.to_bool child##.beneficieATitrePersonnelAidePersonnelleAuLogement;
                              AF.d_a_deja_ouvert_droit_aux_allocations_familiales =
                                Js.to_bool child##.aDejaOuvertDroitAuxAllocationsFamiliales;
                              AF.d_identifiant = integer_of_int child##.id;

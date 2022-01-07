@@ -17,6 +17,7 @@ champ d'application Données:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant2 égal à EnfantEntrée {
     -- d_identifiant: 2
@@ -24,6 +25,7 @@ champ d'application Données:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant3 égal à EnfantEntrée {
     -- d_identifiant: 3
@@ -31,6 +33,7 @@ champ d'application Données:
     -- d_rémuneration_mensuelle: 400€
     -- d_prise_en_charge: GardeAlternéePartageAllocations
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant4 égal à EnfantEntrée {
     -- d_identifiant: 4
@@ -38,6 +41,7 @@ champ d'application Données:
     -- d_rémuneration_mensuelle: 1100€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant5 égal à EnfantEntrée {
     -- d_identifiant: 5
@@ -45,6 +49,7 @@ champ d'application Données:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
 
 déclaration champ d'application Test1:
@@ -120,12 +125,14 @@ champ d'application Test6:
     -- d_rémuneration_mensuelle: 439€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2020-09-25|
     -- d_rémuneration_mensuelle: 1949€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 78 830 €
   définition f.date_courante égal à |2020-05-01|
@@ -156,12 +163,14 @@ champ d'application Test8:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2005-01-01|
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 69945 €
   définition f.date_courante égal à |2021-01-01|
@@ -179,12 +188,14 @@ champ d'application Test9:
     -- d_rémuneration_mensuelle: 1258€
     -- d_prise_en_charge: ServicesSociauxAllocationVerséeAuxServicesSociaux
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2008-04-27|
     -- d_rémuneration_mensuelle: 1766€
     -- d_prise_en_charge: ServicesSociauxAllocationVerséeAuxServicesSociaux
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 75786 €
   définition f.date_courante égal à |2020-05-01|
@@ -202,12 +213,14 @@ champ d'application Test10:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
     -- d_prise_en_charge: GardeAlternéePartageAllocations
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 30000 €
   définition f.date_courante égal à |2020-04-20|
@@ -225,12 +238,14 @@ champ d'application Test11:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
   EnfantEntrée {
     -- d_identifiant: 2
@@ -238,6 +253,7 @@ champ d'application Test11:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 30000 €
   définition f.date_courante égal à |2021-12-31|
@@ -255,12 +271,14 @@ champ d'application Test12:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
   EnfantEntrée {
     -- d_identifiant: 2
@@ -268,6 +286,7 @@ champ d'application Test12:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
   EnfantEntrée {
     -- d_identifiant: 3
@@ -275,6 +294,7 @@ champ d'application Test12:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 20000 €
   définition f.date_courante égal à |2019-08-26|
@@ -293,6 +313,7 @@ champ d'application Test13:
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+    -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }]
   définition f.ressources_ménage égal à 65000 €
   définition f.date_courante égal à |2019-08-26|

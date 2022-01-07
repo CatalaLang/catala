@@ -68,6 +68,7 @@ déclaration structure EnfantEntrée:
   donnée d_date_de_naissance contenu date
   donnée d_prise_en_charge contenu PriseEnCharge
   donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
+  donnée d_bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
   contexte date_courante contenu date
@@ -127,7 +128,6 @@ champ d'application InterfaceAllocationsFamiliales:
       -- a_déjà_ouvert_droit_aux_allocations_familiales:
         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
       -- bénéficie_titre_personnel_aide_personnelle_logement:
-      # TODO: ajouter champ interface
-        faux
+        enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
     }
 ```
