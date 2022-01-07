@@ -219,6 +219,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      (Dcalc.Print.format_expr prgm.decl_ctx)
                      vc))
               vcs;
+            Dcalc.Vc_z3encoding.solve_vc vcs;
             0
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
