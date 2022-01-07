@@ -69,6 +69,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
       else if backend = "python" then Cli.Python
+      else if backend = "proof" then Cli.Proof
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -207,6 +208,18 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" (Dcalc.Print.format_typ
            prgm.decl_ctx) typ); *)
         match backend with
+        | Cli.Proof ->
+            let vcs = Dcalc.Verificator.generate_verification_conditions prgm in
+            List.iter
+              (fun vc ->
+                Cli.result_print
+                  (Format.asprintf
+                     "For this variable:\n%s\nThis verification condition was generated:\n%a"
+                     (Pos.retrieve_loc_text (Pos.get_position vc))
+                     (Dcalc.Print.format_expr prgm.decl_ctx)
+                     vc))
+              vcs;
+            0
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
             let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr in
