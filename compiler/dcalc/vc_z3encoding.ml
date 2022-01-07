@@ -16,8 +16,58 @@ open Utils
 open Ast 
 open Z3
 
-(** [translate_expr] translate the expression [vc] to a Z3 formula **)
-let translate_expr (_ctx:context) (vc : expr Pos.marked) : Expr.expr =
+(** [translate_op] returns the Z3 expression corresponding to the
+    application of [op] to the arguments [args] **)
+let rec translate_op (ctx:context) (op : operator) (args : expr Pos.marked list) : Expr.expr =
+  match op with
+  | Ternop _top ->
+      (match args with
+        | [_; _; _] -> () 
+        (* TODO: Print term for error message *)
+        | _ -> failwith "[Z3 encoding] Ill-formed ternary operator application"
+      );
+      
+      failwith "[Z3 encoding] ternary operator application not supported"
+
+  | Binop bop ->
+      (match args with
+        | [_; _] -> ()
+        (* TODO: Print term for error message *)
+        | _ -> failwith "[Z3 encoding] Ill-formed binary operator application"
+      );
+      
+      (match bop with
+      | And -> Boolean.mk_and ctx (List.map (translate_expr ctx) args)
+
+      | Or -> Boolean.mk_or ctx (List.map (translate_expr ctx) args)
+
+      | Xor -> failwith "[Z3 encoding] application of binary operator Xor not supported"
+      | Add _ -> failwith "[Z3 encoding] application of binary operator Add not supported"
+      | Sub _ -> failwith "[Z3 encoding] application of binary operator Sub not supported"
+      | Mult _ -> failwith "[Z3 encoding] application of binary operator Mult not supported"
+      | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
+      | Lt _ -> failwith "[Z3 encoding] application of binary operator Lt not supported"
+      | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"  
+      | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
+      | Gte _ -> failwith "[Z3 encoding] application of binary operator Gte not supported"
+      | Eq -> failwith "[Z3 encoding] application of binary operator Eq not supported"
+      | Neq -> failwith "[Z3 encoding] application of binary operator New not supported"
+      | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
+      | Concat -> failwith "[Z3 encoding] application of binary operator Concat not supported"
+      | Filter -> failwith "[Z3 encoding] application of binary operator Filter not supported"
+      )
+
+  | Unop _op -> 
+      (match args with
+        | [_] -> ()
+        (* TODO: Print term for error message *)
+        | _ -> failwith "[Z3 encoding] Ill-formed unary operator application"
+      );
+      
+     failwith "[Z3 encoding] unary operator application not supported"
+
+(** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
+and translate_expr (ctx:context) (vc : expr Pos.marked) : Expr.expr =
   match Pos.unmark vc with
   | EVar _ -> failwith "[Z3 encoding] EVar unsupported"
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
@@ -27,7 +77,12 @@ let translate_expr (_ctx:context) (vc : expr Pos.marked) : Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit _ -> failwith "[Z3 encoding] ELit unsupported"
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
-  | EApp _ -> failwith "[Z3 encoding] EApp unsupported"
+
+  | EApp (head, args) -> (match Pos.unmark head with
+      | EOp op -> translate_op ctx op args
+      | _ -> failwith "[Z3 encoding] EApp of a non-operator unsupported"
+    )
+
   | EAssert _ ->  failwith "[Z3 encoding] EAssert unsupported"
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
