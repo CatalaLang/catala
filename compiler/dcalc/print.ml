@@ -160,8 +160,8 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | GetMonth -> "get_month"
     | GetYear -> "get_year")
 
-let needs_parens (e : expr Pos.marked) : bool =
-  match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
+let needs_parens (_e : expr Pos.marked) : bool = true
+(* match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false *)
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -247,7 +247,6 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_unop (op, Pos.no_pos) format_with_parens arg1
   | EApp (f, args) ->

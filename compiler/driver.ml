@@ -185,6 +185,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         end;
         Cli.debug_print "Translating to default calculus...";
         let prgm, type_ordering = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgm =
+          if optimize then begin
+            Cli.debug_print "Optimizing default calculus...";
+            Dcalc.Optimizations.optimize_program prgm
+          end
+          else prgm
+        in
         let prgrm_dcalc_expr = Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid) in
         if backend = Cli.Dcalc then begin
           let fmt, at_end =

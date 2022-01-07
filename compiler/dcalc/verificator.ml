@@ -18,24 +18,20 @@ open Ast
 let conjunction (args : expr Pos.marked list) (pos : Pos.t) =
   let acc, list = match args with hd :: tl -> (hd, tl) | [] -> ((ELit (LBool true), pos), []) in
   List.fold_left
-    (fun (acc : expr Pos.marked) arg ->
-      match Pos.unmark arg with
-      | ELit (LBool true) -> acc
-      | _ -> (EApp ((EOp (Binop And), pos), [ arg; acc ]), pos))
+    (fun (acc : expr Pos.marked) arg -> (EApp ((EOp (Binop And), pos), [ arg; acc ]), pos))
     acc list
 
 let disjunction (args : expr Pos.marked list) (pos : Pos.t) =
   let acc, list = match args with hd :: tl -> (hd, tl) | [] -> ((ELit (LBool false), pos), []) in
   List.fold_left
-    (fun (acc : expr Pos.marked) arg ->
-      match Pos.unmark arg with
-      | ELit (LBool false) -> acc
-      | _ -> (EApp ((EOp (Binop Or), pos), [ arg; acc ]), pos))
+    (fun (acc : expr Pos.marked) arg -> (EApp ((EOp (Binop Or), pos), [ arg; acc ]), pos))
     acc list
+
+type ctx = { decl : decl_ctx; input_vars : Var.t list }
 
 (** [generate_vc_must_not_return_empty_e] returns the logical expression [b] such that if [b] is
     true, then [e] will never return an empty error. *)
-let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked) : expr Pos.marked =
+let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
   let out =
     match Pos.unmark e with
     | ETuple (args, _) | EArray args ->
@@ -52,6 +48,13 @@ let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked)
            when inspecting the body, resulting in simply traversing through in the code here. *)
         let _, body = Bindlib.unmbind (Pos.unmark binder) in
         (generate_vc_must_not_return_empty ctx) body
+    | EApp ((EVar (x, _), _), [ (ELit LUnit, _) ])
+      when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
+        (* Here we have a special case. If all the default trees in all the scopes of our
+           program respect our verification, then there will be no empty error anywhere. Except at
+           one place: when we don't pass a redefining argument to a callee scope. This matches
+           the reentrant expressions in our default trees. *)
+        Pos.same_pos_as (ELit (LBool false)) e
     | EApp (f, args) ->
         conjunction
           (List.map (generate_vc_must_not_return_empty ctx) (f :: args))
@@ -88,20 +91,31 @@ let rec generate_vc_must_not_return_empty (ctx : decl_ctx) (e : expr Pos.marked)
           (Pos.get_position e)
   in
   (* Cli.debug_print
-     (Format.asprintf ">>> Input:@\n%a@\nOutput:@\n%a" (Print.format_expr ctx) e
-        (Print.format_expr ctx) out); *)
+     (Format.asprintf ">>> Input:@\n%a@\nOutput:@\n%a" (Print.format_expr ctx.decl) e
+        (Print.format_expr ctx.decl) out); *)
   out
   [@@ocamlformat "wrap-comments=false"]
 
 let generate_verification_conditions (p : program) : expr Pos.marked list =
   List.fold_left
     (fun acc (_s_name, _s_var, s_body) ->
-      List.fold_left
-        (fun acc s_let ->
-          match s_let.scope_let_kind with
-          | ScopeVarDefinition | SubScopeVarDefinition ->
-              generate_vc_must_not_return_empty p.decl_ctx (Bindlib.unbox s_let.scope_let_expr)
-              :: acc
-          | _ -> acc)
-        acc s_body.scope_body_lets)
+      let ctx = { decl = p.decl_ctx; input_vars = [] } in
+      let acc, _ =
+        List.fold_left
+          (fun (acc, ctx) s_let ->
+            match s_let.scope_let_kind with
+            | DestructuringInputStruct ->
+                (acc, { ctx with input_vars = Pos.unmark s_let.scope_let_var :: ctx.input_vars })
+            | ScopeVarDefinition | SubScopeVarDefinition ->
+                let e = Bindlib.unbox s_let.scope_let_expr in
+                let vc = generate_vc_must_not_return_empty ctx e in
+                let vc =
+                  if !Cli.optimize_flag then Optimizations.optimize_expr p.decl_ctx vc else vc
+                in
+                (* TODO: drop logs for Aymeric *)
+                (Pos.same_pos_as (Pos.unmark vc) e :: acc, ctx)
+            | _ -> (acc, ctx))
+          (acc, ctx) s_body.scope_body_lets
+      in
+      acc)
     [] p.scopes
