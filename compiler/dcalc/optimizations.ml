@@ -98,57 +98,47 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
       | _ -> default_mark @@ EApp (e1, args))
   | _ -> visitor_map beta_expr () e
 
-let count = ref 0
-
+(**TODO: refactor this using plain recursion because this new visitor paradigm does not perform the
+   optimizations after that the children of an AST node have been optimized, see for instance
+   [(false
+   || false) || e1]. *)
 let rec peephole_expr (ctx : decl_ctx) (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
-  incr count;
-  let icount = !count in
-  Cli.debug_print
-    (Format.asprintf "%d: On commence à optimiser %a" !count (Print.format_expr ctx) e);
   let default_mark e' = Pos.same_pos_as e' e in
-  let out =
-    match Pos.unmark e with
-    | EIfThenElse (e1, e2, e3) -> (
-        let+ new_e1 = visitor_map peephole_expr ctx e1
-        and+ new_e2 = visitor_map peephole_expr ctx e2
-        and+ new_e3 = visitor_map peephole_expr ctx e3 in
-        match (Pos.unmark new_e1, Pos.unmark new_e2, Pos.unmark new_e3) with
-        | ELit (LBool true), _, _ | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]), _, _
-          ->
-            new_e2
-        | ELit (LBool false), _, _
-        | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]), _, _ ->
-            new_e3
-        | ( _,
-            (ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ])),
-            (ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ])) ) ->
-            e1
-        | _ -> default_mark @@ EIfThenElse (new_e1, new_e2, new_e3))
-    | EApp
-        ( ((EOp (Binop Or), _ | EApp ((EOp (Unop (Log _)), _), [ (EOp (Binop Or), _) ]), _) as op),
-          [ e1; e2 ] ) -> (
-        Cli.debug_print
-          (Format.asprintf "Trouvé ou %d avec arguments %a et %a" icount (Print.format_expr ctx) e1
-             (Print.format_expr ctx) e2);
-        let+ new_e1 = visitor_map peephole_expr ctx e1
-        and+ new_e2 = visitor_map peephole_expr ctx e2 in
-        match (Pos.unmark new_e1, Pos.unmark new_e2) with
-        | ELit (LBool false), new_e1 | new_e1, ELit (LBool false) -> default_mark @@ new_e1
-        | ELit (LBool true), _ | _, ELit (LBool true) -> default_mark @@ ELit (LBool true)
-        | _ -> default_mark @@ EApp (op, [ new_e1; new_e2 ]))
-    | EApp (((EOp (Binop And), _) as op), [ e1; e2 ]) -> (
-        let+ new_e1 = visitor_map peephole_expr ctx e1
-        and+ new_e2 = visitor_map peephole_expr ctx e2 in
-        match (new_e1, new_e2) with
-        | (ELit (LBool true), _), new_e1 | new_e1, (ELit (LBool true), _) -> new_e1
-        | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
-            default_mark @@ ELit (LBool false)
-        | _ -> default_mark @@ EApp (op, [ new_e1; new_e2 ]))
-    | _ -> visitor_map peephole_expr ctx e
-  in
-  Cli.debug_print
-    (Format.asprintf "%d: Fin optimisation %a" icount (Print.format_expr ctx) (Bindlib.unbox out));
-  out
+  match Pos.unmark e with
+  | EIfThenElse (e1, e2, e3) -> (
+      let+ new_e1 = visitor_map peephole_expr ctx e1
+      and+ new_e2 = visitor_map peephole_expr ctx e2
+      and+ new_e3 = visitor_map peephole_expr ctx e3 in
+      match (Pos.unmark new_e1, Pos.unmark new_e2, Pos.unmark new_e3) with
+      | ELit (LBool true), _, _ | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]), _, _
+        ->
+          new_e2
+      | ELit (LBool false), _, _ | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]), _, _
+        ->
+          new_e3
+      | ( _,
+          (ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ])),
+          (ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ])) ) ->
+          e1
+      | _ -> default_mark @@ EIfThenElse (new_e1, new_e2, new_e3))
+  | EApp
+      ( ((EOp (Binop Or), _ | EApp ((EOp (Unop (Log _)), _), [ (EOp (Binop Or), _) ]), _) as op),
+        [ e1; e2 ] ) -> (
+      let+ new_e1 = visitor_map peephole_expr ctx e1
+      and+ new_e2 = visitor_map peephole_expr ctx e2 in
+      match (Pos.unmark new_e1, Pos.unmark new_e2) with
+      | ELit (LBool false), new_e1 | new_e1, ELit (LBool false) -> default_mark @@ new_e1
+      | ELit (LBool true), _ | _, ELit (LBool true) -> default_mark @@ ELit (LBool true)
+      | _ -> default_mark @@ EApp (op, [ new_e1; new_e2 ]))
+  | EApp (((EOp (Binop And), _) as op), [ e1; e2 ]) -> (
+      let+ new_e1 = visitor_map peephole_expr ctx e1
+      and+ new_e2 = visitor_map peephole_expr ctx e2 in
+      match (new_e1, new_e2) with
+      | (ELit (LBool true), _), new_e1 | new_e1, (ELit (LBool true), _) -> new_e1
+      | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
+          default_mark @@ ELit (LBool false)
+      | _ -> default_mark @@ EApp (op, [ new_e1; new_e2 ]))
+  | _ -> visitor_map peephole_expr ctx e
 
 let optimize_expr (ctx : decl_ctx) (e : expr Pos.marked) : expr Pos.marked =
   let e = ref e in
@@ -158,8 +148,6 @@ let optimize_expr (ctx : decl_ctx) (e : expr Pos.marked) : expr Pos.marked =
       !e |> peephole_expr ctx |> Bindlib.unbox |> beta_expr () |> Bindlib.unbox |> iota_expr ()
       |> Bindlib.unbox
     in
-    (* Cli.debug_print (Format.asprintf "Optimizing %a into %a" (Print.format_expr ctx) !e
-       (Print.format_expr ctx) new_e); *)
     if not (expr_size new_e < expr_size !e) then continue := false;
     e := new_e
   done;
