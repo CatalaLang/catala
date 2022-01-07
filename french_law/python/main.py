@@ -17,11 +17,13 @@ def call_allocations_familiales() -> float:
             Enfant(id=0, remuneration_mensuelle=0,
                    date_de_naissance=date(2003, 2, 2),
                    prise_en_charge=PriseEnCharge_Code.EffectiveEtPermanente,
-                   a_deja_ouvert_droit_aux_allocations_familiales=True),
+                   a_deja_ouvert_droit_aux_allocations_familiales=True,
+                   beneficie_titre_personnel_aide_personnelle_logement=False),
             Enfant(id=1, remuneration_mensuelle=300,
                    date_de_naissance=date(2013, 9, 30),
                    prise_en_charge=PriseEnCharge_Code.GardeAlterneePartageAllocations,
-                   a_deja_ouvert_droit_aux_allocations_familiales=True)
+                   a_deja_ouvert_droit_aux_allocations_familiales=True,
+                   beneficie_titre_personnel_aide_personnelle_logement=False)
         ],
         ressources_menage=30000,
         residence=Collectivite_Code.Metropole,

@@ -28,7 +28,8 @@ let random_children (id : int) =
       | 2 -> AF.GardeAlterneeAllocataireUnique ()
       | 3 -> AF.ServicesSociauxAllocationVerseeALaFamille ()
       | _ -> AF.ServicesSociauxAllocationVerseeAuxServicesSociaux ());
-    d_a_deja_ouvert_droit_aux_allocations_familiales = true;
+    d_a_deja_ouvert_droit_aux_allocations_familiales = Random.bool ();
+    d_beneficie_titre_personnel_aide_personnelle_logement = Random.bool ();
   }
 
 let format_residence (fmt : Format.formatter) (r : AF.collectivite) : unit =

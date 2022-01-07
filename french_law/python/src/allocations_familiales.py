@@ -162,12 +162,13 @@ class ElementPrestationsFamiliales:
 
 
 class EnfantEntree:
-    def __init__(self, d_identifiant: Integer, d_remuneration_mensuelle: Money, d_date_de_naissance: Date, d_prise_en_charge: PriseEnCharge, d_a_deja_ouvert_droit_aux_allocations_familiales: bool) -> None:
+    def __init__(self, d_identifiant: Integer, d_remuneration_mensuelle: Money, d_date_de_naissance: Date, d_prise_en_charge: PriseEnCharge, d_a_deja_ouvert_droit_aux_allocations_familiales: bool, d_beneficie_titre_personnel_aide_personnelle_logement: bool) -> None:
         self.d_identifiant = d_identifiant
         self.d_remuneration_mensuelle = d_remuneration_mensuelle
         self.d_date_de_naissance = d_date_de_naissance
         self.d_prise_en_charge = d_prise_en_charge
         self.d_a_deja_ouvert_droit_aux_allocations_familiales = d_a_deja_ouvert_droit_aux_allocations_familiales
+        self.d_beneficie_titre_personnel_aide_personnelle_logement = d_beneficie_titre_personnel_aide_personnelle_logement
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, EnfantEntree):
@@ -175,7 +176,8 @@ class EnfantEntree:
                     self.d_remuneration_mensuelle == other.d_remuneration_mensuelle and
                     self.d_date_de_naissance == other.d_date_de_naissance and
                     self.d_prise_en_charge == other.d_prise_en_charge and
-                    self.d_a_deja_ouvert_droit_aux_allocations_familiales == other.d_a_deja_ouvert_droit_aux_allocations_familiales)
+                    self.d_a_deja_ouvert_droit_aux_allocations_familiales == other.d_a_deja_ouvert_droit_aux_allocations_familiales and
+                    self.d_beneficie_titre_personnel_aide_personnelle_logement == other.d_beneficie_titre_personnel_aide_personnelle_logement)
         else:
             return False
 
@@ -183,10 +185,11 @@ class EnfantEntree:
         return not (self == other)
 
     def __str__(self) -> str:
-        return "EnfantEntree(d_identifiant={},d_remuneration_mensuelle={},d_date_de_naissance={},d_prise_en_charge={},d_a_deja_ouvert_droit_aux_allocations_familiales={})".format(self.d_identifiant,
-                                                                                                                                                                                   self.d_remuneration_mensuelle, self.d_date_de_naissance,
-                                                                                                                                                                                   self.d_prise_en_charge,
-                                                                                                                                                                                   self.d_a_deja_ouvert_droit_aux_allocations_familiales)
+        return "EnfantEntree(d_identifiant={},d_remuneration_mensuelle={},d_date_de_naissance={},d_prise_en_charge={},d_a_deja_ouvert_droit_aux_allocations_familiales={},d_beneficie_titre_personnel_aide_personnelle_logement={})".format(self.d_identifiant,
+                                                                                                                                                                                                                                            self.d_remuneration_mensuelle, self.d_date_de_naissance,
+                                                                                                                                                                                                                                            self.d_prise_en_charge,
+                                                                                                                                                                                                                                            self.d_a_deja_ouvert_droit_aux_allocations_familiales,
+                                                                                                                                                                                                                                            self.d_beneficie_titre_personnel_aide_personnelle_logement)
 
 
 class Enfant:
@@ -6618,8 +6621,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1923(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=73, start_column=12,
-                                                         end_line=73, end_column=25,
+                                                         start_line=74, start_column=12,
+                                                         end_line=74, end_column=25,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6636,7 +6639,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1925)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=73, start_column=12, end_line=73, end_column=25,
+                                             start_line=74, start_column=12, end_line=74, end_column=25,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     date_courante_1921 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6647,8 +6650,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1933(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=74, start_column=12,
-                                                         end_line=74, end_column=19,
+                                                         start_line=75, start_column=12,
+                                                         end_line=75, end_column=19,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6665,7 +6668,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1935)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=74, start_column=12, end_line=74, end_column=19,
+                                             start_line=75, start_column=12, end_line=75, end_column=19,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     enfants_1931 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6676,8 +6679,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1943(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=77, start_column=12,
-                                                         end_line=77, end_column=29,
+                                                         start_line=78, start_column=12,
+                                                         end_line=78, end_column=29,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6694,7 +6697,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1945)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=77, start_column=12, end_line=77, end_column=29,
+                                             start_line=78, start_column=12, end_line=78, end_column=29,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     ressources_menage_1941 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6705,8 +6708,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1953(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=78, start_column=12,
-                                                         end_line=78, end_column=21,
+                                                         start_line=79, start_column=12,
+                                                         end_line=79, end_column=21,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6723,7 +6726,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1955)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=78, start_column=12, end_line=78, end_column=21,
+                                             start_line=79, start_column=12, end_line=79, end_column=21,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     residence_1951 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6735,8 +6738,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1963(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=80, start_column=12,
-                                                         end_line=80, end_column=59,
+                                                         start_line=81, start_column=12,
+                                                         end_line=81, end_column=59,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6753,7 +6756,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1965)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=80, start_column=12, end_line=80, end_column=59,
+                                             start_line=81, start_column=12, end_line=81, end_column=59,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     personne_charge_effective_permanente_est_parent_1961 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6765,8 +6768,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1973(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=81, start_column=12,
-                                                         end_line=81, end_column=64,
+                                                         start_line=82, start_column=12,
+                                                         end_line=82, end_column=64,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6783,7 +6786,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1975)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=81, start_column=12, end_line=81, end_column=64,
+                                             start_line=82, start_column=12, end_line=82, end_column=64,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     personne_charge_effective_permanente_remplit_titre__i_1971 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6796,8 +6799,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         except EmptyError:
             def local_var_1983(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=82, start_column=12,
-                                                         end_line=82, end_column=56,
+                                                         start_line=83, start_column=12,
+                                                         end_line=83, end_column=56,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
@@ -6814,7 +6817,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                             local_var_1985)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=82, start_column=12, end_line=82, end_column=56,
+                                             start_line=83, start_column=12, end_line=83, end_column=56,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     avait_enfant_a_charge_avant_1er_janvier_2012_1981 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6826,16 +6829,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
             try:
                 def local_var_1993(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=75, start_column=12,
-                                                             end_line=75, end_column=28,
+                                                             start_line=76, start_column=12,
+                                                             end_line=76, end_column=28,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
                 def local_var_1995(_: Any):
                     def local_var_1997(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                                 start_line=113, start_column=14,
-                                                                 end_line=113, end_column=30,
+                                                                 start_line=114, start_column=14,
+                                                                 end_line=114, end_column=30,
                                                                  law_headings=["Article L131-1",
                                                                                "Interface du programme", "Épilogue",
                                                                                "Décrets divers"]), True)
@@ -6865,7 +6868,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                                              enfant_2002.d_date_de_naissance))),
                                           prise_en_charge=enfant_2002.d_prise_en_charge,
                                           a_deja_ouvert_droit_aux_allocations_familiales=enfant_2002.d_a_deja_ouvert_droit_aux_allocations_familiales,
-                                          beneficie_titre_personnel_aide_personnelle_logement=False)
+                                          beneficie_titre_personnel_aide_personnelle_logement=enfant_2002.d_beneficie_titre_personnel_aide_personnelle_logement)
                         return list_map(local_var_2001, enfants_1931)
                     return handle_default([], local_var_1997, local_var_1999)
                 local_var_1992 = handle_default([], local_var_1993,
@@ -6882,7 +6885,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                                 local_var_2006)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=75, start_column=12, end_line=75, end_column=28,
+                                             start_line=76, start_column=12, end_line=76, end_column=28,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     enfants_a_charge_1991 = log_variable_definition(["InterfaceAllocationsFamiliales",
@@ -6892,16 +6895,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2012(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2014(_: Any):
                 def local_var_2016(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=91, start_column=20,
-                                                             end_line=91, end_column=67,
+                                                             start_line=92, start_column=20,
+                                                             end_line=92, end_column=67,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), personne_charge_effective_permanente_est_parent_1961)
 
@@ -6929,16 +6932,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2028(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2030(_: Any):
                 def local_var_2032(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=94, start_column=20,
-                                                             end_line=94, end_column=72,
+                                                             start_line=95, start_column=20,
+                                                             end_line=95, end_column=72,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), personne_charge_effective_permanente_remplit_titre__i_1971)
 
@@ -6966,16 +6969,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2044(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2046(_: Any):
                 def local_var_2048(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=87, start_column=14,
-                                                             end_line=87, end_column=54,
+                                                             start_line=88, start_column=14,
+                                                             end_line=88, end_column=54,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
@@ -7002,16 +7005,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2060(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2062(_: Any):
                 def local_var_2064(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=88, start_column=14,
-                                                             end_line=88, end_column=46,
+                                                             start_line=89, start_column=14,
+                                                             end_line=89, end_column=46,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
@@ -7038,16 +7041,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2076(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2078(_: Any):
                 def local_var_2080(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=85, start_column=14,
-                                                             end_line=85, end_column=50,
+                                                             start_line=86, start_column=14,
+                                                             end_line=86, end_column=50,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
@@ -7074,16 +7077,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2092(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2094(_: Any):
                 def local_var_2096(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=86, start_column=14,
-                                                             end_line=86, end_column=53,
+                                                             start_line=87, start_column=14,
+                                                             end_line=87, end_column=53,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
@@ -7110,16 +7113,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
         try:
             def local_var_2108(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                         start_line=76, start_column=12,
-                                                         end_line=76, end_column=34,
+                                                         start_line=77, start_column=12,
+                                                         end_line=77, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
             def local_var_2110(_: Any):
                 def local_var_2112(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=97, start_column=20,
-                                                             end_line=97, end_column=64,
+                                                             start_line=98, start_column=20,
+                                                             end_line=98, end_column=64,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_1981)
 
@@ -7352,16 +7355,16 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
             try:
                 def local_var_2241(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                             start_line=79, start_column=12,
-                                                             end_line=79, end_column=25,
+                                                             start_line=80, start_column=12,
+                                                             end_line=80, end_column=25,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
                 def local_var_2243(_: Any):
                     def local_var_2245(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
-                                                                 start_line=89, start_column=14,
-                                                                 end_line=89, end_column=27,
+                                                                 start_line=90, start_column=14,
+                                                                 end_line=90, end_column=27,
                                                                  law_headings=["Interface du programme",
                                                                                "Épilogue", "Décrets divers"]), True)
 
@@ -7382,7 +7385,7 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1911: I
                                                 local_var_2251)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
-                                             start_line=79, start_column=12, end_line=79, end_column=25,
+                                             start_line=80, start_column=12, end_line=80, end_column=25,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
     montant_verse_2239 = log_variable_definition(["InterfaceAllocationsFamiliales",
