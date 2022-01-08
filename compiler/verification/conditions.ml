@@ -13,6 +13,7 @@
    the License. *)
 
 open Utils
+open Dcalc
 open Ast
 
 let conjunction (args : expr Pos.marked list) (pos : Pos.t) =

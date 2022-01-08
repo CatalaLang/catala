@@ -216,7 +216,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
            prgm.decl_ctx) typ); *)
         match backend with
         | Cli.Proof ->
-            let vcs = Dcalc.Verificator.generate_verification_conditions prgm in
+            let vcs = Verification.Conditions.generate_verification_conditions prgm in
             List.iter
               (fun vc ->
                 Cli.result_print
@@ -226,7 +226,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      (Dcalc.Print.format_expr prgm.decl_ctx)
                      vc))
               vcs;
-            Dcalc.Vc_z3encoding.solve_vc vcs;
+            Verification.Z3encoding.solve_vc vcs;
             0
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";
