@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Opam modules cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         env:
           cache-name: cache-opam-modules
         with:
@@ -55,7 +55,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Set up OCaml
-        uses: avsm/setup-ocaml@v1
+        uses: avsm/setup-ocaml@v2
         with:
           # Version of the OCaml compiler to initialise
           ocaml-version: 4.11.2
