@@ -1151,12 +1151,17 @@ def enfant_le_plus_age(enfant_le_plus_age_in_111: EnfantLePlusAgeIn):
                                                                                "Décrets divers"]), True)
 
                     def local_var_132(_: Any):
-                        def local_var_134(acc_135: Any, item_136: Any):
-                            if (acc_135.age > item_136.age):
-                                return acc_135
+                        def local_var_135(potentiel_plus_age_136: Any):
+                            return potentiel_plus_age_136.age
+                        predicate_134 = local_var_135
+
+                        def local_var_137(acc_138: Any, item_139: Any):
+                            if (predicate_134(acc_138) >
+                                    predicate_134(item_139)):
+                                return acc_138
                             else:
-                                return item_136
-                        return list_fold_left(local_var_134,
+                                return item_139
+                        return list_fold_left(local_var_137,
                                               Enfant(identifiant=- integer_of_string("1"),
                                                      obligation_scolaire=SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
                                                                                                      Unit()),
@@ -1174,15 +1179,15 @@ def enfant_le_plus_age(enfant_le_plus_age_in_111: EnfantLePlusAgeIn):
                 local_var_125 = handle_default([], local_var_126,
                                                local_var_128)
             except EmptyError:
-                def local_var_137(_: Any):
+                def local_var_140(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_139(_: Any):
+                def local_var_142(_: Any):
                     raise EmptyError
-                local_var_125 = handle_default([], local_var_137,
-                                               local_var_139)
+                local_var_125 = handle_default([], local_var_140,
+                                               local_var_142)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=85, start_column=12, end_line=85, end_column=23,
@@ -1193,29 +1198,29 @@ def enfant_le_plus_age(enfant_le_plus_age_in_111: EnfantLePlusAgeIn):
                               le_plus_age_out=le_plus_age_124)
 
 
-def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesIn):
-    droit_ouvert_142 = prestations_familiales_in_141.droit_ouvert_in
-    conditions_hors_age_143 = prestations_familiales_in_141.conditions_hors_age_in
-    plafond_l512_3_2_144 = prestations_familiales_in_141.plafond_l512_3_2_in
-    age_l512_3_2_145 = prestations_familiales_in_141.age_l512_3_2_in
-    regime_outre_mer_l751_1_146 = prestations_familiales_in_141.regime_outre_mer_l751_1_in
-    date_courante_147 = prestations_familiales_in_141.date_courante_in
-    prestation_courante_148 = prestations_familiales_in_141.prestation_courante_in
-    residence_149 = prestations_familiales_in_141.residence_in
-    base_mensuelle_150 = prestations_familiales_in_141.base_mensuelle_in
+def prestations_familiales(prestations_familiales_in_144: PrestationsFamilialesIn):
+    droit_ouvert_145 = prestations_familiales_in_144.droit_ouvert_in
+    conditions_hors_age_146 = prestations_familiales_in_144.conditions_hors_age_in
+    plafond_l512_3_2_147 = prestations_familiales_in_144.plafond_l512_3_2_in
+    age_l512_3_2_148 = prestations_familiales_in_144.age_l512_3_2_in
+    regime_outre_mer_l751_1_149 = prestations_familiales_in_144.regime_outre_mer_l751_1_in
+    date_courante_150 = prestations_familiales_in_144.date_courante_in
+    prestation_courante_151 = prestations_familiales_in_144.prestation_courante_in
+    residence_152 = prestations_familiales_in_144.residence_in
+    base_mensuelle_153 = prestations_familiales_in_144.base_mensuelle_in
     try:
         try:
-            local_var_152 = age_l512_3_2_145(Unit())
+            local_var_155 = age_l512_3_2_148(Unit())
         except EmptyError:
             try:
-                def local_var_153(_: Any):
+                def local_var_156(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=68, start_column=12,
                                                              end_line=68, end_column=24,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_155(_: Any):
-                    def local_var_157(_: Any):
+                def local_var_158(_: Any):
+                    def local_var_160(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=21, start_column=14,
                                                                  end_line=21, end_column=26,
@@ -1226,289 +1231,289 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_159(_: Any):
+                    def local_var_162(_: Any):
                         return integer_of_string("20")
-                    return handle_default([], local_var_157, local_var_159)
-                local_var_152 = handle_default([], local_var_153,
-                                               local_var_155)
+                    return handle_default([], local_var_160, local_var_162)
+                local_var_155 = handle_default([], local_var_156,
+                                               local_var_158)
             except EmptyError:
-                def local_var_161(_: Any):
+                def local_var_164(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_163(_: Any):
+                def local_var_166(_: Any):
                     raise EmptyError
-                local_var_152 = handle_default([], local_var_161,
-                                               local_var_163)
+                local_var_155 = handle_default([], local_var_164,
+                                               local_var_166)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=68, start_column=12, end_line=68, end_column=24,
                                              law_headings=["Prologue"]))
-    age_l512_3_2_151 = log_variable_definition(["PrestationsFamiliales",
-                                                "âge_l512_3_2"], local_var_152)
+    age_l512_3_2_154 = log_variable_definition(["PrestationsFamiliales",
+                                                "âge_l512_3_2"], local_var_155)
     try:
         try:
-            local_var_166 = date_courante_147(Unit())
+            local_var_169 = date_courante_150(Unit())
         except EmptyError:
-            def local_var_167(_: Any):
+            def local_var_170(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=70, start_column=12,
                                                          end_line=70, end_column=25,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_169(_: Any):
-                def local_var_171(_: Any):
+            def local_var_172(_: Any):
+                def local_var_174(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_173(_: Any):
+                def local_var_176(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_171, local_var_173)
-            local_var_166 = handle_default([], local_var_167, local_var_169)
+                return handle_default([], local_var_174, local_var_176)
+            local_var_169 = handle_default([], local_var_170, local_var_172)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=70, start_column=12, end_line=70, end_column=25,
                                              law_headings=["Prologue"]))
-    date_courante_165 = log_variable_definition(["PrestationsFamiliales",
-                                                 "date_courante"], local_var_166)
+    date_courante_168 = log_variable_definition(["PrestationsFamiliales",
+                                                 "date_courante"], local_var_169)
     try:
         try:
-            local_var_176 = prestation_courante_148(Unit())
+            local_var_179 = prestation_courante_151(Unit())
         except EmptyError:
-            def local_var_177(_: Any):
+            def local_var_180(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=71, start_column=12,
                                                          end_line=71, end_column=31,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_179(_: Any):
-                def local_var_181(_: Any):
+            def local_var_182(_: Any):
+                def local_var_184(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_183(_: Any):
+                def local_var_186(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_181, local_var_183)
-            local_var_176 = handle_default([], local_var_177, local_var_179)
+                return handle_default([], local_var_184, local_var_186)
+            local_var_179 = handle_default([], local_var_180, local_var_182)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=71, start_column=12, end_line=71, end_column=31,
                                              law_headings=["Prologue"]))
-    prestation_courante_175 = log_variable_definition(["PrestationsFamiliales",
-                                                       "prestation_courante"], local_var_176)
+    prestation_courante_178 = log_variable_definition(["PrestationsFamiliales",
+                                                       "prestation_courante"], local_var_179)
     try:
         try:
-            local_var_186 = residence_149(Unit())
+            local_var_189 = residence_152(Unit())
         except EmptyError:
-            def local_var_187(_: Any):
+            def local_var_190(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=72, start_column=12,
                                                          end_line=72, end_column=21,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_189(_: Any):
-                def local_var_191(_: Any):
+            def local_var_192(_: Any):
+                def local_var_194(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_193(_: Any):
+                def local_var_196(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_191, local_var_193)
-            local_var_186 = handle_default([], local_var_187, local_var_189)
+                return handle_default([], local_var_194, local_var_196)
+            local_var_189 = handle_default([], local_var_190, local_var_192)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=72, start_column=12, end_line=72, end_column=21,
                                              law_headings=["Prologue"]))
-    residence_185 = log_variable_definition(["PrestationsFamiliales",
-                                             "résidence"], local_var_186)
+    residence_188 = log_variable_definition(["PrestationsFamiliales",
+                                             "résidence"], local_var_189)
     try:
         try:
-            local_var_196 = base_mensuelle_150(Unit())
+            local_var_199 = base_mensuelle_153(Unit())
         except EmptyError:
-            def local_var_217(_: Any):
-                def local_var_219(_: Any):
+            def local_var_220(_: Any):
+                def local_var_222(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=74, start_column=12,
                                                              end_line=74, end_column=26,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_221(_: Any):
-                    def local_var_223(_: Any):
+                def local_var_224(_: Any):
+                    def local_var_226(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=24, start_column=5,
                                                                  end_line=25, end_column=34,
                                                                  law_headings=["Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole",
                                                                                "Montant de la base mensuelle des allocations familiales",
-                                                                               "Décrets divers"]), ((date_courante_165 >=
+                                                                               "Décrets divers"]), ((date_courante_168 >=
                                                                                                      date_of_numbers(2019, 4, 1)) and
-                                                                                                    (date_courante_165 < date_of_numbers(2020, 4, 1))))
+                                                                                                    (date_courante_168 < date_of_numbers(2020, 4, 1))))
 
-                    def local_var_225(_: Any):
+                    def local_var_228(_: Any):
                         return money_of_cents_string("41316")
-                    return handle_default([], local_var_223, local_var_225)
-                return handle_default([], local_var_219, local_var_221)
+                    return handle_default([], local_var_226, local_var_228)
+                return handle_default([], local_var_222, local_var_224)
 
-            def local_var_207(_: Any):
-                def local_var_209(_: Any):
+            def local_var_210(_: Any):
+                def local_var_212(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=74, start_column=12,
                                                              end_line=74, end_column=26,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_211(_: Any):
-                    def local_var_213(_: Any):
+                def local_var_214(_: Any):
+                    def local_var_216(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=44, start_column=5,
                                                                  end_line=45, end_column=34,
                                                                  law_headings=["Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte",
                                                                                "Montant de la base mensuelle des allocations familiales",
-                                                                               "Décrets divers"]), ((date_courante_165 >=
+                                                                               "Décrets divers"]), ((date_courante_168 >=
                                                                                                      date_of_numbers(2020, 4, 1)) and
-                                                                                                    (date_courante_165 < date_of_numbers(2021, 4, 1))))
+                                                                                                    (date_courante_168 < date_of_numbers(2021, 4, 1))))
 
-                    def local_var_215(_: Any):
+                    def local_var_218(_: Any):
                         return money_of_cents_string("41404")
-                    return handle_default([], local_var_213, local_var_215)
-                return handle_default([], local_var_209, local_var_211)
+                    return handle_default([], local_var_216, local_var_218)
+                return handle_default([], local_var_212, local_var_214)
 
-            def local_var_197(_: Any):
-                def local_var_199(_: Any):
+            def local_var_200(_: Any):
+                def local_var_202(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=74, start_column=12,
                                                              end_line=74, end_column=26,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_201(_: Any):
-                    def local_var_203(_: Any):
+                def local_var_204(_: Any):
+                    def local_var_206(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=60, start_column=5,
                                                                  end_line=61, end_column=34,
                                                                  law_headings=["Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte",
                                                                                "Montant de la base mensuelle des allocations familiales",
-                                                                               "Décrets divers"]), ((date_courante_165 >=
+                                                                               "Décrets divers"]), ((date_courante_168 >=
                                                                                                      date_of_numbers(2021, 4, 1)) and
-                                                                                                    (date_courante_165 < date_of_numbers(2022, 4, 1))))
+                                                                                                    (date_courante_168 < date_of_numbers(2022, 4, 1))))
 
-                    def local_var_205(_: Any):
+                    def local_var_208(_: Any):
                         return money_of_cents_string("41481")
-                    return handle_default([], local_var_203, local_var_205)
-                return handle_default([], local_var_199, local_var_201)
+                    return handle_default([], local_var_206, local_var_208)
+                return handle_default([], local_var_202, local_var_204)
 
-            def local_var_227(_: Any):
+            def local_var_230(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=74, start_column=12,
                                                          end_line=74, end_column=26,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_229(_: Any):
-                def local_var_231(_: Any):
+            def local_var_232(_: Any):
+                def local_var_234(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_233(_: Any):
+                def local_var_236(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_231, local_var_233)
-            local_var_196 = handle_default([local_var_197, local_var_207,
-                                            local_var_217], local_var_227, local_var_229)
+                return handle_default([], local_var_234, local_var_236)
+            local_var_199 = handle_default([local_var_200, local_var_210,
+                                            local_var_220], local_var_230, local_var_232)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=74, start_column=12, end_line=74, end_column=26,
                                              law_headings=["Prologue"]))
-    base_mensuelle_195 = log_variable_definition(["PrestationsFamiliales",
-                                                  "base_mensuelle"], local_var_196)
+    base_mensuelle_198 = log_variable_definition(["PrestationsFamiliales",
+                                                  "base_mensuelle"], local_var_199)
 
-    def local_var_236(_: Unit):
+    def local_var_239(_: Unit):
         try:
-            def local_var_239(_: Any):
+            def local_var_242(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=73, start_column=12,
                                                          end_line=73, end_column=16,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_241(_: Any):
-                def local_var_243(_: Any):
+            def local_var_244(_: Any):
+                def local_var_246(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=78, start_column=14,
                                                              end_line=78, end_column=32,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_245(_: Any):
-                    return date_courante_165
-                return handle_default([], local_var_243, local_var_245)
-            local_var_238 = handle_default([], local_var_239, local_var_241)
+                def local_var_248(_: Any):
+                    return date_courante_168
+                return handle_default([], local_var_246, local_var_248)
+            local_var_241 = handle_default([], local_var_242, local_var_244)
         except EmptyError:
-            def local_var_247(_: Any):
+            def local_var_250(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_249(_: Any):
+            def local_var_252(_: Any):
                 raise EmptyError
-            local_var_238 = handle_default([], local_var_247, local_var_249)
+            local_var_241 = handle_default([], local_var_250, local_var_252)
         return log_variable_definition(["PrestationsFamiliales",
-                                        "smic.date_courante"], local_var_238)
-    smic_dot_date_courante_235 = local_var_236
+                                        "smic.date_courante"], local_var_241)
+    smic_dot_date_courante_238 = local_var_239
 
-    def local_var_252(_: Unit):
+    def local_var_255(_: Unit):
         try:
-            def local_var_255(_: Any):
+            def local_var_258(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=73, start_column=12,
                                                          end_line=73, end_column=16,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_257(_: Any):
-                def local_var_259(_: Any):
+            def local_var_260(_: Any):
+                def local_var_262(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=77, start_column=14,
                                                              end_line=77, end_column=28,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_261(_: Any):
-                    return residence_185
-                return handle_default([], local_var_259, local_var_261)
-            local_var_254 = handle_default([], local_var_255, local_var_257)
+                def local_var_264(_: Any):
+                    return residence_188
+                return handle_default([], local_var_262, local_var_264)
+            local_var_257 = handle_default([], local_var_258, local_var_260)
         except EmptyError:
-            def local_var_263(_: Any):
+            def local_var_266(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_265(_: Any):
+            def local_var_268(_: Any):
                 raise EmptyError
-            local_var_254 = handle_default([], local_var_263, local_var_265)
+            local_var_257 = handle_default([], local_var_266, local_var_268)
         return log_variable_definition(["PrestationsFamiliales",
-                                        "smic.résidence"], local_var_254)
-    smic_dot_residence_251 = local_var_252
+                                        "smic.résidence"], local_var_257)
+    smic_dot_residence_254 = local_var_255
 
-    def local_var_268(_: Unit):
+    def local_var_271(_: Unit):
         raise EmptyError
-    result_267 = log_end_call(["PrestationsFamiliales", "smic", "Smic"],
+    result_270 = log_end_call(["PrestationsFamiliales", "smic", "Smic"],
                               log_begin_call(["PrestationsFamiliales", "smic", "Smic"], smic,
-                                             SmicIn(date_courante_in=smic_dot_date_courante_235,
-                                                    residence_in=smic_dot_residence_251,
-                                                    brut_horaire_in=local_var_268)))
-    smic_dot_date_courante_270 = result_267.date_courante_out
-    smic_dot_residence_271 = result_267.residence_out
-    smic_dot_brut_horaire_272 = result_267.brut_horaire_out
+                                             SmicIn(date_courante_in=smic_dot_date_courante_238,
+                                                    residence_in=smic_dot_residence_254,
+                                                    brut_horaire_in=local_var_271)))
+    smic_dot_date_courante_273 = result_270.date_courante_out
+    smic_dot_residence_274 = result_270.residence_out
+    smic_dot_brut_horaire_275 = result_270.brut_horaire_out
     try:
         try:
-            local_var_274 = regime_outre_mer_l751_1_146(Unit())
+            local_var_277 = regime_outre_mer_l751_1_149(Unit())
         except EmptyError:
             try:
-                def local_var_275(_: Any):
+                def local_var_278(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=69, start_column=12,
                                                              end_line=69, end_column=35,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_277(_: Any):
-                    def local_var_279(_: Any):
+                def local_var_280(_: Any):
+                    def local_var_282(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                  start_line=354, start_column=5,
                                                                  end_line=359, end_column=30,
@@ -1517,55 +1522,55 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                                "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                "Partie législative",
-                                                                               "Code de la sécurité sociale"]), ((residence_185 ==
+                                                                               "Code de la sécurité sociale"]), ((residence_188 ==
                                                                                                                   Collectivite(Collectivite_Code.Guadeloupe,
-                                                                                                                               Unit())) or ((residence_185 ==
+                                                                                                                               Unit())) or ((residence_188 ==
                                                                                                                                              Collectivite(Collectivite_Code.Guyane,
-                                                                                                                                                          Unit())) or ((residence_185 ==
+                                                                                                                                                          Unit())) or ((residence_188 ==
                                                                                                                                                                         Collectivite(Collectivite_Code.Martinique,
-                                                                                                                                                                                     Unit())) or ((residence_185 ==
+                                                                                                                                                                                     Unit())) or ((residence_188 ==
                                                                                                                                                                                                    Collectivite(Collectivite_Code.LaReunion,
-                                                                                                                                                                                                                Unit())) or ((residence_185 ==
+                                                                                                                                                                                                                Unit())) or ((residence_188 ==
                                                                                                                                                                                                                               Collectivite(Collectivite_Code.SaintBarthelemy,
-                                                                                                                                                                                                                                           Unit())) or (residence_185 ==
+                                                                                                                                                                                                                                           Unit())) or (residence_188 ==
                                                                                                                                                                                                                                                         Collectivite(Collectivite_Code.SaintMartin,
                                                                                                                                                                                                                                                                      Unit()))))))))
 
-                    def local_var_281(_: Any):
+                    def local_var_284(_: Any):
                         return True
-                    return handle_default([], local_var_279, local_var_281)
-                local_var_274 = handle_default([], local_var_275,
-                                               local_var_277)
+                    return handle_default([], local_var_282, local_var_284)
+                local_var_277 = handle_default([], local_var_278,
+                                               local_var_280)
             except EmptyError:
-                def local_var_283(_: Any):
+                def local_var_286(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_285(_: Any):
+                def local_var_288(_: Any):
                     return False
-                local_var_274 = handle_default([], local_var_283,
-                                               local_var_285)
+                local_var_277 = handle_default([], local_var_286,
+                                               local_var_288)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=69, start_column=12, end_line=69, end_column=35,
                                              law_headings=["Prologue"]))
-    regime_outre_mer_l751_1_273 = log_variable_definition(["PrestationsFamiliales",
-                                                           "régime_outre_mer_l751_1"], local_var_274)
+    regime_outre_mer_l751_1_276 = log_variable_definition(["PrestationsFamiliales",
+                                                           "régime_outre_mer_l751_1"], local_var_277)
     try:
         try:
-            local_var_288 = plafond_l512_3_2_144(Unit())
+            local_var_291 = plafond_l512_3_2_147(Unit())
         except EmptyError:
             try:
                 try:
-                    def local_var_289(_: Any):
+                    def local_var_292(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=67, start_column=12,
                                                                  end_line=67, end_column=28,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_291(_: Any):
-                        def local_var_293(_: Any):
+                    def local_var_294(_: Any):
+                        def local_var_296(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                      start_line=216, start_column=18,
                                                                      end_line=216, end_column=41,
@@ -1574,18 +1579,18 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                    "Titre 5 : Départements d'outre-mer",
                                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                    "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                                                   "Code de la sécurité sociale"]), regime_outre_mer_l751_1_273)
+                                                                                   "Code de la sécurité sociale"]), regime_outre_mer_l751_1_276)
 
-                        def local_var_295(_: Any):
-                            return ((smic_dot_brut_horaire_272 *
+                        def local_var_298(_: Any):
+                            return ((smic_dot_brut_horaire_275 *
                                      decimal_of_string("0.55")) *
                                     decimal_of_string("169."))
-                        return handle_default([], local_var_293,
-                                              local_var_295)
-                    local_var_288 = handle_default([], local_var_289,
-                                                   local_var_291)
+                        return handle_default([], local_var_296,
+                                              local_var_298)
+                    local_var_291 = handle_default([], local_var_292,
+                                                   local_var_294)
                 except EmptyError:
-                    def local_var_297(_: Any):
+                    def local_var_300(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=31, start_column=14,
                                                                  end_line=31, end_column=30,
@@ -1596,73 +1601,73 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_299(_: Any):
-                        return ((smic_dot_brut_horaire_272 *
+                    def local_var_302(_: Any):
+                        return ((smic_dot_brut_horaire_275 *
                                  decimal_of_string("0.55")) *
                                 decimal_of_string("169."))
-                    local_var_288 = handle_default([], local_var_297,
-                                                   local_var_299)
+                    local_var_291 = handle_default([], local_var_300,
+                                                   local_var_302)
             except EmptyError:
-                def local_var_301(_: Any):
+                def local_var_304(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_303(_: Any):
+                def local_var_306(_: Any):
                     raise EmptyError
-                local_var_288 = handle_default([], local_var_301,
-                                               local_var_303)
+                local_var_291 = handle_default([], local_var_304,
+                                               local_var_306)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=67, start_column=12, end_line=67, end_column=28,
                                              law_headings=["Prologue"]))
-    plafond_l512_3_2_287 = log_variable_definition(["PrestationsFamiliales",
-                                                    "plafond_l512_3_2"], local_var_288)
+    plafond_l512_3_2_290 = log_variable_definition(["PrestationsFamiliales",
+                                                    "plafond_l512_3_2"], local_var_291)
     try:
         try:
-            local_var_306 = conditions_hors_age_143(Unit())
+            local_var_309 = conditions_hors_age_146(Unit())
         except EmptyError:
-            def local_var_306(param_307: Enfant):
+            def local_var_309(param_310: Enfant):
                 try:
                     try:
-                        def local_var_308(_: Any):
+                        def local_var_311(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=66, start_column=12,
                                                                      end_line=66, end_column=31,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_310(_: Any):
-                            def local_var_312(_: Any):
-                                match_arg_2250 = param_307.obligation_scolaire
-                                if match_arg_2250.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2250.value
-                                    local_var_314 = True
-                                elif match_arg_2250.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2250.value
-                                    local_var_314 = False
-                                elif match_arg_2250.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2250.value
-                                    local_var_314 = False
-                                match_arg_2251 = param_307.obligation_scolaire
-                                if match_arg_2251.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2251.value
-                                    local_var_322 = False
-                                elif match_arg_2251.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2251.value
-                                    local_var_322 = False
-                                elif match_arg_2251.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2251.value
-                                    local_var_322 = True
-                                match_arg_2252 = param_307.obligation_scolaire
-                                if match_arg_2252.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2252.value
-                                    local_var_318 = False
-                                elif match_arg_2252.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2252.value
-                                    local_var_318 = True
-                                elif match_arg_2252.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2252.value
-                                    local_var_318 = False
+                        def local_var_313(_: Any):
+                            def local_var_315(_: Any):
+                                match_arg_2253 = param_310.obligation_scolaire
+                                if match_arg_2253.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2253.value
+                                    local_var_317 = True
+                                elif match_arg_2253.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2253.value
+                                    local_var_317 = False
+                                elif match_arg_2253.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2253.value
+                                    local_var_317 = False
+                                match_arg_2254 = param_310.obligation_scolaire
+                                if match_arg_2254.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2254.value
+                                    local_var_325 = False
+                                elif match_arg_2254.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2254.value
+                                    local_var_325 = False
+                                elif match_arg_2254.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2254.value
+                                    local_var_325 = True
+                                match_arg_2255 = param_310.obligation_scolaire
+                                if match_arg_2255.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2255.value
+                                    local_var_321 = False
+                                elif match_arg_2255.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2255.value
+                                    local_var_321 = True
+                                elif match_arg_2255.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2255.value
+                                    local_var_321 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=68, start_column=5,
                                                                          end_line=71, end_column=57,
@@ -1671,28 +1676,28 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                        "Titre 1 : Champ d'application - Généralités",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), ((local_var_314 or
-                                                                                                                          (local_var_318 or local_var_322)) and
-                                                                                                                         (param_307.remuneration_mensuelle <=
-                                                                                                                          plafond_l512_3_2_287)))
+                                                                                       "Code de la sécurité sociale"]), ((local_var_317 or
+                                                                                                                          (local_var_321 or local_var_325)) and
+                                                                                                                         (param_310.remuneration_mensuelle <=
+                                                                                                                          plafond_l512_3_2_290)))
 
-                            def local_var_326(_: Any):
+                            def local_var_329(_: Any):
                                 return True
-                            return handle_default([], local_var_312,
-                                                  local_var_326)
-                        return handle_default([], local_var_308,
-                                              local_var_310)
+                            return handle_default([], local_var_315,
+                                                  local_var_329)
+                        return handle_default([], local_var_311,
+                                              local_var_313)
                     except EmptyError:
-                        def local_var_328(_: Any):
+                        def local_var_331(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), True)
 
-                        def local_var_330(_: Any):
+                        def local_var_333(_: Any):
                             return False
-                        return handle_default([], local_var_328,
-                                              local_var_330)
+                        return handle_default([], local_var_331,
+                                              local_var_333)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=66, start_column=12, end_line=66,
@@ -1701,43 +1706,43 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=66, start_column=12, end_line=66, end_column=31,
                                              law_headings=["Prologue"]))
-    conditions_hors_age_305 = log_variable_definition(["PrestationsFamiliales",
-                                                       "conditions_hors_âge"], local_var_306)
+    conditions_hors_age_308 = log_variable_definition(["PrestationsFamiliales",
+                                                       "conditions_hors_âge"], local_var_309)
     try:
         try:
-            local_var_333 = droit_ouvert_142(Unit())
+            local_var_336 = droit_ouvert_145(Unit())
         except EmptyError:
-            def local_var_333(param_334: Enfant):
+            def local_var_336(param_337: Enfant):
                 try:
-                    def local_var_349(_: Any):
-                        def local_var_351(_: Any):
+                    def local_var_352(_: Any):
+                        def local_var_354(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=65, start_column=12,
                                                                      end_line=65, end_column=24,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_353(_: Any):
-                            def local_var_355(_: Any):
-                                match_arg_2253 = param_334.obligation_scolaire
-                                if match_arg_2253.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2253.value
-                                    local_var_361 = False
-                                elif match_arg_2253.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2253.value
-                                    local_var_361 = True
-                                elif match_arg_2253.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2253.value
-                                    local_var_361 = False
-                                match_arg_2254 = param_334.obligation_scolaire
-                                if match_arg_2254.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2254.value
-                                    local_var_357 = True
-                                elif match_arg_2254.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2254.value
-                                    local_var_357 = False
-                                elif match_arg_2254.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2254.value
-                                    local_var_357 = False
+                        def local_var_356(_: Any):
+                            def local_var_358(_: Any):
+                                match_arg_2256 = param_337.obligation_scolaire
+                                if match_arg_2256.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2256.value
+                                    local_var_364 = False
+                                elif match_arg_2256.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2256.value
+                                    local_var_364 = True
+                                elif match_arg_2256.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2256.value
+                                    local_var_364 = False
+                                match_arg_2257 = param_337.obligation_scolaire
+                                if match_arg_2257.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2257.value
+                                    local_var_360 = True
+                                elif match_arg_2257.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2257.value
+                                    local_var_360 = False
+                                elif match_arg_2257.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2257.value
+                                    local_var_360 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=49, start_column=5,
                                                                          end_line=50, end_column=50,
@@ -1746,35 +1751,35 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                        "Titre 1 : Champ d'application - Généralités",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), (local_var_357 or
-                                                                                                                         local_var_361))
+                                                                                       "Code de la sécurité sociale"]), (local_var_360 or
+                                                                                                                         local_var_364))
 
-                            def local_var_365(_: Any):
+                            def local_var_368(_: Any):
                                 return True
-                            return handle_default([], local_var_355,
-                                                  local_var_365)
-                        return handle_default([], local_var_351,
-                                              local_var_353)
+                            return handle_default([], local_var_358,
+                                                  local_var_368)
+                        return handle_default([], local_var_354,
+                                              local_var_356)
 
-                    def local_var_335(_: Any):
-                        def local_var_337(_: Any):
+                    def local_var_338(_: Any):
+                        def local_var_340(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=65, start_column=12,
                                                                      end_line=65, end_column=24,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_339(_: Any):
-                            def local_var_341(_: Any):
-                                match_arg_2255 = param_334.obligation_scolaire
-                                if match_arg_2255.code == SituationObligationScolaire_Code.Avant:
-                                    _ = match_arg_2255.value
-                                    local_var_343 = False
-                                elif match_arg_2255.code == SituationObligationScolaire_Code.Pendant:
-                                    _ = match_arg_2255.value
-                                    local_var_343 = False
-                                elif match_arg_2255.code == SituationObligationScolaire_Code.Apres:
-                                    _ = match_arg_2255.value
-                                    local_var_343 = True
+                        def local_var_342(_: Any):
+                            def local_var_344(_: Any):
+                                match_arg_2258 = param_337.obligation_scolaire
+                                if match_arg_2258.code == SituationObligationScolaire_Code.Avant:
+                                    _ = match_arg_2258.value
+                                    local_var_346 = False
+                                elif match_arg_2258.code == SituationObligationScolaire_Code.Pendant:
+                                    _ = match_arg_2258.value
+                                    local_var_346 = False
+                                elif match_arg_2258.code == SituationObligationScolaire_Code.Apres:
+                                    _ = match_arg_2258.value
+                                    local_var_346 = True
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=60, start_column=5,
                                                                          end_line=62, end_column=32,
@@ -1783,37 +1788,37 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
                                                                                        "Titre 1 : Champ d'application - Généralités",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), (local_var_343 and
-                                                                                                                         ((param_334.remuneration_mensuelle <=
-                                                                                                                           plafond_l512_3_2_287) and
-                                                                                                                          (param_334.age < age_l512_3_2_151))))
+                                                                                       "Code de la sécurité sociale"]), (local_var_346 and
+                                                                                                                         ((param_337.remuneration_mensuelle <=
+                                                                                                                           plafond_l512_3_2_290) and
+                                                                                                                          (param_337.age < age_l512_3_2_154))))
 
-                            def local_var_347(_: Any):
+                            def local_var_350(_: Any):
                                 return True
-                            return handle_default([], local_var_341,
-                                                  local_var_347)
-                        return handle_default([], local_var_337,
-                                              local_var_339)
+                            return handle_default([], local_var_344,
+                                                  local_var_350)
+                        return handle_default([], local_var_340,
+                                              local_var_342)
 
-                    def local_var_367(_: Any):
+                    def local_var_370(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=65, start_column=12,
                                                                  end_line=65, end_column=24,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_369(_: Any):
-                        def local_var_371(_: Any):
+                    def local_var_372(_: Any):
+                        def local_var_374(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), True)
 
-                        def local_var_373(_: Any):
+                        def local_var_376(_: Any):
                             return False
-                        return handle_default([], local_var_371,
-                                              local_var_373)
-                    return handle_default([local_var_335, local_var_349],
-                                          local_var_367, local_var_369)
+                        return handle_default([], local_var_374,
+                                              local_var_376)
+                    return handle_default([local_var_338, local_var_352],
+                                          local_var_370, local_var_372)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=65, start_column=12, end_line=65,
@@ -1822,254 +1827,254 @@ def prestations_familiales(prestations_familiales_in_141: PrestationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=65, start_column=12, end_line=65, end_column=24,
                                              law_headings=["Prologue"]))
-    droit_ouvert_332 = log_variable_definition(["PrestationsFamiliales",
-                                                "droit_ouvert"], local_var_333)
-    return PrestationsFamilialesOut(droit_ouvert_out=droit_ouvert_332,
-                                    conditions_hors_age_out=conditions_hors_age_305,
-                                    plafond_l512_3_2_out=plafond_l512_3_2_287,
-                                    age_l512_3_2_out=age_l512_3_2_151,
-                                    regime_outre_mer_l751_1_out=regime_outre_mer_l751_1_273,
-                                    date_courante_out=date_courante_165,
-                                    prestation_courante_out=prestation_courante_175,
-                                    residence_out=residence_185,
-                                    base_mensuelle_out=base_mensuelle_195)
+    droit_ouvert_335 = log_variable_definition(["PrestationsFamiliales",
+                                                "droit_ouvert"], local_var_336)
+    return PrestationsFamilialesOut(droit_ouvert_out=droit_ouvert_335,
+                                    conditions_hors_age_out=conditions_hors_age_308,
+                                    plafond_l512_3_2_out=plafond_l512_3_2_290,
+                                    age_l512_3_2_out=age_l512_3_2_154,
+                                    regime_outre_mer_l751_1_out=regime_outre_mer_l751_1_276,
+                                    date_courante_out=date_courante_168,
+                                    prestation_courante_out=prestation_courante_178,
+                                    residence_out=residence_188,
+                                    base_mensuelle_out=base_mensuelle_198)
 
 
-def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesIn):
-    personne_charge_effective_permanente_est_parent_376 = allocations_familiales_in_375.personne_charge_effective_permanente_est_parent_in
-    personne_charge_effective_permanente_remplit_titre__i_377 = allocations_familiales_in_375.personne_charge_effective_permanente_remplit_titre_I_in
-    ressources_menage_378 = allocations_familiales_in_375.ressources_menage_in
-    residence_379 = allocations_familiales_in_375.residence_in
-    date_courante_380 = allocations_familiales_in_375.date_courante_in
-    enfants_a_charge_381 = allocations_familiales_in_375.enfants_a_charge_in
-    enfants_a_charge_droit_ouvert_prestation_familiale_382 = allocations_familiales_in_375.enfants_a_charge_droit_ouvert_prestation_familiale_in
-    prise_en_compte_383 = allocations_familiales_in_375.prise_en_compte_in
-    versement_384 = allocations_familiales_in_375.versement_in
-    montant_verse_385 = allocations_familiales_in_375.montant_verse_in
-    droit_ouvert_base_386 = allocations_familiales_in_375.droit_ouvert_base_in
-    montant_initial_base_387 = allocations_familiales_in_375.montant_initial_base_in
-    montant_initial_base_premier_enfant_388 = allocations_familiales_in_375.montant_initial_base_premier_enfant_in
-    montant_initial_base_deuxieme_enfant_389 = allocations_familiales_in_375.montant_initial_base_deuxieme_enfant_in
-    montant_initial_base_troisieme_enfant_et_plus_390 = allocations_familiales_in_375.montant_initial_base_troisieme_enfant_et_plus_in
-    rapport_enfants_total_moyen_391 = allocations_familiales_in_375.rapport_enfants_total_moyen_in
-    nombre_moyen_enfants_392 = allocations_familiales_in_375.nombre_moyen_enfants_in
-    nombre_total_enfants_393 = allocations_familiales_in_375.nombre_total_enfants_in
-    montant_avec_garde_alternee_base_394 = allocations_familiales_in_375.montant_avec_garde_alternee_base_in
-    montant_verse_base_395 = allocations_familiales_in_375.montant_verse_base_in
-    avait_enfant_a_charge_avant_1er_janvier_2012_396 = allocations_familiales_in_375.avait_enfant_a_charge_avant_1er_janvier_2012_in
-    montant_initial_base_premier_enfant_mayotte_397 = allocations_familiales_in_375.montant_initial_base_premier_enfant_mayotte_in
-    montant_initial_base_deuxieme_enfant_mayotte_398 = allocations_familiales_in_375.montant_initial_base_deuxieme_enfant_mayotte_in
-    montant_initial_base_troisieme_enfant_mayotte_399 = allocations_familiales_in_375.montant_initial_base_troisieme_enfant_mayotte_in
-    montant_initial_base_quatrieme_enfant_et_plus_mayotte_400 = allocations_familiales_in_375.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in
-    droit_ouvert_forfaitaire_401 = allocations_familiales_in_375.droit_ouvert_forfaitaire_in
-    montant_verse_forfaitaire_par_enfant_402 = allocations_familiales_in_375.montant_verse_forfaitaire_par_enfant_in
-    montant_verse_forfaitaire_403 = allocations_familiales_in_375.montant_verse_forfaitaire_in
-    droit_ouvert_majoration_404 = allocations_familiales_in_375.droit_ouvert_majoration_in
-    montant_initial_metropole_majoration_405 = allocations_familiales_in_375.montant_initial_metropole_majoration_in
-    montant_initial_majoration_406 = allocations_familiales_in_375.montant_initial_majoration_in
-    montant_avec_garde_alternee_majoration_407 = allocations_familiales_in_375.montant_avec_garde_alternee_majoration_in
-    montant_verse_majoration_408 = allocations_familiales_in_375.montant_verse_majoration_in
-    droit_ouvert_complement_409 = allocations_familiales_in_375.droit_ouvert_complement_in
-    montant_base_complement_pour_base_et_majoration_410 = allocations_familiales_in_375.montant_base_complement_pour_base_et_majoration_in
-    complement_degressif_411 = allocations_familiales_in_375.complement_degressif_in
-    montant_verse_complement_pour_base_et_majoration_412 = allocations_familiales_in_375.montant_verse_complement_pour_base_et_majoration_in
-    montant_verse_complement_pour_forfaitaire_413 = allocations_familiales_in_375.montant_verse_complement_pour_forfaitaire_in
-    nombre_enfants_l521_1_414 = allocations_familiales_in_375.nombre_enfants_l521_1_in
-    age_minimum_alinea_1_l521_3_415 = allocations_familiales_in_375.age_minimum_alinea_1_l521_3_in
-    nombre_enfants_alinea_2_l521_3_416 = allocations_familiales_in_375.nombre_enfants_alinea_2_l521_3_in
-    est_enfant_le_plus_age_417 = allocations_familiales_in_375.est_enfant_le_plus_age_in
-    plafond__i_d521_3_418 = allocations_familiales_in_375.plafond_I_d521_3_in
-    plafond__i_i_d521_3_419 = allocations_familiales_in_375.plafond_II_d521_3_in
+def allocations_familiales(allocations_familiales_in_378: AllocationsFamilialesIn):
+    personne_charge_effective_permanente_est_parent_379 = allocations_familiales_in_378.personne_charge_effective_permanente_est_parent_in
+    personne_charge_effective_permanente_remplit_titre__i_380 = allocations_familiales_in_378.personne_charge_effective_permanente_remplit_titre_I_in
+    ressources_menage_381 = allocations_familiales_in_378.ressources_menage_in
+    residence_382 = allocations_familiales_in_378.residence_in
+    date_courante_383 = allocations_familiales_in_378.date_courante_in
+    enfants_a_charge_384 = allocations_familiales_in_378.enfants_a_charge_in
+    enfants_a_charge_droit_ouvert_prestation_familiale_385 = allocations_familiales_in_378.enfants_a_charge_droit_ouvert_prestation_familiale_in
+    prise_en_compte_386 = allocations_familiales_in_378.prise_en_compte_in
+    versement_387 = allocations_familiales_in_378.versement_in
+    montant_verse_388 = allocations_familiales_in_378.montant_verse_in
+    droit_ouvert_base_389 = allocations_familiales_in_378.droit_ouvert_base_in
+    montant_initial_base_390 = allocations_familiales_in_378.montant_initial_base_in
+    montant_initial_base_premier_enfant_391 = allocations_familiales_in_378.montant_initial_base_premier_enfant_in
+    montant_initial_base_deuxieme_enfant_392 = allocations_familiales_in_378.montant_initial_base_deuxieme_enfant_in
+    montant_initial_base_troisieme_enfant_et_plus_393 = allocations_familiales_in_378.montant_initial_base_troisieme_enfant_et_plus_in
+    rapport_enfants_total_moyen_394 = allocations_familiales_in_378.rapport_enfants_total_moyen_in
+    nombre_moyen_enfants_395 = allocations_familiales_in_378.nombre_moyen_enfants_in
+    nombre_total_enfants_396 = allocations_familiales_in_378.nombre_total_enfants_in
+    montant_avec_garde_alternee_base_397 = allocations_familiales_in_378.montant_avec_garde_alternee_base_in
+    montant_verse_base_398 = allocations_familiales_in_378.montant_verse_base_in
+    avait_enfant_a_charge_avant_1er_janvier_2012_399 = allocations_familiales_in_378.avait_enfant_a_charge_avant_1er_janvier_2012_in
+    montant_initial_base_premier_enfant_mayotte_400 = allocations_familiales_in_378.montant_initial_base_premier_enfant_mayotte_in
+    montant_initial_base_deuxieme_enfant_mayotte_401 = allocations_familiales_in_378.montant_initial_base_deuxieme_enfant_mayotte_in
+    montant_initial_base_troisieme_enfant_mayotte_402 = allocations_familiales_in_378.montant_initial_base_troisieme_enfant_mayotte_in
+    montant_initial_base_quatrieme_enfant_et_plus_mayotte_403 = allocations_familiales_in_378.montant_initial_base_quatrieme_enfant_et_plus_mayotte_in
+    droit_ouvert_forfaitaire_404 = allocations_familiales_in_378.droit_ouvert_forfaitaire_in
+    montant_verse_forfaitaire_par_enfant_405 = allocations_familiales_in_378.montant_verse_forfaitaire_par_enfant_in
+    montant_verse_forfaitaire_406 = allocations_familiales_in_378.montant_verse_forfaitaire_in
+    droit_ouvert_majoration_407 = allocations_familiales_in_378.droit_ouvert_majoration_in
+    montant_initial_metropole_majoration_408 = allocations_familiales_in_378.montant_initial_metropole_majoration_in
+    montant_initial_majoration_409 = allocations_familiales_in_378.montant_initial_majoration_in
+    montant_avec_garde_alternee_majoration_410 = allocations_familiales_in_378.montant_avec_garde_alternee_majoration_in
+    montant_verse_majoration_411 = allocations_familiales_in_378.montant_verse_majoration_in
+    droit_ouvert_complement_412 = allocations_familiales_in_378.droit_ouvert_complement_in
+    montant_base_complement_pour_base_et_majoration_413 = allocations_familiales_in_378.montant_base_complement_pour_base_et_majoration_in
+    complement_degressif_414 = allocations_familiales_in_378.complement_degressif_in
+    montant_verse_complement_pour_base_et_majoration_415 = allocations_familiales_in_378.montant_verse_complement_pour_base_et_majoration_in
+    montant_verse_complement_pour_forfaitaire_416 = allocations_familiales_in_378.montant_verse_complement_pour_forfaitaire_in
+    nombre_enfants_l521_1_417 = allocations_familiales_in_378.nombre_enfants_l521_1_in
+    age_minimum_alinea_1_l521_3_418 = allocations_familiales_in_378.age_minimum_alinea_1_l521_3_in
+    nombre_enfants_alinea_2_l521_3_419 = allocations_familiales_in_378.nombre_enfants_alinea_2_l521_3_in
+    est_enfant_le_plus_age_420 = allocations_familiales_in_378.est_enfant_le_plus_age_in
+    plafond__i_d521_3_421 = allocations_familiales_in_378.plafond_I_d521_3_in
+    plafond__i_i_d521_3_422 = allocations_familiales_in_378.plafond_II_d521_3_in
     try:
         try:
-            local_var_421 = personne_charge_effective_permanente_est_parent_376(
+            local_var_424 = personne_charge_effective_permanente_est_parent_379(
                 Unit())
         except EmptyError:
-            def local_var_422(_: Any):
+            def local_var_425(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=90, start_column=12,
                                                          end_line=90, end_column=59,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_424(_: Any):
-                def local_var_426(_: Any):
+            def local_var_427(_: Any):
+                def local_var_429(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_428(_: Any):
+                def local_var_431(_: Any):
                     return False
-                return handle_default([], local_var_426, local_var_428)
-            local_var_421 = handle_default([], local_var_422, local_var_424)
+                return handle_default([], local_var_429, local_var_431)
+            local_var_424 = handle_default([], local_var_425, local_var_427)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=90, start_column=12, end_line=90, end_column=59,
                                              law_headings=["Prologue"]))
-    personne_charge_effective_permanente_est_parent_420 = log_variable_definition(["AllocationsFamiliales",
-                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_421)
+    personne_charge_effective_permanente_est_parent_423 = log_variable_definition(["AllocationsFamiliales",
+                                                                                   "personne_charge_effective_permanente_est_parent"], local_var_424)
     try:
         try:
-            local_var_431 = personne_charge_effective_permanente_remplit_titre__i_377(
+            local_var_434 = personne_charge_effective_permanente_remplit_titre__i_380(
                 Unit())
         except EmptyError:
-            def local_var_432(_: Any):
+            def local_var_435(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=91, start_column=12,
                                                          end_line=91, end_column=64,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_434(_: Any):
-                def local_var_436(_: Any):
+            def local_var_437(_: Any):
+                def local_var_439(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_438(_: Any):
+                def local_var_441(_: Any):
                     return False
-                return handle_default([], local_var_436, local_var_438)
-            local_var_431 = handle_default([], local_var_432, local_var_434)
+                return handle_default([], local_var_439, local_var_441)
+            local_var_434 = handle_default([], local_var_435, local_var_437)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=91, start_column=12, end_line=91, end_column=64,
                                              law_headings=["Prologue"]))
-    personne_charge_effective_permanente_remplit_titre__i_430 = log_variable_definition(["AllocationsFamiliales",
+    personne_charge_effective_permanente_remplit_titre__i_433 = log_variable_definition(["AllocationsFamiliales",
                                                                                          "personne_charge_effective_permanente_remplit_titre_I"],
-                                                                                        local_var_431)
+                                                                                        local_var_434)
     try:
         try:
-            local_var_441 = ressources_menage_378(Unit())
+            local_var_444 = ressources_menage_381(Unit())
         except EmptyError:
-            def local_var_442(_: Any):
+            def local_var_445(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=92, start_column=12,
                                                          end_line=92, end_column=29,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_444(_: Any):
-                def local_var_446(_: Any):
+            def local_var_447(_: Any):
+                def local_var_449(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_448(_: Any):
+                def local_var_451(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_446, local_var_448)
-            local_var_441 = handle_default([], local_var_442, local_var_444)
+                return handle_default([], local_var_449, local_var_451)
+            local_var_444 = handle_default([], local_var_445, local_var_447)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=92, start_column=12, end_line=92, end_column=29,
                                              law_headings=["Prologue"]))
-    ressources_menage_440 = log_variable_definition(["AllocationsFamiliales",
-                                                     "ressources_ménage"], local_var_441)
+    ressources_menage_443 = log_variable_definition(["AllocationsFamiliales",
+                                                     "ressources_ménage"], local_var_444)
     try:
         try:
-            local_var_451 = residence_379(Unit())
+            local_var_454 = residence_382(Unit())
         except EmptyError:
-            def local_var_452(_: Any):
+            def local_var_455(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=93, start_column=12,
                                                          end_line=93, end_column=21,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_454(_: Any):
-                def local_var_456(_: Any):
+            def local_var_457(_: Any):
+                def local_var_459(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_458(_: Any):
+                def local_var_461(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_456, local_var_458)
-            local_var_451 = handle_default([], local_var_452, local_var_454)
+                return handle_default([], local_var_459, local_var_461)
+            local_var_454 = handle_default([], local_var_455, local_var_457)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=93, start_column=12, end_line=93, end_column=21,
                                              law_headings=["Prologue"]))
-    residence_450 = log_variable_definition(["AllocationsFamiliales",
-                                             "résidence"], local_var_451)
+    residence_453 = log_variable_definition(["AllocationsFamiliales",
+                                             "résidence"], local_var_454)
     try:
         try:
-            local_var_461 = date_courante_380(Unit())
+            local_var_464 = date_courante_383(Unit())
         except EmptyError:
-            def local_var_462(_: Any):
+            def local_var_465(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=96, start_column=12,
                                                          end_line=96, end_column=25,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_464(_: Any):
-                def local_var_466(_: Any):
+            def local_var_467(_: Any):
+                def local_var_469(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_468(_: Any):
+                def local_var_471(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_466, local_var_468)
-            local_var_461 = handle_default([], local_var_462, local_var_464)
+                return handle_default([], local_var_469, local_var_471)
+            local_var_464 = handle_default([], local_var_465, local_var_467)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=96, start_column=12, end_line=96, end_column=25,
                                              law_headings=["Prologue"]))
-    date_courante_460 = log_variable_definition(["AllocationsFamiliales",
-                                                 "date_courante"], local_var_461)
+    date_courante_463 = log_variable_definition(["AllocationsFamiliales",
+                                                 "date_courante"], local_var_464)
     try:
         try:
-            local_var_471 = enfants_a_charge_381(Unit())
+            local_var_474 = enfants_a_charge_384(Unit())
         except EmptyError:
-            def local_var_472(_: Any):
+            def local_var_475(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=99, start_column=12,
                                                          end_line=99, end_column=28,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_474(_: Any):
-                def local_var_476(_: Any):
+            def local_var_477(_: Any):
+                def local_var_479(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_478(_: Any):
+                def local_var_481(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_476, local_var_478)
-            local_var_471 = handle_default([], local_var_472, local_var_474)
+                return handle_default([], local_var_479, local_var_481)
+            local_var_474 = handle_default([], local_var_475, local_var_477)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=99, start_column=12, end_line=99, end_column=28,
                                              law_headings=["Prologue"]))
-    enfants_a_charge_470 = log_variable_definition(["AllocationsFamiliales",
-                                                    "enfants_à_charge"], local_var_471)
+    enfants_a_charge_473 = log_variable_definition(["AllocationsFamiliales",
+                                                    "enfants_à_charge"], local_var_474)
     try:
         try:
-            local_var_481 = prise_en_compte_383(Unit())
+            local_var_484 = prise_en_compte_386(Unit())
         except EmptyError:
-            def local_var_481(param_482: Enfant):
+            def local_var_484(param_485: Enfant):
                 try:
-                    def local_var_547(_: Any):
-                        def local_var_549(_: Any):
+                    def local_var_550(_: Any):
+                        def local_var_552(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=102, start_column=12,
                                                                      end_line=102, end_column=27,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_551(_: Any):
-                            def local_var_553(_: Any):
-                                match_arg_2256 = param_482.prise_en_charge
-                                if match_arg_2256.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2256.value
-                                    local_var_555 = False
-                                elif match_arg_2256.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2256.value
-                                    local_var_555 = False
-                                elif match_arg_2256.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2256.value
-                                    local_var_555 = True
-                                elif match_arg_2256.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2256.value
-                                    local_var_555 = False
-                                elif match_arg_2256.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2256.value
-                                    local_var_555 = False
+                        def local_var_554(_: Any):
+                            def local_var_556(_: Any):
+                                match_arg_2259 = param_485.prise_en_charge
+                                if match_arg_2259.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2259.value
+                                    local_var_558 = False
+                                elif match_arg_2259.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2259.value
+                                    local_var_558 = False
+                                elif match_arg_2259.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2259.value
+                                    local_var_558 = True
+                                elif match_arg_2259.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2259.value
+                                    local_var_558 = False
+                                elif match_arg_2259.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2259.value
+                                    local_var_558 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=184, start_column=5,
                                                                          end_line=184, end_column=60,
@@ -2078,41 +2083,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_555)
+                                                                                       "Code de la sécurité sociale"]), local_var_558)
 
-                            def local_var_561(_: Any):
+                            def local_var_564(_: Any):
                                 return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                      Unit())
-                            return handle_default([], local_var_553,
-                                                  local_var_561)
-                        return handle_default([], local_var_549,
-                                              local_var_551)
+                            return handle_default([], local_var_556,
+                                                  local_var_564)
+                        return handle_default([], local_var_552,
+                                              local_var_554)
 
-                    def local_var_531(_: Any):
-                        def local_var_533(_: Any):
+                    def local_var_534(_: Any):
+                        def local_var_536(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=102, start_column=12,
                                                                      end_line=102, end_column=27,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_535(_: Any):
-                            def local_var_537(_: Any):
-                                match_arg_2257 = param_482.prise_en_charge
-                                if match_arg_2257.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2257.value
-                                    local_var_539 = False
-                                elif match_arg_2257.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2257.value
-                                    local_var_539 = True
-                                elif match_arg_2257.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2257.value
-                                    local_var_539 = False
-                                elif match_arg_2257.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2257.value
-                                    local_var_539 = False
-                                elif match_arg_2257.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2257.value
-                                    local_var_539 = False
+                        def local_var_538(_: Any):
+                            def local_var_540(_: Any):
+                                match_arg_2260 = param_485.prise_en_charge
+                                if match_arg_2260.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2260.value
+                                    local_var_542 = False
+                                elif match_arg_2260.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2260.value
+                                    local_var_542 = True
+                                elif match_arg_2260.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2260.value
+                                    local_var_542 = False
+                                elif match_arg_2260.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2260.value
+                                    local_var_542 = False
+                                elif match_arg_2260.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2260.value
+                                    local_var_542 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=204, start_column=5,
                                                                          end_line=204, end_column=69,
@@ -2121,41 +2126,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_539)
+                                                                                       "Code de la sécurité sociale"]), local_var_542)
 
-                            def local_var_545(_: Any):
+                            def local_var_548(_: Any):
                                 return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                      Unit())
-                            return handle_default([], local_var_537,
-                                                  local_var_545)
-                        return handle_default([], local_var_533,
-                                              local_var_535)
+                            return handle_default([], local_var_540,
+                                                  local_var_548)
+                        return handle_default([], local_var_536,
+                                              local_var_538)
 
-                    def local_var_515(_: Any):
-                        def local_var_517(_: Any):
+                    def local_var_518(_: Any):
+                        def local_var_520(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=102, start_column=12,
                                                                      end_line=102, end_column=27,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_519(_: Any):
-                            def local_var_521(_: Any):
-                                match_arg_2258 = param_482.prise_en_charge
-                                if match_arg_2258.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2258.value
-                                    local_var_523 = True
-                                elif match_arg_2258.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2258.value
-                                    local_var_523 = False
-                                elif match_arg_2258.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2258.value
-                                    local_var_523 = False
-                                elif match_arg_2258.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2258.value
-                                    local_var_523 = False
-                                elif match_arg_2258.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2258.value
-                                    local_var_523 = False
+                        def local_var_522(_: Any):
+                            def local_var_524(_: Any):
+                                match_arg_2261 = param_485.prise_en_charge
+                                if match_arg_2261.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2261.value
+                                    local_var_526 = True
+                                elif match_arg_2261.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2261.value
+                                    local_var_526 = False
+                                elif match_arg_2261.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2261.value
+                                    local_var_526 = False
+                                elif match_arg_2261.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2261.value
+                                    local_var_526 = False
+                                elif match_arg_2261.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2261.value
+                                    local_var_526 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=214, start_column=5,
                                                                          end_line=214, end_column=70,
@@ -2164,41 +2169,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_523)
+                                                                                       "Code de la sécurité sociale"]), local_var_526)
 
-                            def local_var_529(_: Any):
+                            def local_var_532(_: Any):
                                 return PriseEnCompte(PriseEnCompte_Code.Partagee,
                                                      Unit())
-                            return handle_default([], local_var_521,
-                                                  local_var_529)
-                        return handle_default([], local_var_517,
-                                              local_var_519)
+                            return handle_default([], local_var_524,
+                                                  local_var_532)
+                        return handle_default([], local_var_520,
+                                              local_var_522)
 
-                    def local_var_499(_: Any):
-                        def local_var_501(_: Any):
+                    def local_var_502(_: Any):
+                        def local_var_504(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=102, start_column=12,
                                                                      end_line=102, end_column=27,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_503(_: Any):
-                            def local_var_505(_: Any):
-                                match_arg_2259 = param_482.prise_en_charge
-                                if match_arg_2259.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2259.value
-                                    local_var_507 = False
-                                elif match_arg_2259.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2259.value
-                                    local_var_507 = False
-                                elif match_arg_2259.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2259.value
-                                    local_var_507 = False
-                                elif match_arg_2259.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2259.value
-                                    local_var_507 = False
-                                elif match_arg_2259.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2259.value
-                                    local_var_507 = True
+                        def local_var_506(_: Any):
+                            def local_var_508(_: Any):
+                                match_arg_2262 = param_485.prise_en_charge
+                                if match_arg_2262.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2262.value
+                                    local_var_510 = False
+                                elif match_arg_2262.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2262.value
+                                    local_var_510 = False
+                                elif match_arg_2262.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2262.value
+                                    local_var_510 = False
+                                elif match_arg_2262.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2262.value
+                                    local_var_510 = False
+                                elif match_arg_2262.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2262.value
+                                    local_var_510 = True
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=253, start_column=5,
                                                                          end_line=254, end_column=56,
@@ -2207,41 +2212,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_507)
+                                                                                       "Code de la sécurité sociale"]), local_var_510)
 
-                            def local_var_513(_: Any):
+                            def local_var_516(_: Any):
                                 return PriseEnCompte(PriseEnCompte_Code.Zero,
                                                      Unit())
-                            return handle_default([], local_var_505,
-                                                  local_var_513)
-                        return handle_default([], local_var_501,
-                                              local_var_503)
+                            return handle_default([], local_var_508,
+                                                  local_var_516)
+                        return handle_default([], local_var_504,
+                                              local_var_506)
 
-                    def local_var_483(_: Any):
-                        def local_var_485(_: Any):
+                    def local_var_486(_: Any):
+                        def local_var_488(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=102, start_column=12,
                                                                      end_line=102, end_column=27,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_487(_: Any):
-                            def local_var_489(_: Any):
-                                match_arg_2260 = param_482.prise_en_charge
-                                if match_arg_2260.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2260.value
-                                    local_var_491 = False
-                                elif match_arg_2260.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2260.value
-                                    local_var_491 = False
-                                elif match_arg_2260.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2260.value
-                                    local_var_491 = False
-                                elif match_arg_2260.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2260.value
-                                    local_var_491 = True
-                                elif match_arg_2260.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2260.value
-                                    local_var_491 = False
+                        def local_var_490(_: Any):
+                            def local_var_492(_: Any):
+                                match_arg_2263 = param_485.prise_en_charge
+                                if match_arg_2263.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2263.value
+                                    local_var_494 = False
+                                elif match_arg_2263.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2263.value
+                                    local_var_494 = False
+                                elif match_arg_2263.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2263.value
+                                    local_var_494 = False
+                                elif match_arg_2263.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2263.value
+                                    local_var_494 = True
+                                elif match_arg_2263.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2263.value
+                                    local_var_494 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=263, start_column=5,
                                                                          end_line=264, end_column=48,
@@ -2250,36 +2255,36 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_491)
+                                                                                       "Code de la sécurité sociale"]), local_var_494)
 
-                            def local_var_497(_: Any):
+                            def local_var_500(_: Any):
                                 return PriseEnCompte(PriseEnCompte_Code.Complete,
                                                      Unit())
-                            return handle_default([], local_var_489,
-                                                  local_var_497)
-                        return handle_default([], local_var_485,
-                                              local_var_487)
+                            return handle_default([], local_var_492,
+                                                  local_var_500)
+                        return handle_default([], local_var_488,
+                                              local_var_490)
 
-                    def local_var_563(_: Any):
+                    def local_var_566(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=102, start_column=12,
                                                                  end_line=102, end_column=27,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_565(_: Any):
-                        def local_var_567(_: Any):
+                    def local_var_568(_: Any):
+                        def local_var_570(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_569(_: Any):
+                        def local_var_572(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_567,
-                                              local_var_569)
-                    return handle_default([local_var_483, local_var_499,
-                                           local_var_515, local_var_531, local_var_547],
-                                          local_var_563, local_var_565)
+                        return handle_default([], local_var_570,
+                                              local_var_572)
+                    return handle_default([local_var_486, local_var_502,
+                                           local_var_518, local_var_534, local_var_550],
+                                          local_var_566, local_var_568)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=102, start_column=12, end_line=102,
@@ -2288,39 +2293,39 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=102, start_column=12, end_line=102, end_column=27,
                                              law_headings=["Prologue"]))
-    prise_en_compte_480 = log_variable_definition(["AllocationsFamiliales",
-                                                   "prise_en_compte"], local_var_481)
+    prise_en_compte_483 = log_variable_definition(["AllocationsFamiliales",
+                                                   "prise_en_compte"], local_var_484)
     try:
         try:
-            local_var_572 = versement_384(Unit())
+            local_var_575 = versement_387(Unit())
         except EmptyError:
-            def local_var_572(param_573: Enfant):
+            def local_var_575(param_576: Enfant):
                 try:
-                    def local_var_638(_: Any):
-                        def local_var_640(_: Any):
+                    def local_var_641(_: Any):
+                        def local_var_643(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=103, start_column=12,
                                                                      end_line=103, end_column=21,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_642(_: Any):
-                            def local_var_644(_: Any):
-                                match_arg_2261 = param_573.prise_en_charge
-                                if match_arg_2261.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2261.value
-                                    local_var_646 = False
-                                elif match_arg_2261.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2261.value
-                                    local_var_646 = False
-                                elif match_arg_2261.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2261.value
-                                    local_var_646 = True
-                                elif match_arg_2261.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2261.value
-                                    local_var_646 = False
-                                elif match_arg_2261.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2261.value
-                                    local_var_646 = False
+                        def local_var_645(_: Any):
+                            def local_var_647(_: Any):
+                                match_arg_2264 = param_576.prise_en_charge
+                                if match_arg_2264.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2264.value
+                                    local_var_649 = False
+                                elif match_arg_2264.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2264.value
+                                    local_var_649 = False
+                                elif match_arg_2264.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2264.value
+                                    local_var_649 = True
+                                elif match_arg_2264.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2264.value
+                                    local_var_649 = False
+                                elif match_arg_2264.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2264.value
+                                    local_var_649 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=188, start_column=5,
                                                                          end_line=188, end_column=60,
@@ -2329,41 +2334,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_646)
+                                                                                       "Code de la sécurité sociale"]), local_var_649)
 
-                            def local_var_652(_: Any):
+                            def local_var_655(_: Any):
                                 return VersementAllocations(VersementAllocations_Code.Normal,
                                                             Unit())
-                            return handle_default([], local_var_644,
-                                                  local_var_652)
-                        return handle_default([], local_var_640,
-                                              local_var_642)
+                            return handle_default([], local_var_647,
+                                                  local_var_655)
+                        return handle_default([], local_var_643,
+                                              local_var_645)
 
-                    def local_var_622(_: Any):
-                        def local_var_624(_: Any):
+                    def local_var_625(_: Any):
+                        def local_var_627(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=103, start_column=12,
                                                                      end_line=103, end_column=21,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_626(_: Any):
-                            def local_var_628(_: Any):
-                                match_arg_2262 = param_573.prise_en_charge
-                                if match_arg_2262.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2262.value
-                                    local_var_630 = False
-                                elif match_arg_2262.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2262.value
-                                    local_var_630 = True
-                                elif match_arg_2262.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2262.value
-                                    local_var_630 = False
-                                elif match_arg_2262.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2262.value
-                                    local_var_630 = False
-                                elif match_arg_2262.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2262.value
-                                    local_var_630 = False
+                        def local_var_629(_: Any):
+                            def local_var_631(_: Any):
+                                match_arg_2265 = param_576.prise_en_charge
+                                if match_arg_2265.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2265.value
+                                    local_var_633 = False
+                                elif match_arg_2265.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2265.value
+                                    local_var_633 = True
+                                elif match_arg_2265.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2265.value
+                                    local_var_633 = False
+                                elif match_arg_2265.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2265.value
+                                    local_var_633 = False
+                                elif match_arg_2265.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2265.value
+                                    local_var_633 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=208, start_column=5,
                                                                          end_line=208, end_column=69,
@@ -2372,41 +2377,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_630)
+                                                                                       "Code de la sécurité sociale"]), local_var_633)
 
-                            def local_var_636(_: Any):
+                            def local_var_639(_: Any):
                                 return VersementAllocations(VersementAllocations_Code.Normal,
                                                             Unit())
-                            return handle_default([], local_var_628,
-                                                  local_var_636)
-                        return handle_default([], local_var_624,
-                                              local_var_626)
+                            return handle_default([], local_var_631,
+                                                  local_var_639)
+                        return handle_default([], local_var_627,
+                                              local_var_629)
 
-                    def local_var_606(_: Any):
-                        def local_var_608(_: Any):
+                    def local_var_609(_: Any):
+                        def local_var_611(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=103, start_column=12,
                                                                      end_line=103, end_column=21,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_610(_: Any):
-                            def local_var_612(_: Any):
-                                match_arg_2263 = param_573.prise_en_charge
-                                if match_arg_2263.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2263.value
-                                    local_var_614 = True
-                                elif match_arg_2263.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2263.value
-                                    local_var_614 = False
-                                elif match_arg_2263.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2263.value
-                                    local_var_614 = False
-                                elif match_arg_2263.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2263.value
-                                    local_var_614 = False
-                                elif match_arg_2263.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2263.value
-                                    local_var_614 = False
+                        def local_var_613(_: Any):
+                            def local_var_615(_: Any):
+                                match_arg_2266 = param_576.prise_en_charge
+                                if match_arg_2266.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2266.value
+                                    local_var_617 = True
+                                elif match_arg_2266.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2266.value
+                                    local_var_617 = False
+                                elif match_arg_2266.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2266.value
+                                    local_var_617 = False
+                                elif match_arg_2266.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2266.value
+                                    local_var_617 = False
+                                elif match_arg_2266.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2266.value
+                                    local_var_617 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=218, start_column=5,
                                                                          end_line=218, end_column=70,
@@ -2415,41 +2420,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_614)
+                                                                                       "Code de la sécurité sociale"]), local_var_617)
 
-                            def local_var_620(_: Any):
+                            def local_var_623(_: Any):
                                 return VersementAllocations(VersementAllocations_Code.Normal,
                                                             Unit())
-                            return handle_default([], local_var_612,
-                                                  local_var_620)
-                        return handle_default([], local_var_608,
-                                              local_var_610)
+                            return handle_default([], local_var_615,
+                                                  local_var_623)
+                        return handle_default([], local_var_611,
+                                              local_var_613)
 
-                    def local_var_590(_: Any):
-                        def local_var_592(_: Any):
+                    def local_var_593(_: Any):
+                        def local_var_595(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=103, start_column=12,
                                                                      end_line=103, end_column=21,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_594(_: Any):
-                            def local_var_596(_: Any):
-                                match_arg_2264 = param_573.prise_en_charge
-                                if match_arg_2264.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2264.value
-                                    local_var_598 = False
-                                elif match_arg_2264.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2264.value
-                                    local_var_598 = False
-                                elif match_arg_2264.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2264.value
-                                    local_var_598 = False
-                                elif match_arg_2264.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2264.value
-                                    local_var_598 = False
-                                elif match_arg_2264.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2264.value
-                                    local_var_598 = True
+                        def local_var_597(_: Any):
+                            def local_var_599(_: Any):
+                                match_arg_2267 = param_576.prise_en_charge
+                                if match_arg_2267.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2267.value
+                                    local_var_601 = False
+                                elif match_arg_2267.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2267.value
+                                    local_var_601 = False
+                                elif match_arg_2267.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2267.value
+                                    local_var_601 = False
+                                elif match_arg_2267.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2267.value
+                                    local_var_601 = False
+                                elif match_arg_2267.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2267.value
+                                    local_var_601 = True
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=258, start_column=5,
                                                                          end_line=259, end_column=56,
@@ -2458,41 +2463,41 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_598)
+                                                                                       "Code de la sécurité sociale"]), local_var_601)
 
-                            def local_var_604(_: Any):
+                            def local_var_607(_: Any):
                                 return VersementAllocations(VersementAllocations_Code.AllocationVerseeAuxServicesSociaux,
                                                             Unit())
-                            return handle_default([], local_var_596,
-                                                  local_var_604)
-                        return handle_default([], local_var_592,
-                                              local_var_594)
+                            return handle_default([], local_var_599,
+                                                  local_var_607)
+                        return handle_default([], local_var_595,
+                                              local_var_597)
 
-                    def local_var_574(_: Any):
-                        def local_var_576(_: Any):
+                    def local_var_577(_: Any):
+                        def local_var_579(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=103, start_column=12,
                                                                      end_line=103, end_column=21,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_578(_: Any):
-                            def local_var_580(_: Any):
-                                match_arg_2265 = param_573.prise_en_charge
-                                if match_arg_2265.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
-                                    _ = match_arg_2265.value
-                                    local_var_582 = False
-                                elif match_arg_2265.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
-                                    _ = match_arg_2265.value
-                                    local_var_582 = False
-                                elif match_arg_2265.code == PriseEnCharge_Code.EffectiveEtPermanente:
-                                    _ = match_arg_2265.value
-                                    local_var_582 = False
-                                elif match_arg_2265.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
-                                    _ = match_arg_2265.value
-                                    local_var_582 = True
-                                elif match_arg_2265.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
-                                    _ = match_arg_2265.value
-                                    local_var_582 = False
+                        def local_var_581(_: Any):
+                            def local_var_583(_: Any):
+                                match_arg_2268 = param_576.prise_en_charge
+                                if match_arg_2268.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
+                                    _ = match_arg_2268.value
+                                    local_var_585 = False
+                                elif match_arg_2268.code == PriseEnCharge_Code.GardeAlterneeAllocataireUnique:
+                                    _ = match_arg_2268.value
+                                    local_var_585 = False
+                                elif match_arg_2268.code == PriseEnCharge_Code.EffectiveEtPermanente:
+                                    _ = match_arg_2268.value
+                                    local_var_585 = False
+                                elif match_arg_2268.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeALaFamille:
+                                    _ = match_arg_2268.value
+                                    local_var_585 = True
+                                elif match_arg_2268.code == PriseEnCharge_Code.ServicesSociauxAllocationVerseeAuxServicesSociaux:
+                                    _ = match_arg_2268.value
+                                    local_var_585 = False
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=269, start_column=5,
                                                                          end_line=270, end_column=48,
@@ -2501,36 +2506,36 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), local_var_582)
+                                                                                       "Code de la sécurité sociale"]), local_var_585)
 
-                            def local_var_588(_: Any):
+                            def local_var_591(_: Any):
                                 return VersementAllocations(VersementAllocations_Code.Normal,
                                                             Unit())
-                            return handle_default([], local_var_580,
-                                                  local_var_588)
-                        return handle_default([], local_var_576,
-                                              local_var_578)
+                            return handle_default([], local_var_583,
+                                                  local_var_591)
+                        return handle_default([], local_var_579,
+                                              local_var_581)
 
-                    def local_var_654(_: Any):
+                    def local_var_657(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=103, start_column=12,
                                                                  end_line=103, end_column=21,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_656(_: Any):
-                        def local_var_658(_: Any):
+                    def local_var_659(_: Any):
+                        def local_var_661(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_660(_: Any):
+                        def local_var_663(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_658,
-                                              local_var_660)
-                    return handle_default([local_var_574, local_var_590,
-                                           local_var_606, local_var_622, local_var_638],
-                                          local_var_654, local_var_656)
+                        return handle_default([], local_var_661,
+                                              local_var_663)
+                    return handle_default([local_var_577, local_var_593,
+                                           local_var_609, local_var_625, local_var_641],
+                                          local_var_657, local_var_659)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=103, start_column=12, end_line=103,
@@ -2539,48 +2544,48 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=103, start_column=12, end_line=103, end_column=21,
                                              law_headings=["Prologue"]))
-    versement_571 = log_variable_definition(["AllocationsFamiliales",
-                                             "versement"], local_var_572)
+    versement_574 = log_variable_definition(["AllocationsFamiliales",
+                                             "versement"], local_var_575)
     try:
         try:
-            local_var_663 = avait_enfant_a_charge_avant_1er_janvier_2012_396(
+            local_var_666 = avait_enfant_a_charge_avant_1er_janvier_2012_399(
                 Unit())
         except EmptyError:
-            def local_var_664(_: Any):
+            def local_var_667(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=120, start_column=12,
                                                          end_line=120, end_column=56,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_666(_: Any):
-                def local_var_668(_: Any):
+            def local_var_669(_: Any):
+                def local_var_671(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_670(_: Any):
+                def local_var_673(_: Any):
                     return False
-                return handle_default([], local_var_668, local_var_670)
-            local_var_663 = handle_default([], local_var_664, local_var_666)
+                return handle_default([], local_var_671, local_var_673)
+            local_var_666 = handle_default([], local_var_667, local_var_669)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=120, start_column=12, end_line=120, end_column=56,
                                              law_headings=["Prologue"]))
-    avait_enfant_a_charge_avant_1er_janvier_2012_662 = log_variable_definition(["AllocationsFamiliales",
-                                                                                "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_663)
+    avait_enfant_a_charge_avant_1er_janvier_2012_665 = log_variable_definition(["AllocationsFamiliales",
+                                                                                "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_666)
     try:
         try:
-            local_var_673 = nombre_enfants_l521_1_414(Unit())
+            local_var_676 = nombre_enfants_l521_1_417(Unit())
         except EmptyError:
             try:
-                def local_var_674(_: Any):
+                def local_var_677(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=151, start_column=12,
                                                              end_line=151, end_column=33,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_676(_: Any):
-                    def local_var_678(_: Any):
+                def local_var_679(_: Any):
+                    def local_var_681(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=288, start_column=14,
                                                                  end_line=288, end_column=35,
@@ -2591,40 +2596,40 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_680(_: Any):
+                    def local_var_683(_: Any):
                         return integer_of_string("3")
-                    return handle_default([], local_var_678, local_var_680)
-                local_var_673 = handle_default([], local_var_674,
-                                               local_var_676)
+                    return handle_default([], local_var_681, local_var_683)
+                local_var_676 = handle_default([], local_var_677,
+                                               local_var_679)
             except EmptyError:
-                def local_var_682(_: Any):
+                def local_var_685(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_684(_: Any):
+                def local_var_687(_: Any):
                     raise EmptyError
-                local_var_673 = handle_default([], local_var_682,
-                                               local_var_684)
+                local_var_676 = handle_default([], local_var_685,
+                                               local_var_687)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=151, start_column=12, end_line=151, end_column=33,
                                              law_headings=["Prologue"]))
-    nombre_enfants_l521_1_672 = log_variable_definition(["AllocationsFamiliales",
-                                                         "nombre_enfants_l521_1"], local_var_673)
+    nombre_enfants_l521_1_675 = log_variable_definition(["AllocationsFamiliales",
+                                                         "nombre_enfants_l521_1"], local_var_676)
     try:
         try:
-            local_var_687 = nombre_enfants_alinea_2_l521_3_416(Unit())
+            local_var_690 = nombre_enfants_alinea_2_l521_3_419(Unit())
         except EmptyError:
             try:
-                def local_var_688(_: Any):
+                def local_var_691(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=153, start_column=12,
                                                              end_line=153, end_column=42,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_690(_: Any):
-                    def local_var_692(_: Any):
+                def local_var_693(_: Any):
+                    def local_var_695(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=64, start_column=14,
                                                                  end_line=64, end_column=44,
@@ -2635,232 +2640,232 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_694(_: Any):
+                    def local_var_697(_: Any):
                         return integer_of_string("3")
-                    return handle_default([], local_var_692, local_var_694)
-                local_var_687 = handle_default([], local_var_688,
-                                               local_var_690)
+                    return handle_default([], local_var_695, local_var_697)
+                local_var_690 = handle_default([], local_var_691,
+                                               local_var_693)
             except EmptyError:
-                def local_var_696(_: Any):
+                def local_var_699(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_698(_: Any):
+                def local_var_701(_: Any):
                     raise EmptyError
-                local_var_687 = handle_default([], local_var_696,
-                                               local_var_698)
+                local_var_690 = handle_default([], local_var_699,
+                                               local_var_701)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=153, start_column=12, end_line=153, end_column=42,
                                              law_headings=["Prologue"]))
-    nombre_enfants_alinea_2_l521_3_686 = log_variable_definition(["AllocationsFamiliales",
-                                                                  "nombre_enfants_alinéa_2_l521_3"], local_var_687)
+    nombre_enfants_alinea_2_l521_3_689 = log_variable_definition(["AllocationsFamiliales",
+                                                                  "nombre_enfants_alinéa_2_l521_3"], local_var_690)
 
-    def local_var_701(_: Unit):
+    def local_var_704(_: Unit):
         raise EmptyError
-    result_700 = log_end_call(["AllocationsFamiliales", "version_avril_2008",
+    result_703 = log_end_call(["AllocationsFamiliales", "version_avril_2008",
                                "AllocationFamilialesAvril2008"],
                               log_begin_call(["AllocationsFamiliales", "version_avril_2008",
                                               "AllocationFamilialesAvril2008"], allocation_familiales_avril2008,
-                                             AllocationFamilialesAvril2008In(age_minimum_alinea_1_l521_3_in=local_var_701)))
-    version_avril_2008_dot_age_minimum_alinea_1_l521_3_703 = result_700.age_minimum_alinea_1_l521_3_out
+                                             AllocationFamilialesAvril2008In(age_minimum_alinea_1_l521_3_in=local_var_704)))
+    version_avril_2008_dot_age_minimum_alinea_1_l521_3_706 = result_703.age_minimum_alinea_1_l521_3_out
 
-    def local_var_705(_: Unit):
+    def local_var_708(_: Unit):
         try:
-            def local_var_708(_: Any):
+            def local_var_711(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=146, start_column=12,
                                                          end_line=146, end_column=34,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_710(_: Any):
-                def local_var_712(_: Any):
+            def local_var_713(_: Any):
+                def local_var_715(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=161, start_column=14,
                                                              end_line=161, end_column=50,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_714(_: Any):
-                    return date_courante_460
-                return handle_default([], local_var_712, local_var_714)
-            local_var_707 = handle_default([], local_var_708, local_var_710)
+                def local_var_717(_: Any):
+                    return date_courante_463
+                return handle_default([], local_var_715, local_var_717)
+            local_var_710 = handle_default([], local_var_711, local_var_713)
         except EmptyError:
-            def local_var_716(_: Any):
+            def local_var_719(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_718(_: Any):
+            def local_var_721(_: Any):
                 raise EmptyError
-            local_var_707 = handle_default([], local_var_716, local_var_718)
+            local_var_710 = handle_default([], local_var_719, local_var_721)
         return log_variable_definition(["AllocationsFamiliales",
-                                        "prestations_familiales.date_courante"], local_var_707)
-    prestations_familiales_dot_date_courante_704 = local_var_705
+                                        "prestations_familiales.date_courante"], local_var_710)
+    prestations_familiales_dot_date_courante_707 = local_var_708
 
-    def local_var_721(_: Unit):
+    def local_var_724(_: Unit):
         try:
-            def local_var_724(_: Any):
+            def local_var_727(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=146, start_column=12,
                                                          end_line=146, end_column=34,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_726(_: Any):
-                def local_var_728(_: Any):
+            def local_var_729(_: Any):
+                def local_var_731(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=159, start_column=14,
                                                              end_line=159, end_column=56,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_730(_: Any):
+                def local_var_733(_: Any):
                     return ElementPrestationsFamiliales(ElementPrestationsFamiliales_Code.AllocationsFamiliales,
                                                         Unit())
-                return handle_default([], local_var_728, local_var_730)
-            local_var_723 = handle_default([], local_var_724, local_var_726)
+                return handle_default([], local_var_731, local_var_733)
+            local_var_726 = handle_default([], local_var_727, local_var_729)
         except EmptyError:
-            def local_var_732(_: Any):
+            def local_var_735(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_734(_: Any):
+            def local_var_737(_: Any):
                 raise EmptyError
-            local_var_723 = handle_default([], local_var_732, local_var_734)
+            local_var_726 = handle_default([], local_var_735, local_var_737)
         return log_variable_definition(["AllocationsFamiliales",
-                                        "prestations_familiales.prestation_courante"], local_var_723)
-    prestations_familiales_dot_prestation_courante_720 = local_var_721
+                                        "prestations_familiales.prestation_courante"], local_var_726)
+    prestations_familiales_dot_prestation_courante_723 = local_var_724
 
-    def local_var_737(_: Unit):
+    def local_var_740(_: Unit):
         try:
-            def local_var_740(_: Any):
+            def local_var_743(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=146, start_column=12,
                                                          end_line=146, end_column=34,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_742(_: Any):
-                def local_var_744(_: Any):
+            def local_var_745(_: Any):
+                def local_var_747(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=163, start_column=14,
                                                              end_line=163, end_column=46,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_746(_: Any):
-                    return residence_450
-                return handle_default([], local_var_744, local_var_746)
-            local_var_739 = handle_default([], local_var_740, local_var_742)
+                def local_var_749(_: Any):
+                    return residence_453
+                return handle_default([], local_var_747, local_var_749)
+            local_var_742 = handle_default([], local_var_743, local_var_745)
         except EmptyError:
-            def local_var_748(_: Any):
+            def local_var_751(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_750(_: Any):
+            def local_var_753(_: Any):
                 raise EmptyError
-            local_var_739 = handle_default([], local_var_748, local_var_750)
+            local_var_742 = handle_default([], local_var_751, local_var_753)
         return log_variable_definition(["AllocationsFamiliales",
-                                        "prestations_familiales.résidence"], local_var_739)
-    prestations_familiales_dot_residence_736 = local_var_737
+                                        "prestations_familiales.résidence"], local_var_742)
+    prestations_familiales_dot_residence_739 = local_var_740
 
-    def local_var_753(_: Unit):
+    def local_var_756(_: Unit):
         raise EmptyError
 
-    def local_var_755(_: Unit):
+    def local_var_758(_: Unit):
         raise EmptyError
 
-    def local_var_757(_: Unit):
+    def local_var_760(_: Unit):
         raise EmptyError
 
-    def local_var_759(_: Unit):
+    def local_var_762(_: Unit):
         raise EmptyError
 
-    def local_var_761(_: Unit):
+    def local_var_764(_: Unit):
         raise EmptyError
 
-    def local_var_763(_: Unit):
+    def local_var_766(_: Unit):
         raise EmptyError
-    result_752 = log_end_call(["AllocationsFamiliales",
+    result_755 = log_end_call(["AllocationsFamiliales",
                                "prestations_familiales", "PrestationsFamiliales"],
                               log_begin_call(["AllocationsFamiliales", "prestations_familiales",
                                               "PrestationsFamiliales"], prestations_familiales,
-                                             PrestationsFamilialesIn(droit_ouvert_in=local_var_753,
-                                                                     conditions_hors_age_in=local_var_755,
-                                                                     plafond_l512_3_2_in=local_var_757, age_l512_3_2_in=local_var_759,
-                                                                     regime_outre_mer_l751_1_in=local_var_761,
-                                                                     date_courante_in=prestations_familiales_dot_date_courante_704,
-                                                                     prestation_courante_in=prestations_familiales_dot_prestation_courante_720,
-                                                                     residence_in=prestations_familiales_dot_residence_736,
-                                                                     base_mensuelle_in=local_var_763)))
-    prestations_familiales_dot_droit_ouvert_765 = result_752.droit_ouvert_out
-    prestations_familiales_dot_conditions_hors_age_766 = result_752.conditions_hors_age_out
-    prestations_familiales_dot_plafond_l512_3_2_767 = result_752.plafond_l512_3_2_out
-    prestations_familiales_dot_age_l512_3_2_768 = result_752.age_l512_3_2_out
-    prestations_familiales_dot_regime_outre_mer_l751_1_769 = result_752.regime_outre_mer_l751_1_out
-    prestations_familiales_dot_date_courante_770 = result_752.date_courante_out
-    prestations_familiales_dot_prestation_courante_771 = result_752.prestation_courante_out
-    prestations_familiales_dot_residence_772 = result_752.residence_out
-    prestations_familiales_dot_base_mensuelle_773 = result_752.base_mensuelle_out
+                                             PrestationsFamilialesIn(droit_ouvert_in=local_var_756,
+                                                                     conditions_hors_age_in=local_var_758,
+                                                                     plafond_l512_3_2_in=local_var_760, age_l512_3_2_in=local_var_762,
+                                                                     regime_outre_mer_l751_1_in=local_var_764,
+                                                                     date_courante_in=prestations_familiales_dot_date_courante_707,
+                                                                     prestation_courante_in=prestations_familiales_dot_prestation_courante_723,
+                                                                     residence_in=prestations_familiales_dot_residence_739,
+                                                                     base_mensuelle_in=local_var_766)))
+    prestations_familiales_dot_droit_ouvert_768 = result_755.droit_ouvert_out
+    prestations_familiales_dot_conditions_hors_age_769 = result_755.conditions_hors_age_out
+    prestations_familiales_dot_plafond_l512_3_2_770 = result_755.plafond_l512_3_2_out
+    prestations_familiales_dot_age_l512_3_2_771 = result_755.age_l512_3_2_out
+    prestations_familiales_dot_regime_outre_mer_l751_1_772 = result_755.regime_outre_mer_l751_1_out
+    prestations_familiales_dot_date_courante_773 = result_755.date_courante_out
+    prestations_familiales_dot_prestation_courante_774 = result_755.prestation_courante_out
+    prestations_familiales_dot_residence_775 = result_755.residence_out
+    prestations_familiales_dot_base_mensuelle_776 = result_755.base_mensuelle_out
 
-    def local_var_775(_: Unit):
+    def local_var_778(_: Unit):
         try:
-            def local_var_778(_: Any):
+            def local_var_781(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=148, start_column=12,
                                                          end_line=148, end_column=30,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_780(_: Any):
-                def local_var_782(_: Any):
+            def local_var_783(_: Any):
+                def local_var_785(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=32, start_column=14,
                                                              end_line=32, end_column=40,
                                                              law_headings=["Règles diverses", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_784(_: Any):
-                    return enfants_a_charge_470
-                return handle_default([], local_var_782, local_var_784)
-            local_var_777 = handle_default([], local_var_778, local_var_780)
+                def local_var_787(_: Any):
+                    return enfants_a_charge_473
+                return handle_default([], local_var_785, local_var_787)
+            local_var_780 = handle_default([], local_var_781, local_var_783)
         except EmptyError:
-            def local_var_786(_: Any):
+            def local_var_789(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_788(_: Any):
+            def local_var_791(_: Any):
                 raise EmptyError
-            local_var_777 = handle_default([], local_var_786, local_var_788)
+            local_var_780 = handle_default([], local_var_789, local_var_791)
         return log_variable_definition(["AllocationsFamiliales",
-                                        "enfant_le_plus_âgé.enfants"], local_var_777)
-    enfant_le_plus_age_dot_enfants_774 = local_var_775
+                                        "enfant_le_plus_âgé.enfants"], local_var_780)
+    enfant_le_plus_age_dot_enfants_777 = local_var_778
 
-    def local_var_791(_: Unit):
+    def local_var_794(_: Unit):
         raise EmptyError
-    result_790 = log_end_call(["AllocationsFamiliales",
+    result_793 = log_end_call(["AllocationsFamiliales",
                                "enfant_le_plus_âgé", "EnfantLePlusÂgé"],
                               log_begin_call(["AllocationsFamiliales", "enfant_le_plus_âgé",
                                               "EnfantLePlusÂgé"], enfant_le_plus_age,
-                                             EnfantLePlusAgeIn(enfants_in=enfant_le_plus_age_dot_enfants_774,
-                                                               le_plus_age_in=local_var_791)))
-    enfant_le_plus_age_dot_enfants_793 = result_790.enfants_out
-    enfant_le_plus_age_dot_le_plus_age_794 = result_790.le_plus_age_out
+                                             EnfantLePlusAgeIn(enfants_in=enfant_le_plus_age_dot_enfants_777,
+                                                               le_plus_age_in=local_var_794)))
+    enfant_le_plus_age_dot_enfants_796 = result_793.enfants_out
+    enfant_le_plus_age_dot_le_plus_age_797 = result_793.le_plus_age_out
     try:
         try:
-            local_var_796 = age_minimum_alinea_1_l521_3_415(Unit())
+            local_var_799 = age_minimum_alinea_1_l521_3_418(Unit())
         except EmptyError:
-            def local_var_796(param_797: Enfant):
+            def local_var_799(param_800: Enfant):
                 try:
                     try:
                         try:
-                            def local_var_798(_: Any):
+                            def local_var_801(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=152, start_column=12,
                                                                          end_line=152, end_column=39,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_800(_: Any):
-                                def local_var_802(_: Any):
+                            def local_var_803(_: Any):
+                                def local_var_805(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                              start_line=83, start_column=19,
                                                                              end_line=83, end_column=69,
@@ -2869,18 +2874,18 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                            "Partie réglementaire - Décrets en Conseil d'Etat",
-                                                                                           "Code de la sécurité sociale"]), ((param_797.date_de_naissance +
+                                                                                           "Code de la sécurité sociale"]), ((param_800.date_de_naissance +
                                                                                                                               duration_of_numbers(11, 0, 0)) <=
                                                                                                                              date_of_numbers(2008, 4, 30)))
 
-                                def local_var_804(_: Any):
-                                    return version_avril_2008_dot_age_minimum_alinea_1_l521_3_703
-                                return handle_default([], local_var_802,
-                                                      local_var_804)
-                            return handle_default([], local_var_798,
-                                                  local_var_800)
+                                def local_var_807(_: Any):
+                                    return version_avril_2008_dot_age_minimum_alinea_1_l521_3_706
+                                return handle_default([], local_var_805,
+                                                      local_var_807)
+                            return handle_default([], local_var_801,
+                                                  local_var_803)
                         except EmptyError:
-                            def local_var_806(_: Any):
+                            def local_var_809(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                          start_line=56, start_column=14,
                                                                          end_line=56, end_column=41,
@@ -2891,21 +2896,21 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                        "Code de la sécurité sociale"]), True)
 
-                            def local_var_808(_: Any):
+                            def local_var_811(_: Any):
                                 return integer_of_string("14")
-                            return handle_default([], local_var_806,
-                                                  local_var_808)
+                            return handle_default([], local_var_809,
+                                                  local_var_811)
                     except EmptyError:
-                        def local_var_810(_: Any):
+                        def local_var_813(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_812(_: Any):
+                        def local_var_815(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_810,
-                                              local_var_812)
+                        return handle_default([], local_var_813,
+                                              local_var_815)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=152, start_column=12, end_line=152,
@@ -2914,22 +2919,22 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=152, start_column=12, end_line=152, end_column=39,
                                              law_headings=["Prologue"]))
-    age_minimum_alinea_1_l521_3_795 = log_variable_definition(["AllocationsFamiliales",
-                                                               "âge_minimum_alinéa_1_l521_3"], local_var_796)
+    age_minimum_alinea_1_l521_3_798 = log_variable_definition(["AllocationsFamiliales",
+                                                               "âge_minimum_alinéa_1_l521_3"], local_var_799)
     try:
         try:
-            local_var_815 = enfants_a_charge_droit_ouvert_prestation_familiale_382(
+            local_var_818 = enfants_a_charge_droit_ouvert_prestation_familiale_385(
                 Unit())
         except EmptyError:
             try:
-                def local_var_816(_: Any):
+                def local_var_819(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=100, start_column=12,
                                                              end_line=100, end_column=62,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_818(_: Any):
-                    def local_var_820(_: Any):
+                def local_var_821(_: Any):
+                    def local_var_823(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                  start_line=75, start_column=14,
                                                                  end_line=75, end_column=64,
@@ -2940,78 +2945,78 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie législative",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_822(_: Any):
-                        def local_var_824(enfant_825: Any):
+                    def local_var_825(_: Any):
+                        def local_var_827(enfant_828: Any):
                             return log_end_call(["PrestationsFamiliales",
                                                  "droit_ouvert"],
                                                 log_variable_definition(["PrestationsFamiliales",
                                                                          "droit_ouvert", "output"],
                                                                         log_begin_call(["PrestationsFamiliales",
                                                                                         "droit_ouvert"],
-                                                                                       prestations_familiales_dot_droit_ouvert_765,
+                                                                                       prestations_familiales_dot_droit_ouvert_768,
                                                                                        log_variable_definition(["PrestationsFamiliales",
-                                                                                                                "droit_ouvert", "input"], enfant_825))))
-                        return list_filter(local_var_824,
-                                           enfants_a_charge_470)
-                    return handle_default([], local_var_820, local_var_822)
-                local_var_815 = handle_default([], local_var_816,
-                                               local_var_818)
+                                                                                                                "droit_ouvert", "input"], enfant_828))))
+                        return list_filter(local_var_827,
+                                           enfants_a_charge_473)
+                    return handle_default([], local_var_823, local_var_825)
+                local_var_818 = handle_default([], local_var_819,
+                                               local_var_821)
             except EmptyError:
-                def local_var_826(_: Any):
+                def local_var_829(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_828(_: Any):
+                def local_var_831(_: Any):
                     raise EmptyError
-                local_var_815 = handle_default([], local_var_826,
-                                               local_var_828)
+                local_var_818 = handle_default([], local_var_829,
+                                               local_var_831)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=100, start_column=12, end_line=100, end_column=62,
                                              law_headings=["Prologue"]))
-    enfants_a_charge_droit_ouvert_prestation_familiale_814 = log_variable_definition(["AllocationsFamiliales",
+    enfants_a_charge_droit_ouvert_prestation_familiale_817 = log_variable_definition(["AllocationsFamiliales",
                                                                                       "enfants_à_charge_droit_ouvert_prestation_familiale"],
-                                                                                     local_var_815)
+                                                                                     local_var_818)
     try:
         try:
-            local_var_831 = est_enfant_le_plus_age_417(Unit())
+            local_var_834 = est_enfant_le_plus_age_420(Unit())
         except EmptyError:
-            def local_var_831(param_832: Enfant):
+            def local_var_834(param_835: Enfant):
                 try:
                     try:
-                        def local_var_833(_: Any):
+                        def local_var_836(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=154, start_column=12,
                                                                      end_line=154, end_column=34,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_835(_: Any):
-                            def local_var_837(_: Any):
+                        def local_var_838(_: Any):
+                            def local_var_840(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                          start_line=33, start_column=14,
                                                                          end_line=33, end_column=36,
                                                                          law_headings=["Règles diverses",
                                                                                        "Épilogue", "Décrets divers"]), True)
 
-                            def local_var_839(_: Any):
-                                return (enfant_le_plus_age_dot_le_plus_age_794 ==
-                                        param_832)
-                            return handle_default([], local_var_837,
-                                                  local_var_839)
-                        return handle_default([], local_var_833,
-                                              local_var_835)
+                            def local_var_842(_: Any):
+                                return (enfant_le_plus_age_dot_le_plus_age_797 ==
+                                        param_835)
+                            return handle_default([], local_var_840,
+                                                  local_var_842)
+                        return handle_default([], local_var_836,
+                                              local_var_838)
                     except EmptyError:
-                        def local_var_841(_: Any):
+                        def local_var_844(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_843(_: Any):
+                        def local_var_846(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_841,
-                                              local_var_843)
+                        return handle_default([], local_var_844,
+                                              local_var_846)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=154, start_column=12, end_line=154,
@@ -3020,130 +3025,130 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=154, start_column=12, end_line=154, end_column=34,
                                              law_headings=["Prologue"]))
-    est_enfant_le_plus_age_830 = log_variable_definition(["AllocationsFamiliales",
-                                                          "est_enfant_le_plus_âgé"], local_var_831)
+    est_enfant_le_plus_age_833 = log_variable_definition(["AllocationsFamiliales",
+                                                          "est_enfant_le_plus_âgé"], local_var_834)
     try:
         try:
-            local_var_846 = plafond__i_i_d521_3_419(Unit())
+            local_var_849 = plafond__i_i_d521_3_422(Unit())
         except EmptyError:
             try:
-                def local_var_877(_: Any):
-                    def local_var_879(_: Any):
+                def local_var_880(_: Any):
+                    def local_var_882(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=156, start_column=12,
                                                                  end_line=156, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_881(_: Any):
-                        def local_var_883(_: Any):
+                    def local_var_884(_: Any):
+                        def local_var_886(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=94, start_column=5,
                                                                      end_line=94, end_column=69,
                                                                      law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2018, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2018, 12, 31))))
 
-                        def local_var_885(_: Any):
+                        def local_var_888(_: Any):
                             return (money_of_cents_string("7877000") +
                                     (money_of_cents_string("562800") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_883,
-                                              local_var_885)
-                    return handle_default([], local_var_879, local_var_881)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_886,
+                                              local_var_888)
+                    return handle_default([], local_var_882, local_var_884)
 
-                def local_var_867(_: Any):
-                    def local_var_869(_: Any):
+                def local_var_870(_: Any):
+                    def local_var_872(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=156, start_column=12,
                                                                  end_line=156, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_871(_: Any):
-                        def local_var_873(_: Any):
+                    def local_var_874(_: Any):
+                        def local_var_876(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=127, start_column=5,
                                                                      end_line=127, end_column=69,
                                                                      law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2019, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2019, 12, 31))))
 
-                        def local_var_875(_: Any):
+                        def local_var_878(_: Any):
                             return (money_of_cents_string("7955800") +
                                     (money_of_cents_string("568400") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_873,
-                                              local_var_875)
-                    return handle_default([], local_var_869, local_var_871)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_876,
+                                              local_var_878)
+                    return handle_default([], local_var_872, local_var_874)
 
-                def local_var_857(_: Any):
-                    def local_var_859(_: Any):
+                def local_var_860(_: Any):
+                    def local_var_862(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=156, start_column=12,
                                                                  end_line=156, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_861(_: Any):
-                        def local_var_863(_: Any):
+                    def local_var_864(_: Any):
+                        def local_var_866(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=160, start_column=5,
                                                                      end_line=160, end_column=69,
                                                                      law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2020, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2020, 12, 31))))
 
-                        def local_var_865(_: Any):
+                        def local_var_868(_: Any):
                             return (money_of_cents_string("8083100") +
                                     (money_of_cents_string("577500") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_863,
-                                              local_var_865)
-                    return handle_default([], local_var_859, local_var_861)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_866,
+                                              local_var_868)
+                    return handle_default([], local_var_862, local_var_864)
 
-                def local_var_847(_: Any):
-                    def local_var_849(_: Any):
+                def local_var_850(_: Any):
+                    def local_var_852(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=156, start_column=12,
                                                                  end_line=156, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_851(_: Any):
-                        def local_var_853(_: Any):
+                    def local_var_854(_: Any):
+                        def local_var_856(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=196, start_column=5,
                                                                      end_line=196, end_column=69,
                                                                      law_headings=["Article 1",
                                                                                    "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2021, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2021, 12, 31))))
 
-                        def local_var_855(_: Any):
+                        def local_var_858(_: Any):
                             return (money_of_cents_string("8155800") +
                                     (money_of_cents_string("582700") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_853,
-                                              local_var_855)
-                    return handle_default([], local_var_849, local_var_851)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_856,
+                                              local_var_858)
+                    return handle_default([], local_var_852, local_var_854)
 
-                def local_var_887(_: Any):
+                def local_var_890(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=156, start_column=12,
                                                              end_line=156, end_column=29,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_889(_: Any):
-                    def local_var_891(_: Any):
+                def local_var_892(_: Any):
+                    def local_var_894(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=308, start_column=14,
                                                                  end_line=308, end_column=31,
@@ -3154,152 +3159,152 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_893(_: Any):
+                    def local_var_896(_: Any):
                         return (money_of_cents_string("7830000") +
                                 (money_of_cents_string("559500") *
-                                 decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                    return handle_default([], local_var_891, local_var_893)
-                local_var_846 = handle_default([local_var_847, local_var_857,
-                                                local_var_867, local_var_877], local_var_887,
-                                               local_var_889)
+                                 decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                    return handle_default([], local_var_894, local_var_896)
+                local_var_849 = handle_default([local_var_850, local_var_860,
+                                                local_var_870, local_var_880], local_var_890,
+                                               local_var_892)
             except EmptyError:
-                def local_var_895(_: Any):
+                def local_var_898(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_897(_: Any):
+                def local_var_900(_: Any):
                     raise EmptyError
-                local_var_846 = handle_default([], local_var_895,
-                                               local_var_897)
+                local_var_849 = handle_default([], local_var_898,
+                                               local_var_900)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=156, start_column=12, end_line=156, end_column=29,
                                              law_headings=["Prologue"]))
-    plafond__i_i_d521_3_845 = log_variable_definition(["AllocationsFamiliales",
-                                                       "plafond_II_d521_3"], local_var_846)
+    plafond__i_i_d521_3_848 = log_variable_definition(["AllocationsFamiliales",
+                                                       "plafond_II_d521_3"], local_var_849)
     try:
         try:
-            local_var_900 = plafond__i_d521_3_418(Unit())
+            local_var_903 = plafond__i_d521_3_421(Unit())
         except EmptyError:
             try:
-                def local_var_931(_: Any):
-                    def local_var_933(_: Any):
+                def local_var_934(_: Any):
+                    def local_var_936(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=155, start_column=12,
                                                                  end_line=155, end_column=28,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_935(_: Any):
-                        def local_var_937(_: Any):
+                    def local_var_938(_: Any):
+                        def local_var_940(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=87, start_column=5,
                                                                      end_line=87, end_column=69,
                                                                      law_headings=["Circulaire interministérielle N° DSS/SD2B/2017/352 du 22 décembre 2017 relative à la revalorisation au 1er janvier 2018 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2018, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2018, 12, 31))))
 
-                        def local_var_939(_: Any):
+                        def local_var_942(_: Any):
                             return (money_of_cents_string("5628600") +
                                     (money_of_cents_string("562800") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_937,
-                                              local_var_939)
-                    return handle_default([], local_var_933, local_var_935)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_940,
+                                              local_var_942)
+                    return handle_default([], local_var_936, local_var_938)
 
-                def local_var_921(_: Any):
-                    def local_var_923(_: Any):
+                def local_var_924(_: Any):
+                    def local_var_926(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=155, start_column=12,
                                                                  end_line=155, end_column=28,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_925(_: Any):
-                        def local_var_927(_: Any):
+                    def local_var_928(_: Any):
+                        def local_var_930(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=120, start_column=5,
                                                                      end_line=120, end_column=69,
                                                                      law_headings=["Instruction interministérielle n° DSS/SD2B/2018/279 du 17 décembre 2018 relative à la revalorisation au 1er janvier 2019 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2019, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2019, 12, 31))))
 
-                        def local_var_929(_: Any):
+                        def local_var_932(_: Any):
                             return (money_of_cents_string("5684900") +
                                     (money_of_cents_string("568400") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_927,
-                                              local_var_929)
-                    return handle_default([], local_var_923, local_var_925)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_930,
+                                              local_var_932)
+                    return handle_default([], local_var_926, local_var_928)
 
-                def local_var_911(_: Any):
-                    def local_var_913(_: Any):
+                def local_var_914(_: Any):
+                    def local_var_916(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=155, start_column=12,
                                                                  end_line=155, end_column=28,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_915(_: Any):
-                        def local_var_917(_: Any):
+                    def local_var_918(_: Any):
+                        def local_var_920(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=153, start_column=5,
                                                                      end_line=153, end_column=69,
                                                                      law_headings=["Instruction interministerielle no DSS/SD2B/2019/261 du 18 décembre 2019 relative à la revalorisation au 1er janvier 2020 des plafonds de ressources d’attribution de certaines prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et à Mayotte",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2020, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2020, 12, 31))))
 
-                        def local_var_919(_: Any):
+                        def local_var_922(_: Any):
                             return (money_of_cents_string("5775900") +
                                     (money_of_cents_string("577500") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_917,
-                                              local_var_919)
-                    return handle_default([], local_var_913, local_var_915)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_920,
+                                              local_var_922)
+                    return handle_default([], local_var_916, local_var_918)
 
-                def local_var_901(_: Any):
-                    def local_var_903(_: Any):
+                def local_var_904(_: Any):
+                    def local_var_906(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=155, start_column=12,
                                                                  end_line=155, end_column=28,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_905(_: Any):
-                        def local_var_907(_: Any):
+                    def local_var_908(_: Any):
+                        def local_var_910(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=180, start_column=5,
                                                                      end_line=180, end_column=69,
                                                                      law_headings=["Article 1",
                                                                                    "Arrêté du 14 décembre 2020 relatif au montant des plafonds de ressources de certaines prestations familiales et aux tranches du barème applicable au recouvrement des indus et à la saisie des prestations",
                                                                                    "Montant des plafonds de ressources",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2021, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2021, 12, 31))))
 
-                        def local_var_909(_: Any):
+                        def local_var_912(_: Any):
                             return (money_of_cents_string("5827900") +
                                     (money_of_cents_string("582700") *
-                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                        return handle_default([], local_var_907,
-                                              local_var_909)
-                    return handle_default([], local_var_903, local_var_905)
+                                     decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                        return handle_default([], local_var_910,
+                                              local_var_912)
+                    return handle_default([], local_var_906, local_var_908)
 
-                def local_var_941(_: Any):
+                def local_var_944(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=155, start_column=12,
                                                              end_line=155, end_column=28,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_943(_: Any):
-                    def local_var_945(_: Any):
+                def local_var_946(_: Any):
+                    def local_var_948(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=298, start_column=14,
                                                                  end_line=298, end_column=30,
@@ -3310,44 +3315,44 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_947(_: Any):
+                    def local_var_950(_: Any):
                         return (money_of_cents_string("5595000") +
                                 (money_of_cents_string("559500") *
-                                 decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))))
-                    return handle_default([], local_var_945, local_var_947)
-                local_var_900 = handle_default([local_var_901, local_var_911,
-                                                local_var_921, local_var_931], local_var_941,
-                                               local_var_943)
+                                 decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))))
+                    return handle_default([], local_var_948, local_var_950)
+                local_var_903 = handle_default([local_var_904, local_var_914,
+                                                local_var_924, local_var_934], local_var_944,
+                                               local_var_946)
             except EmptyError:
-                def local_var_949(_: Any):
+                def local_var_952(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_951(_: Any):
+                def local_var_954(_: Any):
                     raise EmptyError
-                local_var_900 = handle_default([], local_var_949,
-                                               local_var_951)
+                local_var_903 = handle_default([], local_var_952,
+                                               local_var_954)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=155, start_column=12, end_line=155, end_column=28,
                                              law_headings=["Prologue"]))
-    plafond__i_d521_3_899 = log_variable_definition(["AllocationsFamiliales",
-                                                     "plafond_I_d521_3"], local_var_900)
+    plafond__i_d521_3_902 = log_variable_definition(["AllocationsFamiliales",
+                                                     "plafond_I_d521_3"], local_var_903)
     try:
         try:
-            local_var_954 = droit_ouvert_complement_409(Unit())
+            local_var_957 = droit_ouvert_complement_412(Unit())
         except EmptyError:
             try:
                 try:
-                    def local_var_955(_: Any):
+                    def local_var_958(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=139, start_column=12,
                                                                  end_line=139, end_column=35,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_957(_: Any):
-                        def local_var_959(_: Any):
+                    def local_var_960(_: Any):
+                        def local_var_962(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                      start_line=426, start_column=5,
                                                                      end_line=427, end_column=71,
@@ -3356,60 +3361,60 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                    "Partie législative",
-                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                       integer_of_string("1"))))
 
-                        def local_var_961(_: Any):
+                        def local_var_964(_: Any):
                             return False
-                        return handle_default([], local_var_959,
-                                              local_var_961)
-                    local_var_954 = handle_default([], local_var_955,
-                                                   local_var_957)
+                        return handle_default([], local_var_962,
+                                              local_var_964)
+                    local_var_957 = handle_default([], local_var_958,
+                                                   local_var_960)
                 except EmptyError:
-                    def local_var_963(_: Any):
+                    def local_var_966(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=30, start_column=9,
                                                                  end_line=30, end_column=32,
                                                                  law_headings=["Règles diverses", "Épilogue",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_965(_: Any):
+                    def local_var_968(_: Any):
                         return True
-                    local_var_954 = handle_default([], local_var_963,
-                                                   local_var_965)
+                    local_var_957 = handle_default([], local_var_966,
+                                                   local_var_968)
             except EmptyError:
-                def local_var_967(_: Any):
+                def local_var_970(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_969(_: Any):
+                def local_var_972(_: Any):
                     return False
-                local_var_954 = handle_default([], local_var_967,
-                                               local_var_969)
+                local_var_957 = handle_default([], local_var_970,
+                                               local_var_972)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=139, start_column=12, end_line=139, end_column=35,
                                              law_headings=["Prologue"]))
-    droit_ouvert_complement_953 = log_variable_definition(["AllocationsFamiliales",
-                                                           "droit_ouvert_complément"], local_var_954)
+    droit_ouvert_complement_956 = log_variable_definition(["AllocationsFamiliales",
+                                                           "droit_ouvert_complément"], local_var_957)
     try:
         try:
-            local_var_972 = droit_ouvert_forfaitaire_401(Unit())
+            local_var_975 = droit_ouvert_forfaitaire_404(Unit())
         except EmptyError:
-            def local_var_972(param_973: Enfant):
+            def local_var_975(param_976: Enfant):
                 try:
                     try:
                         try:
-                            def local_var_974(_: Any):
+                            def local_var_977(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=127, start_column=12,
                                                                          end_line=127, end_column=36,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_976(_: Any):
-                                def local_var_978(_: Any):
+                            def local_var_979(_: Any):
+                                def local_var_981(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                              start_line=420, start_column=6,
                                                                              end_line=421, end_column=72,
@@ -3418,18 +3423,18 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                            "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                                            "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                            "Partie législative",
-                                                                                           "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                             (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                           "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                             (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                               integer_of_string("1"))))
 
-                                def local_var_980(_: Any):
+                                def local_var_983(_: Any):
                                     return False
-                                return handle_default([], local_var_978,
-                                                      local_var_980)
-                            return handle_default([], local_var_974,
-                                                  local_var_976)
+                                return handle_default([], local_var_981,
+                                                      local_var_983)
+                            return handle_default([], local_var_977,
+                                                  local_var_979)
                         except EmptyError:
-                            def local_var_982(_: Any):
+                            def local_var_985(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=119, start_column=5,
                                                                          end_line=125, end_column=59,
@@ -3438,37 +3443,37 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie législative",
-                                                                                       "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_470) >=
-                                                                                                                          nombre_enfants_alinea_2_l521_3_686) and
-                                                                                                                         ((param_973.age ==
-                                                                                                                           prestations_familiales_dot_age_l512_3_2_768) and
-                                                                                                                          (param_973.a_deja_ouvert_droit_aux_allocations_familiales and
+                                                                                       "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_473) >=
+                                                                                                                          nombre_enfants_alinea_2_l521_3_689) and
+                                                                                                                         ((param_976.age ==
+                                                                                                                           prestations_familiales_dot_age_l512_3_2_771) and
+                                                                                                                          (param_976.a_deja_ouvert_droit_aux_allocations_familiales and
                                                                                                                            log_end_call(["PrestationsFamiliales",
                                                                                                                                          "conditions_hors_âge"],
                                                                                                                                         log_variable_definition(["PrestationsFamiliales",
                                                                                                                                                                  "conditions_hors_âge", "output"],
                                                                                                                                                                 log_begin_call(["PrestationsFamiliales",
                                                                                                                                                                                 "conditions_hors_âge"],
-                                                                                                                                                                               prestations_familiales_dot_conditions_hors_age_766,
+                                                                                                                                                                               prestations_familiales_dot_conditions_hors_age_769,
                                                                                                                                                                                log_variable_definition(["PrestationsFamiliales",
                                                                                                                                                                                                         "conditions_hors_âge", "input"],
-                                                                                                                                                                                                       param_973))))))))
+                                                                                                                                                                                                       param_976))))))))
 
-                            def local_var_984(_: Any):
+                            def local_var_987(_: Any):
                                 return True
-                            return handle_default([], local_var_982,
-                                                  local_var_984)
+                            return handle_default([], local_var_985,
+                                                  local_var_987)
                     except EmptyError:
-                        def local_var_986(_: Any):
+                        def local_var_989(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), True)
 
-                        def local_var_988(_: Any):
+                        def local_var_991(_: Any):
                             return False
-                        return handle_default([], local_var_986,
-                                              local_var_988)
+                        return handle_default([], local_var_989,
+                                              local_var_991)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=127, start_column=12, end_line=127,
@@ -3477,22 +3482,22 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=127, start_column=12, end_line=127, end_column=36,
                                              law_headings=["Prologue"]))
-    droit_ouvert_forfaitaire_971 = log_variable_definition(["AllocationsFamiliales",
-                                                            "droit_ouvert_forfaitaire"], local_var_972)
+    droit_ouvert_forfaitaire_974 = log_variable_definition(["AllocationsFamiliales",
+                                                            "droit_ouvert_forfaitaire"], local_var_975)
     try:
         try:
-            local_var_991 = montant_initial_base_quatrieme_enfant_et_plus_mayotte_400(
+            local_var_994 = montant_initial_base_quatrieme_enfant_et_plus_mayotte_403(
                 Unit())
         except EmptyError:
             try:
-                def local_var_992(_: Any):
+                def local_var_995(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=124, start_column=12,
                                                              end_line=124, end_column=65,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_994(_: Any):
-                    def local_var_996(_: Any):
+                def local_var_997(_: Any):
+                    def local_var_999(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=385, start_column=14,
                                                                  end_line=385, end_column=67,
@@ -3501,359 +3506,359 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Dispositions spéciales relatives à Mayotte",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_998(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1001(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("3")):
-                            return ((prestations_familiales_dot_base_mensuelle_773 *
+                            return ((prestations_familiales_dot_base_mensuelle_776 *
                                      decimal_of_string("0.0463")) *
-                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) -
+                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) -
                                                         integer_of_string("3"))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_996, local_var_998)
-                local_var_991 = handle_default([], local_var_992,
-                                               local_var_994)
+                    return handle_default([], local_var_999, local_var_1001)
+                local_var_994 = handle_default([], local_var_995,
+                                               local_var_997)
             except EmptyError:
-                def local_var_1000(_: Any):
+                def local_var_1003(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1002(_: Any):
+                def local_var_1005(_: Any):
                     raise EmptyError
-                local_var_991 = handle_default([], local_var_1000,
-                                               local_var_1002)
+                local_var_994 = handle_default([], local_var_1003,
+                                               local_var_1005)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=124, start_column=12, end_line=124, end_column=65,
                                              law_headings=["Prologue"]))
-    montant_initial_base_quatrieme_enfant_et_plus_mayotte_990 = log_variable_definition(["AllocationsFamiliales",
+    montant_initial_base_quatrieme_enfant_et_plus_mayotte_993 = log_variable_definition(["AllocationsFamiliales",
                                                                                          "montant_initial_base_quatrième_enfant_et_plus_mayotte"],
-                                                                                        local_var_991)
+                                                                                        local_var_994)
     try:
         try:
-            local_var_1005 = montant_initial_base_troisieme_enfant_mayotte_399(
+            local_var_1008 = montant_initial_base_troisieme_enfant_mayotte_402(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1096(_: Any):
-                    def local_var_1098(_: Any):
+                def local_var_1099(_: Any):
+                    def local_var_1101(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1100(_: Any):
-                        def local_var_1102(_: Any):
+                    def local_var_1103(_: Any):
+                        def local_var_1105(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=584, start_column=5,
                                                                      end_line=584, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2011, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2011, 12, 31))))
 
-                        def local_var_1104(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1107(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0463"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1102,
-                                              local_var_1104)
-                    return handle_default([], local_var_1098, local_var_1100)
+                        return handle_default([], local_var_1105,
+                                              local_var_1107)
+                    return handle_default([], local_var_1101, local_var_1103)
 
-                def local_var_1086(_: Any):
-                    def local_var_1088(_: Any):
+                def local_var_1089(_: Any):
+                    def local_var_1091(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1090(_: Any):
-                        def local_var_1092(_: Any):
+                    def local_var_1093(_: Any):
+                        def local_var_1095(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=591, start_column=5,
                                                                      end_line=591, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2012, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2012, 12, 31))))
 
-                        def local_var_1094(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1097(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0539"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1092,
-                                              local_var_1094)
-                    return handle_default([], local_var_1088, local_var_1090)
+                        return handle_default([], local_var_1095,
+                                              local_var_1097)
+                    return handle_default([], local_var_1091, local_var_1093)
 
-                def local_var_1076(_: Any):
-                    def local_var_1078(_: Any):
+                def local_var_1079(_: Any):
+                    def local_var_1081(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1080(_: Any):
-                        def local_var_1082(_: Any):
+                    def local_var_1083(_: Any):
+                        def local_var_1085(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=598, start_column=5,
                                                                      end_line=598, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2013, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2013, 12, 31))))
 
-                        def local_var_1084(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1087(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.075"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1082,
-                                              local_var_1084)
-                    return handle_default([], local_var_1078, local_var_1080)
+                        return handle_default([], local_var_1085,
+                                              local_var_1087)
+                    return handle_default([], local_var_1081, local_var_1083)
 
-                def local_var_1066(_: Any):
-                    def local_var_1068(_: Any):
+                def local_var_1069(_: Any):
+                    def local_var_1071(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1070(_: Any):
-                        def local_var_1072(_: Any):
+                    def local_var_1073(_: Any):
+                        def local_var_1075(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=605, start_column=5,
                                                                      end_line=605, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2014, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2014, 12, 31))))
 
-                        def local_var_1074(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1077(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.069"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1072,
-                                              local_var_1074)
-                    return handle_default([], local_var_1068, local_var_1070)
+                        return handle_default([], local_var_1075,
+                                              local_var_1077)
+                    return handle_default([], local_var_1071, local_var_1073)
 
-                def local_var_1056(_: Any):
-                    def local_var_1058(_: Any):
+                def local_var_1059(_: Any):
+                    def local_var_1061(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1060(_: Any):
-                        def local_var_1062(_: Any):
+                    def local_var_1063(_: Any):
+                        def local_var_1065(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=612, start_column=5,
                                                                      end_line=612, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2015, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2015, 12, 31))))
 
-                        def local_var_1064(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1067(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0766"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1062,
-                                              local_var_1064)
-                    return handle_default([], local_var_1058, local_var_1060)
+                        return handle_default([], local_var_1065,
+                                              local_var_1067)
+                    return handle_default([], local_var_1061, local_var_1063)
 
-                def local_var_1046(_: Any):
-                    def local_var_1048(_: Any):
+                def local_var_1049(_: Any):
+                    def local_var_1051(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1050(_: Any):
-                        def local_var_1052(_: Any):
+                    def local_var_1053(_: Any):
+                        def local_var_1055(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=619, start_column=5,
                                                                      end_line=619, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2016, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2016, 12, 31))))
 
-                        def local_var_1054(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1057(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0842"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1052,
-                                              local_var_1054)
-                    return handle_default([], local_var_1048, local_var_1050)
+                        return handle_default([], local_var_1055,
+                                              local_var_1057)
+                    return handle_default([], local_var_1051, local_var_1053)
 
-                def local_var_1036(_: Any):
-                    def local_var_1038(_: Any):
+                def local_var_1039(_: Any):
+                    def local_var_1041(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1040(_: Any):
-                        def local_var_1042(_: Any):
+                    def local_var_1043(_: Any):
+                        def local_var_1045(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=626, start_column=5,
                                                                      end_line=626, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2017, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2017, 12, 31))))
 
-                        def local_var_1044(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1047(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0918"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1042,
-                                              local_var_1044)
-                    return handle_default([], local_var_1038, local_var_1040)
+                        return handle_default([], local_var_1045,
+                                              local_var_1047)
+                    return handle_default([], local_var_1041, local_var_1043)
 
-                def local_var_1026(_: Any):
-                    def local_var_1028(_: Any):
+                def local_var_1029(_: Any):
+                    def local_var_1031(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1030(_: Any):
-                        def local_var_1032(_: Any):
+                    def local_var_1033(_: Any):
+                        def local_var_1035(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=633, start_column=5,
                                                                      end_line=633, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2018, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2018, 12, 31))))
 
-                        def local_var_1034(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1037(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1089"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1032,
-                                              local_var_1034)
-                    return handle_default([], local_var_1028, local_var_1030)
+                        return handle_default([], local_var_1035,
+                                              local_var_1037)
+                    return handle_default([], local_var_1031, local_var_1033)
 
-                def local_var_1016(_: Any):
-                    def local_var_1018(_: Any):
+                def local_var_1019(_: Any):
+                    def local_var_1021(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1020(_: Any):
-                        def local_var_1022(_: Any):
+                    def local_var_1023(_: Any):
+                        def local_var_1025(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=640, start_column=5,
                                                                      end_line=640, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2019, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2019, 12, 31))))
 
-                        def local_var_1024(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1027(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1259"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1022,
-                                              local_var_1024)
-                    return handle_default([], local_var_1018, local_var_1020)
+                        return handle_default([], local_var_1025,
+                                              local_var_1027)
+                    return handle_default([], local_var_1021, local_var_1023)
 
-                def local_var_1006(_: Any):
-                    def local_var_1008(_: Any):
+                def local_var_1009(_: Any):
+                    def local_var_1011(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=123, start_column=12,
                                                                  end_line=123, end_column=57,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1010(_: Any):
-                        def local_var_1012(_: Any):
+                    def local_var_1013(_: Any):
+                        def local_var_1015(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=647, start_column=5,
                                                                      end_line=647, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2020, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2020, 12, 31))))
 
-                        def local_var_1014(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1017(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("2")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.143"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1012,
-                                              local_var_1014)
-                    return handle_default([], local_var_1008, local_var_1010)
+                        return handle_default([], local_var_1015,
+                                              local_var_1017)
+                    return handle_default([], local_var_1011, local_var_1013)
 
-                def local_var_1106(_: Any):
+                def local_var_1109(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=123, start_column=12,
                                                              end_line=123, end_column=57,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1108(_: Any):
-                    def local_var_1110(_: Any):
+                def local_var_1111(_: Any):
+                    def local_var_1113(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=376, start_column=14,
                                                                  end_line=376, end_column=59,
@@ -3862,359 +3867,359 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Dispositions spéciales relatives à Mayotte",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1112(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1115(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("2")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.16"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1110, local_var_1112)
-                local_var_1005 = handle_default([local_var_1006,
-                                                 local_var_1016, local_var_1026, local_var_1036,
-                                                 local_var_1046, local_var_1056, local_var_1066,
-                                                 local_var_1076, local_var_1086, local_var_1096],
-                                                local_var_1106, local_var_1108)
+                    return handle_default([], local_var_1113, local_var_1115)
+                local_var_1008 = handle_default([local_var_1009,
+                                                 local_var_1019, local_var_1029, local_var_1039,
+                                                 local_var_1049, local_var_1059, local_var_1069,
+                                                 local_var_1079, local_var_1089, local_var_1099],
+                                                local_var_1109, local_var_1111)
             except EmptyError:
-                def local_var_1114(_: Any):
+                def local_var_1117(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1116(_: Any):
+                def local_var_1119(_: Any):
                     raise EmptyError
-                local_var_1005 = handle_default([], local_var_1114,
-                                                local_var_1116)
+                local_var_1008 = handle_default([], local_var_1117,
+                                                local_var_1119)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=123, start_column=12, end_line=123, end_column=57,
                                              law_headings=["Prologue"]))
-    montant_initial_base_troisieme_enfant_mayotte_1004 = log_variable_definition(["AllocationsFamiliales",
-                                                                                  "montant_initial_base_troisième_enfant_mayotte"], local_var_1005)
+    montant_initial_base_troisieme_enfant_mayotte_1007 = log_variable_definition(["AllocationsFamiliales",
+                                                                                  "montant_initial_base_troisième_enfant_mayotte"], local_var_1008)
     try:
         try:
-            local_var_1119 = montant_initial_base_deuxieme_enfant_mayotte_398(
+            local_var_1122 = montant_initial_base_deuxieme_enfant_mayotte_401(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1210(_: Any):
-                    def local_var_1212(_: Any):
+                def local_var_1213(_: Any):
+                    def local_var_1215(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1214(_: Any):
-                        def local_var_1216(_: Any):
+                    def local_var_1217(_: Any):
+                        def local_var_1219(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=513, start_column=5,
                                                                      end_line=513, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2011, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2011, 12, 31))))
 
-                        def local_var_1218(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1221(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.232"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1216,
-                                              local_var_1218)
-                    return handle_default([], local_var_1212, local_var_1214)
+                        return handle_default([], local_var_1219,
+                                              local_var_1221)
+                    return handle_default([], local_var_1215, local_var_1217)
 
-                def local_var_1200(_: Any):
-                    def local_var_1202(_: Any):
+                def local_var_1203(_: Any):
+                    def local_var_1205(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1204(_: Any):
-                        def local_var_1206(_: Any):
+                    def local_var_1207(_: Any):
+                        def local_var_1209(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=520, start_column=5,
                                                                      end_line=520, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2012, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2012, 12, 31))))
 
-                        def local_var_1208(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1211(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2379"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1206,
-                                              local_var_1208)
-                    return handle_default([], local_var_1202, local_var_1204)
+                        return handle_default([], local_var_1209,
+                                              local_var_1211)
+                    return handle_default([], local_var_1205, local_var_1207)
 
-                def local_var_1190(_: Any):
-                    def local_var_1192(_: Any):
+                def local_var_1193(_: Any):
+                    def local_var_1195(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1194(_: Any):
-                        def local_var_1196(_: Any):
+                    def local_var_1197(_: Any):
+                        def local_var_1199(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=527, start_column=5,
                                                                      end_line=527, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2013, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2013, 12, 31))))
 
-                        def local_var_1198(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1201(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2437"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1196,
-                                              local_var_1198)
-                    return handle_default([], local_var_1192, local_var_1194)
+                        return handle_default([], local_var_1199,
+                                              local_var_1201)
+                    return handle_default([], local_var_1195, local_var_1197)
 
-                def local_var_1180(_: Any):
-                    def local_var_1182(_: Any):
+                def local_var_1183(_: Any):
+                    def local_var_1185(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1184(_: Any):
-                        def local_var_1186(_: Any):
+                    def local_var_1187(_: Any):
+                        def local_var_1189(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=534, start_column=5,
                                                                      end_line=534, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2014, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2014, 12, 31))))
 
-                        def local_var_1188(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1191(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2496"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1186,
-                                              local_var_1188)
-                    return handle_default([], local_var_1182, local_var_1184)
+                        return handle_default([], local_var_1189,
+                                              local_var_1191)
+                    return handle_default([], local_var_1185, local_var_1187)
 
-                def local_var_1170(_: Any):
-                    def local_var_1172(_: Any):
+                def local_var_1173(_: Any):
+                    def local_var_1175(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1174(_: Any):
-                        def local_var_1176(_: Any):
+                    def local_var_1177(_: Any):
+                        def local_var_1179(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=541, start_column=5,
                                                                      end_line=541, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2015, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2015, 12, 31))))
 
-                        def local_var_1178(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1181(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2555"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1176,
-                                              local_var_1178)
-                    return handle_default([], local_var_1172, local_var_1174)
+                        return handle_default([], local_var_1179,
+                                              local_var_1181)
+                    return handle_default([], local_var_1175, local_var_1177)
 
-                def local_var_1160(_: Any):
-                    def local_var_1162(_: Any):
+                def local_var_1163(_: Any):
+                    def local_var_1165(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1164(_: Any):
-                        def local_var_1166(_: Any):
+                    def local_var_1167(_: Any):
+                        def local_var_1169(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=548, start_column=5,
                                                                      end_line=548, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2016, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2016, 12, 31))))
 
-                        def local_var_1168(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1171(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.273"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1166,
-                                              local_var_1168)
-                    return handle_default([], local_var_1162, local_var_1164)
+                        return handle_default([], local_var_1169,
+                                              local_var_1171)
+                    return handle_default([], local_var_1165, local_var_1167)
 
-                def local_var_1150(_: Any):
-                    def local_var_1152(_: Any):
+                def local_var_1153(_: Any):
+                    def local_var_1155(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1154(_: Any):
-                        def local_var_1156(_: Any):
+                    def local_var_1157(_: Any):
+                        def local_var_1159(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=555, start_column=5,
                                                                      end_line=555, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2017, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2017, 12, 31))))
 
-                        def local_var_1158(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1161(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2672"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1156,
-                                              local_var_1158)
-                    return handle_default([], local_var_1152, local_var_1154)
+                        return handle_default([], local_var_1159,
+                                              local_var_1161)
+                    return handle_default([], local_var_1155, local_var_1157)
 
-                def local_var_1140(_: Any):
-                    def local_var_1142(_: Any):
+                def local_var_1143(_: Any):
+                    def local_var_1145(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1144(_: Any):
-                        def local_var_1146(_: Any):
+                    def local_var_1147(_: Any):
+                        def local_var_1149(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=562, start_column=5,
                                                                      end_line=562, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2018, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2018, 12, 31))))
 
-                        def local_var_1148(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1151(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.284"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1146,
-                                              local_var_1148)
-                    return handle_default([], local_var_1142, local_var_1144)
+                        return handle_default([], local_var_1149,
+                                              local_var_1151)
+                    return handle_default([], local_var_1145, local_var_1147)
 
-                def local_var_1130(_: Any):
-                    def local_var_1132(_: Any):
+                def local_var_1133(_: Any):
+                    def local_var_1135(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1134(_: Any):
-                        def local_var_1136(_: Any):
+                    def local_var_1137(_: Any):
+                        def local_var_1139(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=569, start_column=5,
                                                                      end_line=569, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2019, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2019, 12, 31))))
 
-                        def local_var_1138(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1141(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.2936"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1136,
-                                              local_var_1138)
-                    return handle_default([], local_var_1132, local_var_1134)
+                        return handle_default([], local_var_1139,
+                                              local_var_1141)
+                    return handle_default([], local_var_1135, local_var_1137)
 
-                def local_var_1120(_: Any):
-                    def local_var_1122(_: Any):
+                def local_var_1123(_: Any):
+                    def local_var_1125(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=122, start_column=12,
                                                                  end_line=122, end_column=56,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1124(_: Any):
-                        def local_var_1126(_: Any):
+                    def local_var_1127(_: Any):
+                        def local_var_1129(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=576, start_column=5,
                                                                      end_line=576, end_column=69,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2020, 1, 1)) and
-                                                                                                        (date_courante_460 <=
+                                                                                                        (date_courante_463 <=
                                                                                                          date_of_numbers(2020, 12, 31))))
 
-                        def local_var_1128(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1131(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("1")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.3068"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1126,
-                                              local_var_1128)
-                    return handle_default([], local_var_1122, local_var_1124)
+                        return handle_default([], local_var_1129,
+                                              local_var_1131)
+                    return handle_default([], local_var_1125, local_var_1127)
 
-                def local_var_1220(_: Any):
+                def local_var_1223(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=122, start_column=12,
                                                              end_line=122, end_column=56,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1222(_: Any):
-                    def local_var_1224(_: Any):
+                def local_var_1225(_: Any):
+                    def local_var_1227(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=367, start_column=14,
                                                                  end_line=367, end_column=58,
@@ -4223,396 +4228,396 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Dispositions spéciales relatives à Mayotte",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1226(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1229(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("1")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.32"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1224, local_var_1226)
-                local_var_1119 = handle_default([local_var_1120,
-                                                 local_var_1130, local_var_1140, local_var_1150,
-                                                 local_var_1160, local_var_1170, local_var_1180,
-                                                 local_var_1190, local_var_1200, local_var_1210],
-                                                local_var_1220, local_var_1222)
+                    return handle_default([], local_var_1227, local_var_1229)
+                local_var_1122 = handle_default([local_var_1123,
+                                                 local_var_1133, local_var_1143, local_var_1153,
+                                                 local_var_1163, local_var_1173, local_var_1183,
+                                                 local_var_1193, local_var_1203, local_var_1213],
+                                                local_var_1223, local_var_1225)
             except EmptyError:
-                def local_var_1228(_: Any):
+                def local_var_1231(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1230(_: Any):
+                def local_var_1233(_: Any):
                     raise EmptyError
-                local_var_1119 = handle_default([], local_var_1228,
-                                                local_var_1230)
+                local_var_1122 = handle_default([], local_var_1231,
+                                                local_var_1233)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=122, start_column=12, end_line=122, end_column=56,
                                              law_headings=["Prologue"]))
-    montant_initial_base_deuxieme_enfant_mayotte_1118 = log_variable_definition(["AllocationsFamiliales",
-                                                                                 "montant_initial_base_deuxième_enfant_mayotte"], local_var_1119)
+    montant_initial_base_deuxieme_enfant_mayotte_1121 = log_variable_definition(["AllocationsFamiliales",
+                                                                                 "montant_initial_base_deuxième_enfant_mayotte"], local_var_1122)
     try:
         try:
-            local_var_1233 = montant_initial_base_premier_enfant_mayotte_397(
+            local_var_1236 = montant_initial_base_premier_enfant_mayotte_400(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1334(_: Any):
-                    def local_var_1336(_: Any):
+                def local_var_1337(_: Any):
+                    def local_var_1339(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1338(_: Any):
-                        def local_var_1340(_: Any):
+                    def local_var_1341(_: Any):
+                        def local_var_1343(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=425, start_column=5,
                                                                      end_line=426, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2011, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2011, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1342(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1345(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.145"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1340,
-                                              local_var_1342)
-                    return handle_default([], local_var_1336, local_var_1338)
+                        return handle_default([], local_var_1343,
+                                              local_var_1345)
+                    return handle_default([], local_var_1339, local_var_1341)
 
-                def local_var_1324(_: Any):
-                    def local_var_1326(_: Any):
+                def local_var_1327(_: Any):
+                    def local_var_1329(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1328(_: Any):
-                        def local_var_1330(_: Any):
+                    def local_var_1331(_: Any):
+                        def local_var_1333(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=433, start_column=5,
                                                                      end_line=434, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2012, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2012, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1332(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1335(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1393"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1330,
-                                              local_var_1332)
-                    return handle_default([], local_var_1326, local_var_1328)
+                        return handle_default([], local_var_1333,
+                                              local_var_1335)
+                    return handle_default([], local_var_1329, local_var_1331)
 
-                def local_var_1314(_: Any):
-                    def local_var_1316(_: Any):
+                def local_var_1317(_: Any):
+                    def local_var_1319(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1318(_: Any):
-                        def local_var_1320(_: Any):
+                    def local_var_1321(_: Any):
+                        def local_var_1323(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=441, start_column=5,
                                                                      end_line=442, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2013, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2013, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1322(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1325(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1335"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1320,
-                                              local_var_1322)
-                    return handle_default([], local_var_1316, local_var_1318)
+                        return handle_default([], local_var_1323,
+                                              local_var_1325)
+                    return handle_default([], local_var_1319, local_var_1321)
 
-                def local_var_1304(_: Any):
-                    def local_var_1306(_: Any):
+                def local_var_1307(_: Any):
+                    def local_var_1309(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1308(_: Any):
-                        def local_var_1310(_: Any):
+                    def local_var_1311(_: Any):
+                        def local_var_1313(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=449, start_column=5,
                                                                      end_line=450, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2014, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2014, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1312(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1315(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1278"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1310,
-                                              local_var_1312)
-                    return handle_default([], local_var_1306, local_var_1308)
+                        return handle_default([], local_var_1313,
+                                              local_var_1315)
+                    return handle_default([], local_var_1309, local_var_1311)
 
-                def local_var_1294(_: Any):
-                    def local_var_1296(_: Any):
+                def local_var_1297(_: Any):
+                    def local_var_1299(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1298(_: Any):
-                        def local_var_1300(_: Any):
+                    def local_var_1301(_: Any):
+                        def local_var_1303(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=457, start_column=5,
                                                                      end_line=458, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2015, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2015, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1302(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1305(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.122"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1300,
-                                              local_var_1302)
-                    return handle_default([], local_var_1296, local_var_1298)
+                        return handle_default([], local_var_1303,
+                                              local_var_1305)
+                    return handle_default([], local_var_1299, local_var_1301)
 
-                def local_var_1284(_: Any):
-                    def local_var_1286(_: Any):
+                def local_var_1287(_: Any):
+                    def local_var_1289(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1288(_: Any):
-                        def local_var_1290(_: Any):
+                    def local_var_1291(_: Any):
+                        def local_var_1293(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=465, start_column=5,
                                                                      end_line=466, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2016, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2016, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1292(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1295(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.1163"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1290,
-                                              local_var_1292)
-                    return handle_default([], local_var_1286, local_var_1288)
+                        return handle_default([], local_var_1293,
+                                              local_var_1295)
+                    return handle_default([], local_var_1289, local_var_1291)
 
-                def local_var_1274(_: Any):
-                    def local_var_1276(_: Any):
+                def local_var_1277(_: Any):
+                    def local_var_1279(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1278(_: Any):
-                        def local_var_1280(_: Any):
+                    def local_var_1281(_: Any):
+                        def local_var_1283(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=473, start_column=5,
                                                                      end_line=474, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2017, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2017, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1282(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1285(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.115"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1280,
-                                              local_var_1282)
-                    return handle_default([], local_var_1276, local_var_1278)
+                        return handle_default([], local_var_1283,
+                                              local_var_1285)
+                    return handle_default([], local_var_1279, local_var_1281)
 
-                def local_var_1264(_: Any):
-                    def local_var_1266(_: Any):
+                def local_var_1267(_: Any):
+                    def local_var_1269(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1268(_: Any):
-                        def local_var_1270(_: Any):
+                    def local_var_1271(_: Any):
+                        def local_var_1273(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=481, start_column=5,
                                                                      end_line=482, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2018, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2018, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1272(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1275(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0976"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1270,
-                                              local_var_1272)
-                    return handle_default([], local_var_1266, local_var_1268)
+                        return handle_default([], local_var_1273,
+                                              local_var_1275)
+                    return handle_default([], local_var_1269, local_var_1271)
 
-                def local_var_1254(_: Any):
-                    def local_var_1256(_: Any):
+                def local_var_1257(_: Any):
+                    def local_var_1259(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1258(_: Any):
-                        def local_var_1260(_: Any):
+                    def local_var_1261(_: Any):
+                        def local_var_1263(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=489, start_column=5,
                                                                      end_line=490, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2019, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2019, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1262(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1265(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0847"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1260,
-                                              local_var_1262)
-                    return handle_default([], local_var_1256, local_var_1258)
+                        return handle_default([], local_var_1263,
+                                              local_var_1265)
+                    return handle_default([], local_var_1259, local_var_1261)
 
-                def local_var_1244(_: Any):
-                    def local_var_1246(_: Any):
+                def local_var_1247(_: Any):
+                    def local_var_1249(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1248(_: Any):
-                        def local_var_1250(_: Any):
+                    def local_var_1251(_: Any):
+                        def local_var_1253(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=497, start_column=5,
                                                                      end_line=498, end_column=53,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((date_courante_460 >=
+                                                                                   "Décrets divers"]), ((date_courante_463 >=
                                                                                                          date_of_numbers(2020, 1, 1)) and
-                                                                                                        ((date_courante_460 <=
+                                                                                                        ((date_courante_463 <=
                                                                                                           date_of_numbers(2020, 12, 31)) and
-                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_662)))
+                                                                                                         not avait_enfant_a_charge_avant_1er_janvier_2012_665)))
 
-                        def local_var_1252(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1255(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.0717"))
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1250,
-                                              local_var_1252)
-                    return handle_default([], local_var_1246, local_var_1248)
+                        return handle_default([], local_var_1253,
+                                              local_var_1255)
+                    return handle_default([], local_var_1249, local_var_1251)
 
-                def local_var_1234(_: Any):
-                    def local_var_1236(_: Any):
+                def local_var_1237(_: Any):
+                    def local_var_1239(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=121, start_column=12,
                                                                  end_line=121, end_column=55,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1238(_: Any):
-                        def local_var_1240(_: Any):
+                    def local_var_1241(_: Any):
+                        def local_var_1243(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=505, start_column=5,
                                                                      end_line=505, end_column=49,
                                                                      law_headings=["Annexe",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_662)
+                                                                                   "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_665)
 
-                        def local_var_1242(_: Any):
-                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                        def local_var_1245(_: Any):
+                            if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                     integer_of_string("0")):
                                 return money_of_cents_string("5728")
                             else:
                                 return money_of_cents_string("0")
-                        return handle_default([], local_var_1240,
-                                              local_var_1242)
-                    return handle_default([], local_var_1236, local_var_1238)
+                        return handle_default([], local_var_1243,
+                                              local_var_1245)
+                    return handle_default([], local_var_1239, local_var_1241)
 
-                def local_var_1344(_: Any):
+                def local_var_1347(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=121, start_column=12,
                                                              end_line=121, end_column=55,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1346(_: Any):
-                    def local_var_1348(_: Any):
+                def local_var_1349(_: Any):
+                    def local_var_1351(_: Any):
                         return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                  start_line=358, start_column=14,
                                                                  end_line=358, end_column=57,
@@ -4621,48 +4626,48 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Dispositions spéciales relatives à Mayotte",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1350(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1353(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("0")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.0588"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1348, local_var_1350)
-                local_var_1233 = handle_default([local_var_1234,
-                                                 local_var_1244, local_var_1254, local_var_1264,
-                                                 local_var_1274, local_var_1284, local_var_1294,
-                                                 local_var_1304, local_var_1314, local_var_1324,
-                                                 local_var_1334], local_var_1344, local_var_1346)
+                    return handle_default([], local_var_1351, local_var_1353)
+                local_var_1236 = handle_default([local_var_1237,
+                                                 local_var_1247, local_var_1257, local_var_1267,
+                                                 local_var_1277, local_var_1287, local_var_1297,
+                                                 local_var_1307, local_var_1317, local_var_1327,
+                                                 local_var_1337], local_var_1347, local_var_1349)
             except EmptyError:
-                def local_var_1352(_: Any):
+                def local_var_1355(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1354(_: Any):
+                def local_var_1357(_: Any):
                     raise EmptyError
-                local_var_1233 = handle_default([], local_var_1352,
-                                                local_var_1354)
+                local_var_1236 = handle_default([], local_var_1355,
+                                                local_var_1357)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=121, start_column=12, end_line=121, end_column=55,
                                              law_headings=["Prologue"]))
-    montant_initial_base_premier_enfant_mayotte_1232 = log_variable_definition(["AllocationsFamiliales",
-                                                                                "montant_initial_base_premier_enfant_mayotte"], local_var_1233)
+    montant_initial_base_premier_enfant_mayotte_1235 = log_variable_definition(["AllocationsFamiliales",
+                                                                                "montant_initial_base_premier_enfant_mayotte"], local_var_1236)
     try:
         try:
-            local_var_1357 = nombre_total_enfants_393(Unit())
+            local_var_1360 = nombre_total_enfants_396(Unit())
         except EmptyError:
             try:
-                def local_var_1358(_: Any):
+                def local_var_1361(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=115, start_column=12,
                                                              end_line=115, end_column=32,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1360(_: Any):
-                    def local_var_1362(_: Any):
+                def local_var_1363(_: Any):
+                    def local_var_1365(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=162, start_column=14,
                                                                  end_line=162, end_column=34,
@@ -4673,40 +4678,40 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1364(_: Any):
-                        return decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814))
-                    return handle_default([], local_var_1362, local_var_1364)
-                local_var_1357 = handle_default([], local_var_1358,
-                                                local_var_1360)
+                    def local_var_1367(_: Any):
+                        return decimal_of_integer(list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817))
+                    return handle_default([], local_var_1365, local_var_1367)
+                local_var_1360 = handle_default([], local_var_1361,
+                                                local_var_1363)
             except EmptyError:
-                def local_var_1366(_: Any):
+                def local_var_1369(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1368(_: Any):
+                def local_var_1371(_: Any):
                     raise EmptyError
-                local_var_1357 = handle_default([], local_var_1366,
-                                                local_var_1368)
+                local_var_1360 = handle_default([], local_var_1369,
+                                                local_var_1371)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=115, start_column=12, end_line=115, end_column=32,
                                              law_headings=["Prologue"]))
-    nombre_total_enfants_1356 = log_variable_definition(["AllocationsFamiliales",
-                                                         "nombre_total_enfants"], local_var_1357)
+    nombre_total_enfants_1359 = log_variable_definition(["AllocationsFamiliales",
+                                                         "nombre_total_enfants"], local_var_1360)
     try:
         try:
-            local_var_1371 = nombre_moyen_enfants_392(Unit())
+            local_var_1374 = nombre_moyen_enfants_395(Unit())
         except EmptyError:
             try:
-                def local_var_1372(_: Any):
+                def local_var_1375(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=114, start_column=12,
                                                              end_line=114, end_column=32,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1374(_: Any):
-                    def local_var_1376(_: Any):
+                def local_var_1377(_: Any):
+                    def local_var_1379(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=142, start_column=14,
                                                                  end_line=142, end_column=34,
@@ -4717,63 +4722,63 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1378(_: Any):
-                        def local_var_1380(acc_1381: Decimal, enfant_1382: Any):
-                            match_arg_2266 = log_end_call(["AllocationsFamiliales",
+                    def local_var_1381(_: Any):
+                        def local_var_1383(acc_1384: Decimal, enfant_1385: Any):
+                            match_arg_2269 = log_end_call(["AllocationsFamiliales",
                                                            "prise_en_compte"],
                                                           log_variable_definition(["AllocationsFamiliales",
                                                                                    "prise_en_compte", "output"],
                                                                                   log_begin_call(["AllocationsFamiliales",
-                                                                                                  "prise_en_compte"], prise_en_compte_480,
+                                                                                                  "prise_en_compte"], prise_en_compte_483,
                                                                                                  log_variable_definition(["AllocationsFamiliales",
                                                                                                                           "prise_en_compte", "input"],
-                                                                                                                         enfant_1382))))
-                            if match_arg_2266.code == PriseEnCompte_Code.Complete:
-                                _ = match_arg_2266.value
-                                local_var_1383 = decimal_of_string("1.")
-                            elif match_arg_2266.code == PriseEnCompte_Code.Partagee:
-                                _ = match_arg_2266.value
-                                local_var_1383 = decimal_of_string("0.5")
-                            elif match_arg_2266.code == PriseEnCompte_Code.Zero:
-                                _ = match_arg_2266.value
-                                local_var_1383 = decimal_of_string("0.")
-                            return (acc_1381 + local_var_1383)
-                        return list_fold_left(local_var_1380,
+                                                                                                                         enfant_1385))))
+                            if match_arg_2269.code == PriseEnCompte_Code.Complete:
+                                _ = match_arg_2269.value
+                                local_var_1386 = decimal_of_string("1.")
+                            elif match_arg_2269.code == PriseEnCompte_Code.Partagee:
+                                _ = match_arg_2269.value
+                                local_var_1386 = decimal_of_string("0.5")
+                            elif match_arg_2269.code == PriseEnCompte_Code.Zero:
+                                _ = match_arg_2269.value
+                                local_var_1386 = decimal_of_string("0.")
+                            return (acc_1384 + local_var_1386)
+                        return list_fold_left(local_var_1383,
                                               decimal_of_string("0."),
-                                              enfants_a_charge_droit_ouvert_prestation_familiale_814)
-                    return handle_default([], local_var_1376, local_var_1378)
-                local_var_1371 = handle_default([], local_var_1372,
-                                                local_var_1374)
+                                              enfants_a_charge_droit_ouvert_prestation_familiale_817)
+                    return handle_default([], local_var_1379, local_var_1381)
+                local_var_1374 = handle_default([], local_var_1375,
+                                                local_var_1377)
             except EmptyError:
-                def local_var_1387(_: Any):
+                def local_var_1390(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1389(_: Any):
+                def local_var_1392(_: Any):
                     raise EmptyError
-                local_var_1371 = handle_default([], local_var_1387,
-                                                local_var_1389)
+                local_var_1374 = handle_default([], local_var_1390,
+                                                local_var_1392)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=114, start_column=12, end_line=114, end_column=32,
                                              law_headings=["Prologue"]))
-    nombre_moyen_enfants_1370 = log_variable_definition(["AllocationsFamiliales",
-                                                         "nombre_moyen_enfants"], local_var_1371)
+    nombre_moyen_enfants_1373 = log_variable_definition(["AllocationsFamiliales",
+                                                         "nombre_moyen_enfants"], local_var_1374)
     try:
         try:
-            local_var_1392 = montant_initial_base_premier_enfant_388(Unit())
+            local_var_1395 = montant_initial_base_premier_enfant_391(Unit())
         except EmptyError:
             try:
                 try:
-                    def local_var_1393(_: Any):
+                    def local_var_1396(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=110, start_column=12,
                                                                  end_line=110, end_column=47,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1395(_: Any):
-                        def local_var_1397(_: Any):
+                    def local_var_1398(_: Any):
+                        def local_var_1400(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                      start_line=359, start_column=5,
                                                                      end_line=360, end_column=71,
@@ -4782,19 +4787,19 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 5 : Départements d'outre-mer",
                                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                    "Partie réglementaire - Décrets simples",
-                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                       integer_of_string("1"))))
 
-                        def local_var_1399(_: Any):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                        def local_var_1402(_: Any):
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.0588"))
-                        return handle_default([], local_var_1397,
-                                              local_var_1399)
-                    local_var_1392 = handle_default([], local_var_1393,
-                                                    local_var_1395)
+                        return handle_default([], local_var_1400,
+                                              local_var_1402)
+                    local_var_1395 = handle_default([], local_var_1396,
+                                                    local_var_1398)
                 except EmptyError:
-                    def local_var_1401(_: Any):
+                    def local_var_1404(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=356, start_column=14,
                                                                  end_line=356, end_column=49,
@@ -4805,40 +4810,40 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1403(_: Any):
+                    def local_var_1406(_: Any):
                         return money_of_cents_string("0")
-                    local_var_1392 = handle_default([], local_var_1401,
-                                                    local_var_1403)
+                    local_var_1395 = handle_default([], local_var_1404,
+                                                    local_var_1406)
             except EmptyError:
-                def local_var_1405(_: Any):
+                def local_var_1408(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1407(_: Any):
+                def local_var_1410(_: Any):
                     raise EmptyError
-                local_var_1392 = handle_default([], local_var_1405,
-                                                local_var_1407)
+                local_var_1395 = handle_default([], local_var_1408,
+                                                local_var_1410)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=110, start_column=12, end_line=110, end_column=47,
                                              law_headings=["Prologue"]))
-    montant_initial_base_premier_enfant_1391 = log_variable_definition(["AllocationsFamiliales",
-                                                                        "montant_initial_base_premier_enfant"], local_var_1392)
+    montant_initial_base_premier_enfant_1394 = log_variable_definition(["AllocationsFamiliales",
+                                                                        "montant_initial_base_premier_enfant"], local_var_1395)
     try:
         try:
-            local_var_1410 = droit_ouvert_base_386(Unit())
+            local_var_1413 = droit_ouvert_base_389(Unit())
         except EmptyError:
             try:
-                def local_var_1421(_: Any):
-                    def local_var_1423(_: Any):
+                def local_var_1424(_: Any):
+                    def local_var_1426(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=108, start_column=12,
                                                                  end_line=108, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1425(_: Any):
-                        def local_var_1427(_: Any):
+                    def local_var_1428(_: Any):
+                        def local_var_1430(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                      start_line=406, start_column=5,
                                                                      end_line=407, end_column=72,
@@ -4847,51 +4852,51 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin",
                                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                    "Partie législative",
-                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >=
+                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >=
                                                                                                                       integer_of_string("1"))))
 
-                        def local_var_1429(_: Any):
+                        def local_var_1432(_: Any):
                             return True
-                        return handle_default([], local_var_1427,
-                                              local_var_1429)
-                    return handle_default([], local_var_1423, local_var_1425)
+                        return handle_default([], local_var_1430,
+                                              local_var_1432)
+                    return handle_default([], local_var_1426, local_var_1428)
 
-                def local_var_1411(_: Any):
-                    def local_var_1413(_: Any):
+                def local_var_1414(_: Any):
+                    def local_var_1416(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=108, start_column=12,
                                                                  end_line=108, end_column=29,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1415(_: Any):
-                        def local_var_1417(_: Any):
+                    def local_var_1418(_: Any):
+                        def local_var_1420(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=344, start_column=5,
                                                                      end_line=345, end_column=72,
                                                                      law_headings=["Article 7",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), ((residence_450 ==
+                                                                                   "Décrets divers"]), ((residence_453 ==
                                                                                                          Collectivite(Collectivite_Code.Mayotte,
                                                                                                                       Unit())) and
-                                                                                                        (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >=
+                                                                                                        (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >=
                                                                                                          integer_of_string("1"))))
 
-                        def local_var_1419(_: Any):
+                        def local_var_1422(_: Any):
                             return True
-                        return handle_default([], local_var_1417,
-                                              local_var_1419)
-                    return handle_default([], local_var_1413, local_var_1415)
+                        return handle_default([], local_var_1420,
+                                              local_var_1422)
+                    return handle_default([], local_var_1416, local_var_1418)
 
-                def local_var_1431(_: Any):
+                def local_var_1434(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=108, start_column=12,
                                                              end_line=108, end_column=29,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1433(_: Any):
-                    def local_var_1435(_: Any):
+                def local_var_1436(_: Any):
+                    def local_var_1438(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                  start_line=101, start_column=5,
                                                                  end_line=101, end_column=70,
@@ -4900,46 +4905,46 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie législative",
-                                                                               "Code de la sécurité sociale"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >=
+                                                                               "Code de la sécurité sociale"]), (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >=
                                                                                                                  integer_of_string("2")))
 
-                    def local_var_1437(_: Any):
+                    def local_var_1440(_: Any):
                         return True
-                    return handle_default([], local_var_1435, local_var_1437)
-                local_var_1410 = handle_default([local_var_1411,
-                                                 local_var_1421], local_var_1431, local_var_1433)
+                    return handle_default([], local_var_1438, local_var_1440)
+                local_var_1413 = handle_default([local_var_1414,
+                                                 local_var_1424], local_var_1434, local_var_1436)
             except EmptyError:
-                def local_var_1439(_: Any):
+                def local_var_1442(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_1441(_: Any):
+                def local_var_1444(_: Any):
                     return False
-                local_var_1410 = handle_default([], local_var_1439,
-                                                local_var_1441)
+                local_var_1413 = handle_default([], local_var_1442,
+                                                local_var_1444)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=108, start_column=12, end_line=108, end_column=29,
                                              law_headings=["Prologue"]))
-    droit_ouvert_base_1409 = log_variable_definition(["AllocationsFamiliales",
-                                                      "droit_ouvert_base"], local_var_1410)
+    droit_ouvert_base_1412 = log_variable_definition(["AllocationsFamiliales",
+                                                      "droit_ouvert_base"], local_var_1413)
     try:
         try:
-            local_var_1444 = droit_ouvert_majoration_404(Unit())
+            local_var_1447 = droit_ouvert_majoration_407(Unit())
         except EmptyError:
-            def local_var_1444(param_1445: Enfant):
+            def local_var_1447(param_1448: Enfant):
                 try:
                     try:
                         try:
-                            def local_var_1446(_: Any):
+                            def local_var_1449(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=132, start_column=12,
                                                                          end_line=132, end_column=35,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_1448(_: Any):
-                                def local_var_1450(_: Any):
+                            def local_var_1451(_: Any):
+                                def local_var_1453(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                              start_line=313, start_column=5,
                                                                              end_line=315, end_column=58,
@@ -4948,9 +4953,9 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                            "Partie législative",
-                                                                                           "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >=
-                                                                                                                              nombre_enfants_alinea_2_l521_3_686) and
-                                                                                                                             (param_1445.age >=
+                                                                                           "Code de la sécurité sociale"]), ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >=
+                                                                                                                              nombre_enfants_alinea_2_l521_3_689) and
+                                                                                                                             (param_1448.age >=
                                                                                                                               log_end_call(["AllocationsFamiliales",
                                                                                                                                             "âge_minimum_alinéa_1_l521_3"],
                                                                                                                                            log_variable_definition(["AllocationsFamiliales",
@@ -4958,19 +4963,19 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                                     "output"],
                                                                                                                                                                    log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                                    "âge_minimum_alinéa_1_l521_3"],
-                                                                                                                                                                                  age_minimum_alinea_1_l521_3_795,
+                                                                                                                                                                                  age_minimum_alinea_1_l521_3_798,
                                                                                                                                                                                   log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                            "âge_minimum_alinéa_1_l521_3",
-                                                                                                                                                                                                           "input"], param_1445)))))))
+                                                                                                                                                                                                           "input"], param_1448)))))))
 
-                                def local_var_1452(_: Any):
+                                def local_var_1455(_: Any):
                                     return True
-                                return handle_default([], local_var_1450,
-                                                      local_var_1452)
-                            return handle_default([], local_var_1446,
-                                                  local_var_1448)
+                                return handle_default([], local_var_1453,
+                                                      local_var_1455)
+                            return handle_default([], local_var_1449,
+                                                  local_var_1451)
                         except EmptyError:
-                            def local_var_1454(_: Any):
+                            def local_var_1457(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_L.catala_fr",
                                                                          start_line=299, start_column=5,
                                                                          end_line=300, end_column=58,
@@ -4985,10 +4990,10 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                                    "est_enfant_le_plus_âgé", "output"],
                                                                                                                                                                   log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                                   "est_enfant_le_plus_âgé"],
-                                                                                                                                                                                 est_enfant_le_plus_age_830,
+                                                                                                                                                                                 est_enfant_le_plus_age_833,
                                                                                                                                                                                  log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                           "est_enfant_le_plus_âgé", "input"],
-                                                                                                                                                                                                         param_1445)))) and (param_1445.age >=
+                                                                                                                                                                                                         param_1448)))) and (param_1448.age >=
                                                                                                                                                                                                                              log_end_call(["AllocationsFamiliales",
                                                                                                                                                                                                                                            "âge_minimum_alinéa_1_l521_3"],
                                                                                                                                                                                                                                           log_variable_definition(["AllocationsFamiliales",
@@ -4996,26 +5001,26 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                                                                                                                                    "output"],
                                                                                                                                                                                                                                                                   log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                                                                                                                                   "âge_minimum_alinéa_1_l521_3"],
-                                                                                                                                                                                                                                                                                 age_minimum_alinea_1_l521_3_795,
+                                                                                                                                                                                                                                                                                 age_minimum_alinea_1_l521_3_798,
                                                                                                                                                                                                                                                                                  log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                                                                                                                           "âge_minimum_alinéa_1_l521_3",
-                                                                                                                                                                                                                                                                                                          "input"], param_1445)))))))
+                                                                                                                                                                                                                                                                                                          "input"], param_1448)))))))
 
-                            def local_var_1456(_: Any):
+                            def local_var_1459(_: Any):
                                 return True
-                            return handle_default([], local_var_1454,
-                                                  local_var_1456)
+                            return handle_default([], local_var_1457,
+                                                  local_var_1459)
                     except EmptyError:
-                        def local_var_1458(_: Any):
+                        def local_var_1461(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), True)
 
-                        def local_var_1460(_: Any):
+                        def local_var_1463(_: Any):
                             return False
-                        return handle_default([], local_var_1458,
-                                              local_var_1460)
+                        return handle_default([], local_var_1461,
+                                              local_var_1463)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=132, start_column=12, end_line=132,
@@ -5024,24 +5029,24 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=132, start_column=12, end_line=132, end_column=35,
                                              law_headings=["Prologue"]))
-    droit_ouvert_majoration_1443 = log_variable_definition(["AllocationsFamiliales",
-                                                            "droit_ouvert_majoration"], local_var_1444)
+    droit_ouvert_majoration_1446 = log_variable_definition(["AllocationsFamiliales",
+                                                            "droit_ouvert_majoration"], local_var_1447)
     try:
         try:
-            local_var_1463 = complement_degressif_411(Unit())
+            local_var_1466 = complement_degressif_414(Unit())
         except EmptyError:
-            def local_var_1463(param_1464: Money):
+            def local_var_1466(param_1467: Money):
                 try:
                     try:
-                        def local_var_1475(_: Any):
-                            def local_var_1477(_: Any):
+                        def local_var_1478(_: Any):
+                            def local_var_1480(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=141, start_column=12,
                                                                          end_line=141, end_column=32,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_1479(_: Any):
-                                def local_var_1481(_: Any):
+                            def local_var_1482(_: Any):
+                                def local_var_1484(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                              start_line=162, start_column=5,
                                                                              end_line=163, end_column=68,
@@ -5050,34 +5055,34 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                            "Partie réglementaire - Décrets simples",
-                                                                                           "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                              plafond__i_d521_3_899) and
-                                                                                                                             (ressources_menage_440 <=
-                                                                                                                              (plafond__i_d521_3_899 +
-                                                                                                                               (param_1464 *
+                                                                                           "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                              plafond__i_d521_3_902) and
+                                                                                                                             (ressources_menage_443 <=
+                                                                                                                              (plafond__i_d521_3_902 +
+                                                                                                                               (param_1467 *
                                                                                                                                 decimal_of_string("12."))))))
 
-                                def local_var_1483(_: Any):
-                                    return ((plafond__i_d521_3_899 +
-                                             ((param_1464 *
+                                def local_var_1486(_: Any):
+                                    return ((plafond__i_d521_3_902 +
+                                             ((param_1467 *
                                                decimal_of_string("12.")) -
-                                              ressources_menage_440)) *
+                                              ressources_menage_443)) *
                                             (decimal_of_string("1.") /
                                              decimal_of_string("12.")))
-                                return handle_default([], local_var_1481,
-                                                      local_var_1483)
-                            return handle_default([], local_var_1477,
-                                                  local_var_1479)
+                                return handle_default([], local_var_1484,
+                                                      local_var_1486)
+                            return handle_default([], local_var_1480,
+                                                  local_var_1482)
 
-                        def local_var_1465(_: Any):
-                            def local_var_1467(_: Any):
+                        def local_var_1468(_: Any):
+                            def local_var_1470(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=141, start_column=12,
                                                                          end_line=141, end_column=32,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_1469(_: Any):
-                                def local_var_1471(_: Any):
+                            def local_var_1472(_: Any):
+                                def local_var_1474(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                              start_line=170, start_column=5,
                                                                              end_line=171, end_column=68,
@@ -5086,33 +5091,33 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                            "Titre 2 : Prestations générales d'entretien",
                                                                                            "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                            "Partie réglementaire - Décrets simples",
-                                                                                           "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                              plafond__i_i_d521_3_845) and
-                                                                                                                             (ressources_menage_440 <=
-                                                                                                                              (plafond__i_i_d521_3_845 +
-                                                                                                                               (param_1464 *
+                                                                                           "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                              plafond__i_i_d521_3_848) and
+                                                                                                                             (ressources_menage_443 <=
+                                                                                                                              (plafond__i_i_d521_3_848 +
+                                                                                                                               (param_1467 *
                                                                                                                                 decimal_of_string("12."))))))
 
-                                def local_var_1473(_: Any):
-                                    return ((plafond__i_i_d521_3_845 +
-                                             ((param_1464 *
+                                def local_var_1476(_: Any):
+                                    return ((plafond__i_i_d521_3_848 +
+                                             ((param_1467 *
                                                decimal_of_string("12.")) -
-                                              ressources_menage_440)) *
+                                              ressources_menage_443)) *
                                             (decimal_of_string("1.") /
                                              decimal_of_string("12.")))
-                                return handle_default([], local_var_1471,
-                                                      local_var_1473)
-                            return handle_default([], local_var_1467,
-                                                  local_var_1469)
+                                return handle_default([], local_var_1474,
+                                                      local_var_1476)
+                            return handle_default([], local_var_1470,
+                                                  local_var_1472)
 
-                        def local_var_1485(_: Any):
+                        def local_var_1488(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=141, start_column=12,
                                                                      end_line=141, end_column=32,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1487(_: Any):
-                            def local_var_1489(_: Any):
+                        def local_var_1490(_: Any):
+                            def local_var_1492(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                          start_line=176, start_column=14,
                                                                          end_line=176, end_column=34,
@@ -5123,23 +5128,23 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Partie réglementaire - Décrets simples",
                                                                                        "Code de la sécurité sociale"]), True)
 
-                            def local_var_1491(_: Any):
+                            def local_var_1494(_: Any):
                                 return money_of_cents_string("0")
-                            return handle_default([], local_var_1489,
-                                                  local_var_1491)
-                        return handle_default([local_var_1465,
-                                               local_var_1475], local_var_1485, local_var_1487)
+                            return handle_default([], local_var_1492,
+                                                  local_var_1494)
+                        return handle_default([local_var_1468,
+                                               local_var_1478], local_var_1488, local_var_1490)
                     except EmptyError:
-                        def local_var_1493(_: Any):
+                        def local_var_1496(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_1495(_: Any):
+                        def local_var_1498(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_1493,
-                                              local_var_1495)
+                        return handle_default([], local_var_1496,
+                                              local_var_1498)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=141, start_column=12, end_line=141,
@@ -5148,21 +5153,21 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=141, start_column=12, end_line=141, end_column=32,
                                              law_headings=["Prologue"]))
-    complement_degressif_1462 = log_variable_definition(["AllocationsFamiliales",
-                                                         "complément_dégressif"], local_var_1463)
+    complement_degressif_1465 = log_variable_definition(["AllocationsFamiliales",
+                                                         "complément_dégressif"], local_var_1466)
     try:
         try:
-            local_var_1498 = montant_verse_forfaitaire_par_enfant_402(Unit())
+            local_var_1501 = montant_verse_forfaitaire_par_enfant_405(Unit())
         except EmptyError:
-            def local_var_1519(_: Any):
-                def local_var_1521(_: Any):
+            def local_var_1522(_: Any):
+                def local_var_1524(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=128, start_column=12,
                                                              end_line=128, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1523(_: Any):
-                    def local_var_1525(_: Any):
+                def local_var_1526(_: Any):
+                    def local_var_1528(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=215, start_column=5,
                                                                  end_line=215, end_column=43,
@@ -5171,24 +5176,24 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 <=
-                                                                                                                 plafond__i_d521_3_899))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 <=
+                                                                                                                 plafond__i_d521_3_902))
 
-                    def local_var_1527(_: Any):
-                        return (prestations_familiales_dot_base_mensuelle_773 *
+                    def local_var_1530(_: Any):
+                        return (prestations_familiales_dot_base_mensuelle_776 *
                                 decimal_of_string("0.20234"))
-                    return handle_default([], local_var_1525, local_var_1527)
-                return handle_default([], local_var_1521, local_var_1523)
+                    return handle_default([], local_var_1528, local_var_1530)
+                return handle_default([], local_var_1524, local_var_1526)
 
-            def local_var_1509(_: Any):
-                def local_var_1511(_: Any):
+            def local_var_1512(_: Any):
+                def local_var_1514(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=128, start_column=12,
                                                              end_line=128, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1513(_: Any):
-                    def local_var_1515(_: Any):
+                def local_var_1516(_: Any):
+                    def local_var_1518(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=229, start_column=5,
                                                                  end_line=230, end_column=46,
@@ -5197,26 +5202,26 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                  plafond__i_d521_3_899) and
-                                                                                                                 (ressources_menage_440 <=
-                                                                                                                  plafond__i_i_d521_3_845)))
+                                                                               "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                  plafond__i_d521_3_902) and
+                                                                                                                 (ressources_menage_443 <=
+                                                                                                                  plafond__i_i_d521_3_848)))
 
-                    def local_var_1517(_: Any):
-                        return (prestations_familiales_dot_base_mensuelle_773 *
+                    def local_var_1520(_: Any):
+                        return (prestations_familiales_dot_base_mensuelle_776 *
                                 decimal_of_string("0.1117"))
-                    return handle_default([], local_var_1515, local_var_1517)
-                return handle_default([], local_var_1511, local_var_1513)
+                    return handle_default([], local_var_1518, local_var_1520)
+                return handle_default([], local_var_1514, local_var_1516)
 
-            def local_var_1499(_: Any):
-                def local_var_1501(_: Any):
+            def local_var_1502(_: Any):
+                def local_var_1504(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=128, start_column=12,
                                                              end_line=128, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1503(_: Any):
-                    def local_var_1505(_: Any):
+                def local_var_1506(_: Any):
+                    def local_var_1508(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=243, start_column=5,
                                                                  end_line=243, end_column=43,
@@ -5225,52 +5230,52 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 >
-                                                                                                                 plafond__i_i_d521_3_845))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 >
+                                                                                                                 plafond__i_i_d521_3_848))
 
-                    def local_var_1507(_: Any):
-                        return (prestations_familiales_dot_base_mensuelle_773 *
+                    def local_var_1510(_: Any):
+                        return (prestations_familiales_dot_base_mensuelle_776 *
                                 decimal_of_string("0.0559"))
-                    return handle_default([], local_var_1505, local_var_1507)
-                return handle_default([], local_var_1501, local_var_1503)
+                    return handle_default([], local_var_1508, local_var_1510)
+                return handle_default([], local_var_1504, local_var_1506)
 
-            def local_var_1529(_: Any):
+            def local_var_1532(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=128, start_column=12,
                                                          end_line=128, end_column=48,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_1531(_: Any):
-                def local_var_1533(_: Any):
+            def local_var_1534(_: Any):
+                def local_var_1536(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1535(_: Any):
+                def local_var_1538(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1533, local_var_1535)
-            local_var_1498 = handle_default([local_var_1499, local_var_1509,
-                                             local_var_1519], local_var_1529, local_var_1531)
+                return handle_default([], local_var_1536, local_var_1538)
+            local_var_1501 = handle_default([local_var_1502, local_var_1512,
+                                             local_var_1522], local_var_1532, local_var_1534)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=128, start_column=12, end_line=128, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_verse_forfaitaire_par_enfant_1497 = log_variable_definition(["AllocationsFamiliales",
-                                                                         "montant_versé_forfaitaire_par_enfant"], local_var_1498)
+    montant_verse_forfaitaire_par_enfant_1500 = log_variable_definition(["AllocationsFamiliales",
+                                                                         "montant_versé_forfaitaire_par_enfant"], local_var_1501)
     try:
         try:
-            local_var_1538 = montant_initial_base_troisieme_enfant_et_plus_390(
+            local_var_1541 = montant_initial_base_troisieme_enfant_et_plus_393(
                 Unit())
         except EmptyError:
-            def local_var_1559(_: Any):
-                def local_var_1561(_: Any):
+            def local_var_1562(_: Any):
+                def local_var_1564(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=112, start_column=12,
                                                              end_line=112, end_column=57,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1563(_: Any):
-                    def local_var_1565(_: Any):
+                def local_var_1566(_: Any):
+                    def local_var_1568(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=35, start_column=3,
                                                                  end_line=35, end_column=41,
@@ -5279,30 +5284,30 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 <=
-                                                                                                                 plafond__i_d521_3_899))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 <=
+                                                                                                                 plafond__i_d521_3_902))
 
-                    def local_var_1567(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1570(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("2")):
-                            return ((prestations_familiales_dot_base_mensuelle_773 *
+                            return ((prestations_familiales_dot_base_mensuelle_776 *
                                      decimal_of_string("0.41")) *
-                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) -
+                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) -
                                                         integer_of_string("2"))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1565, local_var_1567)
-                return handle_default([], local_var_1561, local_var_1563)
+                    return handle_default([], local_var_1568, local_var_1570)
+                return handle_default([], local_var_1564, local_var_1566)
 
-            def local_var_1549(_: Any):
-                def local_var_1551(_: Any):
+            def local_var_1552(_: Any):
+                def local_var_1554(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=112, start_column=12,
                                                              end_line=112, end_column=57,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1553(_: Any):
-                    def local_var_1555(_: Any):
+                def local_var_1556(_: Any):
+                    def local_var_1558(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=74, start_column=3,
                                                                  end_line=75, end_column=44,
@@ -5311,32 +5316,32 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                  plafond__i_d521_3_899) and
-                                                                                                                 (ressources_menage_440 <=
-                                                                                                                  plafond__i_i_d521_3_845)))
+                                                                               "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                  plafond__i_d521_3_902) and
+                                                                                                                 (ressources_menage_443 <=
+                                                                                                                  plafond__i_i_d521_3_848)))
 
-                    def local_var_1557(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1560(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("2")):
-                            return ((prestations_familiales_dot_base_mensuelle_773 *
+                            return ((prestations_familiales_dot_base_mensuelle_776 *
                                      decimal_of_string("0.205")) *
-                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) -
+                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) -
                                                         integer_of_string("2"))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1555, local_var_1557)
-                return handle_default([], local_var_1551, local_var_1553)
+                    return handle_default([], local_var_1558, local_var_1560)
+                return handle_default([], local_var_1554, local_var_1556)
 
-            def local_var_1539(_: Any):
-                def local_var_1541(_: Any):
+            def local_var_1542(_: Any):
+                def local_var_1544(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=112, start_column=12,
                                                              end_line=112, end_column=57,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1543(_: Any):
-                    def local_var_1545(_: Any):
+                def local_var_1546(_: Any):
+                    def local_var_1548(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=113, start_column=3,
                                                                  end_line=113, end_column=41,
@@ -5345,57 +5350,57 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 >
-                                                                                                                 plafond__i_i_d521_3_845))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 >
+                                                                                                                 plafond__i_i_d521_3_848))
 
-                    def local_var_1547(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1550(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("2")):
-                            return ((prestations_familiales_dot_base_mensuelle_773 *
+                            return ((prestations_familiales_dot_base_mensuelle_776 *
                                      decimal_of_string("0.1025")) *
-                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) -
+                                    decimal_of_integer((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) -
                                                         integer_of_string("2"))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1545, local_var_1547)
-                return handle_default([], local_var_1541, local_var_1543)
+                    return handle_default([], local_var_1548, local_var_1550)
+                return handle_default([], local_var_1544, local_var_1546)
 
-            def local_var_1569(_: Any):
+            def local_var_1572(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=112, start_column=12,
                                                          end_line=112, end_column=57,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_1571(_: Any):
-                def local_var_1573(_: Any):
+            def local_var_1574(_: Any):
+                def local_var_1576(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1575(_: Any):
+                def local_var_1578(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1573, local_var_1575)
-            local_var_1538 = handle_default([local_var_1539, local_var_1549,
-                                             local_var_1559], local_var_1569, local_var_1571)
+                return handle_default([], local_var_1576, local_var_1578)
+            local_var_1541 = handle_default([local_var_1542, local_var_1552,
+                                             local_var_1562], local_var_1572, local_var_1574)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=112, start_column=12, end_line=112, end_column=57,
                                              law_headings=["Prologue"]))
-    montant_initial_base_troisieme_enfant_et_plus_1537 = log_variable_definition(["AllocationsFamiliales",
-                                                                                  "montant_initial_base_troisième_enfant_et_plus"], local_var_1538)
+    montant_initial_base_troisieme_enfant_et_plus_1540 = log_variable_definition(["AllocationsFamiliales",
+                                                                                  "montant_initial_base_troisième_enfant_et_plus"], local_var_1541)
     try:
         try:
-            local_var_1578 = montant_initial_base_deuxieme_enfant_389(Unit())
+            local_var_1581 = montant_initial_base_deuxieme_enfant_392(Unit())
         except EmptyError:
-            def local_var_1599(_: Any):
-                def local_var_1601(_: Any):
+            def local_var_1602(_: Any):
+                def local_var_1604(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=111, start_column=12,
                                                              end_line=111, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1603(_: Any):
-                    def local_var_1605(_: Any):
+                def local_var_1606(_: Any):
+                    def local_var_1608(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=35, start_column=3,
                                                                  end_line=35, end_column=41,
@@ -5404,28 +5409,28 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 <=
-                                                                                                                 plafond__i_d521_3_899))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 <=
+                                                                                                                 plafond__i_d521_3_902))
 
-                    def local_var_1607(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1610(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("1")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.32"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1605, local_var_1607)
-                return handle_default([], local_var_1601, local_var_1603)
+                    return handle_default([], local_var_1608, local_var_1610)
+                return handle_default([], local_var_1604, local_var_1606)
 
-            def local_var_1589(_: Any):
-                def local_var_1591(_: Any):
+            def local_var_1592(_: Any):
+                def local_var_1594(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=111, start_column=12,
                                                              end_line=111, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1593(_: Any):
-                    def local_var_1595(_: Any):
+                def local_var_1596(_: Any):
+                    def local_var_1598(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=74, start_column=3,
                                                                  end_line=75, end_column=44,
@@ -5434,30 +5439,30 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                  plafond__i_d521_3_899) and
-                                                                                                                 (ressources_menage_440 <=
-                                                                                                                  plafond__i_i_d521_3_845)))
+                                                                               "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                  plafond__i_d521_3_902) and
+                                                                                                                 (ressources_menage_443 <=
+                                                                                                                  plafond__i_i_d521_3_848)))
 
-                    def local_var_1597(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1600(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("1")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.16"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1595, local_var_1597)
-                return handle_default([], local_var_1591, local_var_1593)
+                    return handle_default([], local_var_1598, local_var_1600)
+                return handle_default([], local_var_1594, local_var_1596)
 
-            def local_var_1579(_: Any):
-                def local_var_1581(_: Any):
+            def local_var_1582(_: Any):
+                def local_var_1584(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=111, start_column=12,
                                                              end_line=111, end_column=48,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1583(_: Any):
-                    def local_var_1585(_: Any):
+                def local_var_1586(_: Any):
+                    def local_var_1588(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=113, start_column=3,
                                                                  end_line=113, end_column=41,
@@ -5466,55 +5471,55 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Titre 2 : Prestations générales d'entretien",
                                                                                "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                "Partie réglementaire - Décrets simples",
-                                                                               "Code de la sécurité sociale"]), (ressources_menage_440 >
-                                                                                                                 plafond__i_i_d521_3_845))
+                                                                               "Code de la sécurité sociale"]), (ressources_menage_443 >
+                                                                                                                 plafond__i_i_d521_3_848))
 
-                    def local_var_1587(_: Any):
-                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) >
+                    def local_var_1590(_: Any):
+                        if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) >
                                 integer_of_string("1")):
-                            return (prestations_familiales_dot_base_mensuelle_773 *
+                            return (prestations_familiales_dot_base_mensuelle_776 *
                                     decimal_of_string("0.08"))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1585, local_var_1587)
-                return handle_default([], local_var_1581, local_var_1583)
+                    return handle_default([], local_var_1588, local_var_1590)
+                return handle_default([], local_var_1584, local_var_1586)
 
-            def local_var_1609(_: Any):
+            def local_var_1612(_: Any):
                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=111, start_column=12,
                                                          end_line=111, end_column=48,
                                                          law_headings=["Prologue"]), True)
 
-            def local_var_1611(_: Any):
-                def local_var_1613(_: Any):
+            def local_var_1614(_: Any):
+                def local_var_1616(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1615(_: Any):
+                def local_var_1618(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1613, local_var_1615)
-            local_var_1578 = handle_default([local_var_1579, local_var_1589,
-                                             local_var_1599], local_var_1609, local_var_1611)
+                return handle_default([], local_var_1616, local_var_1618)
+            local_var_1581 = handle_default([local_var_1582, local_var_1592,
+                                             local_var_1602], local_var_1612, local_var_1614)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=111, start_column=12, end_line=111, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_initial_base_deuxieme_enfant_1577 = log_variable_definition(["AllocationsFamiliales",
-                                                                         "montant_initial_base_deuxième_enfant"], local_var_1578)
+    montant_initial_base_deuxieme_enfant_1580 = log_variable_definition(["AllocationsFamiliales",
+                                                                         "montant_initial_base_deuxième_enfant"], local_var_1581)
     try:
         try:
-            local_var_1618 = rapport_enfants_total_moyen_391(Unit())
+            local_var_1621 = rapport_enfants_total_moyen_394(Unit())
         except EmptyError:
             try:
-                def local_var_1619(_: Any):
+                def local_var_1622(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=113, start_column=12,
                                                              end_line=113, end_column=39,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1621(_: Any):
-                    def local_var_1623(_: Any):
+                def local_var_1624(_: Any):
+                    def local_var_1626(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=128, start_column=14,
                                                                  end_line=128, end_column=41,
@@ -5525,47 +5530,47 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1625(_: Any):
-                        if (nombre_total_enfants_1356 ==
+                    def local_var_1628(_: Any):
+                        if (nombre_total_enfants_1359 ==
                                 decimal_of_string("0.")):
                             return decimal_of_string("0.")
                         else:
-                            return (nombre_moyen_enfants_1370 /
-                                    nombre_total_enfants_1356)
-                    return handle_default([], local_var_1623, local_var_1625)
-                local_var_1618 = handle_default([], local_var_1619,
-                                                local_var_1621)
+                            return (nombre_moyen_enfants_1373 /
+                                    nombre_total_enfants_1359)
+                    return handle_default([], local_var_1626, local_var_1628)
+                local_var_1621 = handle_default([], local_var_1622,
+                                                local_var_1624)
             except EmptyError:
-                def local_var_1627(_: Any):
+                def local_var_1630(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1629(_: Any):
+                def local_var_1632(_: Any):
                     raise EmptyError
-                local_var_1618 = handle_default([], local_var_1627,
-                                                local_var_1629)
+                local_var_1621 = handle_default([], local_var_1630,
+                                                local_var_1632)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=113, start_column=12, end_line=113, end_column=39,
                                              law_headings=["Prologue"]))
-    rapport_enfants_total_moyen_1617 = log_variable_definition(["AllocationsFamiliales",
-                                                                "rapport_enfants_total_moyen"], local_var_1618)
+    rapport_enfants_total_moyen_1620 = log_variable_definition(["AllocationsFamiliales",
+                                                                "rapport_enfants_total_moyen"], local_var_1621)
     try:
         try:
-            local_var_1632 = montant_initial_metropole_majoration_405(Unit())
+            local_var_1635 = montant_initial_metropole_majoration_408(Unit())
         except EmptyError:
-            def local_var_1632(param_1633: Enfant):
+            def local_var_1635(param_1636: Enfant):
                 try:
-                    def local_var_1664(_: Any):
-                        def local_var_1666(_: Any):
+                    def local_var_1667(_: Any):
+                        def local_var_1669(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=133, start_column=12,
                                                                      end_line=133, end_column=48,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1668(_: Any):
-                            def local_var_1670(_: Any):
+                        def local_var_1671(_: Any):
+                            def local_var_1673(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                          start_line=55, start_column=3,
                                                                          end_line=55, end_column=41,
@@ -5574,36 +5579,36 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie réglementaire - Décrets simples",
-                                                                                       "Code de la sécurité sociale"]), ((ressources_menage_440 <=
-                                                                                                                          plafond__i_d521_3_899) and
+                                                                                       "Code de la sécurité sociale"]), ((ressources_menage_443 <=
+                                                                                                                          plafond__i_d521_3_902) and
                                                                                                                          log_end_call(["AllocationsFamiliales",
                                                                                                                                        "droit_ouvert_majoration"],
                                                                                                                                       log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                "droit_ouvert_majoration", "output"],
                                                                                                                                                               log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                               "droit_ouvert_majoration"],
-                                                                                                                                                                             droit_ouvert_majoration_1443,
+                                                                                                                                                                             droit_ouvert_majoration_1446,
                                                                                                                                                                              log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                       "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                     param_1633))))))
+                                                                                                                                                                                                     param_1636))))))
 
-                            def local_var_1672(_: Any):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                            def local_var_1675(_: Any):
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.16"))
-                            return handle_default([], local_var_1670,
-                                                  local_var_1672)
-                        return handle_default([], local_var_1666,
-                                              local_var_1668)
+                            return handle_default([], local_var_1673,
+                                                  local_var_1675)
+                        return handle_default([], local_var_1669,
+                                              local_var_1671)
 
-                    def local_var_1654(_: Any):
-                        def local_var_1656(_: Any):
+                    def local_var_1657(_: Any):
+                        def local_var_1659(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=133, start_column=12,
                                                                      end_line=133, end_column=48,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1658(_: Any):
-                            def local_var_1660(_: Any):
+                        def local_var_1661(_: Any):
+                            def local_var_1663(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                          start_line=95, start_column=3,
                                                                          end_line=96, end_column=44,
@@ -5612,38 +5617,38 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie réglementaire - Décrets simples",
-                                                                                       "Code de la sécurité sociale"]), (((ressources_menage_440 >
-                                                                                                                           plafond__i_d521_3_899) and
-                                                                                                                          (ressources_menage_440 <=
-                                                                                                                           plafond__i_i_d521_3_845)) and
+                                                                                       "Code de la sécurité sociale"]), (((ressources_menage_443 >
+                                                                                                                           plafond__i_d521_3_902) and
+                                                                                                                          (ressources_menage_443 <=
+                                                                                                                           plafond__i_i_d521_3_848)) and
                                                                                                                          log_end_call(["AllocationsFamiliales",
                                                                                                                                        "droit_ouvert_majoration"],
                                                                                                                                       log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                "droit_ouvert_majoration", "output"],
                                                                                                                                                               log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                               "droit_ouvert_majoration"],
-                                                                                                                                                                             droit_ouvert_majoration_1443,
+                                                                                                                                                                             droit_ouvert_majoration_1446,
                                                                                                                                                                              log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                       "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                     param_1633))))))
+                                                                                                                                                                                                     param_1636))))))
 
-                            def local_var_1662(_: Any):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                            def local_var_1665(_: Any):
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.08"))
-                            return handle_default([], local_var_1660,
-                                                  local_var_1662)
-                        return handle_default([], local_var_1656,
-                                              local_var_1658)
+                            return handle_default([], local_var_1663,
+                                                  local_var_1665)
+                        return handle_default([], local_var_1659,
+                                              local_var_1661)
 
-                    def local_var_1644(_: Any):
-                        def local_var_1646(_: Any):
+                    def local_var_1647(_: Any):
+                        def local_var_1649(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=133, start_column=12,
                                                                      end_line=133, end_column=48,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1648(_: Any):
-                            def local_var_1650(_: Any):
+                        def local_var_1651(_: Any):
+                            def local_var_1653(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                          start_line=132, start_column=3,
                                                                          end_line=132, end_column=41,
@@ -5652,36 +5657,36 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Titre 2 : Prestations générales d'entretien",
                                                                                        "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                        "Partie réglementaire - Décrets simples",
-                                                                                       "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                          plafond__i_i_d521_3_845) and
+                                                                                       "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                          plafond__i_i_d521_3_848) and
                                                                                                                          log_end_call(["AllocationsFamiliales",
                                                                                                                                        "droit_ouvert_majoration"],
                                                                                                                                       log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                "droit_ouvert_majoration", "output"],
                                                                                                                                                               log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                               "droit_ouvert_majoration"],
-                                                                                                                                                                             droit_ouvert_majoration_1443,
+                                                                                                                                                                             droit_ouvert_majoration_1446,
                                                                                                                                                                              log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                                       "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                                     param_1633))))))
+                                                                                                                                                                                                     param_1636))))))
 
-                            def local_var_1652(_: Any):
-                                return (prestations_familiales_dot_base_mensuelle_773 *
+                            def local_var_1655(_: Any):
+                                return (prestations_familiales_dot_base_mensuelle_776 *
                                         decimal_of_string("0.04"))
-                            return handle_default([], local_var_1650,
-                                                  local_var_1652)
-                        return handle_default([], local_var_1646,
-                                              local_var_1648)
+                            return handle_default([], local_var_1653,
+                                                  local_var_1655)
+                        return handle_default([], local_var_1649,
+                                              local_var_1651)
 
-                    def local_var_1634(_: Any):
-                        def local_var_1636(_: Any):
+                    def local_var_1637(_: Any):
+                        def local_var_1639(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=133, start_column=12,
                                                                      end_line=133, end_column=48,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1638(_: Any):
-                            def local_var_1640(_: Any):
+                        def local_var_1641(_: Any):
+                            def local_var_1643(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                          start_line=27, start_column=5,
                                                                          end_line=27, end_column=44,
@@ -5693,38 +5698,38 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                      "droit_ouvert_majoration", "output"],
                                                                                                                                                     log_begin_call(["AllocationsFamiliales",
                                                                                                                                                                     "droit_ouvert_majoration"],
-                                                                                                                                                                   droit_ouvert_majoration_1443,
+                                                                                                                                                                   droit_ouvert_majoration_1446,
                                                                                                                                                                    log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                                             "droit_ouvert_majoration", "input"],
-                                                                                                                                                                                           param_1633)))))
+                                                                                                                                                                                           param_1636)))))
 
-                            def local_var_1642(_: Any):
+                            def local_var_1645(_: Any):
                                 return money_of_cents_string("0")
-                            return handle_default([], local_var_1640,
-                                                  local_var_1642)
-                        return handle_default([], local_var_1636,
-                                              local_var_1638)
+                            return handle_default([], local_var_1643,
+                                                  local_var_1645)
+                        return handle_default([], local_var_1639,
+                                              local_var_1641)
 
-                    def local_var_1674(_: Any):
+                    def local_var_1677(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=133, start_column=12,
                                                                  end_line=133, end_column=48,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1676(_: Any):
-                        def local_var_1678(_: Any):
+                    def local_var_1679(_: Any):
+                        def local_var_1681(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_1680(_: Any):
+                        def local_var_1683(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_1678,
-                                              local_var_1680)
-                    return handle_default([local_var_1634, local_var_1644,
-                                           local_var_1654, local_var_1664], local_var_1674,
-                                          local_var_1676)
+                        return handle_default([], local_var_1681,
+                                              local_var_1683)
+                    return handle_default([local_var_1637, local_var_1647,
+                                           local_var_1657, local_var_1667], local_var_1677,
+                                          local_var_1679)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=133, start_column=12, end_line=133,
@@ -5733,21 +5738,21 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=133, start_column=12, end_line=133, end_column=48,
                                              law_headings=["Prologue"]))
-    montant_initial_metropole_majoration_1631 = log_variable_definition(["AllocationsFamiliales",
-                                                                         "montant_initial_métropole_majoration"], local_var_1632)
+    montant_initial_metropole_majoration_1634 = log_variable_definition(["AllocationsFamiliales",
+                                                                         "montant_initial_métropole_majoration"], local_var_1635)
     try:
         try:
-            local_var_1683 = montant_verse_forfaitaire_403(Unit())
+            local_var_1686 = montant_verse_forfaitaire_406(Unit())
         except EmptyError:
             try:
-                def local_var_1684(_: Any):
+                def local_var_1687(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=129, start_column=12,
                                                              end_line=129, end_column=37,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1686(_: Any):
-                    def local_var_1688(_: Any):
+                def local_var_1689(_: Any):
+                    def local_var_1691(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=194, start_column=14,
                                                                  end_line=194, end_column=39,
@@ -5758,57 +5763,57 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1690(_: Any):
-                        def local_var_1692(acc_1693: Integer, enfant_1694: Any):
+                    def local_var_1693(_: Any):
+                        def local_var_1695(acc_1696: Integer, enfant_1697: Any):
                             if log_end_call(["AllocationsFamiliales",
                                              "droit_ouvert_forfaitaire"],
                                             log_variable_definition(["AllocationsFamiliales",
                                                                      "droit_ouvert_forfaitaire", "output"],
                                                                     log_begin_call(["AllocationsFamiliales",
                                                                                     "droit_ouvert_forfaitaire"],
-                                                                                   droit_ouvert_forfaitaire_971,
+                                                                                   droit_ouvert_forfaitaire_974,
                                                                                    log_variable_definition(["AllocationsFamiliales",
                                                                                                             "droit_ouvert_forfaitaire", "input"],
-                                                                                                           enfant_1694)))):
-                                return (acc_1693 + integer_of_string("1"))
+                                                                                                           enfant_1697)))):
+                                return (acc_1696 + integer_of_string("1"))
                             else:
-                                return acc_1693
-                        return (montant_verse_forfaitaire_par_enfant_1497 *
-                                decimal_of_integer(list_fold_left(local_var_1692,
-                                                                  integer_of_string("0"), enfants_a_charge_470)))
-                    return handle_default([], local_var_1688, local_var_1690)
-                local_var_1683 = handle_default([], local_var_1684,
-                                                local_var_1686)
+                                return acc_1696
+                        return (montant_verse_forfaitaire_par_enfant_1500 *
+                                decimal_of_integer(list_fold_left(local_var_1695,
+                                                                  integer_of_string("0"), enfants_a_charge_473)))
+                    return handle_default([], local_var_1691, local_var_1693)
+                local_var_1686 = handle_default([], local_var_1687,
+                                                local_var_1689)
             except EmptyError:
-                def local_var_1695(_: Any):
+                def local_var_1698(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1697(_: Any):
+                def local_var_1700(_: Any):
                     raise EmptyError
-                local_var_1683 = handle_default([], local_var_1695,
-                                                local_var_1697)
+                local_var_1686 = handle_default([], local_var_1698,
+                                                local_var_1700)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=129, start_column=12, end_line=129, end_column=37,
                                              law_headings=["Prologue"]))
-    montant_verse_forfaitaire_1682 = log_variable_definition(["AllocationsFamiliales",
-                                                              "montant_versé_forfaitaire"], local_var_1683)
+    montant_verse_forfaitaire_1685 = log_variable_definition(["AllocationsFamiliales",
+                                                              "montant_versé_forfaitaire"], local_var_1686)
     try:
         try:
-            local_var_1700 = montant_initial_base_387(Unit())
+            local_var_1703 = montant_initial_base_390(Unit())
         except EmptyError:
             try:
-                def local_var_1711(_: Any):
-                    def local_var_1713(_: Any):
+                def local_var_1714(_: Any):
+                    def local_var_1716(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=109, start_column=12,
                                                                  end_line=109, end_column=32,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1715(_: Any):
-                        def local_var_1717(_: Any):
+                    def local_var_1718(_: Any):
+                        def local_var_1720(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                      start_line=350, start_column=5,
                                                                      end_line=351, end_column=69,
@@ -5817,52 +5822,52 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 5 : Départements d'outre-mer",
                                                                                    "Livre 7 : Régimes divers - Dispositions diverses",
                                                                                    "Partie réglementaire - Décrets simples",
-                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                   "Code de la sécurité sociale"]), (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                     (list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                       integer_of_string("1"))))
 
-                        def local_var_1719(_: Any):
-                            return montant_initial_base_premier_enfant_1391
-                        return handle_default([], local_var_1717,
-                                              local_var_1719)
-                    return handle_default([], local_var_1713, local_var_1715)
+                        def local_var_1722(_: Any):
+                            return montant_initial_base_premier_enfant_1394
+                        return handle_default([], local_var_1720,
+                                              local_var_1722)
+                    return handle_default([], local_var_1716, local_var_1718)
 
-                def local_var_1701(_: Any):
-                    def local_var_1703(_: Any):
+                def local_var_1704(_: Any):
+                    def local_var_1706(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=109, start_column=12,
                                                                  end_line=109, end_column=32,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1705(_: Any):
-                        def local_var_1707(_: Any):
+                    def local_var_1708(_: Any):
+                        def local_var_1710(_: Any):
                             return log_decision_taken(SourcePosition(filename="./decrets_divers.catala_fr",
                                                                      start_line=335, start_column=5,
                                                                      end_line=335, end_column=24,
                                                                      law_headings=["Article 7",
                                                                                    "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte",
                                                                                    "Dispositions spéciales relatives à Mayotte",
-                                                                                   "Décrets divers"]), (residence_450 ==
+                                                                                   "Décrets divers"]), (residence_453 ==
                                                                                                         Collectivite(Collectivite_Code.Mayotte,
                                                                                                                      Unit())))
 
-                        def local_var_1709(_: Any):
-                            return (montant_initial_base_premier_enfant_mayotte_1232 +
-                                    (montant_initial_base_deuxieme_enfant_mayotte_1118 +
-                                     (montant_initial_base_troisieme_enfant_mayotte_1004 +
-                                      montant_initial_base_quatrieme_enfant_et_plus_mayotte_990)))
-                        return handle_default([], local_var_1707,
-                                              local_var_1709)
-                    return handle_default([], local_var_1703, local_var_1705)
+                        def local_var_1712(_: Any):
+                            return (montant_initial_base_premier_enfant_mayotte_1235 +
+                                    (montant_initial_base_deuxieme_enfant_mayotte_1121 +
+                                     (montant_initial_base_troisieme_enfant_mayotte_1007 +
+                                      montant_initial_base_quatrieme_enfant_et_plus_mayotte_993)))
+                        return handle_default([], local_var_1710,
+                                              local_var_1712)
+                    return handle_default([], local_var_1706, local_var_1708)
 
-                def local_var_1721(_: Any):
+                def local_var_1724(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=109, start_column=12,
                                                              end_line=109, end_column=32,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1723(_: Any):
-                    def local_var_1725(_: Any):
+                def local_var_1726(_: Any):
+                    def local_var_1728(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=18, start_column=14,
                                                                  end_line=18, end_column=34,
@@ -5873,44 +5878,44 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1727(_: Any):
-                        return (montant_initial_base_deuxieme_enfant_1577 +
-                                montant_initial_base_troisieme_enfant_et_plus_1537)
-                    return handle_default([], local_var_1725, local_var_1727)
-                local_var_1700 = handle_default([local_var_1701,
-                                                 local_var_1711], local_var_1721, local_var_1723)
+                    def local_var_1730(_: Any):
+                        return (montant_initial_base_deuxieme_enfant_1580 +
+                                montant_initial_base_troisieme_enfant_et_plus_1540)
+                    return handle_default([], local_var_1728, local_var_1730)
+                local_var_1703 = handle_default([local_var_1704,
+                                                 local_var_1714], local_var_1724, local_var_1726)
             except EmptyError:
-                def local_var_1729(_: Any):
+                def local_var_1732(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1731(_: Any):
+                def local_var_1734(_: Any):
                     raise EmptyError
-                local_var_1700 = handle_default([], local_var_1729,
-                                                local_var_1731)
+                local_var_1703 = handle_default([], local_var_1732,
+                                                local_var_1734)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=109, start_column=12, end_line=109, end_column=32,
                                              law_headings=["Prologue"]))
-    montant_initial_base_1699 = log_variable_definition(["AllocationsFamiliales",
-                                                         "montant_initial_base"], local_var_1700)
+    montant_initial_base_1702 = log_variable_definition(["AllocationsFamiliales",
+                                                         "montant_initial_base"], local_var_1703)
     try:
         try:
-            local_var_1734 = montant_initial_majoration_406(Unit())
+            local_var_1737 = montant_initial_majoration_409(Unit())
         except EmptyError:
-            def local_var_1734(param_1735: Enfant):
+            def local_var_1737(param_1738: Enfant):
                 try:
                     try:
-                        def local_var_1746(_: Any):
-                            def local_var_1748(_: Any):
+                        def local_var_1749(_: Any):
+                            def local_var_1751(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=134, start_column=12,
                                                                          end_line=134, end_column=38,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_1750(_: Any):
-                                def local_var_1752(_: Any):
+                            def local_var_1753(_: Any):
+                                def local_var_1755(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                              start_line=373, start_column=5,
                                                                              end_line=376, end_column=42,
@@ -5925,35 +5930,35 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                                    "droit_ouvert_majoration", "output"],
                                                                                                                              log_begin_call(["AllocationsFamiliales",
                                                                                                                                              "droit_ouvert_majoration"],
-                                                                                                                                            droit_ouvert_majoration_1443,
+                                                                                                                                            droit_ouvert_majoration_1446,
                                                                                                                                             log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                      "droit_ouvert_majoration", "input"],
-                                                                                                                                                                    param_1735)))) and
-                                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                                                                                                    param_1738)))) and
+                                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                                 integer_of_string("1")) and
-                                                                                                                                  ((param_1735.age >=
+                                                                                                                                  ((param_1738.age >=
                                                                                                                                     integer_of_string("11")) and
-                                                                                                                                   (param_1735.age <
+                                                                                                                                   (param_1738.age <
                                                                                                                                    integer_of_string("16")))))))
 
-                                def local_var_1754(_: Any):
-                                    return (prestations_familiales_dot_base_mensuelle_773 *
+                                def local_var_1757(_: Any):
+                                    return (prestations_familiales_dot_base_mensuelle_776 *
                                             decimal_of_string("0.0369"))
-                                return handle_default([], local_var_1752,
-                                                      local_var_1754)
-                            return handle_default([], local_var_1748,
-                                                  local_var_1750)
+                                return handle_default([], local_var_1755,
+                                                      local_var_1757)
+                            return handle_default([], local_var_1751,
+                                                  local_var_1753)
 
-                        def local_var_1736(_: Any):
-                            def local_var_1738(_: Any):
+                        def local_var_1739(_: Any):
+                            def local_var_1741(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                          start_line=134, start_column=12,
                                                                          end_line=134, end_column=38,
                                                                          law_headings=["Prologue"]), True)
 
-                            def local_var_1740(_: Any):
-                                def local_var_1742(_: Any):
+                            def local_var_1743(_: Any):
+                                def local_var_1745(_: Any):
                                     return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                              start_line=382, start_column=5,
                                                                              end_line=385, end_column=23,
@@ -5968,32 +5973,32 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                                                                                                    "droit_ouvert_majoration", "output"],
                                                                                                                              log_begin_call(["AllocationsFamiliales",
                                                                                                                                              "droit_ouvert_majoration"],
-                                                                                                                                            droit_ouvert_majoration_1443,
+                                                                                                                                            droit_ouvert_majoration_1446,
                                                                                                                                             log_variable_definition(["AllocationsFamiliales",
                                                                                                                                                                      "droit_ouvert_majoration", "input"],
-                                                                                                                                                                    param_1735)))) and
-                                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_769 and
-                                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_814) ==
+                                                                                                                                                                    param_1738)))) and
+                                                                                                                             (prestations_familiales_dot_regime_outre_mer_l751_1_772 and
+                                                                                                                              ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale_817) ==
                                                                                                                                 integer_of_string("1")) and
-                                                                                                                                  (param_1735.age >=
+                                                                                                                                  (param_1738.age >=
                                                                                                                                    integer_of_string("16"))))))
 
-                                def local_var_1744(_: Any):
-                                    return (prestations_familiales_dot_base_mensuelle_773 *
+                                def local_var_1747(_: Any):
+                                    return (prestations_familiales_dot_base_mensuelle_776 *
                                             decimal_of_string("0.0567"))
-                                return handle_default([], local_var_1742,
-                                                      local_var_1744)
-                            return handle_default([], local_var_1738,
-                                                  local_var_1740)
+                                return handle_default([], local_var_1745,
+                                                      local_var_1747)
+                            return handle_default([], local_var_1741,
+                                                  local_var_1743)
 
-                        def local_var_1756(_: Any):
+                        def local_var_1759(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=134, start_column=12,
                                                                      end_line=134, end_column=38,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1758(_: Any):
-                            def local_var_1760(_: Any):
+                        def local_var_1761(_: Any):
+                            def local_var_1763(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                          start_line=22, start_column=14,
                                                                          end_line=22, end_column=40,
@@ -6004,7 +6009,7 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Partie réglementaire - Décrets simples",
                                                                                        "Code de la sécurité sociale"]), True)
 
-                            def local_var_1762(_: Any):
+                            def local_var_1765(_: Any):
                                 return log_end_call(["AllocationsFamiliales",
                                                      "montant_initial_métropole_majoration"],
                                                     log_variable_definition(["AllocationsFamiliales",
@@ -6012,25 +6017,25 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                              "output"],
                                                                             log_begin_call(["AllocationsFamiliales",
                                                                                             "montant_initial_métropole_majoration"],
-                                                                                           montant_initial_metropole_majoration_1631,
+                                                                                           montant_initial_metropole_majoration_1634,
                                                                                            log_variable_definition(["AllocationsFamiliales",
                                                                                                                     "montant_initial_métropole_majoration",
-                                                                                                                    "input"], param_1735))))
-                            return handle_default([], local_var_1760,
-                                                  local_var_1762)
-                        return handle_default([local_var_1736,
-                                               local_var_1746], local_var_1756, local_var_1758)
+                                                                                                                    "input"], param_1738))))
+                            return handle_default([], local_var_1763,
+                                                  local_var_1765)
+                        return handle_default([local_var_1739,
+                                               local_var_1749], local_var_1759, local_var_1761)
                     except EmptyError:
-                        def local_var_1764(_: Any):
+                        def local_var_1767(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_1766(_: Any):
+                        def local_var_1769(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_1764,
-                                              local_var_1766)
+                        return handle_default([], local_var_1767,
+                                              local_var_1769)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=134, start_column=12, end_line=134,
@@ -6039,23 +6044,23 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=134, start_column=12, end_line=134, end_column=38,
                                              law_headings=["Prologue"]))
-    montant_initial_majoration_1733 = log_variable_definition(["AllocationsFamiliales",
-                                                               "montant_initial_majoration"], local_var_1734)
+    montant_initial_majoration_1736 = log_variable_definition(["AllocationsFamiliales",
+                                                               "montant_initial_majoration"], local_var_1737)
     try:
         try:
-            local_var_1769 = montant_verse_complement_pour_forfaitaire_413(
+            local_var_1772 = montant_verse_complement_pour_forfaitaire_416(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1780(_: Any):
-                    def local_var_1782(_: Any):
+                def local_var_1783(_: Any):
+                    def local_var_1785(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=143, start_column=12,
                                                                  end_line=143, end_column=53,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1784(_: Any):
-                        def local_var_1786(_: Any):
+                    def local_var_1787(_: Any):
+                        def local_var_1789(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                      start_line=262, start_column=5,
                                                                      end_line=264, end_column=42,
@@ -6064,33 +6069,33 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                    "Partie réglementaire - Décrets simples",
-                                                                                   "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                      plafond__i_d521_3_899) and
-                                                                                                                     (ressources_menage_440 <=
-                                                                                                                      (plafond__i_d521_3_899 +
-                                                                                                                       (montant_verse_forfaitaire_1682 *
+                                                                                   "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                      plafond__i_d521_3_902) and
+                                                                                                                     (ressources_menage_443 <=
+                                                                                                                      (plafond__i_d521_3_902 +
+                                                                                                                       (montant_verse_forfaitaire_1685 *
                                                                                                                         decimal_of_string("12."))))))
 
-                        def local_var_1788(_: Any):
-                            return ((plafond__i_d521_3_899 +
-                                     ((montant_verse_forfaitaire_1682 *
+                        def local_var_1791(_: Any):
+                            return ((plafond__i_d521_3_902 +
+                                     ((montant_verse_forfaitaire_1685 *
                                        decimal_of_string("12.")) -
-                                      ressources_menage_440)) *
+                                      ressources_menage_443)) *
                                     (decimal_of_string("1.") /
                                      decimal_of_string("12.")))
-                        return handle_default([], local_var_1786,
-                                              local_var_1788)
-                    return handle_default([], local_var_1782, local_var_1784)
+                        return handle_default([], local_var_1789,
+                                              local_var_1791)
+                    return handle_default([], local_var_1785, local_var_1787)
 
-                def local_var_1770(_: Any):
-                    def local_var_1772(_: Any):
+                def local_var_1773(_: Any):
+                    def local_var_1775(_: Any):
                         return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                  start_line=143, start_column=12,
                                                                  end_line=143, end_column=53,
                                                                  law_headings=["Prologue"]), True)
 
-                    def local_var_1774(_: Any):
-                        def local_var_1776(_: Any):
+                    def local_var_1777(_: Any):
+                        def local_var_1779(_: Any):
                             return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                      start_line=272, start_column=5,
                                                                      end_line=274, end_column=41,
@@ -6099,32 +6104,32 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                    "Titre 2 : Prestations générales d'entretien",
                                                                                    "Livre 5 : Prestations familiales et prestations assimilées",
                                                                                    "Partie réglementaire - Décrets simples",
-                                                                                   "Code de la sécurité sociale"]), ((ressources_menage_440 >
-                                                                                                                      plafond__i_i_d521_3_845) and
-                                                                                                                     (ressources_menage_440 <=
-                                                                                                                      (plafond__i_i_d521_3_845 +
-                                                                                                                       (montant_verse_forfaitaire_1682 *
+                                                                                   "Code de la sécurité sociale"]), ((ressources_menage_443 >
+                                                                                                                      plafond__i_i_d521_3_848) and
+                                                                                                                     (ressources_menage_443 <=
+                                                                                                                      (plafond__i_i_d521_3_848 +
+                                                                                                                       (montant_verse_forfaitaire_1685 *
                                                                                                                         decimal_of_string("12."))))))
 
-                        def local_var_1778(_: Any):
-                            return ((plafond__i_i_d521_3_845 +
-                                     ((montant_verse_forfaitaire_1682 *
+                        def local_var_1781(_: Any):
+                            return ((plafond__i_i_d521_3_848 +
+                                     ((montant_verse_forfaitaire_1685 *
                                        decimal_of_string("12.")) -
-                                      ressources_menage_440)) *
+                                      ressources_menage_443)) *
                                     (decimal_of_string("1.") /
                                      decimal_of_string("12.")))
-                        return handle_default([], local_var_1776,
-                                              local_var_1778)
-                    return handle_default([], local_var_1772, local_var_1774)
+                        return handle_default([], local_var_1779,
+                                              local_var_1781)
+                    return handle_default([], local_var_1775, local_var_1777)
 
-                def local_var_1790(_: Any):
+                def local_var_1793(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=143, start_column=12,
                                                              end_line=143, end_column=53,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1792(_: Any):
-                    def local_var_1794(_: Any):
+                def local_var_1795(_: Any):
+                    def local_var_1797(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=280, start_column=14,
                                                                  end_line=280, end_column=55,
@@ -6135,40 +6140,40 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1796(_: Any):
+                    def local_var_1799(_: Any):
                         return money_of_cents_string("0")
-                    return handle_default([], local_var_1794, local_var_1796)
-                local_var_1769 = handle_default([local_var_1770,
-                                                 local_var_1780], local_var_1790, local_var_1792)
+                    return handle_default([], local_var_1797, local_var_1799)
+                local_var_1772 = handle_default([local_var_1773,
+                                                 local_var_1783], local_var_1793, local_var_1795)
             except EmptyError:
-                def local_var_1798(_: Any):
+                def local_var_1801(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1800(_: Any):
+                def local_var_1803(_: Any):
                     raise EmptyError
-                local_var_1769 = handle_default([], local_var_1798,
-                                                local_var_1800)
+                local_var_1772 = handle_default([], local_var_1801,
+                                                local_var_1803)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=143, start_column=12, end_line=143, end_column=53,
                                              law_headings=["Prologue"]))
-    montant_verse_complement_pour_forfaitaire_1768 = log_variable_definition(["AllocationsFamiliales",
-                                                                              "montant_versé_complément_pour_forfaitaire"], local_var_1769)
+    montant_verse_complement_pour_forfaitaire_1771 = log_variable_definition(["AllocationsFamiliales",
+                                                                              "montant_versé_complément_pour_forfaitaire"], local_var_1772)
     try:
         try:
-            local_var_1803 = montant_avec_garde_alternee_base_394(Unit())
+            local_var_1806 = montant_avec_garde_alternee_base_397(Unit())
         except EmptyError:
             try:
-                def local_var_1804(_: Any):
+                def local_var_1807(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=116, start_column=12,
                                                              end_line=116, end_column=44,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1806(_: Any):
-                    def local_var_1808(_: Any):
+                def local_var_1809(_: Any):
+                    def local_var_1811(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                  start_line=125, start_column=14,
                                                                  end_line=125, end_column=46,
@@ -6179,43 +6184,43 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1810(_: Any):
-                        return (montant_initial_base_1699 *
-                                rapport_enfants_total_moyen_1617)
-                    return handle_default([], local_var_1808, local_var_1810)
-                local_var_1803 = handle_default([], local_var_1804,
-                                                local_var_1806)
+                    def local_var_1813(_: Any):
+                        return (montant_initial_base_1702 *
+                                rapport_enfants_total_moyen_1620)
+                    return handle_default([], local_var_1811, local_var_1813)
+                local_var_1806 = handle_default([], local_var_1807,
+                                                local_var_1809)
             except EmptyError:
-                def local_var_1812(_: Any):
+                def local_var_1815(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1814(_: Any):
+                def local_var_1817(_: Any):
                     raise EmptyError
-                local_var_1803 = handle_default([], local_var_1812,
-                                                local_var_1814)
+                local_var_1806 = handle_default([], local_var_1815,
+                                                local_var_1817)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=116, start_column=12, end_line=116, end_column=44,
                                              law_headings=["Prologue"]))
-    montant_avec_garde_alternee_base_1802 = log_variable_definition(["AllocationsFamiliales",
-                                                                     "montant_avec_garde_alternée_base"], local_var_1803)
+    montant_avec_garde_alternee_base_1805 = log_variable_definition(["AllocationsFamiliales",
+                                                                     "montant_avec_garde_alternée_base"], local_var_1806)
     try:
         try:
-            local_var_1817 = montant_avec_garde_alternee_majoration_407(Unit())
+            local_var_1820 = montant_avec_garde_alternee_majoration_410(Unit())
         except EmptyError:
-            def local_var_1817(param_1818: Enfant):
+            def local_var_1820(param_1821: Enfant):
                 try:
                     try:
-                        def local_var_1819(_: Any):
+                        def local_var_1822(_: Any):
                             return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                                      start_line=135, start_column=12,
                                                                      end_line=135, end_column=50,
                                                                      law_headings=["Prologue"]), True)
 
-                        def local_var_1821(_: Any):
-                            def local_var_1823(_: Any):
+                        def local_var_1824(_: Any):
+                            def local_var_1826(_: Any):
                                 return log_decision_taken(SourcePosition(filename="./securite_sociale_R.catala_fr",
                                                                          start_line=187, start_column=5,
                                                                          end_line=187, end_column=43,
@@ -6226,50 +6231,50 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                        "Partie réglementaire - Décrets en Conseil d'Etat",
                                                                                        "Code de la sécurité sociale"]), True)
 
-                            def local_var_1825(_: Any):
-                                match_arg_2267 = log_end_call(["AllocationsFamiliales",
+                            def local_var_1828(_: Any):
+                                match_arg_2270 = log_end_call(["AllocationsFamiliales",
                                                                "prise_en_compte"],
                                                               log_variable_definition(["AllocationsFamiliales",
                                                                                        "prise_en_compte", "output"],
                                                                                       log_begin_call(["AllocationsFamiliales",
-                                                                                                      "prise_en_compte"], prise_en_compte_480,
+                                                                                                      "prise_en_compte"], prise_en_compte_483,
                                                                                                      log_variable_definition(["AllocationsFamiliales",
                                                                                                                               "prise_en_compte", "input"],
-                                                                                                                             param_1818))))
-                                if match_arg_2267.code == PriseEnCompte_Code.Complete:
-                                    _ = match_arg_2267.value
-                                    local_var_1827 = decimal_of_string("1.")
-                                elif match_arg_2267.code == PriseEnCompte_Code.Partagee:
-                                    _ = match_arg_2267.value
-                                    local_var_1827 = decimal_of_string("0.5")
-                                elif match_arg_2267.code == PriseEnCompte_Code.Zero:
-                                    _ = match_arg_2267.value
-                                    local_var_1827 = decimal_of_string("0.")
+                                                                                                                             param_1821))))
+                                if match_arg_2270.code == PriseEnCompte_Code.Complete:
+                                    _ = match_arg_2270.value
+                                    local_var_1830 = decimal_of_string("1.")
+                                elif match_arg_2270.code == PriseEnCompte_Code.Partagee:
+                                    _ = match_arg_2270.value
+                                    local_var_1830 = decimal_of_string("0.5")
+                                elif match_arg_2270.code == PriseEnCompte_Code.Zero:
+                                    _ = match_arg_2270.value
+                                    local_var_1830 = decimal_of_string("0.")
                                 return (log_end_call(["AllocationsFamiliales",
                                                       "montant_initial_majoration"],
                                                      log_variable_definition(["AllocationsFamiliales",
                                                                               "montant_initial_majoration", "output"],
                                                                              log_begin_call(["AllocationsFamiliales",
                                                                                              "montant_initial_majoration"],
-                                                                                            montant_initial_majoration_1733,
+                                                                                            montant_initial_majoration_1736,
                                                                                             log_variable_definition(["AllocationsFamiliales",
                                                                                                                      "montant_initial_majoration", "input"],
-                                                                                                                    param_1818)))) * local_var_1827)
-                            return handle_default([], local_var_1823,
-                                                  local_var_1825)
-                        return handle_default([], local_var_1819,
-                                              local_var_1821)
+                                                                                                                    param_1821)))) * local_var_1830)
+                            return handle_default([], local_var_1826,
+                                                  local_var_1828)
+                        return handle_default([], local_var_1822,
+                                              local_var_1824)
                     except EmptyError:
-                        def local_var_1831(_: Any):
+                        def local_var_1834(_: Any):
                             return log_decision_taken(SourcePosition(filename="",
                                                                      start_line=0, start_column=1,
                                                                      end_line=0, end_column=1,
                                                                      law_headings=[]), False)
 
-                        def local_var_1833(_: Any):
+                        def local_var_1836(_: Any):
                             raise EmptyError
-                        return handle_default([], local_var_1831,
-                                              local_var_1833)
+                        return handle_default([], local_var_1834,
+                                              local_var_1836)
                 except EmptyError:
                     raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                                          start_line=135, start_column=12, end_line=135,
@@ -6278,74 +6283,74 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=135, start_column=12, end_line=135, end_column=50,
                                              law_headings=["Prologue"]))
-    montant_avec_garde_alternee_majoration_1816 = log_variable_definition(["AllocationsFamiliales",
-                                                                           "montant_avec_garde_alternée_majoration"], local_var_1817)
+    montant_avec_garde_alternee_majoration_1819 = log_variable_definition(["AllocationsFamiliales",
+                                                                           "montant_avec_garde_alternée_majoration"], local_var_1820)
     try:
         try:
-            local_var_1836 = montant_verse_base_395(Unit())
+            local_var_1839 = montant_verse_base_398(Unit())
         except EmptyError:
             try:
-                def local_var_1837(_: Any):
+                def local_var_1840(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=117, start_column=12,
                                                              end_line=117, end_column=30,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1839(_: Any):
-                    def local_var_1841(_: Any):
+                def local_var_1842(_: Any):
+                    def local_var_1844(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=36, start_column=14,
                                                                  end_line=36, end_column=32,
                                                                  law_headings=["Règles diverses", "Épilogue",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1843(_: Any):
-                        if droit_ouvert_base_1409:
-                            return montant_avec_garde_alternee_base_1802
+                    def local_var_1846(_: Any):
+                        if droit_ouvert_base_1412:
+                            return montant_avec_garde_alternee_base_1805
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1841, local_var_1843)
-                local_var_1836 = handle_default([], local_var_1837,
-                                                local_var_1839)
+                    return handle_default([], local_var_1844, local_var_1846)
+                local_var_1839 = handle_default([], local_var_1840,
+                                                local_var_1842)
             except EmptyError:
-                def local_var_1845(_: Any):
+                def local_var_1848(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1847(_: Any):
+                def local_var_1850(_: Any):
                     raise EmptyError
-                local_var_1836 = handle_default([], local_var_1845,
-                                                local_var_1847)
+                local_var_1839 = handle_default([], local_var_1848,
+                                                local_var_1850)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=117, start_column=12, end_line=117, end_column=30,
                                              law_headings=["Prologue"]))
-    montant_verse_base_1835 = log_variable_definition(["AllocationsFamiliales",
-                                                       "montant_versé_base"], local_var_1836)
+    montant_verse_base_1838 = log_variable_definition(["AllocationsFamiliales",
+                                                       "montant_versé_base"], local_var_1839)
     try:
         try:
-            local_var_1850 = montant_verse_majoration_408(Unit())
+            local_var_1853 = montant_verse_majoration_411(Unit())
         except EmptyError:
             try:
-                def local_var_1851(_: Any):
+                def local_var_1854(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=136, start_column=12,
                                                              end_line=136, end_column=36,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1853(_: Any):
-                    def local_var_1855(_: Any):
+                def local_var_1856(_: Any):
+                    def local_var_1858(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=38, start_column=14,
                                                                  end_line=38, end_column=38,
                                                                  law_headings=["Règles diverses", "Épilogue",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1857(_: Any):
-                        if droit_ouvert_base_1409:
-                            def local_var_1859(acc_1860: Money, enfant_1861: Any):
-                                return (acc_1860 +
+                    def local_var_1860(_: Any):
+                        if droit_ouvert_base_1412:
+                            def local_var_1862(acc_1863: Money, enfant_1864: Any):
+                                return (acc_1863 +
                                         log_end_call(["AllocationsFamiliales",
                                                       "montant_avec_garde_alternée_majoration"],
                                                      log_variable_definition(["AllocationsFamiliales",
@@ -6353,48 +6358,48 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                               "output"],
                                                                              log_begin_call(["AllocationsFamiliales",
                                                                                              "montant_avec_garde_alternée_majoration"],
-                                                                                            montant_avec_garde_alternee_majoration_1816,
+                                                                                            montant_avec_garde_alternee_majoration_1819,
                                                                                             log_variable_definition(["AllocationsFamiliales",
                                                                                                                      "montant_avec_garde_alternée_majoration",
-                                                                                                                     "input"], enfant_1861)))))
-                            return list_fold_left(local_var_1859,
+                                                                                                                     "input"], enfant_1864)))))
+                            return list_fold_left(local_var_1862,
                                                   money_of_cents_string("0"),
-                                                  enfants_a_charge_470)
+                                                  enfants_a_charge_473)
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1855, local_var_1857)
-                local_var_1850 = handle_default([], local_var_1851,
-                                                local_var_1853)
+                    return handle_default([], local_var_1858, local_var_1860)
+                local_var_1853 = handle_default([], local_var_1854,
+                                                local_var_1856)
             except EmptyError:
-                def local_var_1862(_: Any):
+                def local_var_1865(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1864(_: Any):
+                def local_var_1867(_: Any):
                     raise EmptyError
-                local_var_1850 = handle_default([], local_var_1862,
-                                                local_var_1864)
+                local_var_1853 = handle_default([], local_var_1865,
+                                                local_var_1867)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=136, start_column=12, end_line=136, end_column=36,
                                              law_headings=["Prologue"]))
-    montant_verse_majoration_1849 = log_variable_definition(["AllocationsFamiliales",
-                                                             "montant_versé_majoration"], local_var_1850)
+    montant_verse_majoration_1852 = log_variable_definition(["AllocationsFamiliales",
+                                                             "montant_versé_majoration"], local_var_1853)
     try:
         try:
-            local_var_1867 = montant_base_complement_pour_base_et_majoration_410(
+            local_var_1870 = montant_base_complement_pour_base_et_majoration_413(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1868(_: Any):
+                def local_var_1871(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=140, start_column=12,
                                                              end_line=140, end_column=59,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1870(_: Any):
-                    def local_var_1872(_: Any):
+                def local_var_1873(_: Any):
+                    def local_var_1875(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=184, start_column=14,
                                                                  end_line=184, end_column=61,
@@ -6405,42 +6410,42 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1874(_: Any):
-                        return (montant_verse_base_1835 +
-                                montant_verse_majoration_1849)
-                    return handle_default([], local_var_1872, local_var_1874)
-                local_var_1867 = handle_default([], local_var_1868,
-                                                local_var_1870)
+                    def local_var_1877(_: Any):
+                        return (montant_verse_base_1838 +
+                                montant_verse_majoration_1852)
+                    return handle_default([], local_var_1875, local_var_1877)
+                local_var_1870 = handle_default([], local_var_1871,
+                                                local_var_1873)
             except EmptyError:
-                def local_var_1876(_: Any):
+                def local_var_1879(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1878(_: Any):
+                def local_var_1881(_: Any):
                     raise EmptyError
-                local_var_1867 = handle_default([], local_var_1876,
-                                                local_var_1878)
+                local_var_1870 = handle_default([], local_var_1879,
+                                                local_var_1881)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=140, start_column=12, end_line=140, end_column=59,
                                              law_headings=["Prologue"]))
-    montant_base_complement_pour_base_et_majoration_1866 = log_variable_definition(["AllocationsFamiliales",
-                                                                                    "montant_base_complément_pour_base_et_majoration"], local_var_1867)
+    montant_base_complement_pour_base_et_majoration_1869 = log_variable_definition(["AllocationsFamiliales",
+                                                                                    "montant_base_complément_pour_base_et_majoration"], local_var_1870)
     try:
         try:
-            local_var_1881 = montant_verse_complement_pour_base_et_majoration_412(
+            local_var_1884 = montant_verse_complement_pour_base_et_majoration_415(
                 Unit())
         except EmptyError:
             try:
-                def local_var_1882(_: Any):
+                def local_var_1885(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=142, start_column=12,
                                                              end_line=142, end_column=60,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1884(_: Any):
-                    def local_var_1886(_: Any):
+                def local_var_1887(_: Any):
+                    def local_var_1889(_: Any):
                         return log_decision_taken(SourcePosition(filename="./securite_sociale_D.catala_fr",
                                                                  start_line=178, start_column=14,
                                                                  end_line=178, end_column=62,
@@ -6451,366 +6456,366 @@ def allocations_familiales(allocations_familiales_in_375: AllocationsFamilialesI
                                                                                "Partie réglementaire - Décrets simples",
                                                                                "Code de la sécurité sociale"]), True)
 
-                    def local_var_1888(_: Any):
-                        if droit_ouvert_complement_953:
+                    def local_var_1891(_: Any):
+                        if droit_ouvert_complement_956:
                             return log_end_call(["AllocationsFamiliales",
                                                  "complément_dégressif"],
                                                 log_variable_definition(["AllocationsFamiliales",
                                                                          "complément_dégressif", "output"],
                                                                         log_begin_call(["AllocationsFamiliales",
                                                                                         "complément_dégressif"],
-                                                                                       complement_degressif_1462,
+                                                                                       complement_degressif_1465,
                                                                                        log_variable_definition(["AllocationsFamiliales",
                                                                                                                 "complément_dégressif", "input"],
-                                                                                                               montant_base_complement_pour_base_et_majoration_1866))))
+                                                                                                               montant_base_complement_pour_base_et_majoration_1869))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1886, local_var_1888)
-                local_var_1881 = handle_default([], local_var_1882,
-                                                local_var_1884)
+                    return handle_default([], local_var_1889, local_var_1891)
+                local_var_1884 = handle_default([], local_var_1885,
+                                                local_var_1887)
             except EmptyError:
-                def local_var_1890(_: Any):
+                def local_var_1893(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1892(_: Any):
+                def local_var_1895(_: Any):
                     raise EmptyError
-                local_var_1881 = handle_default([], local_var_1890,
-                                                local_var_1892)
+                local_var_1884 = handle_default([], local_var_1893,
+                                                local_var_1895)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=142, start_column=12, end_line=142, end_column=60,
                                              law_headings=["Prologue"]))
-    montant_verse_complement_pour_base_et_majoration_1880 = log_variable_definition(["AllocationsFamiliales",
+    montant_verse_complement_pour_base_et_majoration_1883 = log_variable_definition(["AllocationsFamiliales",
                                                                                      "montant_versé_complément_pour_base_et_majoration"],
-                                                                                    local_var_1881)
+                                                                                    local_var_1884)
     try:
         try:
-            local_var_1895 = montant_verse_385(Unit())
+            local_var_1898 = montant_verse_388(Unit())
         except EmptyError:
             try:
-                def local_var_1896(_: Any):
+                def local_var_1899(_: Any):
                     return log_decision_taken(SourcePosition(filename="./prologue.catala_fr",
                                                              start_line=105, start_column=12,
                                                              end_line=105, end_column=25,
                                                              law_headings=["Prologue"]), True)
 
-                def local_var_1898(_: Any):
-                    def local_var_1900(_: Any):
+                def local_var_1901(_: Any):
+                    def local_var_1903(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=44, start_column=14,
                                                                  end_line=44, end_column=27,
                                                                  law_headings=["Règles diverses", "Épilogue",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1902(_: Any):
-                        if droit_ouvert_base_1409:
-                            return (montant_verse_base_1835 +
-                                    (montant_verse_majoration_1849 +
-                                     (montant_verse_forfaitaire_1682 +
-                                      (montant_verse_complement_pour_base_et_majoration_1880 +
-                                       montant_verse_complement_pour_forfaitaire_1768))))
+                    def local_var_1905(_: Any):
+                        if droit_ouvert_base_1412:
+                            return (montant_verse_base_1838 +
+                                    (montant_verse_majoration_1852 +
+                                     (montant_verse_forfaitaire_1685 +
+                                      (montant_verse_complement_pour_base_et_majoration_1883 +
+                                       montant_verse_complement_pour_forfaitaire_1771))))
                         else:
                             return money_of_cents_string("0")
-                    return handle_default([], local_var_1900, local_var_1902)
-                local_var_1895 = handle_default([], local_var_1896,
-                                                local_var_1898)
+                    return handle_default([], local_var_1903, local_var_1905)
+                local_var_1898 = handle_default([], local_var_1899,
+                                                local_var_1901)
             except EmptyError:
-                def local_var_1904(_: Any):
+                def local_var_1907(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1906(_: Any):
+                def local_var_1909(_: Any):
                     raise EmptyError
-                local_var_1895 = handle_default([], local_var_1904,
-                                                local_var_1906)
+                local_var_1898 = handle_default([], local_var_1907,
+                                                local_var_1909)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./prologue.catala_fr",
                                              start_line=105, start_column=12, end_line=105, end_column=25,
                                              law_headings=["Prologue"]))
-    montant_verse_1894 = log_variable_definition(["AllocationsFamiliales",
-                                                  "montant_versé"], local_var_1895)
-    assert (personne_charge_effective_permanente_est_parent_420 or
-            (not personne_charge_effective_permanente_est_parent_420 and
-             personne_charge_effective_permanente_remplit_titre__i_430))
-    return AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_420,
-                                    personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_430,
-                                    ressources_menage_out=ressources_menage_440,
-                                    residence_out=residence_450, date_courante_out=date_courante_460,
-                                    enfants_a_charge_out=enfants_a_charge_470,
-                                    enfants_a_charge_droit_ouvert_prestation_familiale_out=enfants_a_charge_droit_ouvert_prestation_familiale_814,
-                                    prise_en_compte_out=prise_en_compte_480,
-                                    versement_out=versement_571,
-                                    montant_verse_out=montant_verse_1894,
-                                    droit_ouvert_base_out=droit_ouvert_base_1409,
-                                    montant_initial_base_out=montant_initial_base_1699,
-                                    montant_initial_base_premier_enfant_out=montant_initial_base_premier_enfant_1391,
-                                    montant_initial_base_deuxieme_enfant_out=montant_initial_base_deuxieme_enfant_1577,
-                                    montant_initial_base_troisieme_enfant_et_plus_out=montant_initial_base_troisieme_enfant_et_plus_1537,
-                                    rapport_enfants_total_moyen_out=rapport_enfants_total_moyen_1617,
-                                    nombre_moyen_enfants_out=nombre_moyen_enfants_1370,
-                                    nombre_total_enfants_out=nombre_total_enfants_1356,
-                                    montant_avec_garde_alternee_base_out=montant_avec_garde_alternee_base_1802,
-                                    montant_verse_base_out=montant_verse_base_1835,
-                                    avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_662,
-                                    montant_initial_base_premier_enfant_mayotte_out=montant_initial_base_premier_enfant_mayotte_1232,
-                                    montant_initial_base_deuxieme_enfant_mayotte_out=montant_initial_base_deuxieme_enfant_mayotte_1118,
-                                    montant_initial_base_troisieme_enfant_mayotte_out=montant_initial_base_troisieme_enfant_mayotte_1004,
-                                    montant_initial_base_quatrieme_enfant_et_plus_mayotte_out=montant_initial_base_quatrieme_enfant_et_plus_mayotte_990,
-                                    droit_ouvert_forfaitaire_out=droit_ouvert_forfaitaire_971,
-                                    montant_verse_forfaitaire_par_enfant_out=montant_verse_forfaitaire_par_enfant_1497,
-                                    montant_verse_forfaitaire_out=montant_verse_forfaitaire_1682,
-                                    droit_ouvert_majoration_out=droit_ouvert_majoration_1443,
-                                    montant_initial_metropole_majoration_out=montant_initial_metropole_majoration_1631,
-                                    montant_initial_majoration_out=montant_initial_majoration_1733,
-                                    montant_avec_garde_alternee_majoration_out=montant_avec_garde_alternee_majoration_1816,
-                                    montant_verse_majoration_out=montant_verse_majoration_1849,
-                                    droit_ouvert_complement_out=droit_ouvert_complement_953,
-                                    montant_base_complement_pour_base_et_majoration_out=montant_base_complement_pour_base_et_majoration_1866,
-                                    complement_degressif_out=complement_degressif_1462,
-                                    montant_verse_complement_pour_base_et_majoration_out=montant_verse_complement_pour_base_et_majoration_1880,
-                                    montant_verse_complement_pour_forfaitaire_out=montant_verse_complement_pour_forfaitaire_1768,
-                                    nombre_enfants_l521_1_out=nombre_enfants_l521_1_672,
-                                    age_minimum_alinea_1_l521_3_out=age_minimum_alinea_1_l521_3_795,
-                                    nombre_enfants_alinea_2_l521_3_out=nombre_enfants_alinea_2_l521_3_686,
-                                    est_enfant_le_plus_age_out=est_enfant_le_plus_age_830,
-                                    plafond_I_d521_3_out=plafond__i_d521_3_899,
-                                    plafond_II_d521_3_out=plafond__i_i_d521_3_845)
+    montant_verse_1897 = log_variable_definition(["AllocationsFamiliales",
+                                                  "montant_versé"], local_var_1898)
+    assert (personne_charge_effective_permanente_est_parent_423 or
+            (not personne_charge_effective_permanente_est_parent_423 and
+             personne_charge_effective_permanente_remplit_titre__i_433))
+    return AllocationsFamilialesOut(personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_423,
+                                    personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_433,
+                                    ressources_menage_out=ressources_menage_443,
+                                    residence_out=residence_453, date_courante_out=date_courante_463,
+                                    enfants_a_charge_out=enfants_a_charge_473,
+                                    enfants_a_charge_droit_ouvert_prestation_familiale_out=enfants_a_charge_droit_ouvert_prestation_familiale_817,
+                                    prise_en_compte_out=prise_en_compte_483,
+                                    versement_out=versement_574,
+                                    montant_verse_out=montant_verse_1897,
+                                    droit_ouvert_base_out=droit_ouvert_base_1412,
+                                    montant_initial_base_out=montant_initial_base_1702,
+                                    montant_initial_base_premier_enfant_out=montant_initial_base_premier_enfant_1394,
+                                    montant_initial_base_deuxieme_enfant_out=montant_initial_base_deuxieme_enfant_1580,
+                                    montant_initial_base_troisieme_enfant_et_plus_out=montant_initial_base_troisieme_enfant_et_plus_1540,
+                                    rapport_enfants_total_moyen_out=rapport_enfants_total_moyen_1620,
+                                    nombre_moyen_enfants_out=nombre_moyen_enfants_1373,
+                                    nombre_total_enfants_out=nombre_total_enfants_1359,
+                                    montant_avec_garde_alternee_base_out=montant_avec_garde_alternee_base_1805,
+                                    montant_verse_base_out=montant_verse_base_1838,
+                                    avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_665,
+                                    montant_initial_base_premier_enfant_mayotte_out=montant_initial_base_premier_enfant_mayotte_1235,
+                                    montant_initial_base_deuxieme_enfant_mayotte_out=montant_initial_base_deuxieme_enfant_mayotte_1121,
+                                    montant_initial_base_troisieme_enfant_mayotte_out=montant_initial_base_troisieme_enfant_mayotte_1007,
+                                    montant_initial_base_quatrieme_enfant_et_plus_mayotte_out=montant_initial_base_quatrieme_enfant_et_plus_mayotte_993,
+                                    droit_ouvert_forfaitaire_out=droit_ouvert_forfaitaire_974,
+                                    montant_verse_forfaitaire_par_enfant_out=montant_verse_forfaitaire_par_enfant_1500,
+                                    montant_verse_forfaitaire_out=montant_verse_forfaitaire_1685,
+                                    droit_ouvert_majoration_out=droit_ouvert_majoration_1446,
+                                    montant_initial_metropole_majoration_out=montant_initial_metropole_majoration_1634,
+                                    montant_initial_majoration_out=montant_initial_majoration_1736,
+                                    montant_avec_garde_alternee_majoration_out=montant_avec_garde_alternee_majoration_1819,
+                                    montant_verse_majoration_out=montant_verse_majoration_1852,
+                                    droit_ouvert_complement_out=droit_ouvert_complement_956,
+                                    montant_base_complement_pour_base_et_majoration_out=montant_base_complement_pour_base_et_majoration_1869,
+                                    complement_degressif_out=complement_degressif_1465,
+                                    montant_verse_complement_pour_base_et_majoration_out=montant_verse_complement_pour_base_et_majoration_1883,
+                                    montant_verse_complement_pour_forfaitaire_out=montant_verse_complement_pour_forfaitaire_1771,
+                                    nombre_enfants_l521_1_out=nombre_enfants_l521_1_675,
+                                    age_minimum_alinea_1_l521_3_out=age_minimum_alinea_1_l521_3_798,
+                                    nombre_enfants_alinea_2_l521_3_out=nombre_enfants_alinea_2_l521_3_689,
+                                    est_enfant_le_plus_age_out=est_enfant_le_plus_age_833,
+                                    plafond_I_d521_3_out=plafond__i_d521_3_902,
+                                    plafond_II_d521_3_out=plafond__i_i_d521_3_848)
 
 
-def interface_allocations_familiales(interface_allocations_familiales_in_1908: InterfaceAllocationsFamilialesIn):
-    date_courante_1909 = interface_allocations_familiales_in_1908.date_courante_in
-    enfants_1910 = interface_allocations_familiales_in_1908.enfants_in
-    enfants_a_charge_1911 = interface_allocations_familiales_in_1908.enfants_a_charge_in
-    ressources_menage_1912 = interface_allocations_familiales_in_1908.ressources_menage_in
-    residence_1913 = interface_allocations_familiales_in_1908.residence_in
-    montant_verse_1914 = interface_allocations_familiales_in_1908.montant_verse_in
-    personne_charge_effective_permanente_est_parent_1915 = interface_allocations_familiales_in_1908.personne_charge_effective_permanente_est_parent_in
-    personne_charge_effective_permanente_remplit_titre__i_1916 = interface_allocations_familiales_in_1908.personne_charge_effective_permanente_remplit_titre_I_in
-    avait_enfant_a_charge_avant_1er_janvier_2012_1917 = interface_allocations_familiales_in_1908.avait_enfant_a_charge_avant_1er_janvier_2012_in
+def interface_allocations_familiales(interface_allocations_familiales_in_1911: InterfaceAllocationsFamilialesIn):
+    date_courante_1912 = interface_allocations_familiales_in_1911.date_courante_in
+    enfants_1913 = interface_allocations_familiales_in_1911.enfants_in
+    enfants_a_charge_1914 = interface_allocations_familiales_in_1911.enfants_a_charge_in
+    ressources_menage_1915 = interface_allocations_familiales_in_1911.ressources_menage_in
+    residence_1916 = interface_allocations_familiales_in_1911.residence_in
+    montant_verse_1917 = interface_allocations_familiales_in_1911.montant_verse_in
+    personne_charge_effective_permanente_est_parent_1918 = interface_allocations_familiales_in_1911.personne_charge_effective_permanente_est_parent_in
+    personne_charge_effective_permanente_remplit_titre__i_1919 = interface_allocations_familiales_in_1911.personne_charge_effective_permanente_remplit_titre_I_in
+    avait_enfant_a_charge_avant_1er_janvier_2012_1920 = interface_allocations_familiales_in_1911.avait_enfant_a_charge_avant_1er_janvier_2012_in
     try:
         try:
-            local_var_1919 = date_courante_1909(Unit())
+            local_var_1922 = date_courante_1912(Unit())
         except EmptyError:
-            def local_var_1920(_: Any):
+            def local_var_1923(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=72, start_column=12,
                                                          end_line=72, end_column=25,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1922(_: Any):
-                def local_var_1924(_: Any):
+            def local_var_1925(_: Any):
+                def local_var_1927(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1926(_: Any):
+                def local_var_1929(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1924, local_var_1926)
-            local_var_1919 = handle_default([], local_var_1920,
-                                            local_var_1922)
+                return handle_default([], local_var_1927, local_var_1929)
+            local_var_1922 = handle_default([], local_var_1923,
+                                            local_var_1925)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=72, start_column=12, end_line=72, end_column=25,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    date_courante_1918 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                  "date_courante"], local_var_1919)
+    date_courante_1921 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                  "date_courante"], local_var_1922)
     try:
         try:
-            local_var_1929 = enfants_1910(Unit())
+            local_var_1932 = enfants_1913(Unit())
         except EmptyError:
-            def local_var_1930(_: Any):
+            def local_var_1933(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=73, start_column=12,
                                                          end_line=73, end_column=19,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1932(_: Any):
-                def local_var_1934(_: Any):
+            def local_var_1935(_: Any):
+                def local_var_1937(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1936(_: Any):
+                def local_var_1939(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1934, local_var_1936)
-            local_var_1929 = handle_default([], local_var_1930,
-                                            local_var_1932)
+                return handle_default([], local_var_1937, local_var_1939)
+            local_var_1932 = handle_default([], local_var_1933,
+                                            local_var_1935)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=73, start_column=12, end_line=73, end_column=19,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    enfants_1928 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                            "enfants"], local_var_1929)
+    enfants_1931 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                            "enfants"], local_var_1932)
     try:
         try:
-            local_var_1939 = ressources_menage_1912(Unit())
+            local_var_1942 = ressources_menage_1915(Unit())
         except EmptyError:
-            def local_var_1940(_: Any):
+            def local_var_1943(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=76, start_column=12,
                                                          end_line=76, end_column=29,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1942(_: Any):
-                def local_var_1944(_: Any):
+            def local_var_1945(_: Any):
+                def local_var_1947(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1946(_: Any):
+                def local_var_1949(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1944, local_var_1946)
-            local_var_1939 = handle_default([], local_var_1940,
-                                            local_var_1942)
+                return handle_default([], local_var_1947, local_var_1949)
+            local_var_1942 = handle_default([], local_var_1943,
+                                            local_var_1945)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=76, start_column=12, end_line=76, end_column=29,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    ressources_menage_1938 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                      "ressources_ménage"], local_var_1939)
+    ressources_menage_1941 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                      "ressources_ménage"], local_var_1942)
     try:
         try:
-            local_var_1949 = residence_1913(Unit())
+            local_var_1952 = residence_1916(Unit())
         except EmptyError:
-            def local_var_1950(_: Any):
+            def local_var_1953(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=77, start_column=12,
                                                          end_line=77, end_column=21,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1952(_: Any):
-                def local_var_1954(_: Any):
+            def local_var_1955(_: Any):
+                def local_var_1957(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_1956(_: Any):
+                def local_var_1959(_: Any):
                     raise EmptyError
-                return handle_default([], local_var_1954, local_var_1956)
-            local_var_1949 = handle_default([], local_var_1950,
-                                            local_var_1952)
+                return handle_default([], local_var_1957, local_var_1959)
+            local_var_1952 = handle_default([], local_var_1953,
+                                            local_var_1955)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=77, start_column=12, end_line=77, end_column=21,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    residence_1948 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                              "résidence"], local_var_1949)
+    residence_1951 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                              "résidence"], local_var_1952)
     try:
         try:
-            local_var_1959 = personne_charge_effective_permanente_est_parent_1915(
+            local_var_1962 = personne_charge_effective_permanente_est_parent_1918(
                 Unit())
         except EmptyError:
-            def local_var_1960(_: Any):
+            def local_var_1963(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=79, start_column=12,
                                                          end_line=79, end_column=59,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1962(_: Any):
-                def local_var_1964(_: Any):
+            def local_var_1965(_: Any):
+                def local_var_1967(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_1966(_: Any):
+                def local_var_1969(_: Any):
                     return False
-                return handle_default([], local_var_1964, local_var_1966)
-            local_var_1959 = handle_default([], local_var_1960,
-                                            local_var_1962)
+                return handle_default([], local_var_1967, local_var_1969)
+            local_var_1962 = handle_default([], local_var_1963,
+                                            local_var_1965)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=79, start_column=12, end_line=79, end_column=59,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    personne_charge_effective_permanente_est_parent_1958 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                                                    "personne_charge_effective_permanente_est_parent"], local_var_1959)
+    personne_charge_effective_permanente_est_parent_1961 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                                                    "personne_charge_effective_permanente_est_parent"], local_var_1962)
     try:
         try:
-            local_var_1969 = personne_charge_effective_permanente_remplit_titre__i_1916(
+            local_var_1972 = personne_charge_effective_permanente_remplit_titre__i_1919(
                 Unit())
         except EmptyError:
-            def local_var_1970(_: Any):
+            def local_var_1973(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=80, start_column=12,
                                                          end_line=80, end_column=64,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1972(_: Any):
-                def local_var_1974(_: Any):
+            def local_var_1975(_: Any):
+                def local_var_1977(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_1976(_: Any):
+                def local_var_1979(_: Any):
                     return False
-                return handle_default([], local_var_1974, local_var_1976)
-            local_var_1969 = handle_default([], local_var_1970,
-                                            local_var_1972)
+                return handle_default([], local_var_1977, local_var_1979)
+            local_var_1972 = handle_default([], local_var_1973,
+                                            local_var_1975)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=80, start_column=12, end_line=80, end_column=64,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    personne_charge_effective_permanente_remplit_titre__i_1968 = log_variable_definition(["InterfaceAllocationsFamiliales",
+    personne_charge_effective_permanente_remplit_titre__i_1971 = log_variable_definition(["InterfaceAllocationsFamiliales",
                                                                                           "personne_charge_effective_permanente_remplit_titre_I"],
-                                                                                         local_var_1969)
+                                                                                         local_var_1972)
     try:
         try:
-            local_var_1979 = avait_enfant_a_charge_avant_1er_janvier_2012_1917(
+            local_var_1982 = avait_enfant_a_charge_avant_1er_janvier_2012_1920(
                 Unit())
         except EmptyError:
-            def local_var_1980(_: Any):
+            def local_var_1983(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=81, start_column=12,
                                                          end_line=81, end_column=56,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_1982(_: Any):
-                def local_var_1984(_: Any):
+            def local_var_1985(_: Any):
+                def local_var_1987(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), True)
 
-                def local_var_1986(_: Any):
+                def local_var_1989(_: Any):
                     return False
-                return handle_default([], local_var_1984, local_var_1986)
-            local_var_1979 = handle_default([], local_var_1980,
-                                            local_var_1982)
+                return handle_default([], local_var_1987, local_var_1989)
+            local_var_1982 = handle_default([], local_var_1983,
+                                            local_var_1985)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=81, start_column=12, end_line=81, end_column=56,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    avait_enfant_a_charge_avant_1er_janvier_2012_1978 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                                                 "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_1979)
+    avait_enfant_a_charge_avant_1er_janvier_2012_1981 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                                                 "avait_enfant_à_charge_avant_1er_janvier_2012"], local_var_1982)
     try:
         try:
-            local_var_1989 = enfants_a_charge_1911(Unit())
+            local_var_1992 = enfants_a_charge_1914(Unit())
         except EmptyError:
             try:
-                def local_var_1990(_: Any):
+                def local_var_1993(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=74, start_column=12,
                                                              end_line=74, end_column=28,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_1992(_: Any):
-                    def local_var_1994(_: Any):
+                def local_var_1995(_: Any):
+                    def local_var_1997(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=112, start_column=14,
                                                                  end_line=112, end_column=30,
@@ -6818,558 +6823,558 @@ def interface_allocations_familiales(interface_allocations_familiales_in_1908: I
                                                                                "Interface du programme", "Épilogue",
                                                                                "Décrets divers"]), True)
 
-                    def local_var_1996(_: Any):
-                        def local_var_1998(enfant_1999: Any):
-                            if ((enfant_1999.d_date_de_naissance +
+                    def local_var_1999(_: Any):
+                        def local_var_2001(enfant_2002: Any):
+                            if ((enfant_2002.d_date_de_naissance +
                                 duration_of_numbers(3, 0, 0)) >=
-                                    date_courante_1918):
-                                local_var_2000 = SituationObligationScolaire(SituationObligationScolaire_Code.Avant,
+                                    date_courante_1921):
+                                local_var_2003 = SituationObligationScolaire(SituationObligationScolaire_Code.Avant,
                                                                              Unit())
                             else:
-                                if ((enfant_1999.d_date_de_naissance +
+                                if ((enfant_2002.d_date_de_naissance +
                                     duration_of_numbers(16, 0, 0)) >=
-                                        date_courante_1918):
-                                    local_var_2000 = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
+                                        date_courante_1921):
+                                    local_var_2003 = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
                                                                                  Unit())
                                 else:
-                                    local_var_2000 = SituationObligationScolaire(SituationObligationScolaire_Code.Apres,
+                                    local_var_2003 = SituationObligationScolaire(SituationObligationScolaire_Code.Apres,
                                                                                  Unit())
-                            return Enfant(identifiant=enfant_1999.d_identifiant,
-                                          obligation_scolaire=local_var_2000,
-                                          remuneration_mensuelle=enfant_1999.d_remuneration_mensuelle,
-                                          date_de_naissance=enfant_1999.d_date_de_naissance,
+                            return Enfant(identifiant=enfant_2002.d_identifiant,
+                                          obligation_scolaire=local_var_2003,
+                                          remuneration_mensuelle=enfant_2002.d_remuneration_mensuelle,
+                                          date_de_naissance=enfant_2002.d_date_de_naissance,
                                           age=year_of_date((date_of_numbers(0, 1, 1) +
-                                                            (date_courante_1918 -
-                                                             enfant_1999.d_date_de_naissance))),
-                                          prise_en_charge=enfant_1999.d_prise_en_charge,
-                                          a_deja_ouvert_droit_aux_allocations_familiales=enfant_1999.d_a_deja_ouvert_droit_aux_allocations_familiales)
-                        return list_map(local_var_1998, enfants_1928)
-                    return handle_default([], local_var_1994, local_var_1996)
-                local_var_1989 = handle_default([], local_var_1990,
-                                                local_var_1992)
+                                                            (date_courante_1921 -
+                                                             enfant_2002.d_date_de_naissance))),
+                                          prise_en_charge=enfant_2002.d_prise_en_charge,
+                                          a_deja_ouvert_droit_aux_allocations_familiales=enfant_2002.d_a_deja_ouvert_droit_aux_allocations_familiales)
+                        return list_map(local_var_2001, enfants_1931)
+                    return handle_default([], local_var_1997, local_var_1999)
+                local_var_1992 = handle_default([], local_var_1993,
+                                                local_var_1995)
             except EmptyError:
-                def local_var_2001(_: Any):
+                def local_var_2004(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_2003(_: Any):
+                def local_var_2006(_: Any):
                     raise EmptyError
-                local_var_1989 = handle_default([], local_var_2001,
-                                                local_var_2003)
+                local_var_1992 = handle_default([], local_var_2004,
+                                                local_var_2006)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=74, start_column=12, end_line=74, end_column=28,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    enfants_a_charge_1988 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                     "enfants_à_charge"], local_var_1989)
+    enfants_a_charge_1991 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                     "enfants_à_charge"], local_var_1992)
 
-    def local_var_2006(_: Unit):
+    def local_var_2009(_: Unit):
         try:
-            def local_var_2009(_: Any):
+            def local_var_2012(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2011(_: Any):
-                def local_var_2013(_: Any):
+            def local_var_2014(_: Any):
+                def local_var_2016(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=90, start_column=20,
                                                              end_line=90, end_column=67,
                                                              law_headings=["Interface du programme", "Épilogue",
-                                                                           "Décrets divers"]), personne_charge_effective_permanente_est_parent_1958)
+                                                                           "Décrets divers"]), personne_charge_effective_permanente_est_parent_1961)
 
-                def local_var_2015(_: Any):
+                def local_var_2018(_: Any):
                     return True
-                return handle_default([], local_var_2013, local_var_2015)
-            local_var_2008 = handle_default([], local_var_2009,
-                                            local_var_2011)
+                return handle_default([], local_var_2016, local_var_2018)
+            local_var_2011 = handle_default([], local_var_2012,
+                                            local_var_2014)
         except EmptyError:
-            def local_var_2017(_: Any):
+            def local_var_2020(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), True)
 
-            def local_var_2019(_: Any):
+            def local_var_2022(_: Any):
                 return False
-            local_var_2008 = handle_default([], local_var_2017,
-                                            local_var_2019)
+            local_var_2011 = handle_default([], local_var_2020,
+                                            local_var_2022)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.personne_charge_effective_permanente_est_parent"],
-                                       local_var_2008)
-    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2005 = local_var_2006
+                                       local_var_2011)
+    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2008 = local_var_2009
 
-    def local_var_2022(_: Unit):
+    def local_var_2025(_: Unit):
         try:
-            def local_var_2025(_: Any):
+            def local_var_2028(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2027(_: Any):
-                def local_var_2029(_: Any):
+            def local_var_2030(_: Any):
+                def local_var_2032(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=93, start_column=20,
                                                              end_line=93, end_column=72,
                                                              law_headings=["Interface du programme", "Épilogue",
-                                                                           "Décrets divers"]), personne_charge_effective_permanente_remplit_titre__i_1968)
+                                                                           "Décrets divers"]), personne_charge_effective_permanente_remplit_titre__i_1971)
 
-                def local_var_2031(_: Any):
+                def local_var_2034(_: Any):
                     return True
-                return handle_default([], local_var_2029, local_var_2031)
-            local_var_2024 = handle_default([], local_var_2025,
-                                            local_var_2027)
+                return handle_default([], local_var_2032, local_var_2034)
+            local_var_2027 = handle_default([], local_var_2028,
+                                            local_var_2030)
         except EmptyError:
-            def local_var_2033(_: Any):
+            def local_var_2036(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), True)
 
-            def local_var_2035(_: Any):
+            def local_var_2038(_: Any):
                 return False
-            local_var_2024 = handle_default([], local_var_2033,
-                                            local_var_2035)
+            local_var_2027 = handle_default([], local_var_2036,
+                                            local_var_2038)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I"],
-                                       local_var_2024)
-    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2021 = local_var_2022
+                                       local_var_2027)
+    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2024 = local_var_2025
 
-    def local_var_2038(_: Unit):
+    def local_var_2041(_: Unit):
         try:
-            def local_var_2041(_: Any):
+            def local_var_2044(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2043(_: Any):
-                def local_var_2045(_: Any):
+            def local_var_2046(_: Any):
+                def local_var_2048(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=86, start_column=14,
                                                              end_line=86, end_column=54,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_2047(_: Any):
-                    return ressources_menage_1938
-                return handle_default([], local_var_2045, local_var_2047)
-            local_var_2040 = handle_default([], local_var_2041,
-                                            local_var_2043)
+                def local_var_2050(_: Any):
+                    return ressources_menage_1941
+                return handle_default([], local_var_2048, local_var_2050)
+            local_var_2043 = handle_default([], local_var_2044,
+                                            local_var_2046)
         except EmptyError:
-            def local_var_2049(_: Any):
+            def local_var_2052(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_2051(_: Any):
+            def local_var_2054(_: Any):
                 raise EmptyError
-            local_var_2040 = handle_default([], local_var_2049,
-                                            local_var_2051)
+            local_var_2043 = handle_default([], local_var_2052,
+                                            local_var_2054)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.ressources_ménage"], local_var_2040)
-    allocations_familiales_dot_ressources_menage_2037 = local_var_2038
+                                        "allocations_familiales.ressources_ménage"], local_var_2043)
+    allocations_familiales_dot_ressources_menage_2040 = local_var_2041
 
-    def local_var_2054(_: Unit):
+    def local_var_2057(_: Unit):
         try:
-            def local_var_2057(_: Any):
+            def local_var_2060(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2059(_: Any):
-                def local_var_2061(_: Any):
+            def local_var_2062(_: Any):
+                def local_var_2064(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=87, start_column=14,
                                                              end_line=87, end_column=46,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_2063(_: Any):
-                    return residence_1948
-                return handle_default([], local_var_2061, local_var_2063)
-            local_var_2056 = handle_default([], local_var_2057,
-                                            local_var_2059)
+                def local_var_2066(_: Any):
+                    return residence_1951
+                return handle_default([], local_var_2064, local_var_2066)
+            local_var_2059 = handle_default([], local_var_2060,
+                                            local_var_2062)
         except EmptyError:
-            def local_var_2065(_: Any):
+            def local_var_2068(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_2067(_: Any):
+            def local_var_2070(_: Any):
                 raise EmptyError
-            local_var_2056 = handle_default([], local_var_2065,
-                                            local_var_2067)
+            local_var_2059 = handle_default([], local_var_2068,
+                                            local_var_2070)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.résidence"], local_var_2056)
-    allocations_familiales_dot_residence_2053 = local_var_2054
+                                        "allocations_familiales.résidence"], local_var_2059)
+    allocations_familiales_dot_residence_2056 = local_var_2057
 
-    def local_var_2070(_: Unit):
+    def local_var_2073(_: Unit):
         try:
-            def local_var_2073(_: Any):
+            def local_var_2076(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2075(_: Any):
-                def local_var_2077(_: Any):
+            def local_var_2078(_: Any):
+                def local_var_2080(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=84, start_column=14,
                                                              end_line=84, end_column=50,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_2079(_: Any):
-                    return date_courante_1918
-                return handle_default([], local_var_2077, local_var_2079)
-            local_var_2072 = handle_default([], local_var_2073,
-                                            local_var_2075)
+                def local_var_2082(_: Any):
+                    return date_courante_1921
+                return handle_default([], local_var_2080, local_var_2082)
+            local_var_2075 = handle_default([], local_var_2076,
+                                            local_var_2078)
         except EmptyError:
-            def local_var_2081(_: Any):
+            def local_var_2084(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_2083(_: Any):
+            def local_var_2086(_: Any):
                 raise EmptyError
-            local_var_2072 = handle_default([], local_var_2081,
-                                            local_var_2083)
+            local_var_2075 = handle_default([], local_var_2084,
+                                            local_var_2086)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.date_courante"], local_var_2072)
-    allocations_familiales_dot_date_courante_2069 = local_var_2070
+                                        "allocations_familiales.date_courante"], local_var_2075)
+    allocations_familiales_dot_date_courante_2072 = local_var_2073
 
-    def local_var_2086(_: Unit):
+    def local_var_2089(_: Unit):
         try:
-            def local_var_2089(_: Any):
+            def local_var_2092(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2091(_: Any):
-                def local_var_2093(_: Any):
+            def local_var_2094(_: Any):
+                def local_var_2096(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=85, start_column=14,
                                                              end_line=85, end_column=53,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_2095(_: Any):
-                    return enfants_a_charge_1988
-                return handle_default([], local_var_2093, local_var_2095)
-            local_var_2088 = handle_default([], local_var_2089,
-                                            local_var_2091)
+                def local_var_2098(_: Any):
+                    return enfants_a_charge_1991
+                return handle_default([], local_var_2096, local_var_2098)
+            local_var_2091 = handle_default([], local_var_2092,
+                                            local_var_2094)
         except EmptyError:
-            def local_var_2097(_: Any):
+            def local_var_2100(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), False)
 
-            def local_var_2099(_: Any):
+            def local_var_2102(_: Any):
                 raise EmptyError
-            local_var_2088 = handle_default([], local_var_2097,
-                                            local_var_2099)
+            local_var_2091 = handle_default([], local_var_2100,
+                                            local_var_2102)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
-                                        "allocations_familiales.enfants_à_charge"], local_var_2088)
-    allocations_familiales_dot_enfants_a_charge_2085 = local_var_2086
+                                        "allocations_familiales.enfants_à_charge"], local_var_2091)
+    allocations_familiales_dot_enfants_a_charge_2088 = local_var_2089
 
-    def local_var_2102(_: Unit):
+    def local_var_2105(_: Unit):
         try:
-            def local_var_2105(_: Any):
+            def local_var_2108(_: Any):
                 return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                          start_line=75, start_column=12,
                                                          end_line=75, end_column=34,
                                                          law_headings=["Interface du programme", "Épilogue",
                                                                        "Décrets divers"]), True)
 
-            def local_var_2107(_: Any):
-                def local_var_2109(_: Any):
+            def local_var_2110(_: Any):
+                def local_var_2112(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=96, start_column=20,
                                                              end_line=96, end_column=64,
                                                              law_headings=["Interface du programme", "Épilogue",
-                                                                           "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_1978)
+                                                                           "Décrets divers"]), avait_enfant_a_charge_avant_1er_janvier_2012_1981)
 
-                def local_var_2111(_: Any):
+                def local_var_2114(_: Any):
                     return True
-                return handle_default([], local_var_2109, local_var_2111)
-            local_var_2104 = handle_default([], local_var_2105,
-                                            local_var_2107)
+                return handle_default([], local_var_2112, local_var_2114)
+            local_var_2107 = handle_default([], local_var_2108,
+                                            local_var_2110)
         except EmptyError:
-            def local_var_2113(_: Any):
+            def local_var_2116(_: Any):
                 return log_decision_taken(SourcePosition(filename="",
                                                          start_line=0, start_column=1, end_line=0, end_column=1,
                                                          law_headings=[]), True)
 
-            def local_var_2115(_: Any):
+            def local_var_2118(_: Any):
                 return False
-            local_var_2104 = handle_default([], local_var_2113,
-                                            local_var_2115)
+            local_var_2107 = handle_default([], local_var_2116,
+                                            local_var_2118)
         return log_variable_definition(["InterfaceAllocationsFamiliales",
                                         "allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012"],
-                                       local_var_2104)
-    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2101 = local_var_2102
+                                       local_var_2107)
+    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2104 = local_var_2105
 
-    def local_var_2118(_: Unit):
+    def local_var_2121(_: Unit):
         raise EmptyError
 
-    def local_var_2120(_: Unit):
+    def local_var_2123(_: Unit):
         raise EmptyError
 
-    def local_var_2122(_: Unit):
+    def local_var_2125(_: Unit):
         raise EmptyError
 
-    def local_var_2124(_: Unit):
+    def local_var_2127(_: Unit):
         raise EmptyError
 
-    def local_var_2126(_: Unit):
+    def local_var_2129(_: Unit):
         raise EmptyError
 
-    def local_var_2128(_: Unit):
+    def local_var_2131(_: Unit):
         raise EmptyError
 
-    def local_var_2130(_: Unit):
+    def local_var_2133(_: Unit):
         raise EmptyError
 
-    def local_var_2132(_: Unit):
+    def local_var_2135(_: Unit):
         raise EmptyError
 
-    def local_var_2134(_: Unit):
+    def local_var_2137(_: Unit):
         raise EmptyError
 
-    def local_var_2136(_: Unit):
+    def local_var_2139(_: Unit):
         raise EmptyError
 
-    def local_var_2138(_: Unit):
+    def local_var_2141(_: Unit):
         raise EmptyError
 
-    def local_var_2140(_: Unit):
+    def local_var_2143(_: Unit):
         raise EmptyError
 
-    def local_var_2142(_: Unit):
+    def local_var_2145(_: Unit):
         raise EmptyError
 
-    def local_var_2144(_: Unit):
+    def local_var_2147(_: Unit):
         raise EmptyError
 
-    def local_var_2146(_: Unit):
+    def local_var_2149(_: Unit):
         raise EmptyError
 
-    def local_var_2148(_: Unit):
+    def local_var_2151(_: Unit):
         raise EmptyError
 
-    def local_var_2150(_: Unit):
+    def local_var_2153(_: Unit):
         raise EmptyError
 
-    def local_var_2152(_: Unit):
+    def local_var_2155(_: Unit):
         raise EmptyError
 
-    def local_var_2154(_: Unit):
+    def local_var_2157(_: Unit):
         raise EmptyError
 
-    def local_var_2156(_: Unit):
+    def local_var_2159(_: Unit):
         raise EmptyError
 
-    def local_var_2158(_: Unit):
+    def local_var_2161(_: Unit):
         raise EmptyError
 
-    def local_var_2160(_: Unit):
+    def local_var_2163(_: Unit):
         raise EmptyError
 
-    def local_var_2162(_: Unit):
+    def local_var_2165(_: Unit):
         raise EmptyError
 
-    def local_var_2164(_: Unit):
+    def local_var_2167(_: Unit):
         raise EmptyError
 
-    def local_var_2166(_: Unit):
+    def local_var_2169(_: Unit):
         raise EmptyError
 
-    def local_var_2168(_: Unit):
+    def local_var_2171(_: Unit):
         raise EmptyError
 
-    def local_var_2170(_: Unit):
+    def local_var_2173(_: Unit):
         raise EmptyError
 
-    def local_var_2172(_: Unit):
+    def local_var_2175(_: Unit):
         raise EmptyError
 
-    def local_var_2174(_: Unit):
+    def local_var_2177(_: Unit):
         raise EmptyError
 
-    def local_var_2176(_: Unit):
+    def local_var_2179(_: Unit):
         raise EmptyError
 
-    def local_var_2178(_: Unit):
+    def local_var_2181(_: Unit):
         raise EmptyError
 
-    def local_var_2180(_: Unit):
+    def local_var_2183(_: Unit):
         raise EmptyError
 
-    def local_var_2182(_: Unit):
+    def local_var_2185(_: Unit):
         raise EmptyError
 
-    def local_var_2184(_: Unit):
+    def local_var_2187(_: Unit):
         raise EmptyError
 
-    def local_var_2186(_: Unit):
+    def local_var_2189(_: Unit):
         raise EmptyError
 
-    def local_var_2188(_: Unit):
+    def local_var_2191(_: Unit):
         raise EmptyError
 
-    def local_var_2190(_: Unit):
+    def local_var_2193(_: Unit):
         raise EmptyError
-    result_2117 = log_end_call(["InterfaceAllocationsFamiliales",
+    result_2120 = log_end_call(["InterfaceAllocationsFamiliales",
                                 "allocations_familiales", "AllocationsFamiliales"],
                                log_begin_call(["InterfaceAllocationsFamiliales",
                                                "allocations_familiales", "AllocationsFamiliales"],
                                               allocations_familiales,
-                                              AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in=allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2005,
-                                                                      personne_charge_effective_permanente_remplit_titre_I_in=allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2021,
-                                                                      ressources_menage_in=allocations_familiales_dot_ressources_menage_2037,
-                                                                      residence_in=allocations_familiales_dot_residence_2053,
-                                                                      date_courante_in=allocations_familiales_dot_date_courante_2069,
-                                                                      enfants_a_charge_in=allocations_familiales_dot_enfants_a_charge_2085,
-                                                                      enfants_a_charge_droit_ouvert_prestation_familiale_in=local_var_2118,
-                                                                      prise_en_compte_in=local_var_2120, versement_in=local_var_2122,
-                                                                      montant_verse_in=local_var_2124,
-                                                                      droit_ouvert_base_in=local_var_2126,
-                                                                      montant_initial_base_in=local_var_2128,
-                                                                      montant_initial_base_premier_enfant_in=local_var_2130,
-                                                                      montant_initial_base_deuxieme_enfant_in=local_var_2132,
-                                                                      montant_initial_base_troisieme_enfant_et_plus_in=local_var_2134,
-                                                                      rapport_enfants_total_moyen_in=local_var_2136,
-                                                                      nombre_moyen_enfants_in=local_var_2138,
-                                                                      nombre_total_enfants_in=local_var_2140,
-                                                                      montant_avec_garde_alternee_base_in=local_var_2142,
-                                                                      montant_verse_base_in=local_var_2144,
-                                                                      avait_enfant_a_charge_avant_1er_janvier_2012_in=allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2101,
-                                                                      montant_initial_base_premier_enfant_mayotte_in=local_var_2146,
-                                                                      montant_initial_base_deuxieme_enfant_mayotte_in=local_var_2148,
-                                                                      montant_initial_base_troisieme_enfant_mayotte_in=local_var_2150,
-                                                                      montant_initial_base_quatrieme_enfant_et_plus_mayotte_in=local_var_2152,
-                                                                      droit_ouvert_forfaitaire_in=local_var_2154,
-                                                                      montant_verse_forfaitaire_par_enfant_in=local_var_2156,
-                                                                      montant_verse_forfaitaire_in=local_var_2158,
-                                                                      droit_ouvert_majoration_in=local_var_2160,
-                                                                      montant_initial_metropole_majoration_in=local_var_2162,
-                                                                      montant_initial_majoration_in=local_var_2164,
-                                                                      montant_avec_garde_alternee_majoration_in=local_var_2166,
-                                                                      montant_verse_majoration_in=local_var_2168,
-                                                                      droit_ouvert_complement_in=local_var_2170,
-                                                                      montant_base_complement_pour_base_et_majoration_in=local_var_2172,
-                                                                      complement_degressif_in=local_var_2174,
-                                                                      montant_verse_complement_pour_base_et_majoration_in=local_var_2176,
-                                                                      montant_verse_complement_pour_forfaitaire_in=local_var_2178,
-                                                                      nombre_enfants_l521_1_in=local_var_2180,
-                                                                      age_minimum_alinea_1_l521_3_in=local_var_2182,
-                                                                      nombre_enfants_alinea_2_l521_3_in=local_var_2184,
-                                                                      est_enfant_le_plus_age_in=local_var_2186,
-                                                                      plafond_I_d521_3_in=local_var_2188,
-                                                                      plafond_II_d521_3_in=local_var_2190)))
-    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2192 = result_2117.personne_charge_effective_permanente_est_parent_out
-    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2193 = result_2117.personne_charge_effective_permanente_remplit_titre_I_out
-    allocations_familiales_dot_ressources_menage_2194 = result_2117.ressources_menage_out
-    allocations_familiales_dot_residence_2195 = result_2117.residence_out
-    allocations_familiales_dot_date_courante_2196 = result_2117.date_courante_out
-    allocations_familiales_dot_enfants_a_charge_2197 = result_2117.enfants_a_charge_out
-    allocations_familiales_dot_enfants_a_charge_droit_ouvert_prestation_familiale_2198 = result_2117.enfants_a_charge_droit_ouvert_prestation_familiale_out
-    allocations_familiales_dot_prise_en_compte_2199 = result_2117.prise_en_compte_out
-    allocations_familiales_dot_versement_2200 = result_2117.versement_out
-    allocations_familiales_dot_montant_verse_2201 = result_2117.montant_verse_out
-    allocations_familiales_dot_droit_ouvert_base_2202 = result_2117.droit_ouvert_base_out
-    allocations_familiales_dot_montant_initial_base_2203 = result_2117.montant_initial_base_out
-    allocations_familiales_dot_montant_initial_base_premier_enfant_2204 = result_2117.montant_initial_base_premier_enfant_out
-    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_2205 = result_2117.montant_initial_base_deuxieme_enfant_out
-    allocations_familiales_dot_montant_initial_base_troisieme_enfant_et_plus_2206 = result_2117.montant_initial_base_troisieme_enfant_et_plus_out
-    allocations_familiales_dot_rapport_enfants_total_moyen_2207 = result_2117.rapport_enfants_total_moyen_out
-    allocations_familiales_dot_nombre_moyen_enfants_2208 = result_2117.nombre_moyen_enfants_out
-    allocations_familiales_dot_nombre_total_enfants_2209 = result_2117.nombre_total_enfants_out
-    allocations_familiales_dot_montant_avec_garde_alternee_base_2210 = result_2117.montant_avec_garde_alternee_base_out
-    allocations_familiales_dot_montant_verse_base_2211 = result_2117.montant_verse_base_out
-    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2212 = result_2117.avait_enfant_a_charge_avant_1er_janvier_2012_out
-    allocations_familiales_dot_montant_initial_base_premier_enfant_mayotte_2213 = result_2117.montant_initial_base_premier_enfant_mayotte_out
-    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_mayotte_2214 = result_2117.montant_initial_base_deuxieme_enfant_mayotte_out
-    allocations_familiales_dot_montant_initial_base_troisieme_enfant_mayotte_2215 = result_2117.montant_initial_base_troisieme_enfant_mayotte_out
-    allocations_familiales_dot_montant_initial_base_quatrieme_enfant_et_plus_mayotte_2216 = result_2117.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out
-    allocations_familiales_dot_droit_ouvert_forfaitaire_2217 = result_2117.droit_ouvert_forfaitaire_out
-    allocations_familiales_dot_montant_verse_forfaitaire_par_enfant_2218 = result_2117.montant_verse_forfaitaire_par_enfant_out
-    allocations_familiales_dot_montant_verse_forfaitaire_2219 = result_2117.montant_verse_forfaitaire_out
-    allocations_familiales_dot_droit_ouvert_majoration_2220 = result_2117.droit_ouvert_majoration_out
-    allocations_familiales_dot_montant_initial_metropole_majoration_2221 = result_2117.montant_initial_metropole_majoration_out
-    allocations_familiales_dot_montant_initial_majoration_2222 = result_2117.montant_initial_majoration_out
-    allocations_familiales_dot_montant_avec_garde_alternee_majoration_2223 = result_2117.montant_avec_garde_alternee_majoration_out
-    allocations_familiales_dot_montant_verse_majoration_2224 = result_2117.montant_verse_majoration_out
-    allocations_familiales_dot_droit_ouvert_complement_2225 = result_2117.droit_ouvert_complement_out
-    allocations_familiales_dot_montant_base_complement_pour_base_et_majoration_2226 = result_2117.montant_base_complement_pour_base_et_majoration_out
-    allocations_familiales_dot_complement_degressif_2227 = result_2117.complement_degressif_out
-    allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_2228 = result_2117.montant_verse_complement_pour_base_et_majoration_out
-    allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_2229 = result_2117.montant_verse_complement_pour_forfaitaire_out
-    allocations_familiales_dot_nombre_enfants_l521_1_2230 = result_2117.nombre_enfants_l521_1_out
-    allocations_familiales_dot_age_minimum_alinea_1_l521_3_2231 = result_2117.age_minimum_alinea_1_l521_3_out
-    allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_2232 = result_2117.nombre_enfants_alinea_2_l521_3_out
-    allocations_familiales_dot_est_enfant_le_plus_age_2233 = result_2117.est_enfant_le_plus_age_out
-    allocations_familiales_dot_plafond__i_d521_3_2234 = result_2117.plafond_I_d521_3_out
-    allocations_familiales_dot_plafond__i_i_d521_3_2235 = result_2117.plafond_II_d521_3_out
+                                              AllocationsFamilialesIn(personne_charge_effective_permanente_est_parent_in=allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2008,
+                                                                      personne_charge_effective_permanente_remplit_titre_I_in=allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2024,
+                                                                      ressources_menage_in=allocations_familiales_dot_ressources_menage_2040,
+                                                                      residence_in=allocations_familiales_dot_residence_2056,
+                                                                      date_courante_in=allocations_familiales_dot_date_courante_2072,
+                                                                      enfants_a_charge_in=allocations_familiales_dot_enfants_a_charge_2088,
+                                                                      enfants_a_charge_droit_ouvert_prestation_familiale_in=local_var_2121,
+                                                                      prise_en_compte_in=local_var_2123, versement_in=local_var_2125,
+                                                                      montant_verse_in=local_var_2127,
+                                                                      droit_ouvert_base_in=local_var_2129,
+                                                                      montant_initial_base_in=local_var_2131,
+                                                                      montant_initial_base_premier_enfant_in=local_var_2133,
+                                                                      montant_initial_base_deuxieme_enfant_in=local_var_2135,
+                                                                      montant_initial_base_troisieme_enfant_et_plus_in=local_var_2137,
+                                                                      rapport_enfants_total_moyen_in=local_var_2139,
+                                                                      nombre_moyen_enfants_in=local_var_2141,
+                                                                      nombre_total_enfants_in=local_var_2143,
+                                                                      montant_avec_garde_alternee_base_in=local_var_2145,
+                                                                      montant_verse_base_in=local_var_2147,
+                                                                      avait_enfant_a_charge_avant_1er_janvier_2012_in=allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2104,
+                                                                      montant_initial_base_premier_enfant_mayotte_in=local_var_2149,
+                                                                      montant_initial_base_deuxieme_enfant_mayotte_in=local_var_2151,
+                                                                      montant_initial_base_troisieme_enfant_mayotte_in=local_var_2153,
+                                                                      montant_initial_base_quatrieme_enfant_et_plus_mayotte_in=local_var_2155,
+                                                                      droit_ouvert_forfaitaire_in=local_var_2157,
+                                                                      montant_verse_forfaitaire_par_enfant_in=local_var_2159,
+                                                                      montant_verse_forfaitaire_in=local_var_2161,
+                                                                      droit_ouvert_majoration_in=local_var_2163,
+                                                                      montant_initial_metropole_majoration_in=local_var_2165,
+                                                                      montant_initial_majoration_in=local_var_2167,
+                                                                      montant_avec_garde_alternee_majoration_in=local_var_2169,
+                                                                      montant_verse_majoration_in=local_var_2171,
+                                                                      droit_ouvert_complement_in=local_var_2173,
+                                                                      montant_base_complement_pour_base_et_majoration_in=local_var_2175,
+                                                                      complement_degressif_in=local_var_2177,
+                                                                      montant_verse_complement_pour_base_et_majoration_in=local_var_2179,
+                                                                      montant_verse_complement_pour_forfaitaire_in=local_var_2181,
+                                                                      nombre_enfants_l521_1_in=local_var_2183,
+                                                                      age_minimum_alinea_1_l521_3_in=local_var_2185,
+                                                                      nombre_enfants_alinea_2_l521_3_in=local_var_2187,
+                                                                      est_enfant_le_plus_age_in=local_var_2189,
+                                                                      plafond_I_d521_3_in=local_var_2191,
+                                                                      plafond_II_d521_3_in=local_var_2193)))
+    allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2195 = result_2120.personne_charge_effective_permanente_est_parent_out
+    allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2196 = result_2120.personne_charge_effective_permanente_remplit_titre_I_out
+    allocations_familiales_dot_ressources_menage_2197 = result_2120.ressources_menage_out
+    allocations_familiales_dot_residence_2198 = result_2120.residence_out
+    allocations_familiales_dot_date_courante_2199 = result_2120.date_courante_out
+    allocations_familiales_dot_enfants_a_charge_2200 = result_2120.enfants_a_charge_out
+    allocations_familiales_dot_enfants_a_charge_droit_ouvert_prestation_familiale_2201 = result_2120.enfants_a_charge_droit_ouvert_prestation_familiale_out
+    allocations_familiales_dot_prise_en_compte_2202 = result_2120.prise_en_compte_out
+    allocations_familiales_dot_versement_2203 = result_2120.versement_out
+    allocations_familiales_dot_montant_verse_2204 = result_2120.montant_verse_out
+    allocations_familiales_dot_droit_ouvert_base_2205 = result_2120.droit_ouvert_base_out
+    allocations_familiales_dot_montant_initial_base_2206 = result_2120.montant_initial_base_out
+    allocations_familiales_dot_montant_initial_base_premier_enfant_2207 = result_2120.montant_initial_base_premier_enfant_out
+    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_2208 = result_2120.montant_initial_base_deuxieme_enfant_out
+    allocations_familiales_dot_montant_initial_base_troisieme_enfant_et_plus_2209 = result_2120.montant_initial_base_troisieme_enfant_et_plus_out
+    allocations_familiales_dot_rapport_enfants_total_moyen_2210 = result_2120.rapport_enfants_total_moyen_out
+    allocations_familiales_dot_nombre_moyen_enfants_2211 = result_2120.nombre_moyen_enfants_out
+    allocations_familiales_dot_nombre_total_enfants_2212 = result_2120.nombre_total_enfants_out
+    allocations_familiales_dot_montant_avec_garde_alternee_base_2213 = result_2120.montant_avec_garde_alternee_base_out
+    allocations_familiales_dot_montant_verse_base_2214 = result_2120.montant_verse_base_out
+    allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2215 = result_2120.avait_enfant_a_charge_avant_1er_janvier_2012_out
+    allocations_familiales_dot_montant_initial_base_premier_enfant_mayotte_2216 = result_2120.montant_initial_base_premier_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_deuxieme_enfant_mayotte_2217 = result_2120.montant_initial_base_deuxieme_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_troisieme_enfant_mayotte_2218 = result_2120.montant_initial_base_troisieme_enfant_mayotte_out
+    allocations_familiales_dot_montant_initial_base_quatrieme_enfant_et_plus_mayotte_2219 = result_2120.montant_initial_base_quatrieme_enfant_et_plus_mayotte_out
+    allocations_familiales_dot_droit_ouvert_forfaitaire_2220 = result_2120.droit_ouvert_forfaitaire_out
+    allocations_familiales_dot_montant_verse_forfaitaire_par_enfant_2221 = result_2120.montant_verse_forfaitaire_par_enfant_out
+    allocations_familiales_dot_montant_verse_forfaitaire_2222 = result_2120.montant_verse_forfaitaire_out
+    allocations_familiales_dot_droit_ouvert_majoration_2223 = result_2120.droit_ouvert_majoration_out
+    allocations_familiales_dot_montant_initial_metropole_majoration_2224 = result_2120.montant_initial_metropole_majoration_out
+    allocations_familiales_dot_montant_initial_majoration_2225 = result_2120.montant_initial_majoration_out
+    allocations_familiales_dot_montant_avec_garde_alternee_majoration_2226 = result_2120.montant_avec_garde_alternee_majoration_out
+    allocations_familiales_dot_montant_verse_majoration_2227 = result_2120.montant_verse_majoration_out
+    allocations_familiales_dot_droit_ouvert_complement_2228 = result_2120.droit_ouvert_complement_out
+    allocations_familiales_dot_montant_base_complement_pour_base_et_majoration_2229 = result_2120.montant_base_complement_pour_base_et_majoration_out
+    allocations_familiales_dot_complement_degressif_2230 = result_2120.complement_degressif_out
+    allocations_familiales_dot_montant_verse_complement_pour_base_et_majoration_2231 = result_2120.montant_verse_complement_pour_base_et_majoration_out
+    allocations_familiales_dot_montant_verse_complement_pour_forfaitaire_2232 = result_2120.montant_verse_complement_pour_forfaitaire_out
+    allocations_familiales_dot_nombre_enfants_l521_1_2233 = result_2120.nombre_enfants_l521_1_out
+    allocations_familiales_dot_age_minimum_alinea_1_l521_3_2234 = result_2120.age_minimum_alinea_1_l521_3_out
+    allocations_familiales_dot_nombre_enfants_alinea_2_l521_3_2235 = result_2120.nombre_enfants_alinea_2_l521_3_out
+    allocations_familiales_dot_est_enfant_le_plus_age_2236 = result_2120.est_enfant_le_plus_age_out
+    allocations_familiales_dot_plafond__i_d521_3_2237 = result_2120.plafond_I_d521_3_out
+    allocations_familiales_dot_plafond__i_i_d521_3_2238 = result_2120.plafond_II_d521_3_out
     try:
         try:
-            local_var_2237 = montant_verse_1914(Unit())
+            local_var_2240 = montant_verse_1917(Unit())
         except EmptyError:
             try:
-                def local_var_2238(_: Any):
+                def local_var_2241(_: Any):
                     return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                              start_line=78, start_column=12,
                                                              end_line=78, end_column=25,
                                                              law_headings=["Interface du programme", "Épilogue",
                                                                            "Décrets divers"]), True)
 
-                def local_var_2240(_: Any):
-                    def local_var_2242(_: Any):
+                def local_var_2243(_: Any):
+                    def local_var_2245(_: Any):
                         return log_decision_taken(SourcePosition(filename="./epilogue.catala_fr",
                                                                  start_line=88, start_column=14,
                                                                  end_line=88, end_column=27,
                                                                  law_headings=["Interface du programme",
                                                                                "Épilogue", "Décrets divers"]), True)
 
-                    def local_var_2244(_: Any):
-                        return allocations_familiales_dot_montant_verse_2201
-                    return handle_default([], local_var_2242, local_var_2244)
-                local_var_2237 = handle_default([], local_var_2238,
-                                                local_var_2240)
+                    def local_var_2247(_: Any):
+                        return allocations_familiales_dot_montant_verse_2204
+                    return handle_default([], local_var_2245, local_var_2247)
+                local_var_2240 = handle_default([], local_var_2241,
+                                                local_var_2243)
             except EmptyError:
-                def local_var_2246(_: Any):
+                def local_var_2249(_: Any):
                     return log_decision_taken(SourcePosition(filename="",
                                                              start_line=0, start_column=1,
                                                              end_line=0, end_column=1, law_headings=[]), False)
 
-                def local_var_2248(_: Any):
+                def local_var_2251(_: Any):
                     raise EmptyError
-                local_var_2237 = handle_default([], local_var_2246,
-                                                local_var_2248)
+                local_var_2240 = handle_default([], local_var_2249,
+                                                local_var_2251)
     except EmptyError:
         raise NoValueProvided(SourcePosition(filename="./epilogue.catala_fr",
                                              start_line=78, start_column=12, end_line=78, end_column=25,
                                              law_headings=["Interface du programme", "Épilogue",
                                                            "Décrets divers"]))
-    montant_verse_2236 = log_variable_definition(["InterfaceAllocationsFamiliales",
-                                                  "montant_versé"], local_var_2237)
-    return InterfaceAllocationsFamilialesOut(date_courante_out=date_courante_1918,
-                                             enfants_out=enfants_1928,
-                                             enfants_a_charge_out=enfants_a_charge_1988,
-                                             ressources_menage_out=ressources_menage_1938,
-                                             residence_out=residence_1948,
-                                             montant_verse_out=montant_verse_2236,
-                                             personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_1958,
-                                             personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_1968,
-                                             avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_1978)
+    montant_verse_2239 = log_variable_definition(["InterfaceAllocationsFamiliales",
+                                                  "montant_versé"], local_var_2240)
+    return InterfaceAllocationsFamilialesOut(date_courante_out=date_courante_1921,
+                                             enfants_out=enfants_1931,
+                                             enfants_a_charge_out=enfants_a_charge_1991,
+                                             ressources_menage_out=ressources_menage_1941,
+                                             residence_out=residence_1951,
+                                             montant_verse_out=montant_verse_2239,
+                                             personne_charge_effective_permanente_est_parent_out=personne_charge_effective_permanente_est_parent_1961,
+                                             personne_charge_effective_permanente_remplit_titre_I_out=personne_charge_effective_permanente_remplit_titre__i_1971,
+                                             avait_enfant_a_charge_avant_1er_janvier_2012_out=avait_enfant_a_charge_avant_1er_janvier_2012_1981)
