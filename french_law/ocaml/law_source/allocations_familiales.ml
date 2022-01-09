@@ -1077,12 +1077,8 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
                        }
                        true)
                    (fun (_ : _) ->
-                     let predicate_ : _ =
-                      fun (potentiel_plus_age_ : _) -> potentiel_plus_age_.age
-                     in
                      Array.fold_left
-                       (fun (acc_ : _) (item_ : _) ->
-                         if predicate_ acc_ >! predicate_ item_ then acc_ else item_)
+                       (fun (acc_ : _) (item_ : _) -> if acc_.age >! item_.age then acc_ else item_)
                        {
                          identifiant = ~-!(integer_of_string "1");
                          obligation_scolaire = Pendant ();

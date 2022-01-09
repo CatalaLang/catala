@@ -111,7 +111,7 @@ let generate_verification_conditions (p : program) : expr Pos.marked list =
                 let e = Bindlib.unbox s_let.scope_let_expr in
                 let vc = generate_vc_must_not_return_empty ctx e in
                 let vc =
-                  if !Cli.optimize_flag then Optimizations.optimize_expr p.decl_ctx vc else vc
+                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc) else vc
                 in
                 (* TODO: drop logs for Aymeric *)
                 (Pos.same_pos_as (Pos.unmark vc) e :: acc, ctx)
