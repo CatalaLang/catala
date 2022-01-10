@@ -90,10 +90,10 @@ let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
            (Format.asprintf "%a" (format_typ ctx) t2))
     in
     Errors.raise_multispanned_error
-      (Format.asprintf "Error during typechecking, incompatible types:\n%s %s\n%s %s"
-         (Cli.print_with_style [ ANSITerminal.blue; ANSITerminal.Bold ] "-->")
+      (Format.asprintf "Error during typechecking, incompatible types:\n%a %s\n%a %s"
+         (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ]) "-->"
          t1_s
-         (Cli.print_with_style [ ANSITerminal.blue; ANSITerminal.Bold ] "-->")
+         (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ]) "-->"
          t2_s)
       [
         (Some (Format.asprintf "Type %s coming from expression:" t1_s), t1_pos);
