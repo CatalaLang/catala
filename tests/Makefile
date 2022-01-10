@@ -15,10 +15,16 @@ RESET := $(shell tput -Txterm sgr0)
 
 CATALA_OPTS?=""
 
+CLERK_OPTS?=
+
 CLERK=../_build/default/build_system/clerk.exe --exe "../_build/default/compiler/catala.exe" \
-	--catala-opts=$(CATALA_OPTS) Test
+	$(CLERK_OPTS) --catala-opts=$(CATALA_OPTS) test
 
 pass_tests: $(wildcard */*/*.catala_*)
+
+reset_tests: CLERK_OPTS+=--reset
+reset_tests: $(wildcard */*/*.catala_*)
+
 
 # Forces all the tests to be redone
 .FORCE:

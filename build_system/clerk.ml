@@ -14,6 +14,8 @@ let command =
 
 let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
 
+let reset_test_outputs = Arg.(value & flag & info [ "r"; "reset" ] ~doc:"Reset tests outputs")
+
 let catalac =
   Arg.(
     value
@@ -26,7 +28,8 @@ let catala_opts =
     & opt (some string) None
     & info [ "c"; "catala-opts" ] ~docv:"LANG" ~doc:"Options to pass to the Catala compiler")
 
-let clerk_t f = Term.(const f $ file_or_folder $ command $ catalac $ catala_opts $ debug)
+let clerk_t f =
+  Term.(const f $ file_or_folder $ command $ catalac $ catala_opts $ debug $ reset_test_outputs)
 
 let version = "0.5.0"
 
@@ -104,8 +107,8 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
           else None)
     (Array.to_list output_files)
 
-let test_file (tested_file : string) (catala_exe : string option) (catala_opts : string option) :
-    int =
+let test_file (tested_file : string) (catala_exe : string option) (catala_opts : string option)
+    (reset_test_outputs : bool) : int =
   let catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe in
   let catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts in
   let expected_outputs = search_for_expected_outputs tested_file in
@@ -127,15 +130,25 @@ let test_file (tested_file : string) (catala_exe : string option) (catala_opts :
                  "--unstyled";
                  catala_backend;
                  tested_file;
-                 "2>&1 ";
-                 "|";
-                 Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
-                   expected_output.complete_filename;
-               ])
+               ]
+            @
+            if reset_test_outputs then
+              [
+                ">";
+                Format.asprintf "%s%s" expected_output.output_dir expected_output.complete_filename;
+                "2>&1 ";
+              ]
+            else
+              [
+                "2>&1 ";
+                "|";
+                Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
+                  expected_output.complete_filename;
+              ])
         in
         Cli.debug_print ("Running: " ^ command);
         let result = Sys.command command in
-        if result <> 0 then (
+        if result <> 0 && not reset_test_outputs then (
           Cli.error_print
             (Format.asprintf "Test failed: %s"
                (Cli.print_with_style [ ANSITerminal.magenta ] "%s%s" expected_output.output_dir
@@ -143,7 +156,8 @@ let test_file (tested_file : string) (catala_exe : string option) (catala_opts :
           1)
         else (
           Cli.result_print
-            (Format.asprintf "Test passed: %s"
+            (Format.asprintf "Test %s: %s"
+               (if reset_test_outputs then "reset" else "passed")
                (Cli.print_with_style [ ANSITerminal.magenta ] "%s%s" expected_output.output_dir
                   expected_output.complete_filename));
           exit))
@@ -152,14 +166,14 @@ let test_file (tested_file : string) (catala_exe : string option) (catala_opts :
 (** {1 Driver} *)
 
 let driver (file_or_folder : string) (command : string) (catala_exe : string option)
-    (catala_opts : string option) (debug : bool) : int =
+    (catala_opts : string option) (debug : bool) (reset_test_outputs : bool) : int =
   if debug then Cli.debug_flag := true;
   match String.lowercase_ascii command with
   | "test" ->
       if Sys.is_directory file_or_folder then (
         Cli.error_print "Testing directories is not supported at this time";
         0)
-      else test_file file_or_folder catala_exe catala_opts
+      else test_file file_or_folder catala_exe catala_opts reset_test_outputs
   | _ ->
       Cli.error_print (Format.asprintf "The command \"%s\" is unknown to clerk." command);
       1
