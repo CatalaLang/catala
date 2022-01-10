@@ -31,7 +31,10 @@ let disjunction (args : expr Pos.marked list) (pos : Pos.t) =
 type ctx = { decl : decl_ctx; input_vars : Var.t list }
 
 (** [generate_vc_must_not_return_empty_e] returns the logical expression [b] such that if [b] is
-    true, then [e] will never return an empty error. *)
+    true, then [e] will never return an empty error. TODO: right now this code skims through the
+    topmost layers of the terms like this: [error on empty < reentrant_variable () | true :- e1 >].
+    But what we really want to analyze is only e1, so we should match this outermost structure
+    explicitely and have a clean verification condition generator that only runs on e1. *)
 let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
   let out =
     match Pos.unmark e with
@@ -116,6 +119,10 @@ let generate_verification_conditions (p : program) : verification_condition list
             | DestructuringInputStruct ->
                 (acc, { ctx with input_vars = Pos.unmark s_let.scope_let_var :: ctx.input_vars })
             | ScopeVarDefinition | SubScopeVarDefinition ->
+                (* TODO: for scope variables, we should check both that they never evaluate to
+                   emptyError nor conflictError. But for subscope variable definitions, what we're
+                   really doing is adding exceptions to something defined in the subscope so we just
+                   ought to verify only that the exceptions overlap. *)
                 let e = Bindlib.unbox s_let.scope_let_expr in
                 let vc = generate_vc_must_not_return_empty ctx e in
                 let vc =
