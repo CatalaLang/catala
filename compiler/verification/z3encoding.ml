@@ -110,7 +110,7 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       in
 
       match uop with
-      | Not -> failwith "[Z3 encoding] application of unary operator Not not supported"
+      | Not -> Boolean.mk_not ctx.ctx_z3 (translate_expr ctx e1)
       | Minus _ -> failwith "[Z3 encoding] application of unary operator Minus not supported"
       (* Omitting the log from the VC *)
       | Log _ -> translate_expr ctx e1
