@@ -21,6 +21,15 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) 
   let pos = Pos.get_position e in
   let rec_helper = partial_evaluation ctx in
   match Pos.unmark e with
+  | EApp ( ((EOp (Unop Not), _ | EApp ((EOp (Unop (Log _)), _), [ (EOp (Unop Not), _) ]), _) as op), [e1]) ->
+      (* reduction of logical not *)
+      (Bindlib.box_apply (fun e1 ->
+        match e1 with
+        | ELit (LBool false), _ -> (ELit (LBool true), pos)
+        | ELit (LBool true), _ -> (ELit (LBool false), pos)
+        | _ -> (EApp (op, [ e1 ]), pos)
+        ) 
+      ) (rec_helper e1)
   | EApp
       ( ((EOp (Binop Or), _ | EApp ((EOp (Unop (Log _)), _), [ (EOp (Binop Or), _) ]), _) as op),
         [ e1; e2 ] ) ->
