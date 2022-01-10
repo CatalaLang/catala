@@ -19,9 +19,19 @@ open Z3
 
 type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx; ctx_var : typ Pos.marked VarMap.t }
 
+(** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
+let translate_typ_lit (t : typ_lit) : Sort.sort = match t with
+  | TBool -> failwith "[Z3 encoding] TBool type not supported"
+  | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
+  | TInt -> failwith "[Z3 encoding] TInt type not supported"
+  | TRat -> failwith "[Z3 encoding] TRat type not supported"
+  | TMoney -> failwith "[Z3 encoding] TMoney type not supported"
+  | TDate -> failwith "[Z3 encoding] TDate type not supported"
+  | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
+
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
 let translate_typ (t : typ) : Sort.sort = match t with
-  | TLit _ -> failwith "[Z3 encoding] TLit type not supported"
+  | TLit t -> translate_typ_lit t
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
   | TEnum _ -> failwith "[Z3 encoding] TEnum type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
