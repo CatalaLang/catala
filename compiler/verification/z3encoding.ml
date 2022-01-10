@@ -20,18 +20,18 @@ open Z3
 type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx; ctx_var : typ Pos.marked VarMap.t }
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
-let translate_typ_lit (t : typ_lit) : Sort.sort = match t with
-  | TBool -> failwith "[Z3 encoding] TBool type not supported"
+let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort = match t with
+  | TBool -> Boolean.mk_sort ctx.ctx_z3
   | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
-  | TInt -> failwith "[Z3 encoding] TInt type not supported"
+  | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "[Z3 encoding] TRat type not supported"
   | TMoney -> failwith "[Z3 encoding] TMoney type not supported"
   | TDate -> failwith "[Z3 encoding] TDate type not supported"
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let translate_typ (t : typ) : Sort.sort = match t with
-  | TLit t -> translate_typ_lit t
+let translate_typ (ctx : context) (t : typ) : Sort.sort = match t with
+  | TLit t -> translate_typ_lit ctx t
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
   | TEnum _ -> failwith "[Z3 encoding] TEnum type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
@@ -126,7 +126,7 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
       let t = VarMap.find (Pos.unmark v) ctx.ctx_var in
       let v = Pos.unmark v in
       let name = Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v) in
-      Expr.mk_const_s ctx.ctx_z3 name (translate_typ (Pos.unmark t))
+      Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t))
 
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
