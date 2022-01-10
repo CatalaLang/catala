@@ -19,6 +19,16 @@ open Z3
 
 type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx; ctx_var : typ Pos.marked VarMap.t }
 
+(** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
+let translate_typ (t : typ) : Sort.sort = match t with
+  | TLit _ -> failwith "[Z3 encoding] TLit type not supported"
+  | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
+  | TEnum _ -> failwith "[Z3 encoding] TEnum type not supported"
+  | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
+  | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
+  | TAny -> failwith "[Z3 encoding] TAny type not supported"
+
+
 (** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
 let translate_lit (ctx : context) (l : lit) : Expr.expr =
   match l with
@@ -102,7 +112,12 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
 and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   match Pos.unmark vc with
-  | EVar _ -> failwith "[Z3 encoding] EVar unsupported"
+  | EVar v ->
+      let t = VarMap.find (Pos.unmark v) ctx.ctx_var in
+      let v = Pos.unmark v in
+      let name = Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v) in
+      Expr.mk_const_s ctx.ctx_z3 name (translate_typ (Pos.unmark t))
+
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
