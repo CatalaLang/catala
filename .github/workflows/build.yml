@@ -50,6 +50,9 @@ jobs:
           path: |
             ~/.opam
             ~/_opam
+            ~/catala/_opam
+            ~/catala/catala/_opam
+
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-
@@ -60,6 +63,7 @@ jobs:
         with:
           # Version of the OCaml compiler to initialise
           ocaml-compiler: 4.11.2
+          dune-cache: true
 
       - name: Install dependencies
         run: |
