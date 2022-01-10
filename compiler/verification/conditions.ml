@@ -22,6 +22,9 @@ let conjunction (args : expr Pos.marked list) (pos : Pos.t) =
     (fun (acc : expr Pos.marked) arg -> (EApp ((EOp (Binop And), pos), [ arg; acc ]), pos))
     acc list
 
+let negation (arg:  expr Pos.marked) (pos: Pos.t) =
+  (EApp ((EOp (Unop Not), pos), [ arg ]), pos)
+
 let disjunction (args : expr Pos.marked list) (pos : Pos.t) =
   let acc, list = match args with hd :: tl -> (hd, tl) | [] -> ((ELit (LBool false), pos), []) in
   List.fold_left
@@ -99,6 +102,66 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
         (Print.format_expr ctx.decl) out); *)
   out
   [@@ocamlformat "wrap-comments=false"]
+
+
+  let half_product l1 l2 =
+    l1 
+    |> List.mapi (fun i ei ->
+      List.filteri (fun j _ -> i < j) l2
+      |> List.map (fun ej -> (ei, ej))
+    )
+    |> List.concat
+
+  
+  let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
+    let out =
+      match Pos.unmark e with
+      | ETuple (args, _) | EArray args ->
+        conjunction (List.map (generate_vs_must_not_return_confict ctx) args) (Pos.get_position e)
+      | EMatch (arg, arms, _) ->
+        conjunction
+          (List.map (generate_vs_must_not_return_confict ctx) (arg :: arms))
+          (Pos.get_position e)
+      | ETupleAccess (e1, _, _, _) | EInj (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 ->
+        generate_vs_must_not_return_confict ctx e1
+      | EAbs (binder, _) ->
+        (* there is a problem here : the error can be raised in a completly different context. We choose to pass throught for simplicity. *)
+        let _, body = Bindlib.unmbind (Pos.unmark binder) in
+        generate_vs_must_not_return_confict ctx body
+      | EApp (f, args) ->
+        conjunction (List.map (generate_vs_must_not_return_confict ctx) (f::args)) (Pos.get_position e)
+      | EIfThenElse (e1, e2, e3) ->
+        conjunction (List.map (generate_vs_must_not_return_confict ctx) [e1; e2; e3]) (Pos.get_position e)
+      | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool false)) e
+      | EDefault (exceptions, just, cons) ->
+
+        (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
+           - neither e1, ..., nor en nor ejust nor econs return conflict
+           - there is no two differents ei ej that are not empty.
+          *)
+
+        let quadratic =
+          negation
+            (disjunction
+              (List.map (fun (e1, e2) -> conjunction
+                [(generate_vc_must_not_return_empty ctx e1);
+                (generate_vc_must_not_return_empty ctx e2)]
+                (Pos.get_position e))
+                (half_product exceptions exceptions)
+              )
+              (Pos.get_position e)
+            )
+          (Pos.get_position e)
+        in
+        conjunction (quadratic :: (List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions))) (Pos.get_position e)
+
+
+
+
+      | _ -> assert false
+    in 
+  
+    out
 
 type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
 
