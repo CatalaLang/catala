@@ -44,21 +44,20 @@ jobs:
       - name: Opam modules cache
         uses: actions/cache@v2
         env:
-          cache-name: cache-opam-modules
+          cache-name: catala-opam-modules
         with:
           # OCaml cache files are stored in `~/.opam` on Linux/macOS
           path: ~/.opam
-          key: ${{ runner.os }}-catala-cache-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
           restore-keys: |
-            ${{ runner.os }}-catala-cache-${{ env.cache-name }}-
-            ${{ runner.os }}-catala-cache-
+            ${{ runner.os }}-${{ env.cache-name }}-
             ${{ runner.os }}-
 
       - name: Set up OCaml
-        uses: avsm/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v2
         with:
           # Version of the OCaml compiler to initialise
-          ocaml-version: 4.11.2
+          ocaml-compiler: 4.11.2
 
       - name: Install dependencies
         run: |
