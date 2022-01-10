@@ -17,12 +17,14 @@ open Dcalc
 open Ast
 open Z3
 
+type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx }
+
 (** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
 let translate_lit (ctx : context) (l : lit) : Expr.expr =
   match l with
-  | LBool b -> if b then Boolean.mk_true ctx else Boolean.mk_false ctx
+  | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
-  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx (Runtime.integer_to_int n)
+  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
   | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
   | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported"
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
@@ -37,8 +39,11 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       let _e1, _e2, _e3 =
         match args with
         | [ e1; e2; e3 ] -> (e1, e2, e3)
-        (* TODO: Print term for error message *)
-        | _ -> failwith "[Z3 encoding] Ill-formed ternary operator application"
+        | _ ->
+            failwith
+              (Format.asprintf "[Z3 encoding] Ill-formed ternary operator application: %a"
+                 (Print.format_expr ctx.ctx_decl)
+                 (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
       in
 
       failwith "[Z3 encoding] ternary operator application not supported"
@@ -46,13 +51,16 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       let e1, e2 =
         match args with
         | [ e1; e2 ] -> (e1, e2)
-        (* TODO: Print term for error message *)
-        | _ -> failwith "[Z3 encoding] Ill-formed binary operator application"
+        | _ ->
+            failwith
+              (Format.asprintf "[Z3 encoding] Ill-formed binary operator application: %a"
+                 (Print.format_expr ctx.ctx_decl)
+                 (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
       in
 
       match bop with
-      | And -> Boolean.mk_and ctx [ translate_expr ctx e1; translate_expr ctx e2 ]
-      | Or -> Boolean.mk_or ctx [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | And -> Boolean.mk_and ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Or -> Boolean.mk_or ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
       | Xor -> failwith "[Z3 encoding] application of binary operator Xor not supported"
       | Add _ -> failwith "[Z3 encoding] application of binary operator Add not supported"
       | Sub _ -> failwith "[Z3 encoding] application of binary operator Sub not supported"
@@ -60,7 +68,7 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
       | Lt op_kind -> (
           match op_kind with
-          | KInt -> Arithmetic.mk_lt ctx (translate_expr ctx e1) (translate_expr ctx e2)
+          | KInt -> Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
           | _ ->
               failwith
                 "[Z3 encoding] application of binary operator Lt for non-integers not supported")
@@ -112,10 +120,11 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   | EIfThenElse (e_if, e_then, e_else) ->
       (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
       let z3_if = translate_expr ctx e_if in
-      Boolean.mk_and ctx
+      Boolean.mk_and ctx.ctx_z3
         [
-          Boolean.mk_implies ctx z3_if (translate_expr ctx e_then);
-          Boolean.mk_implies ctx (Boolean.mk_not ctx z3_if) (translate_expr ctx e_else);
+          Boolean.mk_implies ctx.ctx_z3 z3_if (translate_expr ctx e_then);
+          Boolean.mk_implies ctx.ctx_z3 (Boolean.mk_not ctx.ctx_z3 z3_if)
+            (translate_expr ctx e_else);
         ]
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
@@ -128,14 +137,17 @@ let solve_vc (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list
   Printf.printf "Running Z3 version %s\n" Version.to_string;
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
-  let ctx = mk_context cfg in
+  let z3_ctx = mk_context cfg in
 
-  let solver = Solver.mk_solver ctx None in
+  let solver = Solver.mk_solver z3_ctx None in
 
   let z3_vcs =
     List.map
       (fun vc ->
-        (vc, try Success (translate_expr ctx vc.Conditions.vc_guard) with Failure msg -> Fail msg))
+        ( vc,
+          try
+            Success (translate_expr { ctx_z3 = z3_ctx; ctx_decl = decl_ctx } vc.Conditions.vc_guard)
+          with Failure msg -> Fail msg ))
       vcs
   in
 
