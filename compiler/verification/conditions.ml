@@ -197,11 +197,17 @@ let generate_verification_conditions (p : program) : verification_condition list
                    really doing is adding exceptions to something defined in the subscope so we just
                    ought to verify only that the exceptions overlap. *)
                 let e = Bindlib.unbox s_let.scope_let_expr in
-                let vc = generate_vc_must_not_return_empty ctx e in
-                let vc =
-                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc) else vc
+                let vc_empty = generate_vc_must_not_return_empty ctx e in
+                let vc_empty =
+                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_empty) else vc_empty
                 in
-                ( { vc_guard = Pos.same_pos_as (Pos.unmark vc) e; vc_kind = NoEmptyError } :: acc,
+
+                let vc_confl = generate_vs_must_not_return_confict ctx e in
+                let vc_confl =
+                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_confl) else vc_confl
+                in
+                ( { vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e; vc_kind = NoOverlappingExceptions} ::
+                  { vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e; vc_kind = NoEmptyError } :: acc,
                   ctx )
             | _ -> (acc, ctx))
           (acc, ctx) s_body.scope_body_lets
