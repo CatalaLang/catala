@@ -216,3 +216,7 @@ val build_whole_program_expr : program -> ScopeName.t -> expr Pos.marked Bindlib
 
 val expr_size : expr Pos.marked -> int
 (** Used by the optimizer to know when to stop *)
+
+val variable_types : program -> typ VarMap.t
+(** Traverses all the scopes and retrieves all the types for the variables that may appear in scope
+    or subscope variable definitions, giving them as a big map. *)

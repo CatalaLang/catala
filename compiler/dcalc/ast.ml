@@ -245,3 +245,12 @@ let rec expr_size (e : expr Pos.marked) : int =
         (fun acc except -> acc + expr_size except)
         (1 + expr_size just + expr_size cons)
         exceptions
+
+let variable_types (p : program) : typ Pos.marked VarMap.t =
+  List.fold_left
+    (fun acc (_, _, scope) ->
+      List.fold_left
+        (fun acc scope_let ->
+          VarMap.add (Pos.unmark scope_let.scope_let_var) scope_let.scope_let_typ acc)
+        acc scope.scope_body_lets)
+    VarMap.empty p.scopes
