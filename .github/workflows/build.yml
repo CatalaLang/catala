@@ -47,7 +47,9 @@ jobs:
           cache-name: catala-opam-modules
         with:
           # OCaml cache files are stored in `~/.opam` on Linux/macOS
-          path: ~/.opam
+          path: |
+            ~/.opam
+            ~/catala/_opam
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('catala.opam', 'Makefile') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-
