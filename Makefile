@@ -38,6 +38,7 @@ dependencies: dependencies-ocaml dependencies-js init-submodules
 ##########################################
 
 COMPILER_DIR=compiler
+BUILD_SYSTEM_DIR=build_system
 
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
@@ -47,6 +48,7 @@ build:
 	dune build @update-parser-messages --auto-promote | true
 	@$(MAKE) --no-print-directory format
 	dune build $(COMPILER_DIR)/catala.exe
+	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:

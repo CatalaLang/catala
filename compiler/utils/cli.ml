@@ -66,7 +66,7 @@ let backend =
           "Backend selection among: Interpret, OCaml, Python, LaTeX, Makefile, Html, Dcalc, \
            Scopelang")
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang
+type backend_option = Latex | Makefile | Html | Interpret | OCaml | Python | Dcalc | Scopelang
 
 let language =
   Arg.(
