@@ -7,7 +7,7 @@ It uses `make pass_tests` to launch tests and compare the test terminal output
 with an expected output.
 
 Expected outputs are stored using the convention
-`<name_of_test>.catala_<language>.<name_of_scope>.out` in the corresponding test output folder.
+`<name_of_test>.catala_<language>.<name_of_scope>.Interpret` in the corresponding test output folder.
 
 For both workflows: use `CATALA_OPTS="..." make ...` to pass in Catala compiler
 options when debugging.
@@ -17,22 +17,24 @@ options when debugging.
 1. Create a new test file in `foo/{good,bad}/bar.catala_<language>` (pick the right directory and
    an informative name for your test)
 2. Write your test, and pick a toplevel scope `A` to run.
-3. From this directory, launch `make foo/{good,bad}/bar.catala_<language>.A.run` to get the output of
-   your test.
-4. When you're happy with the output, launch `make foo/{good,bad}/bar.catala_<language>.A.in`. This
+3. From this directory, create `mkdir -p foo/{good,bad}/output` and the empty expected
+   output file `touch foo/{good,bad}/output/bar.catala_<language>.A.Interpret`.
+4. Run `make foo/{good,bad}/bar.catala_<language>` to get the output of
+   your test (compared with the empty file).
+5. When you're happy with the output, launch `CLERK_OPTS=--reset make foo/{good,bad}/bar.catala_<language>`. This
    will record the content of the output of your test into a file.
-5. Check that your test pass with `make foo/{good,bad}/output/bar.catala_<language>.A.out`.
-6. That's it, you've added a new test for the Catala language!
+6. Check that your test pass with `make foo/{good,bad}/bar.catala_<language>`.
+7. That's it, you've added a new test for the Catala language!
 
 ## Workflow for fixing regressions
 
 1. Run `make`, if a test fails you should see something like
-   `[FAIL foo/{good,bad}/output/bar.catala_<language>.A]`.
-2. Compare the computed and expected output with `make foo/{good,bad}/output/bar.catala_<language>.A.out`.
-3. Debug the compiler and/or the test, running `make foo/{good,bad}/bar.catala_<language>.A.run`
+   `[ERROR] Test failed: foo/{good,bad}/output/bar.catala_<language>.A.Interpret]`.
+2. Compare the computed and expected output with `make foo/{good,bad}/bar.catala_<language>`.
+3. Debug the compiler and/or the test, running `make foo/{good,bad}/bar.catala_<language>`
    periodically to check the output of Catala on the test case.
 4. When you're finished debugging, record the new test output with
-   `make foo/{good,bad}/bar.catala_<language>.A.in`.
+   `CLERK_OPTS=--reset make foo/{good,bad}/bar.catala_<language>`.
 5. Re-run `make` to check that everything passes.
 6. That's it, you've fixed the Catala test suite to adapt for changes in the
    language.
