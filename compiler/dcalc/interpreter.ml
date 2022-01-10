@@ -229,7 +229,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                    | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
                    | _ ->
                        let expr_str =
-                         Format.asprintf "%a" (Print.format_expr ctx) (e', Pos.no_pos)
+                         Format.asprintf "%a" (Print.format_expr ctx ~debug:false) (e', Pos.no_pos)
                        in
                        let expr_str =
                          Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
@@ -268,7 +268,9 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
           @ List.mapi
               (fun i arg ->
                 ( Some
-                    (Format.asprintf "Argument n°%d, value %a" (i + 1) (Print.format_expr ctx) arg),
+                    (Format.asprintf "Argument n°%d, value %a" (i + 1)
+                       (Print.format_expr ctx ~debug:true)
+                       arg),
                   Pos.get_position arg ))
               args))
     op
@@ -331,7 +333,8 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
             (Format.asprintf
                "The expression %a should be a tuple with %d components but is not (should not \
                 happen if the term was well-typed)"
-               (Print.format_expr ctx) e n)
+               (Print.format_expr ctx ~debug:true)
+               e n)
             (Pos.get_position e1))
   | EInj (e1, n, en, ts) ->
       let e1' = evaluate_expr ctx e1 in
@@ -415,8 +418,11 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           match Pos.unmark e' with
           | EApp ((Ast.EOp (Binop op), pos_op), [ ((ELit _, _) as e1); ((ELit _, _) as e2) ]) ->
               Errors.raise_spanned_error
-                (Format.asprintf "Assertion failed: %a %a %a" (Print.format_expr ctx) e1
-                   Print.format_binop (op, pos_op) (Print.format_expr ctx) e2)
+                (Format.asprintf "Assertion failed: %a %a %a"
+                   (Print.format_expr ctx ~debug:false)
+                   e1 Print.format_binop (op, pos_op)
+                   (Print.format_expr ctx ~debug:false)
+                   e2)
                 (Pos.get_position e')
           | _ ->
               Errors.raise_spanned_error (Format.asprintf "Assertion failed") (Pos.get_position e'))
