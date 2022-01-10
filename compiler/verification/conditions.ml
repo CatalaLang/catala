@@ -132,7 +132,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
         conjunction (List.map (generate_vs_must_not_return_confict ctx) (f::args)) (Pos.get_position e)
       | EIfThenElse (e1, e2, e3) ->
         conjunction (List.map (generate_vs_must_not_return_confict ctx) [e1; e2; e3]) (Pos.get_position e)
-      | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool false)) e
+      | EVar _ | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool true)) e
       | EDefault (exceptions, just, cons) ->
 
         (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
@@ -153,13 +153,23 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
             )
           (Pos.get_position e)
         in
-        conjunction (quadratic :: (List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions))) (Pos.get_position e)
+
+        let others = (List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions)) in
 
 
+        let out = conjunction (quadratic :: others) (Pos.get_position e) in
 
+        (* let _ = Cli.debug_print
+        (Format.asprintf ">>> Conflict, Input:@\n%a@\nQuadratic:@\n%a@\nOthers:@\n%a@\nOutput:@\n%a"
+          (Print.format_expr ctx.decl) e
+          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr quadratic))
+          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr (conjunction others (Pos.get_position e))))
+          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr out))) in *)
+        out
 
-      | _ -> assert false
     in 
+
+
   
     out
 
