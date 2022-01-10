@@ -133,7 +133,7 @@ type vc_encoding_result = Success of Expr.expr | Fail of string
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
     them **)
-let solve_vc (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) : unit =
+let solve_vc (_prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) : unit =
   Printf.printf "Running Z3 version %s\n" Version.to_string;
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
