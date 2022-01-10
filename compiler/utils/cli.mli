@@ -87,6 +87,8 @@ val info : Cmdliner.Term.info
 
 val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 
+val format_with_style : ANSITerminal.style list -> Format.formatter -> string -> unit
+
 val debug_marker : unit -> string
 
 val error_marker : unit -> string
