@@ -159,7 +159,8 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   | Some use ->
       Errors.raise_multispanned_error
         (Format.asprintf "Subscope name \"%a\" already used"
-           (Utils.Cli.format_with_style [ ANSITerminal.yellow ]) subscope)
+           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+           subscope)
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
@@ -214,7 +215,8 @@ let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.mar
               | None ->
                   Errors.raise_spanned_error
                     (Format.asprintf "Unknown type \"%a\", not a struct or enum previously declared"
-                       (Utils.Cli.format_with_style [ ANSITerminal.yellow ]) ident)
+                       (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+                       ident)
                     typ_pos)))
 
 (** Process a type (function or not) *)
@@ -238,7 +240,8 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   | Some use ->
       Errors.raise_multispanned_error
         (Format.asprintf "var name \"%a\" already used"
-           (Utils.Cli.format_with_style [ ANSITerminal.yellow ]) name)
+           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+           name)
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.ScopeVar.get_info use));
           (Some "second use", pos);
@@ -360,7 +363,8 @@ let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
       (Format.asprintf "%s name \"%a\" already defined" msg
-         (Utils.Cli.format_with_style [ ANSITerminal.yellow ]) name)
+         (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+         name)
       [ (Some "First definition:", Pos.get_position use); (Some "Second definition:", pos) ]
   in
   match Pos.unmark item with
@@ -586,7 +590,7 @@ let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
       Errors.raise_spanned_error
         (Format.asprintf "\"%a\": this scope has not been declared anywhere, is it a typo?"
            (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-              (Pos.unmark suse.Ast.scope_use_name))
+           (Pos.unmark suse.Ast.scope_use_name))
         (Pos.get_position suse.Ast.scope_use_name)
   in
   List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items

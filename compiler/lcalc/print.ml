@@ -49,10 +49,10 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
        (fun fmt info ->
-          Format.fprintf fmt "%a"
-            (Utils.Cli.format_with_style
-               (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
-            (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
+         Format.fprintf fmt "%a"
+           (Utils.Cli.format_with_style
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
+           (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
     infos
 
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
