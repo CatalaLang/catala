@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , fetchFromGitHub
 , buildDunePackage
 , ansiterminal
@@ -50,6 +51,8 @@ buildDunePackage rec {
     camomile
     cppo
     z3
+
+    pkgs.z3
 
     unionfind
     bindlib
