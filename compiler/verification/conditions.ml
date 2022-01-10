@@ -22,8 +22,7 @@ let conjunction (args : expr Pos.marked list) (pos : Pos.t) =
     (fun (acc : expr Pos.marked) arg -> (EApp ((EOp (Binop And), pos), [ arg; acc ]), pos))
     acc list
 
-let negation (arg:  expr Pos.marked) (pos: Pos.t) =
-  (EApp ((EOp (Unop Not), pos), [ arg ]), pos)
+let negation (arg : expr Pos.marked) (pos : Pos.t) = (EApp ((EOp (Unop Not), pos), [ arg ]), pos)
 
 let disjunction (args : expr Pos.marked list) (pos : Pos.t) =
   let acc, list = match args with hd :: tl -> (hd, tl) | [] -> ((ELit (LBool false), pos), []) in
@@ -89,6 +88,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
                   generate_vc_must_not_return_empty ctx just;
                   ( EIfThenElse
                       ( just,
+                        (* TODO : the justification is not checked for holding an default term. In such cases, we need to encode the logic of the default terms within the generation of the verification condition (Z3encoding.translate_expr) *)
                         (generate_vc_must_not_return_empty ctx) cons,
                         (ELit (LBool false), Pos.get_position e) ),
                     Pos.get_position e );
@@ -103,75 +103,72 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
   out
   [@@ocamlformat "wrap-comments=false"]
 
+let half_product l1 l2 =
+  l1
+  |> List.mapi (fun i ei -> List.filteri (fun j _ -> i < j) l2 |> List.map (fun ej -> (ei, ej)))
+  |> List.concat
 
-  let half_product l1 l2 =
-    l1 
-    |> List.mapi (fun i ei ->
-      List.filteri (fun j _ -> i < j) l2
-      |> List.map (fun ej -> (ei, ej))
-    )
-    |> List.concat
-
-  
-  let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
-    let out =
-      match Pos.unmark e with
-      | ETuple (args, _) | EArray args ->
+let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
+  let out =
+    match Pos.unmark e with
+    | ETuple (args, _) | EArray args ->
         conjunction (List.map (generate_vs_must_not_return_confict ctx) args) (Pos.get_position e)
-      | EMatch (arg, arms, _) ->
+    | EMatch (arg, arms, _) ->
         conjunction
           (List.map (generate_vs_must_not_return_confict ctx) (arg :: arms))
           (Pos.get_position e)
-      | ETupleAccess (e1, _, _, _) | EInj (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 ->
+    | ETupleAccess (e1, _, _, _) | EInj (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 ->
         generate_vs_must_not_return_confict ctx e1
-      | EAbs (binder, _) ->
-        (* there is a problem here : the error can be raised in a completly different context. We choose to pass throught for simplicity. *)
+    | EAbs (binder, _) ->
+        (* there is a problem here : the error can be raised in a completly different context. We
+           choose to pass throught for simplicity. *)
         let _, body = Bindlib.unmbind (Pos.unmark binder) in
         generate_vs_must_not_return_confict ctx body
-      | EApp (f, args) ->
-        conjunction (List.map (generate_vs_must_not_return_confict ctx) (f::args)) (Pos.get_position e)
-      | EIfThenElse (e1, e2, e3) ->
-        conjunction (List.map (generate_vs_must_not_return_confict ctx) [e1; e2; e3]) (Pos.get_position e)
-      | EVar _ | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool true)) e
-      | EDefault (exceptions, just, cons) ->
-
-        (* <e1 ... en | ejust :- econs > never returns conflict if and only if:
-           - neither e1, ..., nor en nor ejust nor econs return conflict
-           - there is no two differents ei ej that are not empty.
-          *)
-
+    | EApp (f, args) ->
+        conjunction
+          (List.map (generate_vs_must_not_return_confict ctx) (f :: args))
+          (Pos.get_position e)
+    | EIfThenElse (e1, e2, e3) ->
+        conjunction
+          (List.map (generate_vs_must_not_return_confict ctx) [ e1; e2; e3 ])
+          (Pos.get_position e)
+    | EVar _ | ELit _ | EOp _ -> Pos.same_pos_as (ELit (LBool true)) e
+    | EDefault (exceptions, just, cons) ->
+        (* <e1 ... en | ejust :- econs > never returns conflict if and only if: - neither e1, ...,
+           nor en nor ejust nor econs return conflict - there is no two differents ei ej that are
+           not empty. *)
         let quadratic =
           negation
             (disjunction
-              (List.map (fun (e1, e2) -> conjunction
-                [(generate_vc_must_not_return_empty ctx e1);
-                (generate_vc_must_not_return_empty ctx e2)]
-                (Pos.get_position e))
-                (half_product exceptions exceptions)
-              )
-              (Pos.get_position e)
-            )
-          (Pos.get_position e)
+               (List.map
+                  (fun (e1, e2) ->
+                    conjunction
+                      [
+                        generate_vc_must_not_return_empty ctx e1;
+                        generate_vc_must_not_return_empty ctx e2;
+                      ]
+                      (Pos.get_position e))
+                  (half_product exceptions exceptions))
+               (Pos.get_position e))
+            (Pos.get_position e)
         in
 
-        let others = (List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions)) in
-
+        let others =
+          List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions)
+        in
 
         let out = conjunction (quadratic :: others) (Pos.get_position e) in
 
-        (* let _ = Cli.debug_print
-        (Format.asprintf ">>> Conflict, Input:@\n%a@\nQuadratic:@\n%a@\nOthers:@\n%a@\nOutput:@\n%a"
-          (Print.format_expr ctx.decl) e
-          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr quadratic))
-          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr (conjunction others (Pos.get_position e))))
-          (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr out))) in *)
+        (* let _ = Cli.debug_print (Format.asprintf ">>> Conflict,
+           Input:@\n%a@\nQuadratic:@\n%a@\nOthers:@\n%a@\nOutput:@\n%a" (Print.format_expr ctx.decl)
+           e (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr quadratic))
+           (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr (conjunction
+           others (Pos.get_position e)))) (Print.format_expr ctx.decl) (Bindlib.unbox
+           (Optimizations.optimize_expr out))) in *)
         out
+  in
 
-    in 
-
-
-  
-    out
+  out
 
 type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
 
@@ -199,15 +196,22 @@ let generate_verification_conditions (p : program) : verification_condition list
                 let e = Bindlib.unbox s_let.scope_let_expr in
                 let vc_empty = generate_vc_must_not_return_empty ctx e in
                 let vc_empty =
-                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_empty) else vc_empty
+                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_empty)
+                  else vc_empty
                 in
 
                 let vc_confl = generate_vs_must_not_return_confict ctx e in
                 let vc_confl =
-                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_confl) else vc_confl
+                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_confl)
+                  else vc_confl
                 in
-                ( { vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e; vc_kind = NoOverlappingExceptions} ::
-                  { vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e; vc_kind = NoEmptyError } :: acc,
+                ( {
+                    vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
+                    vc_kind = NoOverlappingExceptions;
+                  }
+                  ::
+                  { vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e; vc_kind = NoEmptyError }
+                  :: acc,
                   ctx )
             | _ -> (acc, ctx))
           (acc, ctx) s_body.scope_body_lets
