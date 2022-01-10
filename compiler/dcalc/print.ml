@@ -160,8 +160,8 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | GetMonth -> "get_month"
     | GetYear -> "get_year")
 
-let needs_parens (_e : expr Pos.marked) : bool = true
-(* match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false *)
+let needs_parens (e : expr Pos.marked) : bool =
+  match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -218,7 +218,10 @@ let rec format_expr (ctx : Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.
              Format.fprintf fmt "@[<hov 2>%a%a@ %a@]" Ast.EnumConstructor.format_t c
                format_punctuation ":" format_expr e))
         (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
+  | ELit l ->
+      Format.fprintf fmt "%s"
+        (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+           (Format.asprintf "%a" format_lit (Pos.same_pos_as l e)))
   | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in

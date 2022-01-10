@@ -97,7 +97,15 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : ex
   out
   [@@ocamlformat "wrap-comments=false"]
 
-let generate_verification_conditions (p : program) : expr Pos.marked list =
+type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
+
+type verification_condition = {
+  vc_guard : expr Pos.marked;
+  (* should have type bool *)
+  vc_kind : verification_condition_kind;
+}
+
+let generate_verification_conditions (p : program) : verification_condition list =
   List.fold_left
     (fun acc (_s_name, _s_var, s_body) ->
       let ctx = { decl = p.decl_ctx; input_vars = [] } in
@@ -113,8 +121,8 @@ let generate_verification_conditions (p : program) : expr Pos.marked list =
                 let vc =
                   if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc) else vc
                 in
-                (* TODO: drop logs for Aymeric *)
-                (Pos.same_pos_as (Pos.unmark vc) e :: acc, ctx)
+                ( { vc_guard = Pos.same_pos_as (Pos.unmark vc) e; vc_kind = NoEmptyError } :: acc,
+                  ctx )
             | _ -> (acc, ctx))
           (acc, ctx) s_body.scope_body_lets
       in

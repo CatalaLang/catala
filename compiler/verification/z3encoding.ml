@@ -122,7 +122,7 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
     them **)
-let solve_vc (vcs : expr Pos.marked list) : unit =
+let solve_vc (vcs : Conditions.verification_condition list) : unit =
   Printf.printf "Running Z3 version %s\n" Version.to_string;
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
@@ -130,7 +130,7 @@ let solve_vc (vcs : expr Pos.marked list) : unit =
 
   let solver = Solver.mk_solver ctx None in
 
-  let z3_vcs = List.map (translate_expr ctx) vcs in
+  let z3_vcs = List.map (fun vc -> translate_expr ctx vc.Conditions.vc_guard) vcs in
 
   List.iter (fun vc -> Printf.printf "Generated VC: %s\n" (Expr.to_string vc)) z3_vcs;
 

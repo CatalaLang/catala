@@ -218,13 +218,21 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         | Cli.Proof ->
             let vcs = Verification.Conditions.generate_verification_conditions prgm in
             List.iter
-              (fun vc ->
+              (fun (vc : Verification.Conditions.verification_condition) ->
                 Cli.result_print
                   (Format.asprintf
-                     "For this variable:\n%s\nThis verification condition was generated:\n%a"
-                     (Pos.retrieve_loc_text (Pos.get_position vc))
+                     "For this variable:\n\
+                      %s\n\
+                      This verification condition was generated for %s:@\n\
+                      %a"
+                     (Pos.retrieve_loc_text (Pos.get_position vc.vc_guard))
+                     (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+                        (match vc.vc_kind with
+                        | Verification.Conditions.NoEmptyError ->
+                            "the variable definition never to return an empty error"
+                        | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
                      (Dcalc.Print.format_expr prgm.decl_ctx)
-                     vc))
+                     vc.vc_guard))
               vcs;
             Verification.Z3encoding.solve_vc vcs;
             0
