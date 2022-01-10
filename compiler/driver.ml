@@ -217,24 +217,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         match backend with
         | Cli.Proof ->
             let vcs = Verification.Conditions.generate_verification_conditions prgm in
-            List.iter
-              (fun (vc : Verification.Conditions.verification_condition) ->
-                Cli.result_print
-                  (Format.asprintf
-                     "For this variable:\n\
-                      %s\n\
-                      This verification condition was generated for %s:@\n\
-                      %a"
-                     (Pos.retrieve_loc_text (Pos.get_position vc.vc_guard))
-                     (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-                        (match vc.vc_kind with
-                        | Verification.Conditions.NoEmptyError ->
-                            "the variable definition never to return an empty error"
-                        | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
-                     (Dcalc.Print.format_expr prgm.decl_ctx)
-                     vc.vc_guard))
-              vcs;
-            Verification.Z3encoding.solve_vc vcs;
+            Verification.Z3encoding.solve_vc prgm.decl_ctx vcs;
             0
         | Cli.Run ->
             Cli.debug_print "Starting interpretation...";

@@ -81,6 +81,11 @@ The main compilation chain is defined in:
 
 {!modules: Driver}
 
+Additionally, the compiler features a verification plugin that generates
+verification condition for proof backends. More information can be found here:
+
+{!modules: Verification}
+
 Last, two more modules contain additional features for the compiler:
 
 {ul

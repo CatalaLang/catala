@@ -119,10 +119,12 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
         ]
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
+type vc_encoding_result = Success of Expr.expr | Fail of string
+
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
     them **)
-let solve_vc (vcs : Conditions.verification_condition list) : unit =
+let solve_vc (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) : unit =
   Printf.printf "Running Z3 version %s\n" Version.to_string;
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
@@ -130,13 +132,37 @@ let solve_vc (vcs : Conditions.verification_condition list) : unit =
 
   let solver = Solver.mk_solver ctx None in
 
-  let z3_vcs = List.map (fun vc -> translate_expr ctx vc.Conditions.vc_guard) vcs in
+  let z3_vcs =
+    List.map
+      (fun vc ->
+        (vc, try Success (translate_expr ctx vc.Conditions.vc_guard) with Failure msg -> Fail msg))
+      vcs
+  in
 
-  List.iter (fun vc -> Printf.printf "Generated VC: %s\n" (Expr.to_string vc)) z3_vcs;
+  List.iter
+    (fun (vc, z3_vc) ->
+      Cli.result_print
+        (Format.asprintf
+           "For this variable:\n%s\nThis verification condition was generated for %s:@\n%a"
+           (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard))
+           (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+              (match vc.vc_kind with
+              | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
+              | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
+           (Dcalc.Print.format_expr decl_ctx)
+           vc.vc_guard);
+      match z3_vc with
+      | Success z3_vc ->
+          let z3_vc_string = Expr.to_string z3_vc in
+          Cli.result_print
+            (Format.asprintf "The translation to Z3 is the following:@\n%s" z3_vc_string)
+      | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg))
+    z3_vcs;
 
-  Solver.add solver z3_vcs;
+  Solver.add solver
+    (List.filter_map (fun (_, vc) -> match vc with Success e -> Some e | _ -> None) z3_vcs);
 
-  if Solver.check solver [] = SATISFIABLE then Printf.printf "Success: Empty unreachable\n"
+  if Solver.check solver [] = SATISFIABLE then Cli.result_print "Success: Empty unreachable\n"
   else
     (* TODO: Print model as error message for Catala debugging purposes *)
-    Printf.printf "Failure: Empty reachable\n"
+    Cli.error_print "Failure: Empty reachable\n"
