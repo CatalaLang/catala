@@ -94,7 +94,8 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
                 "[Z3 encoding] application of binary operator Lt for non-integers not supported")
       | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
       | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
-      | Gte _ -> failwith "[Z3 encoding] application of binary operator Gte not supported"
+      | Gte KInt -> Arithmetic.mk_ge ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Gte _ -> failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
       | Eq -> failwith "[Z3 encoding] application of binary operator Eq not supported"
       | Neq -> failwith "[Z3 encoding] application of binary operator New not supported"
       | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
