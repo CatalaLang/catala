@@ -82,11 +82,15 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       match bop with
       | And -> Boolean.mk_and ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
       | Or -> Boolean.mk_or ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
-      | Xor -> failwith "[Z3 encoding] application of binary operator Xor not supported"
-      | Add _ -> failwith "[Z3 encoding] application of binary operator Add not supported"
-      | Sub _ -> failwith "[Z3 encoding] application of binary operator Sub not supported"
-      | Mult _ -> failwith "[Z3 encoding] application of binary operator Mult not supported"
-      | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
+      | Xor -> Boolean.mk_xor ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Add KInt -> Arithmetic.mk_add ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Add _ -> failwith "[Z3 encoding] application of non-integer binary operator Add not supported"
+      | Sub KInt -> Arithmetic.mk_sub ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Sub _ -> failwith "[Z3 encoding] application of non-integer binary operator Sub not supported"
+      | Mult KInt -> Arithmetic.mk_mul ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Mult _ -> failwith "[Z3 encoding] application of non-integer binary operator Mult not supported"
+      | Div KInt -> Arithmetic.mk_div ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Div _ -> failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
       | Lt KInt ->  Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
       | Lt _ -> failwith "[Z3 encoding] application of non-integer binary operator Lt not supported"
       | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
