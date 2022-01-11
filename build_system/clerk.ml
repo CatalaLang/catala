@@ -70,13 +70,13 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
   let backend =
     match String.lowercase_ascii first_extension with
     | ".interpret" -> Some Cli.Interpret
-    | ".makefile" -> Some Cli.Makefile
-    | ".ocaml" -> Some Cli.OCaml
+    | ".d" -> Some Cli.Makefile
+    | ".ml" -> Some Cli.OCaml
     | ".scopelang" -> Some Cli.Scopelang
     | ".dcalc" -> Some Cli.Dcalc
-    | ".latex" -> Some Cli.Latex
+    | ".tex" -> Some Cli.Latex
     | ".html" -> Some Cli.Html
-    | ".python" -> Some Cli.Python
+    | ".py" -> Some Cli.Python
     | _ -> None
   in
   match backend with
@@ -132,19 +132,44 @@ let test_file (tested_file : string) (catala_exe : string option) (catala_opts :
                  tested_file;
                ]
             @
-            if reset_test_outputs then
-              [
-                ">";
-                Format.asprintf "%s%s" expected_output.output_dir expected_output.complete_filename;
-                "2>&1 ";
-              ]
-            else
-              [
-                "2>&1 ";
-                "|";
-                Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
-                  expected_output.complete_filename;
-              ])
+            match expected_output.backend with
+            | Cli.Interpret ->
+                if reset_test_outputs then
+                  [
+                    ">";
+                    Format.asprintf "%s%s" expected_output.output_dir
+                      expected_output.complete_filename;
+                    "2>&1 ";
+                  ]
+                else
+                  [
+                    "2>&1 ";
+                    "|";
+                    Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
+                      expected_output.complete_filename;
+                  ]
+            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scopelang | Cli.Latex | Cli.Html
+            | Cli.Makefile ->
+                (* for those backends, the output of the Catala compiler will be written in a
+                   temporary file which later we're going to diff with the *)
+                if reset_test_outputs then
+                  [
+                    "-o";
+                    Format.asprintf "%s%s" expected_output.output_dir
+                      expected_output.complete_filename;
+                  ]
+                else
+                  let temp_file =
+                    Filename.temp_file "clerk_"
+                      ("_" ^ catala_backend_to_string expected_output.backend)
+                  in
+                  [
+                    "-o";
+                    temp_file;
+                    ";";
+                    Format.asprintf "colordiff -u -b %s%s %s" expected_output.output_dir
+                      expected_output.complete_filename temp_file;
+                  ])
         in
         Cli.debug_print ("Running: " ^ command);
         let result = Sys.command command in
