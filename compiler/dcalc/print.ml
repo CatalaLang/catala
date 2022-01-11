@@ -35,24 +35,23 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
        (fun fmt info ->
-         Format.fprintf fmt "%s"
-           (Utils.Cli.print_with_style
-              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else [])
-              "%s"
-              (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
+         Format.fprintf fmt "%a"
+           (Utils.Cli.format_with_style
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
+           (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
     infos
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.red ]) s
 
 let format_base_type (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.yellow ]) s
 
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.cyan ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.cyan ]) s
 
 let format_operator (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.green ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.green ]) s
 
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   format_base_type fmt
@@ -136,7 +135,7 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
   match Pos.unmark op with Fold -> format_keyword fmt "fold"
 
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  Format.fprintf fmt "%s"
+  Format.fprintf fmt "@<2>%s"
     (match entry with
     | VarDef _ -> Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ "
     | BeginCall -> Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ "

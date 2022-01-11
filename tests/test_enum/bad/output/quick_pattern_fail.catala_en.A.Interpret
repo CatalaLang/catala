@@ -1,0 +1,7 @@
+[ERROR] The name of this constructor has not been defined before, maybe it is a typo?
+
+  --> tests/test_enum/bad/quick_pattern_fail.catala_en
+   | 
+15 |   definition y equals x with pattern Case3
+   |                                      ^^^^^
+   + Article

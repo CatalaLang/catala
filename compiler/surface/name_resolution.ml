@@ -158,8 +158,9 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
       Errors.raise_multispanned_error
-        (Format.asprintf "Subscope name \"%s\" already used"
-           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" subscope))
+        (Format.asprintf "Subscope name \"%a\" already used"
+           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+           subscope)
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
@@ -213,8 +214,9 @@ let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.mar
               | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
               | None ->
                   Errors.raise_spanned_error
-                    (Format.asprintf "Unknown type \"%s\", not a struct or enum previously declared"
-                       (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" ident))
+                    (Format.asprintf "Unknown type \"%a\", not a struct or enum previously declared"
+                       (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+                       ident)
                     typ_pos)))
 
 (** Process a type (function or not) *)
@@ -237,8 +239,9 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
       Errors.raise_multispanned_error
-        (Format.asprintf "var name \"%s\" already used"
-           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
+        (Format.asprintf "var name \"%a\" already used"
+           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+           name)
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.ScopeVar.get_info use));
           (Some "second use", pos);
@@ -359,8 +362,9 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
 let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
-      (Format.asprintf "%s name \"%s\" already defined" msg
-         (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" name))
+      (Format.asprintf "%s name \"%a\" already defined" msg
+         (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+         name)
       [ (Some "First definition:", Pos.get_position use); (Some "Second definition:", pos) ]
   in
   match Pos.unmark item with
@@ -584,9 +588,9 @@ let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
     try Desugared.Ast.IdentMap.find (Pos.unmark suse.Ast.scope_use_name) ctxt.scope_idmap
     with Not_found ->
       Errors.raise_spanned_error
-        (Format.asprintf "\"%s\": this scope has not been declared anywhere, is it a typo?"
-           (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-              (Pos.unmark suse.Ast.scope_use_name)))
+        (Format.asprintf "\"%a\": this scope has not been declared anywhere, is it a typo?"
+           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+           (Pos.unmark suse.Ast.scope_use_name))
         (Pos.get_position suse.Ast.scope_use_name)
   in
   List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items

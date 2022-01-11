@@ -209,8 +209,7 @@ let generate_verification_conditions (p : program) : verification_condition list
                     vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
                     vc_kind = NoOverlappingExceptions;
                   }
-                  ::
-                  { vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e; vc_kind = NoEmptyError }
+                  :: { vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e; vc_kind = NoEmptyError }
                   :: acc,
                   ctx )
             | _ -> (acc, ctx))

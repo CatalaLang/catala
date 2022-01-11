@@ -64,7 +64,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       if backend = "makefile" then Cli.Makefile
       else if backend = "latex" then Cli.Latex
       else if backend = "html" then Cli.Html
-      else if backend = "interpret" then Cli.Run
+      else if backend = "interpret" then Cli.Interpret
       else if backend = "ocaml" then Cli.OCaml
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
@@ -151,7 +151,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let ctxt = Surface.Name_resolution.form_context prgm in
         let scope_uid =
           match (ex_scope, backend) with
-          | None, Cli.Run -> Errors.raise_error "No scope was provided for execution."
+          | None, Cli.Interpret -> Errors.raise_error "No scope was provided for execution."
           | None, _ ->
               snd
                 (try Desugared.Ast.IdentMap.choose ctxt.scope_idmap
@@ -219,7 +219,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             let vcs = Verification.Conditions.generate_verification_conditions prgm in
             Verification.Z3encoding.solve_vc prgm prgm.decl_ctx vcs;
             0
-        | Cli.Run ->
+        | Cli.Interpret ->
             Cli.debug_print "Starting interpretation...";
             let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr in
             let out_regex = Re.Pcre.regexp "\\_out$" in

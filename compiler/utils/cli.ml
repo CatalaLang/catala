@@ -66,7 +66,16 @@ let backend =
           "Backend selection among: Interpret, OCaml, Python, LaTeX, Makefile, Html, Dcalc, \
            Scopelang")
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang | Proof
+type backend_option =
+  | Latex
+  | Makefile
+  | Html
+  | Interpret
+  | OCaml
+  | Python
+  | Dcalc
+  | Scopelang
+  | Proof
 
 let language =
   Arg.(
@@ -130,6 +139,11 @@ let time : float ref = ref (Unix.gettimeofday ())
 
 let print_with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
+
+let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
+  if !style_flag then
+    Format.pp_print_as fmt (String.length str) (ANSITerminal.sprintf styles "%s" str)
+  else Format.pp_print_string fmt str
 
 let time_marker () =
   let new_time = Unix.gettimeofday () in

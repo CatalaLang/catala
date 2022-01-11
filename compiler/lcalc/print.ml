@@ -49,11 +49,10 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
        (fun fmt info ->
-         Format.fprintf fmt "%s"
-           (Utils.Cli.print_with_style
-              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else [])
-              "%s"
-              (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
+         Format.fprintf fmt "%a"
+           (Utils.Cli.format_with_style
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
+           (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
     infos
 
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
@@ -65,10 +64,10 @@ let format_exception (fmt : Format.formatter) (exn : except) : unit =
     | NoValueProvided -> "NoValueProvided")
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.red ]) s
 
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.cyan ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.cyan ]) s
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false

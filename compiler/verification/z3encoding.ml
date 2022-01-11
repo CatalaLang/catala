@@ -20,7 +20,8 @@ open Z3
 type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx; ctx_var : typ Pos.marked VarMap.t }
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
-let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort = match t with
+let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
+  match t with
   | TBool -> Boolean.mk_sort ctx.ctx_z3
   | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -30,14 +31,14 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort = match t with
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let translate_typ (ctx : context) (t : typ) : Sort.sort = match t with
+let translate_typ (ctx : context) (t : typ) : Sort.sort =
+  match t with
   | TLit t -> translate_typ_lit ctx t
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
   | TEnum _ -> failwith "[Z3 encoding] TEnum type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
   | TAny -> failwith "[Z3 encoding] TAny type not supported"
-
 
 (** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
 let translate_lit (ctx : context) (l : lit) : Expr.expr =
@@ -95,7 +96,8 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
       | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
       | Gte KInt -> Arithmetic.mk_ge ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
-      | Gte _ -> failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
+      | Gte _ ->
+          failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
       | Eq -> failwith "[Z3 encoding] application of binary operator Eq not supported"
       | Neq -> failwith "[Z3 encoding] application of binary operator New not supported"
       | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
@@ -128,7 +130,6 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
       let v = Pos.unmark v in
       let name = Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v) in
       Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t))
-
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
@@ -159,7 +160,8 @@ type vc_encoding_result = Success of Expr.expr | Fail of string
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
     them **)
-let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) : unit =
+let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) :
+    unit =
   Printf.printf "Running Z3 version %s\n" Version.to_string;
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
@@ -172,10 +174,10 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
       (fun vc ->
         ( vc,
           try
-            Success (translate_expr
-                      { ctx_z3 = z3_ctx; ctx_decl = decl_ctx; ctx_var = variable_types prgm }
-                      vc.Conditions.vc_guard
-                    )
+            Success
+              (translate_expr
+                 { ctx_z3 = z3_ctx; ctx_decl = decl_ctx; ctx_var = variable_types prgm }
+                 vc.Conditions.vc_guard)
           with Failure msg -> Fail msg ))
       vcs
   in

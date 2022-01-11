@@ -49,7 +49,16 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 
 val backend : string Cmdliner.Term.t
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang | Proof
+type backend_option =
+  | Latex
+  | Makefile
+  | Html
+  | Interpret
+  | OCaml
+  | Python
+  | Dcalc
+  | Scopelang
+  | Proof
 
 val language : string option Cmdliner.Term.t
 
@@ -86,6 +95,8 @@ val info : Cmdliner.Term.info
 (**{2 Markers}*)
 
 val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
+
+val format_with_style : ANSITerminal.style list -> Format.formatter -> string -> unit
 
 val debug_marker : unit -> string
 
