@@ -121,6 +121,10 @@ let info =
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
       `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
+      `P "Emile Rolley <erolley@tutamail.com>";
+      `P "Louis Gesbert <louis.gesbert@ocamlpro.com>";
+      `P "Aymeric Fromherz <aymeric.fromherz@inria.fr>";
+      `P "Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>";
       `S Manpage.s_examples;
       `P "Typical usage:";
       `Pre "catala LaTeX file.catala";
