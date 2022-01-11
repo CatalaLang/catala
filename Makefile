@@ -236,15 +236,14 @@ run_french_law_library_benchmark_python: type_french_law_library_python
 # High-level test and benchmarks commands
 ##########################################
 
-CATALA_OPTS?=""
-
+CATALA_OPTS?=
 CLERK_OPTS?=
 
 CATALA_BIN=_build/default/compiler/catala.exe
 CLERK_BIN=_build/default/build_system/clerk.exe
 
 CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
-	$(CLERK_OPTS) --catala-opts=$(CATALA_OPTS)
+	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
 
 
 .FORCE:

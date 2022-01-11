@@ -2,12 +2,11 @@
 # Preamble
 ############################################
 
-CATALA_OPTS?=""
-
+CATALA_OPTS?=
 CLERK_OPTS?=
 
 CLERK=../_build/default/build_system/clerk.exe --exe "../_build/default/compiler/catala.exe" \
-	$(CLERK_OPTS) --catala-opts=$(CATALA_OPTS) test
+	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),) test
 
 # Forces all the tests to be redone
 .FORCE:
