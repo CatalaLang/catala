@@ -242,7 +242,7 @@ test_suite: .FORCE
 	@$(MAKE) --no-print-directory -C tests pass_tests
 
 test_examples: .FORCE
-	@$(MAKE) --no-print-directory -C examples tests
+	@$(MAKE) --no-print-directory -C examples pass_tests
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples

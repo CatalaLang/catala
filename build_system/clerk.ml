@@ -97,7 +97,7 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
     name that contain expected outputs for different *)
 let search_for_expected_outputs (file : string) : expected_output_descr list =
   let output_dir = Filename.dirname file ^ Filename.dir_sep ^ "output/" in
-  let output_files = Sys.readdir output_dir in
+  let output_files = try Sys.readdir output_dir with Sys_error _ -> Array.make 0 "" in
   List.filter_map
     (fun output_file ->
       match filename_to_expected_output_descr output_dir output_file with
