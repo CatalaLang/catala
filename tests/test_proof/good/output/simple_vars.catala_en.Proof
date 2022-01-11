@@ -1,5 +1,5 @@
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 7 |   context z content integer
   |           ^
@@ -78,7 +78,7 @@ true && true &&
        (not false)
        true)))
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 7 |   context z content integer
   |           ^
@@ -127,7 +127,7 @@ if true then
 (let ((a!6 (or (and (=> true a!5) (=> (not true) false) true) false)))
   (and a!6 true))))
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 5 |   context x content integer
   |           ^
@@ -178,7 +178,7 @@ true && true &&
        (not false)
        true))))
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 5 |   context x content integer
   |           ^
@@ -214,7 +214,7 @@ if true then
 (let ((a!5 (or (and (=> true a!4) (=> (not true) false) true) false)))
   (and a!5 true)))))
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 6 |   context y content boolean
   |           ^
@@ -231,7 +231,7 @@ true && true &&
                 (and (and true true) (not false)))))
   (and (and true true) a!1 a!1 true (not false) true))
 [RESULT] For this variable:
- --> test_proof/good/simple_vars.catala_en
+ --> tests/test_proof/good/simple_vars.catala_en
   | 
 6 |   context y content boolean
   |           ^

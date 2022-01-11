@@ -1,5 +1,5 @@
 [RESULT] For this variable:
- --> test_proof/good/no_vars.catala_en
+ --> tests/test_proof/good/no_vars.catala_en
   | 
 5 |   context x content integer
   |           ^
@@ -31,7 +31,7 @@ true && true &&
      (not false)
      true)
 [RESULT] For this variable:
- --> test_proof/good/no_vars.catala_en
+ --> tests/test_proof/good/no_vars.catala_en
   | 
 5 |   context x content integer
   |           ^
