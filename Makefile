@@ -38,6 +38,7 @@ dependencies: dependencies-ocaml dependencies-js init-submodules
 ##########################################
 
 COMPILER_DIR=compiler
+BUILD_SYSTEM_DIR=build_system
 
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
@@ -47,6 +48,7 @@ build:
 	dune build @update-parser-messages --auto-promote | true
 	@$(MAKE) --no-print-directory format
 	dune build $(COMPILER_DIR)/catala.exe
+	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
@@ -234,13 +236,23 @@ run_french_law_library_benchmark_python: type_french_law_library_python
 # High-level test and benchmarks commands
 ##########################################
 
+CATALA_OPTS?=
+CLERK_OPTS?=
+
+CATALA_BIN=_build/default/compiler/catala.exe
+CLERK_BIN=_build/default/build_system/clerk.exe
+
+CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
+	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
+
+
 .FORCE:
 
 test_suite: .FORCE
-	@$(MAKE) --no-print-directory -C tests pass_tests
+	@$(CLERK) test tests
 
 test_examples: .FORCE
-	@$(MAKE) --no-print-directory -C examples tests
+	@$(CLERK) test examples
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples
@@ -301,6 +313,14 @@ clean:
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading
+
+#> help_clerk				: Display the clerk man page
+help_clerk:
+	$(CLERK_BIN) --help
+
+#> help_catala				: Display the catala man page
+help_catala:
+	$(CATALA_BIN) --help
 
 ##########################################
 # Special targets

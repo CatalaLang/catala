@@ -169,10 +169,12 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
     decl.scope_decl_rules
 
 let format_program (fmt : Format.formatter) (p : program) : unit =
-  Format.fprintf fmt "%a@\n@\n%a@\n@\n%a"
+  Format.fprintf fmt "%a%s%a%s%a"
     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_struct)
     (StructMap.bindings p.program_structs)
+    (if StructMap.is_empty p.program_structs then "" else "\n\n")
     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_enum)
     (EnumMap.bindings p.program_enums)
+    (if EnumMap.is_empty p.program_enums then "" else "\n\n")
     (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_scope)
     (ScopeMap.bindings p.program_scopes)

@@ -1,0 +1,24 @@
+[ERROR] Error during typechecking, incompatible types:
+--> decimal
+--> money
+
+Error coming from typechecking the following expression:
+  --> tests/test_money/bad/no_mingle.catala_en
+   | 
+12 |   definition z equals (x *$ y)
+   |                        ^^^^^^
+   + Article
+
+Type decimal coming from expression:
+  --> tests/test_money/bad/no_mingle.catala_en
+   | 
+12 |   definition z equals (x *$ y)
+   |                          ^^
+   + Article
+
+Type money coming from expression:
+ --> tests/test_money/bad/no_mingle.catala_en
+  | 
+6 |   context y content money
+  |                     ^^^^^
+  + Article
