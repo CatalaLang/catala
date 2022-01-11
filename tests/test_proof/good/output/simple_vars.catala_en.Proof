@@ -1,6 +1,6 @@
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 7 |   context z content integer
   |           ^
   + Test
@@ -46,10 +46,40 @@ true && true &&
                           true && true && true && true else false &&
                       true && true && true && ~ false && true
 [RESULT] The translation to Z3 is the following:
-TODO
+(let ((a!1 (and true
+                (and (and true (and true true) true) (not false))
+                (and true (and (and true true) (not false)))
+                (and (and true true) (not false))))
+      (a!2 (and (=> false false) (=> (not false) false) (and true true)))
+      (a!3 (and (=> (= x_5 0) true)
+                (=> (not (= x_5 0)) false)
+                (and true (and true true) true)))
+      (a!5 (and (=> (< x_5 0) (and true true))
+                (=> (not (< x_5 0)) false)
+                (and true (and true true) true)))
+      (a!7 (and (=> (> x_5 0) true)
+                (=> (not (> x_5 0)) false)
+                (and true (and true true) true))))
+(let ((a!4 (and (=> true (or a!2 a!3)) (=> (not true) false) (and true true)))
+      (a!6 (and (=> true (or a!2 a!5)) (=> (not true) false) (and true true)))
+      (a!8 (and (=> true (or a!2 a!7)) (=> (not true) false) (and true true))))
+  (and (and true true)
+       a!1
+       (and true true)
+       (and (and true (and true true) true) (not false))
+       (and true (and (and true true) (not false)))
+       (and (and true true) (not false))
+       a!1
+       (and true (and (and true true) (not false)))
+       (and true (and (and true true) (not false)))
+       (and true true)
+       (not (or (and a!4 a!6) (and a!4 a!8) (and a!6 a!8)))
+       true
+       (not false)
+       true)))
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 7 |   context z content integer
   |           ^
   + Test
@@ -72,10 +102,33 @@ if true then
             if x_5 > 0 then true else false && true && true && true && true
           else false && true && true else false && true || false && true
 [RESULT] The translation to Z3 is the following:
-TODO
+(let ((a!1 (and (=> false false) (=> (not false) false) (and true true)))
+      (a!2 (and (=> (= x_5 0) true)
+                (=> (not (= x_5 0)) false)
+                (and true (and true true) true)))
+      (a!3 (and (=> (< x_5 0) (and true true))
+                (=> (not (< x_5 0)) false)
+                (and true (and true true) true)))
+      (a!4 (and (=> (> x_5 0) true)
+                (=> (not (> x_5 0)) false)
+                (and true (and true true) true))))
+(let ((a!5 (or (and (=> true (or a!1 a!1))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true (or a!1 a!2))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true (or a!1 a!3))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true (or a!1 a!4))
+                    (=> (not true) false)
+                    (and true true)))))
+(let ((a!6 (or (and (=> true a!5) (=> (not true) false) true) false)))
+  (and a!6 true))))
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 5 |   context x content integer
   |           ^
   + Test
@@ -126,7 +179,7 @@ true && true &&
        true))))
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 5 |   context x content integer
   |           ^
   + Test
@@ -162,7 +215,7 @@ if true then
   (and a!5 true)))))
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 6 |   context y content boolean
   |           ^
   + Test
@@ -179,7 +232,7 @@ true && true &&
   (and (and true true) a!1 a!1 true (not false) true))
 [RESULT] For this variable:
  --> test_proof/good/simple_vars.catala_en
-  |
+  | 
 6 |   context y content boolean
   |           ^
   + Test
