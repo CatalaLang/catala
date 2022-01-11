@@ -1,6 +1,6 @@
 [RESULT] For this variable:
  --> test_proof/good/no_vars.catala_en
-  |
+  | 
 5 |   context x content integer
   |           ^
   + Test
@@ -32,7 +32,7 @@ true && true &&
      true)
 [RESULT] For this variable:
  --> test_proof/good/no_vars.catala_en
-  |
+  | 
 5 |   context x content integer
   |           ^
   + Test
@@ -51,5 +51,23 @@ if true then
             true else false && true && true else false && true || false &&
   true
 [RESULT] The translation to Z3 is the following:
-TODO
+(let ((a!1 (and (=> false false) (=> (not false) false) (and true true)))
+      (a!2 (or false (and true (= (div 1458 27) 54)))))
+(let ((a!3 (=> (and (= (* 6 7) 42) a!2) true))
+      (a!4 (not (and (= (* 6 7) 42) a!2))))
+(let ((a!5 (or a!1
+               (and a!3
+                    (=> a!4 false)
+                    (and true true (and true true) true)
+                    (and true true)
+                    (and true true)
+                    (and true true (and true true) true)
+                    true
+                    true))))
+(let ((a!6 (or (and (=> true (or a!1 a!1))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true a!5) (=> (not true) false) (and true true)))))
+(let ((a!7 (or (and (=> true a!6) (=> (not true) false) true) false)))
+  (and a!7 true))))))
 [RESULT] Success: Empty unreachable
