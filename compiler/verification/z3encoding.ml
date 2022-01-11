@@ -87,19 +87,16 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Sub _ -> failwith "[Z3 encoding] application of binary operator Sub not supported"
       | Mult _ -> failwith "[Z3 encoding] application of binary operator Mult not supported"
       | Div _ -> failwith "[Z3 encoding] application of binary operator Div not supported"
-      | Lt op_kind -> (
-          match op_kind with
-          | KInt -> Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
-          | _ ->
-              failwith
-                "[Z3 encoding] application of binary operator Lt for non-integers not supported")
+      | Lt KInt ->  Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Lt _ -> failwith "[Z3 encoding] application of non-integer binary operator Lt not supported"
       | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
-      | Gt _ -> failwith "[Z3 encoding] application of binary operator Gt not supported"
+      | Gt KInt -> Arithmetic.mk_gt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Gt _ -> failwith "[Z3 encoding] application of non-integer binary operator Gt not supported"
       | Gte KInt -> Arithmetic.mk_ge ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
       | Gte _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
-      | Eq -> failwith "[Z3 encoding] application of binary operator Eq not supported"
-      | Neq -> failwith "[Z3 encoding] application of binary operator New not supported"
+      | Eq -> Boolean.mk_eq ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Neq -> Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2))
       | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
       | Concat -> failwith "[Z3 encoding] application of binary operator Concat not supported"
       | Filter -> failwith "[Z3 encoding] application of binary operator Filter not supported")
