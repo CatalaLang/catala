@@ -22,6 +22,7 @@ faithful-by-construction algorithms from legislative texts. To learn quickly
 about the language and its features, you can jump right to the official
 [Catala tutorial](https://catala-lang.org/en/examples/tutorial).
 You can join the Catala community on [Zulip][chat-link]!
+
 </div>
 
 <br>
@@ -31,19 +32,19 @@ You can join the Catala community on [Zulip][chat-link]!
 
 <!-- vim-markdown-toc GitLab -->
 
-* [Concepts](#concepts)
-* [Building and installation](#building-and-installation)
-* [Usage](#usage)
-* [Examples](#examples)
-* [API](#api)
-* [Contributing](#contributing)
-* [Test suite](#test-suite)
-* [Documentation](#documentation)
-  * [Formal semantics](#formal-semantics)
-  * [Compiler documentation](#compiler-documentation)
-* [License](#license)
-* [Limitations and disclaimer](#limitations-and-disclaimer)
-* [Pierre Catala](#pierre-catala)
+- [Concepts](#concepts)
+- [Building and installation](#building-and-installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [API](#api)
+- [Contributing](#contributing)
+- [Test suite](#test-suite)
+- [Documentation](#documentation)
+  - [Formal semantics](#formal-semantics)
+  - [Compiler documentation](#compiler-documentation)
+- [License](#license)
+- [Limitations and disclaimer](#limitations-and-disclaimer)
+- [Pierre Catala](#pierre-catala)
 
 <!-- vim-markdown-toc -->
 
@@ -104,13 +105,23 @@ want to compile it from the sources of this repository or use nix. For that, see
 
 ## Usage
 
-Use `catala --help` to get more information about the command line
-options available.
+### Catala
+
+Use `catala --help` if you have installed it to get more information about the command line
+options available. To get the development version of the help, run `make help_catala`
+after `make build`. The `catala` binary corresponds to the Catala compiler.
 
 The top-level `Makefile` contains a lot of useful targets to run. To display
 them, use
 
         make help
+
+### Clerk
+
+Use `clerk --help` if you have installed it to get more information about the command line
+options available. To get the development version of the help, run `make help_clerk`
+after `make build`. The `clerk` binary corresponds to the Catala build system,
+responsible for testing among other things.
 
 ## Examples
 

@@ -1,7 +1,7 @@
 [ERROR] division by zero at runtime
 
 The division operator:
-  --> test_arithmetic/bad/division_by_zero.catala_en
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
    | 
 20 |   definition i equals 1. /. 0.
    |                          ^^
@@ -9,7 +9,7 @@ The division operator:
    +-+ with decimals
 
 The null denominator:
-  --> test_arithmetic/bad/division_by_zero.catala_en
+  --> tests/test_arithmetic/bad/division_by_zero.catala_en
    | 
 20 |   definition i equals 1. /. 0.
    |                             ^^

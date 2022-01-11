@@ -1,6 +1,6 @@
 [ERROR] The constructor Case3 of enum E is missing from this pattern matching
 
-  --> test_enum/bad/missing_case.catala_en
+  --> tests/test_enum/bad/missing_case.catala_en
    | 
 14 |   definition out equals match e with pattern
    |                         ^^^^^^^^^^^^^^^^^^^

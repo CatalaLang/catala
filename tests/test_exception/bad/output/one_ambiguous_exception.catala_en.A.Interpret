@@ -1,7 +1,7 @@
 [ERROR] This exception can refer to several definitions. Try using labels to disambiguate
 
 Ambiguous exception
-  --> test_exception/bad/one_ambiguous_exception.catala_en
+  --> tests/test_exception/bad/one_ambiguous_exception.catala_en
    | 
 16 |   definition y equals 4
    |                       
@@ -14,14 +14,14 @@ Ambiguous exception
    + Test
 
 Candidate definition
-  --> test_exception/bad/one_ambiguous_exception.catala_en
+  --> tests/test_exception/bad/one_ambiguous_exception.catala_en
    | 
 16 |   definition y equals 4
    |              ^
    + Test
 
 Candidate definition
-  --> test_exception/bad/one_ambiguous_exception.catala_en
+  --> tests/test_exception/bad/one_ambiguous_exception.catala_en
    | 
 14 |   definition y equals 2
    |              ^

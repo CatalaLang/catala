@@ -1,6 +1,6 @@
 [ERROR] Cannot define rule as an exception to itself
 
-  --> test_exception/bad/self_exception.catala_en
+  --> tests/test_exception/bad/self_exception.catala_en
    | 
 10 |   definition y equals 0
    |              ^

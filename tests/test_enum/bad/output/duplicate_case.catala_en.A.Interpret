@@ -1,12 +1,12 @@
 [ERROR] The constructor Case3 has been matched twice:
 
-  --> test_enum/bad/duplicate_case.catala_en
+  --> tests/test_enum/bad/duplicate_case.catala_en
    | 
 18 |     -- Case3 : true
    |                ^^^^
    + Article
 
-  --> test_enum/bad/duplicate_case.catala_en
+  --> tests/test_enum/bad/duplicate_case.catala_en
    | 
 17 |     -- Case3 : false
    |                ^^^^^

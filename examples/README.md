@@ -56,10 +56,10 @@ In order to enjoy the benefits of this system, you have to create a `tests/`
 directory in your examples directory, for instance `examples/foo/tests`. Then,
 create a test file `foo_tests.catala_en` inside that directory.
 
-Inside `foo_tests.catala_en`, declare one ore more test scopes. It is assumed
-that all these scopes should execute correctly. Include the program scope you
-want to test and use assertions to provide the expected values of your test.
-See existing tests in examples directory for more information.
+Inside `foo_tests.catala_en`, declare one ore more test scopes. Then, you can
+provide the expected output for the interpretation of these scopes or the
+compilation of the whole program using the standard expected by `clerk test`:
+enter `make help_clerk` from the root of the Catala repository to know more.
 
 Once your tests are written, then will automatically be added to the regression
 suite executed using
@@ -68,7 +68,7 @@ suite executed using
 
 You can isolate a part of the regression suite by invoking:
 
-    TEST_FILES=foo/tests/foo_tests.catala_en make -C examples tests
+    make -C examples foo/tests/foo_tests.catala_en
 
 ## Adding an example
 

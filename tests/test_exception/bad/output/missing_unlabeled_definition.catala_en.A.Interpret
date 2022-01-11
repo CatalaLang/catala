@@ -1,6 +1,6 @@
 [ERROR] This exception does not have a corresponding definition
 
- --> test_exception/bad/missing_unlabeled_definition.catala_en
+ --> tests/test_exception/bad/missing_unlabeled_definition.catala_en
   | 
 7 | scope A:
   |        

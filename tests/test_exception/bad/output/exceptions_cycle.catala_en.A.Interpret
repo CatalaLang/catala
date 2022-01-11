@@ -1,7 +1,7 @@
 [ERROR] Cyclic dependency detected between exceptions!
 
 Cyclic exception for definition of variable "x", declared here:
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
 16 |   label exception_exception_x
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -12,14 +12,14 @@ Cyclic exception for definition of variable "x", declared here:
    + 
 
 Used here in the definition of another cyclic exception for defining "x":
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
 18 |   definition x equals 2
    |              ^
    + Test
 
 Cyclic exception for definition of variable "x", declared here:
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
 12 |   label exception_x
    |   ^^^^^^^^^^^^^^^^
@@ -30,14 +30,14 @@ Cyclic exception for definition of variable "x", declared here:
    + 
 
 Used here in the definition of another cyclic exception for defining "x":
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
 14 |   definition x equals 1
    |              ^
    + Test
 
 Cyclic exception for definition of variable "x", declared here:
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
  8 |   label base_x
    |   ^^^^^^^^^^^
@@ -48,7 +48,7 @@ Cyclic exception for definition of variable "x", declared here:
    + 
 
 Used here in the definition of another cyclic exception for defining "x":
-  --> test_exception/bad/exceptions_cycle.catala_en
+  --> tests/test_exception/bad/exceptions_cycle.catala_en
    | 
 10 |   definition x equals 0
    |              ^

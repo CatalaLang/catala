@@ -1,7 +1,7 @@
 [ERROR] This exception can refer to several definitions. Try using labels to disambiguate
 
 Ambiguous exception
-  --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+  --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
    | 
 10 |   definition x equals 1
    |                       
@@ -14,14 +14,14 @@ Ambiguous exception
    + Test
 
 Candidate definition
-  --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+  --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
    | 
 10 |   definition x equals 1
    |              ^
    + Test
 
 Candidate definition
- --> test_exception/bad/ambiguous_unlabeled_exception.catala_en
+ --> tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en
   | 
 8 |   definition x equals 0
   |              ^

@@ -1,28 +1,28 @@
 [ERROR] Cyclic dependency detected between types!
 
 Cycle type S, declared:
- --> test_struct/bad/nested2.catala_en
+ --> tests/test_struct/bad/nested2.catala_en
   | 
 4 | declaration structure S:
   |                       ^
   + Article
 
 Used here in the definition of another cycle type E:
-  --> test_struct/bad/nested2.catala_en
+  --> tests/test_struct/bad/nested2.catala_en
    | 
 10 |   -- Case2 content S
    |                    ^
    + Article
 
 Cycle type E, declared:
- --> test_struct/bad/nested2.catala_en
+ --> tests/test_struct/bad/nested2.catala_en
   | 
 8 | declaration enumeration E:
   |                         ^
   + Article
 
 Used here in the definition of another cycle type S:
- --> test_struct/bad/nested2.catala_en
+ --> tests/test_struct/bad/nested2.catala_en
   | 
 5 |   data x content E
   |                  ^

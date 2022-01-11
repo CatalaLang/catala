@@ -1,14 +1,14 @@
 [ERROR] There is a conflict between multiple validd consequences for assigning the same variable.
 
 This consequence has a valid justification:
- --> test_default/bad/conflict.catala_en
+ --> tests/test_default/bad/conflict.catala_en
   | 
 9 |   definition x under condition true consequence equals 0
   |                                                        ^
   + Article
 
 This consequence has a valid justification:
- --> test_default/bad/conflict.catala_en
+ --> tests/test_default/bad/conflict.catala_en
   | 
 8 |   definition x under condition true consequence equals 1
   |                                                        ^
