@@ -124,6 +124,7 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
     | ".tex" -> Some Cli.Latex
     | ".html" -> Some Cli.Html
     | ".py" -> Some Cli.Python
+    | ".proof" -> Some Cli.Proof
     | _ -> None
   in
   match backend with

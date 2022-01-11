@@ -162,7 +162,7 @@ type vc_encoding_result = Success of Expr.expr | Fail of string
     them **)
 let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) :
     unit =
-  Printf.printf "Running Z3 version %s\n" Version.to_string;
+  Cli.debug_print (Format.asprintf "Running Z3 version %s" Version.to_string);
 
   let cfg = [ ("model", "true"); ("proof", "false") ] in
   let z3_ctx = mk_context cfg in
@@ -205,7 +205,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
   Solver.add solver
     (List.filter_map (fun (_, vc) -> match vc with Success e -> Some e | _ -> None) z3_vcs);
 
-  if Solver.check solver [] = SATISFIABLE then Cli.result_print "Success: Empty unreachable\n"
+  if Solver.check solver [] = SATISFIABLE then Cli.result_print "Success: Empty unreachable"
   else
     (* TODO: Print model as error message for Catala debugging purposes *)
-    Cli.error_print "Failure: Empty reachable\n"
+    Cli.error_print "Failure: Empty reachable"

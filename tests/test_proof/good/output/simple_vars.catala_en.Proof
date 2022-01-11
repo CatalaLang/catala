@@ -1,0 +1,205 @@
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+7 |   context z content integer
+  |           ^
+  + Test
+This verification condition was generated for no two exceptions to ever overlap:
+true && true &&
+  true && true && true && true && true && ~ false &&
+    true && true && true && ~ false && true && true && ~ false &&
+    true && true && true && true && true && true && ~ false &&
+      true && true && true && ~ false && true && true && ~ false &&
+      true && true && true && true && true && ~ false &&
+        true && true && true && ~ false && true && true && ~ false &&
+        true && true && true && ~ false && true && true && true && ~ false &&
+          true && true &&
+            ~
+              if true then
+                if false then false else false && true && true ||
+                  if x_5 = 0 then true else false &&
+                    true && true && true && true else false && true && true
+                &&
+                if true then
+                  if false then false else false && true && true ||
+                    if x_5 < 0 then true && true else false &&
+                      true && true && true && true else false && true && true
+                ||
+                if true then
+                  if false then false else false && true && true ||
+                    if x_5 = 0 then true else false &&
+                      true && true && true && true else false && true && true
+                  &&
+                  if true then
+                    if false then false else false && true && true ||
+                      if x_5 > 0 then true else false &&
+                        true && true && true && true else false &&
+                    true && true ||
+                  if true then
+                    if false then false else false && true && true ||
+                      if x_5 < 0 then true && true else false &&
+                        true && true && true && true else false &&
+                    true && true &&
+                    if true then
+                      if false then false else false && true && true ||
+                        if x_5 > 0 then true else false &&
+                          true && true && true && true else false &&
+                      true && true && true && ~ false && true
+[RESULT] The translation to Z3 is the following:
+TODO
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+7 |   context z content integer
+  |           ^
+  + Test
+This verification condition was generated for the variable definition never to return an empty error:
+if true then
+  if true then
+    if false then false else false && true && true ||
+      if false then false else false && true && true else false &&
+    true && true ||
+    if true then
+      if false then false else false && true && true ||
+        if x_5 = 0 then true else false && true && true && true && true else
+      false && true && true ||
+      if true then
+        if false then false else false && true && true ||
+          if x_5 < 0 then true && true else false &&
+            true && true && true && true else false && true && true ||
+        if true then
+          if false then false else false && true && true ||
+            if x_5 > 0 then true else false && true && true && true && true
+          else false && true && true else false && true || false && true
+[RESULT] The translation to Z3 is the following:
+TODO
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+5 |   context x content integer
+  |           ^
+  + Test
+This verification condition was generated for no two exceptions to ever overlap:
+true && true &&
+  true && true && true && ~ false && true && true && true && ~ false &&
+    true && true && ~ false &&
+    true && true && true && true && ~ false &&
+      true && true && true && ~ false && true && true && ~ false &&
+      true && true && true && ~ false && true && true && true && ~ false &&
+        true && true &&
+          ~
+            if true then
+              if false then false else false && true && true ||
+                if y_4 then true else false && true && true else false &&
+              true && true &&
+              if true then
+                if false then false else false && true && true ||
+                  if ~ y_4 then true else false && true && true && true else
+                false && true && true && true && ~ false && true
+[RESULT] The translation to Z3 is the following:
+(let ((a!1 (and (and true (and (and true true) (not false)))
+                (and true (and (and true true) (not false)))))
+      (a!2 (and (=> false false) (=> (not false) false) (and true true)))
+      (a!4 (and (=> (not y_4) true)
+                (=> (not (not y_4)) false)
+                (and (and true true) true))))
+(let ((a!3 (or a!2 (and (=> y_4 true) (=> (not y_4) false) (and true true)))))
+(let ((a!5 (not (and (=> true a!3)
+                     (=> (not true) false)
+                     (and true true)
+                     (=> true (or a!2 a!4))
+                     (=> (not true) false)
+                     (and true true)))))
+  (and (and true true)
+       a!1
+       (and (and true true) (not false))
+       true
+       (and (and true true) true)
+       (not false)
+       (and true (and (and true true) (not false)))
+       (and (and true true) (not false))
+       a!1
+       (and true true)
+       a!5
+       true
+       (not false)
+       true))))
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+5 |   context x content integer
+  |           ^
+  + Test
+This verification condition was generated for the variable definition never to return an empty error:
+if true then
+  if true then
+    if false then false else false && true && true ||
+      if false then false else false && true && true else false &&
+    true && true ||
+    if true then
+      if false then false else false && true && true ||
+        if y_4 then true else false && true && true else false &&
+      true && true ||
+      if true then
+        if false then false else false && true && true ||
+          if ~ y_4 then true else false && true && true && true else false &&
+        true && true else false && true || false && true
+[RESULT] The translation to Z3 is the following:
+(let ((a!1 (and (=> false false) (=> (not false) false) (and true true)))
+      (a!3 (and (=> (not y_4) true)
+                (=> (not (not y_4)) false)
+                (and true true)
+                true)))
+(let ((a!2 (or a!1 (and (=> y_4 true) (=> (not y_4) false) (and true true)))))
+(let ((a!4 (or (and (=> true (or a!1 a!1))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true a!2) (=> (not true) false) (and true true))
+               (and (=> true (or a!1 a!3))
+                    (=> (not true) false)
+                    (and true true)))))
+(let ((a!5 (or (and (=> true a!4) (=> (not true) false) true) false)))
+  (and a!5 true)))))
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+6 |   context y content boolean
+  |           ^
+  + Test
+This verification condition was generated for no two exceptions to ever overlap:
+true && true &&
+  true && true && true && ~ false && true && true && true && ~ false &&
+    true && true && ~ false &&
+    true && true && true && ~ false && true && true && true && ~ false &&
+      true && true && ~ false && true && ~ false && true
+[RESULT] The translation to Z3 is the following:
+(let ((a!1 (and (and true (and (and true true) (not false)))
+                (and true (and (and true true) (not false)))
+                (and (and true true) (not false)))))
+  (and (and true true) a!1 a!1 true (not false) true))
+[RESULT] For this variable:
+ --> test_proof/good/simple_vars.catala_en
+  |
+6 |   context y content boolean
+  |           ^
+  + Test
+This verification condition was generated for the variable definition never to return an empty error:
+if true then
+  if true then
+    if false then false else false && true && true ||
+      if false then false else false && true && true else false &&
+    true && true ||
+    if true then
+      if false then false else false && true && true ||
+        if true then true else false && true && true else false &&
+      true && true else false && true || false && true
+[RESULT] The translation to Z3 is the following:
+(let ((a!1 (and (=> false false) (=> (not false) false) (and true true))))
+(let ((a!2 (or a!1 (and (=> true true) (=> (not true) false) (and true true)))))
+(let ((a!3 (or (and (=> true (or a!1 a!1))
+                    (=> (not true) false)
+                    (and true true))
+               (and (=> true a!2) (=> (not true) false) (and true true)))))
+(let ((a!4 (or (and (=> true a!3) (=> (not true) false) true) false)))
+  (and a!4 true)))))
+[RESULT] Success: Empty unreachable

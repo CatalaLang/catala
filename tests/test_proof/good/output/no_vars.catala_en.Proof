@@ -1,0 +1,55 @@
+[RESULT] For this variable:
+ --> test_proof/good/no_vars.catala_en
+  |
+5 |   context x content integer
+  |           ^
+  + Test
+This verification condition was generated for no two exceptions to ever overlap:
+true && true &&
+  true &&
+    true && true && true && true && true && true && true && true && true &&
+      true && true && true && true && true && true && true && ~ false &&
+    true && true && true && ~ false && true && true && ~ false &&
+    true && true && true && ~ false && true && true && true && ~ false &&
+      true && true && ~ false && true && ~ false && true
+[RESULT] The translation to Z3 is the following:
+(and (and true true)
+     true
+     (and true true (and true true) true)
+     (and true true)
+     (and true true)
+     (and true true (and true true) true)
+     true
+     true
+     (not false)
+     (and true (and (and true true) (not false)))
+     (and (and true true) (not false))
+     (and true (and (and true true) (not false)))
+     (and true (and (and true true) (not false)))
+     (and (and true true) (not false))
+     true
+     (not false)
+     true)
+[RESULT] For this variable:
+ --> test_proof/good/no_vars.catala_en
+  |
+5 |   context x content integer
+  |           ^
+  + Test
+This verification condition was generated for the variable definition never to return an empty error:
+if true then
+  if true then
+    if false then false else false && true && true ||
+      if false then false else false && true && true else false &&
+    true && true ||
+    if true then
+      if false then false else false && true && true ||
+        if 6 * 7 = 42 && false || true && 1458 / 27 = 54 then true else false
+          &&
+          true && true && true && true && true && true && true &&
+            true && true && true && true && true && true && true && true &&
+            true else false && true && true else false && true || false &&
+  true
+[RESULT] The translation to Z3 is the following:
+TODO
+[RESULT] Success: Empty unreachable
