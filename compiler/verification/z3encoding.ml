@@ -258,9 +258,15 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
       Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
 
       if Solver.check solver [] = UNSATISFIABLE then Cli.result_print (print_positive_result vc)
-      else
+      else (
         (* TODO: Print model as error message for Catala debugging purposes *)
-        Cli.error_print (print_negative_result vc)
+        Cli.error_print (print_negative_result vc);
+        match Solver.get_model solver with
+        | None -> Cli.error_print "Z3 did not manage to generate a counterexample"
+        | Some model ->
+            Cli.error_print
+              (Format.asprintf "Z3 generated the following counterexample\n%s"
+                 (Model.to_string model)))
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
