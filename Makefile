@@ -17,11 +17,7 @@ K := $(foreach exec,$(EXECUTABLES),\
 
 # The Zarith dependency is fixed because of https://github.com/janestreet/zarith_stubs_js/pull/8
 dependencies-ocaml:
-	opam install \
-		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
-		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
-		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors benchmark cppo odoc
+	opam install . --deps-only
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies

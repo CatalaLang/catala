@@ -63,7 +63,11 @@
   (camomile
    (>= 1.0.2))
   (cppo
-   (>= 1))))
+   (>= 1))
+  (obelisk
+   :dev)
+  (ocamlformat
+   :dev)))
 
 (package
  (name french_law)
@@ -75,6 +79,8 @@
   (ocaml
    (>= 4.11.0))
   (catala
-   (>= 0.5.0))))
+   (= :version))
+  (conf-npm
+   :dev)))
 
 (using menhir 2.1)

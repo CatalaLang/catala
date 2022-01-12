@@ -32,6 +32,8 @@ depends: [
   "js_of_ocaml-ppx" {>= "3.8.0"}
   "camomile" {>= "1.0.2"}
   "cppo" {>= "1"}
+  "obelisk" {dev}
+  "ocamlformat" {dev}
   "odoc" {with-doc}
 ]
 build: [
