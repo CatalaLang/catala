@@ -1,2 +1,2 @@
-[RESULT] No two exceptions to ever overlap for variable A.x
-[RESULT] Variable A.x never returns an empty error
+[RESULT] A.x: no two exceptions to ever overlap for this variable
+[RESULT] A.x: this variable never returns an empty error

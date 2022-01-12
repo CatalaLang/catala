@@ -170,12 +170,12 @@ type vc_encoding_result = Success of Expr.expr | Fail of string
 let print_positive_result (vc : Conditions.verification_condition) : string =
   match vc.Conditions.vc_kind with
   | Conditions.NoEmptyError ->
-      Format.asprintf "Variable %s never returns an empty error"
+      Format.asprintf "%s: this variable never returns an empty error"
         (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))
   | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "No two exceptions to ever overlap for variable %s"
+      Format.asprintf "%s: no two exceptions to ever overlap for this variable"
         (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))
@@ -183,13 +183,13 @@ let print_positive_result (vc : Conditions.verification_condition) : string =
 let print_negative_result (vc : Conditions.verification_condition) : string =
   match vc.Conditions.vc_kind with
   | Conditions.NoEmptyError ->
-      Format.asprintf "Variable %s might return an empty error\n%s"
+      Format.asprintf "%s: this variable might return an empty error\n%s"
         (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))
         (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
   | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "Two exceptions overlap for variable %s\n%s"
+      Format.asprintf "%s: at least two exceptions overlap for this variable\n%s"
         (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))

@@ -1,6 +1,6 @@
-[RESULT] No two exceptions to ever overlap for variable A.z
-[RESULT] Variable A.z never returns an empty error
-[RESULT] No two exceptions to ever overlap for variable A.x
-[RESULT] Variable A.x never returns an empty error
-[RESULT] No two exceptions to ever overlap for variable A.y
-[RESULT] Variable A.y never returns an empty error
+[RESULT] A.z: no two exceptions to ever overlap for this variable
+[RESULT] A.z: this variable never returns an empty error
+[RESULT] A.x: no two exceptions to ever overlap for this variable
+[RESULT] A.x: this variable never returns an empty error
+[RESULT] A.y: no two exceptions to ever overlap for this variable
+[RESULT] A.y: this variable never returns an empty error

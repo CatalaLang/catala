@@ -1,9 +1,9 @@
-[RESULT] No two exceptions to ever overlap for variable A.y
-[ERROR] Variable A.y might return an empty error
+[RESULT] A.y: no two exceptions to ever overlap for this variable
+[ERROR] A.y: this variable might return an empty error
  --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 7 |   context y content integer
   |           ^
   + Test
-[RESULT] No two exceptions to ever overlap for variable A.x
-[RESULT] Variable A.x never returns an empty error
+[RESULT] A.x: no two exceptions to ever overlap for this variable
+[RESULT] A.x: this variable never returns an empty error
