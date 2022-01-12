@@ -36,6 +36,15 @@ type context = {
          represent. Used when to pretty-print Z3 models when a counterexample is generated *)
 }
 
+(** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3 function declaration
+    [fd] to the context **)
+let add_funcdecl (v : Var.t) (fd : FuncDecl.func_decl) (ctx : context) : context =
+  { ctx with ctx_funcdecl = VarMap.add v fd ctx.ctx_funcdecl }
+
+(** [add_z3var] adds the mapping between [name] and the Catala variable [v] to the context **)
+let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
+  { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
+
 (** [unique_name] returns the full, unique name corresponding to variable [v], as given by Bindlib **)
 let unique_name (v : Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
@@ -104,8 +113,10 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.fun
       | TArrow (t1, t2) ->
           let z3_t1 = translate_typ ctx (Pos.unmark t1) in
           let z3_t2 = translate_typ ctx (Pos.unmark t2) in
-          let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 (unique_name v) [ z3_t1 ] z3_t2 in
-          let ctx = { ctx with ctx_funcdecl = VarMap.add v fd ctx.ctx_funcdecl } in
+          let name = unique_name v in
+          let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [ z3_t1 ] z3_t2 in
+          let ctx = add_funcdecl v fd ctx in
+          let ctx = add_z3var name v ctx in
           (ctx, fd)
       | _ ->
           failwith
@@ -113,7 +124,8 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.fun
 
 (** [translate_op] returns the Z3 expression corresponding to the application of [op] to the
     arguments [args] **)
-let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked list) : Expr.expr =
+let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked list) :
+    context * Expr.expr =
   match op with
   | Ternop _top ->
       let _e1, _e2, _e3 =
@@ -128,9 +140,12 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 
       failwith "[Z3 encoding] ternary operator application not supported"
   | Binop bop -> (
-      let e1, e2 =
+      let ctx, e1, e2 =
         match args with
-        | [ e1; e2 ] -> (e1, e2)
+        | [ e1; e2 ] ->
+            let ctx, e1 = translate_expr ctx e1 in
+            let ctx, e2 = translate_expr ctx e2 in
+            (ctx, e1, e2)
         | _ ->
             failwith
               (Format.asprintf "[Z3 encoding] Ill-formed binary operator application: %a"
@@ -139,51 +154,49 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       in
 
       match bop with
-      | And -> Boolean.mk_and ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
-      | Or -> Boolean.mk_or ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
-      | Xor -> Boolean.mk_xor ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
-      | Add KInt -> Arithmetic.mk_add ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | And -> (ctx, Boolean.mk_and ctx.ctx_z3 [ e1; e2 ])
+      | Or -> (ctx, Boolean.mk_or ctx.ctx_z3 [ e1; e2 ])
+      | Xor -> (ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2)
+      | Add KInt -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
       | Add _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Add not supported"
-      | Sub KInt -> Arithmetic.mk_sub ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Sub KInt -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
       | Sub _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Sub not supported"
-      | Mult KInt -> Arithmetic.mk_mul ctx.ctx_z3 [ translate_expr ctx e1; translate_expr ctx e2 ]
+      | Mult KInt -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
       | Mult _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Mult not supported"
-      | Div KInt -> Arithmetic.mk_div ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Div KInt -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
       | Div _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
-      | Lt KInt -> Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Lt KInt -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
       | Lt _ -> failwith "[Z3 encoding] application of non-integer binary operator Lt not supported"
-      | Lte KInt -> Arithmetic.mk_le ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Lte KInt -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
       | Lte _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Lte not supported"
-      | Gt KInt -> Arithmetic.mk_gt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Gt KInt -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
       | Gt _ -> failwith "[Z3 encoding] application of non-integer binary operator Gt not supported"
-      | Gte KInt -> Arithmetic.mk_ge ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Gte KInt -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
       | Gte _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
-      | Eq -> Boolean.mk_eq ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
-      | Neq ->
-          Boolean.mk_not ctx.ctx_z3
-            (Boolean.mk_eq ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2))
+      | Eq -> (ctx, Boolean.mk_eq ctx.ctx_z3 e1 e2)
+      | Neq -> (ctx, Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 e1 e2))
       | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
       | Concat -> failwith "[Z3 encoding] application of binary operator Concat not supported"
       | Filter -> failwith "[Z3 encoding] application of binary operator Filter not supported")
   | Unop uop -> (
-      let e1 =
+      let ctx, e1 =
         match args with
-        | [ e1 ] -> e1
+        | [ e1 ] -> translate_expr ctx e1
         (* TODO: Print term for error message *)
         | _ -> failwith "[Z3 encoding] Ill-formed unary operator application"
       in
 
       match uop with
-      | Not -> Boolean.mk_not ctx.ctx_z3 (translate_expr ctx e1)
+      | Not -> (ctx, Boolean.mk_not ctx.ctx_z3 e1)
       | Minus _ -> failwith "[Z3 encoding] application of unary operator Minus not supported"
       (* Omitting the log from the VC *)
-      | Log _ -> translate_expr ctx e1
+      | Log _ -> (ctx, e1)
       | Length -> failwith "[Z3 encoding] application of unary operator Length not supported"
       | IntToRat -> failwith "[Z3 encoding] application of unary operator IntToRat not supported"
       | GetDay -> failwith "[Z3 encoding] application of unary operator GetDay not supported"
@@ -191,28 +204,36 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | GetYear -> failwith "[Z3 encoding] application of unary operator GetYear not supported")
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
-and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
+and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr =
   match Pos.unmark vc with
   | EVar v ->
       let v = Pos.unmark v in
       let t = VarMap.find v ctx.ctx_var in
       let name = unique_name v in
-      Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t))
+      let ctx = add_z3var name v ctx in
+      (ctx, Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t)))
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch _ -> failwith "[Z3 encoding] EMatch unsupported"
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
-  | ELit l -> translate_lit ctx l
+  | ELit l -> (ctx, translate_lit ctx l)
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
   | EApp (head, args) -> (
       match Pos.unmark head with
       | EOp op -> translate_op ctx op args
       | EVar v ->
           let ctx, fd = find_or_create_funcdecl ctx (Pos.unmark v) in
-          (* VarMap.find (Pos.unmark v) ctx.ctx_funcdecl in *)
-          let z3_args = List.map (translate_expr ctx) args in
-          Expr.mk_app ctx.ctx_z3 fd z3_args
+          (* Fold_right to preserve the order of the arguments: The head argument is appended at the
+             head *)
+          let ctx, z3_args =
+            List.fold_right
+              (fun arg (ctx, acc) ->
+                let ctx, z3_arg = translate_expr ctx arg in
+                (ctx, z3_arg :: acc))
+              args (ctx, [])
+          in
+          (ctx, Expr.mk_app ctx.ctx_z3 fd z3_args)
       | _ ->
           failwith
             "[Z3 encoding] EApp node: Catala function calls should only include operators or \
@@ -222,16 +243,18 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EIfThenElse (e_if, e_then, e_else) ->
       (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
-      let z3_if = translate_expr ctx e_if in
-      Boolean.mk_and ctx.ctx_z3
-        [
-          Boolean.mk_implies ctx.ctx_z3 z3_if (translate_expr ctx e_then);
-          Boolean.mk_implies ctx.ctx_z3 (Boolean.mk_not ctx.ctx_z3 z3_if)
-            (translate_expr ctx e_else);
-        ]
+      let ctx, z3_if = translate_expr ctx e_if in
+      let ctx, z3_then = translate_expr ctx e_then in
+      let ctx, z3_else = translate_expr ctx e_else in
+      ( ctx,
+        Boolean.mk_and ctx.ctx_z3
+          [
+            Boolean.mk_implies ctx.ctx_z3 z3_if z3_then;
+            Boolean.mk_implies ctx.ctx_z3 (Boolean.mk_not ctx.ctx_z3 z3_if) z3_else;
+          ] )
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
-type vc_encoding_result = Success of Expr.expr | Fail of string
+type vc_encoding_result = Success of context * Expr.expr | Fail of string
 
 let print_positive_result (vc : Conditions.verification_condition) : string =
   match vc.Conditions.vc_kind with
@@ -279,7 +302,7 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
        vc.vc_guard);
 
   match z3_vc with
-  | Success z3_vc ->
+  | Success (_, z3_vc) ->
       Cli.debug_print
         (Format.asprintf "The translation to Z3 is the following:@\n%s" (Expr.to_string z3_vc));
 
@@ -313,20 +336,22 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
       (fun vc ->
         ( vc,
           try
-            Success
-              (translate_expr
-                 {
-                   ctx_z3 = z3_ctx;
-                   ctx_decl = decl_ctx;
-                   ctx_var =
-                     VarMap.union
-                       (fun _ _ _ ->
-                         failwith "[Z3 encoding]: A Variable cannot be both free and bound")
-                       (variable_types prgm) vc.Conditions.vc_free_vars_typ;
-                   ctx_funcdecl = VarMap.empty;
-                   ctx_z3vars = StringMap.empty;
-                 }
-                 (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard)))
+            let ctx, z3_vc =
+              translate_expr
+                {
+                  ctx_z3 = z3_ctx;
+                  ctx_decl = decl_ctx;
+                  ctx_var =
+                    VarMap.union
+                      (fun _ _ _ ->
+                        failwith "[Z3 encoding]: A Variable cannot be both free and bound")
+                      (variable_types prgm) vc.Conditions.vc_free_vars_typ;
+                  ctx_funcdecl = VarMap.empty;
+                  ctx_z3vars = StringMap.empty;
+                }
+                (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
+            in
+            Success (ctx, z3_vc)
           with Failure msg -> Fail msg ))
       vcs
   in
