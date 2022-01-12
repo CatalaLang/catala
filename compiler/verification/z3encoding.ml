@@ -30,7 +30,21 @@ let unique_name (v : Var.t) : string =
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples where verification
     conditions are not satisfied **)
-let print_model (model : Model.model) : string = Model.to_string model
+let print_model (model : Model.model) : string =
+  let decls = Model.get_decls model in
+  List.fold_left
+    (fun acc d ->
+      match Model.get_const_interp model d with
+      (* TODO: Better handling of this case *)
+      | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+      (* Prints "name : value\n" *)
+      | Some e ->
+          if FuncDecl.get_arity d = 0 then
+            (* Constant case *)
+            (* TODO: Needs a better parsing of the value once we have more than integer types *)
+            "  " ^ Symbol.to_string (FuncDecl.get_name d) ^ " : " ^ Expr.to_string e ^ "\n" ^ acc
+          else failwith "[Z3 model]: Printing of functions is not yet supported")
+    "" decls
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
@@ -269,7 +283,7 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
         | None -> Cli.error_print "Z3 did not manage to generate a counterexample"
         | Some model ->
             Cli.error_print
-              (Format.asprintf "Z3 generated the following counterexample\n%s" (print_model model)))
+              (Format.asprintf "Z3 generated the following counterexample:\n%s" (print_model model)))
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
