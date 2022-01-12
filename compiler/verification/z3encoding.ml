@@ -193,7 +193,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
 
   List.iter
     (fun (vc, z3_vc) ->
-      Cli.result_print
+      Cli.debug_print
         (Format.asprintf
            "For this variable:\n%s\nThis verification condition was generated for %s:@\n%a"
            (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard))
@@ -206,7 +206,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
       match z3_vc with
       | Success z3_vc ->
           let z3_vc_string = Expr.to_string z3_vc in
-          Cli.result_print
+          Cli.debug_print
             (Format.asprintf "The translation to Z3 is the following:@\n%s" z3_vc_string)
       | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg))
     z3_vcs;
