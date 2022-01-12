@@ -227,7 +227,15 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
           try
             Success
               (translate_expr
-                 { ctx_z3 = z3_ctx; ctx_decl = decl_ctx; ctx_var = variable_types prgm }
+                 {
+                   ctx_z3 = z3_ctx;
+                   ctx_decl = decl_ctx;
+                   ctx_var =
+                     VarMap.union
+                       (fun _ _ _ ->
+                         failwith "[Z3 encoding]: A Variable cannot be both free and bound")
+                       (variable_types prgm) vc.Conditions.vc_free_vars_typ;
+                 }
                  vc.Conditions.vc_guard)
           with Failure msg -> Fail msg ))
       vcs
