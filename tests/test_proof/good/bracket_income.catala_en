@@ -102,8 +102,8 @@ Commented-out for now.
 
   ```catala
   scope CheckMonotony:
-    assume a.individual.income < b.individual.income
-    assume bob.number_of_children == alice.number_of_children
+    assumption a.individual.income < b.individual.income
+    assumption a.number_of_children == b.number_of_children
 
     assertion a.income_tax < b.income_tax
   ```
