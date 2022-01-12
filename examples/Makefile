@@ -10,7 +10,9 @@ CLERK=../_build/default/build_system/clerk.exe --exe "../_build/default/compiler
 
 
 %.catala_en %.catala_fr %.catala_pl: .FORCE
-	@$(CLERK) $@
+    # Here we cd to the root of the Catala repository such that the paths \
+	# displayed in error messages start with `examples/` uniformly.
+	@cd ..;$(CLERK) $@
 
 TEST_FILES?=$(wildcard */tests/*.catala*)
 
