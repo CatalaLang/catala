@@ -56,8 +56,10 @@ let unique_name (v : Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples where verification
-    conditions are not satisfied **)
-let print_model (model : Model.model) : string =
+    conditions are not satisfied. The context [ctx] is useful to retrieve the mapping between Z3
+    variables and Catala variables, and to retrieve type information about the variables that was
+    lost during the translation (e.g., by translating a date to an integer) **)
+let print_model (ctx : context) (model : Model.model) : string =
   let decls = Model.get_decls model in
   List.fold_left
     (fun acc d ->
@@ -68,8 +70,10 @@ let print_model (model : Model.model) : string =
       | Some e ->
           if FuncDecl.get_arity d = 0 then
             (* Constant case *)
+            let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
+            let v = StringMap.find symbol_name ctx.ctx_z3vars in
             (* TODO: Needs a better parsing of the value once we have more than integer types *)
-            "  " ^ Symbol.to_string (FuncDecl.get_name d) ^ " : " ^ Expr.to_string e ^ "\n" ^ acc
+            Format.asprintf "  %s : %s\n%s" (Bindlib.name_of v) (Expr.to_string e) acc
           else failwith "[Z3 model]: Printing of functions is not yet supported")
     "" decls
 
@@ -308,7 +312,7 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
        vc.vc_guard);
 
   match z3_vc with
-  | Success (_, z3_vc) ->
+  | Success (ctx, z3_vc) ->
       Cli.debug_print
         (Format.asprintf "The translation to Z3 is the following:@\n%s" (Expr.to_string z3_vc));
 
@@ -324,7 +328,8 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
         | None -> Cli.error_print "Z3 did not manage to generate a counterexample"
         | Some model ->
             Cli.error_print
-              (Format.asprintf "Z3 generated the following counterexample:\n%s" (print_model model)))
+              (Format.asprintf "Z3 generated the following counterexample:\n%s"
+                 (print_model ctx model)))
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
