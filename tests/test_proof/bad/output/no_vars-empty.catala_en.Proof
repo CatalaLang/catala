@@ -1,5 +1,5 @@
 [RESULT] For this variable:
- --> test_proof/bad/no_vars-empty.catala_en
+ --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 7 |   context y content integer
   |           ^
@@ -8,7 +8,7 @@
 [RESULT] No two exceptions to ever overlap for this variable
 
 [RESULT] For this variable:
- --> test_proof/bad/no_vars-empty.catala_en
+ --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 7 |   context y content integer
   |           ^
@@ -17,7 +17,7 @@
 [ERROR] The variable definition might return an empty error
 
 [RESULT] For this variable:
- --> test_proof/bad/no_vars-empty.catala_en
+ --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 6 |   context x content integer
   |           ^
@@ -26,7 +26,7 @@
 [RESULT] No two exceptions to ever overlap for this variable
 
 [RESULT] For this variable:
- --> test_proof/bad/no_vars-empty.catala_en
+ --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 6 |   context x content integer
   |           ^
