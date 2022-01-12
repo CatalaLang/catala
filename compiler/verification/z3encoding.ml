@@ -17,6 +17,8 @@ open Dcalc
 open Ast
 open Z3
 
+module StringMap : Map.S with type key = String.t = Map.Make (String)
+
 type context = {
   ctx_z3 : Z3.context;
   (* The Z3 context, used to create symbols and expressions *)
@@ -27,8 +29,11 @@ type context = {
   (* A map from Catala variables to their types, needed to create Z3 expressions of the right
      sort *)
   ctx_funcdecl : FuncDecl.func_decl VarMap.t;
-      (* A map from Catala function names (represented as variables) to Z3 function declarations,
-         used to only define once functions in Z3 queries *)
+  (* A map from Catala function names (represented as variables) to Z3 function declarations, used
+     to only define once functions in Z3 queries *)
+  ctx_z3vars : Var.t StringMap.t;
+      (* A map from strings, corresponding to Z3 symbol names, to the Catala variable they
+         represent. Used when to pretty-print Z3 models when a counterexample is generated *)
 }
 
 (** [unique_name] returns the full, unique name corresponding to variable [v], as given by Bindlib **)
@@ -319,6 +324,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                          failwith "[Z3 encoding]: A Variable cannot be both free and bound")
                        (variable_types prgm) vc.Conditions.vc_free_vars_typ;
                    ctx_funcdecl = VarMap.empty;
+                   ctx_z3vars = StringMap.empty;
                  }
                  (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard)))
           with Failure msg -> Fail msg ))
