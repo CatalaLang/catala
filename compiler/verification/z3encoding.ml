@@ -198,8 +198,11 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       let ctx, e1 =
         match args with
         | [ e1 ] -> translate_expr ctx e1
-        (* TODO: Print term for error message *)
-        | _ -> failwith "[Z3 encoding] Ill-formed unary operator application"
+        | _ ->
+            failwith
+              (Format.asprintf "[Z3 encoding] Ill-formed unary operator application: %a"
+                 (Print.format_expr ctx.ctx_decl)
+                 (EApp ((EOp op, Pos.no_pos), args), Pos.no_pos))
       in
 
       match uop with
