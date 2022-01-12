@@ -5,7 +5,7 @@
   |           ^
   + Test
 [ERROR] Z3 generated the following counterexample:
-  x_4 : 0
+  x : 0
 
 [RESULT] A.y: this variable never returns an empty error
 [RESULT] A.x: no two exceptions to ever overlap for this variable
