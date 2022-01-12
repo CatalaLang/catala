@@ -19,9 +19,16 @@ open Z3
 
 type context = {
   ctx_z3 : Z3.context;
+  (* The Z3 context, used to create symbols and expressions *)
   ctx_decl : decl_ctx;
+  (* The declaration context from the Catala program, containing information to precisely pretty
+     print Catala expressions *)
   ctx_var : typ Pos.marked VarMap.t;
+  (* A map from Catala variables to their types, needed to create Z3 expressions of the right
+     sort *)
   ctx_funcdecl : FuncDecl.func_decl VarMap.t;
+      (* A map from Catala function names (represented as variables) to Z3 function declarations,
+         used to only define once functions in Z3 queries *)
 }
 
 (** [unique_name] returns the full, unique name corresponding to variable [v], as given by Bindlib **)
