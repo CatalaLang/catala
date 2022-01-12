@@ -149,7 +149,8 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   | EApp (head, args) -> (
       match Pos.unmark head with
       | EOp op -> translate_op ctx op args
-      | _ -> failwith "[Z3 encoding] EApp of a non-operator unsupported")
+      | EVar _v -> failwith "[Z3 encoding] EApp of a function unsupported"
+      | _ -> failwith "[Z3 encoding] EApp of complex terms unsupported")
   | EAssert _ -> failwith "[Z3 encoding] EAssert unsupported"
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
@@ -236,7 +237,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                          failwith "[Z3 encoding]: A Variable cannot be both free and bound")
                        (variable_types prgm) vc.Conditions.vc_free_vars_typ;
                  }
-                 vc.Conditions.vc_guard)
+                 (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard)))
           with Failure msg -> Fail msg ))
       vcs
   in
