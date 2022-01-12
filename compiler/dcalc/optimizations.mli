@@ -18,3 +18,5 @@ open Ast
 val optimize_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
 
 val optimize_program : program -> program
+
+val remove_all_logs : expr Pos.marked -> expr Pos.marked
