@@ -167,16 +167,18 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
 type vc_encoding_result = Success of Expr.expr | Fail of string
 
 (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
-let encode_and_check_vc (z3_ctx : Z3.context) (vc : Expr.expr) : unit =
+let encode_and_check_vc (z3_ctx : Z3.context) (vc : Conditions.verification_condition * Expr.expr) :
+    unit =
+  let _, z3_vc = vc in
+
   let solver = Solver.mk_solver z3_ctx None in
 
-  Solver.add solver [Boolean.mk_not z3_ctx vc];
+  Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
 
   if Solver.check solver [] = UNSATISFIABLE then Cli.result_print "Success: Empty unreachable"
   else
     (* TODO: Print model as error message for Catala debugging purposes *)
     Cli.error_print "Failure: Empty reachable"
-
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
@@ -221,6 +223,10 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
       | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg))
     z3_vcs;
 
-  let z3_vcs = List.filter_map (fun (_, vc) -> match vc with Success e -> Some e | _ -> None) z3_vcs in
+  let z3_vcs =
+    List.filter_map
+      (fun (vc, z3_vc) -> match z3_vc with Success e -> Some (vc, e) | _ -> None)
+      z3_vcs
+  in
 
   List.iter (encode_and_check_vc z3_ctx) z3_vcs
