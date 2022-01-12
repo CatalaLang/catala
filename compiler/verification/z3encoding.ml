@@ -17,7 +17,16 @@ open Dcalc
 open Ast
 open Z3
 
-type context = { ctx_z3 : Z3.context; ctx_decl : decl_ctx; ctx_var : typ Pos.marked VarMap.t }
+type context = {
+  ctx_z3 : Z3.context;
+  ctx_decl : decl_ctx;
+  ctx_var : typ Pos.marked VarMap.t;
+  ctx_funcdecl : FuncDecl.func_decl VarMap.t;
+}
+
+(** [unique_name] returns the full, unique name corresponding to variable [v], as given by Bindlib **)
+let unique_name (v : Var.t) : string =
+  Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
@@ -51,6 +60,26 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
   | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
+
+(** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
+    variable [v]. If no such function declaration exists yet, we construct it and add it to the
+    context, thus requiring to return a new context *)
+let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.func_decl =
+  match VarMap.find_opt v ctx.ctx_funcdecl with
+  | Some fd -> (ctx, fd)
+  | None -> (
+      (* Retrieves the Catala type of the function [v] *)
+      let f_ty = VarMap.find v ctx.ctx_var in
+      match Pos.unmark f_ty with
+      | TArrow (t1, t2) ->
+          let z3_t1 = translate_typ ctx (Pos.unmark t1) in
+          let z3_t2 = translate_typ ctx (Pos.unmark t2) in
+          let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 (unique_name v) [ z3_t1 ] z3_t2 in
+          let ctx = { ctx with ctx_funcdecl = VarMap.add v fd ctx.ctx_funcdecl } in
+          (ctx, fd)
+      | _ ->
+          failwith
+            "[Z3 Encoding] Ill-formed VC, a function application does not have a function type")
 
 (** [translate_op] returns the Z3 expression corresponding to the application of [op] to the
     arguments [args] **)
@@ -135,9 +164,9 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   match Pos.unmark vc with
   | EVar v ->
-      let t = VarMap.find (Pos.unmark v) ctx.ctx_var in
       let v = Pos.unmark v in
-      let name = Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v) in
+      let t = VarMap.find v ctx.ctx_var in
+      let name = unique_name v in
       Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t))
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
@@ -149,8 +178,15 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
   | EApp (head, args) -> (
       match Pos.unmark head with
       | EOp op -> translate_op ctx op args
-      | EVar _v -> failwith "[Z3 encoding] EApp of a function unsupported"
-      | _ -> failwith "[Z3 encoding] EApp of complex terms unsupported")
+      | EVar v ->
+          let ctx, fd = find_or_create_funcdecl ctx (Pos.unmark v) in
+          (* VarMap.find (Pos.unmark v) ctx.ctx_funcdecl in *)
+          let z3_args = List.map (translate_expr ctx) args in
+          Expr.mk_app ctx.ctx_z3 fd z3_args
+      | _ ->
+          failwith
+            "[Z3 encoding] EApp node: Catala function calls should only include operators or \
+             function names")
   | EAssert _ -> failwith "[Z3 encoding] EAssert unsupported"
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
@@ -252,6 +288,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                        (fun _ _ _ ->
                          failwith "[Z3 encoding]: A Variable cannot be both free and bound")
                        (variable_types prgm) vc.Conditions.vc_free_vars_typ;
+                   ctx_funcdecl = VarMap.empty;
                  }
                  (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard)))
           with Failure msg -> Fail msg ))
