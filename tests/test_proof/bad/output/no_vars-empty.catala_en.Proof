@@ -5,5 +5,8 @@
 7 |   context y content integer
   |           ^
   + Test
+[ERROR] Z3 generated the following counterexample:
+  x_4 : 1
+
 [RESULT] A.x: no two exceptions to ever overlap for this variable
 [RESULT] A.x: this variable never returns an empty error
