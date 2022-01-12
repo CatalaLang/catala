@@ -97,7 +97,9 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
           failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
       | Lt KInt -> Arithmetic.mk_lt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
       | Lt _ -> failwith "[Z3 encoding] application of non-integer binary operator Lt not supported"
-      | Lte _ -> failwith "[Z3 encoding] application of binary operator Lte not supported"
+      | Lte KInt -> Arithmetic.mk_le ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
+      | Lte _ ->
+          failwith "[Z3 encoding] application of non-integer binary operator Lte not supported"
       | Gt KInt -> Arithmetic.mk_gt ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
       | Gt _ -> failwith "[Z3 encoding] application of non-integer binary operator Gt not supported"
       | Gte KInt -> Arithmetic.mk_ge ctx.ctx_z3 (translate_expr ctx e1) (translate_expr ctx e2)
