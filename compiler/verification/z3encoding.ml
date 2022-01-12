@@ -28,6 +28,10 @@ type context = {
 let unique_name (v : Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
+(** [print_model] pretty prints a Z3 model, used to exhibit counter examples where verification
+    conditions are not satisfied **)
+let print_model (model : Model.model) : string = Model.to_string model
+
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   match t with
@@ -265,8 +269,7 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
         | None -> Cli.error_print "Z3 did not manage to generate a counterexample"
         | Some model ->
             Cli.error_print
-              (Format.asprintf "Z3 generated the following counterexample\n%s"
-                 (Model.to_string model)))
+              (Format.asprintf "Z3 generated the following counterexample\n%s" (print_model model)))
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
