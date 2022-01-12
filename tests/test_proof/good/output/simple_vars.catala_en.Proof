@@ -1,54 +1,6 @@
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-7 |   context z content integer
-  |           ^
-  + Test
-
-[RESULT] No two exceptions to ever overlap for this variable
-
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-7 |   context z content integer
-  |           ^
-  + Test
-
-[RESULT] The variable definition never returns an empty error
-
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-5 |   context x content integer
-  |           ^
-  + Test
-
-[RESULT] No two exceptions to ever overlap for this variable
-
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-5 |   context x content integer
-  |           ^
-  + Test
-
-[RESULT] The variable definition never returns an empty error
-
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-6 |   context y content boolean
-  |           ^
-  + Test
-
-[RESULT] No two exceptions to ever overlap for this variable
-
-[RESULT] For this variable:
- --> tests/test_proof/good/simple_vars.catala_en
-  |
-6 |   context y content boolean
-  |           ^
-  + Test
-
-[RESULT] The variable definition never returns an empty error
-
+[RESULT] No two exceptions to ever overlap for variable A.z
+[RESULT] Variable A.z never returns an empty error
+[RESULT] No two exceptions to ever overlap for variable A.x
+[RESULT] Variable A.x never returns an empty error
+[RESULT] No two exceptions to ever overlap for variable A.y
+[RESULT] Variable A.y never returns an empty error

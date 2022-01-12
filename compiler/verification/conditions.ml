@@ -207,12 +207,14 @@ type verification_condition = {
   vc_guard : expr Pos.marked;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
+  vc_scope : ScopeName.t;
+  vc_variable : Var.t Pos.marked;
   vc_free_vars_typ : typ Pos.marked VarMap.t;
 }
 
 let generate_verification_conditions (p : program) : verification_condition list =
   List.fold_left
-    (fun acc (_s_name, _s_var, s_body) ->
+    (fun acc (s_name, _s_var, s_body) ->
       let ctx = { decl = p.decl_ctx; input_vars = [] } in
       let acc, _ =
         List.fold_left
@@ -241,11 +243,15 @@ let generate_verification_conditions (p : program) : verification_condition list
                     vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
                     vc_kind = NoOverlappingExceptions;
                     vc_free_vars_typ = vc_confl_typs;
+                    vc_scope = s_name;
+                    vc_variable = s_let.scope_let_var;
                   }
                   :: {
                        vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
                        vc_kind = NoEmptyError;
                        vc_free_vars_typ = vc_empty_typs;
+                       vc_scope = s_name;
+                       vc_variable = s_let.scope_let_var;
                      }
                   :: acc,
                   ctx )

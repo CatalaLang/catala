@@ -1,18 +1,2 @@
-[RESULT] For this variable:
- --> tests/test_proof/good/no_vars.catala_en
-  |
-5 |   context x content integer
-  |           ^
-  + Test
-
-[RESULT] No two exceptions to ever overlap for this variable
-
-[RESULT] For this variable:
- --> tests/test_proof/good/no_vars.catala_en
-  |
-5 |   context x content integer
-  |           ^
-  + Test
-
-[RESULT] The variable definition never returns an empty error
-
+[RESULT] No two exceptions to ever overlap for variable A.x
+[RESULT] Variable A.x never returns an empty error
