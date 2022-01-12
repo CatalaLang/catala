@@ -166,19 +166,45 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : Expr.expr =
 
 type vc_encoding_result = Success of Expr.expr | Fail of string
 
+let print_positive_result (kind : Conditions.verification_condition_kind) : string =
+  match kind with
+  | Conditions.NoEmptyError -> "The variable definition never returns an empty error\n"
+  | Conditions.NoOverlappingExceptions -> "No two exceptions to ever overlap for this variable\n"
+
+let print_negative_result (kind : Conditions.verification_condition_kind) : string =
+  match kind with
+  | Conditions.NoEmptyError -> "The variable definition might return an empty error\n"
+  | Conditions.NoOverlappingExceptions -> "Two exceptions overlap for this variable\n"
+
 (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
-let encode_and_check_vc (z3_ctx : Z3.context) (vc : Conditions.verification_condition * Expr.expr) :
-    unit =
-  let _, z3_vc = vc in
+let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
+    (vc : Conditions.verification_condition * Expr.expr) : unit =
+  let vc, z3_vc = vc in
+
+  Cli.result_print
+    (Format.asprintf "For this variable:\n%s\n"
+       (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard)));
+
+  Cli.debug_print
+    (Format.asprintf "This verification condition was generated for %s:@\n%a"
+       (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+          (match vc.vc_kind with
+          | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
+          | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
+       (Dcalc.Print.format_expr decl_ctx)
+       vc.vc_guard);
+
+  Cli.debug_print
+    (Format.asprintf "The translation to Z3 is the following:@\n%s" (Expr.to_string z3_vc));
 
   let solver = Solver.mk_solver z3_ctx None in
 
   Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
 
-  if Solver.check solver [] = UNSATISFIABLE then Cli.result_print "Success: Empty unreachable"
+  if Solver.check solver [] = UNSATISFIABLE then Cli.result_print (print_positive_result vc.vc_kind)
   else
     (* TODO: Print model as error message for Catala debugging purposes *)
-    Cli.error_print "Failure: Empty reachable"
+    Cli.error_print (print_negative_result vc.vc_kind)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
     corresponding to verification conditions that must be discharged by Z3, and attempts to solve
@@ -204,22 +230,9 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
   in
 
   List.iter
-    (fun (vc, z3_vc) ->
-      Cli.debug_print
-        (Format.asprintf
-           "For this variable:\n%s\nThis verification condition was generated for %s:@\n%a"
-           (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard))
-           (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-              (match vc.vc_kind with
-              | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
-              | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
-           (Dcalc.Print.format_expr decl_ctx)
-           vc.vc_guard);
+    (fun (_vc, z3_vc) ->
       match z3_vc with
-      | Success z3_vc ->
-          let z3_vc_string = Expr.to_string z3_vc in
-          Cli.debug_print
-            (Format.asprintf "The translation to Z3 is the following:@\n%s" z3_vc_string)
+      | Success _ -> ()
       | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg))
     z3_vcs;
 
@@ -229,4 +242,4 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
       z3_vcs
   in
 
-  List.iter (encode_and_check_vc z3_ctx) z3_vcs
+  List.iter (encode_and_check_vc decl_ctx z3_ctx) z3_vcs
