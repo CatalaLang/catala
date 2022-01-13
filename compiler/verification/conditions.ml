@@ -47,10 +47,7 @@ type ctx = { decl : decl_ctx; input_vars : Var.t list }
 
 (** [generate_vc_must_not_return_empty_e] returns the logical expression [b] such that if [b] is
     true, then [e] will never return an empty error. It also returns a map of all the types of
-    locally free variables inside the expression. TODO: right now this code skims through the
-    topmost layers of the terms like this: [error on empty < reentrant_variable () | true :- e1 >].
-    But what we really want to analyze is only e1, so we should match this outermost structure
-    explicitely and have a clean verification condition generator that only runs on e1. *)
+    locally free variables inside the expression. *)
 let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : vc_return =
   let out =
     match Pos.unmark e with
@@ -73,13 +70,6 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : vc
             (fun acc (var, ty) -> VarMap.add var ty acc)
             vc_body_ty
             (List.map2 (fun x y -> (x, y)) (Array.to_list vars) typs) )
-    | EApp ((EVar (x, _), _), [ (ELit LUnit, _) ])
-      when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
-        (* Here we have a special case. If all the default trees in all the scopes of our
-           program respect our verification, then there will be no empty error anywhere. Except at
-           one place: when we don't pass a redefining argument to a callee scope. This matches
-           the reentrant expressions in our default trees. *)
-        (Pos.same_pos_as (ELit (LBool false)) e, VarMap.empty)
     | EApp (f, args) ->
         conjunction
           (List.map (generate_vc_must_not_return_empty ctx) (f :: args))
@@ -183,13 +173,10 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : 
                (Pos.get_position e))
             (Pos.get_position e)
         in
-
         let others =
           List.map (generate_vs_must_not_return_confict ctx) (just :: cons :: exceptions)
         in
-
         let out = conjunction (quadratic :: others) (Pos.get_position e) in
-
         (* let _ = Cli.debug_print (Format.asprintf ">>> Conflict,
            Input:@\n%a@\nQuadratic:@\n%a@\nOthers:@\n%a@\nOutput:@\n%a" (Print.format_expr ctx.decl)
            e (Print.format_expr ctx.decl) (Bindlib.unbox (Optimizations.optimize_expr quadratic))
@@ -198,8 +185,36 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : 
            (Optimizations.optimize_expr out))) in *)
         out
   in
-
   out
+
+(** This code skims through the topmost layers of the terms like this:
+    [log (error_on_empty < reentrant_variable () | true :- e1 >)]. But what we really want to
+    analyze is only [e1], so we match this outermost structure explicitely and have a clean
+    verification condition generator that only runs on [e1] *)
+let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
+  match Pos.unmark e with
+  | EApp
+      ( (EOp (Unop (Log _)), _),
+        [
+          ( ErrorOnEmpty
+              ( EDefault
+                  ( [ (EApp ((EVar (x, _), _), [ (ELit LUnit, _) ]), _) ],
+                    (ELit (LBool true), _),
+                    cons ),
+                _ ),
+            _ );
+        ] )
+    when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
+      cons
+  | _ ->
+      Errors.raise_spanned_error
+        (Format.asprintf
+           "Internal error: this expression does not have the structure expected by the VC \
+            generator:\n\
+            %a"
+           (Print.format_expr ~debug:true ctx.decl)
+           e)
+        (Pos.get_position e)
 
 type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
 
@@ -223,38 +238,49 @@ let generate_verification_conditions (p : program) : verification_condition list
             | DestructuringInputStruct ->
                 (acc, { ctx with input_vars = Pos.unmark s_let.scope_let_var :: ctx.input_vars })
             | ScopeVarDefinition | SubScopeVarDefinition ->
-                (* TODO: for scope variables, we should check both that they never evaluate to
-                   emptyError nor conflictError. But for subscope variable definitions, what we're
-                   really doing is adding exceptions to something defined in the subscope so we just
-                   ought to verify only that the exceptions overlap. *)
-                let e = Bindlib.unbox s_let.scope_let_expr in
-                let vc_empty, vc_empty_typs = generate_vc_must_not_return_empty ctx e in
-                let vc_empty =
-                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_empty)
-                  else vc_empty
+                (* For scope variables, we should check both that they never evaluate to emptyError
+                   nor conflictError. But for subscope variable definitions, what we're really doing
+                   is adding exceptions to something defined in the subscope so we just ought to
+                   verify only that the exceptions overlap. *)
+                let e =
+                  match_and_ignore_outer_reentrant_default ctx (Bindlib.unbox s_let.scope_let_expr)
                 in
-
                 let vc_confl, vc_confl_typs = generate_vs_must_not_return_confict ctx e in
                 let vc_confl =
                   if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_confl)
                   else vc_confl
                 in
-                ( {
-                    vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
-                    vc_kind = NoOverlappingExceptions;
-                    vc_free_vars_typ = vc_confl_typs;
-                    vc_scope = s_name;
-                    vc_variable = s_let.scope_let_var;
-                  }
-                  :: {
-                       vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
-                       vc_kind = NoEmptyError;
-                       vc_free_vars_typ = vc_empty_typs;
-                       vc_scope = s_name;
-                       vc_variable = s_let.scope_let_var;
-                     }
-                  :: acc,
-                  ctx )
+                let vc_list =
+                  [
+                    {
+                      vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
+                      vc_kind = NoOverlappingExceptions;
+                      vc_free_vars_typ = vc_confl_typs;
+                      vc_scope = s_name;
+                      vc_variable = s_let.scope_let_var;
+                    };
+                  ]
+                in
+                let vc_list =
+                  match s_let.scope_let_kind with
+                  | ScopeVarDefinition ->
+                      let vc_empty, vc_empty_typs = generate_vc_must_not_return_empty ctx e in
+                      let vc_empty =
+                        if !Cli.optimize_flag then
+                          Bindlib.unbox (Optimizations.optimize_expr vc_empty)
+                        else vc_empty
+                      in
+                      {
+                        vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
+                        vc_kind = NoEmptyError;
+                        vc_free_vars_typ = vc_empty_typs;
+                        vc_scope = s_name;
+                        vc_variable = s_let.scope_let_var;
+                      }
+                      :: vc_list
+                  | _ -> vc_list
+                in
+                (vc_list @ acc, ctx)
             | _ -> (acc, ctx))
           (acc, ctx) s_body.scope_body_lets
       in
