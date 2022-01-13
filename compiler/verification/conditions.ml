@@ -188,9 +188,10 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : 
   out
 
 (** This code skims through the topmost layers of the terms like this:
-    [log (error_on_empty < reentrant_variable () | true :- e1 >)]. But what we really want to
-    analyze is only [e1], so we match this outermost structure explicitely and have a clean
-    verification condition generator that only runs on [e1] *)
+    [log (error_on_empty < reentrant_variable () | true :- e1 >)] for scope variables, or
+    [fun () -> e1] for subscope variables. But what we really want to analyze is only [e1], so we
+    match this outermost structure explicitely and have a clean verification condition generator
+    that only runs on [e1] *)
 let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) : expr Pos.marked =
   match Pos.unmark e with
   | EApp
@@ -205,7 +206,22 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
             _ );
         ] )
     when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
+      (* scope variables*)
       cons
+  | EAbs ((binder, _), [ (TLit TUnit, _) ]) -> (
+      (* sub-scope variables *)
+      let _, body = Bindlib.unmbind binder in
+      match Pos.unmark body with
+      | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> arg
+      | _ ->
+          Errors.raise_spanned_error
+            (Format.asprintf
+               "Internal error: this expression does not have the structure expected by the VC \
+                generator:\n\
+                %a"
+               (Print.format_expr ~debug:true ctx.decl)
+               e)
+            (Pos.get_position e))
   | _ ->
       Errors.raise_spanned_error
         (Format.asprintf
