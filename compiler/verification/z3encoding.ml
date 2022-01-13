@@ -61,21 +61,26 @@ let unique_name (v : Var.t) : string =
     lost during the translation (e.g., by translating a date to an integer) **)
 let print_model (ctx : context) (model : Model.model) : string =
   let decls = Model.get_decls model in
-  List.fold_left
-    (fun acc d ->
-      match Model.get_const_interp model d with
-      (* TODO: Better handling of this case *)
-      | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
-      (* Prints "name : value\n" *)
-      | Some e ->
-          if FuncDecl.get_arity d = 0 then
-            (* Constant case *)
-            let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
-            let v = StringMap.find symbol_name ctx.ctx_z3vars in
-            (* TODO: Needs a better parsing of the value once we have more than integer types *)
-            Format.asprintf "  %s : %s\n%s" (Bindlib.name_of v) (Expr.to_string e) acc
-          else failwith "[Z3 model]: Printing of functions is not yet supported")
-    "" decls
+  Format.asprintf "%a"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+       (fun fmt d ->
+         match Model.get_const_interp model d with
+         (* TODO: Better handling of this case *)
+         | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+         (* Prints "name : value\n" *)
+         | Some e ->
+             if FuncDecl.get_arity d = 0 then
+               (* Constant case *)
+               let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
+               let v = StringMap.find symbol_name ctx.ctx_z3vars in
+               (* TODO: Needs a better parsing of the value once we have more than integer types *)
+               Format.fprintf fmt "%s %s : %s"
+                 (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
+                 (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
+                 (Expr.to_string e)
+             else failwith "[Z3 model]: Printing of functions is not yet supported"))
+    decls
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
@@ -272,30 +277,43 @@ type vc_encoding_result = Success of context * Expr.expr | Fail of string
 let print_positive_result (vc : Conditions.verification_condition) : string =
   match vc.Conditions.vc_kind with
   | Conditions.NoEmptyError ->
-      Format.asprintf "%s: this variable never returns an empty error"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
+      Format.asprintf "%s This variable never returns an empty error"
+        (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))
   | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "%s: no two exceptions to ever overlap for this variable"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
+      Format.asprintf "%s No two exceptions to ever overlap for this variable"
+        (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
            (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
            (Bindlib.name_of (Pos.unmark vc.vc_variable)))
 
-let print_negative_result (vc : Conditions.verification_condition) : string =
-  match vc.Conditions.vc_kind with
-  | Conditions.NoEmptyError ->
-      Format.asprintf "%s: this variable might return an empty error\n%s"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Pos.unmark vc.vc_variable)))
-        (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
-  | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "%s: at least two exceptions overlap for this variable\n%s"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "%s.%s"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Pos.unmark vc.vc_variable)))
-        (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
+let print_negative_result (vc : Conditions.verification_condition) (ctx : context)
+    (solver : Solver.solver) : string =
+  let var_and_pos =
+    match vc.Conditions.vc_kind with
+    | Conditions.NoEmptyError ->
+        Format.asprintf "%s This variable might return an empty error:\n%s"
+          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+             (Bindlib.name_of (Pos.unmark vc.vc_variable)))
+          (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
+    | Conditions.NoOverlappingExceptions ->
+        Format.asprintf "%s At least two exceptions overlap for this variable:\n%s"
+          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+             (Bindlib.name_of (Pos.unmark vc.vc_variable)))
+          (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
+  in
+  let counterexample =
+    match Solver.get_model solver with
+    | None ->
+        "The solver did not manage to generate a counterexample to explain the faulty behavior."
+    | Some model ->
+        Format.asprintf
+          "The solver generated the following counterexample to explain the faulty behavior:\n%s"
+          (print_model ctx model)
+  in
+  var_and_pos ^ "\n" ^ counterexample
 
 (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
 let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
@@ -324,15 +342,9 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
       Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
 
       if Solver.check solver [] = UNSATISFIABLE then Cli.result_print (print_positive_result vc)
-      else (
+      else
         (* TODO: Print model as error message for Catala debugging purposes *)
-        Cli.error_print (print_negative_result vc);
-        match Solver.get_model solver with
-        | None -> Cli.error_print "Z3 did not manage to generate a counterexample"
-        | Some model ->
-            Cli.error_print
-              (Format.asprintf "Z3 generated the following counterexample:\n%s"
-                 (print_model ctx model)))
+        Cli.error_print (print_negative_result vc ctx solver)
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]

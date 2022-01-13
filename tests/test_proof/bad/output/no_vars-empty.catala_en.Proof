@@ -1,12 +1,11 @@
-[RESULT] A.y: no two exceptions to ever overlap for this variable
-[ERROR] A.y: this variable might return an empty error
+[RESULT] [A.y] No two exceptions to ever overlap for this variable
+[ERROR] [A.y] This variable might return an empty error:
  --> tests/test_proof/bad/no_vars-empty.catala_en
   | 
 7 |   context y content integer
   |           ^
   + Test
-[ERROR] Z3 generated the following counterexample:
-  x : 1
-
-[RESULT] A.x: no two exceptions to ever overlap for this variable
-[RESULT] A.x: this variable never returns an empty error
+The solver generated the following counterexample to explain the faulty behavior:
+--> x : 1
+[RESULT] [A.x] No two exceptions to ever overlap for this variable
+[RESULT] [A.x] This variable never returns an empty error
