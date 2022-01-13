@@ -55,6 +55,30 @@ let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
 let unique_name (v : Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
+(** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model according to the type of
+    the Catala variable [v], corresponding to [e] **)
+let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
+  let print_lit (ty : typ_lit) =
+    match ty with
+    (* TODO: Print boolean according to current language *)
+    | TBool -> Expr.to_string e
+    | TUnit -> failwith "[Z3 model]: Pretty-printing of unit literals not supported"
+    | TInt -> Expr.to_string e
+    | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
+    (* TODO: Print the right money symbol according to language *)
+    | TMoney -> Format.asprintf "%s $" (Expr.to_string e)
+    | TDate -> failwith "[Z3 model]: Pretty-printing of date literals not supported"
+    | TDuration -> failwith "[Z3 model]: Pretty-printing of duration literals not supported"
+  in
+
+  match Pos.unmark (VarMap.find v ctx.ctx_var) with
+  | TLit ty -> print_lit ty
+  | TTuple _ -> failwith "[Z3 model]: Pretty-printing of tuples not supported"
+  | TEnum _ -> failwith "[Z3 model]: Pretty-printing of enums not supported"
+  | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
+  | TArray _ -> failwith "[Z3 model]: Pretty-printing of arrays not supported"
+  | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
+
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples where verification
     conditions are not satisfied. The context [ctx] is useful to retrieve the mapping between Z3
     variables and Catala variables, and to retrieve type information about the variables that was
@@ -74,11 +98,10 @@ let print_model (ctx : context) (model : Model.model) : string =
                (* Constant case *)
                let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
                let v = StringMap.find symbol_name ctx.ctx_z3vars in
-               (* TODO: Needs a better parsing of the value once we have more than integer types *)
                Format.fprintf fmt "%s %s : %s"
                  (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
                  (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
-                 (Expr.to_string e)
+                 (print_z3model_expr ctx v e)
              else failwith "[Z3 model]: Printing of functions is not yet supported"))
     decls
 
