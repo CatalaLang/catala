@@ -64,10 +64,11 @@
    (>= 1.0.2))
   (cppo
    (>= 1))
-  (obelisk
-   :dev)
+  (obelisk :dev)
   (ocamlformat
-   :dev)))
+   (and
+    :dev
+    (= 0.19.0)))))
 
 (package
  (name french_law)
@@ -80,7 +81,6 @@
    (>= 4.11.0))
   (catala
    (= :version))
-  (conf-npm
-   :dev)))
+  (conf-npm :dev)))
 
 (using menhir 2.1)
