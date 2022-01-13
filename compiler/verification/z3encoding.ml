@@ -66,7 +66,9 @@ let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
     | TInt -> Expr.to_string e
     | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
     (* TODO: Print the right money symbol according to language *)
-    | TMoney -> Format.asprintf "%s $" (Expr.to_string e)
+    | TMoney ->
+        let money = Runtime.money_of_cents_string (Expr.to_string e) in
+        Format.asprintf "%s $" (Runtime.money_to_string money)
     | TDate -> failwith "[Z3 model]: Pretty-printing of date literals not supported"
     | TDuration -> failwith "[Z3 model]: Pretty-printing of duration literals not supported"
   in
@@ -112,7 +114,8 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "[Z3 encoding] TRat type not supported"
-  | TMoney -> failwith "[Z3 encoding] TMoney type not supported"
+  (* TODO: Check this type with Denis *)
+  | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TDate -> failwith "[Z3 encoding] TDate type not supported"
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
 
@@ -133,7 +136,8 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
   | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
-  | LMoney _ -> failwith "[Z3 encoding] LMoney literals not supported"
+  | LMoney m ->
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int (Runtime.money_to_cents m))
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
   | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
