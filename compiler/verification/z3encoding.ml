@@ -304,16 +304,22 @@ let print_negative_result (vc : Conditions.verification_condition) (ctx : contex
              (Bindlib.name_of (Pos.unmark vc.vc_variable)))
           (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
   in
-  let counterexample =
+  let counterexample : string option =
     match Solver.get_model solver with
     | None ->
-        "The solver did not manage to generate a counterexample to explain the faulty behavior."
+        Some
+          "The solver did not manage to generate a counterexample to explain the faulty behavior."
     | Some model ->
-        Format.asprintf
-          "The solver generated the following counterexample to explain the faulty behavior:\n%s"
-          (print_model ctx model)
+        if List.length (Model.get_decls model) = 0 then None
+        else
+          Some
+            (Format.asprintf
+               "The solver generated the following counterexample to explain the faulty behavior:\n\
+                %s"
+               (print_model ctx model))
   in
-  var_and_pos ^ "\n" ^ counterexample
+  var_and_pos
+  ^ match counterexample with None -> "" | Some counterexample -> "\n" ^ counterexample
 
 (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
 let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)

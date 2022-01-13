@@ -1,0 +1,120 @@
+# ProLaLa 2022 Super Cash Bonus
+
+## Eligibility
+
+```catala-metadata
+declaration scope Eligibility:
+  context is_student content boolean
+  context is_professor content boolean
+  context is_eligible content boolean
+  context is_eligible_correct condition
+
+scope Eligibility:
+  definition is_student equals true
+  definition is_professor equals false
+```
+
+### Article 1
+
+All students are eligible to the ProLaLa 2022 Super Cash Bonus.
+
+```catala
+scope Eligibility:
+  definition is_eligible under condition is_student consequence equals true
+```
+
+### Article 2
+
+Professors are not eligible to the ProLaLa 2022 Super Cash Bonus.
+
+```catala
+scope Eligibility:
+  definition is_eligible under condition is_professor consequence equals false
+```
+
+### Correct solution for eligibility
+
+These definitions appear sound but our static analysis reveal that they fail
+both to be complete (there is always a definition that applies) and safe
+(no two definitions apply at the same time). The correct intended behavior relies
+on a default negative eligibility and an exception:
+
+```catala
+scope Eligibility:
+  definition is_eligible_correct under condition is_student consequence equals true
+
+  exception
+  definition is_eligible_correct under condition is_professor consequence equals false
+```
+
+## Amount
+
+```catala-metadata
+declaration scope Amount:
+  context eligibility scope Eligibility
+  context is_student content boolean
+  context is_professor content boolean
+  context number_of_advisors content integer
+  context amount content integer
+  context correct_amount content integer
+
+scope Amount:
+  definition eligibility.is_student equals is_student
+  definition eligibility.is_professor equals is_professor
+
+scope Amount:
+  definition is_student equals true
+  definition is_professor equals false
+  definition number_of_advisors equals 3
+```
+
+## Article 1
+
+Eligible people that have 2 or less advisors will receive a ProLaLa 2022 Super Cash Bonus
+of a hundred times the number of advisors.
+
+```catala
+scope Amount:
+  definition amount under condition
+    eligibility.is_eligible and
+    (number_of_advisors <= 2)
+  consequence equals
+    100 * number_of_advisors
+```
+
+## Article 2
+
+Eligible people that have more than 3 advisors will receive a ProLaLa 2022 Super Cash Bonus
+of a 80 times the number of advisors.
+
+```catala
+scope Amount:
+  definition amount under condition
+    eligibility.is_eligible and
+    number_of_advisors > 3
+  consequence equals
+    80 * number_of_advisors
+```
+
+### Correct solution for eligibility
+
+These definitions appear sound but our static analysis reveal that they fail
+to be complete (there is always a definition that applies).
+The correct intended behavior relies on a default amount plus exceptions:
+
+```catala
+scope Amount:
+  definition correct_amount equals 0
+
+  exception definition correct_amount under condition
+    eligibility.is_eligible and
+    (number_of_advisors <= 2)
+  consequence equals
+    100 * number_of_advisors
+
+  exception definition correct_amount under condition
+    eligibility.is_eligible and
+    number_of_advisors >= 3
+  consequence equals
+    80 * number_of_advisors
+```
