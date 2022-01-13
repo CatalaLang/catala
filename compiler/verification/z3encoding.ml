@@ -114,7 +114,6 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "[Z3 encoding] TRat type not supported"
-  (* TODO: Check this type with Denis *)
   | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TDate -> failwith "[Z3 encoding] TDate type not supported"
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
@@ -137,7 +136,8 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
   | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
   | LMoney m ->
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int (Runtime.money_to_cents m))
+      let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
   | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
@@ -211,16 +211,22 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Div KInt -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
       | Div _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
-      | Lt KInt -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
-      | Lt _ -> failwith "[Z3 encoding] application of non-integer binary operator Lt not supported"
-      | Lte KInt -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
+      | Lt KInt | Lt KMoney -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
+      | Lt _ ->
+          failwith
+            "[Z3 encoding] application of non-integer or money binary operator Lt not supported"
+      | Lte KInt | Lte KMoney -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
       | Lte _ ->
-          failwith "[Z3 encoding] application of non-integer binary operator Lte not supported"
-      | Gt KInt -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
-      | Gt _ -> failwith "[Z3 encoding] application of non-integer binary operator Gt not supported"
-      | Gte KInt -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
+          failwith
+            "[Z3 encoding] application of non-integer or money binary operator Lte not supported"
+      | Gt KInt | Gt KMoney -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
+      | Gt _ ->
+          failwith
+            "[Z3 encoding] application of non-integer or money binary operator Gt not supported"
+      | Gte KInt | Gte KMoney -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
       | Gte _ ->
-          failwith "[Z3 encoding] application of non-integer binary operator Gte not supported"
+          failwith
+            "[Z3 encoding] application of non-integer or money binary operator Gte not supported"
       | Eq -> (ctx, Boolean.mk_eq ctx.ctx_z3 e1 e2)
       | Neq -> (ctx, Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 e1 e2))
       | Map -> failwith "[Z3 encoding] application of binary operator Map not supported"
