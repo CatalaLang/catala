@@ -10,5 +10,5 @@ scope A:
   definition y under condition x <@ |2010-01-01| consequence equals true
   definition y under condition x >=@ |2010-01-01| and x <@ |2015-01-01| consequence equals false
   definition y under condition x >=@ |2015-01-01| and x <@ |2020-01-01| consequence equals true
-  definition y under condition x >@ |2020-01-01| consequence equals false
+  definition y under condition x >=@ |2020-01-01| consequence equals false
 ```
