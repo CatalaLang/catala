@@ -355,10 +355,19 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch (arg, arms, enum) ->
-      let ctx, _z3_enum = find_or_create_enum ctx enum in
+      let ctx, z3_enum = find_or_create_enum ctx enum in
       let ctx, z3_arg = translate_expr ctx arg in
-      let _ctx, _z3_arms = List.fold_left_map (translate_match_arm z3_arg) ctx arms in
-      failwith "todo"
+      let _ctx, z3_arms = List.fold_left_map (translate_match_arm z3_arg) ctx arms in
+      let z3_arms =
+        List.map2
+          (fun r arm ->
+            (* Encodes A? arg ==> body *)
+            let is_r = Expr.mk_app ctx.ctx_z3 r [ z3_arg ] in
+            Boolean.mk_implies ctx.ctx_z3 is_r arm)
+          (Datatype.get_recognizers z3_enum)
+          z3_arms
+      in
+      (ctx, Boolean.mk_and ctx.ctx_z3 z3_arms)
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> (ctx, translate_lit ctx l)
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
