@@ -97,9 +97,9 @@ let nb_days_to_date (nb : int) : string =
   CalendarLib.Printer.Date.to_string
     (CalendarLib.Date.add base_day (CalendarLib.Date.Period.day nb))
 
-(** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model according to the type of
-    the Catala variable [v], corresponding to [e] **)
-let rec print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
+(** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model according to the Catala
+    type [ty], corresponding to [e] **)
+let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr) : string =
   let print_lit (ty : typ_lit) =
     match ty with
     (* TODO: Print boolean according to current language *)
@@ -123,20 +123,31 @@ let rec print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string 
     | TDuration -> failwith "[Z3 model]: Pretty-printing of duration literals not supported"
   in
 
-  match Pos.unmark (VarMap.find v ctx.ctx_var) with
+  match Pos.unmark ty with
   | TLit ty -> print_lit ty
-  | TTuple _ -> failwith "[Z3 model]: Pretty-printing of tuples not supported"
-  | TEnum (_tys, _name) -> (
-      match Expr.get_args e with
-      (* Corresponds to the last, non-chained argument of the enum *)
-      | [] -> Expr.to_string e
-      (* The value associated to the enum is a single argument *)
-      | [ e' ] ->
-          let fd = Expr.get_func_decl e in
-          let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
+  | TTuple (_, Some name) ->
+      let s = StructMap.find name ctx.ctx_decl.ctx_structs in
+      let get_fieldname (fn : StructFieldName.t) : string =
+        Pos.unmark (StructFieldName.get_info fn)
+      in
+      let fields =
+        List.map2
+          (fun (fn, ty) e ->
+            Format.asprintf "-- %s : %s" (get_fieldname fn) (print_z3model_expr ctx ty e))
+          s (Expr.get_args e)
+      in
 
-          Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx v e')
-      | _ -> failwith "[Z3 model] Ill-formed term, an enum has more than one argument")
+      let fields_str = String.concat " " fields in
+
+      Format.asprintf "%s { %s }" (Pos.unmark (StructName.get_info name)) fields_str
+  | TTuple (_, None) -> failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
+  | TEnum (_tys, _name) -> failwith "pretty printing of tuples"
+  (* ( match Expr.get_args e with (* Corresponds to the last, non-chained argument of the enum *) |
+     [] -> Expr.to_string e (* The value associated to the enum is a single argument *) | [ e' ] ->
+     let fd = Expr.get_func_decl e in let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
+
+     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx v e') | _ -> failwith "[Z3 model]
+     Ill-formed term, an enum has more than one argument") *)
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ -> failwith "[Z3 model]: Pretty-printing of arrays not supported"
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
@@ -164,7 +175,7 @@ let print_model (ctx : context) (model : Model.model) : string =
                Format.fprintf fmt "%s %s : %s"
                  (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
                  (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
-                 (print_z3model_expr ctx v e)
+                 (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
              else failwith "[Z3 model]: Printing of functions is not yet supported"))
     decls
 
