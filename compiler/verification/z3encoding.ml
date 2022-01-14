@@ -54,6 +54,11 @@ let add_funcdecl (v : Var.t) (fd : FuncDecl.func_decl) (ctx : context) : context
 let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
+(** [add_z3enum] adds the mapping between the Catala enumeration [enum] and the corresponding Z3
+    datatype [sort] to the context **)
+let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context =
+  { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
+
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900 **)
 let base_day = CalendarLib.Date.make 1900 1 1
 
@@ -164,7 +169,7 @@ let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
 and find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor (ctx : context) (c : EnumConstructor.t * typ Pos.marked) :
-      Datatype.Constructor.constructor =
+      context * Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Pos.unmark (EnumConstructor.get_info name) in
     let ctx, arg_z3_ty = translate_typ ctx (Pos.unmark ty) in
@@ -175,22 +180,24 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sor
        arguments of the constructor - a list of types, that must be of the same length as the list
        of arguments - a list of sort_refs, of the same length as the list of arguments. I'm unsure
        what this corresponds to *)
-    Datatype.mk_constructor_s ctx.ctx_z3 name
-      (Symbol.mk_string ctx.ctx_z3 name)
-      (* We need a name for the argument of the constructor, we arbitrary pick the name of the
-         constructor to which we append the special character "!" and the integer 0 *)
-      [ Symbol.mk_string ctx.ctx_z3 (name ^ "!0") ]
-      (* The type of the argument, translated to a Z3 sort *)
-      [ Some arg_z3_ty ]
-      [ Sort.get_id arg_z3_ty ]
+    ( ctx,
+      Datatype.mk_constructor_s ctx.ctx_z3 name
+        (Symbol.mk_string ctx.ctx_z3 name)
+        (* We need a name for the argument of the constructor, we arbitrary pick the name of the
+           constructor to which we append the special character "!" and the integer 0 *)
+        [ Symbol.mk_string ctx.ctx_z3 (name ^ "!0") ]
+        (* The type of the argument, translated to a Z3 sort *)
+        [ Some arg_z3_ty ]
+        [ Sort.get_id arg_z3_ty ] )
   in
 
   match EnumMap.find_opt enum ctx.ctx_z3datatypes with
   | Some e -> (ctx, e)
   | None ->
       let ctrs = EnumMap.find enum ctx.ctx_decl.ctx_enums in
-      let _z3_ctrs = List.map (create_constructor ctx) ctrs in
-      failwith "here"
+      let ctx, z3_ctrs = List.fold_left_map create_constructor ctx ctrs in
+      let z3_enum = Datatype.mk_sort_s ctx.ctx_z3 (Pos.unmark (EnumName.get_info enum)) z3_ctrs in
+      (add_z3enum enum z3_enum ctx, z3_enum)
 
 (** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
 let translate_lit (ctx : context) (l : lit) : Expr.expr =
