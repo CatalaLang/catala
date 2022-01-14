@@ -394,7 +394,18 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
              expression was previously stored in the context *)
           (ctx, e))
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
-  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
+  | ETupleAccess (s, idx, oname, _tys) ->
+      let name = match oname with
+      | None -> failwith "[Z3 encoding]: ETupleAccess of unnamed struct unsupported"
+      | Some n -> n
+      in
+      let z3_struct = StructMap.find name ctx.ctx_z3structs in
+      (* This datatype should have only one constructor, corresponding to mk_struct.
+         The accessors of this constructor correspond to the field accesses *)
+      let accessors = List.hd (Datatype.get_accessors z3_struct) in
+      let accessor = List.nth accessors idx in
+      let ctx, s = translate_expr ctx s in
+      ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch (arg, arms, enum) ->
       let ctx, z3_enum = find_or_create_enum ctx enum in
