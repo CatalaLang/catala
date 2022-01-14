@@ -51,9 +51,27 @@ let add_funcdecl (v : Var.t) (fd : FuncDecl.func_decl) (ctx : context) : context
 let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
   { ctx with ctx_z3vars = StringMap.add name v ctx.ctx_z3vars }
 
+(** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900 **)
+let base_day = CalendarLib.Date.make 1900 1 1
+
 (** [unique_name] returns the full, unique name corresponding to variable [v], as given by Bindlib **)
 let unique_name (v : Var.t) : string =
   Format.asprintf "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
+
+(** [date_to_int] translates [date] to an integer corresponding to the number of days since Jan 1,
+    1900 **)
+let date_to_int (d : Runtime.date) : int =
+  (* Alternatively, could expose this from Runtime as a (noop) coercion, but would allow to break
+     abstraction more easily elsewhere *)
+  let date : CalendarLib.Date.t = CalendarLib.Printer.Date.from_string (Runtime.date_to_string d) in
+  let period = CalendarLib.Date.sub date base_day in
+  CalendarLib.Date.Period.nb_days period
+
+(** Returns the date (as a string) corresponding to nb days after the base day, defined here as Jan
+    1, 1900 **)
+let nb_days_to_date (nb : int) : string =
+  CalendarLib.Printer.Date.to_string
+    (CalendarLib.Date.add base_day (CalendarLib.Date.Period.day nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model according to the type of
     the Catala variable [v], corresponding to [e] **)
@@ -106,13 +124,6 @@ let print_model (ctx : context) (model : Model.model) : string =
                  (print_z3model_expr ctx v e)
              else failwith "[Z3 model]: Printing of functions is not yet supported"))
     decls
-
-(** [date_to_int] translates [date] to an integer corresponding to the number of days since Jan 1,
-    1900 **)
-let date_to_int (d : Runtime.date) : int =
-  let date : CalendarLib.Date.t = CalendarLib.Printer.Date.from_string (Runtime.date_to_string d) in
-  let period = CalendarLib.Date.sub date (CalendarLib.Date.make 1900 1 1) in
-  CalendarLib.Date.Period.nb_days period
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
