@@ -38,8 +38,11 @@ type context = {
   (* A map from Catala enumeration names to the corresponding Z3 sort, from which we can retrieve
      constructors and accessors *)
   ctx_z3matchsubsts : Expr.expr VarMap.t;
-      (* A map from Catala temporary variables, generated when translating a match, to the
-         corresponding enum accessor call as a Z3 expression *)
+  (* A map from Catala temporary variables, generated when translating a match, to the corresponding
+     enum accessor call as a Z3 expression *)
+  ctx_z3structs : Sort.sort StructMap.t;
+      (* A map from Catala struct names to the corresponding Z3 sort, from which we can retrieve the
+         constructor and the accessors *)
 }
 (** The context contains all the required information to encode a VC represented as a Catala term to
     Z3. The fields [ctx_decl] and [ctx_var] are computed before starting the translation to Z3, and
@@ -66,6 +69,11 @@ let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context 
     representing an accessor application to the context **)
 let add_z3matchsubst (v : Var.t) (e : Expr.expr) (ctx : context) : context =
   { ctx with ctx_z3matchsubsts = VarMap.add v e ctx.ctx_z3matchsubsts }
+
+(** [add_z3struct] adds the mapping between the Catala struct [s] and the corresponding Z3 datatype
+    [sort] to the context **)
+let add_z3struct (s : StructName.t) (sort : Sort.sort) (ctx : context) : context =
+  { ctx with ctx_z3structs = StructMap.add s sort ctx.ctx_z3structs }
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900 **)
 let base_day = CalendarLib.Date.make 1900 1 1
@@ -551,6 +559,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                   ctx_z3vars = StringMap.empty;
                   ctx_z3datatypes = EnumMap.empty;
                   ctx_z3matchsubsts = VarMap.empty;
+                  ctx_z3structs = StructMap.empty;
                 }
                 (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
             in
