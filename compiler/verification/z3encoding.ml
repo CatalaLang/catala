@@ -32,15 +32,18 @@ type context = {
   (* A map from Catala function names (represented as variables) to Z3 function declarations, used
      to only define once functions in Z3 queries *)
   ctx_z3vars : Var.t StringMap.t;
-      (* A map from strings, corresponding to Z3 symbol names, to the Catala variable they
-         represent. Used when to pretty-print Z3 models when a counterexample is generated *)
+  (* A map from strings, corresponding to Z3 symbol names, to the Catala variable they represent.
+     Used when to pretty-print Z3 models when a counterexample is generated *)
+  ctx_z3datatypes : Sort.sort EnumMap.t;
+      (* A map from Catala enumeration names to the corresponding Z3 sort, from which we can
+         retrieve constructors and accessors *)
 }
 (** The context contains all the required information to encode a VC represented as a Catala term to
     Z3. The fields [ctx_decl] and [ctx_var] are computed before starting the translation to Z3, and
     are thus unmodified throughout the translation. The [ctx_z3] context is an OCaml abstraction on
     top of an underlying C++ imperative implementation, it is therefore only created once.
-    Unfortunately, the maps [ctx_funcdecl] and [ctx_z3vars] are computed dynamically during the
-    translation requiring us to pass the context around in a functional way **)
+    Unfortunately, the maps [ctx_funcdecl], [ctx_z3vars], and [ctx_z3datatypes] are computed
+    dynamically during the translation requiring us to pass the context around in a functional way **)
 
 (** [add_funcdecl] adds the mapping between the Catala variable [v] and the Z3 function declaration
     [fd] to the context **)
@@ -441,6 +444,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                       (variable_types prgm) vc.Conditions.vc_free_vars_typ;
                   ctx_funcdecl = VarMap.empty;
                   ctx_z3vars = StringMap.empty;
+                  ctx_z3datatypes = EnumMap.empty;
                 }
                 (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
             in
