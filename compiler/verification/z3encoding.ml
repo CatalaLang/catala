@@ -149,40 +149,25 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
-let translate_typ (ctx : context) (t : typ) : Sort.sort =
+let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
   match t with
-  | TLit t -> translate_typ_lit ctx t
+  | TLit t -> (ctx, translate_typ_lit ctx t)
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
-  | TEnum _ -> failwith "[Z3 encoding] TEnum type not supported"
+  | TEnum (_, e) -> find_or_create_enum ctx e
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
   | TAny -> failwith "[Z3 encoding] TAny type not supported"
 
-(** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
-let translate_lit (ctx : context) (l : lit) : Expr.expr =
-  match l with
-  | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
-  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
-  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
-  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
-  | LMoney m ->
-      let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
-  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
-  (* Encoding a date as an integer corresponding to the number of days since Jan 1, 1900 *)
-  | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
-  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
-
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the Catala enumeration
     [enum]. If no such sort exists yet, it constructs it by creating a Z3 constructor for each
     Catala constructor of [enum], and adds it to the context *)
-let find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sort =
+and find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor (ctx : context) (c : EnumConstructor.t * typ Pos.marked) :
       Datatype.Constructor.constructor =
     let name, ty = c in
     let name = Pos.unmark (EnumConstructor.get_info name) in
-    let arg_z3_ty = translate_typ ctx (Pos.unmark ty) in
+    let ctx, arg_z3_ty = translate_typ ctx (Pos.unmark ty) in
 
     (* The mk_constructor_s Z3 function is not so well documented. From my understanding, its
        argument are: - a string corresponding to the name of the constructor - a recognizer as a
@@ -207,6 +192,21 @@ let find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sor
       let _z3_ctrs = List.map (create_constructor ctx) ctrs in
       failwith "here"
 
+(** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
+let translate_lit (ctx : context) (l : lit) : Expr.expr =
+  match l with
+  | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
+  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
+  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
+  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
+  | LMoney m ->
+      let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
+  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
+  (* Encoding a date as an integer corresponding to the number of days since Jan 1, 1900 *)
+  | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
+  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
+
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
     variable [v]. If no such function declaration exists yet, we construct it and add it to the
     context, thus requiring to return a new context *)
@@ -218,8 +218,8 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.fun
       let f_ty = VarMap.find v ctx.ctx_var in
       match Pos.unmark f_ty with
       | TArrow (t1, t2) ->
-          let z3_t1 = translate_typ ctx (Pos.unmark t1) in
-          let z3_t2 = translate_typ ctx (Pos.unmark t2) in
+          let ctx, z3_t1 = translate_typ ctx (Pos.unmark t1) in
+          let ctx, z3_t2 = translate_typ ctx (Pos.unmark t2) in
           let name = unique_name v in
           let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [ z3_t1 ] z3_t2 in
           let ctx = add_funcdecl v fd ctx in
@@ -327,7 +327,8 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
       let t = VarMap.find v ctx.ctx_var in
       let name = unique_name v in
       let ctx = add_z3var name v ctx in
-      (ctx, Expr.mk_const_s ctx.ctx_z3 name (translate_typ ctx (Pos.unmark t)))
+      let ctx, ty = translate_typ ctx (Pos.unmark t) in
+      (ctx, Expr.mk_const_s ctx.ctx_z3 name ty)
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
