@@ -184,7 +184,8 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
 let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
   match t with
   | TLit t -> (ctx, translate_typ_lit ctx t)
-  | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
+  | TTuple (_, Some name) -> find_or_create_struct ctx name
+  | TTuple (_, None) -> failwith "[Z3 encoding] TTuple type of unnamed struct not supported"
   | TEnum (_, e) -> find_or_create_enum ctx e
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
@@ -226,25 +227,10 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sor
       let z3_enum = Datatype.mk_sort_s ctx.ctx_z3 (Pos.unmark (EnumName.get_info enum)) z3_ctrs in
       (add_z3enum enum z3_enum ctx, z3_enum)
 
-(** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
-let translate_lit (ctx : context) (l : lit) : Expr.expr =
-  match l with
-  | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
-  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
-  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
-  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
-  | LMoney m ->
-      let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
-  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
-  (* Encoding a date as an integer corresponding to the number of days since Jan 1, 1900 *)
-  | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
-  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
-
 (** [find_or_create_struct] attemps to retrieve the Z3 sort corresponding to the struct [s]. If no
     such sort exists yet, we construct it as a datatype with one constructor taking all the fields
     as arguments, and add it to the context *)
-let find_or_create_struct (ctx : context) (s : StructName.t) : context * Sort.sort =
+and find_or_create_struct (ctx : context) (s : StructName.t) : context * Sort.sort =
   match StructMap.find_opt s ctx.ctx_z3structs with
   | Some s -> (ctx, s)
   | None ->
@@ -270,6 +256,21 @@ let find_or_create_struct (ctx : context) (s : StructName.t) : context * Sort.so
 
       let z3_struct = Datatype.mk_sort_s ctx.ctx_z3 s_name [ z3_mk_struct ] in
       (add_z3struct s z3_struct ctx, z3_struct)
+
+(** [translate_lit] returns the Z3 expression as a literal corresponding to [lit] **)
+let translate_lit (ctx : context) (l : lit) : Expr.expr =
+  match l with
+  | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
+  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
+  | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
+  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
+  | LMoney m ->
+      let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
+  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
+  (* Encoding a date as an integer corresponding to the number of days since Jan 1, 1900 *)
+  | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
+  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
     variable [v]. If no such function declaration exists yet, we construct it and add it to the
