@@ -328,6 +328,21 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
 and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr =
+  let translate_match_arm (_head : Expr.expr) (_ctx : context) (e : expr Pos.marked) :
+      context * Expr.expr =
+    match Pos.unmark e with
+    (* TODO: Need to substitute variable in body when it occurs *)
+    | EAbs (e, _) ->
+        (* Create a fresh Catala variable to substitue and obtain the body *)
+        let fresh_v = EVar (Var.make ("arm!tmp", Pos.no_pos), Pos.no_pos) in
+        (* TODO: Need to keep track of all variables in the context, so as to substitute them
+           correctly with an application of the accessor on head *)
+        let body = Bindlib.msubst (Pos.unmark e) [| fresh_v |] in
+        translate_expr ctx body
+    (* TODO: Denis, Is this true for constructors with no payload? *)
+    | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
+  in
+
   match Pos.unmark vc with
   | EVar v ->
       let v = Pos.unmark v in
@@ -339,8 +354,10 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
-  | EMatch (_arg, _arms, enum) ->
-      let _ctx, _z3enum = find_or_create_enum ctx enum in
+  | EMatch (arg, arms, enum) ->
+      let ctx, _z3_enum = find_or_create_enum ctx enum in
+      let ctx, z3_arg = translate_expr ctx arg in
+      let _ctx, _z3_arms = List.fold_left_map (translate_match_arm z3_arg) ctx arms in
       failwith "todo"
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> (ctx, translate_lit ctx l)
