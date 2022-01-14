@@ -107,6 +107,13 @@ let print_model (ctx : context) (model : Model.model) : string =
              else failwith "[Z3 model]: Printing of functions is not yet supported"))
     decls
 
+(** [date_to_int] translates [date] to an integer corresponding to the number of days since Jan 1,
+    1900 **)
+let date_to_int (d : Runtime.date) : int =
+  let date : CalendarLib.Date.t = CalendarLib.Printer.Date.from_string (Runtime.date_to_string d) in
+  let period = CalendarLib.Date.sub date (CalendarLib.Date.make 1900 1 1) in
+  CalendarLib.Date.Period.nb_days period
+
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   match t with
@@ -115,7 +122,8 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "[Z3 encoding] TRat type not supported"
   | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TDate -> failwith "[Z3 encoding] TDate type not supported"
+  (* Dates are encoded as integers, corresponding to the number of days since Jan 1, 1900 *)
+  | TDate -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
@@ -139,7 +147,8 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
       let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
       Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
   | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
-  | LDate _ -> failwith "[Z3 encoding] LDate literals not supported"
+  (* Encoding a date as an integer corresponding to the number of days since Jan 1, 1900 *)
+  | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
@@ -211,19 +220,19 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
       | Div KInt -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
       | Div _ ->
           failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
-      | Lt KInt | Lt KMoney -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
+      | Lt KInt | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
       | Lt _ ->
           failwith
             "[Z3 encoding] application of non-integer or money binary operator Lt not supported"
-      | Lte KInt | Lte KMoney -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
+      | Lte KInt | Lte KMoney | Lte KDate -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
       | Lte _ ->
           failwith
             "[Z3 encoding] application of non-integer or money binary operator Lte not supported"
-      | Gt KInt | Gt KMoney -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
+      | Gt KInt | Gt KMoney | Gt KDate -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
       | Gt _ ->
           failwith
             "[Z3 encoding] application of non-integer or money binary operator Gt not supported"
-      | Gte KInt | Gte KMoney -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
+      | Gte KInt | Gte KMoney | Gte KDate -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
       | Gte _ ->
           failwith
             "[Z3 encoding] application of non-integer or money binary operator Gte not supported"
