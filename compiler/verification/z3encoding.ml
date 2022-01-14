@@ -35,8 +35,11 @@ type context = {
   (* A map from strings, corresponding to Z3 symbol names, to the Catala variable they represent.
      Used when to pretty-print Z3 models when a counterexample is generated *)
   ctx_z3datatypes : Sort.sort EnumMap.t;
-      (* A map from Catala enumeration names to the corresponding Z3 sort, from which we can
-         retrieve constructors and accessors *)
+  (* A map from Catala enumeration names to the corresponding Z3 sort, from which we can retrieve
+     constructors and accessors *)
+  ctx_z3matchsubsts : Expr.expr VarMap.t;
+      (* A map from Catala temporary variables, generated when translating a match, to the
+         corresponding enum accessor call as a Z3 expression *)
 }
 (** The context contains all the required information to encode a VC represented as a Catala term to
     Z3. The fields [ctx_decl] and [ctx_var] are computed before starting the translation to Z3, and
@@ -58,6 +61,11 @@ let add_z3var (name : string) (v : Var.t) (ctx : context) : context =
     datatype [sort] to the context **)
 let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context =
   { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
+
+(** [add_z3var] adds the mapping between temporary variable [v] and the Z3 expression [e]
+    representing an accessor application to the context **)
+let add_z3matchsubst (v : Var.t) (e : Expr.expr) (ctx : context) : context =
+  { ctx with ctx_z3matchsubsts = VarMap.add v e ctx.ctx_z3matchsubsts }
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900 **)
 let base_day = CalendarLib.Date.make 1900 1 1
@@ -328,36 +336,54 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
 and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr =
-  let translate_match_arm (_head : Expr.expr) (_ctx : context) (e : expr Pos.marked) :
-      context * Expr.expr =
+  let translate_match_arm (head : Expr.expr) (ctx : context)
+      (e : expr Pos.marked * FuncDecl.func_decl list) : context * Expr.expr =
+    let e, accessors = e in
     match Pos.unmark e with
-    (* TODO: Need to substitute variable in body when it occurs *)
     | EAbs (e, _) ->
         (* Create a fresh Catala variable to substitue and obtain the body *)
-        let fresh_v = EVar (Var.make ("arm!tmp", Pos.no_pos), Pos.no_pos) in
-        (* TODO: Need to keep track of all variables in the context, so as to substitute them
-           correctly with an application of the accessor on head *)
-        let body = Bindlib.msubst (Pos.unmark e) [| fresh_v |] in
+        let fresh_v = Var.make ("arm!tmp", Pos.no_pos) in
+        let fresh_e = EVar (fresh_v, Pos.no_pos) in
+
+        (* Invariant: Catala enums always have exactly one argument *)
+        let accessor = List.hd accessors in
+        let proj = Expr.mk_app ctx.ctx_z3 accessor [ head ] in
+        (* The fresh variable should be substituted by a projection into the enum in the body, we
+           add this to the context *)
+        let ctx = add_z3matchsubst fresh_v proj ctx in
+
+        let body = Bindlib.msubst (Pos.unmark e) [| fresh_e |] in
         translate_expr ctx body
     (* TODO: Denis, Is this true for constructors with no payload? *)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
 
   match Pos.unmark vc with
-  | EVar v ->
-      let v = Pos.unmark v in
-      let t = VarMap.find v ctx.ctx_var in
-      let name = unique_name v in
-      let ctx = add_z3var name v ctx in
-      let ctx, ty = translate_typ ctx (Pos.unmark t) in
-      (ctx, Expr.mk_const_s ctx.ctx_z3 name ty)
+  | EVar v -> (
+      match VarMap.find_opt (Pos.unmark v) ctx.ctx_z3matchsubsts with
+      | None ->
+          (* We are in the standard case, where this is a true Catala variable *)
+          let v = Pos.unmark v in
+          let t = VarMap.find v ctx.ctx_var in
+          let name = unique_name v in
+          let ctx = add_z3var name v ctx in
+          let ctx, ty = translate_typ ctx (Pos.unmark t) in
+          (ctx, Expr.mk_const_s ctx.ctx_z3 name ty)
+      | Some e ->
+          (* This variable is a temporary variable generated during VC translation of a match. It
+             actually corresponds to applying an accessor to an enum, the corresponding Z3
+             expression was previously stored in the context *)
+          (ctx, e))
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch (arg, arms, enum) ->
       let ctx, z3_enum = find_or_create_enum ctx enum in
       let ctx, z3_arg = translate_expr ctx arg in
-      let _ctx, z3_arms = List.fold_left_map (translate_match_arm z3_arg) ctx arms in
+      let _ctx, z3_arms =
+        List.fold_left_map (translate_match_arm z3_arg) ctx
+          (List.combine arms (Datatype.get_accessors z3_enum))
+      in
       let z3_arms =
         List.map2
           (fun r arm ->
@@ -515,6 +541,7 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
                   ctx_funcdecl = VarMap.empty;
                   ctx_z3vars = StringMap.empty;
                   ctx_z3datatypes = EnumMap.empty;
+                  ctx_z3matchsubsts = VarMap.empty;
                 }
                 (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
             in
