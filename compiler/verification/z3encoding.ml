@@ -173,6 +173,40 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
 
+(** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the Catala enumeration
+    [enum]. If no such sort exists yet, it constructs it by creating a Z3 constructor for each
+    Catala constructor of [enum], and adds it to the context *)
+let find_or_create_enum (ctx : context) (enum : EnumName.t) : context * Sort.sort =
+  (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
+  let create_constructor (ctx : context) (c : EnumConstructor.t * typ Pos.marked) :
+      Datatype.Constructor.constructor =
+    let name, ty = c in
+    let name = Pos.unmark (EnumConstructor.get_info name) in
+    let arg_z3_ty = translate_typ ctx (Pos.unmark ty) in
+
+    (* The mk_constructor_s Z3 function is not so well documented. From my understanding, its
+       argument are: - a string corresponding to the name of the constructor - a recognizer as a
+       symbol corresponding to the name (unsure why) - a list of symbols corresponding to the
+       arguments of the constructor - a list of types, that must be of the same length as the list
+       of arguments - a list of sort_refs, of the same length as the list of arguments. I'm unsure
+       what this corresponds to *)
+    Datatype.mk_constructor_s ctx.ctx_z3 name
+      (Symbol.mk_string ctx.ctx_z3 name)
+      (* We need a name for the argument of the constructor, we arbitrary pick the name of the
+         constructor to which we append the special character "!" and the integer 0 *)
+      [ Symbol.mk_string ctx.ctx_z3 (name ^ "!0") ]
+      (* The type of the argument, translated to a Z3 sort *)
+      [ Some arg_z3_ty ]
+      [ Sort.get_id arg_z3_ty ]
+  in
+
+  match EnumMap.find_opt enum ctx.ctx_z3datatypes with
+  | Some e -> (ctx, e)
+  | None ->
+      let ctrs = EnumMap.find enum ctx.ctx_decl.ctx_enums in
+      let _z3_ctrs = List.map (create_constructor ctx) ctrs in
+      failwith "here"
+
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
     variable [v]. If no such function declaration exists yet, we construct it and add it to the
     context, thus requiring to return a new context *)
@@ -297,7 +331,9 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
-  | EMatch _ -> failwith "[Z3 encoding] EMatch unsupported"
+  | EMatch (_arg, _arms, enum) ->
+      let _ctx, _z3enum = find_or_create_enum ctx enum in
+      failwith "todo"
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> (ctx, translate_lit ctx l)
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
