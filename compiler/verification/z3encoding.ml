@@ -87,7 +87,10 @@ let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
     | TMoney ->
         let money = Runtime.money_of_cents_string (Expr.to_string e) in
         Format.asprintf "%s $" (Runtime.money_to_string money)
-    | TDate -> failwith "[Z3 model]: Pretty-printing of date literals not supported"
+    (* The Z3 date representation corresponds to the number of days since Jan 1, 1900. We
+       pretty-print it as the actual date *)
+    (* TODO: Use differnt dates conventions depending on the language ? *)
+    | TDate -> nb_days_to_date (int_of_string (Expr.to_string e))
     | TDuration -> failwith "[Z3 model]: Pretty-printing of duration literals not supported"
   in
 
