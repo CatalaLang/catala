@@ -241,6 +241,36 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
   | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
 
+(** [find_or_create_struct] attemps to retrieve the Z3 sort corresponding to the struct [s]. If no
+    such sort exists yet, we construct it as a datatype with one constructor taking all the fields
+    as arguments, and add it to the context *)
+let find_or_create_struct (ctx : context) (s : StructName.t) : context * Sort.sort =
+  match StructMap.find_opt s ctx.ctx_z3structs with
+  | Some s -> (ctx, s)
+  | None ->
+      let s_name = Pos.unmark (StructName.get_info s) in
+      let fields = StructMap.find s ctx.ctx_decl.ctx_structs in
+      let z3_fieldnames =
+        List.map
+          (fun f -> Pos.unmark (StructFieldName.get_info (fst f)) |> Symbol.mk_string ctx.ctx_z3)
+          fields
+      in
+      let ctx, z3_fieldtypes =
+        List.fold_left_map (fun ctx f -> Pos.unmark (snd f) |> translate_typ ctx) ctx fields
+      in
+      let z3_sortrefs = List.map Sort.get_id z3_fieldtypes in
+      let mk_struct_s = "mk!" ^ s_name in
+      let z3_mk_struct =
+        Datatype.mk_constructor_s ctx.ctx_z3 mk_struct_s
+          (Symbol.mk_string ctx.ctx_z3 mk_struct_s)
+          z3_fieldnames
+          (List.map (fun x -> Some x) z3_fieldtypes)
+          z3_sortrefs
+      in
+
+      let z3_struct = Datatype.mk_sort_s ctx.ctx_z3 s_name [ z3_mk_struct ] in
+      (add_z3struct s z3_struct ctx, z3_struct)
+
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration corresponding to the
     variable [v]. If no such function declaration exists yet, we construct it and add it to the
     context, thus requiring to return a new context *)
@@ -395,17 +425,18 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
           (ctx, e))
   | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
   | ETupleAccess (s, idx, oname, _tys) ->
-      let name = match oname with
-      | None -> failwith "[Z3 encoding]: ETupleAccess of unnamed struct unsupported"
-      | Some n -> n
+      let name =
+        match oname with
+        | None -> failwith "[Z3 encoding]: ETupleAccess of unnamed struct unsupported"
+        | Some n -> n
       in
-      let z3_struct = StructMap.find name ctx.ctx_z3structs in
-      (* This datatype should have only one constructor, corresponding to mk_struct.
-         The accessors of this constructor correspond to the field accesses *)
+      let ctx, z3_struct = find_or_create_struct ctx name in
+      (* This datatype should have only one constructor, corresponding to mk_struct. The accessors
+         of this constructor correspond to the field accesses *)
       let accessors = List.hd (Datatype.get_accessors z3_struct) in
       let accessor = List.nth accessors idx in
       let ctx, s = translate_expr ctx s in
-      ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
+      (ctx, Expr.mk_app ctx.ctx_z3 accessor [ s ])
   | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
   | EMatch (arg, arms, enum) ->
       let ctx, z3_enum = find_or_create_enum ctx enum in
