@@ -85,8 +85,13 @@ let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
     | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
     (* TODO: Print the right money symbol according to language *)
     | TMoney ->
-        let money = Runtime.money_of_cents_string (Expr.to_string e) in
-        Format.asprintf "%s $" (Runtime.money_to_string money)
+        let z3_str = Expr.to_string e in
+        (* The Z3 model returns an integer corresponding to the amount of cents. We reformat it as
+           dollars *)
+        let to_dollars s = Runtime.money_to_string (Runtime.money_of_cents_string s) in
+        if String.contains z3_str '-' then
+          Format.asprintf "-%s $" (to_dollars (String.sub z3_str 3 (String.length z3_str - 4)))
+        else Format.asprintf "%s $" (to_dollars z3_str)
     (* The Z3 date representation corresponds to the number of days since Jan 1, 1900. We
        pretty-print it as the actual date *)
     (* TODO: Use differnt dates conventions depending on the language ? *)
