@@ -1,6 +1,11 @@
-[ERROR] The translation to Z3 failed:
-TODO
-[ERROR] The translation to Z3 failed:
-TODO
+[RESULT] [A.y] This variable never returns an empty error
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+ --> tests/test_proof/bad/dates_simple-overlap.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Test
+The solver generated the following counterexample to explain the faulty behavior:
+--> x : 2010-01-01
 [RESULT] [A.x] This variable never returns an empty error
 [RESULT] [A.x] No two exceptions to ever overlap for this variable
