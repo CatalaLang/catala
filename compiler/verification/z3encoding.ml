@@ -91,7 +91,7 @@ let nb_days_to_date (nb : int) : string =
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model according to the type of
     the Catala variable [v], corresponding to [e] **)
-let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
+let rec print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
   let print_lit (ty : typ_lit) =
     match ty with
     (* TODO: Print boolean according to current language *)
@@ -118,7 +118,17 @@ let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
   match Pos.unmark (VarMap.find v ctx.ctx_var) with
   | TLit ty -> print_lit ty
   | TTuple _ -> failwith "[Z3 model]: Pretty-printing of tuples not supported"
-  | TEnum _ -> failwith "[Z3 model]: Pretty-printing of enums not supported"
+  | TEnum (_tys, _name) -> (
+      match Expr.get_args e with
+      (* Corresponds to the last, non-chained argument of the enum *)
+      | [] -> Expr.to_string e
+      (* The value associated to the enum is a single argument *)
+      | [ e' ] ->
+          let fd = Expr.get_func_decl e in
+          let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
+
+          Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx v e')
+      | _ -> failwith "[Z3 model] Ill-formed term, an enum has more than one argument")
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ -> failwith "[Z3 model]: Pretty-printing of arrays not supported"
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
@@ -129,6 +139,7 @@ let print_z3model_expr (ctx : context) (v : Var.t) (e : Expr.expr) : string =
     lost during the translation (e.g., by translating a date to an integer) **)
 let print_model (ctx : context) (model : Model.model) : string =
   let decls = Model.get_decls model in
+
   Format.asprintf "%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
@@ -508,9 +519,7 @@ let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
       Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
 
       if Solver.check solver [] = UNSATISFIABLE then Cli.result_print (print_positive_result vc)
-      else
-        (* TODO: Print model as error message for Catala debugging purposes *)
-        Cli.error_print (print_negative_result vc ctx solver)
+      else Cli.error_print (print_negative_result vc ctx solver)
   | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 
 (** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
