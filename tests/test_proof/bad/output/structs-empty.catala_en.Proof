@@ -1,2 +1,11 @@
-TODO
-
+[ERROR] [A.x] This variable might return an empty error:
+  --> tests/test_proof/bad/structs-empty.catala_en
+   | 
+13 |   context x content integer
+   |           ^
+   + Test
+The solver generated the following counterexample to explain the faulty behavior:
+--> y : S { -- a : 0 -- b : T { -- c : false -- d : 2 } }
+[RESULT] [A.x] No two exceptions to ever overlap for this variable
+[RESULT] [A.y] This variable never returns an empty error
+[RESULT] [A.y] No two exceptions to ever overlap for this variable

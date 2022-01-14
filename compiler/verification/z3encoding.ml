@@ -141,13 +141,20 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
 
       Format.asprintf "%s { %s }" (Pos.unmark (StructName.get_info name)) fields_str
   | TTuple (_, None) -> failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
-  | TEnum (_tys, _name) -> failwith "pretty printing of tuples"
-  (* ( match Expr.get_args e with (* Corresponds to the last, non-chained argument of the enum *) |
-     [] -> Expr.to_string e (* The value associated to the enum is a single argument *) | [ e' ] ->
-     let fd = Expr.get_func_decl e in let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
+  | TEnum (_tys, name) ->
+      (* The value associated to the enum is a single argument *)
+      let e' = List.hd (Expr.get_args e) in
+      let fd = Expr.get_func_decl e in
+      let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
 
-     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx v e') | _ -> failwith "[Z3 model]
-     Ill-formed term, an enum has more than one argument") *)
+      let enum_ctrs = EnumMap.find name ctx.ctx_decl.ctx_enums in
+      let case =
+        List.find
+          (fun (ctr, _) -> String.equal fd_name (Pos.unmark (EnumConstructor.get_info ctr)))
+          enum_ctrs
+      in
+
+      Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ -> failwith "[Z3 model]: Pretty-printing of arrays not supported"
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
