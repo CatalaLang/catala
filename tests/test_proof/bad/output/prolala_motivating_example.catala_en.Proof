@@ -1,7 +1,7 @@
 [ERROR] [Amount.amount] This variable might return an empty error:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
-58 |   context amount content integer
+60 |   context amount content integer
    |           ^^^^^^
    + ProLaLa 2022 Super Cash Bonus
    +-+ Amount
@@ -20,22 +20,22 @@ The solver generated the following counterexample to explain the faulty behavior
 [RESULT] [Amount.is_student] This variable never returns an empty error
 [RESULT] [Amount.is_student] No two exceptions to ever overlap for this variable
 [ERROR] [Eligibility.is_eligible] This variable might return an empty error:
- --> tests/test_proof/bad/prolala_motivating_example.catala_en
-  | 
-9 |   context is_eligible content boolean
-  |           ^^^^^^^^^^^
-  + ProLaLa 2022 Super Cash Bonus
-  +-+ Eligibility
+  --> tests/test_proof/bad/prolala_motivating_example.catala_en
+   | 
+11 |   context is_eligible content boolean
+   |           ^^^^^^^^^^^
+   + ProLaLa 2022 Super Cash Bonus
+   +-+ Eligibility
 The solver generated the following counterexample to explain the faulty behavior:
 --> is_student : false
 --> is_professor : false
 [ERROR] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
- --> tests/test_proof/bad/prolala_motivating_example.catala_en
-  | 
-9 |   context is_eligible content boolean
-  |           ^^^^^^^^^^^
-  + ProLaLa 2022 Super Cash Bonus
-  +-+ Eligibility
+  --> tests/test_proof/bad/prolala_motivating_example.catala_en
+   | 
+11 |   context is_eligible content boolean
+   |           ^^^^^^^^^^^
+   + ProLaLa 2022 Super Cash Bonus
+   +-+ Eligibility
 The solver generated the following counterexample to explain the faulty behavior:
 --> is_student : true
 --> is_professor : true
