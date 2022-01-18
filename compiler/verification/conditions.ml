@@ -22,6 +22,8 @@ type vc_return = expr Pos.marked * typ Pos.marked VarMap.t
 (** The return type of VC generators is the VC expression plus the types of any locally free
     variable inside that expression. *)
 
+type ctx = { decl : decl_ctx; input_vars : Var.t list }
+
 let conjunction (args : vc_return list) (pos : Pos.t) : vc_return =
   let acc, list =
     match args with hd :: tl -> (hd, tl) | [] -> (((ELit (LBool true), pos), VarMap.empty), [])
@@ -95,8 +97,6 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
            (Print.format_expr ~debug:true ctx.decl)
            e)
         (Pos.get_position e)
-
-type ctx = { decl : decl_ctx; input_vars : Var.t list }
 
 (** {1 Verification conditions generator}*)
 
