@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
    computation rules. Copyright (C) 2022 Inria, contributor: Aymeric Fromherz
-   <aymeric.fromherz@inria.fr>
+   <aymeric.fromherz@inria.fr>, Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
