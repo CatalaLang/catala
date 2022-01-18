@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+   computation rules. Copyright (C) 2022 Inria, contributor: Aymeric Fromherz
+   <aymeric.fromherz@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
    in compliance with the License. You may obtain a copy of the License at
@@ -12,9 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Scope language to default calculus translator *)
+(** Encodes Dcalc expressions into Z3 queries *)
 
-val translate_program : Ast.program -> Dcalc.Ast.program * Dependency.TVertex.t list
-(** Usage [translate_program p] returns a tuple [(new_program, types_list)] where [new_program] is
-    the map of translated scopes. Finally, [types_list] is a list of all types (structs and enums)
-    used in the program, correctly ordered with respect to inter-types dependency. *)
+val solve_vc :
+  Dcalc.Ast.program -> Dcalc.Ast.decl_ctx -> Conditions.verification_condition list -> unit

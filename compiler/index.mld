@@ -84,7 +84,9 @@ The main compilation chain is defined in:
 Additionally, the compiler features a verification plugin that generates
 verification condition for proof backends. More information can be found here:
 
-{!modules: Verification}
+{ul
+{li {{: verification.html} Verification}}
+}
 
 Last, two more modules contain additional features for the compiler:
 

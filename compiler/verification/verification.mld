@@ -1,3 +1,23 @@
 {0 Verification}
 
-TODO
+{1 Generating verification conditions }
+
+From the {{: dcalc.html} Dcalc} intermediate representation, the module
+{!module: Verification.Conditions} provides functions to generate
+verification conditions for each scope definition present in the program.
+These verification conditions, if proven true, can assert the well-behaved
+execution of the scope definition: absence of empty or conflict errors.
+
+Related modules:
+
+{!modules: Verification.Conditions}
+
+{1 Z3 proof backend}
+
+One of the way to prove the {Verification.Conditions.verification_condition}s
+true is to encode them into a Z3 query. The Catala compiler features a
+complete encoding of the {{: dcalc.html} Dcalc} intermediate representation
+into Z3, which can be used to launch Z3 queries and collect results to
+inform potential Dcalc program optimizations.
+
+{!modules: Verification.Z3encoding}
