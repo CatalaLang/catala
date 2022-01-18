@@ -468,7 +468,7 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
 
         let body = Bindlib.msubst (Pos.unmark e) [| fresh_e |] in
         translate_expr ctx body
-    (* TODO: Denis, Is this true for constructors with no payload? *)
+    (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
 
@@ -558,121 +558,28 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
           ] )
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
-type vc_encoding_result = Success of context * Expr.expr | Fail of string
+module Backend = struct
+  type backend_context = context
 
-let print_positive_result (vc : Conditions.verification_condition) : string =
-  match vc.Conditions.vc_kind with
-  | Conditions.NoEmptyError ->
-      Format.asprintf "%s This variable never returns an empty error"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Pos.unmark vc.vc_variable)))
-  | Conditions.NoOverlappingExceptions ->
-      Format.asprintf "%s No two exceptions to ever overlap for this variable"
-        (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Pos.unmark vc.vc_variable)))
+  type vc_encoding = Z3.Expr.expr
 
-let print_negative_result (vc : Conditions.verification_condition) (ctx : context)
-    (solver : Solver.solver) : string =
-  let var_and_pos =
-    match vc.Conditions.vc_kind with
-    | Conditions.NoEmptyError ->
-        Format.asprintf "%s This variable might return an empty error:\n%s"
-          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
-             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Pos.unmark vc.vc_variable)))
-          (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
-    | Conditions.NoOverlappingExceptions ->
-        Format.asprintf "%s At least two exceptions overlap for this variable:\n%s"
-          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
-             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Pos.unmark vc.vc_variable)))
-          (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
-  in
-  let counterexample : string option =
-    match Solver.get_model solver with
-    | None ->
-        Some
-          "The solver did not manage to generate a counterexample to explain the faulty behavior."
-    | Some model ->
-        if List.length (Model.get_decls model) = 0 then None
-        else
-          Some
-            (Format.asprintf
-               "The solver generated the following counterexample to explain the faulty behavior:\n\
-                %s"
-               (print_model ctx model))
-  in
-  var_and_pos
-  ^ match counterexample with None -> "" | Some counterexample -> "\n" ^ counterexample
+  let print_encoding (vc : vc_encoding) : string = Expr.to_string vc
 
-(** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
-let encode_and_check_vc (decl_ctx : decl_ctx) (z3_ctx : Z3.context)
-    (vc : Conditions.verification_condition * vc_encoding_result) : unit =
-  let vc, z3_vc = vc in
+  type model = Z3.Model.model
 
-  Cli.debug_print
-    (Format.asprintf "For this variable:\n%s\n"
-       (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard)));
-  Cli.debug_print
-    (Format.asprintf "This verification condition was generated for %s:@\n%a"
-       (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-          (match vc.vc_kind with
-          | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
-          | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
-       (Dcalc.Print.format_expr decl_ctx)
-       vc.vc_guard);
+  type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
 
-  match z3_vc with
-  | Success (ctx, z3_vc) ->
-      Cli.debug_print
-        (Format.asprintf "The translation to Z3 is the following:@\n%s" (Expr.to_string z3_vc));
+  let solve_vc_encoding (ctx : backend_context) (encoding : vc_encoding) : solver_result =
+    let solver = Z3.Solver.mk_solver ctx.ctx_z3 None in
+    Z3.Solver.add solver [ Boolean.mk_not ctx.ctx_z3 encoding ];
+    match Z3.Solver.check solver [] with
+    | UNSATISFIABLE -> ProvenTrue
+    | SATISFIABLE -> ProvenFalse (Z3.Solver.get_model solver)
+    | UNKNOWN -> Unknown
 
-      let solver = Solver.mk_solver z3_ctx None in
+  let print_model (ctx : backend_context) (m : model) : string = print_model ctx m
 
-      Solver.add solver [ Boolean.mk_not z3_ctx z3_vc ];
+  let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
+end
 
-      if Solver.check solver [] = UNSATISFIABLE then Cli.result_print (print_positive_result vc)
-      else Cli.error_print (print_negative_result vc ctx solver)
-  | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
-
-(** [solve_vc] is the main entry point of this module. It takes a list of expressions [vcs]
-    corresponding to verification conditions that must be discharged by Z3, and attempts to solve
-    them **)
-let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) :
-    unit =
-  Cli.debug_print (Format.asprintf "Running Z3 version %s" Version.to_string);
-
-  let cfg = [ ("model", "true"); ("proof", "false") ] in
-  let z3_ctx = mk_context cfg in
-
-  let z3_vcs =
-    List.map
-      (fun vc ->
-        ( vc,
-          try
-            let ctx, z3_vc =
-              translate_expr
-                {
-                  ctx_z3 = z3_ctx;
-                  ctx_decl = decl_ctx;
-                  ctx_var =
-                    VarMap.union
-                      (fun _ _ _ ->
-                        failwith "[Z3 encoding]: A Variable cannot be both free and bound")
-                      (variable_types prgm) vc.Conditions.vc_free_vars_typ;
-                  ctx_funcdecl = VarMap.empty;
-                  ctx_z3vars = StringMap.empty;
-                  ctx_z3datatypes = EnumMap.empty;
-                  ctx_z3matchsubsts = VarMap.empty;
-                  ctx_z3structs = StructMap.empty;
-                }
-                (Bindlib.unbox (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
-            in
-            Success (ctx, z3_vc)
-          with Failure msg -> Fail msg ))
-      vcs
-  in
-
-  List.iter (encode_and_check_vc decl_ctx z3_ctx) z3_vcs
+module Io = Io.SolverIO (Backend)

@@ -217,7 +217,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         match backend with
         | Cli.Proof ->
             let vcs = Verification.Conditions.generate_verification_conditions prgm in
-            Verification.Z3encoding.solve_vc prgm prgm.decl_ctx vcs;
+            Verification.Solver.solve_vc prgm prgm.decl_ctx vcs;
             0
         | Cli.Interpret ->
             Cli.debug_print "Starting interpretation...";
