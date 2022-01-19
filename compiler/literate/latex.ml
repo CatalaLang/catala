@@ -102,22 +102,6 @@ let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : F
   wrapped fmt;
   Format.fprintf fmt "\n\n\\end{document}"
 
-(** Replaces math operators by their nice unicode counterparts *)
-let math_syms_replace (c : string) : string =
-  let date = "\\d\\d/\\d\\d/\\d\\d\\d\\d" in
-  let syms = R.regexp (date ^ "|!=|<=|>=|--|->|\\*|/") in
-  let syms2cmd = function
-    | "!=" -> "≠"
-    | "<=" -> "≤"
-    | ">=" -> "≥"
-    | "--" -> "—"
-    | "->" -> "→"
-    | "*" -> "×"
-    | "/" -> "÷"
-    | s -> s
-  in
-  R.substitute ~rex:syms ~subst:syms2cmd c
-
 (** {1 Weaving} *)
 
 let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
@@ -144,7 +128,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
         (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
         file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t |> math_syms_replace)
+  | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) ->
       Format.fprintf fmt
         "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
@@ -153,8 +137,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
          \\end{minted}"
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
         (Pos.get_start_line (Pos.get_position c) - 1)
-        (get_language_extension language)
-        (math_syms_replace (Pos.unmark c))
+        (get_language_extension language) (Pos.unmark c)
   | A.CodeBlock (_, c, true) ->
       let metadata_title =
         match language with Fr -> "Métadonnées" | En -> "Metadata" | Pl -> "Metadane"
@@ -171,8 +154,7 @@ let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatt
         metadata_title metadata_title
         (Pos.get_start_line (Pos.get_position c) - 1)
         (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
-        (get_language_extension language)
-        (math_syms_replace (Pos.unmark c))
+        (get_language_extension language) (Pos.unmark c)
 
 (** {1 API} *)
 
