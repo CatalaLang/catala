@@ -15,7 +15,12 @@
 (** Common code for handling the IO of all proof backends supported *)
 
 module type Backend = sig
+  val init_backend : unit -> unit
+
   type backend_context
+
+  val make_context :
+    Dcalc.Ast.decl_ctx -> Dcalc.Ast.typ Utils.Pos.marked Dcalc.Ast.VarMap.t -> backend_context
 
   type vc_encoding
 

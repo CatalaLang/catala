@@ -14,29 +14,10 @@
 
 (** Interfacing with the Z3 SMT solver *)
 
-module StringMap : Map.S with type key = string
-
-type context = {
-  ctx_z3 : Z3.context;
-  ctx_decl : Dcalc.Ast.decl_ctx;
-  ctx_var : Dcalc.Ast.typ Utils.Pos.marked Dcalc.Ast.VarMap.t;
-  ctx_funcdecl : Z3.FuncDecl.func_decl Dcalc.Ast.VarMap.t;
-  ctx_z3vars : Dcalc.Ast.Var.t StringMap.t;
-  ctx_z3datatypes : Z3.Sort.sort Dcalc.Ast.EnumMap.t;
-  ctx_z3matchsubsts : Z3.Expr.expr Dcalc.Ast.VarMap.t;
-  ctx_z3structs : Z3.Sort.sort Dcalc.Ast.StructMap.t;
-}
-
-val translate_expr : context -> Dcalc.Ast.expr Utils.Pos.marked -> context * Z3.Expr.expr
-
-module Backend :
-  Io.Backend
-    with type vc_encoding = Z3.Expr.expr
-     and type backend_context = context
-     and type model = Z3.Model.model
+module Backend : Io.Backend
 
 module Io :
   Io.SolverIo
-    with type vc_encoding = Z3.Expr.expr
-     and type backend_context = context
-     and type model = Z3.Model.model
+    with type backend_context = Backend.backend_context
+     and type model = Backend.model
+     and type vc_encoding = Backend.vc_encoding

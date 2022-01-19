@@ -582,6 +582,23 @@ module Backend = struct
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
 
   let translate_expr (ctx : backend_context) (e : Dcalc.Ast.expr Pos.marked) = translate_expr ctx e
+
+  let init_backend () = Cli.debug_print (Format.asprintf "Running Z3 version %s" Version.to_string)
+
+  let make_context (decl_ctx : decl_ctx) (free_vars_typ : typ Pos.marked VarMap.t) : backend_context
+      =
+    let cfg = [ ("model", "true"); ("proof", "false") ] in
+    let z3_ctx = mk_context cfg in
+    {
+      ctx_z3 = z3_ctx;
+      ctx_decl = decl_ctx;
+      ctx_var = free_vars_typ;
+      ctx_funcdecl = VarMap.empty;
+      ctx_z3vars = StringMap.empty;
+      ctx_z3datatypes = EnumMap.empty;
+      ctx_z3matchsubsts = VarMap.empty;
+      ctx_z3structs = StructMap.empty;
+    }
 end
 
 module Io = Io.MakeSolverIO (Backend)

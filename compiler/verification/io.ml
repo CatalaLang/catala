@@ -16,7 +16,11 @@ open Utils
 open Dcalc.Ast
 
 module type Backend = sig
+  val init_backend : unit -> unit
+
   type backend_context
+
+  val make_context : decl_ctx -> typ Pos.marked VarMap.t -> backend_context
 
   type vc_encoding
 
