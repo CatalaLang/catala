@@ -14,10 +14,4 @@
 
 (** Interfacing with the Z3 SMT solver *)
 
-module Backend : Io.Backend
-
-module Io :
-  Io.SolverIo
-    with type backend_context = Backend.backend_context
-     and type model = Backend.model
-     and type vc_encoding = Backend.vc_encoding
+module Io : Io.BackendIO

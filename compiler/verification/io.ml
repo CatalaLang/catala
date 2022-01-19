@@ -40,10 +40,17 @@ module type Backend = sig
     backend_context -> Dcalc.Ast.expr Utils.Pos.marked -> backend_context * vc_encoding
 end
 
-module type SolverIo = sig
-  type vc_encoding
+module type BackendIO = sig
+  val init_backend : unit -> unit
 
   type backend_context
+
+  val make_context : decl_ctx -> typ Pos.marked VarMap.t -> backend_context
+
+  type vc_encoding
+
+  val translate_expr :
+    backend_context -> Dcalc.Ast.expr Utils.Pos.marked -> backend_context * vc_encoding
 
   type model
 
@@ -58,10 +65,16 @@ module type SolverIo = sig
     Dcalc.Ast.decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
 end
 
-module MakeSolverIO (B : Backend) = struct
-  type vc_encoding = B.vc_encoding
+module MakeBackendIO (B : Backend) = struct
+  let init_backend = B.init_backend
 
   type backend_context = B.backend_context
+
+  let make_context = B.make_context
+
+  type vc_encoding = B.vc_encoding
+
+  let translate_expr = B.translate_expr
 
   type model = B.model
 

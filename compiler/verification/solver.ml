@@ -21,15 +21,15 @@ let solve_vc (prgm : program) (decl_ctx : decl_ctx) (vcs : Conditions.verificati
     unit =
   (* Right now we only use the Z3 backend but the functorial interface should make it easy to mix
      and match different proof backends. *)
-  Z3backend.Backend.init_backend ();
+  Z3backend.Io.init_backend ();
   let z3_vcs =
     List.map
       (fun vc ->
         ( vc,
           try
             let ctx, z3_vc =
-              Z3backend.Backend.translate_expr
-                (Z3backend.Backend.make_context decl_ctx
+              Z3backend.Io.translate_expr
+                (Z3backend.Io.make_context decl_ctx
                    (VarMap.union
                       (fun _ _ _ ->
                         failwith "[Proof encoding]: A Variable cannot be both free and bound")

@@ -601,4 +601,4 @@ module Backend = struct
     }
 end
 
-module Io = Io.MakeSolverIO (Backend)
+module Io = Io.MakeBackendIO (Backend)
