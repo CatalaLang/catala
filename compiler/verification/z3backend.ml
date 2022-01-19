@@ -580,6 +580,8 @@ module Backend = struct
   let print_model (ctx : backend_context) (m : model) : string = print_model ctx m
 
   let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
+
+  let translate_expr (ctx : backend_context) (e : Dcalc.Ast.expr Pos.marked) = translate_expr ctx e
 end
 
-module Io = Io.SolverIO (Backend)
+module Io = Io.MakeSolverIO (Backend)

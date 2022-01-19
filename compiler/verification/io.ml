@@ -31,9 +31,36 @@ module type Backend = sig
   val print_model : backend_context -> model -> string
 
   val is_model_empty : model -> bool
+
+  val translate_expr :
+    backend_context -> Dcalc.Ast.expr Utils.Pos.marked -> backend_context * vc_encoding
 end
 
-module SolverIO (B : Backend) = struct
+module type SolverIo = sig
+  type vc_encoding
+
+  type backend_context
+
+  type model
+
+  type vc_encoding_result = Success of vc_encoding * backend_context | Fail of string
+
+  val print_positive_result : Conditions.verification_condition -> string
+
+  val print_negative_result :
+    Conditions.verification_condition -> backend_context -> model option -> string
+
+  val encode_and_check_vc :
+    Dcalc.Ast.decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
+end
+
+module MakeSolverIO (B : Backend) = struct
+  type vc_encoding = B.vc_encoding
+
+  type backend_context = B.backend_context
+
+  type model = B.model
+
   type vc_encoding_result = Success of B.vc_encoding * B.backend_context | Fail of string
 
   let print_positive_result (vc : Conditions.verification_condition) : string =

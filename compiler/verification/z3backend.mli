@@ -29,34 +29,14 @@ type context = {
 
 val translate_expr : context -> Dcalc.Ast.expr Utils.Pos.marked -> context * Z3.Expr.expr
 
-module Backend : sig
-  type backend_context = context
+module Backend :
+  Io.Backend
+    with type vc_encoding = Z3.Expr.expr
+     and type backend_context = context
+     and type model = Z3.Model.model
 
-  type vc_encoding = Z3.Expr.expr
-
-  val print_encoding : vc_encoding -> string
-
-  type model = Z3.Model.model
-
-  type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
-
-  val solve_vc_encoding : backend_context -> vc_encoding -> solver_result
-
-  val print_model : backend_context -> model -> string
-
-  val is_model_empty : model -> bool
-end
-
-module Io : sig
-  type vc_encoding_result = Io.SolverIO(Backend).vc_encoding_result =
-    | Success of Backend.vc_encoding * Backend.backend_context
-    | Fail of string
-
-  val print_positive_result : Conditions.verification_condition -> string
-
-  val print_negative_result :
-    Conditions.verification_condition -> Backend.backend_context -> Backend.model option -> string
-
-  val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
-end
+module Io :
+  Io.SolverIo
+    with type vc_encoding = Z3.Expr.expr
+     and type backend_context = context
+     and type model = Z3.Model.model
