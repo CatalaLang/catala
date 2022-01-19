@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree of the default calculus intermediate representation *)
+
 open Utils
 
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info

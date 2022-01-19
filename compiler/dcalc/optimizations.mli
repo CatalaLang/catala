@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Optimization passes for default calculus programs and expressions *)
+
 open Utils
 open Ast
 

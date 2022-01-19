@@ -13,10 +13,6 @@ using the {{:literate.html} literate programming modules}.
 
 {1 Lexing }
 
-Relevant modules:
-
-{!modules: Surface.Lexer_common Surface.Lexer_fr Surface.Lexer_en}
-
 The lexing in the Catala compiler is done using
 {{: https://github.com/ocaml-community/sedlex} sedlex}, the modern OCaml lexer
 that offers full support for UTF-8. This support enables users of non-English
@@ -35,22 +31,23 @@ produce the parser tokens.
     with verbose French keywords matching legal concepts.}
 }
 
-{1 Parsing }
-
 Relevant modules:
 
-{!modules: Surface.Parser Surface.Parser_driver Surface.Parser_errors}
+{!modules: Surface.Lexer_common Surface.Lexer_fr Surface.Lexer_en}
+
+
+{1 Parsing }
 
 The Catala compiler uses {{: http://cambium.inria.fr/~fpottier/menhir/} Menhir}
-to perform its parsing. 
+to perform its parsing.
 
-{!module: Surface.Parser} is the main file where the parser tokens and the 
-grammar is declared. It is automatically translated into its parsing automata 
+{!module: Surface.Parser} is the main file where the parser tokens and the
+grammar is declared. It is automatically translated into its parsing automata
 equivalent by Menhir.
 
-In order to provide decent syntax error messages, the Catala compiler uses the 
-novel error handling provided by Menhir and detailed in Section 11 of the 
-{{: http://cambium.inria.fr/~fpottier/menhir/manual.pdf} Menhir manual}. 
+In order to provide decent syntax error messages, the Catala compiler uses the
+novel error handling provided by Menhir and detailed in Section 11 of the
+{{: http://cambium.inria.fr/~fpottier/menhir/manual.pdf} Menhir manual}.
 
 A [parser.messages] source file has been manually annotated with custom
 error message for every potential erroneous state of the parser, and Menhir
@@ -61,11 +58,11 @@ To wrap it up, {!module: Surface.Parser_driver} glues all the parsing and
 lexing together to perform the translation from source code to abstract syntax
 tree, with meaningful error messages.
 
-{1 Name resolution and translation }
-
 Relevant modules:
 
-{!modules: Surface.Name_resolution Surface.Desugaring}
+{!modules: Surface.Parser Surface.Parser_driver Surface.Parser_errors}
+
+{1 Name resolution and translation }
 
 The desugaring consists of translating {!module: Surface.Ast} to
 {!module: Desugared.Ast} of the {{: desugared.html} desugared representation}.
@@ -75,3 +72,7 @@ name resolution: {!module: Surface.Name_resolution}. Indeed, in
 {!module: Surface.Ast}, the variables identifiers are just [string], whereas in
 {!module: Desugared.Ast} they have been turned into well-categorized types
 with an unique identifier like {!type: Scopelang.Ast.ScopeName.t}.
+
+Relevant modules:
+
+{!modules: Surface.Name_resolution Surface.Desugaring}

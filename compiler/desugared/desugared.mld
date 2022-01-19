@@ -12,10 +12,6 @@ The module describing the abstract syntax tree is:
 
 {1 Translation to the scope language}
 
-Related modules:
-
-{!modules: Desugared.Dependency Desugared.Desugared_to_scope}
-
 Before the translation to the {{: scopelang.html} scope language},
 {!module: Desugared.Dependency} checks that within
 a scope, there is no computational circular dependency between the variables
@@ -28,3 +24,7 @@ computation order. All the graph computations are done using the
 The other important piece of work performed by
 {!module: Desugared.Desugared_to_scope} is the construction of the default trees
 (see {!Dcalc.Ast.EDefault}) from the list of prioritized rules.
+
+Related modules:
+
+{!modules: Desugared.Dependency Desugared.Desugared_to_scope}

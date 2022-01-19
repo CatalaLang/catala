@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Printing functions for the default calculus AST *)
+
 open Utils
 
 (** {1 Helpers} *)
