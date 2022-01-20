@@ -19,6 +19,7 @@ jobs:
       - uses: cachix/install-nix-action@v14.1
         with:
           nix_path: nixpkgs=channel:nixos-21.05
+      - run: nix-shell -p nix-info --run "nix-info -m"
       - run: nix-build release.nix
       - run: nix-shell --run "echo OK"
 
@@ -29,6 +30,7 @@ jobs:
       - uses: cachix/install-nix-action@v14.1
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+      - run: nix-shell -p nix-info --run "nix-info -m"
       - run: nix-build release.nix
       - run: nix-shell --run "echo OK"
 
