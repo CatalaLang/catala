@@ -69,6 +69,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
       else if backend = "python" then Cli.Python
+      else if backend = "proof" then Cli.Proof
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -184,6 +185,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         end;
         Cli.debug_print "Translating to default calculus...";
         let prgm, type_ordering = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgm =
+          if optimize then begin
+            Cli.debug_print "Optimizing default calculus...";
+            Dcalc.Optimizations.optimize_program prgm
+          end
+          else prgm
+        in
         let prgrm_dcalc_expr = Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid) in
         if backend = Cli.Dcalc then begin
           let fmt, at_end =
@@ -207,6 +215,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" (Dcalc.Print.format_typ
            prgm.decl_ctx) typ); *)
         match backend with
+        | Cli.Proof ->
+            let vcs = Verification.Conditions.generate_verification_conditions prgm in
+            Verification.Solver.solve_vc prgm prgm.decl_ctx vcs;
+            0
         | Cli.Interpret ->
             Cli.debug_print "Starting interpretation...";
             let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr in

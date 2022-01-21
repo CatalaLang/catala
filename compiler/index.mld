@@ -21,11 +21,11 @@ Catala compiler (made with an {{: https://textik.com/#c1c1fecda5209492} ASCII di
          * Separate code from legislation    |
          * Remove syntactic sugars           |
                                              v
-                                     +---------------+
-                                     |               |
-                                     | Desugared AST |
-                                     |               |
-                                     +---------------+
+                                   +------------------+
+                                   |                  |
+                                   |  Desugared AST   |
+                                   |                  |
+                                   +------------------+
                                              |
                                              |
  * Build rule trees for each definition      |
@@ -58,6 +58,16 @@ Catala compiler (made with an {{: https://textik.com/#c1c1fecda5209492} ASCII di
                                  | Lambda calculus AST  |
                                  |                      |
                                  +----------------------+
+                                             |
+                                             |
+        * Turn expressions into statements   |
+                                             |
+                                             v
+                               +--------------------------+
+                               |                          |
+                               |  Statement calculus AST  |
+                               |                          |
+                               +--------------------------+
 v}
 
 {1 List of top-level modules }
@@ -65,7 +75,7 @@ v}
 Each of those intermediate representation is bundled into its own `dune` bundle
 module. Click on the items below if you want to dive straight into the signatures.
 
-{!modules: Surface Desugared Scopelang Dcalc Lcalc }
+{!modules: Surface Desugared Scopelang Dcalc Lcalc Scalc }
 
 More documentation can be found on each intermediate representations here.
 
@@ -75,11 +85,19 @@ More documentation can be found on each intermediate representations here.
 {li {{: scopelang.html} The scope language }}
 {li {{: dcalc.html} The default calculus}}
 {li {{: lcalc.html} The lambda calculus}}
+{li {{: scalc} The statement calculus}}
 }
 
 The main compilation chain is defined in:
 
 {!modules: Driver}
+
+Additionally, the compiler features a verification plugin that generates
+verification condition for proof backends. More information can be found here:
+
+{ul
+{li {{: verification.html} Verification}}
+}
 
 Last, two more modules contain additional features for the compiler:
 

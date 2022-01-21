@@ -39,6 +39,12 @@ BUILD_SYSTEM_DIR=build_system
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
 
+#> build_dev			: Builds the Catala compiler, without formatting code
+build_dev:
+	dune build @update-parser-messages --auto-promote | true
+	dune build $(COMPILER_DIR)/catala.exe
+	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
+
 #> build					: Builds the Catala compiler
 build:
 	dune build @update-parser-messages --auto-promote | true
@@ -322,5 +328,5 @@ help_catala:
 # Special targets
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
-	install build doc format dependencies dependencies-ocaml \
+	install build_dev build doc format dependencies dependencies-ocaml \
 	catala.html help

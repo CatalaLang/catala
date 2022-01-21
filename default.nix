@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , fetchFromGitHub
 , buildDunePackage
 , ansiterminal
@@ -18,6 +19,7 @@
 , js_of_ocaml-ppx
 , camomile
 , cppo
+, z3
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -48,6 +50,9 @@ buildDunePackage rec {
     js_of_ocaml-ppx
     camomile
     cppo
+    z3
+
+    pkgs.z3
 
     unionfind
     bindlib

@@ -1,0 +1,11 @@
+[RESULT] [A.y] This variable never returns an empty error
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+ --> tests/test_proof/bad/no_vars-conflict.catala_en
+  | 
+8 |   context y content integer
+  |           ^
+  + Test
+The solver generated the following counterexample to explain the faulty behavior:
+--> x : 0
+[RESULT] [A.x] This variable never returns an empty error
+[RESULT] [A.x] No two exceptions to ever overlap for this variable

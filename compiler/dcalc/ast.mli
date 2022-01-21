@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Abstract syntax tree of the default calculus intermediate representation *)
+
 open Utils
 
 module ScopeName : Uid.Id with type info = Uid.MarkedString.info
@@ -213,3 +215,10 @@ val build_whole_scope_expr : decl_ctx -> scope_body -> Pos.t -> expr Pos.marked 
 val build_whole_program_expr : program -> ScopeName.t -> expr Pos.marked Bindlib.box
 (** Usage: [build_whole_program_expr program main_scope] builds an expression corresponding to the
     main program and returning the main scope as a function. *)
+
+val expr_size : expr Pos.marked -> int
+(** Used by the optimizer to know when to stop *)
+
+val variable_types : program -> typ Pos.marked VarMap.t
+(** Traverses all the scopes and retrieves all the types for the variables that may appear in scope
+    or subscope variable definitions, giving them as a big map. *)

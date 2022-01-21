@@ -1,0 +1,8 @@
+(library
+ (name verification)
+ (public_name catala.verification)
+ (libraries bindlib utils dcalc runtime z3 calendar))
+
+(documentation
+ (package catala)
+ (mld_files verification))

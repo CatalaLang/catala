@@ -74,7 +74,6 @@ let info =
         ("run", "Runs the Catala interpreter on a given scope of a given file. See the `-s` option.");
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
-      `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
       `S Manpage.s_examples;
       `P "Typical usage:";
       `Pre "clerk test file.catala_en";
@@ -95,6 +94,7 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Scopelang -> "Scopelang"
   | Cli.Dcalc -> "Dcalc"
   | Cli.Latex -> "Latex"
+  | Cli.Proof -> "Proof"
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
 
@@ -123,6 +123,7 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
     | ".tex" -> Some Cli.Latex
     | ".html" -> Some Cli.Html
     | ".py" -> Some Cli.Python
+    | ".proof" -> Some Cli.Proof
     | _ -> None
   in
   match backend with
@@ -179,7 +180,7 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
             (List.filter (fun s -> s <> "") reproducible_catala_command
             @
             match expected_output.backend with
-            | Cli.Interpret ->
+            | Cli.Interpret | Cli.Proof ->
                 if reset_test_outputs then
                   [
                     ">";
