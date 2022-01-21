@@ -85,7 +85,7 @@ More documentation can be found on each intermediate representations here.
 {li {{: scopelang.html} The scope language }}
 {li {{: dcalc.html} The default calculus}}
 {li {{: lcalc.html} The lambda calculus}}
-{li {{: scalc} The statement calculus}}
+{li {{: scalc.html} The statement calculus}}
 }
 
 The main compilation chain is defined in:
