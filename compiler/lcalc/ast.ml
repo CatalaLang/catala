@@ -25,26 +25,38 @@ type lit =
   | LDuration of Runtime.duration
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
+[@@deriving show]
+
+
+let bla = fun _ b fmt x ->
+  let xs, body = Bindlib.unmbind x in
+  let xs = xs
+    |> Array.to_list
+    |> List.map (fun x -> (Bindlib.name_of x ^ "_" ^  (string_of_int @@ Bindlib.uid_of x)))
+    |> String.concat ", "
+  in
+  Format.fprintf fmt "Binder(%a, %a)" Format.pp_print_string xs b body
 
 type expr =
-  | EVar of expr Bindlib.var Pos.marked
-  | ETuple of expr Pos.marked list * D.StructName.t option
+  | EVar of (expr Bindlib.var [@polyprinter fun _ fmt x -> Format.fprintf fmt "%s_%d" (Bindlib.name_of x) (Bindlib.uid_of x)]) Pos.marked
+  | ETuple of expr Pos.marked list * (D.StructName.t [@opaque]) option
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * D.StructName.t option * D.typ Pos.marked list
+  | ETupleAccess of expr Pos.marked * int * (D.StructName.t [@opaque]) option * D.typ Pos.marked list
       (** The [MarkedString.info] is the former struct field name *)
-  | EInj of expr Pos.marked * int * D.EnumName.t * D.typ Pos.marked list
+  | EInj of expr Pos.marked * int * (D.EnumName.t [@opaque]) * D.typ Pos.marked list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Pos.marked * expr Pos.marked list * D.EnumName.t
+  | EMatch of expr Pos.marked * expr Pos.marked list * (D.EnumName.t [@opaque])
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
-  | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
+  | ELit of (lit [@opaque])
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@polyprinter bla]) Pos.marked * D.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
+[@@deriving show]
 
 module Var = struct
   type t = expr Bindlib.var

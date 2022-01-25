@@ -33,6 +33,7 @@ module EnumMap : Map.S with type key = EnumName.t
 (** {1 Abstract syntax tree} *)
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
+[@@deriving show]
 
 type typ =
   | TLit of typ_lit
@@ -41,6 +42,7 @@ type typ =
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
+[@@deriving show]
 
 type date = Runtime.date
 
@@ -102,6 +104,9 @@ type unop =
   | GetYear
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
+[@@deriving show]
+
+
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
     higher-order abstract syntax*)
@@ -117,7 +122,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator

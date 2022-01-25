@@ -31,6 +31,7 @@ type lit =
   | LDuration of Runtime.duration
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash
+[@@deriving show]
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -44,14 +45,15 @@ type expr =
   | EMatch of expr Pos.marked * expr Pos.marked list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
-  | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * Dcalc.Ast.typ Pos.marked list
+  | ELit of (lit [@opaque])
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of Dcalc.Ast.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
+[@@deriving show]
 
 (** {1 Variable helpers} *)
 
