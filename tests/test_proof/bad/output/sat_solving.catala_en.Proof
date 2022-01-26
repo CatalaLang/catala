@@ -5,15 +5,7 @@
    |           ^^^
    + Test
 The solver generated the following counterexample to explain the faulty behavior:
---> x6 : false
---> x8 : false
---> x5 : false
---> x2 : true
---> x1 : true
---> x9 : false
---> x3 : true
---> x7 : true
---> x4 : true
+--> counterexamples disabled
 [RESULT] [A.x10] No two exceptions to ever overlap for this variable
 [RESULT] [A.x9] This variable never returns an empty error
 [RESULT] [A.x9] No two exceptions to ever overlap for this variable

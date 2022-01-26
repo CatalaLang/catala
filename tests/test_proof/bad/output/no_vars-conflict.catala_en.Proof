@@ -6,6 +6,6 @@
   |           ^
   + Test
 The solver generated the following counterexample to explain the faulty behavior:
---> x : 0
+--> counterexamples disabled
 [RESULT] [A.x] This variable never returns an empty error
 [RESULT] [A.x] No two exceptions to ever overlap for this variable
