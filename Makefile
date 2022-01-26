@@ -39,7 +39,7 @@ BUILD_SYSTEM_DIR=build_system
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
 
-#> build_dev			: Builds the Catala compiler, without formatting code
+#> build_dev				: Builds the Catala compiler, without formatting code
 build_dev:
 	dune build @update-parser-messages --auto-promote | true
 	dune build $(COMPILER_DIR)/catala.exe
