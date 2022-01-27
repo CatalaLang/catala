@@ -15,7 +15,7 @@
    <a href="https://zulip.catala-lang.org/">Join Zulip Chat</a>
   </p>
 
-![CI][ci-link] ![Opam][opam-link] ![Licence][licence-link] ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] ![Issues][issues-link] ![Contributors][contributors-link] ![Activity][activity-link]
+![CI][ci-link] [![Opam][opam-link]](https://opam.ocaml.org/packages/catala/) [![Licence][licence-link]](https://www.apache.org/licenses/LICENSE-2.0) ![Tag][tag-link] ![LoC][loc-link] ![Language][language-link] [![Issues][issues-link]](https://github.com/CatalaLang/catala/issues) [![Contributors][contributors-link]](https://github.com/CatalaLang/catala/graphs/contributors) [![Activity][activity-link]](https://github.com/CatalaLang/catala/pulse)
 
 Catala is a domain-specific language for deriving
 faithful-by-construction algorithms from legislative texts. To learn quickly
