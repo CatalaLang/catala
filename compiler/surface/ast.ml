@@ -433,9 +433,12 @@ type scope_use = {
         name = "scope_use_iter";
       }]
 
+type scope_decl_context_item_attribute = Context | Input | Output | Internal
+
 type scope_decl_context_scope = {
   scope_decl_context_scope_name : ident Pos.marked;
   scope_decl_context_scope_sub_scope : constructor Pos.marked;
+  scope_decl_context_scope_attribute : (scope_decl_context_item_attribute[@opaque]) Pos.marked;
 }
 [@@deriving
   visitors
@@ -454,6 +457,7 @@ type scope_decl_context_scope = {
 type scope_decl_context_data = {
   scope_decl_context_item_name : ident Pos.marked;
   scope_decl_context_item_typ : typ Pos.marked;
+  scope_decl_context_item_attribute : (scope_decl_context_item_attribute[@opaque]) Pos.marked;
 }
 [@@deriving
   visitors

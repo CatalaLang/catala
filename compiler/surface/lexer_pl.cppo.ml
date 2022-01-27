@@ -89,6 +89,9 @@
 #define MS_DAY "dzien"
 #define MS_TRUE "prawda"
 #define MS_FALSE "falsz"
+#define MS_INPUT "wej\xc5\x9bcie"
+#define MS_OUTPUT "wyj\xc5\x9bcie"
+#define MS_INTERNAL "wewn\xc4\x99trzny"
 
 (* Specific delimiters *)
 

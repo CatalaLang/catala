@@ -227,6 +227,15 @@ module R = Re.Pcre
 #ifndef MR_GetYear
   #define MR_GetYear MS_GetYear
 #endif
+#ifndef MR_INPUT
+  #define MR_INPUT MS_INPUT
+#endif
+#ifndef MR_OUTPUT
+  #define MR_OUTPUT MS_OUTPUT
+#endif
+#ifndef MR_INTERNAL
+  #define MR_INTERNAL MS_INTERNAL
+#endif
 
 let token_list : (string * token) list =
   [
@@ -292,6 +301,9 @@ let token_list : (string * token) list =
     (MS_DAY, DAY);
     (MS_TRUE, TRUE);
     (MS_FALSE, FALSE);
+    (MS_INPUT, INPUT);
+    (MS_OUTPUT, OUTPUT);
+    (MS_INTERNAL, INTERNAL)
   ]
   @ L.token_list_language_agnostic
 
