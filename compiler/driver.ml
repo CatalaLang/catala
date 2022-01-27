@@ -27,13 +27,14 @@ let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "p
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)
-    (output_file : string option) : int =
+    (max_prec_digits : int option) (trace : bool) (disable_counterexamples : bool) (optimize : bool)
+    (ex_scope : string option) (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
+    Cli.disable_counterexamples := disable_counterexamples;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);

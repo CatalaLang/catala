@@ -168,27 +168,30 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     variables and Catala variables, and to retrieve type information about the variables that was
     lost during the translation (e.g., by translating a date to an integer) **)
 let print_model (ctx : context) (model : Model.model) : string =
-  let decls = Model.get_decls model in
-
-  Format.asprintf "%a"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-       (fun fmt d ->
-         match Model.get_const_interp model d with
-         (* TODO: Better handling of this case *)
-         | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
-         (* Prints "name : value\n" *)
-         | Some e ->
-             if FuncDecl.get_arity d = 0 then
-               (* Constant case *)
-               let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
-               let v = StringMap.find symbol_name ctx.ctx_z3vars in
-               Format.fprintf fmt "%s %s : %s"
-                 (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
-                 (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
-                 (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
-             else failwith "[Z3 model]: Printing of functions is not yet supported"))
-    decls
+  if !Cli.disable_counterexamples then
+    Format.asprintf "%s counterexamples disabled"
+      (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
+  else
+    let decls = Model.get_decls model in
+    Format.asprintf "%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+         (fun fmt d ->
+           match Model.get_const_interp model d with
+           (* TODO: Better handling of this case *)
+           | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+           (* Prints "name : value\n" *)
+           | Some e ->
+               if FuncDecl.get_arity d = 0 then
+                 (* Constant case *)
+                 let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
+                 let v = StringMap.find symbol_name ctx.ctx_z3vars in
+                 Format.fprintf fmt "%s %s : %s"
+                   (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
+                   (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
+                   (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
+               else failwith "[Z3 model]: Printing of functions is not yet supported"))
+      decls
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
@@ -587,7 +590,9 @@ module Backend = struct
 
   let make_context (decl_ctx : decl_ctx) (free_vars_typ : typ Pos.marked VarMap.t) : backend_context
       =
-    let cfg = [ ("model", "true"); ("proof", "false") ] in
+    let cfg =
+      (if !Cli.disable_counterexamples then [] else [ ("model", "true") ]) @ [ ("proof", "false") ]
+    in
     let z3_ctx = mk_context cfg in
     {
       ctx_z3 = z3_ctx;

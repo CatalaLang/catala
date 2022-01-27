@@ -10,7 +10,7 @@ let _ =
            (Contents (Js.to_string contents))
            false false false "Interpret"
            (Some (Js.to_string language))
-           None trace false
+           None trace false false
            (Some (Js.to_string scope))
            None
     end)
