@@ -22,16 +22,6 @@ module A = Ast
 let is_empty_error (e : A.expr Pos.marked) : bool =
   match Pos.unmark e with ELit LEmptyError -> true | _ -> false
 
-let empty_thunked_term : Ast.expr Pos.marked =
-  let silent = Ast.Var.make ("_", Pos.no_pos) in
-  Bindlib.unbox
-    (Ast.make_abs
-       (Array.of_list [ silent ])
-       (Bindlib.box (Ast.ELit Ast.LEmptyError, Pos.no_pos))
-       Pos.no_pos
-       [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
-       Pos.no_pos)
-
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
@@ -439,7 +429,7 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
     (Uid.MarkedString.info * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr ctx e) with
   | Ast.EAbs (_, [ (Ast.TTuple (taus, Some s_in), _) ]) -> (
-      let application_term = List.map (fun _ -> empty_thunked_term) taus in
+      let application_term = List.map (fun _ -> Ast.empty_thunked_term) taus in
       let to_interpret =
         (Ast.EApp (e, [ (Ast.ETuple (application_term, Some s_in), Pos.no_pos) ]), Pos.no_pos)
       in

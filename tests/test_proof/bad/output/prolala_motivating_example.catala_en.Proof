@@ -10,6 +10,8 @@ The solver generated the following counterexample to explain the faulty behavior
 [RESULT] [Amount.amount] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.correct_amount] This variable never returns an empty error
 [RESULT] [Amount.correct_amount] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_eligible] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_professor] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_student] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.number_of_advisors] This variable never returns an empty error

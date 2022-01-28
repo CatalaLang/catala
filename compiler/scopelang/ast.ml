@@ -123,6 +123,8 @@ type rule =
   | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
+type visibility = { visibility_output : bool; visibility_input : bool }
+
 type scope_decl = {
   scope_decl_name : ScopeName.t;
   scope_sig : typ Pos.marked ScopeVarMap.t;

@@ -378,7 +378,10 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         List.map
           (fun (subvar, _) ->
             if subscope_var_not_yet_defined subvar then
-              Bindlib.box Dcalc.Interpreter.empty_thunked_term
+              (* This is a redundant check. Normally, all subscope varaibles should have been
+                 defined (even an empty definition, if they're not defined by any rule in the source
+                 code) by the translation from desugared to the scope language. *)
+              Bindlib.box Dcalc.Ast.empty_thunked_term
             else
               let a_var, _ = Ast.ScopeVarMap.find subvar subscope_vars_defined in
               Dcalc.Ast.make_var (a_var, pos_call))

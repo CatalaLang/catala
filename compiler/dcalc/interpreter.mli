@@ -16,8 +16,6 @@
 
 open Utils
 
-val empty_thunked_term : Ast.expr Pos.marked
-
 val interpret_program :
   Ast.decl_ctx -> Ast.expr Pos.marked -> (Uid.MarkedString.info * Ast.expr Pos.marked) list
 (** Interpret a program. This function expects an expression typed as a function whose argument are

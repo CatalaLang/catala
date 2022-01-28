@@ -206,6 +206,8 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
+val empty_thunked_term : expr Pos.marked
+
 (** {1 AST manipulation helpers}*)
 
 val build_whole_scope_expr : decl_ctx -> scope_body -> Pos.t -> expr Pos.marked Bindlib.box

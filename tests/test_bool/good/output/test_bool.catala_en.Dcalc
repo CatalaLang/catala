@@ -1,8 +1,8 @@
 let
   TestBool_6 :
-    TestBool_in [unit → bool | unit → integer] → TestBool_out [bool |
-      integer] =
-  λ (TestBool_in_7: TestBool_in [unit → bool | unit → integer]) →
+    TestBool_in {unit → bool ; unit → integer} → TestBool_out {bool ;
+      integer} =
+  λ (TestBool_in_7: TestBool_in {unit → bool ; unit → integer}) →
     let foo_8 : unit → bool = TestBool_in_7."foo_in"
     in
     let bar_9 : unit → integer = TestBool_in_7."bar_in"
