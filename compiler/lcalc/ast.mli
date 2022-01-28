@@ -112,6 +112,18 @@ val make_matchopt :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+(** [e' = make_matchopt'' pos v e e_none e_some] 
+    Builds the term corresponding to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some].
+  *)
+val make_matchopt'':
+  Pos.t ->
+  Var.t ->
+    Dcalc.Ast.typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
 val make_bindopt :
   Pos.t ->
   Dcalc.Ast.typ Pos.marked ->

@@ -125,13 +125,13 @@ let make_matchopt (e : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bi
 
   mark @@ EMatch (e, [ e_none; e_some ], option_enum)
 
-  let make_matchopt'
-    (pos: Pos.t)
-    (tau: D.typ Pos.marked)
-    (arg: expr Pos.marked Bindlib.box)
-    (e_none: expr Pos.marked Bindlib.box)
-    (e_some: expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box)
-  : expr Pos.marked Bindlib.box =
+let make_matchopt'
+  (pos: Pos.t)
+  (tau: D.typ Pos.marked)
+  (arg: expr Pos.marked Bindlib.box)
+  (e_none: expr Pos.marked Bindlib.box)
+  (e_some: expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box)
+: expr Pos.marked Bindlib.box =
   
     let x = Var.make ("unit", pos) in
     let v = Var.make ("v", pos) in
@@ -139,6 +139,23 @@ let make_matchopt (e : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bi
     make_matchopt arg
       (make_abs (Array.of_list [x]) (e_none) (pos) [D.TLit D.TUnit, pos] pos)
       (make_abs (Array.of_list [v]) (e_some (let+ v = Bindlib.box_var v in (v, pos))) pos [tau] pos)
+;;
+
+let make_matchopt''
+  (pos: Pos.t)
+  (v: Var.t)
+  (tau: D.typ Pos.marked)
+  (arg: expr Pos.marked Bindlib.box)
+  (e_none: expr Pos.marked Bindlib.box)
+  (e_some: expr Pos.marked Bindlib.box)
+  : expr Pos.marked Bindlib.box =
+  
+  (* todo: replace this "unit" variable by the [()] pattern *)
+  let x = Var.make ("unit", pos) in
+
+  make_matchopt arg
+    (make_abs (Array.of_list [x]) e_none pos [D.TLit D.TUnit, pos] pos)
+    (make_abs (Array.of_list [v]) e_some pos [tau] pos)
 
 
 let make_bindopt
