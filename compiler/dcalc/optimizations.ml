@@ -14,7 +14,7 @@
 open Utils
 open Ast
 
-type partial_evaluation_ctx = expr Pos.marked Ast.VarMap.t
+type partial_evaluation_ctx = { var_values : expr Pos.marked Ast.VarMap.t; decl_ctx : decl_ctx }
 
 let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) :
     expr Pos.marked Bindlib.box =
@@ -94,7 +94,40 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) 
   | EOp op -> Bindlib.box (EOp op, pos)
   | EDefault (exceptions, just, cons) ->
       Bindlib.box_apply3
-        (fun exceptions just cons -> (EDefault (exceptions, just, cons), pos))
+        (fun exceptions just cons ->
+          (* TODO: mechanically prove each of these optimizations correct :) *)
+          match
+            ( List.filter
+                (fun except -> match Pos.unmark except with ELit LEmptyError -> false | _ -> true)
+                exceptions
+              (* we can discard the exceptions that are always empty error *),
+              just,
+              cons )
+          with
+          | exceptions, just, cons
+            when List.fold_left
+                   (fun nb except -> match Pos.unmark except with ELit _ -> nb + 1 | _ -> nb)
+                   0 exceptions
+                 > 1 ->
+              (* at this point we know a conflict error will be triggered so we just feed the
+                 expression to the interpreter that will print the beautiful right error message *)
+              Interpreter.evaluate_expr ctx.decl_ctx (EDefault (exceptions, just, cons), pos)
+          | [ ((ELit _, _) as except) ], _, _ ->
+              (* if there is only one exception and it is a non-empty literal it is always chosen *)
+              except
+          | ( [],
+              ((ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ])), _),
+              cons ) ->
+              cons
+          | ( [],
+              ((ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ])), _),
+              _ ) ->
+              (ELit LEmptyError, pos)
+          | [], just, cons ->
+              (* without exceptions, a default is just an [if then else] raising an error in the
+                 else case *)
+              (EIfThenElse (just, cons, (ELit LEmptyError, pos)), pos)
+          | exceptions, just, cons -> (EDefault (exceptions, just, cons), pos))
         (List.map rec_helper exceptions |> Bindlib.box_list)
         (rec_helper just) (rec_helper cons)
   | EIfThenElse (e1, e2, e3) ->
@@ -116,7 +149,8 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) 
         (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | ErrorOnEmpty e1 -> Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, pos)) (rec_helper e1)
 
-let optimize_expr = partial_evaluation VarMap.empty
+let optimize_expr (decl_ctx : decl_ctx) (e : expr Pos.marked) =
+  partial_evaluation { var_values = VarMap.empty; decl_ctx } e
 
 let program_map (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a) (p : program)
     : program =
@@ -143,7 +177,8 @@ let program_map (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx 
         p.scopes;
   }
 
-let optimize_program (p : program) : program = program_map partial_evaluation VarMap.empty p
+let optimize_program (p : program) : program =
+  program_map partial_evaluation { var_values = VarMap.empty; decl_ctx = p.decl_ctx } p
 
 let rec remove_all_logs (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position e in
