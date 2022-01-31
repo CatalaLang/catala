@@ -97,6 +97,7 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Proof -> "Proof"
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
+  | Cli.Typecheck -> "Typecheck"
 
 type expected_output_descr = {
   base_filename : string;
@@ -124,6 +125,7 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
     | ".html" -> Some Cli.Html
     | ".py" -> Some Cli.Python
     | ".proof" -> Some Cli.Proof
+    | ".typecheck" -> Some Cli.Typecheck
     | _ -> None
   in
   match backend with
@@ -187,7 +189,7 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
               | _ -> [])
             @
             match expected_output.backend with
-            | Cli.Interpret | Cli.Proof ->
+            | Cli.Interpret | Cli.Proof | Cli.Typecheck ->
                 if reset_test_outputs then
                   [
                     ">";

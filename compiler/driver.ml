@@ -71,6 +71,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "scopelang" then Cli.Scopelang
       else if backend = "python" then Cli.Python
       else if backend = "proof" then Cli.Proof
+      else if backend = "typecheck" then Cli.Typecheck
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -216,6 +217,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" (Dcalc.Print.format_typ
            prgm.decl_ctx) typ); *)
         match backend with
+        | Cli.Typecheck ->
+            (* That's it! *)
+            Cli.result_print "Typechecking successful!";
+            0
         | Cli.Proof ->
             let vcs = Verification.Conditions.generate_verification_conditions prgm in
             Verification.Solver.solve_vc prgm prgm.decl_ctx vcs;

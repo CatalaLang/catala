@@ -57,6 +57,7 @@ type backend_option =
   | Makefile
   | Html
   | Interpret
+  | Typecheck
   | OCaml
   | Python
   | Dcalc
