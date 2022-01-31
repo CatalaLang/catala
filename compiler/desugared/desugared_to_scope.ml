@@ -161,7 +161,7 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func_param_typ
   in
   if
-    Ast.RuleMap.cardinal def = 0 && is_def_func && is_subscope_var
+    Ast.RuleMap.cardinal def = 0 && is_subscope_var
     (* Here we have a special case for the empty definitions. Indeed, we could use the code for the
        regular case below that would create a convoluted default always returning empty error, and
        this would be correct. But it gets more complicated with functions. Indeed, if we create an
@@ -173,8 +173,9 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
        [test/test_scope/subscope_function_arg_not_defined.catala_en] for a test case exercising that
        subtlety.
 
-       To avoid this complication we special case here and put an empty error whether the type of
-       the subscope argument is a function or not. *)
+       To avoid this complication we special case here and put an empty error for all subscope
+       variables that are not defined. It covers the subtlety with functions described above but
+       also conditions with the false default value. *)
   then (ELit LEmptyError, Pos.no_pos)
   else
     Bindlib.unbox

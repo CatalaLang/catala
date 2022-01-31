@@ -216,7 +216,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    Print.format_uid_list infos
                    (match e' with
-                   | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
+                   (* | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>" *)
                    | _ ->
                        let expr_str =
                          Format.asprintf "%a" (Print.format_expr ctx ~debug:false) (e', Pos.no_pos)
