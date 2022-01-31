@@ -1,0 +1,22 @@
+rule test_scope
+  command = catala -s $scope Interpret $in --unstyled 2>&1 $
+            | colordiff -u -b $out -
+
+build tests/test_array/good/output/aggregation_2.catala_en.A.Interpret:$
+  test_scope $
+  tests/test_array/good/aggregation_2.catala_en
+  scope = A
+
+build tests/test_array/good/output/aggregation_2.catala_en.B.Interpret:$
+                test_scope $
+  tests/test_array/good/aggregation_2.catala_en
+  scope = B
+
+build always: phony
+
+build test: phony $
+  tests/test_array/good/output/aggregation_2.catala_en.A.Interpret $
+  tests/test_array/good/output/aggregation_2.catala_en.B.Interpret
+
+build test2: phony test
+
