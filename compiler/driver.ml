@@ -294,9 +294,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             0
         | _ -> assert false
         (* should not happen *))
-  with Errors.StructuredError (msg, pos) ->
-    Cli.error_print (Errors.print_structured_error msg pos);
-    -1
+  with
+  | Errors.StructuredError (msg, pos) ->
+      Cli.error_print (Errors.print_structured_error msg pos);
+      -1
+  | Sys_error msg ->
+      Cli.error_print ("System error: " ^ msg);
+      -1
 
 let main () =
   let return_code = Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info) in

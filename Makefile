@@ -169,11 +169,11 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 
 FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $@
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml $@
 
@@ -215,7 +215,7 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 
 FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
 
-$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py: .FORCE
+$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
 
