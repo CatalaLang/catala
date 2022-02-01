@@ -3,6 +3,14 @@ open Utils
 module D = Dcalc.Ast
 module A = Ast
 
+
+(**
+  The main idea around this pass is to compile Dcalc to Lcalc without using [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the same technique as in rust or erlang to handle this kind of exceptions. Each [raise EmptyError] will be translated as [None] and each [try e1 with EmtpyError -> e2] as [match e1 with | None -> e2 | Some x -> x].
+
+  When doing this naively, this requires to add matches and Some constructor everywhere. We apply here an other technique where we generate what we call `cuts`. Cuts are expression whom could minimally [raise EmptyError]. 
+*)
+
+
 (** information about the variables *)
 type info = {
   expr: A.expr Pos.marked Bindlib.box;
@@ -11,7 +19,7 @@ type info = {
 }
 
 (** information context about variables in the current scope *)
-type ctx = info D.VarMap.t
+type ctx = info D.VarMap.t  
 
 type cuts = D.expr Pos.marked A.VarMap.t
 
@@ -58,10 +66,15 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
   | D.ELit D.LEmptyError ->
     let v' = A.Var.make ("empty_litteral", pos) in
     (A.make_var (v', pos), A.VarMap.singleton v' e)
-  | D.EAssert e ->
+  | D.EAssert _ ->
     (* as discuted, if the value in an assertion is empty, an error should the raised. This beavior is different from the ICFP paper. *)
-      let v' = A.Var.make ("assertion_value", pos) in
+    let v' = A.Var.make ("assertion_value", pos) in
     (A.make_var (v', pos), A.VarMap.singleton v' e)
+  
+  | ErrorOnEmpty _ ->
+    let v' = A.Var.make ("error_on_empty_value", pos) in
+    (A.make_var (v', pos), A.VarMap.singleton v' e)
+
   
   (* pure terms *)
   | D.ELit l ->
@@ -85,39 +98,149 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
 
     (e', disjoint_union_maps pos [c1; c2; c3])
 
+  | EAbs ((binder, pos_binder), ts) ->
+    let vars, body = Bindlib.unmbind binder in
+    let ctx, lc_vars = ArrayLabels.fold_right vars ~init:(ctx, [])
+      ~f:(fun var (ctx, lc_vars) ->
+        let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
+        let lc_var_expr = A.make_var (lc_var, pos_binder) in
+        (* we suppose the invariant that when applying a function, its arguments cannot be of the type "option".
+        
+          The code should behave correctly in the opposite direction if we put here an is_pure=false. *)
+        (D.VarMap.add var {var=lc_var; expr=lc_var_expr; is_pure=true} ctx, lc_var :: lc_vars))
+    in
+    let lc_vars = Array.of_list lc_vars in
+
+    (* here we take the guess that if we cannot build the closure because one of the variable is empty, then we cannot build the function. *)
+    let new_body, cuts = translate_and_cut ctx body in
+    let new_binder = Bindlib.bind_mvar lc_vars new_body in
+
+
+    (Bindlib.box_apply
+    (fun new_binder -> A.EAbs ((new_binder, pos_binder), ts), pos)
+    new_binder, cuts)
   
+  | EApp (e1, args) ->
+      (* general case is simple *)
+      let e1', c1 = translate_and_cut ctx e1 in
+      let args', c_args = args
+        |> List.map (translate_and_cut ctx)
+        |> List.split
+      in
 
+      let cuts = disjoint_union_maps pos (c1::c_args) in
+      let e' = Bindlib.box_apply2 (fun e1' args' -> A.EApp (e1', args'), pos)
+        e1' (Bindlib.box_list args')
+      in
+      (e', cuts)
 
-  | _ -> assert false
+  | ETuple (args, s) ->
+    let args', c_args = args
+      |> List.map (translate_and_cut ctx)
+      |> List.split
+    in
+
+    let cuts = disjoint_union_maps pos c_args in
+    (Bindlib.box_apply (fun args' -> A.ETuple (args', s), pos) (Bindlib.box_list args'), cuts)
+  | ETupleAccess (e1, i, s, ts) ->
+    let e1', cuts = translate_and_cut ctx e1 in
+    let e1' = Bindlib.box_apply
+      (fun e1' -> A.ETupleAccess (e1', i, s, ts), pos)
+      e1'
+    in
+    (e1', cuts)
+  | EInj (e1, i, en, ts) ->
+    let e1', cuts = translate_and_cut ctx e1 in
+    let e1' = Bindlib.box_apply
+      (fun e1' -> A.EInj (e1', i, en, ts), pos)
+      e1'
+    in
+    (e1', cuts)
+  | EMatch (e1, cases, en) ->
+    let e1', c1 = translate_and_cut ctx e1 in
+      let cases', c_cases = cases
+        |> List.map (translate_and_cut ctx)
+        |> List.split
+      in
+
+      let cuts = disjoint_union_maps pos (c1::c_cases) in
+      let e' = Bindlib.box_apply2 (fun e1' cases' -> A.EMatch (e1', cases', en), pos)
+        e1' (Bindlib.box_list cases')
+      in
+      (e', cuts)
+  | EArray es ->
+    let es', cuts = es 
+      |> List.map (translate_and_cut ctx)
+      |> List.split
+    in
+
+    (Bindlib.box_apply (fun es' -> (A.EArray es', pos)) (Bindlib.box_list es'), disjoint_union_maps pos cuts)
+
+  | EOp op -> (Bindlib.box (A.EOp op, pos), A.VarMap.empty)
+    
 
 let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
     : (A.expr Pos.marked Bindlib.box) =
     let e', cs = translate_and_cut ctx e in
     let cs = A.VarMap.bindings cs in
     
-    let pos = Pos.get_position e in
+    let _pos = Pos.get_position e in
     (* build the cuts *)
     ListLabels.fold_left cs ~init:e'
       ~f:(fun acc (v, (c, pos_c)) ->
 
         let c': A.expr Pos.marked Bindlib.box = match c with
         (* Here we have to handle only the cases appearing in cuts, as defined the [translate_and_cut] function. *)
-        | D.EVar v -> Bindlib.box_var v
+        | D.EVar v -> (D.VarMap.find (Pos.unmark v) ctx).expr
         | D.EDefault (excep, just, cons) ->
           let excep' = List.map (translate_expr ctx) excep in
           let just' = translate_expr ctx just in
           let cons' = translate_expr ctx cons in
-          (* TODO: [
-            match process_expr {{ except' }} with
-            | Some -> fun v -> v
-            | None -> (fun () -> match {{ just' }} with
-              | Some -> (fun v -> if v then {{ cons' }} else None)
-              | None -> (fun  () -> None)
-            )
-          ] *)
-          assert false
+          (* calls handle_option. *)
+          A.make_app
+            (A.make_var (A.handle_default_opt, pos_c))
+            [(Bindlib.box_apply (fun excep' -> (A.EArray excep', pos_c)) (Bindlib.box_list excep'));
+            just';
+            cons'
+            ]
+            pos_c
+          
         | D.ELit D.LEmptyError ->
           A.make_none pos_c
+        
+        | ErrorOnEmpty arg ->
+          (* [
+            match arg with
+            | None -> raise NoValueProvided
+            | Some v -> {{ v }}
+          ] *)
+
+          let unit = A.Var.make ("unit", pos_c) in
+          let x = A.Var.make ("assertion_argument", pos_c) in
+
+          let arg' = translate_expr ctx arg in
+
+          A.make_matchopt arg'
+            (A.make_abs [| unit |] (Bindlib.box (A.ERaise A.NoValueProvided, pos_c)) pos_c [D.TAny, pos_c] pos_c)
+            (A.make_abs [| x |] ((A.make_var (x, pos_c))) pos_c [D.TAny, pos_c] pos_c)
+
+
+        | D.EAssert arg ->
+          let arg' = translate_expr ctx arg in
+
+          (* [
+            match arg with
+            | None -> raise NoValueProvided
+            | Some v -> assert {{ v }}
+          ] *)
+
+          let unit = A.Var.make ("unit", pos_c) in
+          let x = A.Var.make ("assertion_argument", pos_c) in
+
+          A.make_matchopt arg'
+            (A.make_abs [| unit |] (Bindlib.box (A.ERaise A.NoValueProvided, pos_c)) pos_c [D.TAny, pos_c] pos_c)
+            (A.make_abs [| x |] (Bindlib.box_apply (fun arg -> A.EAssert arg, pos_c) (A.make_var (x, pos_c))) pos_c [D.TAny, pos_c] pos_c)
+
         | _ -> Errors.raise_spanned_error "Internal Error: An term was found in a position where it should not be" pos_c
         in
 
@@ -127,6 +250,6 @@ let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
             | Some {{ v }} -> {{ acc }}
             end
           ] *)
-        A.make_matchopt'' pos v (D.TAny, pos) c' (A.make_none pos) acc
+        A.make_matchopt'' pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc
       )
 
