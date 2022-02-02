@@ -291,7 +291,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
             "function has not been reduced to a lambda at evaluation (should not happen if the \
              term was well-typed"
             (Pos.get_position e))
-  | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
+  | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
   | ETuple (es, s) ->
       let new_es = List.map (evaluate_expr ctx) es in
       if List.exists is_empty_error new_es then Pos.same_pos_as (A.ELit LEmptyError) e

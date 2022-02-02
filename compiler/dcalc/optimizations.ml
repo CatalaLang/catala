@@ -106,14 +106,14 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) 
           with
           | exceptions, just, cons
             when List.fold_left
-                   (fun nb except -> match Pos.unmark except with ELit _ -> nb + 1 | _ -> nb)
+                   (fun nb except -> if is_value except then nb + 1 else nb)
                    0 exceptions
                  > 1 ->
               (* at this point we know a conflict error will be triggered so we just feed the
                  expression to the interpreter that will print the beautiful right error message *)
               Interpreter.evaluate_expr ctx.decl_ctx (EDefault (exceptions, just, cons), pos)
-          | [ ((ELit _, _) as except) ], _, _ ->
-              (* if there is only one exception and it is a non-empty literal it is always chosen *)
+          | [ except ], _, _ when is_value except ->
+              (* if there is only one exception and it is a non-empty value it is always chosen *)
               except
           | ( [],
               ((ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ])), _),

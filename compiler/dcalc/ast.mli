@@ -168,7 +168,9 @@ type scope_body = {
 
 type program = { decl_ctx : decl_ctx; scopes : (ScopeName.t * expr Bindlib.var * scope_body) list }
 
-(** {1 Variable helpers} *)
+(** {1 Helpers} *)
+
+(** {2 Variables}*)
 
 module Var : sig
   type t = expr Bindlib.var
@@ -206,7 +208,11 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
+(**{2 Other}*)
+
 val empty_thunked_term : expr Pos.marked
+
+val is_value : expr Pos.marked -> bool
 
 (** {1 AST manipulation helpers}*)
 
