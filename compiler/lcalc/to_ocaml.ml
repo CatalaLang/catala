@@ -17,6 +17,19 @@ open Ast
 open Backends
 module D = Dcalc.Ast
 
+
+let find_struct s ctx =
+  try
+    D.StructMap.find s ctx.D.ctx_structs
+  with Not_found -> Errors.raise_spanned_error (Format.sprintf "Internal Error: Structure blah was not found in the current environment.") Pos.no_pos
+  
+let find_enum en ctx =
+  try
+    D.EnumMap.find en ctx.D.ctx_enums
+  with Not_found ->
+    let en_name, pos = D.EnumName.get_info en  in
+    Errors.raise_spanned_error (Format.sprintf "Internal Error: Enumeration %s was not found in the current environment." en_name) pos
+
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
@@ -169,7 +182,7 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   let lowercase_name =
-    to_lowercase (to_ascii (Bindlib.name_of v) (* ^ "_" ^ string_of_int (Bindlib.uid_of v) *))
+    to_lowercase (to_ascii (Bindlib.name_of v ^ "_" ^ string_of_int (Bindlib.uid_of v)))
   in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
@@ -222,7 +235,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              (fun fmt (e, struct_field) ->
                Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
                  format_with_parens e))
-          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+          (List.combine es (List.map fst (find_struct s ctx)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[|%a|]@]"
         (Format.pp_print_list
@@ -240,10 +253,10 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             format_with_parens e1
       | Some s ->
           Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)))
+            (fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
-        (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
+        (fst (List.nth (find_enum en ctx) n))
         format_with_parens e
   | EMatch (e, es, e_name) ->
       Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
@@ -263,7 +276,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
                  | _ -> assert false
                  (* should not happen *))
                e))
-        (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
+        (List.combine es (List.map fst (find_enum e_name ctx)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
@@ -413,10 +426,10 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
           Format.fprintf fmt "%a@\n@\n" format_struct_decl
-            (s, Dcalc.Ast.StructMap.find s ctx.Dcalc.Ast.ctx_structs)
+            (s, find_struct s ctx)
       | Scopelang.Dependency.TVertex.Enum e ->
           Format.fprintf fmt "%a@\n@\n" format_enum_decl
-            (e, Dcalc.Ast.EnumMap.find e ctx.Dcalc.Ast.ctx_enums))
+            (e, find_enum e ctx))
     (type_ordering @ scope_structs)
 
 let format_program (fmt : Format.formatter) (p : Ast.program)
