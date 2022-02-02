@@ -227,7 +227,7 @@ let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
 
           let arg' = translate_expr ctx arg in
 
-          A.make_matchopt arg'
+          A.make_matchopt_dumb arg'
             (A.make_abs [| unit |] (Bindlib.box (A.ERaise A.NoValueProvided, pos_c)) pos_c [D.TAny, pos_c] pos_c)
             (A.make_abs [| x |] ((A.make_var (x, pos_c))) pos_c [D.TAny, pos_c] pos_c)
 
@@ -244,7 +244,7 @@ let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
           let unit = A.Var.make ("unit", pos_c) in
           let x = A.Var.make ("assertion_argument", pos_c) in
 
-          A.make_matchopt arg'
+          A.make_matchopt_dumb arg'
             (A.make_abs [| unit |] (Bindlib.box (A.ERaise A.NoValueProvided, pos_c)) pos_c [D.TAny, pos_c] pos_c)
             (A.make_abs [| x |] (Bindlib.box_apply (fun arg -> A.EAssert arg, pos_c) (A.make_var (x, pos_c))) pos_c [D.TAny, pos_c] pos_c)
 
@@ -257,7 +257,7 @@ let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
             | Some {{ v }} -> {{ acc }}
             end
           ] *)
-        A.make_matchopt'' pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc
+        A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc
       )
 ;;
 

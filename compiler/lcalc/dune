@@ -1,7 +1,9 @@
 (library
  (name lcalc)
  (public_name catala.lcalc)
- (libraries bindlib dcalc scopelang runtime))
+ (libraries bindlib dcalc scopelang runtime)
+ (preprocess
+  (pps visitors.ppx ppx_deriving.show)))
 
 (documentation
  (package catala)

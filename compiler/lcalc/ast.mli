@@ -30,8 +30,7 @@ type lit =
   | LDate of Runtime.date
   | LDuration of Runtime.duration
 
-type except = ConflictError | EmptyError | NoValueProvided | Crash
-[@@deriving show]
+type except = ConflictError | EmptyError | NoValueProvided | Crash [@@deriving show]
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -45,8 +44,9 @@ type expr =
   | EMatch of expr Pos.marked * expr Pos.marked list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
-  | ELit of (lit [@opaque])
-  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * Dcalc.Ast.typ Pos.marked list
+  | ELit of (lit[@opaque])
+  | EAbs of
+      ((expr, expr Pos.marked) Bindlib.mbinder[@opaque]) Pos.marked * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of Dcalc.Ast.operator
@@ -106,23 +106,22 @@ val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
 
 val make_some' : expr Pos.marked -> expr
 
-val make_matchopt :
+val make_matchopt_dumb :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
-(** [e' = make_matchopt'' pos v e e_none e_some] 
-    Builds the term corresponding to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some].
-  *)
-val make_matchopt'':
+val make_matchopt :
   Pos.t ->
   Var.t ->
-    Dcalc.Ast.typ Pos.marked ->
+  Dcalc.Ast.typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
+(** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding to
+    [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
 val make_bindopt :
   Pos.t ->
@@ -131,10 +130,10 @@ val make_bindopt :
   (expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box) ->
   expr Pos.marked Bindlib.box
 
-val make_bindmopt:
-  (Pos.t) ->
-  (Dcalc.Ast.typ Pos.marked list) ->
-  (expr Pos.marked Bindlib.box list) ->
+val make_bindmopt :
+  Pos.t ->
+  Dcalc.Ast.typ Pos.marked list ->
+  expr Pos.marked Bindlib.box list ->
   (expr Pos.marked Bindlib.box list -> expr Pos.marked Bindlib.box) ->
   expr Pos.marked Bindlib.box
 
