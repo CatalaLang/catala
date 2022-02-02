@@ -177,7 +177,7 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
     (Bindlib.box_apply (fun es' -> (A.EArray es', pos)) (Bindlib.box_list es'), disjoint_union_maps pos cuts)
 
   | EOp op -> (Bindlib.box (A.EOp op, pos), A.VarMap.empty)
-    
+;;
 
 let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
     : (A.expr Pos.marked Bindlib.box) =
@@ -252,4 +252,121 @@ let rec translate_expr (ctx: ctx) (e: D.expr Pos.marked)
           ] *)
         A.make_matchopt'' pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc
       )
+;;
 
+let add_var pos var is_pure ctx =
+  let new_var = A.Var.make (Bindlib.name_of var, pos) in
+  let expr = A.make_var (new_var, pos) in
+  D.VarMap.add var { expr; var = new_var; is_pure } ctx
+;;
+
+let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bindlib.box =
+  match s with
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = DestructuringInputStruct  (** [let x = input.field]*)
+  } -> 
+    (add_var pos var false ctx, translate_expr ctx (Bindlib.unbox expr))
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = ScopeVarDefinition (** [let x = error_on_empty e]*)
+  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr))
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = SubScopeVarDefinition (** [let s.x = fun _ -> e] *)
+  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr))
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = CallingSubScope (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
+  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr))
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = DestructuringSubScopeResults (** [let s.x = result.x ]**)
+  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr))
+  | {
+    D.scope_let_var = (var, pos);
+    D.scope_let_typ = _typ;
+    D.scope_let_expr = expr;
+    D.scope_let_kind = Assertion (** [let _ = assert e]*)
+  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr)) 
+
+let translate_scope_body
+  (_scope_pos: Pos.t)
+  (_decl_ctx: D.decl_ctx)
+  (ctx: ctx)
+  (body: D.scope_body): A.expr Pos.marked Bindlib.box =
+  match body with
+  {
+    scope_body_lets=lets;
+    scope_body_result=result;
+    scope_body_arg=arg;
+    scope_body_input_struct=_input_struct;
+    scope_body_output_struct=_output_struct;
+  } ->
+          (* first we add to the input the ctx *)
+          let ctx1 = add_var Pos.no_pos arg true ctx in
+
+          (* then, we compute the lets bindings and modification to the ctx *)
+          (* todo: once we update to ocaml 4.11, use fold_left_map instead of fold_left + List.rev *)
+          let ctx2, acc =
+            ListLabels.fold_left lets
+              ~init:(ctx1, [])
+              ~f:(fun (ctx, acc) (s : D.scope_let) ->
+                let ctx, e = translate_scope_let ctx s in
+                (ctx, (s.scope_let_var, D.TAny, e) :: acc))
+          in
+          let acc = List.rev acc in
+    
+          (* we now have the context for the final transformation: the result *)
+          (* todo: alaid, result is boxed and hence incompatible with translate_expr... *)
+          let result = translate_expr ctx2 (Bindlib.unbox result) in
+    
+          (* finally, we can recombine everything using nested let ... = ... in *)
+          let body =
+            ListLabels.fold_left acc ~init:result
+              ~f:(fun (body : (A.expr * Pos.t) Bindlib.box) ((v, pos), tau, e) ->
+                A.make_let_in (D.VarMap.find v ctx2).var (tau, pos) e body)
+          in
+    
+          (* we finnally rebuild the binder *)
+          A.make_abs
+            (Array.of_list [ (D.VarMap.find arg ctx1).var ])
+            body Pos.no_pos [ (D.TAny, Pos.no_pos) ] Pos.no_pos
+
+
+
+
+
+let translate_program (prgm: D.program) : A.program =
+
+  (* modify *)
+  let decl_ctx = prgm.decl_ctx in
+
+  let scopes = prgm.scopes
+    |> ListLabels.fold_left ~init:([], D.VarMap.empty)
+      ~f:(fun ((acc, ctx) : _ * info D.VarMap.t) (scope_name, n, scope_body) ->
+        let new_ctx = add_var Pos.no_pos n true ctx in
+        let new_n = D.VarMap.find n new_ctx in
+
+        let scope_pos = Pos.get_position (D.ScopeName.get_info scope_name) in
+
+        let new_acc = (new_n, Bindlib.unbox (translate_scope_body scope_pos decl_ctx ctx scope_body)) :: acc in
+
+        (new_acc, new_ctx)
+      )
+    |> fst
+    |> List.rev
+    |> List.map (fun (info, e) -> (info.var, e))
+  in
+
+  {scopes; decl_ctx}
