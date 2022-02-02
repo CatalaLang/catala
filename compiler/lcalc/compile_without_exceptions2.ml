@@ -7,11 +7,17 @@ module A = Ast
 (**
   The main idea around this pass is to compile Dcalc to Lcalc without using [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the same technique as in rust or erlang to handle this kind of exceptions. Each [raise EmptyError] will be translated as [None] and each [try e1 with EmtpyError -> e2] as [match e1 with | None -> e2 | Some x -> x].
 
-  When doing this naively, this requires to add matches and Some constructor everywhere. We apply here an other technique where we generate what we call `cuts`. Cuts are expression whom could minimally [raise EmptyError]. 
+  When doing this naively, this requires to add matches and Some constructor everywhere. We apply here an other technique where we generate what we call `cuts`. Cuts are expression whom could minimally [raise EmptyError]. For instance [let x = <e1, e2, ..., en| e_just :- e_cons> * 3 in x + 1], the sub-expression [<e1, e2, ..., en| e_just :- e_cons>] can produce an empty error. So we make a cut with a new variable [y] linked to the Dcalc expression [<e1, e2, ..., en| e_just :- e_cons>], and we return as the translated expression [let x = y * 3 in x + 1].
+
+  The compilation of expressions is found in the functions [translate_and_cut ctx e] and [translate_expr ctx e]. Every option-generating expresion when calling [translate_and_cut] will be cutted and later handled by the [translate_expr] function. Every other cases is found in the translate_and_cut function.
 *)
 
+(** cuts *)
+type cuts = D.expr Pos.marked A.VarMap.t
 
-(** information about the variables *)
+
+(**
+  information about the Dcalc variable : what is the corresponding LCalc variable; an expression build correctly using Bindlib, and a boolean indicating whenever the variable should be matched (false) or not (true). *)
 type info = {
   expr: A.expr Pos.marked Bindlib.box;
   var: A.expr Bindlib.var;
@@ -21,7 +27,8 @@ type info = {
 (** information context about variables in the current scope *)
 type ctx = info D.VarMap.t  
 
-type cuts = D.expr Pos.marked A.VarMap.t
+
+
 
 
 let translate_lit (l : D.lit) (pos: Pos.t): A.lit =
@@ -36,7 +43,7 @@ let translate_lit (l : D.lit) (pos: Pos.t): A.lit =
   | D.LEmptyError -> Errors.raise_spanned_error "Internal Error: An empty error was found in a place that shouldn't be possible." pos
 
 
-(** [c = merge_maps cs]
+(** [c = disjoint_union_maps cs]
    Compute the disjoint union of multiple maps. Raises an internal error if there is two identicals keys in differnts parts. *)
 let disjoint_union_maps (pos: Pos.t) (cs: 'a A.VarMap.t list): 'a A.VarMap.t =
   let disjoint_union = A.VarMap.union (fun _ _ _ -> Errors.raise_spanned_error "Internal Error: Two supposed to be disjoints maps have one shared key." pos) in
