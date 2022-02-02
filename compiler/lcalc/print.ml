@@ -158,7 +158,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
+  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not !Cli.debug_flag ->
+      Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop (op, Pos.no_pos)
         format_with_parens arg1
@@ -175,7 +176,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | ECatch (e1, exn, e2) ->
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a ->@ %a@]" format_with_parens e1
         format_exception exn format_with_parens e2
-  | ERaise exn -> Format.fprintf fmt "raise@ %a" format_exception exn
+  | ERaise exn -> Format.fprintf fmt "@[<hov 2>raise@ %a@]" format_exception exn
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"

@@ -197,15 +197,22 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) : A.bloc
       let s_e_catch = translate_statements ctxt e_catch in
       [ (A.STryExcept (s_e_try, except, s_e_catch), Pos.get_position block_expr) ]
   | L.ERaise except -> [ (A.SRaise except, Pos.get_position block_expr) ]
-  | _ ->
+  | _ -> (
       let e_stmts, new_e = translate_expr ctxt block_expr in
       e_stmts
-      @ [
-          ( (match ctxt.inside_definition_of with
-            | None -> A.SReturn (Pos.unmark new_e)
-            | Some x -> A.SLocalDef (Pos.same_pos_as x new_e, new_e)),
-            Pos.get_position block_expr );
-        ]
+      @
+      match e_stmts with
+      | (A.SRaise _, _) :: _ ->
+          (* if the last statement raises an exception, then we don't need to return or to define
+             the current variable since this code will be unreachable *)
+          []
+      | _ ->
+          [
+            ( (match ctxt.inside_definition_of with
+              | None -> A.SReturn (Pos.unmark new_e)
+              | Some x -> A.SLocalDef (Pos.same_pos_as x new_e, new_e)),
+              Pos.get_position block_expr );
+          ])
 
 let translate_scope (decl_ctx : D.decl_ctx) (func_dict : A.TopLevelName.t L.VarMap.t)
     (scope_expr : L.expr Pos.marked) : (A.LocalName.t Pos.marked * D.typ Pos.marked) list * A.block

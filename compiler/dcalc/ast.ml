@@ -181,6 +181,17 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
+let empty_thunked_term : expr Pos.marked =
+  let silent = Var.make ("_", Pos.no_pos) in
+  Bindlib.unbox
+    (make_abs
+       (Array.of_list [ silent ])
+       (Bindlib.box (ELit LEmptyError, Pos.no_pos))
+       Pos.no_pos [ (TLit TUnit, Pos.no_pos) ] Pos.no_pos)
+
+let is_value (e : expr Pos.marked) : bool =
+  match Pos.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
+
 let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
   let body_expr =
     List.fold_right

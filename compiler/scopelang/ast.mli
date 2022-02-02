@@ -89,6 +89,11 @@ type rule =
   | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 
+type visibility = {
+  visibility_output : bool;  (** True if present in the scope's output *)
+  visibility_input : bool;  (** True if present in the scope's input (reentrant) *)
+}
+
 type scope_decl = {
   scope_decl_name : ScopeName.t;
   scope_sig : typ Pos.marked ScopeVarMap.t;

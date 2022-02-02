@@ -1,6 +1,6 @@
 *.catala* linguist-language=Markdown
 french_law/js/french_law.js binary linguist-generated
 french_law/ocaml/law_source/allocations_familiales.ml binary linguist-generated
-french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml binarylinguist-generated
+french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml binary linguist-generated
 french_law/python/src/allocations_familiales.py binary linguist-generated
 compiler/surface/lexer*.cppo.ml text encoding=latin-1

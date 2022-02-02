@@ -78,6 +78,7 @@ type backend_option =
   | Makefile
   | Html
   | Interpret
+  | Typecheck
   | OCaml
   | Python
   | Dcalc
@@ -143,6 +144,7 @@ let info =
         ( "$(b,Intepret)",
           "Runs the interpreter on the Catala program, executing the scope specified by the \
            $(b,-s) option assuming no additional external inputs." );
+      `I ("$(b,Typecheck)", "Parses and typechecks a Catala program, without interpreting it.");
       `I
         ( "$(b,Proof)",
           "Generates and proves verification conditions about the well-behaved execution of the \

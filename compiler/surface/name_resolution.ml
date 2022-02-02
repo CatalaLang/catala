@@ -143,9 +143,11 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
 
 let label_groups (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t)
     (def : Desugared.Ast.ScopeDef.t) : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
-  (Desugared.Ast.ScopeDefMap.find def
-     (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
-    .label_groups
+  try
+    (Desugared.Ast.ScopeDefMap.find def
+       (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
+      .label_groups
+  with Not_found -> Desugared.Ast.LabelMap.empty
 
 (** {1 Declarations pass} *)
 

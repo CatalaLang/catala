@@ -124,13 +124,15 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
 (** Translates a definition inside a scope, the resulting expression should be an {!constructor:
     Dcalc.Ast.EDefault} *)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Pos.marked) (is_cond : bool) : Scopelang.Ast.expr Pos.marked =
+    (typ : Scopelang.Ast.typ Pos.marked) ~(is_cond : bool) ~(is_subscope_var : bool) :
+    Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
-  let is_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.rule_parameter in
-  let all_rules_func = Ast.RuleMap.for_all is_func def in
-  let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_func n r)) def in
-  let is_def_func : Scopelang.Ast.typ Pos.marked option =
-    if all_rules_func && Ast.RuleMap.cardinal def > 0 then
+  let is_def_func = match Pos.unmark typ with Scopelang.Ast.TArrow (_, _) -> true | _ -> false in
+  let is_rule_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.rule_parameter in
+  let all_rules_func = Ast.RuleMap.for_all is_rule_func def in
+  let all_rules_not_func = Ast.RuleMap.for_all (fun n r -> not (is_rule_func n r)) def in
+  let is_def_func_param_typ : Scopelang.Ast.typ Pos.marked option =
+    if is_def_func && all_rules_func then
       match Pos.unmark typ with
       | Scopelang.Ast.TArrow (t_param, _) -> Some t_param
       | _ ->
@@ -139,7 +141,7 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
                "The definitions of %a are function but its type, %a, is not a function type"
                Ast.ScopeDef.format_t def_info Scopelang.Print.format_typ typ)
             (Pos.get_position typ)
-    else if all_rules_not_func then None
+    else if (not is_def_func) && all_rules_not_func then None
     else
       Errors.raise_multispanned_error
         "some definitions of the same variable are functions while others aren't"
@@ -147,26 +149,44 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
            (fun (_, r) ->
              ( Some "This definition is a function:",
                Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
-           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_func def))
+           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_rule_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
                 Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
-            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_func n r)) def)))
+            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_rule_func n r)) def)))
   in
   let top_list = def_map_to_tree def_info def in
   let top_value =
-    (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func
+    (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func_param_typ
   in
-  Bindlib.unbox
-    (rule_tree_to_expr ~toplevel:true
-       (Ast.ScopeDef.get_position def_info)
-       (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func)
-       (match top_list with
-       | [] ->
-           (* In this case, there are no rules to define the expression *)
-           Leaf [ top_value ]
-       | _ -> Node (top_list, [ top_value ])))
+  if
+    Ast.RuleMap.cardinal def = 0 && is_subscope_var
+    (* Here we have a special case for the empty definitions. Indeed, we could use the code for the
+       regular case below that would create a convoluted default always returning empty error, and
+       this would be correct. But it gets more complicated with functions. Indeed, if we create an
+       empty definition for a subscope argument whose type is a function, we get something like [fun
+       () -> (fun real_param -> < ... >)] that is passed as an argument to the subscope. The
+       sub-scope de-thunks but the de-thunking does not return empty error, signalling there is not
+       reentrant variable, because functions are values! So the subscope does not see that there is
+       not reentrant variable and does not pick its internal definition instead. See
+       [test/test_scope/subscope_function_arg_not_defined.catala_en] for a test case exercising that
+       subtlety.
+
+       To avoid this complication we special case here and put an empty error for all subscope
+       variables that are not defined. It covers the subtlety with functions described above but
+       also conditions with the false default value. *)
+  then (ELit LEmptyError, Pos.no_pos)
+  else
+    Bindlib.unbox
+      (rule_tree_to_expr ~toplevel:true
+         (Ast.ScopeDef.get_position def_info)
+         (Option.map (fun _ -> Scopelang.Ast.Var.make ("param", Pos.no_pos)) is_def_func_param_typ)
+         (match top_list with
+         | [] ->
+             (* In this case, there are no rules to define the expression *)
+             Leaf [ top_value ]
+         | _ -> Node (top_list, [ top_value ])))
 
 (** Translates a scope *)
 let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
@@ -183,7 +203,10 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                let var_def = scope_def.scope_def_rules in
                let var_typ = scope_def.scope_def_typ in
                let is_cond = scope_def.scope_def_is_condition in
-               let expr_def = translate_def (Ast.ScopeDef.Var var) var_def var_typ is_cond in
+               let expr_def =
+                 translate_def (Ast.ScopeDef.Var var) var_def var_typ ~is_cond
+                   ~is_subscope_var:false
+               in
                [
                  Scopelang.Ast.Definition
                    ( ( Scopelang.Ast.ScopeVar
@@ -207,7 +230,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                      match def_key with
                      | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
                      | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
-                         let expr_def = translate_def def_key def def_typ is_cond in
+                         let expr_def =
+                           translate_def def_key def def_typ ~is_cond ~is_subscope_var:true
+                         in
                          let subscop_real_name =
                            Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                          in

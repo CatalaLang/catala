@@ -267,7 +267,8 @@ let generate_verification_conditions (p : program) : verification_condition list
                 in
                 let vc_confl, vc_confl_typs = generate_vs_must_not_return_confict ctx e in
                 let vc_confl =
-                  if !Cli.optimize_flag then Bindlib.unbox (Optimizations.optimize_expr vc_confl)
+                  if !Cli.optimize_flag then
+                    Bindlib.unbox (Optimizations.optimize_expr p.decl_ctx vc_confl)
                   else vc_confl
                 in
                 let vc_list =
@@ -287,7 +288,7 @@ let generate_verification_conditions (p : program) : verification_condition list
                       let vc_empty, vc_empty_typs = generate_vc_must_not_return_empty ctx e in
                       let vc_empty =
                         if !Cli.optimize_flag then
-                          Bindlib.unbox (Optimizations.optimize_expr vc_empty)
+                          Bindlib.unbox (Optimizations.optimize_expr p.decl_ctx vc_empty)
                         else vc_empty
                       in
                       {
