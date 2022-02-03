@@ -1,16 +1,11 @@
-# This is a basic workflow to help you get started with Actions
+name: FullBuildCI
 
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [master]
   issue_comment:
     types: [created, edited, deleted]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-nix-21-05:
     if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '+build')
