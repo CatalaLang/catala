@@ -60,8 +60,9 @@ let add_var pos var is_pure ctx =
   let new_var = A.Var.make (Bindlib.name_of var, pos) in
   let expr = A.make_var (new_var, pos) in
 
-  Format.asprintf "adding a new variable %a" pp_var var
-  |> Cli.debug_print ;
+  Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a"
+    pp_var var
+    pp_var new_var;
   
   D.VarMap.update var (fun _ -> Some {expr; var=new_var; is_pure}) ctx
 
@@ -165,7 +166,7 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
 
     (e', disjoint_union_maps pos [c1; c2; c3])
 
-  | EAbs ((binder, pos_binder), ts) ->
+  | D.EAbs ((binder, pos_binder), ts) ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars = ArrayLabels.fold_right vars ~init:(ctx, [])
       ~f:(fun var (ctx, lc_vars) ->
@@ -173,7 +174,7 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
         (* we suppose the invariant that when applying a function, its arguments cannot be of the type "option".
         
         The code should behave correctly in the without this assumption if we put here an is_pure=false, but the types are more compilcated. (unimplemented for now) *)
-
+          
           let ctx = add_var pos var true ctx in
           let lc_var = (find var ctx).var in
         ( ctx, lc_var :: lc_vars))
@@ -262,7 +263,7 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
       ~f:(fun acc (v, (c, pos_c)) ->
 
 
-        Cli.debug_print @@ Format.asprintf "cut using %a" pp_var v;
+        Cli.debug_print @@ Format.asprintf "cut using A.%a" pp_var v;
 
         let c': A.expr Pos.marked Bindlib.box = match c with
         (* Here we have to handle only the cases appearing in cuts, as defined the [translate_and_cut] function. *)
