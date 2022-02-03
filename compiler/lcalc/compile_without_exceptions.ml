@@ -315,6 +315,76 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
 ;;
 
 
+(*
+type scope_let = {
+  scope_let_var : expr Bindlib.var Pos.marked;
+  scope_let_kind : scope_let_kind;
+  scope_let_typ : typ Pos.marked;
+  scope_let_expr : expr Pos.marked Bindlib.box;
+}
+*)
+type scope_lets =
+   | Result of D.expr Pos.marked
+   | ScopeLet of
+    {
+      scope_let_kind: D.scope_let_kind;
+      scope_let_typ: D.typ Pos.marked;
+      scope_let_expr: D.expr Pos.marked;
+      scope_let_next: (D.expr, scope_lets) Bindlib.binder;
+    }
+
+let translate_and_bind_lets
+  (acc: scope_lets Bindlib.box)
+  (scope_let: D.scope_let): scope_lets Bindlib.box =
+
+  Bindlib.box_apply2 (
+    fun expr binder->
+      ScopeLet {
+        scope_let_kind=scope_let.D.scope_let_kind;
+        scope_let_typ=scope_let.D.scope_let_typ;
+        scope_let_expr=expr;
+        scope_let_next=binder
+          
+      }
+  ) scope_let.D.scope_let_expr (Bindlib.bind_var (fst scope_let.D.scope_let_var) acc)
+
+(*
+type scope_body = {
+  scope_body_lets : scope_let list;
+  scope_body_result : expr Pos.marked Bindlib.box;
+  (* {x1 = x1; x2 = x2; x3 = x3; ... } *)
+  scope_body_arg : expr Bindlib.var;
+  (* x: input_struct *)
+  scope_body_input_struct : StructName.t;
+  scope_body_output_struct : StructName.t;
+}
+
+*)
+type scope_body = {
+  scope_body_input_struct: D.StructName.t;
+  scope_body_output_struct: D.StructName.t;
+  scope_body_result: (D.expr, scope_lets) Bindlib.binder;
+}
+
+let translate_and_bind (body: D.scope_body) : scope_body Bindlib.box =
+
+  let body_result = ListLabels.fold_left body.D.scope_body_lets
+    ~init:(Bindlib.box_apply (fun e -> Result e) body.D.scope_body_result)
+    ~f:translate_and_bind_lets
+  in
+
+  let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
+
+
+  Bindlib.box_apply (fun scope_body_result ->
+    {
+      scope_body_output_struct=body.D.scope_body_output_struct;
+      scope_body_input_struct=body.D.scope_body_input_struct;
+      scope_body_result=scope_body_result;
+    }
+  ) scope_body_result
+
+
 
 let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bindlib.box =
 
@@ -422,6 +492,8 @@ let translate_scope_body
     let body =
       ListLabels.fold_left acc ~init:result
         ~f:(fun (body : (A.expr * Pos.t) Bindlib.box) ((v, pos), tau, e) ->
+
+          Cli.debug_print @@ Format.asprintf "The variable %a is being letted." pp_var v;
           A.make_let_in (find ~info:"body-building" v ctx2).var (tau, pos) e body)
     in
 
