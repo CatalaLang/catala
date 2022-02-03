@@ -42,8 +42,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-          with:
-            clean: false
+        with:
+          clean: false
       - name: Make all
         run: |
           OCAMLRUNPARAM=b opam exec -- make all -B
