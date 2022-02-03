@@ -3,12 +3,10 @@ name: FullBuildCI
 on:
   push:
     branches: [master]
-  issue_comment:
-    types: [created, edited, deleted]
+  workflow_dispatch
 
 jobs:
   build-nix-21-05:
-    if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '+build')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
@@ -20,7 +18,6 @@ jobs:
       - run: nix-shell --run "echo OK"
 
   build-nix-unstable:
-    if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '+build')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
