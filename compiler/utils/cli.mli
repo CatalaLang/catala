@@ -35,6 +35,9 @@ val max_prec_digits : int ref
 
 val trace_flag : bool ref
 
+val disable_counterexamples : bool ref
+(** Disables model-generated counterexamples for proofs that fail. *)
+
 (** {2 CLI terms} *)
 
 val file : string Cmdliner.Term.t
@@ -49,7 +52,17 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 
 val backend : string Cmdliner.Term.t
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang
+type backend_option =
+  | Latex
+  | Makefile
+  | Html
+  | Interpret
+  | Typecheck
+  | OCaml
+  | Python
+  | Dcalc
+  | Scopelang
+  | Proof
 
 val language : string option Cmdliner.Term.t
 
@@ -69,13 +82,13 @@ val catala_t :
   int option ->
   bool ->
   bool ->
+  bool ->
   string option ->
   string option ->
   'a) ->
   'a Cmdliner.Term.t
 (** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt optimize
-    ex_scope output] *)
+    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt disable_counterexamples optimize ex_scope output] *)
 
 val version : string
 
@@ -86,6 +99,8 @@ val info : Cmdliner.Term.info
 (**{2 Markers}*)
 
 val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
+
+val format_with_style : ANSITerminal.style list -> Format.formatter -> string -> unit
 
 val debug_marker : unit -> string
 

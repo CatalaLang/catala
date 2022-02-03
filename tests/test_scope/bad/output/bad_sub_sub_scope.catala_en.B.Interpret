@@ -1,0 +1,15 @@
+[ERROR] There is a conflict between multiple validd consequences for assigning the same variable.
+
+This consequence has a valid justification:
+  --> tests/test_scope/bad/bad_sub_sub_scope.catala_en
+   | 
+25 |   definition y under condition a2.x + 1 = 2 consequence equals 1
+   |                                                                ^
+   + Article
+
+This consequence has a valid justification:
+  --> tests/test_scope/bad/bad_sub_sub_scope.catala_en
+   | 
+24 |   definition y under condition a2.x = 1 consequence equals 1
+   |                                                            ^
+   + Article

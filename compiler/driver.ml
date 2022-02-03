@@ -27,13 +27,14 @@ let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "p
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     (wrap_weaved_output : bool) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (optimize : bool) (ex_scope : string option)
-    (output_file : string option) : int =
+    (max_prec_digits : int option) (trace : bool) (disable_counterexamples : bool) (optimize : bool)
+    (ex_scope : string option) (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
+    Cli.disable_counterexamples := disable_counterexamples;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);
@@ -64,11 +65,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       if backend = "makefile" then Cli.Makefile
       else if backend = "latex" then Cli.Latex
       else if backend = "html" then Cli.Html
-      else if backend = "interpret" then Cli.Run
+      else if backend = "interpret" then Cli.Interpret
       else if backend = "ocaml" then Cli.OCaml
       else if backend = "dcalc" then Cli.Dcalc
       else if backend = "scopelang" then Cli.Scopelang
       else if backend = "python" then Cli.Python
+      else if backend = "proof" then Cli.Proof
+      else if backend = "typecheck" then Cli.Typecheck
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -150,7 +153,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         let ctxt = Surface.Name_resolution.form_context prgm in
         let scope_uid =
           match (ex_scope, backend) with
-          | None, Cli.Run -> Errors.raise_error "No scope was provided for execution."
+          | None, Cli.Interpret -> Errors.raise_error "No scope was provided for execution."
           | None, _ ->
               snd
                 (try Desugared.Ast.IdentMap.choose ctxt.scope_idmap
@@ -184,6 +187,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         end;
         Cli.debug_print "Translating to default calculus...";
         let prgm, type_ordering = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgm =
+          if optimize then begin
+            Cli.debug_print "Optimizing default calculus...";
+            Dcalc.Optimizations.optimize_program prgm
+          end
+          else prgm
+        in
         let prgrm_dcalc_expr = Bindlib.unbox (Dcalc.Ast.build_whole_program_expr prgm scope_uid) in
         if backend = Cli.Dcalc then begin
           let fmt, at_end =
@@ -207,7 +217,15 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a" (Dcalc.Print.format_typ
            prgm.decl_ctx) typ); *)
         match backend with
-        | Cli.Run ->
+        | Cli.Typecheck ->
+            (* That's it! *)
+            Cli.result_print "Typechecking successful!";
+            0
+        | Cli.Proof ->
+            let vcs = Verification.Conditions.generate_verification_conditions prgm in
+            Verification.Solver.solve_vc prgm prgm.decl_ctx vcs;
+            0
+        | Cli.Interpret ->
             Cli.debug_print "Starting interpretation...";
             let results = Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr in
             let out_regex = Re.Pcre.regexp "\\_out$" in
@@ -276,9 +294,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             0
         | _ -> assert false
         (* should not happen *))
-  with Errors.StructuredError (msg, pos) ->
-    Cli.error_print (Errors.print_structured_error msg pos);
-    -1
+  with
+  | Errors.StructuredError (msg, pos) ->
+      Cli.error_print (Errors.print_structured_error msg pos);
+      -1
+  | Sys_error msg ->
+      Cli.error_print ("System error: " ^ msg);
+      -1
 
 let main () =
   let return_code = Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info) in

@@ -1,0 +1,5 @@
+(executable
+ (name clerk)
+ (public_name clerk)
+ (libraries catala.runtime catala.utils cmdliner re ANSITerminal)
+ (package catala))

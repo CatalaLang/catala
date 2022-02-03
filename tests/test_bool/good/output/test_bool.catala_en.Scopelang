@@ -1,0 +1,11 @@
+let scope TestBool (foo: bool) (bar: integer) =
+  let bar : integer =
+    reentrant or by default
+      ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ |
+        true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩ in;
+  let foo : bool =
+    reentrant or by default
+      ⟨⟨true ⊢ ⟨⟨bar < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
+        ⟨true ⊢ ⟨⟨bar >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
+        true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩ in
+  end scope

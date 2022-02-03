@@ -12,6 +12,8 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Helper functions common to all Catala compiler backends *)
+
 val to_ascii : string -> string
 (** Removes all non-ASCII diacritics from a string by converting them to their base letter in the
     Latin alphabet *)

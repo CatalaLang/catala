@@ -49,11 +49,10 @@ let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
        (fun fmt info ->
-         Format.fprintf fmt "%s"
-           (Utils.Cli.print_with_style
-              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else [])
-              "%s"
-              (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info))))
+         Format.fprintf fmt "%a"
+           (Utils.Cli.format_with_style
+              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
+           (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
     infos
 
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
@@ -65,10 +64,10 @@ let format_exception (fmt : Format.formatter) (exn : except) : unit =
     | NoValueProvided -> "NoValueProvided")
 
 let format_keyword (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.red ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.red ]) s
 
 let format_punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.fprintf fmt "%s" (Utils.Cli.print_with_style [ ANSITerminal.cyan ] "%s" s)
+  Format.fprintf fmt "%a" (Utils.Cli.format_with_style [ ANSITerminal.cyan ]) s
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
@@ -159,7 +158,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) -> Format.fprintf fmt "%a" format_with_parens arg1
+  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not !Cli.debug_flag ->
+      Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop (op, Pos.no_pos)
         format_with_parens arg1
@@ -176,7 +176,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | ECatch (e1, exn, e2) ->
       Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a ->@ %a@]" format_with_parens e1
         format_exception exn format_with_parens e2
-  | ERaise exn -> Format.fprintf fmt "raise@ %a" format_exception exn
+  | ERaise exn -> Format.fprintf fmt "@[<hov 2>raise@ %a@]" format_exception exn
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"

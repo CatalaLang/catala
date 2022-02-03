@@ -10,18 +10,13 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize
+EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-# The Zarith dependency is fixed because of https://github.com/janestreet/zarith_stubs_js/pull/8
 dependencies-ocaml:
-	opam install \
-		ocamlformat ANSITerminal sedlex	menhir menhirLib dune cmdliner obelisk \
-		re obelisk unionfind bindlib zarith zarith_stubs_js ocamlgraph \
-		js_of_ocaml-compiler js_of_ocaml js_of_ocaml-ppx calendar camomile \
-		visitors benchmark cppo odoc
+	opam install . --deps-only --with-doc --with-test
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
@@ -38,15 +33,23 @@ dependencies: dependencies-ocaml dependencies-js init-submodules
 ##########################################
 
 COMPILER_DIR=compiler
+BUILD_SYSTEM_DIR=build_system
 
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
+
+#> build_dev				: Builds the Catala compiler, without formatting code
+build_dev:
+	dune build @update-parser-messages --auto-promote | true
+	dune build $(COMPILER_DIR)/catala.exe
+	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> build					: Builds the Catala compiler
 build:
 	dune build @update-parser-messages --auto-promote | true
 	@$(MAKE) --no-print-directory format
 	dune build $(COMPILER_DIR)/catala.exe
+	dune build $(BUILD_SYSTEM_DIR)/clerk.exe
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
@@ -165,11 +168,11 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 
 FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $@
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml $@
 
@@ -211,7 +214,7 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 
 FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
 
-$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py: .FORCE
+$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
 
@@ -234,13 +237,23 @@ run_french_law_library_benchmark_python: type_french_law_library_python
 # High-level test and benchmarks commands
 ##########################################
 
+CATALA_OPTS?=
+CLERK_OPTS?=
+
+CATALA_BIN=_build/default/compiler/catala.exe
+CLERK_BIN=_build/default/build_system/clerk.exe
+
+CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
+	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
+
+
 .FORCE:
 
 test_suite: .FORCE
-	@$(MAKE) --no-print-directory -C tests pass_tests
+	@$(CLERK) test tests
 
 test_examples: .FORCE
-	@$(MAKE) --no-print-directory -C examples tests
+	@$(CLERK) test examples
 
 #> tests					: Run interpreter tests
 tests: test_suite test_examples
@@ -302,9 +315,17 @@ clean:
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading
 
+#> help_clerk				: Display the clerk man page
+help_clerk:
+	$(CLERK_BIN) --help
+
+#> help_catala				: Display the catala man page
+help_catala:
+	$(CATALA_BIN) --help
+
 ##########################################
 # Special targets
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
-	install build doc format dependencies dependencies-ocaml \
+	install build_dev build doc format dependencies dependencies-ocaml \
 	catala.html help

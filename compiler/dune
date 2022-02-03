@@ -1,7 +1,16 @@
 (library
  (name driver)
  (public_name catala.driver)
- (libraries utils surface desugared literate dcalc lcalc scalc runtime)
+ (libraries
+  utils
+  surface
+  desugared
+  literate
+  dcalc
+  lcalc
+  scalc
+  runtime
+  verification)
  (modules driver))
 
 (library

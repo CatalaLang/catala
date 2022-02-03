@@ -495,9 +495,17 @@ struct_scope:
   }, Pos.from_lpos $sloc)
 }
 
+scope_decl_item_attribute:
+| CONTEXT { Context, Pos.from_lpos $sloc }
+| INPUT { Input, Pos.from_lpos $sloc }
+| OUTPUT { Output, Pos.from_lpos $sloc }
+| INTERNAL { Internal, Pos.from_lpos $sloc }
+| { Context, Pos.from_lpos $sloc }
+
 scope_decl_item:
-| CONTEXT i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
+| attr = scope_decl_item_attribute i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
   scope_decl_context_item_name = i;
+  scope_decl_context_item_attribute = attr;
   scope_decl_context_item_typ =
     let (typ, typ_pos) = t in
     match func_typ with
@@ -508,15 +516,17 @@ scope_decl_item:
     }, Pos.from_lpos $sloc);
   }), Pos.from_lpos $sloc)
 }
-| CONTEXT i = ident SCOPE c = constructor {
+| attr = scope_decl_item_attribute i = ident SCOPE c = constructor {
   (ContextScope({
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
+    scope_decl_context_scope_attribute = attr;
   }), Pos.from_lpos $sloc)
 }
-| CONTEXT i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
+| attr = scope_decl_item_attribute i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
   (ContextData ({
     scope_decl_context_item_name = i;
+    scope_decl_context_item_attribute = attr;
     scope_decl_context_item_typ =
       match func_typ with
       | None -> (Base (Condition), Pos.from_lpos $loc(_condition))
