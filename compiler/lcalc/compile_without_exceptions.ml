@@ -324,28 +324,33 @@ type scope_lets =
       scope_let_typ: D.typ Pos.marked;
       scope_let_expr: D.expr Pos.marked;
       scope_let_next: (D.expr, scope_lets) Bindlib.binder;
+      scope_let_pos: Pos.t;
     }
-
-let translate_and_bind_lets
-  (acc: scope_lets Bindlib.box)
-  (scope_let: D.scope_let): scope_lets Bindlib.box =
-
-  Bindlib.box_apply2 (
-    fun expr binder->
-      ScopeLet {
-        scope_let_kind=scope_let.D.scope_let_kind;
-        scope_let_typ=scope_let.D.scope_let_typ;
-        scope_let_expr=expr;
-        scope_let_next=binder
-          
-      }
-  ) scope_let.D.scope_let_expr (Bindlib.bind_var (fst scope_let.D.scope_let_var) acc)
 
 type scope_body = {
   scope_body_input_struct: D.StructName.t;
   scope_body_output_struct: D.StructName.t;
   scope_body_result: (D.expr, scope_lets) Bindlib.binder;
 }
+    
+
+let translate_and_bind_lets
+  (acc: scope_lets Bindlib.box)
+  (scope_let: D.scope_let): scope_lets Bindlib.box =
+
+  let pos = snd scope_let.D.scope_let_var in
+  Bindlib.box_apply2 (
+    fun expr binder->
+      ScopeLet {
+        scope_let_kind=scope_let.D.scope_let_kind;
+        scope_let_typ=scope_let.D.scope_let_typ;
+        scope_let_expr=expr;
+        scope_let_next=binder;
+        scope_let_pos=pos;
+          
+      }
+  ) scope_let.D.scope_let_expr (Bindlib.bind_var (fst scope_let.D.scope_let_var) acc)
+
 
 let translate_and_bind (body: D.scope_body) : scope_body Bindlib.box =
 
@@ -365,123 +370,51 @@ let translate_and_bind (body: D.scope_body) : scope_body Bindlib.box =
     }
   ) scope_body_result
 
+let rec translate_scope_let (ctx: ctx) (lets: scope_lets) =
+  match lets with
+  | Result e ->
+    translate_expr ~append_esome:false ctx e
+  | ScopeLet {
+    scope_let_kind = kind;
+    scope_let_typ = typ;
+    scope_let_expr = expr;
+    scope_let_next = next;
+    scope_let_pos = pos;
+  } ->
 
+    let var_is_pure = match kind with
+      | DestructuringInputStruct -> false
+      | ScopeVarDefinition
+      | SubScopeVarDefinition
+      | CallingSubScope
+      | DestructuringSubScopeResults
+      | Assertion -> true
+    in
+    let var, next = Bindlib.unbind next in
+    let ctx' = add_var pos var var_is_pure ctx in
+    let new_var = (find ~info:"variable that was just created" var ctx').var in
+    A.make_let_in new_var typ
+      (translate_expr ctx ~append_esome:false expr)
+      (translate_scope_let ctx' next)
 
-let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bindlib.box =
-
-  Cli.debug_print @@ Format.asprintf "translating an %a" D.pp_scope_let_kind s.scope_let_kind;
-  ListLabels.iter (D.VarMap.bindings ctx |> List.map fst)
-  ~f:(fun var ->
-    Cli.debug_print @@ Format.asprintf "[%a] The variable %a occurs in the expression: %b"
-      D.pp_scope_let_kind s.D.scope_let_kind
-      pp_var var
-      (Bindlib.occur var s.D.scope_let_expr) 
-    );
-
-  match s with
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = DestructuringInputStruct  (** [let x = input.field]*)
-  } -> begin 
-
-      (add_var pos var false ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
-    end
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = ScopeVarDefinition (** [let x = error_on_empty e]*)
-  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = SubScopeVarDefinition (** [let s.x = fun _ -> e] *)
-  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = CallingSubScope (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
-  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = DestructuringSubScopeResults (** [let s.x = result.x ]**)
-  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
-  | {
-    D.scope_let_var = (var, pos);
-    D.scope_let_typ = _typ;
-    D.scope_let_expr = expr;
-    D.scope_let_kind = Assertion (** [let _ = assert e]*)
-  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr)) 
+;;
 
 let translate_scope_body
-  (_scope_pos: Pos.t)
+  (scope_pos: Pos.t)
   (_decl_ctx: D.decl_ctx)
   (ctx: ctx)
-  (body: D.scope_body): A.expr Pos.marked Bindlib.box =
+  (body: scope_body): A.expr Pos.marked Bindlib.box =
   match body with
   {
-    scope_body_lets=lets;
     scope_body_result=result;
-    scope_body_arg=arg;
     scope_body_input_struct=_input_struct;
     scope_body_output_struct=_output_struct;
   } ->
-    (* first we add to the input the ctx *)
-    let ctx1 = add_var Pos.no_pos arg true ctx in
+    let v, lets = Bindlib.unbind result in
 
+    let ctx' = add_var scope_pos v true ctx in
 
-    let pp_scope_ctx fmt {D.scope_let_kind=kind; D.scope_let_var = (var, _); _} =
-      Format.fprintf fmt "%a, %a" D.pp_scope_let_kind kind pp_var var
-    in
-    Cli.debug_print @@ Format.asprintf "scope order : [@[<hov2> %a @]]@;"
-      (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ";@;") pp_scope_ctx) lets;
-
-    (* then, we compute the lets bindings and modification to the ctx *)
-    (* todo: once we update to ocaml 4.11, use fold_left_map instead of fold_left + List.rev *)
-
-
-    let ctx2, acc =
-      ListLabels.fold_left lets
-        ~init:(ctx1, [])
-        ~f:(fun (ctx, acc) (s : D.scope_let) ->
-          let ctx, e = translate_scope_let ctx s in
-          (ctx, (s.scope_let_var, D.TAny, e) :: acc))
-    in
-    let acc = acc in
-
-    (* we now have the context for the final transformation: the result *)
-    (* todo: alaid, result is boxed and hence incompatible with translate_expr... *)
-
-    Cli.debug_print @@ Format.asprintf "The box is closed : %b" (Bindlib.is_closed result);
-
-    ListLabels.iter lets
-      ~f:(fun {D.scope_let_var = (var, _); _} ->
-        Cli.debug_print @@ Format.asprintf "The variable %a occurs in the result: %b" pp_var var (Bindlib.occur var result) 
-        )
-    ;
-    
-
-    let result = translate_expr ~append_esome:false ctx2 (Bindlib.unbox result) in
-
-    (* finally, we can recombine everything using nested let ... = ... in *)
-    let body =
-      ListLabels.fold_left acc ~init:result
-        ~f:(fun (body : (A.expr * Pos.t) Bindlib.box) ((v, pos), tau, e) ->
-
-          Cli.debug_print @@ Format.asprintf "The variable %a is being letted." pp_var v;
-          A.make_let_in (find ~info:"body-building" v ctx2).var (tau, pos) e body)
-    in
-
-    (* we finnally rebuild the binder *)
-    A.make_abs
-      (Array.of_list [ (find ~info:"final abs" arg ctx1).var ])
-      body Pos.no_pos [ (D.TAny, Pos.no_pos) ] Pos.no_pos
+    translate_scope_let ctx' lets
 
 
 
@@ -500,6 +433,8 @@ let translate_program (prgm: D.program) : A.program =
   let scopes = prgm.scopes
     |> ListLabels.fold_left ~init:([], D.VarMap.empty)
       ~f:(fun ((acc, ctx) : _ * info D.VarMap.t) (scope_name, n, scope_body) ->
+
+        let scope_body = Bindlib.unbox (translate_and_bind scope_body) in
         let new_ctx = add_var Pos.no_pos n true ctx in
 
         let new_n = find ~info:"variable that was just created" n new_ctx in
