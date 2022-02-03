@@ -95,7 +95,7 @@ let run_test () =
 
 let bench =
   Random.init (int_of_float (Unix.time ()));
-  let num_iter = 100000 in
+  let num_iter = 10000 in
   let _ =
     Benchmark.latency1 ~style:Auto ~name:"Allocations familiales" (Int64.of_int num_iter) run_test
       ()
