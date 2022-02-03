@@ -46,4 +46,6 @@ jobs:
           clean: false
       - name: Make all
         run: |
+          make pygments
+          ./french_law/python/setup_env.sh
           OCAMLRUNPARAM=b opam exec -- make all -B
