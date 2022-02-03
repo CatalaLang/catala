@@ -7,12 +7,13 @@ name: CI
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
+  issue_comment:
+    types: [created, edited, deleted]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-nix-21-05:
+    if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '+build')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
@@ -24,6 +25,7 @@ jobs:
       - run: nix-shell --run "echo OK"
 
   build-nix-unstable:
+    if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '+build')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
@@ -34,18 +36,3 @@ jobs:
       - run: nix-build release.nix
       - run: nix-shell --run "echo OK"
 
-  run-make-all:
-    # The type of runner that the job will run on
-    runs-on: self-hosted
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          clean: false
-      - name: Make all
-        run: |
-          make pygments
-          ./french_law/python/setup_env.sh
-          OCAMLRUNPARAM=b opam exec -- make all -B
