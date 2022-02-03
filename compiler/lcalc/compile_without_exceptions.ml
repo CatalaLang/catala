@@ -16,6 +16,9 @@ module A = Ast
 type cuts = D.expr Pos.marked A.VarMap.t
 
 
+let pp_var (fmt: Format.formatter)  (n: _ Bindlib.var) =
+  Format.fprintf fmt "%s_%d" (Bindlib.name_of n) (Bindlib.uid_of n)
+
 (**
   information about the Dcalc variable : what is the corresponding LCalc variable; an expression build correctly using Bindlib, and a boolean indicating whenever the variable should be matched (false) or not (true). *)
 type info = {
@@ -28,18 +31,39 @@ type info = {
 type ctx = info D.VarMap.t  
 
 
+let pp_info (fmt: Format.formatter) (info: info) =
+  Format.fprintf fmt "{var: %a; is_pure: %b}" pp_var info.var info.is_pure
+
+let pp_binding (fmt: Format.formatter) ((v, info): D.Var.t * info) =
+  Format.fprintf fmt "%a:%a" pp_var v pp_info info
+
+let pp_ctx (fmt: Format.formatter) (ctx: ctx) =
+
+  let pp_bindings = Format.pp_print_list ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ") pp_binding in
+  Format.fprintf fmt "@[<2>[%a]@]@." pp_bindings (D.VarMap.bindings ctx)
+
+
 
 let find ?(info="none") n ctx =
+  let _ = 
+    Format.asprintf "Searching for variable %a inside context %a" pp_var n pp_ctx ctx
+    |> Cli.debug_print
+  in
   try
     D.VarMap.find n ctx
-  with Not_found -> Errors.raise_spanned_error (Format.sprintf "Internal Error: Variable %s_%d was not found in the current environment. Additional informations : %s." (Bindlib.name_of n) (Bindlib.uid_of n) info) Pos.no_pos
-
-
+  with Not_found ->
+    Errors.raise_spanned_error (Format.sprintf "Internal Error: Variable %s_%d was not found in the current environment. Additional informations : %s." (Bindlib.name_of n) (Bindlib.uid_of n) info) Pos.no_pos
 
 let add_var pos var is_pure ctx =
   let new_var = A.Var.make (Bindlib.name_of var, pos) in
   let expr = A.make_var (new_var, pos) in
-  D.VarMap.add var { expr; var = new_var; is_pure } ctx
+
+  Format.asprintf "adding a new variable %a" pp_var var
+  |> Cli.debug_print ;
+  
+  D.VarMap.update var (fun _ -> Some {expr; var=new_var; is_pure}) ctx
+
+  (* D.VarMap.add var { expr; var = new_var; is_pure } ctx *)
 ;;
 
 let translate_lit (l : D.lit) (pos: Pos.t): A.lit =
@@ -281,6 +305,10 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
 
 
 let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bindlib.box =
+
+  Cli.debug_print @@ Format.asprintf "translating an %a" D.pp_scope_let_kind s.scope_let_kind;
+
+
   match s with
   | {
     D.scope_let_var = (var, pos);
@@ -318,7 +346,7 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bin
     D.scope_let_typ = _typ;
     D.scope_let_expr = expr;
     D.scope_let_kind = Assertion (** [let _ = assert e]*)
-  } -> (add_var pos var true ctx, translate_expr ctx (Bindlib.unbox expr)) 
+  } -> (add_var pos var true ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr)) 
 
 let translate_scope_body
   (_scope_pos: Pos.t)
@@ -344,7 +372,8 @@ let translate_scope_body
         D.show_scope_let_kind kind ^ ", " ^ (Bindlib.name_of var) ^ "_" ^ (string_of_int (Bindlib.uid_of var))
       )
       |> String.concat "; "
-      |> Printf.printf "[ %s ]"
+      |> Format.sprintf "scope order : [@[<hov2> %s @]]"
+      |> Cli.debug_print
     in
 
     (* then, we compute the lets bindings and modification to the ctx *)
