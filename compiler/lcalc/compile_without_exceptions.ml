@@ -4,6 +4,8 @@ module D = Dcalc.Ast
 module A = Ast
 
 
+(** hoisting *)
+
 (**
   The main idea around this pass is to compile Dcalc to Lcalc without using [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the same technique as in rust or erlang to handle this kind of exceptions. Each [raise EmptyError] will be translated as [None] and each [try e1 with EmtpyError -> e2] as [match e1 with | None -> e2 | Some x -> x].
 
@@ -40,7 +42,7 @@ let pp_binding (fmt: Format.formatter) ((v, info): D.Var.t * info) =
 let pp_ctx (fmt: Format.formatter) (ctx: ctx) =
 
   let pp_bindings = Format.pp_print_list ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ") pp_binding in
-  Format.fprintf fmt "@[<2>[%a]@]@." pp_bindings (D.VarMap.bindings ctx)
+  Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (D.VarMap.bindings ctx)
 
 
 
@@ -97,17 +99,19 @@ let rec translate_and_cut (ctx: ctx) (e: D.expr Pos.marked)
 
     (* todo: for now, we requires there is unpure variables. This can change if the said variable are always present in the tree as thunked. *)
     let v, pos_v = v in
-    if not (find ~info:"search for a variable" v ctx).is_pure then
+    if not (find ~info:"search for a variable" v ctx).is_pure then begin
       let v' = A.Var.make ((Bindlib.name_of v), pos_v) in
+      Cli.debug_print @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" pp_var v pp_var v';
       (A.make_var (v', pos), A.VarMap.singleton v' e)
-    else
+    end else
       (find ~info:"should never happend" v ctx).expr, A.VarMap.empty
   
   | D.EApp ((D.EVar (v, pos_v), p), [ (D.ELit D.LUnit, _) ]) ->
-    if not (find ~info:"search for a variable" v ctx).is_pure then
+    if not (find ~info:"search for a variable" v ctx).is_pure then begin
       let v' = A.Var.make ((Bindlib.name_of v), pos_v) in
+      Cli.debug_print @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" pp_var v pp_var v';
       (A.make_var (v', pos), A.VarMap.singleton v' (D.EVar (v, pos_v), p))
-    else
+    end else
       Errors.raise_spanned_error "Internal error: an pure variable was found in an unpure environment." pos
 
   | D.EDefault (_exceptions, _just, _cons) ->
@@ -250,9 +254,15 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
     
     let _pos = Pos.get_position e in
     (* build the cuts *)
+
+    Cli.debug_print @@ Format.asprintf "cut for the expression: [%a]" (Format.pp_print_list pp_var) (List.map fst cs);
+
     ListLabels.fold_left cs
       ~init:(if append_esome then A.make_some e' else e')
       ~f:(fun acc (v, (c, pos_c)) ->
+
+
+        Cli.debug_print @@ Format.asprintf "cut using %a" pp_var v;
 
         let c': A.expr Pos.marked Bindlib.box = match c with
         (* Here we have to handle only the cases appearing in cuts, as defined the [translate_and_cut] function. *)
@@ -298,6 +308,8 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
             | Some {{ v }} -> {{ acc }}
             end
           ] *)
+
+        Cli.debug_print @@ Format.asprintf "build matchopt using %a" pp_var v;
         A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc
       )
 ;;
@@ -307,7 +319,13 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
 let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bindlib.box =
 
   Cli.debug_print @@ Format.asprintf "translating an %a" D.pp_scope_let_kind s.scope_let_kind;
-
+  ListLabels.iter (D.VarMap.bindings ctx |> List.map fst)
+  ~f:(fun var ->
+    Cli.debug_print @@ Format.asprintf "[%a] The variable %a occurs in the expression: %b"
+      D.pp_scope_let_kind s.D.scope_let_kind
+      pp_var var
+      (Bindlib.occur var s.D.scope_let_expr) 
+    );
 
   match s with
   | {
@@ -315,8 +333,10 @@ let translate_scope_let (ctx: ctx) (s: D.scope_let): ctx * A.expr Pos.marked Bin
     D.scope_let_typ = _typ;
     D.scope_let_expr = expr;
     D.scope_let_kind = DestructuringInputStruct  (** [let x = input.field]*)
-  } -> 
-    (add_var pos var false ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
+  } -> begin 
+
+      (add_var pos var false ctx, translate_expr ~append_esome:false ctx (Bindlib.unbox expr))
+    end
   | {
     D.scope_let_var = (var, pos);
     D.scope_let_typ = _typ;
@@ -365,19 +385,16 @@ let translate_scope_body
     let ctx1 = add_var Pos.no_pos arg true ctx in
 
 
-    let _ = lets
-      |> List.map (fun {
-        D.scope_let_kind = kind;
-        D.scope_let_var = (var, _); _} : string ->
-        D.show_scope_let_kind kind ^ ", " ^ (Bindlib.name_of var) ^ "_" ^ (string_of_int (Bindlib.uid_of var))
-      )
-      |> String.concat "; "
-      |> Format.sprintf "scope order : [@[<hov2> %s @]]"
-      |> Cli.debug_print
+    let pp_scope_ctx fmt {D.scope_let_kind=kind; D.scope_let_var = (var, _); _} =
+      Format.fprintf fmt "%a, %a" D.pp_scope_let_kind kind pp_var var
     in
+    Cli.debug_print @@ Format.asprintf "scope order : [@[<hov2> %a @]]@;"
+      (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ";@;") pp_scope_ctx) lets;
 
     (* then, we compute the lets bindings and modification to the ctx *)
     (* todo: once we update to ocaml 4.11, use fold_left_map instead of fold_left + List.rev *)
+
+
     let ctx2, acc =
       ListLabels.fold_left lets
         ~init:(ctx1, [])
@@ -389,6 +406,16 @@ let translate_scope_body
 
     (* we now have the context for the final transformation: the result *)
     (* todo: alaid, result is boxed and hence incompatible with translate_expr... *)
+
+    Cli.debug_print @@ Format.asprintf "The box is closed : %b" (Bindlib.is_closed result);
+
+    ListLabels.iter lets
+      ~f:(fun {D.scope_let_var = (var, _); _} ->
+        Cli.debug_print @@ Format.asprintf "The variable %a occurs in the result: %b" pp_var var (Bindlib.occur var result) 
+        )
+    ;
+    
+
     let result = translate_expr ~append_esome:false ctx2 (Bindlib.unbox result) in
 
     (* finally, we can recombine everything using nested let ... = ... in *)
