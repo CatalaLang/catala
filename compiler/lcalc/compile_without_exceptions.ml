@@ -315,14 +315,7 @@ and translate_expr ?(append_esome=true) (ctx: ctx) (e: D.expr Pos.marked)
 ;;
 
 
-(*
-type scope_let = {
-  scope_let_var : expr Bindlib.var Pos.marked;
-  scope_let_kind : scope_let_kind;
-  scope_let_typ : typ Pos.marked;
-  scope_let_expr : expr Pos.marked Bindlib.box;
-}
-*)
+
 type scope_lets =
    | Result of D.expr Pos.marked
    | ScopeLet of
@@ -348,18 +341,6 @@ let translate_and_bind_lets
       }
   ) scope_let.D.scope_let_expr (Bindlib.bind_var (fst scope_let.D.scope_let_var) acc)
 
-(*
-type scope_body = {
-  scope_body_lets : scope_let list;
-  scope_body_result : expr Pos.marked Bindlib.box;
-  (* {x1 = x1; x2 = x2; x3 = x3; ... } *)
-  scope_body_arg : expr Bindlib.var;
-  (* x: input_struct *)
-  scope_body_input_struct : StructName.t;
-  scope_body_output_struct : StructName.t;
-}
-
-*)
 type scope_body = {
   scope_body_input_struct: D.StructName.t;
   scope_body_output_struct: D.StructName.t;
