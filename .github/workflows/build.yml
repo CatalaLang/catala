@@ -44,5 +44,4 @@ jobs:
         uses: actions/checkout@v2
       - name: Make all
         run: |
-          sudo make pygments
           OCAMLRUNPARAM=b opam exec -- make all -B
