@@ -136,11 +136,6 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
   | D.ELit D.LEmptyError ->
       let v' = A.Var.make ("empty_litteral", pos) in
       (A.make_var (v', pos), A.VarMap.singleton v' e)
-  | D.EAssert _ ->
-      (* as discuted, if the value in an assertion is empty, an error should the raised. This
-         beavior is different from the ICFP paper. *)
-      let v' = A.Var.make ("assertion_value", pos) in
-      (A.make_var (v', pos), A.VarMap.singleton v' e)
   (* This one is a very special case. It transform an unpure expression environement to a pure
      expression. *)
   | ErrorOnEmpty arg ->
@@ -170,6 +165,10 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
       (*(* equivalent code : *) let e' = let+ e1' = e1' and+ e2' = e2' and+ e3' = e3' in
         (A.EIfThenElse (e1', e2', e3'), pos) in *)
       (e', disjoint_union_maps pos [ c1; c2; c3 ])
+  | D.EAssert e1 ->
+    (* same behavior as in the ICFP paper: if e1 is empty, then no error is raised. *)
+    let e1', c1 = translate_and_cut ctx e1 in
+    (Bindlib.box_apply (fun e1' -> (A.EAssert e1', pos)) e1', c1)
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
