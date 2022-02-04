@@ -26,43 +26,32 @@ type lit =
 
 type except = ConflictError | EmptyError | NoValueProvided | Crash [@@deriving show]
 
-let bla _ b fmt x =
-  let xs, body = Bindlib.unmbind x in
-  let xs =
-    xs |> Array.to_list
-    |> List.map (fun x -> Bindlib.name_of x ^ "_" ^ string_of_int @@ Bindlib.uid_of x)
-    |> String.concat ", "
-  in
-  Format.fprintf fmt "Binder(%a, %a)" Format.pp_print_string xs b body
-
 type expr =
-  | EVar of
-      (expr Bindlib.var
-      [@polyprinter
-        fun _ fmt x -> Format.fprintf fmt "%s_%d" (Bindlib.name_of x) (Bindlib.uid_of x)])
-      Pos.marked
-  | ETuple of expr Pos.marked list * (D.StructName.t[@opaque]) option
+  | EVar of expr Bindlib.var Pos.marked
+  | ETuple of expr Pos.marked list * D.StructName.t option
       (** The [MarkedString.info] is the former struct field name*)
-  | ETupleAccess of expr Pos.marked * int * (D.StructName.t[@opaque]) option * D.typ Pos.marked list
+  | ETupleAccess of expr Pos.marked * int * D.StructName.t option * D.typ Pos.marked list
       (** The [MarkedString.info] is the former struct field name *)
-  | EInj of expr Pos.marked * int * (D.EnumName.t[@opaque]) * D.typ Pos.marked list
+  | EInj of expr Pos.marked * int * D.EnumName.t * D.typ Pos.marked list
       (** The [MarkedString.info] is the former enum case name *)
-  | EMatch of expr Pos.marked * expr Pos.marked list * (D.EnumName.t[@opaque])
+  | EMatch of expr Pos.marked * expr Pos.marked list * D.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
-  | ELit of (lit[@opaque])
+  | ELit of lit
   | EAbs of
-      ((expr, expr Pos.marked) Bindlib.mbinder[@polyprinter bla]) Pos.marked * D.typ Pos.marked list
+      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-[@@deriving show]
+
 
 module Var = struct
   type t = expr Bindlib.var
+
+  let pp fmt x = Format.fprintf fmt "%s_%d" (Bindlib.name_of x) (Bindlib.uid_of x)
 
   let make (s : string Pos.marked) : t =
     Bindlib.new_var
@@ -90,6 +79,12 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position (Bindlib.unbox e2) in
+
+  if not (Bindlib.occur x e2) then
+    Cli.debug_print
+    @@ Format.asprintf "Variable %a is being binded but does not occurs inside the expression."
+         Var.pp x;
+
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
 let ( let+ ) x f = Bindlib.box_apply f x
@@ -119,8 +114,10 @@ let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
 
 let make_some' (e : expr Pos.marked) : expr = EInj (e, 1, option_enum, [])
 
-(** [make_matchopt_dumb arg e_none e_some] build an expression [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the form [EAbs ...].*)
-let make_matchopt_dumb (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
+(** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
+    [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the
+    form [EAbs ...].*)
+let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
     (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox arg in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
@@ -129,66 +126,18 @@ let make_matchopt_dumb (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.ma
 
   mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
 
-
-(** [make_matchopt pos v tau arg e_none e_some] builds an expression [match arg with | None () -> e_none | Some v -> e_some]. It binds v to e_some, permitting it to be used inside the expression. There is no requirements on the form of both e_some and e_none. *)
+(** [make_matchopt pos v tau arg e_none e_some] builds an expression
+    [match arg with | None () -> e_none | Some v -> e_some]. It binds v to e_some, permitting it to
+    be used inside the expression. There is no requirements on the form of both e_some and e_none. *)
 let make_matchopt (pos : Pos.t) (v : Var.t) (tau : D.typ Pos.marked)
     (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
     (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   (* todo: replace this "unit" variable by the [()] pattern *)
   let x = Var.make ("unit", pos) in
 
-  make_matchopt_dumb arg
+  make_matchopt_with_abs_arms arg
     (make_abs (Array.of_list [ x ]) e_none pos [ (D.TLit D.TUnit, pos) ] pos)
     (make_abs (Array.of_list [ v ]) e_some pos [ tau ] pos)
-
-
-let make_matchopt' (pos : Pos.t) (tau : D.typ Pos.marked) (arg : expr Pos.marked Bindlib.box)
-    (e_none : expr Pos.marked Bindlib.box)
-    (e_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box) :
-    expr Pos.marked Bindlib.box =
-  let x = Var.make ("unit", pos) in
-  let v = Var.make ("v", pos) in
-
-  make_matchopt_dumb arg
-    (make_abs (Array.of_list [ x ]) e_none pos [ (D.TLit D.TUnit, pos) ] pos)
-    (make_abs
-       (Array.of_list [ v ])
-       (e_some
-          (let+ v = Bindlib.box_var v in
-           (v, pos)))
-       pos [ tau ] pos)
-
-
-let make_bindopt (pos : Pos.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box
-    =
-  make_matchopt' pos tau e1 (make_none pos) e2
-
-let make_bindmopt (pos : Pos.t) (taus : D.typ Pos.marked list)
-    (e1s : expr Pos.marked Bindlib.box list)
-    (e2s : expr Pos.marked Bindlib.box list -> expr Pos.marked Bindlib.box) :
-    expr Pos.marked Bindlib.box =
-  let dummy = Var.make ("unit", pos) in
-  let vs = List.mapi (fun i _ -> Var.make (Format.sprintf "v_%i" i, pos)) e1s in
-
-  let e1' final =
-    List.combine (List.combine vs taus) e1s
-    |> List.fold_left
-         (fun acc ((x, tau), arg) ->
-           make_matchopt_dumb arg
-             (make_abs (Array.of_list [ dummy ]) (make_none pos) pos [ (D.TLit D.TUnit, pos) ] pos)
-             (make_abs (Array.of_list [ x ]) acc pos [ tau ] pos))
-         final
-  in
-
-  e1'
-    (make_some
-       (e2s
-          (List.map
-             (fun v ->
-               let+ v = Bindlib.box_var v in
-               (v, pos))
-             vs)))
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
 

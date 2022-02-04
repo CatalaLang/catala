@@ -44,21 +44,22 @@ type expr =
   | EMatch of expr Pos.marked * expr Pos.marked list * Dcalc.Ast.EnumName.t
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
-  | ELit of (lit[@opaque])
+  | ELit of lit
   | EAbs of
-      ((expr, expr Pos.marked) Bindlib.mbinder[@opaque]) Pos.marked * Dcalc.Ast.typ Pos.marked list
+      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * Dcalc.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of Dcalc.Ast.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-[@@deriving show]
 
 (** {1 Variable helpers} *)
 
 module Var : sig
   type t = expr Bindlib.var
+
+  val pp : Format.formatter -> t -> unit
 
   val make : string Pos.marked -> t
 
@@ -123,22 +124,8 @@ val make_matchopt :
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding to
     [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
-val make_bindopt :
-  Pos.t ->
-  Dcalc.Ast.typ Pos.marked ->
-  expr Pos.marked Bindlib.box ->
-  (expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box) ->
-  expr Pos.marked Bindlib.box
-
-val make_bindmopt :
-  Pos.t ->
-  Dcalc.Ast.typ Pos.marked list ->
-  expr Pos.marked Bindlib.box list ->
-  (expr Pos.marked Bindlib.box list -> expr Pos.marked Bindlib.box) ->
-  expr Pos.marked Bindlib.box
 
 val handle_default : Var.t
-
 val handle_default_opt : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
