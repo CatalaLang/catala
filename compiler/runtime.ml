@@ -215,8 +215,7 @@ let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) ->
   in
   match except with Some x -> x | None -> if just () then cons () else raise EmptyError
 
-let handle_default_opt : 'a. 'a eoption array -> bool eoption -> 'a eoption -> 'a eoption =
- fun exceptions just cons ->
+let handle_default_opt (exceptions: 'a eoption array) (just: bool eoption) (cons: 'a eoption): 'a eoption =
   let except =
     Array.fold_left
       (fun acc except ->
