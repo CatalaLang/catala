@@ -1,22 +1,18 @@
 rule test_scope
-  command = catala -s $scope Interpret $in --unstyled 2>&1 $
-            | colordiff -u -b $out -
+  command = _build/default/compiler/catala.exe -s $scope Interpret $tested_file --unstyled 2>&1 $
+            | colordiff -u -b $expected_output -
+  description = Testing scope $scope of file $tested_file
 
-build tests/test_array/good/output/aggregation_2.catala_en.A.Interpret:$
-  test_scope $
-  tests/test_array/good/aggregation_2.catala_en
+build test1: test_scope
   scope = A
+  tested_file = tests/test_array/good/aggregation_2.catala_en
+  expected_output = tests/test_array/good/output/aggregation_2.catala_en.A.Interpret
 
-build tests/test_array/good/output/aggregation_2.catala_en.B.Interpret:$
-                test_scope $
-  tests/test_array/good/aggregation_2.catala_en
+build test2: test_scope
   scope = B
+  expected_output = tests/test_array/good/output/aggregation_2.catala_en.B.Interpret
+  tested_file = tests/test_array/good/aggregation_2.catala_en
 
-build always: phony
+build test: phony test1 test2
 
-build test: phony $
-  tests/test_array/good/output/aggregation_2.catala_en.A.Interpret $
-  tests/test_array/good/output/aggregation_2.catala_en.B.Interpret
-
-build test2: phony test
-
+default test
