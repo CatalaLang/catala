@@ -18,9 +18,9 @@ jobs:
           ocaml-compiler: 4.11.x
           dune-cache: true
 
-      - name: Install Python dependencies
+      - name: Install external dependencies
         run: |
-          sudo apt-get update && sudo apt-get install python3-dev python3-setuptools python3-pygments man2html rsync colordiff libmpc-dev
+          sudo apt-get update && sudo apt-get install python3-dev virtualenv python3-setuptools python3-pip python3-pygments man2html rsync colordiff npm nodejs libmpc-dev
           sudo python3 -m pip install --upgrade pip
           sudo python3 -m pip install virtualenv
           sudo make pygments
