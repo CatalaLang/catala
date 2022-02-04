@@ -500,7 +500,6 @@ scope_decl_item_attribute:
 | INPUT { Input, Pos.from_lpos $sloc }
 | OUTPUT { Output, Pos.from_lpos $sloc }
 | INTERNAL { Internal, Pos.from_lpos $sloc }
-| { Context, Pos.from_lpos $sloc }
 
 scope_decl_item:
 | attr = scope_decl_item_attribute i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({

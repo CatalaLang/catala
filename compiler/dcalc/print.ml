@@ -78,11 +78,20 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
            (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
         ts
-  | TTuple (args, Some s) ->
-      Format.fprintf fmt "%a {%a}" Ast.StructName.format_t s
-        (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ;@ ") format_typ)
-        args
-  | TEnum (_, e) -> Format.fprintf fmt "%a" Ast.EnumName.format_t e
+  | TTuple (_args, Some s) ->
+      Format.fprintf fmt "%a{%a}" Ast.StructName.format_t s
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ;@ ")
+           (fun fmt (field, typ) ->
+             Format.fprintf fmt "%a: %a" StructFieldName.format_t field format_typ typ))
+        (StructMap.find s ctx.ctx_structs)
+  | TEnum (_, e) ->
+      Format.fprintf fmt "%a[%a]" Ast.EnumName.format_t e
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+           (fun fmt (case, typ) ->
+             Format.fprintf fmt "%a: %a" EnumConstructor.format_t case format_typ typ))
+        (EnumMap.find e ctx.ctx_enums)
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1 format_punctuation "→"
         format_typ t2
