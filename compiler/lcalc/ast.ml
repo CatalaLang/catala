@@ -38,15 +38,13 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of
-      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * D.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of D.operator
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
-
 
 module Var = struct
   type t = expr Bindlib.var
@@ -110,8 +108,9 @@ let make_some' (e : expr Pos.marked) : expr = EInj (e, 1, option_enum, [])
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the
     form [EAbs ...].*)
-let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
-    (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box)
+    (e_none : expr Pos.marked Bindlib.box) (e_some : expr Pos.marked Bindlib.box) :
+    expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox arg in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 

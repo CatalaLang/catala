@@ -2,7 +2,8 @@
  (name utils)
  (public_name catala.utils)
  (libraries cmdliner ANSITerminal re)
- (preprocess (pps ppx_deriving.show)))
+ (preprocess
+  (pps ppx_deriving.show)))
 
 (documentation
  (package catala)

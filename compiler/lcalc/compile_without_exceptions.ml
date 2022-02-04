@@ -27,7 +27,8 @@ type cuts = D.expr Pos.marked A.VarMap.t
 
 type info = { expr : A.expr Pos.marked Bindlib.box; var : A.expr Bindlib.var; is_pure : bool }
 (** information about the Dcalc variable : what is the corresponding LCalc variable; an expression
-    build correctly using Bindlib, and a boolean `is_pure` indicating whenever the variable can be an EmptyError and hence should be matched (false) or if it never can be EmptyError (true). *)
+    build correctly using Bindlib, and a boolean `is_pure` indicating whenever the variable can be
+    an EmptyError and hence should be matched (false) or if it never can be EmptyError (true). *)
 
 type ctx = info D.VarMap.t
 (** information context about variables in the current scope *)
@@ -45,10 +46,10 @@ let pp_ctx (fmt : Format.formatter) (ctx : ctx) =
   Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (D.VarMap.bindings ctx)
 
 (** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a slightly better way. *)
-let find ?(info: string = "none") (n: D.Var.t) (ctx: ctx) : info =
+let find ?(info : string = "none") (n : D.Var.t) (ctx : ctx) : info =
   let _ =
-    Format.asprintf "Searching for variable %a inside context %a"
-      Dcalc.Print.format_var n pp_ctx ctx
+    Format.asprintf "Searching for variable %a inside context %a" Dcalc.Print.format_var n pp_ctx
+      ctx
     |> Cli.debug_print
   in
   try D.VarMap.find n ctx
@@ -60,13 +61,12 @@ let find ?(info: string = "none") (n: D.Var.t) (ctx: ctx) : info =
          Dcalc.Print.format_var n info)
       Pos.no_pos
 
-let add_var (pos: Pos.t) (var: D.Var.t) (is_pure: bool) (ctx: ctx) : ctx =
+let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
   let new_var = A.Var.make (Bindlib.name_of var, pos) in
   let expr = A.make_var (new_var, pos) in
 
-  Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a"
-    Dcalc.Print.format_var var
-    Print.format_var new_var;
+  Cli.debug_print
+  @@ Format.asprintf "D.%a |-> A.%a" Dcalc.Print.format_var var Print.format_var new_var;
 
   D.VarMap.update var (fun _ -> Some { expr; var = new_var; is_pure }) ctx
 
@@ -104,15 +104,18 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
     =
   let pos = Pos.get_position e in
   match Pos.unmark e with
-  (* empty-producing/using terms. We cut those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
+  (* empty-producing/using terms. We cut those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]),
+     EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
   | D.EVar v ->
-      (* todo: for now, every unpure (such that [is_pure] is [false] in the current context) is thunked, hence matched in the next case. This assumption can change in the future, and this case is here for this reason. *)
+      (* todo: for now, every unpure (such that [is_pure] is [false] in the current context) is
+         thunked, hence matched in the next case. This assumption can change in the future, and this
+         case is here for this reason. *)
       let v, pos_v = v in
       if not (find ~info:"search for a variable" v ctx).is_pure then begin
         let v' = A.Var.make (Bindlib.name_of v, pos_v) in
         Cli.debug_print
-        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" Dcalc.Print.format_var
-             v Print.format_var v';
+        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it"
+             Dcalc.Print.format_var v Print.format_var v';
         (A.make_var (v', pos), A.VarMap.singleton v' e)
       end
       else ((find ~info:"should never happend" v ctx).expr, A.VarMap.empty)
@@ -120,8 +123,8 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
       if not (find ~info:"search for a variable" v ctx).is_pure then begin
         let v' = A.Var.make (Bindlib.name_of v, pos_v) in
         Cli.debug_print
-        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" Dcalc.Print.format_var
-             v Print.format_var v';
+        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it"
+             Dcalc.Print.format_var v Print.format_var v';
         (A.make_var (v', pos), A.VarMap.singleton v' (D.EVar (v, pos_v), p))
       end
       else
@@ -134,16 +137,14 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
       let v' = A.Var.make ("empty_litteral", pos) in
       (A.make_var (v', pos), A.VarMap.singleton v' e)
   | D.EAssert _ ->
-      (* as discuted, if the value in an assertion is empty, an error should the raised. This beavior is different from the ICFP paper. *)
+      (* as discuted, if the value in an assertion is empty, an error should the raised. This
+         beavior is different from the ICFP paper. *)
       let v' = A.Var.make ("assertion_value", pos) in
       (A.make_var (v', pos), A.VarMap.singleton v' e)
-  (* This one is a very special case. It transform an unpure expression environement to a pure expression. *)
+  (* This one is a very special case. It transform an unpure expression environement to a pure
+     expression. *)
   | ErrorOnEmpty arg ->
-      (* [
-           match arg with
-           | None -> raise NoValueProvided
-           | Some v -> {{ v }}
-         ] *)
+      (* [ match arg with | None -> raise NoValueProvided | Some v -> {{ v }} ] *)
       let silent_var = A.Var.make ("_", pos) in
       let x = A.Var.make ("non_empty_argument", pos) in
 
@@ -166,27 +167,26 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
         Bindlib.box_apply3 (fun e1' e2' e3' -> (A.EIfThenElse (e1', e2', e3'), pos)) e1' e2' e3'
       in
 
-      (*(* equivalent code : *)
-        let e' =
-          let+ e1' = e1' and+ e2' = e2' and+ e3' = e3' in
-          (A.EIfThenElse (e1', e2', e3'), pos)
-        in
-      *)
+      (*(* equivalent code : *) let e' = let+ e1' = e1' and+ e2' = e2' and+ e3' = e3' in
+        (A.EIfThenElse (e1', e2', e3'), pos) in *)
       (e', disjoint_union_maps pos [ c1; c2; c3 ])
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
         ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
-            (* we suppose the invariant that when applying a function, its arguments cannot be of the type "option".
+            (* we suppose the invariant that when applying a function, its arguments cannot be of
+               the type "option".
 
-               The code should behave correctly in the without this assumption if we put here an is_pure=false, but the types are more compilcated. (unimplemented for now) *)
+               The code should behave correctly in the without this assumption if we put here an
+               is_pure=false, but the types are more compilcated. (unimplemented for now) *)
             let ctx = add_var pos var true ctx in
             let lc_var = (find var ctx).var in
             (ctx, lc_var :: lc_vars))
       in
       let lc_vars = Array.of_list lc_vars in
 
-      (* here we take the guess that if we cannot build the closure because one of the variable is empty, then we cannot build the function. *)
+      (* here we take the guess that if we cannot build the closure because one of the variable is
+         empty, then we cannot build the function. *)
       let new_body, cuts = translate_and_cut ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
 
@@ -244,7 +244,9 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
 
   (* build the cuts *)
   Cli.debug_print
-  @@ Format.asprintf "cut for the expression: [%a]" (Format.pp_print_list Print.format_var) (List.map fst cs);
+  @@ Format.asprintf "cut for the expression: [%a]"
+       (Format.pp_print_list Print.format_var)
+       (List.map fst cs);
 
   ListLabels.fold_left cs
     ~init:(if append_esome then A.make_some e' else e')
@@ -253,7 +255,8 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
 
       let c' : A.expr Pos.marked Bindlib.box =
         match c with
-        (* Here we have to handle only the cases appearing in cuts, as defined the [translate_and_cut] function. *)
+        (* Here we have to handle only the cases appearing in cuts, as defined the
+           [translate_and_cut] function. *)
         | D.EVar v -> (find ~info:"should never happend" (Pos.unmark v) ctx).expr
         | D.EDefault (excep, just, cons) ->
             let excep' = List.map (translate_expr ctx) excep in
@@ -272,11 +275,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
         | D.EAssert arg ->
             let arg' = translate_expr ctx arg in
 
-            (* [
-                 match arg with
-                 | None -> raise NoValueProvided
-                 | Some v -> assert {{ v }}
-               ] *)
+            (* [ match arg with | None -> raise NoValueProvided | Some v -> assert {{ v }} ] *)
             let silent_var = A.Var.make ("_", pos_c) in
             let x = A.Var.make ("assertion_argument", pos_c) in
 
@@ -292,12 +291,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
               "Internal Error: An term was found in a position where it should not be" pos_c
       in
 
-      (* [
-           match {{ c' }} with
-           | None -> None
-           | Some {{ v }} -> {{ acc }}
-           end
-         ] *)
+      (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end ] *)
       Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.format_var v;
       A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc)
 
@@ -337,14 +331,16 @@ let translate_and_bind_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_
   let pos = snd scope_let.D.scope_let_var in
 
   Cli.debug_print
-  @@ Format.asprintf "binding let %a. Variable occurs = %b" Dcalc.Print.format_var (fst scope_let.D.scope_let_var)
+  @@ Format.asprintf "binding let %a. Variable occurs = %b" Dcalc.Print.format_var
+       (fst scope_let.D.scope_let_var)
        (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
 
   let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
   Bindlib.box_apply2
     (fun expr binder ->
       Cli.debug_print
-      @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list Dcalc.Print.format_var)
+      @@ Format.asprintf "free variables in expression: %a"
+           (Format.pp_print_list Dcalc.Print.format_var)
            (D.free_vars expr);
       ScopeLet
         {
@@ -435,7 +431,8 @@ let translate_program (prgm : D.program) : A.program =
            let scope_body = Bindlib.unbox (translate_and_bind scope_body) in
 
            Cli.debug_print
-           @@ Format.asprintf "global free variable : %a" (Format.pp_print_list Dcalc.Print.format_var)
+           @@ Format.asprintf "global free variable : %a"
+                (Format.pp_print_list Dcalc.Print.format_var)
                 (free_vars_scope_body scope_body);
            let new_ctx = add_var Pos.no_pos n true ctx in
 

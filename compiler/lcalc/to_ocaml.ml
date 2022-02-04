@@ -22,7 +22,8 @@ let find_struct s ctx =
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
     Errors.raise_spanned_error
-      (Format.asprintf "Internal Error: Structure %s was not found in the current environment." s_name)
+      (Format.asprintf "Internal Error: Structure %s was not found in the current environment."
+         s_name)
       pos
 
 let find_enum en ctx =

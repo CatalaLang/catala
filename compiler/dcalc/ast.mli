@@ -42,7 +42,6 @@ type typ =
   | TArray of typ Pos.marked
   | TAny
 
-
 type date = Runtime.date
 
 type duration = Runtime.duration
@@ -125,7 +124,6 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
-
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

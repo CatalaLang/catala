@@ -40,12 +40,11 @@ type enum_name = EnumName.t
 
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list * (struct_name) option
-  | TEnum of typ Pos.marked list * (enum_name)
+  | TTuple of typ Pos.marked list * struct_name option
+  | TEnum of typ Pos.marked list * enum_name
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
-
 
 type date = Runtime.date
 
@@ -94,32 +93,30 @@ type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
 type unop =
   | Not
   | Minus of op_kind
-  | Log of log_entry * (Utils.Uid.MarkedString.info list)
+  | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
   | GetDay
   | GetMonth
   | GetYear
 
-
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 type expr =
-  | EVar of (expr Bindlib.var) Pos.marked
-  | ETuple of expr Pos.marked list * (struct_name) option
-  | ETupleAccess of expr Pos.marked * int * (struct_name) option * typ Pos.marked list
-  | EInj of expr Pos.marked * int * (enum_name) * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list * (enum_name)
+  | EVar of expr Bindlib.var Pos.marked
+  | ETuple of expr Pos.marked list * struct_name option
+  | ETupleAccess of expr Pos.marked * int * struct_name option * typ Pos.marked list
+  | EInj of expr Pos.marked * int * enum_name * typ Pos.marked list
+  | EMatch of expr Pos.marked * expr Pos.marked list * enum_name
   | EArray of expr Pos.marked list
-  | ELit of (lit)
-  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder) Pos.marked * typ Pos.marked list
+  | ELit of lit
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
-
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 

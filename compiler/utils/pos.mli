@@ -14,8 +14,7 @@
 
 (** Source code position *)
 
-type t
-[@@deriving show]
+type t [@@deriving show]
 (** A position in the source code is a file, as well as begin and end location of the form col:line *)
 
 (** Custom visitor for the [Pos.marked] type *)
@@ -59,8 +58,7 @@ val retrieve_loc_text : t -> string
 
 (**{2 AST markings}*)
 
-type 'a marked = 'a * t
-[@@deriving show]
+type 'a marked = 'a * t [@@deriving show]
 (** Everything related to the source code should keep its position stored, to improve error messages *)
 
 val no_pos : t
