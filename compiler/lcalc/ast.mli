@@ -107,7 +107,7 @@ val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
 
 val make_some' : expr Pos.marked -> expr
 
-val make_matchopt_dumb :
+val make_matchopt_with_abs_arms :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->

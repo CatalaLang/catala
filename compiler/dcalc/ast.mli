@@ -32,7 +32,7 @@ module EnumMap : Map.S with type key = EnumName.t
 
 (** {1 Abstract syntax tree} *)
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration [@@deriving show]
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
 type typ =
   | TLit of typ_lit
@@ -41,7 +41,7 @@ type typ =
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
-[@@deriving show]
+
 
 type date = Runtime.date
 
@@ -102,7 +102,7 @@ type unop =
   | GetMonth
   | GetYear
 
-type operator = Ternop of ternop | Binop of binop | Unop of unop [@@deriving show]
+type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
     higher-order abstract syntax*)
@@ -125,7 +125,7 @@ type expr =
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
-[@@deriving show]
+
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
