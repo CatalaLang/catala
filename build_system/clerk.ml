@@ -97,6 +97,7 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Proof -> "Proof"
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
+  | Cli.Typecheck -> "Typecheck"
 
 type expected_output_descr = {
   base_filename : string;
@@ -124,6 +125,7 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
     | ".html" -> Some Cli.Html
     | ".py" -> Some Cli.Python
     | ".proof" -> Some Cli.Proof
+    | ".typecheck" -> Some Cli.Typecheck
     | _ -> None
   in
   match backend with
@@ -178,9 +180,16 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
         let command =
           String.concat " "
             (List.filter (fun s -> s <> "") reproducible_catala_command
+            @ (match expected_output.backend with
+              | Cli.Proof ->
+                  [ "--disable_counterexamples" ]
+                  (* Counterexamples can be different at each call because of the randomness inside
+                     SMT solver, so we can't expect their value to remain constant. Hence we disable
+                     the counterexamples when testing the replication of failed proofs. *)
+              | _ -> [])
             @
             match expected_output.backend with
-            | Cli.Interpret | Cli.Proof ->
+            | Cli.Interpret | Cli.Proof | Cli.Typecheck ->
                 if reset_test_outputs then
                   [
                     ">";

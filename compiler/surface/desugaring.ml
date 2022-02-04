@@ -927,17 +927,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
         (Some (Pos.same_pos_as param_var param), ctxt)
   in
   let scope_updated =
-    let scope_def =
-      {
-        Desugared.Ast.scope_def_rules =
-          (match Desugared.Ast.ScopeDefMap.find_opt def_key scope.scope_defs with
-          | Some def -> def.scope_def_rules
-          | None -> Desugared.Ast.RuleMap.empty);
-        scope_def_typ = Name_resolution.get_def_typ ctxt def_key;
-        scope_def_is_condition = Name_resolution.is_def_cond ctxt def_key;
-        scope_def_label_groups = Name_resolution.label_groups ctxt scope_uid def_key;
-      }
-    in
+    let scope_def = Desugared.Ast.ScopeDefMap.find def_key scope.scope_defs in
     let rule_name = def.definition_id in
     let parent_rules =
       match def.Ast.definition_exception_to with
@@ -945,7 +935,7 @@ let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
       | UnlabeledException -> (
           match scope_def_ctxt.default_exception_rulename with
           (* This should have been caught previously by check_unlabeled_exception *)
-          | None | Some (Name_resolution.Ambiguous _) -> assert false
+          | None | Some (Name_resolution.Ambiguous _) -> assert false (* should not happen *)
           | Some (Name_resolution.Unique (name, pos)) -> (Desugared.Ast.RuleSet.singleton name, pos)
           )
       | ExceptionToLabel label -> (
@@ -1099,18 +1089,57 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                   s_context.Name_resolution.var_idmap Scopelang.Ast.ScopeVarSet.empty;
               Desugared.Ast.scope_sub_scopes = s_context.Name_resolution.sub_scopes;
               Desugared.Ast.scope_defs =
-                Desugared.Ast.IdentMap.fold
-                  (fun _ v acc ->
-                    let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
-                    Desugared.Ast.ScopeDefMap.add (Desugared.Ast.ScopeDef.Var v)
-                      {
-                        Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                        Desugared.Ast.scope_def_typ = x;
-                        Desugared.Ast.scope_def_label_groups = Desugared.Ast.LabelMap.empty;
-                        Desugared.Ast.scope_def_is_condition = y;
-                      }
-                      acc)
-                  s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty;
+                (* Initializing the definitions of all scopes and subscope vars, with no rules yet
+                   inside *)
+                (let scope_vars_defs =
+                   Desugared.Ast.IdentMap.fold
+                     (fun _ v acc ->
+                       let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+                       let def_key = Desugared.Ast.ScopeDef.Var v in
+                       Desugared.Ast.ScopeDefMap.add def_key
+                         {
+                           Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                           Desugared.Ast.scope_def_typ = x;
+                           Desugared.Ast.scope_def_label_groups =
+                             Name_resolution.label_groups ctxt s_uid def_key;
+                           Desugared.Ast.scope_def_is_condition = y;
+                           Desugared.Ast.scope_def_visibility =
+                             {
+                               Scopelang.Ast.visibility_input = true;
+                               Scopelang.Ast.visibility_output = true;
+                             };
+                         }
+                         acc)
+                     s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty
+                 in
+                 let scope_and_subscope_vars_defs =
+                   Scopelang.Ast.SubScopeMap.fold
+                     (fun subscope_name subscope_uid acc ->
+                       Desugared.Ast.IdentMap.fold
+                         (fun _ v acc ->
+                           let x, y =
+                             Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs
+                           in
+                           let def_key = Desugared.Ast.ScopeDef.SubScopeVar (subscope_name, v) in
+                           Desugared.Ast.ScopeDefMap.add def_key
+                             {
+                               Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                               Desugared.Ast.scope_def_typ = x;
+                               Desugared.Ast.scope_def_label_groups =
+                                 Name_resolution.label_groups ctxt subscope_uid def_key;
+                               Desugared.Ast.scope_def_is_condition = y;
+                               Desugared.Ast.scope_def_visibility =
+                                 {
+                                   Scopelang.Ast.visibility_input = true;
+                                   Scopelang.Ast.visibility_output = true;
+                                 };
+                             }
+                             acc)
+                         (Scopelang.Ast.ScopeMap.find subscope_uid ctxt.Name_resolution.scopes)
+                           .Name_resolution.var_idmap acc)
+                     s_context.sub_scopes scope_vars_defs
+                 in
+                 scope_and_subscope_vars_defs);
               Desugared.Ast.scope_assertions = [];
               Desugared.Ast.scope_meta_assertions = [];
               Desugared.Ast.scope_uid = s_uid;

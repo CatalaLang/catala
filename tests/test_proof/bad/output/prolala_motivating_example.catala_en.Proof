@@ -6,11 +6,12 @@
    + ProLaLa 2022 Super Cash Bonus
    +-+ Amount
 The solver generated the following counterexample to explain the faulty behavior:
---> eligibility.is_eligible : false
---> number_of_advisors : 4
+--> counterexamples disabled
 [RESULT] [Amount.amount] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.correct_amount] This variable never returns an empty error
 [RESULT] [Amount.correct_amount] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_eligible] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_professor] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_student] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.number_of_advisors] This variable never returns an empty error
@@ -27,8 +28,7 @@ The solver generated the following counterexample to explain the faulty behavior
    + ProLaLa 2022 Super Cash Bonus
    +-+ Eligibility
 The solver generated the following counterexample to explain the faulty behavior:
---> is_student : false
---> is_professor : false
+--> counterexamples disabled
 [ERROR] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
@@ -37,8 +37,7 @@ The solver generated the following counterexample to explain the faulty behavior
    + ProLaLa 2022 Super Cash Bonus
    +-+ Eligibility
 The solver generated the following counterexample to explain the faulty behavior:
---> is_student : true
---> is_professor : true
+--> counterexamples disabled
 [RESULT] [Eligibility.is_eligible_correct] This variable never returns an empty error
 [RESULT] [Eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
 [RESULT] [Eligibility.is_professor] This variable never returns an empty error

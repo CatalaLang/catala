@@ -5,7 +5,7 @@
    |           ^
    + Test
 The solver generated the following counterexample to explain the faulty behavior:
---> y : B (C (false))
+--> counterexamples disabled
 [RESULT] [A.x] No two exceptions to ever overlap for this variable
 [RESULT] [A.y] This variable never returns an empty error
 [RESULT] [A.y] No two exceptions to ever overlap for this variable

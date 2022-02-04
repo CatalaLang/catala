@@ -82,7 +82,9 @@ we have to explicit it for programming purposes. Concretely, we need a
 inside the law.
 
 Let's start our metadata section by declaring the type information for the
-individual:
+individual, the taxpayer that will be the subject of the tax computation.
+This individual has an income and a number of children, both pieces of
+information which will be needed for tax purposes :
 
 ```catala-metadata
 declaration structure Individual:
@@ -167,14 +169,14 @@ according to the formula described in the article. When defining formulas,
 you have access to all the usual arithmetic operators: addition "+",
 subtraction "-", multiplication "*" and division (slash).
 
-However, in the Catala code, you can see that we use "*$" to multiply the
-individual income by the fixed percentage. The $ suffix indicates that we
-are performing a multiplication on an amount of money. Indeed, in Catala,
-you have to keep track of what you are dealing with: is it money ? Is it
-an integer? Using just "+" or "*" can be ambiguous in terms of rounding,
-since money is usually rounded at the cent. So to disambiguate, we suffix these
-operations with something that indicates the type of what we manipulate.
-The suffixes are "$" for money, "." for decimals, "@"
+However, in the Catala code, you can see that we use "*$" ("*€" in French, etc.)
+to multiply the individual income by the fixed percentage. The $ suffix
+indicates that we are performing a multiplication on an amount of money.
+Indeed, in Catala, you have to keep track of what you are dealing with:
+is it money ? Is it an integer? Using just "+" or "*" can be ambiguous
+in terms of rounding, since money is usually rounded at the cent. So to
+disambiguate, we suffix these operations with something that indicates the type
+of what we manipulate. The suffixes are "$" for money, "." for decimals, "@"
 for dates and the "^" symbol for durations. If you forget the suffix, the Catala type
 checker will display an error message that will help you put it where it
 belongs.
@@ -239,6 +241,9 @@ the law at the relevant locations. But there is a pattern very frequent
 in legislative texts: what about conditions? A condition is a value that
 can be either true or false, like a boolean in programming. However, the
 law implicitly assumes a condition is false unless specified otherwise.
+This pattern is so common in law that Catala gives it a special syntax. More
+precisely, it calls the definition of conditions "rules", which coincides
+with the usual meaning law people would give it.
 
 Here is an example of a condition that might arise in the law:
 
@@ -469,10 +474,14 @@ scope NewIncomeTaxComputationFixed :
     -- rate1: 20%
     -- rate2: 40%
   }
+```
 
-  # To define an exception to a rule, you have to first label the rule that
-  # you want to attach the exception to. You can put any snake_case identifier
-  # for the label
+To define an exception to a rule, you have to first label the rule that
+you want to attach the exception to. You can put any snake_case identifier
+for the label:
+
+```catala
+scope NewIncomeTaxComputationFixed:
   label article_5
   definition income_tax equals two_brackets.tax_formula of individual.income
 

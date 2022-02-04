@@ -22,16 +22,6 @@ module A = Ast
 let is_empty_error (e : A.expr Pos.marked) : bool =
   match Pos.unmark e with ELit LEmptyError -> true | _ -> false
 
-let empty_thunked_term : Ast.expr Pos.marked =
-  let silent = Ast.Var.make ("_", Pos.no_pos) in
-  Bindlib.unbox
-    (Ast.make_abs
-       (Array.of_list [ silent ])
-       (Bindlib.box (Ast.ELit Ast.LEmptyError, Pos.no_pos))
-       Pos.no_pos
-       [ (Ast.TLit Ast.TUnit, Pos.no_pos) ]
-       Pos.no_pos)
-
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
@@ -226,7 +216,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                 (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                    Print.format_uid_list infos
                    (match e' with
-                   | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>"
+                   (* | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>" *)
                    | _ ->
                        let expr_str =
                          Format.asprintf "%a" (Print.format_expr ctx ~debug:false) (e', Pos.no_pos)
@@ -301,7 +291,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
             "function has not been reduced to a lambda at evaluation (should not happen if the \
              term was well-typed"
             (Pos.get_position e))
-  | EAbs _ | ELit _ | EOp _ -> e (* thse are values *)
+  | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
   | ETuple (es, s) ->
       let new_es = List.map (evaluate_expr ctx) es in
       if List.exists is_empty_error new_es then Pos.same_pos_as (A.ELit LEmptyError) e
@@ -439,7 +429,7 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
     (Uid.MarkedString.info * Ast.expr Pos.marked) list =
   match Pos.unmark (evaluate_expr ctx e) with
   | Ast.EAbs (_, [ (Ast.TTuple (taus, Some s_in), _) ]) -> (
-      let application_term = List.map (fun _ -> empty_thunked_term) taus in
+      let application_term = List.map (fun _ -> Ast.empty_thunked_term) taus in
       let to_interpret =
         (Ast.EApp (e, [ (Ast.ETuple (application_term, Some s_in), Pos.no_pos) ]), Pos.no_pos)
       in

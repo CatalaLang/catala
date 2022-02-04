@@ -34,6 +34,8 @@ let trace_flag = ref false
 
 let optimize_flag = ref false
 
+let disable_counterexamples = ref false
+
 open Cmdliner
 
 let file =
@@ -76,6 +78,7 @@ type backend_option =
   | Makefile
   | Html
   | Interpret
+  | Typecheck
   | OCaml
   | Python
   | Dcalc
@@ -95,6 +98,15 @@ let max_prec_digits_opt =
     & info [ "p"; "max_digits_printed" ] ~docv:"DIGITS"
         ~doc:"Maximum number of significant digits printed for decimal results (default 20).")
 
+let disable_counterexamples_opt =
+  Arg.(
+    value & flag
+    & info [ "disable_counterexamples" ]
+        ~doc:
+          "Disables the search for counterexamples in proof mode. Useful when you want a \
+           deterministic output from the Catala compiler, since provers can have some randomness \
+           in them.")
+
 let ex_scope =
   Arg.(
     value
@@ -113,7 +125,7 @@ let output =
 let catala_t f =
   Term.(
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
-    $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
+    $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
 
 let version = "0.5.0"
 
@@ -132,6 +144,7 @@ let info =
         ( "$(b,Intepret)",
           "Runs the interpreter on the Catala program, executing the scope specified by the \
            $(b,-s) option assuming no additional external inputs." );
+      `I ("$(b,Typecheck)", "Parses and typechecks a Catala program, without interpreting it.");
       `I
         ( "$(b,Proof)",
           "Generates and proves verification conditions about the well-behaved execution of the \

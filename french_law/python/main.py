@@ -60,7 +60,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     action = args.action[0]
     if action == "bench":
-        iterations = 10000
+        iterations = 1000
         print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
             iterations))
         print(timeit.timeit(benchmark_iteration, number=iterations))

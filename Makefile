@@ -10,14 +10,13 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize
+EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-# The Zarith dependency is fixed because of https://github.com/janestreet/zarith_stubs_js/pull/8
 dependencies-ocaml:
-	opam install . --deps-only
+	opam install . --deps-only --with-doc --with-test
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
@@ -39,7 +38,7 @@ BUILD_SYSTEM_DIR=build_system
 format:
 	dune build @fmt --auto-promote 2> /dev/null | true
 
-#> build_dev			: Builds the Catala compiler, without formatting code
+#> build_dev				: Builds the Catala compiler, without formatting code
 build_dev:
 	dune build @update-parser-messages --auto-promote | true
 	dune build $(COMPILER_DIR)/catala.exe
@@ -169,11 +168,11 @@ literate_examples: literate_allocations_familiales literate_code_general_impots 
 
 FRENCH_LAW_OCAML_LIB_DIR=french_law/ocaml
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.ml $@
 
-$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml: .FORCE
+$(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -s -C $(ALLOCATIONS_FAMILIALES_DIR) tests/tests_allocations_familiales.ml
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/tests/tests_allocations_familiales.ml $@
 
@@ -215,7 +214,7 @@ build_french_law_library_js: generate_french_law_library_ocaml format
 
 FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
 
-$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py: .FORCE
+$(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py:
 	CATALA_OPTS="$(CATALA_OPTS) -O -t" $(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.py
 	cp -f $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales.py $@
 
