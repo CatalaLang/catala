@@ -17,18 +17,22 @@ open Ast
 open Backends
 module D = Dcalc.Ast
 
-
 let find_struct s ctx =
-  try
-    D.StructMap.find s ctx.D.ctx_structs
-  with Not_found -> Errors.raise_spanned_error (Format.sprintf "Internal Error: Structure blah was not found in the current environment.") Pos.no_pos
-  
-let find_enum en ctx =
-  try
-    D.EnumMap.find en ctx.D.ctx_enums
+  try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
-    let en_name, pos = D.EnumName.get_info en  in
-    Errors.raise_spanned_error (Format.sprintf "Internal Error: Enumeration %s was not found in the current environment." en_name) pos
+    let s_name, pos = D.StructName.get_info s in
+    Errors.raise_spanned_error
+      (Format.asprintf "Internal Error: Structure %s was not found in the current environment." s_name)
+      pos
+
+let find_enum en ctx =
+  try D.EnumMap.find en ctx.D.ctx_enums
+  with Not_found ->
+    let en_name, pos = D.EnumName.get_info en in
+    Errors.raise_spanned_error
+      (Format.asprintf "Internal Error: Enumeration %s was not found in the current environment."
+         en_name)
+      pos
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
@@ -102,8 +106,9 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
-      Errors.raise_spanned_error "Internal error: a log operator has not been caught by the
-         expression match" (Pos.get_position op)
+      Errors.raise_spanned_error
+        "Internal error: a log operator has not been caught by the\n         expression match"
+        (Pos.get_position op)
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
@@ -181,17 +186,17 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TAny -> Format.fprintf fmt "_"
 
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
-  let lowercase_name =
-    to_lowercase (to_ascii (Bindlib.name_of v ^ "_" ^ string_of_int (Bindlib.uid_of v)))
-  in
+  let lowercase_name = to_lowercase (to_ascii (Bindlib.name_of v)) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
-  if List.mem lowercase_name ["handle_default"; "handle_default_opt"] || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
-    Format.fprintf fmt "%s" lowercase_name
+  if
+    List.mem lowercase_name [ "handle_default"; "handle_default_opt" ]
+    || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
+  then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
-  else Format.fprintf fmt "%s_" lowercase_name
+  else Format.fprintf fmt "%s_%i_" lowercase_name (Bindlib.uid_of v)
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with
@@ -282,7 +287,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
-      Format.fprintf fmt "%a%a"
+      Format.fprintf fmt "(%a%a)"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
            (fun fmt (x, tau, arg) ->
@@ -425,11 +430,9 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-          Format.fprintf fmt "%a@\n@\n" format_struct_decl
-            (s, find_struct s ctx)
+          Format.fprintf fmt "%a@\n@\n" format_struct_decl (s, find_struct s ctx)
       | Scopelang.Dependency.TVertex.Enum e ->
-          Format.fprintf fmt "%a@\n@\n" format_enum_decl
-            (e, find_enum e ctx))
+          Format.fprintf fmt "%a@\n@\n" format_enum_decl (e, find_enum e ctx))
     (type_ordering @ scope_structs)
 
 let format_program (fmt : Format.formatter) (p : Ast.program)
