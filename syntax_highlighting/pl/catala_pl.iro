@@ -193,7 +193,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  (kontekst)(\s+)($${__SC_ID})
+    regex \=  (kontekst|wejście|wyjście|wewnętrzny)(\s+)($${__SC_ID})
     styles [] = .keyword_rule, .whitespace, .sc_id_def;
   }
 

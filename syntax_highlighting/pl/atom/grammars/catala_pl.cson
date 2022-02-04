@@ -71,7 +71,7 @@
         'name' : 'comment.line.catala_pl'
       }
       {
-        'match' : '(kontekst)(\\s+)([a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}][a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}A-Z\\x{0104}\\x{0106}\\x{0118}\\x{0141}\\x{0143}\\x{00d3}\\x{015a}\\x{017b}\\x{0179}0-9_\\\']*)'
+        'match' : '(kontekst|wejście|wyjście|wewnętrzny)(\\s+)([a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}][a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}A-Z\\x{0104}\\x{0106}\\x{0118}\\x{0141}\\x{0143}\\x{00d3}\\x{015a}\\x{017b}\\x{0179}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.other.catala_pl'
@@ -89,7 +89,7 @@
         'name' : 'keyword.control.catala_pl'
       }
       {
-        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek|cokolwiek)\\b'
+        'match' : '\\b(zakres|zalezy\\s+od|deklaracja|kolekcja|typu|opcjonalny|struktura|enumeracja|kontekst|wejście|wyjście|wewnętrzny|zasada|pod\\s+warunkuem|czas|konsekwencja|spelnione|wynosi|asercja|definicja|etykieta|wyjątek|cokolwiek)\\b'
         'name' : 'keyword.other.catala_pl'
       }
       {

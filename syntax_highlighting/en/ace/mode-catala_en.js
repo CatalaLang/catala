@@ -15,8 +15,8 @@ ace.define(
   function (require, exports, module) {
     "use strict";
     var oop = require("../lib/oop");
-    var TextHighlightRules = require("./text_highlight_rules")
-      .TextHighlightRules;
+    var TextHighlightRules =
+      require("./text_highlight_rules").TextHighlightRules;
     /* --------------------- START ----------------------------- */
     var CatalaEnHighlightRules = function () {
       this.$rules = {
@@ -65,7 +65,7 @@ ace.define(
           {
             token: ["keyword.other", "text", "entity.name.function"],
             regex:
-              "(context)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00ca\u0152\u00c70-9_\\']*)",
+              "(context|input|output|internal)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00ca\u0152\u00c70-9_\\']*)",
           },
           {
             token: "keyword.control",
@@ -75,7 +75,7 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b",
+              "\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|input|output|internal|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b",
           },
           {
             token: "constant.numeric",
@@ -179,8 +179,8 @@ ace.define(
 
     var oop = require("../lib/oop");
     var TextMode = require("./text").Mode;
-    var CatalaEnHighlightRules = require("./catala_en_highlighting_rules")
-      .CatalaEnHighlightRules;
+    var CatalaEnHighlightRules =
+      require("./catala_en_highlighting_rules").CatalaEnHighlightRules;
 
     var Mode = function () {
       this.HighlightRules = CatalaEnHighlightRules;

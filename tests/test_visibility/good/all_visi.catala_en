@@ -3,8 +3,8 @@
 ```catala
 declaration scope A:
   context  a content integer
-  input    b content integer
-  output   c content integer
+  input b content integer
+  output c content integer
   internal d content integer
 
 scope A:

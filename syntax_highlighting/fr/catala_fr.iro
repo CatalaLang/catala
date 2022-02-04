@@ -193,7 +193,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  (contexte)(\s+)($${__SC_ID})
+    regex \=  (contexte|entrée|sortie|interne)(\s+)($${__SC_ID})
     styles [] = .keyword_rule, .whitespace, .sc_id_def;
   }
 
@@ -203,7 +203,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b
+    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception)\b
     styles [] = .keyword_rule ;
   }
 

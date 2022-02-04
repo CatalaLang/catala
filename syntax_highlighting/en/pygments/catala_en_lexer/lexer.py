@@ -25,11 +25,11 @@ class CatalaEnLexer(RegexLexer):
         'code': [
             (u'(```)', bygroups(Text), 'root'),
             (u'(\\s*\\#.*$)', bygroups(Comment.Single)),
-            (u'(context)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)',
+            (u'(context|input|output|internal)(\\s+)([a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7][a-z\xe9\xe8\xe0\xe2\xf9\xee\xea\u0153\xe7A-Z\xc9\xc8\xc0\xc2\xd9\xce\xca\u0152\xc70-9_\\\']*)',
              bygroups(Keyword.Declaration, Text, Name.Variable)),
             (u'\\b(match|with\\s+pattern|fixed|by|decreasing|increasing|varies|with|we\\s+have|in|such\\s+that|exists|for|all|of|if|then|else|initial)\\b',
              bygroups(Keyword.Reserved)),
-            (u'\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b',
+            (u'\\b(scope|depends\\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|input|output|internal|rule|under\\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|label|exception|anything)\\b',
              bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(true|false)\\b', bygroups(Keyword.Constant)),
