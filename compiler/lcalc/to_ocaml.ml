@@ -59,14 +59,6 @@ let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
     (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
 
-let _format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
-  Format.fprintf fmt "%s"
-    (match entry with
-    | VarDef _ -> ":="
-    | BeginCall -> "→ "
-    | EndCall -> "← "
-    | PosRecordIfTrueBool -> "☛ ")
-
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
   | Add k -> Format.fprintf fmt "+%a" format_op_kind k
