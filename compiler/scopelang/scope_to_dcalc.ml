@@ -644,16 +644,12 @@ let translate_program (prgm : Ast.program) : Dcalc.Ast.program * Dependency.TVer
         {
           scope_sig_local_vars =
             List.map
-              (fun (scope_var, tau) ->
+              (fun (scope_var, (tau, vis)) ->
                 let tau = translate_typ (ctx_for_typ_translation scope_name) tau in
                 {
                   scope_var_name = scope_var;
                   scope_var_typ = Pos.unmark tau;
-                  scope_var_visibility =
-                    {
-                      visibility_input = true;
-                      visibility_output = true (* TODO: change with info from desugared *);
-                    };
+                  scope_var_visibility = vis;
                 })
               (Ast.ScopeVarMap.bindings scope.scope_sig);
           scope_sig_scope_var = scope_dvar;

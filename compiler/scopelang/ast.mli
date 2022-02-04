@@ -84,19 +84,19 @@ type expr =
 
 val locations_used : expr Pos.marked -> LocationSet.t
 
-type rule =
-  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
-  | Assertion of expr Pos.marked
-  | Call of ScopeName.t * SubScopeName.t
-
 type visibility = {
   visibility_output : bool;  (** True if present in the scope's output *)
   visibility_input : bool;  (** True if present in the scope's input (reentrant) *)
 }
 
+type rule =
+  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Assertion of expr Pos.marked
+  | Call of ScopeName.t * SubScopeName.t
+
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : typ Pos.marked ScopeVarMap.t;
+  scope_sig : (typ Pos.marked * visibility) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

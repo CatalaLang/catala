@@ -1,4 +1,4 @@
-let scope TestBool (foo: bool) (bar: integer) =
+let scope TestBool (foo: bool|input|output) (bar: integer|input|output) =
   let bar : integer =
     reentrant or by default
       ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ |

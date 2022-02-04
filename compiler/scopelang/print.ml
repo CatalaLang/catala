@@ -147,8 +147,10 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
     ScopeName.format_t name
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-       (fun fmt (scope_var, typ) ->
-         Format.fprintf fmt "(%a: %a)" ScopeVar.format_t scope_var format_typ typ))
+       (fun fmt (scope_var, (typ, vis)) ->
+         Format.fprintf fmt "(%a: %a%s%s)" ScopeVar.format_t scope_var format_typ typ
+           (if vis.visibility_input then "|input" else "")
+           (if vis.visibility_output then "|output" else "")))
     (ScopeVarMap.bindings decl.scope_sig)
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")

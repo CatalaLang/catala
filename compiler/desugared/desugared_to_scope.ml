@@ -269,8 +269,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_sig =
     Scopelang.Ast.ScopeVarSet.fold
       (fun var acc ->
-        let typ = (Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs).scope_def_typ in
-        Scopelang.Ast.ScopeVarMap.add var typ acc)
+        let scope_def = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+        let typ = scope_def.scope_def_typ in
+        Scopelang.Ast.ScopeVarMap.add var (typ, scope_def.scope_def_visibility) acc)
       scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
   in
   {
