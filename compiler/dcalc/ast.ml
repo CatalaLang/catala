@@ -171,38 +171,24 @@ end
 
 module VarMap = Map.Make (Var)
 
-
 let union = VarMap.union (fun _ _ _ -> Some ())
+
 let rec fv e =
   match Pos.unmark e with
   | EVar (v, _) -> VarMap.singleton v ()
-  | ETuple(es, _) | EArray (es) ->
-    es |> List.map fv |> List.fold_left union VarMap.empty
-  | ETupleAccess(e1, _, _, _)
-  | EAssert e1
-  | ErrorOnEmpty e1
-  | EInj (e1, _, _, _) ->
-    fv e1
-  | EApp (e1, es)
-  | EMatch(e1, es, _) -> 
-    e1::es |> List.map fv |> List.fold_left union VarMap.empty
-  | EDefault(es, ejust, econs) ->
-    ejust::econs::es |> List.map fv |> List.fold_left union VarMap.empty
-  | EOp _
-  | ELit _ -> VarMap.empty
-
-  | EIfThenElse(e1, e2, e3) ->
-    [e1; e2; e3] |> List.map fv |> List.fold_left union VarMap.empty
+  | ETuple (es, _) | EArray es -> es |> List.map fv |> List.fold_left union VarMap.empty
+  | ETupleAccess (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 | EInj (e1, _, _, _) -> fv e1
+  | EApp (e1, es) | EMatch (e1, es, _) ->
+      e1 :: es |> List.map fv |> List.fold_left union VarMap.empty
+  | EDefault (es, ejust, econs) ->
+      ejust :: econs :: es |> List.map fv |> List.fold_left union VarMap.empty
+  | EOp _ | ELit _ -> VarMap.empty
+  | EIfThenElse (e1, e2, e3) -> [ e1; e2; e3 ] |> List.map fv |> List.fold_left union VarMap.empty
   | EAbs ((binder, _), _) ->
-    let vs, body = Bindlib.unmbind binder in
-    Array.fold_right VarMap.remove vs (fv body)
+      let vs, body = Bindlib.unmbind binder in
+      Array.fold_right VarMap.remove vs (fv body)
 
-let free_vars e = (fv e)
-|> VarMap.bindings
-|> List.map fst
-  
-  
-  
+let free_vars e = fv e |> VarMap.bindings |> List.map fst
 
 type vars = expr Bindlib.mvar
 
@@ -221,7 +207,8 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
-let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t): expr Pos.marked Bindlib.box =
+let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) :
+    expr Pos.marked Bindlib.box =
   let body_expr =
     List.fold_right
       (fun scope_let acc ->

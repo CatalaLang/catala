@@ -127,7 +127,6 @@ type expr =
   | ErrorOnEmpty of expr Pos.marked
 [@@deriving show]
 
-
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
 type enum_ctx = (EnumConstructor.t * typ Pos.marked) list EnumMap.t
@@ -183,7 +182,8 @@ end
 module VarMap : Map.S with type key = Var.t
 
 val fv : expr Pos.marked -> unit VarMap.t
-val free_vars: expr Pos.marked -> Var.t list
+
+val free_vars : expr Pos.marked -> Var.t list
 
 type vars = expr Bindlib.mvar
 
