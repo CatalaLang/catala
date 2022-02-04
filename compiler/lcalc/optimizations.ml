@@ -85,8 +85,8 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   let default_mark e' = Pos.same_pos_as e' e in
   match Pos.unmark e with
   | EApp (e1, args) -> (
-      let+ e1 = visitor_map beta_expr () e1
-      and+ args = List.map (visitor_map beta_expr ()) args |> Bindlib.box_list in
+      let+ e1 = beta_expr () e1
+      and+ args = List.map (beta_expr ()) args |> Bindlib.box_list in
       match Pos.unmark e1 with
       | EAbs ((binder, _pos_binder), _ts) ->
           let (_ : (_, _) Bindlib.mbinder) = binder in
@@ -97,7 +97,7 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
 let iota_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (iota_expr () e))) p.scopes }
 
-let _beta_optimizations (p : program) : program =
+let beta_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (beta_expr () e))) p.scopes }
 
 let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
@@ -105,9 +105,9 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib
 
   match Pos.unmark e with
   | EIfThenElse (e1, e2, e3) -> (
-      let+ e1 = visitor_map peephole_expr () e1
-      and+ e2 = visitor_map peephole_expr () e2
-      and+ e3 = visitor_map peephole_expr () e3 in
+      let+ e1 = peephole_expr () e1
+      and+ e2 = peephole_expr () e2
+      and+ e3 = peephole_expr () e3 in
       match Pos.unmark e1 with
       | ELit (LBool true) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool true), _) ]) -> e2
       | ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) -> e3
@@ -117,4 +117,5 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib
 let peephole_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr () e))) p.scopes }
 
-let optimize_program (p : program) : program = p |> iota_optimizations |> peephole_optimizations
+let optimize_program (p : program) : program =
+  p |> iota_optimizations |> peephole_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations |> beta_optimizations
