@@ -1,7 +1,0 @@
-implementing options translation
-
-practical issues:
- * bindlib code is hard to read without let+.
- * type inference is not implemented for lcalc terms. So i will need to go inside dcalc terms.
- * manipulating lets requires types
- * lets are use everywhere inside the translation
