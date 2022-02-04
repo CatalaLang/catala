@@ -51,8 +51,6 @@ type expr =
 module Var = struct
   type t = expr Bindlib.var
 
-  let pp fmt x = Format.fprintf fmt "%s_%d" (Bindlib.name_of x) (Bindlib.uid_of x)
-
   let make (s : string Pos.marked) : t =
     Bindlib.new_var
       (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
@@ -79,11 +77,6 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position (Bindlib.unbox e2) in
-
-  if not (Bindlib.occur x e2) then
-    Cli.debug_print
-    @@ Format.asprintf "Variable %a is being binded but does not occurs inside the expression."
-         Var.pp x;
 
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
@@ -132,8 +125,7 @@ let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box) (e_none : ex
 let make_matchopt (pos : Pos.t) (v : Var.t) (tau : D.typ Pos.marked)
     (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
     (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  (* todo: replace this "unit" variable by the [()] pattern *)
-  let x = Var.make ("unit", pos) in
+  let x = Var.make ("_", pos) in
 
   make_matchopt_with_abs_arms arg
     (make_abs (Array.of_list [ x ]) e_none pos [ (D.TLit D.TUnit, pos) ] pos)

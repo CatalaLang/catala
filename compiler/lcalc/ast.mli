@@ -59,8 +59,6 @@ type expr =
 module Var : sig
   type t = expr Bindlib.var
 
-  val pp : Format.formatter -> t -> unit
-
   val make : string Pos.marked -> t
 
   val compare : t -> t -> int
