@@ -32,8 +32,7 @@ module EnumMap : Map.S with type key = EnumName.t
 
 (** {1 Abstract syntax tree} *)
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
-[@@deriving show]
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration [@@deriving show]
 
 type typ =
   | TLit of typ_lit
@@ -103,10 +102,7 @@ type unop =
   | GetMonth
   | GetYear
 
-type operator = Ternop of ternop | Binop of binop | Unop of unop
-[@@deriving show]
-
-
+type operator = Ternop of ternop | Binop of binop | Unop of unop [@@deriving show]
 
 (** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
     higher-order abstract syntax*)
@@ -122,7 +118,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * typ Pos.marked list
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder[@opaque]) Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
@@ -130,6 +126,7 @@ type expr =
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
 [@@deriving show]
+
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
@@ -148,6 +145,7 @@ type scope_let_kind =
   | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let _ = assert e]*)
+[@@deriving show]
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
@@ -183,6 +181,9 @@ module Var : sig
 end
 
 module VarMap : Map.S with type key = Var.t
+
+val fv : expr Pos.marked -> unit VarMap.t
+val free_vars: expr Pos.marked -> Var.t list
 
 type vars = expr Bindlib.mvar
 

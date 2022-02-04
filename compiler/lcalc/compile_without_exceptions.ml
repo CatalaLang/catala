@@ -19,7 +19,7 @@ type cuts = D.expr Pos.marked A.VarMap.t
 
 
 let pp_var (fmt: Format.formatter)  (n: _ Bindlib.var) =
-  Format.fprintf fmt "%s_%d" (Bindlib.name_of n) (Bindlib.uid_of n)
+  Format.fprintf fmt "%s_%d" (Bindlib.name_of n) (Bindlib.hash_var n)
 
 (**
   information about the Dcalc variable : what is the corresponding LCalc variable; an expression build correctly using Bindlib, and a boolean indicating whenever the variable should be matched (false) or not (true). *)
@@ -31,7 +31,6 @@ type info = {
 
 (** information context about variables in the current scope *)
 type ctx = info D.VarMap.t  
-
 
 let pp_info (fmt: Format.formatter) (info: info) =
   Format.fprintf fmt "{var: %a; is_pure: %b}" pp_var info.var info.is_pure
@@ -328,20 +327,45 @@ type scope_lets =
       scope_let_pos: Pos.t;
     }
 
+let union = D.VarMap.union (fun _ _ _ -> Some ())
+let rec fv_scope_lets scope_lets =
+  match scope_lets with
+  | Result e -> D.fv e
+  | ScopeLet {scope_let_expr=e; scope_let_next=next; _} ->
+    let v, body = Bindlib.unbind next in
+    union (D.fv e) (D.VarMap.remove v (fv_scope_lets body))
+
+
 type scope_body = {
   scope_body_input_struct: D.StructName.t;
   scope_body_output_struct: D.StructName.t;
   scope_body_result: (D.expr, scope_lets) Bindlib.binder;
 }
-    
+
+let fv_scope_body {scope_body_result=binder; _} =
+  let v, body = Bindlib.unbind binder in
+  D.VarMap.remove v (fv_scope_lets body)
+
+let free_vars_scope_body scope_body = 
+  fv_scope_body scope_body
+  |> D.VarMap.bindings
+  |> List.map fst
 
 let translate_and_bind_lets
   (acc: scope_lets Bindlib.box)
   (scope_let: D.scope_let): scope_lets Bindlib.box =
 
   let pos = snd scope_let.D.scope_let_var in
+
+  Cli.debug_print @@ Format.asprintf "binding let %a. Variable occurs = %b"
+    pp_var (fst scope_let.D.scope_let_var)
+    (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
+  
+  let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
   Bindlib.box_apply2 (
     fun expr binder->
+
+      Cli.debug_print @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list pp_var) (D.free_vars expr);
       ScopeLet {
         scope_let_kind=scope_let.D.scope_let_kind;
         scope_let_typ=scope_let.D.scope_let_typ;
@@ -350,26 +374,31 @@ let translate_and_bind_lets
         scope_let_pos=pos;
           
       }
-  ) scope_let.D.scope_let_expr (Bindlib.bind_var (fst scope_let.D.scope_let_var) acc)
+  ) scope_let.D.scope_let_expr binder
 
 
 let translate_and_bind (body: D.scope_body) : scope_body Bindlib.box =
 
-  let body_result = ListLabels.fold_left body.D.scope_body_lets
+  let body_result = ListLabels.fold_right body.D.scope_body_lets
     ~init:(Bindlib.box_apply (fun e -> Result e) body.D.scope_body_result)
-    ~f:translate_and_bind_lets
+    ~f:(Fun.flip translate_and_bind_lets)
   in
 
+  Cli.debug_print @@ Format.asprintf "binding arg %a" pp_var body.D.scope_body_arg;
   let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
 
-
+  Cli.debug_print @@ Format.asprintf "isfinal term is closed: %b" (Bindlib.is_closed scope_body_result);
   Bindlib.box_apply (fun scope_body_result ->
+    Cli.debug_print @@ Format.asprintf "rank of the final term: %i" (Bindlib.binder_rank scope_body_result);
     {
       scope_body_output_struct=body.D.scope_body_output_struct;
       scope_body_input_struct=body.D.scope_body_input_struct;
       scope_body_result=scope_body_result;
     }
   ) scope_body_result
+
+
+  
 
 let rec translate_scope_let (ctx: ctx) (lets: scope_lets) =
   match lets with
@@ -392,6 +421,7 @@ let rec translate_scope_let (ctx: ctx) (lets: scope_lets) =
       | Assertion -> true
     in
     let var, next = Bindlib.unbind next in
+    Cli.debug_print @@ Format.asprintf "unbinding %a" pp_var var;
     let ctx' = add_var pos var var_is_pure ctx in
     let new_var = (find ~info:"variable that was just created" var ctx').var in
     A.make_let_in new_var typ
@@ -436,6 +466,9 @@ let translate_program (prgm: D.program) : A.program =
       ~f:(fun ((acc, ctx) : _ * info D.VarMap.t) (scope_name, n, scope_body) ->
 
         let scope_body = Bindlib.unbox (translate_and_bind scope_body) in
+
+        Cli.debug_print @@ Format.asprintf "global free variable : %a"
+          (Format.pp_print_list pp_var) (free_vars_scope_body scope_body);
         let new_ctx = add_var Pos.no_pos n true ctx in
 
         let new_n = find ~info:"variable that was just created" n new_ctx in

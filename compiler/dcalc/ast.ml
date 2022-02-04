@@ -32,8 +32,7 @@ module EnumConstructor : Uid.Id with type info = Uid.MarkedString.info =
 
 module EnumMap : Map.S with type key = EnumName.t = Map.Make (EnumName)
 
-type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
-[@@ deriving show]
+type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration [@@deriving show]
 
 type struct_name = StructName.t
 
@@ -41,12 +40,12 @@ type enum_name = EnumName.t
 
 type typ =
   | TLit of typ_lit
-  | TTuple of typ Pos.marked list * (struct_name [@opaque]) option
-  | TEnum of typ Pos.marked list * (enum_name [@opaque])
+  | TTuple of typ Pos.marked list * (struct_name[@opaque]) option
+  | TEnum of typ Pos.marked list * (enum_name[@opaque])
   | TArrow of typ Pos.marked * typ Pos.marked
   | TArray of typ Pos.marked
   | TAny
-[@@ deriving show]
+[@@deriving show]
 
 type date = Runtime.date
 
@@ -68,12 +67,9 @@ type lit =
   | LDate of date
   | LDuration of duration
 
+type op_kind = KInt | KRat | KMoney | KDate | KDuration [@@deriving show]
 
-type op_kind = KInt | KRat | KMoney | KDate | KDuration
-[@@ deriving show]
-
-type ternop = Fold
-[@@ deriving show]
+type ternop = Fold [@@deriving show]
 
 type binop =
   | And
@@ -92,41 +88,39 @@ type binop =
   | Map
   | Concat
   | Filter
-[@@ deriving show]
+[@@deriving show]
 
-type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
-[@@ deriving show]
+type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool [@@deriving show]
 
 type unop =
   | Not
   | Minus of op_kind
-  | Log of log_entry * (Utils.Uid.MarkedString.info list [@opaque])
+  | Log of log_entry * (Utils.Uid.MarkedString.info list[@opaque])
   | Length
   | IntToRat
   | GetDay
   | GetMonth
   | GetYear
-[@@ deriving show]
+[@@deriving show]
 
-type operator = Ternop of ternop | Binop of binop | Unop of unop
-[@@ deriving show]
+type operator = Ternop of ternop | Binop of binop | Unop of unop [@@deriving show]
 
 type expr =
-  | EVar of (expr Bindlib.var [@opaque]) Pos.marked
-  | ETuple of expr Pos.marked list * (struct_name [@opaque]) option
-  | ETupleAccess of expr Pos.marked * int * (struct_name [@opaque]) option * typ Pos.marked list
-  | EInj of expr Pos.marked * int * (enum_name [@opaque]) * typ Pos.marked list
-  | EMatch of expr Pos.marked * expr Pos.marked list * (enum_name [@opaque])
+  | EVar of (expr Bindlib.var[@opaque]) Pos.marked
+  | ETuple of expr Pos.marked list * (struct_name[@opaque]) option
+  | ETupleAccess of expr Pos.marked * int * (struct_name[@opaque]) option * typ Pos.marked list
+  | EInj of expr Pos.marked * int * (enum_name[@opaque]) * typ Pos.marked list
+  | EMatch of expr Pos.marked * expr Pos.marked list * (enum_name[@opaque])
   | EArray of expr Pos.marked list
-  | ELit of (lit [@opaque])
-  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder [@opaque]) Pos.marked * typ Pos.marked list
+  | ELit of (lit[@opaque])
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder[@opaque]) Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
   | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
   | ErrorOnEmpty of expr Pos.marked
-[@@ deriving show]
+[@@deriving show]
 
 type struct_ctx = (StructFieldName.t * typ Pos.marked) list StructMap.t
 
@@ -143,6 +137,7 @@ type scope_let_kind =
   | CallingSubScope
   | DestructuringSubScopeResults
   | Assertion
+[@@deriving show]
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
@@ -154,7 +149,9 @@ type scope_let = {
 type scope_body = {
   scope_body_lets : scope_let list;
   scope_body_result : expr Pos.marked Bindlib.box;
+  (* {x1 = x1; x2 = x2; x3 = x3; ... } *)
   scope_body_arg : expr Bindlib.var;
+  (* x: input_struct *)
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
 }
@@ -174,6 +171,39 @@ end
 
 module VarMap = Map.Make (Var)
 
+
+let union = VarMap.union (fun _ _ _ -> Some ())
+let rec fv e =
+  match Pos.unmark e with
+  | EVar (v, _) -> VarMap.singleton v ()
+  | ETuple(es, _) | EArray (es) ->
+    es |> List.map fv |> List.fold_left union VarMap.empty
+  | ETupleAccess(e1, _, _, _)
+  | EAssert e1
+  | ErrorOnEmpty e1
+  | EInj (e1, _, _, _) ->
+    fv e1
+  | EApp (e1, es)
+  | EMatch(e1, es, _) -> 
+    e1::es |> List.map fv |> List.fold_left union VarMap.empty
+  | EDefault(es, ejust, econs) ->
+    ejust::econs::es |> List.map fv |> List.fold_left union VarMap.empty
+  | EOp _
+  | ELit _ -> VarMap.empty
+
+  | EIfThenElse(e1, e2, e3) ->
+    [e1; e2; e3] |> List.map fv |> List.fold_left union VarMap.empty
+  | EAbs ((binder, _), _) ->
+    let vs, body = Bindlib.unmbind binder in
+    Array.fold_right VarMap.remove vs (fv body)
+
+let free_vars e = (fv e)
+|> VarMap.bindings
+|> List.map fst
+  
+  
+  
+
 type vars = expr Bindlib.mvar
 
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
@@ -191,7 +221,7 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
-let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
+let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t): expr Pos.marked Bindlib.box =
   let body_expr =
     List.fold_right
       (fun scope_let acc ->
