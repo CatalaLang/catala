@@ -25,22 +25,18 @@ module A = Ast
 type cuts = D.expr Pos.marked A.VarMap.t
 (** cuts *)
 
-let pp_var (fmt : Format.formatter) (n : _ Bindlib.var) =
-  Format.fprintf fmt "%s_%d" (Bindlib.name_of n) (Bindlib.hash_var n)
-
 type info = { expr : A.expr Pos.marked Bindlib.box; var : A.expr Bindlib.var; is_pure : bool }
 (** information about the Dcalc variable : what is the corresponding LCalc variable; an expression
-    build correctly using Bindlib, and a boolean indicating whenever the variable should be matched
-    (false) or not (true). *)
+    build correctly using Bindlib, and a boolean `is_pure` indicating whenever the variable can be an EmptyError and hence should be matched (false) or if it never can be EmptyError (true). *)
 
 type ctx = info D.VarMap.t
 (** information context about variables in the current scope *)
 
 let pp_info (fmt : Format.formatter) (info : info) =
-  Format.fprintf fmt "{var: %a; is_pure: %b}" pp_var info.var info.is_pure
+  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.format_var info.var info.is_pure
 
 let pp_binding (fmt : Format.formatter) ((v, info) : D.Var.t * info) =
-  Format.fprintf fmt "%a:%a" pp_var v pp_info info
+  Format.fprintf fmt "%a:%a" Dcalc.Print.format_var v pp_info info
 
 let pp_ctx (fmt : Format.formatter) (ctx : ctx) =
   let pp_bindings =
@@ -48,25 +44,29 @@ let pp_ctx (fmt : Format.formatter) (ctx : ctx) =
   in
   Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (D.VarMap.bindings ctx)
 
-let find ?(info = "none") n ctx =
+(** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a slightly better way. *)
+let find ?(info: string = "none") (n: D.Var.t) (ctx: ctx) : info =
   let _ =
-    Format.asprintf "Searching for variable %a inside context %a" pp_var n pp_ctx ctx
+    Format.asprintf "Searching for variable %a inside context %a"
+      Dcalc.Print.format_var n pp_ctx ctx
     |> Cli.debug_print
   in
   try D.VarMap.find n ctx
   with Not_found ->
     Errors.raise_spanned_error
-      (Format.sprintf
-         "Internal Error: Variable %s_%d was not found in the current environment. Additional \
+      (Format.asprintf
+         "Internal Error: Variable %a was not found in the current environment. Additional \
           informations : %s."
-         (Bindlib.name_of n) (Bindlib.uid_of n) info)
+         Dcalc.Print.format_var n info)
       Pos.no_pos
 
-let add_var pos var is_pure ctx =
+let add_var (pos: Pos.t) (var: D.Var.t) (is_pure: bool) (ctx: ctx) : ctx =
   let new_var = A.Var.make (Bindlib.name_of var, pos) in
   let expr = A.make_var (new_var, pos) in
 
-  Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" pp_var var pp_var new_var;
+  Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a"
+    Dcalc.Print.format_var var
+    Print.format_var new_var;
 
   D.VarMap.update var (fun _ -> Some { expr; var = new_var; is_pure }) ctx
 
@@ -106,13 +106,13 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
   match Pos.unmark e with
   (* empty-producing/using terms. We cut those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
   | D.EVar v ->
-      (* todo: for now, we requires there is unpure variables. This can change if the said variable are always present in the tree as thunked. *)
+      (* todo: for now, every unpure (such that [is_pure] is [false] in the current context) is thunked, hence matched in the next case. This assumption can change in the future, and this case is here for this reason. *)
       let v, pos_v = v in
       if not (find ~info:"search for a variable" v ctx).is_pure then begin
         let v' = A.Var.make (Bindlib.name_of v, pos_v) in
         Cli.debug_print
-        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" pp_var
-             v pp_var v';
+        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" Dcalc.Print.format_var
+             v Print.format_var v';
         (A.make_var (v', pos), A.VarMap.singleton v' e)
       end
       else ((find ~info:"should never happend" v ctx).expr, A.VarMap.empty)
@@ -120,8 +120,8 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
       if not (find ~info:"search for a variable" v ctx).is_pure then begin
         let v' = A.Var.make (Bindlib.name_of v, pos_v) in
         Cli.debug_print
-        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" pp_var
-             v pp_var v';
+        @@ Format.asprintf "Found an unpure variable %a, created a variable %a to replace it" Dcalc.Print.format_var
+             v Print.format_var v';
         (A.make_var (v', pos), A.VarMap.singleton v' (D.EVar (v, pos_v), p))
       end
       else
@@ -149,7 +149,7 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
 
       let arg' = translate_expr ctx arg in
 
-      ( A.make_matchopt_dumb arg'
+      ( A.make_matchopt_with_abs_arms arg'
           (A.make_abs [| silent_var |]
              (Bindlib.box (A.ERaise A.NoValueProvided, pos))
              pos [ (D.TAny, pos) ] pos)
@@ -244,12 +244,12 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
 
   (* build the cuts *)
   Cli.debug_print
-  @@ Format.asprintf "cut for the expression: [%a]" (Format.pp_print_list pp_var) (List.map fst cs);
+  @@ Format.asprintf "cut for the expression: [%a]" (Format.pp_print_list Print.format_var) (List.map fst cs);
 
   ListLabels.fold_left cs
     ~init:(if append_esome then A.make_some e' else e')
     ~f:(fun acc (v, (c, pos_c)) ->
-      Cli.debug_print @@ Format.asprintf "cut using A.%a" pp_var v;
+      Cli.debug_print @@ Format.asprintf "cut using A.%a" Print.format_var v;
 
       let c' : A.expr Pos.marked Bindlib.box =
         match c with
@@ -280,7 +280,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
             let silent_var = A.Var.make ("_", pos_c) in
             let x = A.Var.make ("assertion_argument", pos_c) in
 
-            A.make_matchopt_dumb arg'
+            A.make_matchopt_with_abs_arms arg'
               (A.make_abs [| silent_var |]
                  (Bindlib.box (A.ERaise A.NoValueProvided, pos_c))
                  pos_c [ (D.TAny, pos_c) ] pos_c)
@@ -298,7 +298,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
            | Some {{ v }} -> {{ acc }}
            end
          ] *)
-      Cli.debug_print @@ Format.asprintf "build matchopt using %a" pp_var v;
+      Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.format_var v;
       A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc)
 
 type scope_lets =
@@ -337,14 +337,14 @@ let translate_and_bind_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_
   let pos = snd scope_let.D.scope_let_var in
 
   Cli.debug_print
-  @@ Format.asprintf "binding let %a. Variable occurs = %b" pp_var (fst scope_let.D.scope_let_var)
+  @@ Format.asprintf "binding let %a. Variable occurs = %b" Dcalc.Print.format_var (fst scope_let.D.scope_let_var)
        (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
 
   let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
   Bindlib.box_apply2
     (fun expr binder ->
       Cli.debug_print
-      @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list pp_var)
+      @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list Dcalc.Print.format_var)
            (D.free_vars expr);
       ScopeLet
         {
@@ -363,7 +363,7 @@ let translate_and_bind (body : D.scope_body) : scope_body Bindlib.box =
       ~f:(Fun.flip translate_and_bind_lets)
   in
 
-  Cli.debug_print @@ Format.asprintf "binding arg %a" pp_var body.D.scope_body_arg;
+  Cli.debug_print @@ Format.asprintf "binding arg %a" Dcalc.Print.format_var body.D.scope_body_arg;
   let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
 
   Cli.debug_print
@@ -398,7 +398,7 @@ let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
             true
       in
       let var, next = Bindlib.unbind next in
-      Cli.debug_print @@ Format.asprintf "unbinding %a" pp_var var;
+      Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var var;
       let ctx' = add_var pos var var_is_pure ctx in
       let new_var = (find ~info:"variable that was just created" var ctx').var in
       A.make_let_in new_var typ
@@ -435,7 +435,7 @@ let translate_program (prgm : D.program) : A.program =
            let scope_body = Bindlib.unbox (translate_and_bind scope_body) in
 
            Cli.debug_print
-           @@ Format.asprintf "global free variable : %a" (Format.pp_print_list pp_var)
+           @@ Format.asprintf "global free variable : %a" (Format.pp_print_list Dcalc.Print.format_var)
                 (free_vars_scope_body scope_body);
            let new_ctx = add_var Pos.no_pos n true ctx in
 
