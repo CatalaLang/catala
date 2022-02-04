@@ -96,6 +96,6 @@ module type LocalisedLexer = sig
   (** Main lexing function used outside code blocks *)
 
   val lexer : Sedlexing.lexbuf -> Tokens.token
-  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of
-      {!val: Surface.Lexer_common.is_code}. *)
+  (** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law} depending of the
+      current {!val: Surface.Lexer_common.context}. *)
 end

@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , fetchFromGitHub
 , buildDunePackage
 , ansiterminal
@@ -19,6 +20,7 @@
 , camomile
 , cppo
 , ppx_deriving
+, z3
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -49,6 +51,9 @@ buildDunePackage rec {
     js_of_ocaml-ppx
     camomile
     cppo
+    z3
+
+    pkgs.z3
 
     ppx_deriving
 

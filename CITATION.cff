@@ -21,6 +21,15 @@ authors:
   - given-names: Emile
     family-names: Rolley
     affiliation: Université Paris-Diderot
+  - given-names: Louis
+    family-names: Gesbert
+    affiliation: OCamlPro
+  - given-names: Aymeric
+    family-names: Fromherz
+    affiliation: Inria
+  - given-names: Alain
+    family-names: Delaët-Tixeuil
+    affiliation: Inria/ENS Lyon
 repository-code: 'https://github.com/CatalaLang/catala'
 url: 'https://catala-lang.org/'
 abstract: >-

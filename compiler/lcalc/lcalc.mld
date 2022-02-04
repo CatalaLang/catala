@@ -14,20 +14,20 @@ presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
 
 {1 Compilation from default calculus }
 
-Related modules:
-
-{!modules: Lcalc.Compile_with_exceptions}
-
 {!module: Lcalc.Compile_with_exceptions} compiles the default term of the
 default calculus using catchable exceptions. This compilation scheme has been
 certified.
 
-{1 Backends}
-
 Related modules:
 
-{!modules: Lcalc.To_ocaml Lcalc.To_python Lcalc.Backends}
+{!modules: Lcalc.Compile_with_exceptions}
+
+{1 Backends}
 
 The OCaml backend of the lambda calculus is merely a syntactic formatting,
 since the core of the OCaml value language is effectively a lambda calculus.
+
+Related modules:
+
+{!modules: Lcalc.To_ocaml Scalc.To_python Lcalc.Backends}
 

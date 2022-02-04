@@ -34,23 +34,32 @@ let trace_flag = ref false
 
 let optimize_flag = ref false
 
+let disable_counterexamples = ref false
+
 open Cmdliner
 
 let file =
   Arg.(
     required
     & pos 1 (some file) None
-    & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled")
+    & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled.")
 
-let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
+let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information.")
 
-let unstyled = Arg.(value & flag & info [ "unstyled" ] ~doc:"Removes styling from terminal output")
+let unstyled =
+  Arg.(
+    value & flag
+    & info [ "unstyled"; "u" ] ~doc:"Removes styling (colors, etc.) from terminal output.")
 
-let optimize = Arg.(value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations")
+let optimize = Arg.(value & flag & info [ "optimize"; "O" ] ~doc:"Run compiler optimizations.")
 
 let trace_opt =
   Arg.(
-    value & flag & info [ "trace"; "t" ] ~doc:"Displays a trace of the interpreter's computation")
+    value & flag
+    & info [ "trace"; "t" ]
+        ~doc:
+          "Displays a trace of the interpreter's computation or generates logging instructions in \
+           translate programs.")
 
 let avoid_exceptions =
   Arg.(
@@ -60,47 +69,68 @@ let avoid_exceptions =
 let wrap_weaved_output =
   Arg.(
     value & flag
-    & info [ "wrap"; "w" ] ~doc:"Wraps literate programming output with a minimal preamble")
+    & info [ "wrap"; "w" ] ~doc:"Wraps literate programming output with a minimal preamble.")
 
 let backend =
   Arg.(
     required
     & pos 0 (some string) None
-    & info [] ~docv:"BACKEND"
-        ~doc:
-          "Backend selection among: Interpret, OCaml, Python, LaTeX, Makefile, Html, Dcalc, \
-           Scopelang")
+    & info [] ~docv:"COMMAND"
+        ~doc:"Backend selection (see the list of commands for available options).")
 
-type backend_option = Latex | Makefile | Html | Run | OCaml | Python | Dcalc | Scopelang
+type backend_option =
+  | Latex
+  | Makefile
+  | Html
+  | Interpret
+  | Typecheck
+  | OCaml
+  | Python
+  | Dcalc
+  | Scopelang
+  | Proof
 
 let language =
   Arg.(
     value
     & opt (some string) None
-    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr, pl")
+    & info [ "l"; "language" ] ~docv:"LANG" ~doc:"Input language among: en, fr, pl.")
 
 let max_prec_digits_opt =
   Arg.(
     value
     & opt (some int) None
-    & info [ "p"; "max_digits_printed" ] ~docv:"LANG"
-        ~doc:"Maximum number of significant digits printed for decimal results (default 20)")
+    & info [ "p"; "max_digits_printed" ] ~docv:"DIGITS"
+        ~doc:"Maximum number of significant digits printed for decimal results (default 20).")
+
+let disable_counterexamples_opt =
+  Arg.(
+    value & flag
+    & info [ "disable_counterexamples" ]
+        ~doc:
+          "Disables the search for counterexamples in proof mode. Useful when you want a \
+           deterministic output from the Catala compiler, since provers can have some randomness \
+           in them.")
 
 let ex_scope =
   Arg.(
-    value & opt (some string) None & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be executed")
+    value
+    & opt (some string) None
+    & info [ "s"; "scope" ] ~docv:"SCOPE" ~doc:"Scope to be focused on.")
 
 let output =
   Arg.(
     value
     & opt (some string) None
     & info [ "output"; "o" ] ~docv:"OUTPUT"
-        ~doc:"$(i, OUTPUT) is the file that will contain the output of the compiler")
+        ~doc:
+          "$(i, OUTPUT) is the file that will contain the output of the compiler. Defaults to \
+           $(i,FILE).$(i,EXT) where $(i,EXT) depends on the chosen backend.")
 
 let catala_t f =
   Term.(
     const f $ file $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions $ backend $ language
-    $ max_prec_digits_opt $ trace_opt $ optimize $ ex_scope $ output)
+    $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
 
 let version = "0.5.0"
 
@@ -114,12 +144,42 @@ let info =
       `P
         "Catala is a domain-specific language for deriving faithful-by-construction algorithms \
          from legislative texts.";
+      `S Manpage.s_commands;
+      `I
+        ( "$(b,Intepret)",
+          "Runs the interpreter on the Catala program, executing the scope specified by the \
+           $(b,-s) option assuming no additional external inputs." );
+      `I ("$(b,Typecheck)", "Parses and typechecks a Catala program, without interpreting it.");
+      `I
+        ( "$(b,Proof)",
+          "Generates and proves verification conditions about the well-behaved execution of the \
+           Catala program." );
+      `I ("$(b,OCaml)", "Generates an OCaml translation of the Catala program.");
+      `I ("$(b,Python)", "Generates a Python translation of the Catala program.");
+      `I ("$(b,LaTeX)", "Weaves a LaTeX literate programming output of the Catala program.");
+      `I ("$(b,HTML)", "Weaves an HTML literate programming output of the Catala program.");
+      `I
+        ( "$(b,Makefile)",
+          "Generates a Makefile-compatible list of the file dependencies of a Catala program." );
+      `I
+        ( "$(b,Scopelang)",
+          "Prints a debugging verbatim of the scope language intermediate representation of the \
+           Catala program. Use the $(b,-s) option to restrict the output to a particular scope." );
+      `I
+        ( "$(b,Dcalc)",
+          "Prints a debugging verbatim of the scope language intermediate representation of the \
+           Catala program. Use the $(b,-s) option to restrict the output to a particular scope." );
       `S Manpage.s_authors;
-      `P "Denis Merigoux <denis.merigoux@inria.fr>";
+      `P "The authors are listed by alphabetical order.";
       `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
+      `P "Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>";
+      `P "Aymeric Fromherz <aymeric.fromherz@inria.fr>";
+      `P "Louis Gesbert <louis.gesbert@ocamlpro.com>";
+      `P "Denis Merigoux <denis.merigoux@inria.fr>";
+      `P "Emile Rolley <erolley@tutamail.com>";
       `S Manpage.s_examples;
-      `P "Typical usage:";
-      `Pre "catala LaTeX file.catala";
+      `Pre "catala Interpret -s Foo file.catala_en";
+      `Pre "catala Ocaml -o target/file.ml file.catala_en";
       `S Manpage.s_bugs;
       `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
@@ -135,6 +195,11 @@ let time : float ref = ref (Unix.gettimeofday ())
 
 let print_with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
+
+let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
+  if !style_flag then
+    Format.pp_print_as fmt (String.length str) (ANSITerminal.sprintf styles "%s" str)
+  else Format.pp_print_string fmt str
 
 let time_marker () =
   let new_time = Unix.gettimeofday () in

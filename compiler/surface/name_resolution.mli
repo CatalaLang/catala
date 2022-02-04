@@ -23,12 +23,17 @@ type ident = string
 
 type typ = Scopelang.Ast.typ
 
-type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t
+type unique_rulename = Ambiguous of Pos.t list | Unique of Desugared.Ast.RuleName.t Pos.marked
+
+type scope_def_context = {
+  default_exception_rulename : unique_rulename option;
+  label_idmap : Desugared.Ast.LabelName.t Desugared.Ast.IdentMap.t;
+  label_groups : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t;
+}
 
 type scope_context = {
   var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
-  label_idmap : Desugared.Ast.RuleName.t Desugared.Ast.IdentMap.t;
-  default_rulemap : unique_rulename Desugared.Ast.ScopeDefMap.t;
+  scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
       (** Sub-scopes variables *)
@@ -97,6 +102,12 @@ val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Pos.marked
 (** Retrieves the type of a scope definition from the context *)
 
 val is_def_cond : context -> Desugared.Ast.ScopeDef.t -> bool
+
+val label_groups :
+  context ->
+  Scopelang.Ast.ScopeName.t ->
+  Desugared.Ast.ScopeDef.t ->
+  Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t
 
 val is_type_cond : Ast.typ Pos.marked -> bool
 

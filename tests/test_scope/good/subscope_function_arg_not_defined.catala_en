@@ -1,0 +1,18 @@
+## Article
+
+```catala
+declaration scope Callee:
+  context input content integer depends on boolean
+  context output content integer
+
+declaration scope Caller:
+  context sub scope Callee
+  context y content integer
+
+scope Callee:
+  definition input of b equals if b then 0 else 1
+  definition output equals input of true + 1
+
+scope Caller:
+  definition y equals sub.output
+```

@@ -5,6 +5,8 @@ to locate your own Catala programs in this directory, since programs in this
 directory will receive first-class support during the alpha and beta stage
 of the Catala programming language development.
 
+<strong>[Browse examples online »](https://catala-lang.org/en/examples)</strong>
+
 ## List of examples
 
 - `allocations_familiales/`: computation of the French family benefits, based
@@ -42,6 +44,8 @@ file `examples/foo/foo.catala_en`) list.
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
 
+> **Remark**: don't forget to run `make pygments` before generating LaTex or PDF files.
+
 ## Testing examples
 
 Unit testing is important, and we encourage Catala developers to write lots
@@ -52,10 +56,10 @@ In order to enjoy the benefits of this system, you have to create a `tests/`
 directory in your examples directory, for instance `examples/foo/tests`. Then,
 create a test file `foo_tests.catala_en` inside that directory.
 
-Inside `foo_tests.catala_en`, declare one ore more test scopes. It is assumed
-that all these scopes should execute correctly. Include the program scope you
-want to test and use assertions to provide the expected values of your test.
-See existing tests in examples directory for more information.
+Inside `foo_tests.catala_en`, declare one ore more test scopes. Then, you can
+provide the expected output for the interpretation of these scopes or the
+compilation of the whole program using the standard expected by `clerk test`:
+enter `make help_clerk` from the root of the Catala repository to know more.
 
 Once your tests are written, then will automatically be added to the regression
 suite executed using
@@ -64,7 +68,7 @@ suite executed using
 
 You can isolate a part of the regression suite by invoking:
 
-    TEST_FILES=foo/tests/foo_tests.catala_en make -C examples tests
+    make -C examples foo/tests/foo_tests.catala_en
 
 ## Adding an example
 

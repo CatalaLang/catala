@@ -192,15 +192,13 @@ let rec format_expression (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e
   | EVar v -> format_var fmt v
   | EFunc f -> format_toplevel_name fmt f
   | EStruct (es, s) ->
-      if List.length es = 0 then failwith "should not happen"
-      else
-        Format.fprintf fmt "%a(%a)" format_struct_name s
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-             (fun fmt (e, struct_field) ->
-               Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
-                 (format_expression ctx) e))
-          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+      Format.fprintf fmt "%a(%a)" format_struct_name s
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun fmt (e, struct_field) ->
+             Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
+               (format_expression ctx) e))
+        (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
       Format.fprintf fmt "%a.%a" (format_expression ctx) e1 format_struct_field_name field
   | EInj (e, cons, enum_name) ->
@@ -299,52 +297,52 @@ and format_block (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (b : block)
 let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
-    if List.length struct_fields = 0 then failwith "no fields in the struct"
-    else
-      Format.fprintf fmt
-        "class %a:@\n\
-         \tdef __init__(self, %a) -> None:@\n\
-         %a@\n\
-         @\n\
-         \tdef __eq__(self, other: object) -> bool:@\n\
-         \t\tif isinstance(other, %a):@\n\
-         \t\t\treturn @[<hov>(%a)@]@\n\
-         \t\telse:@\n\
-         \t\t\treturn False@\n\
-         @\n\
-         \tdef __ne__(self, other: object) -> bool:@\n\
-         \t\treturn not (self == other)@\n\
-         @\n\
-         \tdef __str__(self) -> str:@\n\
-         \t\t@[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name struct_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-           (fun _fmt (struct_field, struct_field_type) ->
-             Format.fprintf fmt "%a: %a" format_struct_field_name struct_field format_typ
-               struct_field_type))
-        struct_fields
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun _fmt (struct_field, _) ->
-             Format.fprintf fmt "\t\tself.%a = %a" format_struct_field_name struct_field
-               format_struct_field_name struct_field))
-        struct_fields format_struct_name struct_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-           (fun _fmt (struct_field, _) ->
-             Format.fprintf fmt "self.%a == other.%a" format_struct_field_name struct_field
-               format_struct_field_name struct_field))
-        struct_fields format_struct_name struct_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-           (fun _fmt (struct_field, _) ->
-             Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
-        struct_fields
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun _fmt (struct_field, _) ->
-             Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
-        struct_fields
+    Format.fprintf fmt
+      "class %a:@\n\
+       \tdef __init__(self, %a) -> None:@\n\
+       %a@\n\
+       @\n\
+       \tdef __eq__(self, other: object) -> bool:@\n\
+       \t\tif isinstance(other, %a):@\n\
+       \t\t\treturn @[<hov>(%a)@]@\n\
+       \t\telse:@\n\
+       \t\t\treturn False@\n\
+       @\n\
+       \tdef __ne__(self, other: object) -> bool:@\n\
+       \t\treturn not (self == other)@\n\
+       @\n\
+       \tdef __str__(self) -> str:@\n\
+       \t\t@[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         (fun _fmt (struct_field, struct_field_type) ->
+           Format.fprintf fmt "%a: %a" format_struct_field_name struct_field format_typ
+             struct_field_type))
+      struct_fields
+      (if List.length struct_fields = 0 then fun fmt _ -> Format.fprintf fmt "\t\tpass"
+      else
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+          (fun _fmt (struct_field, _) ->
+            Format.fprintf fmt "\t\tself.%a = %a" format_struct_field_name struct_field
+              format_struct_field_name struct_field))
+      struct_fields format_struct_name struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
+         (fun _fmt (struct_field, _) ->
+           Format.fprintf fmt "self.%a == other.%a" format_struct_field_name struct_field
+             format_struct_field_name struct_field))
+      struct_fields format_struct_name struct_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
+         (fun _fmt (struct_field, _) ->
+           Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
+      struct_fields
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun _fmt (struct_field, _) ->
+           Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
+      struct_fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if List.length enum_cons = 0 then failwith "no constructors in the enum"

@@ -1,0 +1,21 @@
+let
+  TestBool_7 :
+    TestBool_in {unit → bool ; unit → integer} → TestBool_out {bool ;
+      integer} =
+  λ (TestBool_in_8: TestBool_in {unit → bool ; unit → integer}) →
+    let foo_9 : unit → bool = TestBool_in_8."foo_in"
+    in
+    let bar_10 : unit → integer = TestBool_in_8."bar_in"
+    in
+    let bar_11 : integer = error_empty
+      ⟨bar_10 () | true ⊢
+        ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
+          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    in
+    let foo_12 : bool = error_empty
+      ⟨foo_9 () | true ⊢
+        ⟨⟨true ⊢ ⟨⟨bar_11 < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
+          ⟨true ⊢ ⟨⟨bar_11 >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
+          true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    in
+    TestBool_out {"foo_out": foo_12, "bar_out": bar_11}

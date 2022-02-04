@@ -84,6 +84,9 @@
 #define MS_DAY "day"
 #define MS_TRUE "true"
 #define MS_FALSE "false"
+#define MS_INPUT "input"
+#define MS_OUTPUT "output"
+#define MS_INTERNAL "internal"
 
 (* Specific delimiters *)
 

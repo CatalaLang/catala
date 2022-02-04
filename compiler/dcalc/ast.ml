@@ -203,8 +203,18 @@ let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib
     (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
-let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) :
-    expr Pos.marked Bindlib.box =
+let empty_thunked_term : expr Pos.marked =
+  let silent = Var.make ("_", Pos.no_pos) in
+  Bindlib.unbox
+    (make_abs
+       (Array.of_list [ silent ])
+       (Bindlib.box (ELit LEmptyError, Pos.no_pos))
+       Pos.no_pos [ (TLit TUnit, Pos.no_pos) ] Pos.no_pos)
+
+let is_value (e : expr Pos.marked) : bool =
+  match Pos.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
+
+let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
   let body_expr =
     List.fold_right
       (fun scope_let acc ->
@@ -250,3 +260,30 @@ let build_whole_program_expr (p : program) (main_scope : ScopeName.t) =
         (build_whole_scope_expr p.decl_ctx scope_body pos)
         acc pos)
     p.scopes end_result
+
+let rec expr_size (e : expr Pos.marked) : int =
+  match Pos.unmark e with
+  | EVar _ | ELit _ | EOp _ -> 1
+  | ETuple (args, _) | EArray args -> List.fold_left (fun acc arg -> acc + expr_size arg) 1 args
+  | ETupleAccess (e1, _, _, _) | EInj (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 ->
+      expr_size e1 + 1
+  | EMatch (arg, args, _) | EApp (arg, args) ->
+      List.fold_left (fun acc arg -> acc + expr_size arg) (1 + expr_size arg) args
+  | EAbs ((binder, _), _) ->
+      let _, body = Bindlib.unmbind binder in
+      1 + expr_size body
+  | EIfThenElse (e1, e2, e3) -> 1 + expr_size e1 + expr_size e2 + expr_size e3
+  | EDefault (exceptions, just, cons) ->
+      List.fold_left
+        (fun acc except -> acc + expr_size except)
+        (1 + expr_size just + expr_size cons)
+        exceptions
+
+let variable_types (p : program) : typ Pos.marked VarMap.t =
+  List.fold_left
+    (fun acc (_, _, scope) ->
+      List.fold_left
+        (fun acc scope_let ->
+          VarMap.add (Pos.unmark scope_let.scope_let_var) scope_let.scope_let_typ acc)
+        acc scope.scope_body_lets)
+    VarMap.empty p.scopes

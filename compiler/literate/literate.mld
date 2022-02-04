@@ -1,9 +1,9 @@
 {0 Literate programming}
 
+These module take the {{:surface.html} surface representation} of the Catala
+program and process it into different literate programming outputs, like
+an HTML page or a LaTeX document.
+
 Related modules:
 
 {!modules: Literate.Html Literate.Latex}
-
-These module take the {{:surface.html} surface representation} of the Catala 
-program and process it into different literate programming outputs, like 
-an HTML page or a LaTeX document.

@@ -1,4 +1,4 @@
-## The Catala language tutorial
+# The Catala language tutorial
 
 Welcome to this tutorial, whose objective is to guide you through the features
 of the Catala language and teach you how to annotate a legislative text using
@@ -6,46 +6,73 @@ the language. This document is addressed primarily to developers or people that
 have a programming background, though tech-savvy lawyers will probably figure
 things out.
 
-### Literate programming
+```catala
+# Welcome to the code mode of Catala. This is a comment, because the line is
+# prefixed by #.
+
+# This tutorial does not cover the installation of Catala. For more
+# information about this, please refer the readme at:
+# https://github.com/CatalaLang/catala#building-and-installation
+
+# If you want to get started with your own Catala program to follow this
+# tutorial, simply create an empty file with the extension .catala_en
+# and start typing your program.
+
+# For a complete reference of the Catala syntax, see:
+# https://github.com/CatalaLang/catala/raw/master/doc/syntax/syntax.pdf
+
+# This tutorial itself is written as a Catala program and can be accessed at:
+# https://github.com/CatalaLang/catala/blob/master/examples/tutorial_en
+```
+
+## Literate programming
 
 To begin writing a Catala program, you must start from the text of the
 legislative source that will justify the code that you will write. Concretely,
 that means copy-pasting the text of the law into a Catala source file and
 formatting it according so that Catala can understand it. Catala source files
 have the ".catala_en" extension. If you were to write a Catala program for a
-French law, you would use the ".catala_fr" extension.
+French law, you would use the ".catala_fr" extension; for Polish law,
+"catala_pl", etc.
 
 You can write any kind of plain text in Catala, and it will be printed as is
-in PDF or HTML output. You can split your text into short lines, those
-will appear as a single paragraph in the output. If you want to create a
-new paragraph, you have to leave a blank line in the source.
+in PDF or HTML output. You can split your text into short lines of less than
+80 characters, terminal-style, and those will appear as a single paragraph
+in the output. If you want to create a new paragraph, you have to leave a blank
+line in the source. The syntax for non-code text in a Catala program follows
+a subset of Markdown that supports titles and Catala block codes.
 
 Catala allows you to declare section or subsection headers as it is done
 here, with the "#" symbol. You can define heading of lower
 importance by adding increasing numbers of "#" after the title of the heading.
+Generally, the literate programming syntax of Catala follows the syntax of
+Markdown (though it does not have all of its features).
 
-The fundamental division unit is the article, introduced by a single "#".
-Let's analyze a fictional example that defines an income tax.
+In the rest of this tutorial, we will analyze a fictional example that
+defines an income tax. This income tax is defined through several articles
+of law, each of them introduced by a header. Here is the first one:
 
-#### Article 1
+### Article 1
 
 The income tax for an individual is defined as a fixed percentage of the
 individual's income over a year.
 
 ```catala
-# Welcome to the code mode of Catala. This is a comment, because the line is
-# prefixed by #.
 # We will soon learn what to write here in order to translate the meaning
 # of the article into Catala code.
+
+# To create a block of Catala code in your file, bound it with Mardown-style
+# "```catala" and "```" delimiters.
 ```
 
-To do that, we will intertwine short snippets of code between the sentences of
+To translate that fictional income tax definition into a Catala program,
+we will intertwine short snippets of code between the sentences of
 the legislative text. Each snippet of code should be as short as possible and
 as close as possible to the actual sentence that justifies the code. This style
 is called literate programming, a programming paradigm invented by the famous
 computer scientist Donald Knuth in the 70s.
 
-### Defining a fictional income tax
+## Defining a fictional income tax
 
 The content of article 1 uses a lot of implicit context: there exists an
 individual with an income, as well as an income tax that the individual has
@@ -55,7 +82,9 @@ we have to explicit it for programming purposes. Concretely, we need a
 inside the law.
 
 Let's start our metadata section by declaring the type information for the
-individual:
+individual, the taxpayer that will be the subject of the tax computation.
+This individual has an income and a number of children, both pieces of
+information which will be needed for tax purposes :
 
 ```catala-metadata
 declaration structure Individual:
@@ -65,14 +94,14 @@ declaration structure Individual:
   # In this line, "income" is the name of the structure field and
   # "money" is the type of what is stored in that field.
   # Available types include: integer, decimal, money, date, duration,
-  # and any other structure or enumeration that you declare
+  # and any other structure or enumeration that you declare.
   data number_of_children content integer
   # "income" and "number_of_children" start by a lowercase letter,
-  # they follow the snake_case convention
+  # they follow the snake_case convention.
 ```
 
-This structure contains two data fields, "income" and "number_of_children". Structures are
-useful to group together data that goes together. Usually, you
+This structure contains two data fields, "income" and "number_of_children".
+Structures are useful to group together data that goes together. Usually, you
 get one structure per concrete object on which the law applies (like the
 individual). It is up to you to decide how to group the data together,
 but you should aim to optimize code readability.
@@ -82,15 +111,15 @@ enumerations are modeled in Catala using an enumeration type, like:
 
 ```catala-metadata
 declaration enumeration TaxCredit:
-# The name "TaxCredit" is also written in CamelCase
+# The name "TaxCredit" is also written in CamelCase.
 -- NoTaxCredit
-# This line says that "TaxCredit" can be a "NoTaxCredit" situation
+# This line says that "TaxCredit" can be a "NoTaxCredit" situation.
 -- ChildrenTaxCredit content integer
 # This line says that alternatively, "TaxCredit" can be a
 # "ChildrenTaxCredit" situation. This situation carries a content
 # of type integer corresponding to the number of children concerned
 # by the tax credit. This means that if you're in the "ChildrenTaxCredit"
-# situation, you will also have access to this number of children
+# situation, you will also have access to this number of children.
 ```
 
 In computer science terms, such an enumeration is called a "sum type" or simply
@@ -99,25 +128,32 @@ programmer to declare all possible shapes of data, as they are equivalent to
 the powerful notion of "algebraic data types".
 
 We've defined and typed the data that the program will manipulate. Now we have
-to define the logical context in which these data will evolve. This is done in
+to define the logical context in which this data will evolve. This is done in
 Catala using "scopes". Scopes are close to functions in terms of traditional
 programming. Scopes also have to be declared in metadata, so here we go:
 
 ```catala-metadata
 declaration scope IncomeTaxComputation:
-  # Scope names use CamelCase
+  # Scope names use CamelCase.
   context individual content Individual
   # This line declares a context element of the scope, which is akin to
   # a function parameter in computer science term. This is the piece of
-  # data on which the scope will operate
+  # data on which the scope will operate.
   context fixed_percentage content decimal
   context income_tax content money
 ```
 
+The scope is the basic abstraction unit in Catala programs, and the declaration
+of the scope is akin to a function signature: it contains a list of all the
+arguments along with their types. But in Catala, scopes' context elements stand
+for three things: arguments, local variables and outputs. The difference
+between these three categories will come from how the context elements are
+defined later in the code.
+
 We now have everything to annotate the contents of article 1, which is copied
 over below.
 
-#### Article 1
+### Article 1
 
 The income tax for an individual is defined as a fixed percentage of the
 individual's income over a year.
@@ -133,42 +169,42 @@ according to the formula described in the article. When defining formulas,
 you have access to all the usual arithmetic operators: addition "+",
 subtraction "-", multiplication "*" and division (slash).
 
-However, in the Catala code, you can see that we use "*$" to multiply the
-individual income by the fixed percentage. The $ suffix indicates that we
-are performing a multiplication on an amount of money. Indeed, in Catala,
-you have to keep track of what you are dealing with: is it money ? Is it
-an integer? Using just "+" or "*" can be ambiguous in terms of rounding,
-since money is usually rounded at the cent. So to disambiguate, we suffix these
-operations with something that indicates the type of what we manipulate.
-The suffixes are "$" for money, "." for decimals, "@" (`at` like in email addresses)
-for dates and the "^" (hat) symbol for durations. If you forget the suffix, the Catala type
+However, in the Catala code, you can see that we use "*$" ("*€" in French, etc.)
+to multiply the individual income by the fixed percentage. The $ suffix
+indicates that we are performing a multiplication on an amount of money.
+Indeed, in Catala, you have to keep track of what you are dealing with:
+is it money ? Is it an integer? Using just "+" or "*" can be ambiguous
+in terms of rounding, since money is usually rounded at the cent. So to
+disambiguate, we suffix these operations with something that indicates the type
+of what we manipulate. The suffixes are "$" for money, "." for decimals, "@"
+for dates and the "^" symbol for durations. If you forget the suffix, the Catala type
 checker will display an error message that will help you put it where it
 belongs.
 
-But inside article 1, one question remains unknown: what is the value of
+Coming back to article 1, one question remains unknown: what is the value of
 of the fixed percentage? Often, precise values are defined elsewhere in the
 legislative source. Here, let's suppose we have:
 
-#### Article 2
+### Article 2
 
 The fixed percentage mentioned at article 1 is equal to 20 %.
 
 ```catala
 scope IncomeTaxComputation:
   definition fixed_percentage equals 20 %
-  # Writing 20% is just an abbreviation for 0.20
+  # Writing 20% is just an abbreviation for "0.20".
 ```
 
 You can see here that Catala allows definitions to be scattered throughout
 the annotation of the legislative text, so that each
 definition is as close as possible to its location in the text.
 
-### Conditional definitions
+## Conditional definitions
 
 So far so good, but now the legislative text introduces some trickiness. Let us
 suppose the third article says:
 
-#### Article 3
+### Article 3
 
 If the individual is in charge of 2 or more children, then the fixed
 percentage mentioned at article 1 is equal to 15 %.
@@ -187,18 +223,58 @@ scope IncomeTaxComputation:
   definition fixed_percentage under condition
     individual.number_of_children >= 2
   consequence equals 15 %
-  # Writing 15% is just an abbreviation for 0.15
+  # Writing 15% is just an abbreviation for "0.15".
 ```
 
 When the Catala program will execute, the right definition will be dynamically
 chosen by looking at which condition is true. A correctly drafted legislative
 source should always ensure that at most one condition is true at all times.
 However, if it is not the case, Catala will let you define a precedence on the
-conditions, which has to be justified by the law.
+conditions, which has to be justified by the law. But we will see how to
+do that later.
 
-### Functions
+## Rules
 
-Catala lets you define functions anywhere in your data. Here's what it looks
+So far, you've learnt how to declare a scope with some context elements, and
+give definitions to these context elements scattered accross the text of
+the law at the relevant locations. But there is a pattern very frequent
+in legislative texts: what about conditions? A condition is a value that
+can be either true or false, like a boolean in programming. However, the
+law implicitly assumes a condition is false unless specified otherwise.
+This pattern is so common in law that Catala gives it a special syntax. More
+precisely, it calls the definition of conditions "rules", which coincides
+with the usual meaning law people would give it.
+
+Here is an example of a condition that might arise in the law:
+
+### Article 3 bis
+
+The children eligible for application of article 3
+
+```catala
+# To deal with children eligibility, we create a new scope.
+declaration scope Child:
+  context age content integer
+  # The age of the child can be declared as before.
+  context is_eligible_article_3 condition
+  # For we declare the eligibility using the special "condition" keyword
+  # that stands for the content of the context element.
+
+scope Child:
+  rule is_eligible_article_3 under condition age < 18 consequence fulfilled
+  # When defining when a condition is true, we use the special "rule" syntax
+  # instead of "definition". Rules set conditions to be "fulfilled" or
+  # "not fulfilled" conditionally.
+```
+
+When interacting with other elements of the code, condition values behaves
+like boolean values.
+
+## Functions
+
+Catala lets you define functions anywhere in your context elements. Indeed,
+Catala is a functional language and encourages using functions to describe
+relationships between data. Here's what it looks
 like in the metadata definition when we want to define a two-brackets tax
 computation:
 
@@ -207,15 +283,20 @@ declaration structure TwoBrackets:
   data breakpoint content money
   data rate1 content decimal
   data rate2 content decimal
+# This structure describes the parameters of a tax computation formula that
+# has two tax brackets, each with their own tax rate.
 
 declaration scope TwoBracketsTaxComputation :
   context brackets content TwoBrackets
+  # This context element is standard, and contains the description of the
+  # parameters of the tax formula.
   context tax_formula content money depends on money
+  # But for declaring the tax_formula context element, we declare it as
+  # a function: "content money depends on money" means a function that
+  # returns money as output (the tax) and takes money as input (the income).
 ```
 
-And in the code:
-
-#### Article4
+### Article 4
 
 The tax amount for a two-brackets computation is equal to the amount
 of income in each bracket multiplied by the rate of each bracket.
@@ -223,20 +304,27 @@ of income in each bracket multiplied by the rate of each bracket.
 ```catala
 scope TwoBracketsTaxComputation :
   definition tax_formula of income equals
+    # The money parameter for the "tax_formula" function is introduced as
+    # "income". The name of the parameter is your choice, and will not impact
+    # things outside this part of the definition. You can choose another
+    # name in another definition of "tax_formula".
     if income <=$ brackets.breakpoint then
       income *$ brackets.rate1
     else (
       brackets.breakpoint *$ brackets.rate1 +$
       (income -$ brackets.breakpoint) *$ brackets.rate2
     )
+    # This is the formula for implementing a two-bracketstax system.
 ```
 
-### Scope inclusion
+## Scope inclusion
 
 Now that we've defined our helper scope for computing a two-brackets tax, we
-want to use it in our main tax computation scope.
+want to use it in our main tax computation scope. As mentioned before,
+Catala's scope can also be thought of as big functions. And these big functions
+can call each other, which is what we'll see in the below article.
 
-#### Article 5
+### Article 5
 
 For individuals whose income is greater than $100,000, the income
 tax of article 1 is 40% of the income above $100,000. Below $100,000, the
@@ -252,48 +340,76 @@ declaration scope NewIncomeTaxComputation:
   context income_tax content money
 
 scope NewIncomeTaxComputation :
+  # Since the subscope "two_brackets" is like a big function we can call,
+  # we need to define its arguments. This is done below:
   definition two_brackets.brackets equals TwoBrackets {
     -- breakpoint: $100,000
     -- rate1: 20%
     -- rate2: 40%
   }
+  # By defining the context element "brackets" of the subscope "two_brackets",
+  # we have changed how the subscope will execute. The subscope will execute
+  # with all the values defined by the caller, then compute the value
+  # of its other context elements.
+
   definition income_tax equals two_brackets.tax_formula of individual.income
+  # After the subscope has executed, you can retrieve results from it. Here,
+  # we retrive the result of variable "tax_formula" of computed by the
+  # subscope "two_brackets". It's up yo you to choose what is an input and
+  # an output of your subscope; if you make an inconsistent choice, the
+  # Catala compiler will warn you.
 ```
 
-#### Article 6
+Now that we've successfuly defined our income tax computation, the legislator
+inevitably comes to disturb our beautiful and regular formulas to add a special
+case! The article below is a really common pattern in statutes, and let's
+see how Catala handles it.
+
+### Article 6
 
 Individuals earning less than $10,000 are exempted of the income tax mentioned
 at article 1.
 
 ```catala
 scope NewIncomeTaxComputation:
+  # Here, we simply define a new conditional definition for "income tax"
+  # that handles the special case.
   definition income_tax under condition
     individual.income <=$ $10,000
   consequence equals $0
+  # What, you think something might be wrong with this? Hmmm... We'll see
+  # later!
 ```
 
-That's it! We've defined a two-brackets tax computation simply by annotating
-legislative article by snippets of Catala code. However, attentive readers
-may have caught something weird in articles 5 and 6. What happens when the
-income of the individual is between $10,000 and $100,000 ?
+That's it! We've defined a two-brackets tax computation with a special case
+simply by annotating legislative article by snippets of Catala code.
+However, attentive readers may have caught something weird in the Catala
+translation of articles 5 and 6. What happens when the income of the individual
+is lesser than $10,000? Right now, the two definitions at articles 5 and 6
+for income_tax apply, and they're in conflict.
 
-The law leaves it unspecified ; our dummy articles are clearly badly drafted.
-But Catala can help you find this sort of errors via simple testing or
+This is a flaw in the Catala translation, but the language can help you
+find this sort of errors via simple testing or
 even formal verification. Let's start with the testing.
 
-### Testing Catala programs
+## Testing Catala programs
 
 Testing Catala programs can be done directly into Catala. Indeed, writing test
 cases for each Catala scope that you define is a good practice called
 "unit testing" in the software engineering community. A test case is defined
 as another scope:
 
-#### Testing NewIncomeTaxComputation
+### Testing NewIncomeTaxComputation
 
 ```catala
 declaration scope Test1:
+  # We include the scope to tax as a subscope.
   context tax_computation scope NewIncomeTaxComputation
   context income_tax content money
+
+# To execute that test, assuming that the Catala compiler can be called
+# with "catala", enter the following command:
+#     catala Interpret --scope=Test1 tutorial_en.catala_en
 
 scope Test1:
   definition
@@ -334,14 +450,14 @@ scope Test2:
 This test case should compute a $0 income tax because of Article 6. But instead,
 execution will yield an error saying that there is a conflict between rules.
 
-### Defining exceptions to rules
+## Defining exceptions to rules
 
 Indeed, the definition of the income tax in article 6 conflicts with the
 definition of income tax in article 5. But actually, article 6 is just an
 exception of article 5. In the law, it is implicit that if article 6 is
 applicable, then it takes precedence over article 5.
 
-#### Fixing the computation
+### Fixing the computation
 
 This implicit precedence has to be explicitly declared in Catala. Here is a
 fixed version of the NewIncomeTaxComputation scope:
@@ -358,10 +474,14 @@ scope NewIncomeTaxComputationFixed :
     -- rate1: 20%
     -- rate2: 40%
   }
+```
 
-  # To define an exception to a rule, you have to first label the rule that
-  # you want to attach the exception to. You can put any snake_case identifier
-  # for the label
+To define an exception to a rule, you have to first label the rule that
+you want to attach the exception to. You can put any snake_case identifier
+for the label:
+
+```catala
+scope NewIncomeTaxComputationFixed:
   label article_5
   definition income_tax equals two_brackets.tax_formula of individual.income
 
@@ -388,7 +508,143 @@ scope Test3:
   assertion income_tax = $0
 ```
 
-### Conclusion
+### Defining exceptions to groups of rules
+
+Note that the label system also lets you define more complicated exceptions
+patterns. Sometimes, you want to declare an exception to a groupe of
+piecewise definitions. To do that, simply use the same label for all
+the piecewise definitions.
+
+## Catala values
+
+So far, this tutorial has introduced you to the basic structure of Catala
+programs with scope, definitions and exceptions. But to be able to handle
+most statutes, Catala comes with support for the usual types of values
+on which legislative computations operate.
+
+### Booleans
+
+Booleans are the most basic type of value in Catala: they can be either true
+or false. Conditions are simply booleans with a default value of false,
+see the section about conditions above.
+
+```catala
+declaration scope BooleanValues:
+  context value1 condition
+  context value2 content boolean
+
+scope BooleanValues:
+  rule value1 under condition false and true consequence fulfilled
+  # Sets the boolean of the value1 condition to "true" under condition
+  # "false and true"
+  definition value2 equals value1 xor (value1 and true) = false
+  # Boolean operators include and, or, xor
+```
+
+### Integers
+
+Integers in Catala are infinite precision: they behave like true mathematical
+integers, and not like computer integers that are bounded by a maximum value
+due to them being stored in 32 or 64 bits. Integers can be negative.
+
+```catala
+declaration scope IntegerValues:
+  context value1 content integer
+  context value2 content integer
+
+scope IntegerValues:
+  definition value1 under condition 12 - (5 * 3) < 65 consequence equals 45 / 9
+  # The / operators corresponds to an integer division that truncates towards 0.
+  definition value2 equals value1 * value1 * 65 / 100
+```
+
+### Decimals
+
+Decimals in Catala also have infinite precisions, behaving like true mathematical
+rational numbers, and not like computer floating point numbers that perform
+approximate computations. Operators are suffixed with ".".
+
+```catala
+declaration scope DecimalValues:
+  context value1 content decimal
+  context value2 content decimal
+
+scope DecimalValues:
+  definition value1 under condition
+    12.655465446655426 -. 0.45265426541654  <. 12.3554654652 consequence
+  equals (integer_to_decimal of 45) /. (integer_to_decimal of 9)
+  # The /. operators corresponds to an exact division.
+  definition value2 equals value1 *. value1 *. 65%
+  # Percentages are decimal numbers (0.65 here)
+```
+
+### Money
+
+In Catala, money is simply represented as an integer number of cents. You cannot
+in Catala have a more precise amount of money than a cent. However, you can
+muliply an amount of money by a decimal, and the result is rounded towards the
+nearest cent. This principled behaviour to keep track of where you need precision
+in your computations and select decimals for precision instead of relying on
+money figures where sub-cent precision matters. Two money amounts can be divided,
+yielding a decimal.
+
+```catala
+declaration scope MoneyValues:
+  context value1 content decimal
+  context value2 content money
+
+scope MoneyValues:
+  definition value1 under condition
+    12.655465446655426 -. 0.45265426541654  <. 12.3554654652 consequence
+  equals (integer_to_decimal of 45) /. (integer_to_decimal of 9)
+  definition value2 equals
+    $1.00 *$ ((($6,520.23 -$ $320.45) *$ value1) /$ $45)
+```
+
+
+### Dates and durations
+
+Catala has support for Gregorian calendar dates as well as duration computations
+in terms of days, months and years. A difference between dates is a duration
+measured in days, and the addition of a date and a duration yields a new date.
+Durations measured in days, months or years are not mixable with each other,
+as months and years do not always have the same number of days. This non-mixability
+is not captured by the type system of Catala but will yield erros at runtime.
+Date literals are specified using the ISO 8601 standard to avoid confusion between
+american and european notations. Date operators are prefixed by "@" while
+duration operators are prefixed by "^".
+
+```catala
+declaration scope DateValues:
+  context value1 content date
+  context value2 content duration
+
+scope DateValues:
+  definition value1 equals |2000-01-01| +@ 1 year # yields |2001-01-01|
+  definition value2 equals
+    (value1 -@ |1999-12-31|) +^ 45 day # 367 + 45 days (2000 is bissextile)
+```
+
+### Collections
+
+Often, Catala programs need to speak about a collection of data because the law
+talks about the number of children, the maximum of a list, etc. Catala features
+first-class support for collections, which are basically fixed-size lists.
+You can create a list, filter its elements but also aggregate over its contents
+to compute all sorts of values.
+
+```catala
+declaration scope CollectionValues:
+  context value1 content collection integer
+  context value2 content integer
+
+scope CollectionValues:
+  definition value1 equals [45;-6;3;4;0;2155]
+  definition value2 equals sum integer for i in value1 of (i * i)
+  # sum of squares
+```
+
+## Conclusion
 
 This tutorial presents the basic concepts and syntax of the Catala language
 features. It is then up to you use them to annotate legislative texts

@@ -227,6 +227,15 @@ module R = Re.Pcre
 #ifndef MR_GetYear
   #define MR_GetYear MS_GetYear
 #endif
+#ifndef MR_INPUT
+  #define MR_INPUT MS_INPUT
+#endif
+#ifndef MR_OUTPUT
+  #define MR_OUTPUT MS_OUTPUT
+#endif
+#ifndef MR_INTERNAL
+  #define MR_INTERNAL MS_INTERNAL
+#endif
 
 let token_list : (string * token) list =
   [
@@ -292,6 +301,9 @@ let token_list : (string * token) list =
     (MS_DAY, DAY);
     (MS_TRUE, TRUE);
     (MS_FALSE, FALSE);
+    (MS_INPUT, INPUT);
+    (MS_OUTPUT, OUTPUT);
+    (MS_INTERNAL, INTERNAL)
   ]
   @ L.token_list_language_agnostic
 
@@ -778,8 +790,8 @@ let lex_law (lexbuf : lexbuf) : token =
     | Star (Compl '\n'), ('\n' | eof) -> LAW_TEXT (Utf8.lexeme lexbuf)
     | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
-(** Entry point of the lexer, distributes to {!val: lex_code} or {!val: lex_law} depending of {!val:
-    Surface.Lexer_common.is_code}. *)
+(** Entry point of the lexer, distributes to {!val: lex_code} or {!val:lex_law}
+    depending of the current {!val: Surface.Lexer_common.context}. *)
 let lexer (lexbuf : lexbuf) : token =
   match !L.context with
   | Law -> lex_law lexbuf
