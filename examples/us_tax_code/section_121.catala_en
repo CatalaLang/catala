@@ -8,7 +8,7 @@ declaration structure Period:
 declaration scope PeriodMerge:
   context periods1 content collection Period
   context periods2 content collection Period
-  context output content collection Period
+  context output_periods content collection Period
 
 scope PeriodMerge:
   # Placeholders, overwritten by caller
@@ -18,7 +18,7 @@ scope PeriodMerge:
   # TODO: find a way to implement the merging of two collections of date
   # periods into a single non-overlapping collection of date periods such
   # that the output covers both input date ranges.
-  definition output equals []
+  definition output_periods equals []
 
 declaration structure PreviousSaleWhereSection121aApplied:
   data date_of_sale_or_exchange content date
@@ -323,13 +323,13 @@ scope Section121TwoPasses under condition
     -- SingleReturn of return : [] # does not happen
 
   definition second_pass.person1 equals PersonalData {
-    -- property_ownage: period_merge.output
+    -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
       first_pass.person1.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person1.other_section_121a_sale
   }
   definition second_pass.person2 equals PersonalData {
-    -- property_ownage: period_merge.output
+    -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
       first_pass.person2.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person2.other_section_121a_sale

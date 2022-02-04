@@ -87,7 +87,7 @@ source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONDIT
 ##
 ## Ends in an error in state: 330.
 ##
-## scope_decl_item -> scope_decl_item_attribute ident CONDITION . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident CONDITION . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute ident CONDITION
@@ -99,7 +99,7 @@ source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTEN
 ##
 ## Ends in an error in state: 328.
 ##
-## scope_decl_item -> scope_decl_item_attribute ident CONTENT typ . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident CONTENT typ . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute ident CONTENT typ
@@ -111,7 +111,7 @@ source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTEN
 ##
 ## Ends in an error in state: 327.
 ##
-## scope_decl_item -> scope_decl_item_attribute ident CONTENT . typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident CONTENT . typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute ident CONTENT
@@ -125,9 +125,9 @@ source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
 ##
 ## Ends in an error in state: 324.
 ##
-## scope_decl_item -> scope_decl_item_attribute ident . CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute ident . SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute ident . CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident . CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident . SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute ident . CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute ident
@@ -139,9 +139,9 @@ source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
 ##
 ## Ends in an error in state: 323.
 ##
-## scope_decl_item -> scope_decl_item_attribute . ident CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute . ident SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute . ident CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . ident CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . ident SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . ident CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute
@@ -189,7 +189,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 303.
 ##
-## typ -> collection_marked . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> collection_marked . typ [ SCOPE OUTPUT INTERNAL INPUT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## collection_marked
@@ -213,7 +213,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 307.
 ##
-## struct_scope_func -> DEPENDS . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope_func -> DEPENDS . typ [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
