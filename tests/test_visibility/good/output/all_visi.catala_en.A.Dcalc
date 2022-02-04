@@ -1,0 +1,24 @@
+let A =
+  λ (A_in_8: A_in{a_in: unit → integer ; b_in: unit → integer}) →
+    let a_9 : unit → integer = A_in_8."a_in"
+    in
+    let b_10 : unit → integer = A_in_8."b_in"
+    in
+    let a_11 : integer = error_empty
+      ⟨a_9 () | true ⊢
+        ⟨⟨true ⊢ ⟨⟨true ⊢ 0⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
+          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    in
+    let b_12 : integer = error_empty
+      ⟨b_10 () | true ⊢
+        ⟨true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    in
+    let d_13 : integer = error_empty
+      ⟨⟨true ⊢ ⟨⟨true ⊢ 1 + a_11⟩ | false ⊢ ∅ ⟩⟩ | true
+        ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    in
+    let c_14 : integer = error_empty
+      ⟨⟨true ⊢ ⟨⟨true ⊢ b_12 + d_13⟩ | false ⊢ ∅ ⟩⟩ |
+        true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    in
+    A_out {"a_out": a_11, "c_out": c_14}

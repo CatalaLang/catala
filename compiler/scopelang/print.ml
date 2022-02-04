@@ -162,7 +162,10 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
                (fun fmt e ->
                  match Pos.unmark loc with
                  | SubScopeVar _ -> format_expr fmt e
-                 | ScopeVar _ -> Format.fprintf fmt "reentrant or by default@ %a" format_expr e)
+                 | ScopeVar v ->
+                     if (snd (ScopeVarMap.find (Pos.unmark v) decl.scope_sig)).visibility_input then
+                       Format.fprintf fmt "reentrant or by default@ %a" format_expr e
+                     else Format.fprintf fmt "%a" format_expr e)
                e
          | Assertion e -> Format.fprintf fmt "assert (%a)" format_expr e
          | Call (scope_name, subscope_name) ->
