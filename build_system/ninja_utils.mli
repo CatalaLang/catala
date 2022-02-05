@@ -9,7 +9,11 @@ module Expr : sig
     | Var of string
 
   val to_string : t -> string
+
+  val list_to_string : ?sep:string -> t list -> string
 end
+
+module VarMap : Map.S with type key = String.t
 
 module Rule : sig
   type t = { name : string; command : Expr.t; description : Expr.t option }
@@ -17,9 +21,31 @@ module Rule : sig
   val make : string -> command:Expr.t -> description:Expr.t -> t
 end
 
+module Build : sig
+  type t = {
+    outputs : Expr.t list;
+    rule : string;
+    inputs : Expr.t list option;
+    vars : (string * Expr.t) list;
+  }
+  (** @note Currently, nothing nothing forces to build valid {!: Expr.t} for the variables. *)
+
+  val make : outputs:Expr.t list -> rule:string -> t
+
+  val make_with_vars : outputs:Expr.t list -> rule:string -> vars:(string * Expr.t) list -> t
+
+  val make_with_inputs : outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> t
+
+  (* TODO: val with_inputs : Expr.t list -> string -> Expr.t list -> t *)
+
+  val to_string : t -> string
+end
+
 module RuleMap : Map.S with type key = String.t
 
-type ninja = { rules : Rule.t RuleMap.t (* ; builds : Build.t BuildMap.t *) }
+module BuildMap : Map.S with type key = String.t
+
+type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
 
 val empty : ninja
 
