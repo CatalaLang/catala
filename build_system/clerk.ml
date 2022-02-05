@@ -1,5 +1,7 @@
 open Cmdliner
 open Utils
+open Ninja_utils
+module Nj = Ninja_utils
 
 (**{1 Command line interface}*)
 
@@ -279,6 +281,27 @@ let get_catala_files_in_folder (dir : string) : string list =
   in
   let all_files_in_folder = loop [] [ dir ] in
   List.filter (Re.Pcre.pmatch ~rex:catala_suffix_regex) all_files_in_folder
+
+let ninja_start catala_exe =
+  let test_scope_rule =
+    Nj.Rule.make "test_scope"
+      ~command:
+        Nj.Expr.(
+          Seq
+            [
+              Lit (catala_exe ^ " -s");
+              Var "scope";
+              Lit "Interpret";
+              Var "tested_file";
+              (* TODO: find a way to add breaks *)
+              Lit "--unstyle | colordiff -u -b";
+              Var "expected_output";
+              Lit "-";
+            ])
+      ~description:
+        Nj.Expr.(Seq [ Lit "Testing scope"; Var "scope"; Lit "of file"; Var "tested_file" ])
+  in
+  { rules = Nj.RuleMap.(empty |> add "test_scope" test_scope_rule) }
 
 let driver (file_or_folder : string) (command : string) (catala_exe : string option)
     (catala_opts : string option) (debug : bool) (scope : string option) (reset_test_outputs : bool)

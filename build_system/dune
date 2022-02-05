@@ -1,5 +1,11 @@
 (executable
  (name clerk)
  (public_name clerk)
- (libraries catala.runtime catala.utils cmdliner re ANSITerminal)
+ (libraries catala.runtime catala.utils cmdliner re ANSITerminal ninja_utils)
+ (modules clerk)
  (package catala))
+
+(library
+ (name ninja_utils)
+ (modules ninja_utils))
+

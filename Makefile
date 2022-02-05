@@ -270,6 +270,9 @@ bench_js: run_french_law_library_benchmark_js
 #> bench_python				: Run Python benchmarks for the Catala-generated code
 bench_python: run_french_law_library_benchmark_python
 
+#> tests_clerk				: Run clerk tests
+tests_clerk:
+	dune test
 
 
 ##########################################
