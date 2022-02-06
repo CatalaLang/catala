@@ -64,6 +64,11 @@ let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDuration -> "duration"
     | TDate -> "date")
 
+let format_enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
+  Format.fprintf fmt "%a"
+    (Utils.Cli.format_with_style [ ANSITerminal.magenta ])
+    (Format.asprintf "%a" EnumConstructor.format_t c)
+
 let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked) =
@@ -75,23 +80,26 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
   | TTuple (ts, None) ->
       Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " format_operator "*")
            (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
         ts
   | TTuple (_args, Some s) ->
-      Format.fprintf fmt "%a{%a}" Ast.StructName.format_t s
+      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" Ast.StructName.format_t s format_punctuation "{"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ;@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ";")
            (fun fmt (field, typ) ->
-             Format.fprintf fmt "%a: %a" StructFieldName.format_t field format_typ typ))
+             Format.fprintf fmt "%a%a%a%a@ %a" format_punctuation "\"" StructFieldName.format_t
+               field format_punctuation "\"" format_punctuation ":" format_typ typ))
         (StructMap.find s ctx.ctx_structs)
+        format_punctuation "}"
   | TEnum (_, e) ->
-      Format.fprintf fmt "%a[%a]" Ast.EnumName.format_t e
+      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" Ast.EnumName.format_t e format_punctuation "["
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " format_punctuation "|")
            (fun fmt (case, typ) ->
-             Format.fprintf fmt "%a: %a" EnumConstructor.format_t case format_typ typ))
-        (EnumMap.find e ctx.ctx_enums)
+             Format.fprintf fmt "%a%a@ %a" format_enum_constructor case format_punctuation ":"
+               format_typ typ))
+        (EnumMap.find e ctx.ctx_enums) format_punctuation "]"
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1 format_punctuation "→"
         format_typ t2
@@ -194,10 +202,10 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
       Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]" Ast.StructName.format_t s
         format_punctuation "{"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ";")
            (fun fmt (e, struct_field) ->
-             Format.fprintf fmt "%a%a%a%a %a" format_punctuation "\"" Ast.StructFieldName.format_t
-               struct_field format_punctuation "\"" format_punctuation ":" format_expr e))
+             Format.fprintf fmt "%a%a%a%a@ %a" format_punctuation "\"" Ast.StructFieldName.format_t
+               struct_field format_punctuation "\"" format_punctuation "=" format_expr e))
         (List.combine es (List.map fst (Ast.StructMap.find s ctx.ctx_structs)))
         format_punctuation "}"
   | EArray es ->
@@ -215,7 +223,7 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
             (fst (List.nth (Ast.StructMap.find s ctx.ctx_structs) n))
             format_punctuation "\"")
   | EInj (e, n, en, _ts) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@]" Ast.EnumConstructor.format_t
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_constructor
         (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
@@ -224,8 +232,8 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "@[<hov 2>%a%a@ %a@]" Ast.EnumConstructor.format_t c
-               format_punctuation ":" format_expr e))
+             Format.fprintf fmt "@[<hov 2>%a%a@ %a@]" format_enum_constructor c format_punctuation
+               ":" format_expr e))
         (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l ->
       Format.fprintf fmt "%s"
@@ -290,5 +298,6 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
 
 let format_scope ?(debug : bool = false) (ctx : decl_ctx) (fmt : Format.formatter)
     ((n, s) : Ast.ScopeName.t * scope_body) =
-  Format.fprintf fmt "@[<hov 2>let %a =@ %a@]" Ast.ScopeName.format_t n (format_expr ctx ~debug)
+  Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let" Ast.ScopeName.format_t n
+    (format_expr ctx ~debug)
     (Bindlib.unbox (Ast.build_whole_scope_expr ctx s (Pos.get_position (Ast.ScopeName.get_info n))))

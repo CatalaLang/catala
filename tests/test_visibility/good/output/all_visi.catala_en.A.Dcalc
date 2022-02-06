@@ -1,5 +1,5 @@
 let A =
-  λ (A_in_8: A_in{a_in: unit → integer ; b_in: unit → integer}) →
+  λ (A_in_8: A_in{"a_in": unit → integer; "b_in": unit → integer}) →
     let a_9 : unit → integer = A_in_8."a_in"
     in
     let b_10 : unit → integer = A_in_8."b_in"
@@ -21,4 +21,4 @@ let A =
       ⟨⟨true ⊢ ⟨⟨true ⊢ b_12 + d_13⟩ | false ⊢ ∅ ⟩⟩ |
         true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
     in
-    A_out {"a_out": a_11, "c_out": c_14}
+    A_out {"a_out"= a_11; "c_out"= c_14}

@@ -1,3 +1,3 @@
 [RESULT] Computation successful! Results:
 [RESULT] benefit = $2000.00
-[RESULT] person = Person {"age": 26, "disabled": true}
+[RESULT] person = Person {"age"= 26; "disabled"= true}
