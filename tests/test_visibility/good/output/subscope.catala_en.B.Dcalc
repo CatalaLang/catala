@@ -1,0 +1,18 @@
+let B =
+  λ (B_in_18: B_in{}) →
+    let a.a_19 : unit → integer = λ (__20: unit) → ∅ 
+    in
+    let a.b_21 : unit → integer =
+      λ (__22: unit) →
+        ⟨⟨true ⊢ ⟨⟨true ⊢ 2⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
+          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    in
+    let result_23 : A_out{"a_out": integer; "c_out": integer} =
+      A_2 (A_in {"a_in"= a.a_19; "b_in"= a.b_21})
+    in
+    let a.a_24 : integer = result_23."a_out"
+    in
+    let a.c_25 : integer = result_23."c_out"
+    in
+    let __26 : unit = assert (a.c_25 = 1) in
+    B_out {}

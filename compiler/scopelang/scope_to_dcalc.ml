@@ -392,6 +392,16 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
   | Call (subname, subindex) ->
       let subscope_sig = Ast.ScopeMap.find subname ctx.scopes_parameters in
       let all_subscope_vars = subscope_sig.scope_sig_local_vars in
+      let all_subscope_input_vars =
+        List.filter
+          (fun var_ctx -> var_ctx.scope_var_visibility.Ast.visibility_input)
+          all_subscope_vars
+      in
+      let all_subscope_output_vars =
+        List.filter
+          (fun var_ctx -> var_ctx.scope_var_visibility.Ast.visibility_output)
+          all_subscope_vars
+      in
       let scope_dcalc_var = subscope_sig.scope_sig_scope_var in
       let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
       let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
@@ -414,7 +424,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
             else
               let a_var, _, _ = Ast.ScopeVarMap.find subvar.scope_var_name subscope_vars_defined in
               Dcalc.Ast.make_var (a_var, pos_call))
-          all_subscope_vars
+          all_subscope_input_vars
       in
       let subscope_struct_arg =
         Bindlib.box_apply
@@ -422,7 +432,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
             (Dcalc.Ast.ETuple (subscope_args, Some called_scope_input_struct), pos_call))
           (Bindlib.box_list subscope_args)
       in
-      let all_subscope_vars_dcalc =
+      let all_subscope_output_vars_dcalc =
         List.map
           (fun (subvar : scope_var_ctx) ->
             let sub_dcalc_var =
@@ -432,7 +442,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
                    (Ast.ScopeVar.get_info subvar.scope_var_name))
             in
             (subvar, sub_dcalc_var))
-          all_subscope_vars
+          all_subscope_output_vars
       in
       let subscope_func =
         tag_with_log_entry
@@ -461,7 +471,9 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
       let result_tuple_var = Dcalc.Ast.Var.make ("result", pos_sigma) in
       let result_tuple_typ =
         ( Dcalc.Ast.TTuple
-            ( List.map (fun (subvar, _) -> (subvar.scope_var_typ, pos_sigma)) all_subscope_vars_dcalc,
+            ( List.map
+                (fun (subvar, _) -> (subvar.scope_var_typ, pos_sigma))
+                all_subscope_output_vars_dcalc,
               Some called_scope_return_struct ),
           pos_sigma )
       in
@@ -489,11 +501,11 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
                           Some called_scope_return_struct,
                           List.map
                             (fun (var_ctx, _) -> (var_ctx.scope_var_typ, pos_sigma))
-                            all_subscope_vars_dcalc ),
+                            all_subscope_output_vars_dcalc ),
                       pos_sigma ))
                   (Dcalc.Ast.make_var (result_tuple_var, pos_sigma));
             })
-          all_subscope_vars_dcalc
+          all_subscope_output_vars_dcalc
       in
       ( call_scope_let :: result_bindings_lets,
         {
@@ -505,7 +517,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
                    Ast.ScopeVarMap.add var_ctx.scope_var_name
                      (dvar, var_ctx.scope_var_typ, var_ctx.scope_var_visibility)
                      acc)
-                 Ast.ScopeVarMap.empty all_subscope_vars_dcalc)
+                 Ast.ScopeVarMap.empty all_subscope_output_vars_dcalc)
               ctx.subscope_vars;
         } )
   | Assertion e ->

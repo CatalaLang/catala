@@ -221,10 +221,39 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                let sub_scope =
                  Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
                in
+               let sub_scope_vars_redefs_candidates =
+                 Ast.ScopeDefMap.filter
+                   (fun def_key scope_def ->
+                     match def_key with
+                     | Ast.ScopeDef.Var _ -> false
+                     | Ast.ScopeDef.SubScopeVar (sub_scope_index', _) ->
+                         sub_scope_index = sub_scope_index'
+                         (* We exclude subscope variables that have 0 re-definitions and are not
+                            visible in the input of the subscope *)
+                         && not
+                              ((not scope_def.Ast.scope_def_visibility.visibility_input)
+                              && Ast.RuleMap.is_empty scope_def.scope_def_rules))
+                   scope.scope_defs
+               in
                let sub_scope_vars_redefs =
                  Ast.ScopeDefMap.mapi
                    (fun def_key scope_def ->
                      let def = scope_def.Ast.scope_def_rules in
+                     (* This definition redefines a variable of the correct subscope. But we have to
+                        check that this redefinition is allowed with respect to the visibility
+                        parameters of that subscope variable. *)
+                     if not scope_def.Ast.scope_def_visibility.visibility_input then
+                       Errors.raise_multispanned_error
+                         "It is impossible to give a definition to a subscope variable not tagged \
+                          as input or context."
+                         ((Some "Relevant subscope:", Ast.ScopeDef.get_position def_key)
+                         :: List.map
+                              (fun (rule, _) ->
+                                ( Some "Suscope variable definition:",
+                                  Pos.get_position (Ast.RuleName.get_info rule) ))
+                              (Ast.RuleMap.bindings def));
+                     (* Now that all is good, we can proceed with translating this redefinition to a
+                        proper Scopelang term. *)
                      let def_typ = scope_def.scope_def_typ in
                      let is_cond = scope_def.scope_def_is_condition in
                      match def_key with
@@ -247,13 +276,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                                var_pos ),
                              def_typ,
                              expr_def ))
-                   (Ast.ScopeDefMap.filter
-                      (fun def_key _def ->
-                        match def_key with
-                        | Ast.ScopeDef.Var _ -> false
-                        | Ast.ScopeDef.SubScopeVar (sub_scope_index', _) ->
-                            sub_scope_index = sub_scope_index')
-                      scope.scope_defs)
+                   sub_scope_vars_redefs_candidates
                in
                let sub_scope_vars_redefs =
                  List.map snd (Ast.ScopeDefMap.bindings sub_scope_vars_redefs)
