@@ -21,4 +21,4 @@ let A =
       ⟨⟨true ⊢ ⟨⟨true ⊢ b_12 + d_13⟩ | false ⊢ ∅ ⟩⟩ |
         true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
     in
-    A_out {"a_out"= a_11; "c_out"= c_14}
+    A_out {"c_out"= c_14}

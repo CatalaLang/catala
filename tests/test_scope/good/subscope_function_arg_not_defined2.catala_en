@@ -4,10 +4,10 @@
 declaration scope Callee:
   context function condition depends on integer
   context input_v content integer
-  context output_v condition
+  context output output_v condition
 
 declaration scope Caller:
-  context callee scope Callee
+  callee scope Callee
 
 
 scope Callee:

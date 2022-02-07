@@ -2,9 +2,9 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content date
-  context z content duration
+  context output x content date
+  context output y content date
+  context output z content duration
 
 scope A:
   definition x equals |2019-01-01|

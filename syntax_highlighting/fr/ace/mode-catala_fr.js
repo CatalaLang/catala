@@ -63,9 +63,9 @@ ace.define(
             regex: "(\\s*\\#.*$)",
           },
           {
-            token: ["keyword.other", "text", "entity.name.function"],
+            token: ["keyword.other", "text", "keyword.other", "text", "entity.name.function"],
             regex:
-              "(contexte|entr\u00e9e|sortie|interne)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00d4\u00ca\u0152\u00c70-9_\\']*)",
+              "(contexte|entr\u00e9e|sortie|interne)(\\s*)(|sortie)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00d4\u00ca\u0152\u00c70-9_\\']*)",
           },
           {
             token: "keyword.control",

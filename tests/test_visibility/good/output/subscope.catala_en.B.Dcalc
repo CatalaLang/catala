@@ -1,18 +1,17 @@
 let B =
-  λ (B_in_18: B_in{}) →
-    let a.a_19 : unit → integer = λ (__20: unit) → ∅ 
-    in
-    let a.b_21 : unit → integer =
-      λ (__22: unit) →
+  λ (B_in_15: B_in{}) →
+    let a.b_16 : unit → integer =
+      λ (__17: unit) →
         ⟨⟨true ⊢ ⟨⟨true ⊢ 2⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
           ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
     in
-    let result_23 : A_out{"a_out": integer; "c_out": integer} =
-      A_2 (A_in {"a_in"= a.a_19; "b_in"= a.b_21})
+    let result_18 : A_out{"c_out": integer} =
+      A_2
+        (A_in
+           {"a_in"= λ (__19: unit) → ∅ ; "b_in"= a.b_16; "c_in"=
+             λ (__20: unit) → ∅ ; "d_in"= λ (__21: unit) → ∅ })
     in
-    let a.a_24 : integer = result_23."a_out"
+    let a.c_22 : integer = result_18."c_out"
     in
-    let a.c_25 : integer = result_23."c_out"
-    in
-    let __26 : unit = assert (a.c_25 = 1) in
+    let __23 : unit = assert (a.c_22 = 1) in
     B_out {}

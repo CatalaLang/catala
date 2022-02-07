@@ -101,7 +101,7 @@
         'name' : 'comment.line.catala_fr'
       }
       {
-        'match' : '(contexte|entr\\x{00e9}e|sortie|interne)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00d4}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'match' : '(contexte|entr\\x{00e9}e|sortie|interne)(\\s*)(|sortie)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00d4}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.other.catala_fr'
@@ -110,6 +110,12 @@
             'name' : 'text.catala_fr'
           }
           '3' : {
+            'name' : 'keyword.other.catala_fr'
+          }
+          '4' : {
+            'name' : 'text.catala_fr'
+          }
+          '5' : {
             'name' : 'entity.name.function.catala_fr'
           }
         }

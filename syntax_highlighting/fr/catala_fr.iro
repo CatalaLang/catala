@@ -193,8 +193,8 @@ code : context {
   }
 
   : pattern {
-    regex \=  (contexte|entrée|sortie|interne)(\s+)($${__SC_ID})
-    styles [] = .keyword_rule, .whitespace, .sc_id_def;
+    regex \=  (contexte|entrée|sortie|interne)(\s*)(|sortie)(\s+)($${__SC_ID})
+    styles [] = .keyword_rule, .whitespace, .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {

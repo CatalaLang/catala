@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 348.
+## Ends in an error in state: 349.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
@@ -13,7 +13,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 344.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -25,7 +25,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 342.
+## Ends in an error in state: 343.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -37,7 +37,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 341.
+## Ends in an error in state: 342.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -49,7 +49,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 341.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -61,7 +61,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 339.
+## Ends in an error in state: 340.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -73,7 +73,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 339.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -130,7 +130,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 303.
 ##
-## typ -> collection_marked . typ [ SCOPE INTERNAL INPUT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> collection_marked . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## collection_marked
@@ -154,7 +154,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 307.
 ##
-## struct_scope_func -> DEPENDS . typ [ SCOPE INTERNAL INPUT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope_func -> DEPENDS . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
@@ -1867,7 +1867,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 366.
+## Ends in an error in state: 367.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##

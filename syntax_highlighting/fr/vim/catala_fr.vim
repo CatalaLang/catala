@@ -36,7 +36,7 @@ syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
 
 syn region ctxt contained
-      \ matchgroup=Keyword start="\<contexte\|entrée\|sortie\|interne"
+      \ matchgroup=Keyword start="\<\(contexte\|entrée\|sortie\|interne\)\(|\s\+sortie\)"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation

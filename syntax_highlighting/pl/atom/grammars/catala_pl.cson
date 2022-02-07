@@ -71,7 +71,7 @@
         'name' : 'comment.line.catala_pl'
       }
       {
-        'match' : '(kontekst|wejście|wyjście|wewnętrzny)(\\s+)([a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}][a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}A-Z\\x{0104}\\x{0106}\\x{0118}\\x{0141}\\x{0143}\\x{00d3}\\x{015a}\\x{017b}\\x{0179}0-9_\\\']*)'
+        'match' : '(kontekst|wejście|wyjście|wewnętrzny)(\\s*)(|wyjście)(\\s+)([a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}][a-z\\x{0105}\\x{0107}\\x{0119}\\x{0142}\\x{0144}\\x{00f3}\\x{015b}\\x{017c}\\x{017a}A-Z\\x{0104}\\x{0106}\\x{0118}\\x{0141}\\x{0143}\\x{00d3}\\x{015a}\\x{017b}\\x{0179}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.other.catala_pl'
@@ -80,6 +80,12 @@
             'name' : 'text.catala_pl'
           }
           '3' : {
+            'name' : 'keyword.other.catala_pl'
+          }
+          '4' : {
+            'name' : 'text.catala_pl'
+          }
+          '5' : {
             'name' : 'entity.name.function.catala_pl'
           }
         }

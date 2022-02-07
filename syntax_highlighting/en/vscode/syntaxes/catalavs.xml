@@ -162,7 +162,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(context|input|output|internal)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
+          <string>(context|input|output|internal)(\s*)(|output)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
           <key>captures</key>
           <dict>
             <key>1</key>
@@ -176,6 +176,16 @@
               <string>text.catala_en</string>
             </dict>
             <key>3</key>
+            <dict>
+              <key>name</key>
+              <string>keyword.other.catala_en</string>
+            </dict>
+            <key>4</key>
+            <dict>
+              <key>name</key>
+              <string>text.catala_en</string>
+            </dict>
+            <key>5</key>
             <dict>
               <key>name</key>
               <string>entity.name.function.catala_en</string>

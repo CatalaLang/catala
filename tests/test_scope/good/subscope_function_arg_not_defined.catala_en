@@ -3,11 +3,11 @@
 ```catala
 declaration scope Callee:
   context input_v content integer depends on boolean
-  context output_v content integer
+  context output output_v content integer
 
 declaration scope Caller:
-  context sub scope Callee
-  context y content integer
+  sub scope Callee
+  context output y content integer
 
 scope Callee:
   definition input_v of b equals if b then 0 else 1

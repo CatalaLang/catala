@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope TestBool:
-  context foo content boolean
-  context bar content integer
+  context output foo content boolean
+  context output bar content integer
 
 scope TestBool:
   definition bar equals 1

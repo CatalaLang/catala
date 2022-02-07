@@ -10,12 +10,12 @@ declaration structure T:
   data b content S
 
 declaration scope A:
-  context t content T
+  context output t content T
 
 declaration scope B:
-  context t content T
-  context a scope A
-  context out content integer
+  context output t content T
+  a scope A
+  context output out content integer
 
 scope A:
   definition t equals T {

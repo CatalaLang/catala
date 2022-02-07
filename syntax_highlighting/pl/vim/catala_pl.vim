@@ -35,7 +35,7 @@ syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained calkowita zerojedynkowy czas trwania pieniądze warunek tekst dziesiętny suma
 
 syn region ctxt contained
-      \ matchgroup=Keyword start="\<kontekst\|wejście\|wyjście\|wewnętrzny"
+      \ matchgroup=Keyword start="\<\(kontekst\|wejście\|wyjście\|wewnętrzny\)\(\|\s\+wyjście\)"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation

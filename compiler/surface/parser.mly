@@ -498,7 +498,6 @@ struct_scope:
 scope_decl_item_attribute_input:
 | CONTEXT { Context, Pos.from_lpos $sloc }
 | INPUT { Input, Pos.from_lpos $sloc }
-| INTERNAL { Internal, Pos.from_lpos $sloc }
 
 scope_decl_item_attribute_output:
 | OUTPUT { true, Pos.from_lpos $sloc }
@@ -509,9 +508,22 @@ scope_decl_item_attribute:
   output = scope_decl_item_attribute_output {
     {
       scope_decl_context_io_input = input;
-      scope_decl_context_io_output  = output
+      scope_decl_context_io_output = output
     }
   }
+| INTERNAL {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
+    }
+  }
+| OUTPUT {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
+    }
+  }
+
 
 scope_decl_item:
 | attr = scope_decl_item_attribute i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
@@ -527,7 +539,7 @@ scope_decl_item:
     }, Pos.from_lpos $sloc);
   }), Pos.from_lpos $sloc)
 }
-| INTERNAL i = ident SCOPE c = constructor {
+| i = ident SCOPE c = constructor {
   (ContextScope({
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;

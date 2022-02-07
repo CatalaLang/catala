@@ -2,17 +2,17 @@
 
 ```catala
 declaration scope A:
-   context x content collection money
+   output x content collection money
 
 scope A:
    definition x equals [$0; $4 +$ $5; $8 *$ 0.65]
 
 declaration scope B:
-   context a scope A
-   context max content money
-   context min content money
-   context y content money
-   context z content integer
+   a scope A
+   output max content money
+   output min content money
+   output y content money
+   output z content integer
 
 scope B:
    definition max equals maximum money initial $0 for m in a.x of m *$ 2.0

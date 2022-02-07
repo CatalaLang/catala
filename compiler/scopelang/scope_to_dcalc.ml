@@ -274,10 +274,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         with Not_found ->
           Errors.raise_spanned_error
             (Format.asprintf
-               "The variable %a.%a cannot be used here,\n\
-                as subscope %a's results will not have been computed yet" Ast.SubScopeName.format_t
-               (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a) Ast.SubScopeName.format_t
-               (Pos.unmark s))
+               "The variable %a.%a cannot be used here, as it is not part subscope %a's results. \
+                Maybe you forgot to qualify it as an output?"
+               Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
+               Ast.SubScopeName.format_t (Pos.unmark s))
             (Pos.get_position e))
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
