@@ -88,10 +88,8 @@ let rec translate_typ (tau : D.typ Pos.marked) : D.typ Pos.marked =
       | D.TArray ts -> D.TArray (translate_typ ts)
       (* catala is not polymorphic*)
       | D.TArrow ((D.TLit D.TUnit, _), t2) ->
-          D.TEnum ([ translate_typ t2 ], A.option_enum)
-          (* D.TAny *)
-      | D.TArrow (t1, t2) ->
-        D.TArrow (translate_typ t1, translate_typ t2)
+          D.TEnum ([ translate_typ t2 ], A.option_enum) (* D.TAny *)
+      | D.TArrow (t1, t2) -> D.TArrow (translate_typ t1, translate_typ t2)
     end
 
 let translate_lit (l : D.lit) (pos : Pos.t) : A.lit =
@@ -429,26 +427,42 @@ let translate_scope_body (scope_pos : Pos.t) (_decl_ctx : D.decl_ctx) (ctx : ctx
   match body with
   | {
    scope_body_result = result;
-   scope_body_input_struct = _input_struct;
+   scope_body_input_struct = input_struct;
    scope_body_output_struct = _output_struct;
   } ->
       let v, lets = Bindlib.unbind result in
-
       let ctx' = add_var scope_pos v true ctx in
+      let v' = (find ~info:"variable that was just created" v ctx').var in
 
-      translate_scope_let ctx' lets
+      A.make_abs [| v' |] (translate_scope_let ctx' lets) Pos.no_pos
+        [ (D.TTuple ([], Some input_struct), Pos.no_pos) ]
+        Pos.no_pos
 
 let translate_program (prgm : D.program) : A.program =
   (* modify the *)
+  let inputs_structs =
+    ListLabels.fold_left prgm.scopes ~init:[] ~f:(fun acc (_, _, body) ->
+        body.D.scope_body_input_struct :: acc)
+  in
+
+  Cli.debug_print
+  @@ Format.asprintf "List of structs to modify: [%a]"
+       (Format.pp_print_list D.StructName.format_t)
+       inputs_structs;
+
   let decl_ctx =
     {
-      D.ctx_enums =
-        prgm.decl_ctx.ctx_enums
-        |> D.EnumMap.add A.option_enum A.option_enum_config
-        |> D.EnumMap.map (fun l -> ListLabels.map l ~f:(fun (n, tau) -> (n, translate_typ tau)));
+      D.ctx_enums = prgm.decl_ctx.ctx_enums |> D.EnumMap.add A.option_enum A.option_enum_config;
       D.ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> D.StructMap.map (fun l -> ListLabels.map l ~f:(fun (n, tau) -> (n, translate_typ tau)));
+        |> D.StructMap.mapi (fun n l ->
+               if List.mem n inputs_structs then
+                 ListLabels.map l ~f:(fun (n, tau) ->
+                     Cli.debug_print @@ Format.asprintf "Input type: %a" D.pp_typ (fst tau);
+                     Cli.debug_print
+                     @@ Format.asprintf "Output type: %a" D.pp_typ (fst (translate_typ tau));
+                     (n, translate_typ tau))
+               else l);
     }
   in
 
@@ -456,15 +470,18 @@ let translate_program (prgm : D.program) : A.program =
     prgm.scopes
     |> ListLabels.fold_left ~init:([], D.VarMap.empty)
          ~f:(fun ((acc, ctx) : _ * info D.VarMap.t) (scope_name, n, scope_body) ->
-           let scope_body = Bindlib.unbox (translate_and_bind scope_body) in
+           
+           let v, scope_body =
+             Bindlib.unbind (Bindlib.unbox (Bindlib.bind_var n (translate_and_bind scope_body)))
+           in
 
            Cli.debug_print
            @@ Format.asprintf "global free variable : %a"
                 (Format.pp_print_list Dcalc.Print.format_var)
                 (free_vars_scope_body scope_body);
-           let new_ctx = add_var Pos.no_pos n true ctx in
+           let new_ctx = add_var Pos.no_pos v true ctx in
 
-           let new_n = find ~info:"variable that was just created" n new_ctx in
+           let new_n = find ~info:"variable that was just created ici" v new_ctx in
 
            let scope_pos = Pos.get_position (D.ScopeName.get_info scope_name) in
 
