@@ -38,15 +38,13 @@ def allocations_familiales(
         avait_enfant_a_charge_avant_1er_janvier_2012: bool
 ):
     out = interface_allocations_familiales(InterfaceAllocationsFamilialesIn(
-        date_courante_in=lambda _: date_of_datetime(date_courante),
-        enfants_in=lambda _: [enfant.to_allocations_familiales()
-                              for enfant in enfants],
-        ressources_menage_in=lambda _: money_of_units_int(ressources_menage),
-        residence_in=lambda _: Collectivite(residence, Unit()),
-        personne_charge_effective_permanente_est_parent_in=lambda _: personne_charge_effective_permanente_est_parent,
-        personne_charge_effective_permanente_remplit_titre_I_in=lambda _: personne_charge_effective_permanente_remplit_titre_I,
-        enfants_a_charge_in=no_input(),
-        montant_verse_in=no_input(),
-        avait_enfant_a_charge_avant_1er_janvier_2012_in=lambda _: avait_enfant_a_charge_avant_1er_janvier_2012
+        i_date_courante_in=lambda _: date_of_datetime(date_courante),
+        i_enfants_in=lambda _: [enfant.to_allocations_familiales()
+                                for enfant in enfants],
+        i_ressources_menage_in=lambda _: money_of_units_int(ressources_menage),
+        i_residence_in=lambda _: Collectivite(residence, Unit()),
+        i_personne_charge_effective_permanente_est_parent_in=lambda _: personne_charge_effective_permanente_est_parent,
+        i_personne_charge_effective_permanente_remplit_titre_I_in=lambda _: personne_charge_effective_permanente_remplit_titre_I,
+        i_avait_enfant_a_charge_avant_1er_janvier_2012_in=lambda _: avait_enfant_a_charge_avant_1er_janvier_2012
     ))
-    return money_to_float(out.montant_verse_out)
+    return money_to_float(out.i_montant_verse_out)

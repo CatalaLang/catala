@@ -62,28 +62,16 @@ type enfant = {
   a_deja_ouvert_droit_aux_allocations_familiales : bool;
 }
 
-type interface_allocations_familiales_out = {
-  date_courante_out : date;
-  enfants_out : enfant_entree array;
-  enfants_a_charge_out : enfant array;
-  ressources_menage_out : money;
-  residence_out : collectivite;
-  montant_verse_out : money;
-  personne_charge_effective_permanente_est_parent_out : bool;
-  personne_charge_effective_permanente_remplit_titre_I_out : bool;
-  avait_enfant_a_charge_avant_1er_janvier_2012_out : bool;
-}
+type interface_allocations_familiales_out = { i_montant_verse_out : money }
 
 type interface_allocations_familiales_in = {
-  date_courante_in : unit -> date;
-  enfants_in : unit -> enfant_entree array;
-  enfants_a_charge_in : unit -> enfant array;
-  ressources_menage_in : unit -> money;
-  residence_in : unit -> collectivite;
-  montant_verse_in : unit -> money;
-  personne_charge_effective_permanente_est_parent_in : unit -> bool;
-  personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
-  avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
+  i_date_courante_in : unit -> date;
+  i_enfants_in : unit -> enfant_entree array;
+  i_ressources_menage_in : unit -> money;
+  i_residence_in : unit -> collectivite;
+  i_personne_charge_effective_permanente_est_parent_in : unit -> bool;
+  i_personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
+  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
 }
 
 val interface_allocations_familiales :

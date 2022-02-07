@@ -199,20 +199,20 @@ let _ =
              let result =
                AF.interface_allocations_familiales
                  {
-                   AF.personne_charge_effective_permanente_est_parent_in =
+                   AF.i_personne_charge_effective_permanente_est_parent_in =
                      (fun _ ->
                        Js.to_bool input##.personneQuiAssumeLaChargeEffectivePermanenteEstParent);
-                   AF.personne_charge_effective_permanente_remplit_titre_I_in =
+                   AF.i_personne_charge_effective_permanente_remplit_titre_I_in =
                      (fun _ ->
                        Js.to_bool
                          input##.personneQuiAssumeLaChargeEffectivePermanenteRemplitConditionsTitreISecuriteSociale);
-                   AF.date_courante_in =
+                   AF.i_date_courante_in =
                      (fun _ ->
                        date_of_numbers
                          input##.currentDate##getUTCFullYear
                          input##.currentDate##getUTCMonth
                          input##.currentDate##getUTCDate);
-                   AF.enfants_in =
+                   AF.i_enfants_in =
                      (fun _ ->
                        Array.map
                          (fun (child : enfant_entree Js.t) ->
@@ -242,9 +242,8 @@ let _ =
                                money_of_units_int child##.remunerationMensuelle;
                            })
                          (Js.to_array input##.children));
-                   AF.enfants_a_charge_in = no_input;
-                   AF.ressources_menage_in = (fun _ -> money_of_units_int input##.income);
-                   AF.residence_in =
+                   AF.i_ressources_menage_in = (fun _ -> money_of_units_int input##.income);
+                   AF.i_residence_in =
                      (fun _ ->
                        match Js.to_string input##.residence with
                        | "Métropole" -> AF.Metropole ()
@@ -257,10 +256,9 @@ let _ =
                        | "Saint Martin" -> AF.SaintMartin ()
                        | "Mayotte" -> AF.Mayotte ()
                        | _ -> failwith "unknown collectivite!");
-                   AF.montant_verse_in = no_input;
-                   AF.avait_enfant_a_charge_avant_1er_janvier_2012_in =
+                   AF.i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
                      (fun _ -> Js.to_bool input##.avaitEnfantAChargeAvant1erJanvier2012);
                  }
              in
-             money_to_float result.AF.montant_verse_out)
+             money_to_float result.AF.i_montant_verse_out)
     end)
