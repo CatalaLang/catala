@@ -287,10 +287,10 @@ declaration structure TwoBrackets:
 # has two tax brackets, each with their own tax rate.
 
 declaration scope TwoBracketsTaxComputation :
-  context brackets content TwoBrackets
+  input brackets content TwoBrackets
   # This context element is standard, and contains the description of the
   # parameters of the tax formula.
-  context tax_formula content money depends on money
+  output tax_formula content money depends on money
   # But for declaring the tax_formula context element, we declare it as
   # a function: "content money depends on money" means a function that
   # returns money as output (the tax) and takes money as input (the income).
@@ -332,12 +332,12 @@ income tax is 20% of the income.
 
 ```catala
 declaration scope NewIncomeTaxComputation:
-  context two_brackets scope TwoBracketsTaxComputation
+  two_brackets scope TwoBracketsTaxComputation
   # This line says that we add the item two_brackets to the context.
   # However, the "scope" keyword tells that this item is not a piece of data
   # but rather a subscope that we can use to compute things.
-  context individual content Individual
-  context income_tax content money
+  input individual content Individual
+  output income_tax content money
 
 scope NewIncomeTaxComputation :
   # Since the subscope "two_brackets" is like a big function we can call,
@@ -404,8 +404,8 @@ as another scope:
 ```catala
 declaration scope Test1:
   # We include the scope to tax as a subscope.
-  context tax_computation scope NewIncomeTaxComputation
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputation
+  output income_tax content money
 
 # To execute that test, assuming that the Catala compiler can be called
 # with "catala", enter the following command:
@@ -434,8 +434,8 @@ This test should pass. Let us now consider a failing test case:
 
 ```catala
 declaration scope Test2:
-  context tax_computation scope NewIncomeTaxComputation
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputation
+  output income_tax content money
 
 scope Test2:
   definition tax_computation.individual equals Individual {
@@ -464,9 +464,9 @@ fixed version of the NewIncomeTaxComputation scope:
 
 ```catala
 declaration scope NewIncomeTaxComputationFixed:
-  context two_brackets scope TwoBracketsTaxComputation
-  context individual content Individual
-  context income_tax content money
+  two_brackets scope TwoBracketsTaxComputation
+  input individual content Individual
+  output income_tax content money
 
 scope NewIncomeTaxComputationFixed :
   definition two_brackets.brackets equals TwoBrackets {
@@ -496,8 +496,8 @@ And the test that should now work:
 
 ```catala
 declaration scope Test3:
-  context tax_computation scope NewIncomeTaxComputationFixed
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputationFixed
+  output income_tax content money
 
 scope Test3:
   definition tax_computation.individual equals Individual {

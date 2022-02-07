@@ -69,16 +69,16 @@ déclaration structure EnfantEntrée:
   donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
-  contexte date_courante contenu date
-  contexte enfants contenu collection EnfantEntrée
-  contexte enfants_à_charge contenu collection Enfant
-  contexte allocations_familiales champ d'application AllocationsFamiliales
-  contexte ressources_ménage contenu argent
-  contexte résidence contenu Collectivité
-  contexte montant_versé contenu argent
-  contexte personne_charge_effective_permanente_est_parent condition
-  contexte personne_charge_effective_permanente_remplit_titre_I condition
-  contexte avait_enfant_à_charge_avant_1er_janvier_2012 condition
+  entrée date_courante contenu date
+  entrée enfants contenu collection EnfantEntrée
+  interne enfants_à_charge contenu collection Enfant
+  allocations_familiales champ d'application AllocationsFamiliales
+  entrée ressources_ménage contenu argent
+  entrée résidence contenu Collectivité
+  sortie montant_versé contenu argent
+  entrée personne_charge_effective_permanente_est_parent condition
+  entrée personne_charge_effective_permanente_remplit_titre_I condition
+  entrée avait_enfant_à_charge_avant_1er_janvier_2012 condition
 
 champ d'application InterfaceAllocationsFamiliales:
   définition allocations_familiales.date_courante égal à date_courante

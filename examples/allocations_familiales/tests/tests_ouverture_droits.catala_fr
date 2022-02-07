@@ -4,10 +4,10 @@
 
 ```catala
 déclaration champ d'application Données:
-  contexte enfant1 contenu Enfant
-  contexte enfant2 contenu Enfant
-  contexte enfant3 contenu Enfant
-  contexte enfant4 contenu Enfant
+  sortie enfant1 contenu Enfant
+  sortie enfant2 contenu Enfant
+  sortie enfant3 contenu Enfant
+  sortie enfant4 contenu Enfant
 
 champ d'application Données:
   définition enfant1 égal à Enfant {
@@ -48,8 +48,8 @@ champ d'application Données:
   }
 
 déclaration champ d'application Test1:
-  contexte données champ d'application Données
-  contexte f champ d'application PrestationsFamiliales
+  données champ d'application Données
+  f champ d'application PrestationsFamiliales
 
 champ d'application Test1:
   définition f.date_courante égal à |2020-05-01|

@@ -4,11 +4,11 @@
 
 ```catala
 déclaration champ d'application Données:
-  contexte enfant1 contenu EnfantEntrée
-  contexte enfant2 contenu EnfantEntrée
-  contexte enfant3 contenu EnfantEntrée
-  contexte enfant4 contenu EnfantEntrée
-  contexte enfant5 contenu EnfantEntrée
+  sortie enfant1 contenu EnfantEntrée
+  sortie enfant2 contenu EnfantEntrée
+  sortie enfant3 contenu EnfantEntrée
+  sortie enfant4 contenu EnfantEntrée
+  sortie enfant5 contenu EnfantEntrée
 
 champ d'application Données:
   définition enfant1 égal à EnfantEntrée {
@@ -48,8 +48,8 @@ champ d'application Données:
   }
 
 déclaration champ d'application Test1:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test1:
   définition f.enfants égal à
@@ -61,8 +61,8 @@ champ d'application Test1:
   assertion f.montant_versé = 351,26€
 
 déclaration champ d'application Test2:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test2:
   définition f.enfants égal à
@@ -75,8 +75,8 @@ champ d'application Test2:
 
 
 déclaration champ d'application Test3:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test3:
   définition f.enfants égal à [données.enfant1]
@@ -87,8 +87,8 @@ champ d'application Test3:
   assertion f.montant_versé = 24,35 €
 
 déclaration champ d'application Test4:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test4:
   définition f.enfants égal à [données.enfant1; données.enfant3]
@@ -99,8 +99,8 @@ champ d'application Test4:
   assertion f.montant_versé = 99,37€
 
 déclaration champ d'application Test5:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test5:
   définition f.enfants égal à [données.enfant1]
@@ -111,7 +111,7 @@ champ d'application Test5:
   assertion f.montant_versé = 0,00€
 
 déclaration champ d'application Test6:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test6:
   définition f.enfants égal à [EnfantEntrée {
@@ -134,8 +134,8 @@ champ d'application Test6:
   assertion f.montant_versé = 66,25€
 
 déclaration champ d'application Test7:
-  contexte f champ d'application InterfaceAllocationsFamiliales
-  contexte données champ d'application Données
+  f champ d'application InterfaceAllocationsFamiliales
+  données champ d'application Données
 
 champ d'application Test7:
   définition f.enfants égal à
@@ -147,7 +147,7 @@ champ d'application Test7:
   assertion f.montant_versé = 417,51€
 
 déclaration champ d'application Test8:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test8:
   définition f.enfants égal à [EnfantEntrée {
@@ -170,7 +170,7 @@ champ d'application Test8:
   assertion f.montant_versé = 197,74€
 
 déclaration champ d'application Test9:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test9:
   définition f.enfants égal à [EnfantEntrée {
@@ -193,7 +193,7 @@ champ d'application Test9:
   assertion f.montant_versé = 0€
 
 déclaration champ d'application Test10:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test10:
   définition f.enfants égal à [EnfantEntrée {
@@ -216,7 +216,7 @@ champ d'application Test10:
   assertion f.montant_versé = 99,37€
 
 déclaration champ d'application Test11:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test11:
   définition f.enfants égal à [EnfantEntrée {
@@ -246,7 +246,7 @@ champ d'application Test11:
   assertion f.montant_versé = 435,55€
 
 déclaration champ d'application Test12:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test12:
   définition f.enfants égal à [EnfantEntrée {
@@ -284,7 +284,7 @@ champ d'application Test12:
   assertion f.montant_versé = 315,84€
 
 déclaration champ d'application Test13:
-  contexte f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application InterfaceAllocationsFamiliales
 
 champ d'application Test13:
   définition f.enfants égal à [EnfantEntrée {

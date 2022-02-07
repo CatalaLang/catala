@@ -272,13 +272,19 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           in
           Bindlib.box_var v
         with Not_found ->
-          Errors.raise_spanned_error
+          Errors.raise_multispanned_error
             (Format.asprintf
                "The variable %a.%a cannot be used here, as it is not part subscope %a's results. \
                 Maybe you forgot to qualify it as an output?"
                Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
                Ast.SubScopeName.format_t (Pos.unmark s))
-            (Pos.get_position e))
+            [
+              (Some "Incriminated variable usage:", Pos.get_position e);
+              ( Some "Incriminated subscope variable declaration:",
+                Pos.get_position (Ast.ScopeVar.get_info (Pos.unmark a)) );
+              ( Some "Incriminated subscope declaration:",
+                Pos.get_position (Ast.SubScopeName.get_info (Pos.unmark s)) );
+            ])
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))

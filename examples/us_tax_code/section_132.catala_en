@@ -7,15 +7,15 @@ declaration enumeration DiscountType:
   -- Services
 
 declaration scope QualifiedEmployeeDiscount:
-  context customer_price content money
-  context employee_price content money
-  context gross_profit_percentage content decimal
-  context qualified_employee_discount content money
-  context employee_discount content money
-  context aggregate_cost content money
-  context discount_type content DiscountType
-  context is_property content boolean
-  context is_services content boolean
+  input customer_price content money
+  input employee_price content money
+  output gross_profit_percentage content decimal
+  output qualified_employee_discount content money
+  output employee_discount content money
+  input aggregate_cost content money
+  input discount_type content DiscountType
+  internal is_property content boolean
+  internal is_services content boolean
 
 scope QualifiedEmployeeDiscount:
   definition is_property equals match discount_type with pattern
