@@ -169,10 +169,16 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
       Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-           (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
+           format_typ_with_parens)
         ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum (_, e) -> Format.fprintf fmt "%a" format_enum_name e
+  | TEnum (ts, e) when D.EnumName.compare e Ast.option_enum = 0 ->
+      Format.fprintf fmt "@[<hov 2>(%a)@] %a"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ,@ ")
+           format_typ_with_parens)
+        ts format_enum_name e
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
