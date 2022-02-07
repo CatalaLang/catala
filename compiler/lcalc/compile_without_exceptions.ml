@@ -72,6 +72,27 @@ let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
 
 (* D.VarMap.add var { expr; var = new_var; is_pure } ctx *)
 
+(** [tau' = translate_typ tau] translate the a dcalc type into a lcalc type.
+
+    Since positions where there is thunked expressions is exactly where we will put option
+    expressions. Hence, the transformation simply reduce [unit -> 'a] into ['a option] recursivly.
+    There is no polymorphism inside catala. *)
+let rec translate_typ (tau : D.typ Pos.marked) : D.typ Pos.marked =
+  (Fun.flip Pos.same_pos_as) tau
+    begin
+      match Pos.unmark tau with
+      | D.TLit l -> D.TLit l
+      | D.TTuple (ts, s) -> D.TTuple (List.map translate_typ ts, s)
+      | D.TEnum (ts, en) -> D.TEnum (List.map translate_typ ts, en)
+      | D.TAny -> D.TAny
+      | D.TArray ts -> D.TArray (translate_typ ts)
+      (* catala is not polymorphic*)
+      | D.TArrow ((D.TLit D.TUnit, _), _t2) ->
+          (* D.TEnum ([ translate_typ t2 ], A.option_enum) *)
+          D.TAny
+      | D.TArrow (t1, t2) -> D.TArrow (translate_typ t1, translate_typ t2)
+    end
+
 let translate_lit (l : D.lit) (pos : Pos.t) : A.lit =
   match l with
   | D.LBool l -> A.LBool l
@@ -166,9 +187,9 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
         (A.EIfThenElse (e1', e2', e3'), pos) in *)
       (e', disjoint_union_maps pos [ c1; c2; c3 ])
   | D.EAssert e1 ->
-    (* same behavior as in the ICFP paper: if e1 is empty, then no error is raised. *)
-    let e1', c1 = translate_and_cut ctx e1 in
-    (Bindlib.box_apply (fun e1' -> (A.EAssert e1', pos)) e1', c1)
+      (* same behavior as in the ICFP paper: if e1 is empty, then no error is raised. *)
+      let e1', c1 = translate_and_cut ctx e1 in
+      (Bindlib.box_apply (fun e1' -> (A.EAssert e1', pos)) e1', c1)
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
@@ -189,7 +210,9 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
       let new_body, cuts = translate_and_cut ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
 
-      ( Bindlib.box_apply (fun new_binder -> (A.EAbs ((new_binder, pos_binder), ts), pos)) new_binder,
+      ( Bindlib.box_apply
+          (fun new_binder -> (A.EAbs ((new_binder, pos_binder), List.map translate_typ ts), pos))
+          new_binder,
         cuts )
   | EApp (e1, args) ->
       (* general case is simple *)
@@ -396,7 +419,7 @@ let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
       Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var var;
       let ctx' = add_var pos var var_is_pure ctx in
       let new_var = (find ~info:"variable that was just created" var ctx').var in
-      A.make_let_in new_var typ
+      A.make_let_in new_var (translate_typ typ)
         (translate_expr ctx ~append_esome:false expr)
         (translate_scope_let ctx' next)
 
@@ -415,11 +438,16 @@ let translate_scope_body (scope_pos : Pos.t) (_decl_ctx : D.decl_ctx) (ctx : ctx
       translate_scope_let ctx' lets
 
 let translate_program (prgm : D.program) : A.program =
-  (* modify *)
+  (* modify the *)
   let decl_ctx =
     {
-      D.ctx_enums = prgm.decl_ctx.ctx_enums |> D.EnumMap.add A.option_enum A.option_enum_config;
-      D.ctx_structs = prgm.decl_ctx.ctx_structs;
+      D.ctx_enums =
+        prgm.decl_ctx.ctx_enums
+        |> D.EnumMap.add A.option_enum A.option_enum_config
+        |> D.EnumMap.map (fun l -> ListLabels.map l ~f:(fun (n, tau) -> (n, translate_typ tau)));
+      D.ctx_structs =
+        prgm.decl_ctx.ctx_structs
+        |> D.StructMap.map (fun l -> ListLabels.map l ~f:(fun (n, tau) -> (n, translate_typ tau)));
     }
   in
 
