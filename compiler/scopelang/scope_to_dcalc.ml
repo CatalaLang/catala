@@ -492,7 +492,12 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
             Dcalc.Ast.scope_let_typ = (Dcalc.Ast.TLit TUnit, Pos.get_position e);
             Dcalc.Ast.scope_let_expr =
               (* To ensure that we throw an error if the value is not defined, we add an check "ErrorOnEmpty" here. *)
-              Bindlib.box_apply (fun new_e -> Pos.same_pos_as (Dcalc.Ast.EAssert (Dcalc.Ast.ErrorOnEmpty new_e, Pos.get_position e)) e) new_e;
+              Bindlib.box_apply
+                (fun new_e ->
+                  Pos.same_pos_as
+                    (Dcalc.Ast.EAssert (Dcalc.Ast.ErrorOnEmpty new_e, Pos.get_position e))
+                    e)
+                new_e;
             Dcalc.Ast.scope_let_kind = Dcalc.Ast.Assertion;
           };
         ],
