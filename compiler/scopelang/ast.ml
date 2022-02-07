@@ -118,7 +118,9 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
       List.fold_left (fun acc e' -> LocationSet.union acc (locations_used e')) LocationSet.empty es
   | ErrorOnEmpty e' -> locations_used e'
 
-type visibility = { visibility_output : bool; visibility_input : bool }
+type io_input = NoInput | OnlyInput | Reentrant
+
+type io = { io_output : bool Pos.marked; io_input : io_input Pos.marked }
 
 type rule =
   | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
@@ -127,7 +129,7 @@ type rule =
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ Pos.marked * visibility) ScopeVarMap.t;
+  scope_sig : (typ Pos.marked * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 345.
+## Ends in an error in state: 348.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
@@ -13,7 +13,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 343.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -25,7 +25,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 339.
+## Ends in an error in state: 342.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -37,7 +37,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 341.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -49,7 +49,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 337.
+## Ends in an error in state: 340.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -61,7 +61,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 336.
+## Ends in an error in state: 339.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -73,7 +73,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 335.
+## Ends in an error in state: 338.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -83,71 +83,12 @@ source_file: BEGIN_CODE DECLARATION ENUM YEAR
 
 expected the name of your enum
 
-source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONDITION YEAR
-##
-## Ends in an error in state: 330.
-##
-## scope_decl_item -> scope_decl_item_attribute ident CONDITION . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute ident CONDITION
-##
-
-expected the next context item or a dependency declaration for this item
-
-source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT TEXT YEAR
-##
-## Ends in an error in state: 328.
-##
-## scope_decl_item -> scope_decl_item_attribute ident CONTENT typ . option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute ident CONTENT typ
-##
-
-expected the next context item or a dependency declaration for this item
-
-source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT CONTENT YEAR
-##
-## Ends in an error in state: 327.
-##
-## scope_decl_item -> scope_decl_item_attribute ident CONTENT . typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute ident CONTENT
-##
-
-expected the type of this context item
 
 
 
-source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT IDENT YEAR
-##
-## Ends in an error in state: 324.
-##
-## scope_decl_item -> scope_decl_item_attribute ident . CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute ident . SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute ident . CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute ident
-##
 
-expected the kind of this context item: is it a condition, a sub-scope or a data?
 
-source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON CONTEXT YEAR
-##
-## Ends in an error in state: 323.
-##
-## scope_decl_item -> scope_decl_item_attribute . ident CONTENT typ option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute . ident SCOPE constructor [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute . ident CONDITION option(struct_scope_func) [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute
-##
 
-expected the name of this new context item
 
 source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
@@ -189,7 +130,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 303.
 ##
-## typ -> collection_marked . typ [ SCOPE OUTPUT INTERNAL INPUT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> collection_marked . typ [ SCOPE INTERNAL INPUT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## collection_marked
@@ -213,7 +154,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEP
 ##
 ## Ends in an error in state: 307.
 ##
-## struct_scope_func -> DEPENDS . typ [ SCOPE OUTPUT INTERNAL INPUT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope_func -> DEPENDS . typ [ SCOPE INTERNAL INPUT END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
@@ -1926,7 +1867,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 363.
+## Ends in an error in state: 366.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##

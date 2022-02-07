@@ -17,7 +17,7 @@ open Utils
 type scope_var_ctx = {
   scope_var_name : Ast.ScopeVar.t;
   scope_var_typ : Dcalc.Ast.typ;
-  scope_var_visibility : Ast.visibility;
+  scope_var_io : Ast.io;
 }
 
 type scope_sig_ctx = {
@@ -36,9 +36,8 @@ type ctx = {
   enums : Ast.enum_ctx;
   scope_name : Ast.ScopeName.t;
   scopes_parameters : scope_sigs_ctx;
-  scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ * Ast.visibility) Ast.ScopeVarMap.t;
-  subscope_vars :
-    (Dcalc.Ast.Var.t * Dcalc.Ast.typ * Ast.visibility) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
+  scope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ * Ast.io) Ast.ScopeVarMap.t;
+  subscope_vars : (Dcalc.Ast.Var.t * Dcalc.Ast.typ * Ast.io) Ast.ScopeVarMap.t Ast.SubScopeMap.t;
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
@@ -301,12 +300,12 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
-      (* TODO: put visibility in a friendlier place, maybe in the Definition constructor? *)
-      let a_visibility =
+      (* TODO: put io in a friendlier place, maybe in the Definition constructor? *)
+      let a_io =
         (List.find
            (fun local_var -> Ast.ScopeVar.compare local_var.scope_var_name (Pos.unmark a) = 0)
            (Ast.ScopeMap.find ctx.scope_name ctx.scopes_parameters).scope_sig_local_vars)
-          .scope_var_visibility
+          .scope_var_io
       in
       let a_var = Dcalc.Ast.Var.make a_name in
       let tau = translate_typ ctx tau in
@@ -315,7 +314,9 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
       let merged_expr =
         Bindlib.box_apply
           (fun merged_expr -> (Dcalc.Ast.ErrorOnEmpty merged_expr, Pos.get_position a_name))
-          (if a_visibility.visibility_input then merge_defaults a_expr new_e else new_e)
+          (match Pos.unmark a_io.io_input with
+          | OnlyInput | Reentrant -> merge_defaults a_expr new_e
+          | NoInput -> new_e)
       in
       let merged_expr =
         tag_with_log_entry merged_expr
@@ -333,7 +334,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         {
           ctx with
           scope_vars =
-            Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau, a_visibility) ctx.scope_vars;
+            Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau, a_io) ctx.scope_vars;
         } )
   | Definition ((SubScopeVar (subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
       let a_name =
@@ -356,12 +357,12 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           [ (Dcalc.Ast.TLit TUnit, var_def_pos) ]
           var_def_pos
       in
-      let a_visibility =
+      let a_io =
         (List.find
            (fun local_var ->
              Ast.ScopeVar.compare local_var.scope_var_name (Pos.unmark subs_var) = 0)
            (Ast.ScopeMap.find subs_name ctx.scopes_parameters).scope_sig_local_vars)
-          .scope_var_visibility
+          .scope_var_io
       in
       ( [
           {
@@ -380,13 +381,11 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
                 match map with
                 | Some map ->
                     Some
-                      (Ast.ScopeVarMap.add (Pos.unmark subs_var)
-                         (a_var, Pos.unmark tau, a_visibility)
-                         map)
+                      (Ast.ScopeVarMap.add (Pos.unmark subs_var) (a_var, Pos.unmark tau, a_io) map)
                 | None ->
                     Some
                       (Ast.ScopeVarMap.singleton (Pos.unmark subs_var)
-                         (a_var, Pos.unmark tau, a_visibility)))
+                         (a_var, Pos.unmark tau, a_io)))
               ctx.subscope_vars;
         } )
   | Call (subname, subindex) ->
@@ -394,13 +393,12 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
       let all_subscope_vars = subscope_sig.scope_sig_local_vars in
       let all_subscope_input_vars =
         List.filter
-          (fun var_ctx -> var_ctx.scope_var_visibility.Ast.visibility_input)
+          (fun var_ctx ->
+            match Pos.unmark var_ctx.scope_var_io.Ast.io_input with NoInput -> false | _ -> true)
           all_subscope_vars
       in
       let all_subscope_output_vars =
-        List.filter
-          (fun var_ctx -> var_ctx.scope_var_visibility.Ast.visibility_output)
-          all_subscope_vars
+        List.filter (fun var_ctx -> Pos.unmark var_ctx.scope_var_io.Ast.io_output) all_subscope_vars
       in
       let scope_dcalc_var = subscope_sig.scope_sig_scope_var in
       let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
@@ -515,7 +513,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
               (List.fold_left
                  (fun acc (var_ctx, dvar) ->
                    Ast.ScopeVarMap.add var_ctx.scope_var_name
-                     (dvar, var_ctx.scope_var_typ, var_ctx.scope_var_visibility)
+                     (dvar, var_ctx.scope_var_typ, var_ctx.scope_var_io)
                      acc)
                  Ast.ScopeVarMap.empty all_subscope_output_vars_dcalc)
               ctx.subscope_vars;
@@ -547,7 +545,7 @@ let translate_rules (ctx : ctx) (rules : Ast.rule list)
   in
   let scope_variables = Ast.ScopeVarMap.bindings new_ctx.scope_vars in
   let scope_output_variables =
-    List.filter (fun (_, (_, _, visibility)) -> visibility.Ast.visibility_output) scope_variables
+    List.filter (fun (_, (_, _, io)) -> Pos.unmark io.Ast.io_output) scope_variables
   in
   let return_exp =
     Bindlib.box_apply
@@ -582,10 +580,13 @@ let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
   in
   (* first we create variables from the fields of the input struct *)
   let scope_input_variables =
-    List.filter (fun (var_ctx, _) -> var_ctx.scope_var_visibility.visibility_input) scope_variables
+    List.filter
+      (fun (var_ctx, _) ->
+        match Pos.unmark var_ctx.scope_var_io.io_input with NoInput -> false | _ -> true)
+      scope_variables
   in
   let scope_output_variables =
-    List.filter (fun (var_ctx, _) -> var_ctx.scope_var_visibility.visibility_output) scope_variables
+    List.filter (fun (var_ctx, _) -> Pos.unmark var_ctx.scope_var_io.io_output) scope_variables
   in
   let input_destructurings =
     List.mapi
@@ -692,11 +693,7 @@ let translate_program (prgm : Ast.program) : Dcalc.Ast.program * Dependency.TVer
             List.map
               (fun (scope_var, (tau, vis)) ->
                 let tau = translate_typ (ctx_for_typ_translation scope_name) tau in
-                {
-                  scope_var_name = scope_var;
-                  scope_var_typ = Pos.unmark tau;
-                  scope_var_visibility = vis;
-                })
+                { scope_var_name = scope_var; scope_var_typ = Pos.unmark tau; scope_var_io = vis })
               (Ast.ScopeVarMap.bindings scope.scope_sig);
           scope_sig_scope_var = scope_dvar;
           scope_sig_input_var = scope_input_var;

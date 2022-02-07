@@ -84,9 +84,14 @@ type expr =
 
 val locations_used : expr Pos.marked -> LocationSet.t
 
-type visibility = {
-  visibility_output : bool;  (** True if present in the scope's output *)
-  visibility_input : bool;  (** True if present in the scope's input (reentrant) *)
+type io_input =
+  | NoInput  (** For an internal variable defined only in the scope *)
+  | OnlyInput  (** For variables that should not be redefined in the scope *)
+  | Reentrant  (** For variables defined in the scope that can also be redefined by the caller *)
+
+type io = {
+  io_output : bool Pos.marked;
+  io_input : io_input Pos.marked;  (** True if present in the scope's input (reentrant) *)
 }
 
 type rule =
@@ -96,7 +101,7 @@ type rule =
 
 type scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ Pos.marked * visibility) ScopeVarMap.t;
+  scope_sig : (typ Pos.marked * io) ScopeVarMap.t;
   scope_decl_rules : rule list;
 }
 

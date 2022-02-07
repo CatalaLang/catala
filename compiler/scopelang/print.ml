@@ -149,8 +149,11 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
        (fun fmt (scope_var, (typ, vis)) ->
          Format.fprintf fmt "(%a: %a%s%s)" ScopeVar.format_t scope_var format_typ typ
-           (if vis.visibility_input then "|input" else "")
-           (if vis.visibility_output then "|output" else "")))
+           (match Pos.unmark vis.io_input with
+           | NoInput -> "|internal"
+           | OnlyInput -> "|input"
+           | Reentrant -> "|context")
+           (if Pos.unmark vis.io_output then "|output" else "")))
     (ScopeVarMap.bindings decl.scope_sig)
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
@@ -162,10 +165,12 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
                (fun fmt e ->
                  match Pos.unmark loc with
                  | SubScopeVar _ -> format_expr fmt e
-                 | ScopeVar v ->
-                     if (snd (ScopeVarMap.find (Pos.unmark v) decl.scope_sig)).visibility_input then
-                       Format.fprintf fmt "reentrant or by default@ %a" format_expr e
-                     else Format.fprintf fmt "%a" format_expr e)
+                 | ScopeVar v -> (
+                     match
+                       Pos.unmark (snd (ScopeVarMap.find (Pos.unmark v) decl.scope_sig)).io_input
+                     with
+                     | Reentrant -> Format.fprintf fmt "reentrant or by default@ %a" format_expr e
+                     | _ -> Format.fprintf fmt "%a" format_expr e))
                e
          | Assertion e -> Format.fprintf fmt "assert (%a)" format_expr e
          | Call (scope_name, subscope_name) ->

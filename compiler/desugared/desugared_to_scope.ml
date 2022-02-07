@@ -231,7 +231,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          (* We exclude subscope variables that have 0 re-definitions and are not
                             visible in the input of the subscope *)
                          && not
-                              ((not scope_def.Ast.scope_def_visibility.visibility_input)
+                              ((match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+                               | Scopelang.Ast.NoInput -> false
+                               | _ -> true)
                               && Ast.RuleMap.is_empty scope_def.scope_def_rules))
                    scope.scope_defs
                in
@@ -240,18 +242,20 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                    (fun def_key scope_def ->
                      let def = scope_def.Ast.scope_def_rules in
                      (* This definition redefines a variable of the correct subscope. But we have to
-                        check that this redefinition is allowed with respect to the visibility
-                        parameters of that subscope variable. *)
-                     if not scope_def.Ast.scope_def_visibility.visibility_input then
-                       Errors.raise_multispanned_error
-                         "It is impossible to give a definition to a subscope variable not tagged \
-                          as input or context."
-                         ((Some "Relevant subscope:", Ast.ScopeDef.get_position def_key)
-                         :: List.map
-                              (fun (rule, _) ->
-                                ( Some "Suscope variable definition:",
-                                  Pos.get_position (Ast.RuleName.get_info rule) ))
-                              (Ast.RuleMap.bindings def));
+                        check that this redefinition is allowed with respect to the io parameters of
+                        that subscope variable. *)
+                     (match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+                     | Scopelang.Ast.NoInput ->
+                         Errors.raise_multispanned_error
+                           "It is impossible to give a definition to a subscope variable not \
+                            tagged as input or context."
+                           ((Some "Relevant subscope:", Ast.ScopeDef.get_position def_key)
+                           :: List.map
+                                (fun (rule, _) ->
+                                  ( Some "Suscope variable definition:",
+                                    Pos.get_position (Ast.RuleName.get_info rule) ))
+                                (Ast.RuleMap.bindings def))
+                     | _ -> ());
                      (* Now that all is good, we can proceed with translating this redefinition to a
                         proper Scopelang term. *)
                      let def_typ = scope_def.scope_def_typ in
@@ -294,7 +298,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
       (fun var acc ->
         let scope_def = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
         let typ = scope_def.scope_def_typ in
-        Scopelang.Ast.ScopeVarMap.add var (typ, scope_def.scope_def_visibility) acc)
+        Scopelang.Ast.ScopeVarMap.add var (typ, scope_def.scope_def_io) acc)
       scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
   in
   {

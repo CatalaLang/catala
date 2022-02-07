@@ -51,7 +51,7 @@ type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
 type var_sig = {
   var_sig_typ : typ Pos.marked;
   var_sig_is_condition : bool;
-  var_sig_visibility : Ast.scope_decl_context_item_attribute Pos.marked;
+  var_sig_io : Ast.scope_decl_context_io;
 }
 
 type context = {
@@ -98,9 +98,8 @@ let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.mark
 let is_var_cond (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : bool =
   (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
 
-let get_var_visibility (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) :
-    Ast.scope_decl_context_item_attribute Pos.marked =
-  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_visibility
+let get_var_io (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : Ast.scope_decl_context_io =
+  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
@@ -271,7 +270,7 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
             {
               var_sig_typ = data_typ;
               var_sig_is_condition = is_cond;
-              var_sig_visibility = decl.scope_decl_context_item_attribute;
+              var_sig_io = decl.scope_decl_context_item_attribute;
             }
             ctxt.var_typs;
       }

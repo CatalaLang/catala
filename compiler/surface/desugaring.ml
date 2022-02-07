@@ -1069,13 +1069,18 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
   List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
 
-let attribute_to_visibility (attr : Ast.scope_decl_context_item_attribute Pos.marked) :
-    Scopelang.Ast.visibility =
-  match Pos.unmark attr with
-  | Ast.Context -> { visibility_input = true; Scopelang.Ast.visibility_output = true }
-  | Ast.Input -> { visibility_input = true; Scopelang.Ast.visibility_output = false }
-  | Ast.Output -> { visibility_input = false; Scopelang.Ast.visibility_output = true }
-  | Ast.Internal -> { visibility_input = false; Scopelang.Ast.visibility_output = false }
+let attribute_to_io (attr : Ast.scope_decl_context_io) : Scopelang.Ast.io =
+  {
+    Scopelang.Ast.io_output = attr.scope_decl_context_io_output;
+    Scopelang.Ast.io_input =
+      Pos.map_under_mark
+        (fun io ->
+          match io with
+          | Ast.Input -> Scopelang.Ast.OnlyInput
+          | Ast.Internal -> Scopelang.Ast.NoInput
+          | Ast.Context -> Scopelang.Ast.Reentrant)
+        attr.scope_decl_context_io_input;
+  }
 
 (** Main function of this module *)
 let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desugared.Ast.program =
@@ -1111,8 +1116,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                            Desugared.Ast.scope_def_label_groups =
                              Name_resolution.label_groups ctxt s_uid def_key;
                            Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                           Desugared.Ast.scope_def_visibility =
-                             attribute_to_visibility v_sig.var_sig_visibility;
+                           Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
                          }
                          acc)
                      s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty
@@ -1133,8 +1137,7 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                                Desugared.Ast.scope_def_label_groups =
                                  Name_resolution.label_groups ctxt subscope_uid def_key;
                                Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                               Desugared.Ast.scope_def_visibility =
-                                 attribute_to_visibility v_sig.var_sig_visibility;
+                               Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
                              }
                              acc)
                          (Scopelang.Ast.ScopeMap.find subscope_uid ctxt.Name_resolution.scopes)

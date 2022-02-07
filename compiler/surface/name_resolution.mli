@@ -51,7 +51,7 @@ type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
 type var_sig = {
   var_sig_typ : typ Pos.marked;
   var_sig_is_condition : bool;
-  var_sig_visibility : Ast.scope_decl_context_item_attribute Pos.marked;
+  var_sig_io : Ast.scope_decl_context_io;
 }
 
 type context = {
@@ -90,8 +90,7 @@ val get_var_typ : context -> Scopelang.Ast.ScopeVar.t -> typ Pos.marked
 
 val is_var_cond : context -> Scopelang.Ast.ScopeVar.t -> bool
 
-val get_var_visibility :
-  context -> Scopelang.Ast.ScopeVar.t -> Ast.scope_decl_context_item_attribute Pos.marked
+val get_var_io : context -> Scopelang.Ast.ScopeVar.t -> Ast.scope_decl_context_io
 
 val get_var_uid :
   Scopelang.Ast.ScopeName.t -> context -> ident Pos.marked -> Scopelang.Ast.ScopeVar.t
