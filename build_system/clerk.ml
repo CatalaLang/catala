@@ -281,10 +281,10 @@ let ninja_start (catala_exe : string) : ninja =
   in
   { rules = Nj.RuleMap.(empty |> add "test_scope" test_scope_rule); builds = Nj.BuildMap.empty }
 
-(** [collect_all_ninja_build tested_file catala_exe catala_opts reset_test_outputs] creates and
-    returns all ninja build needed to test the [tested_file]. *)
-let collect_all_ninja_build (tested_file : string) (catala_exe : string) (_catala_opts : string)
-    (_reset_test_outputs : bool) : ninja option =
+(** [collect_all_ninja_build ninja tested_file catala_exe catala_opts reset_test_outputs] creates
+    and returns all ninja build needed to test the [tested_file]. *)
+let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_catala_exe : string)
+    (_catala_opts : string) (_reset_test_outputs : bool) : ninja option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if List.length expected_outputs = 0 then (
     Cli.debug_print (Format.asprintf "No expected outputs were found for test file %s" tested_file);
@@ -293,32 +293,36 @@ let collect_all_ninja_build (tested_file : string) (catala_exe : string) (_catal
     let ninja, test_names =
       List.fold_left
         (fun (ninja, test_names) expected_output ->
-          let scope =
-            match expected_output.scope with
-            | Some scope -> scope
-            | None -> failwith "Fixme: scope expected"
-          in
-          let test_name = Printf.sprintf "test_%s_%s" scope tested_file |> Nj.Build.unpath in
-          let vars =
-            [
-              ("scope", Nj.Expr.Lit scope);
-              ("tested_file", Nj.Expr.Lit tested_file);
-              ( "expected_output",
-                Nj.Expr.Lit (expected_output.output_dir ^ expected_output.complete_filename) );
-            ]
-          in
-          ( {
-              ninja with
-              builds =
-                Nj.BuildMap.add test_name
-                  (Nj.Build.make_with_vars ~outputs:[ Nj.Expr.Lit test_name ] ~rule:"test_scope"
-                     ~vars)
-                  ninja.builds;
-            },
-            (* TODO: to refactor to get a list and add '$' if needed when writing. *)
-            test_names ^ " $\n  " ^ test_name ))
-        (ninja_start catala_exe, "")
-        expected_outputs
+          match expected_output.backend with
+          | Cli.Interpret ->
+              let scope =
+                match expected_output.scope with
+                | Some scope -> scope
+                | None ->
+                    failwith
+                      (Printf.sprintf "FIXME: scope expected (tested_file = '%s')" tested_file)
+              in
+              let test_name = Printf.sprintf "test_%s_%s" scope tested_file |> Nj.Build.unpath in
+              let vars =
+                [
+                  ("scope", Nj.Expr.Lit scope);
+                  ("tested_file", Nj.Expr.Lit tested_file);
+                  ( "expected_output",
+                    Nj.Expr.Lit (expected_output.output_dir ^ expected_output.complete_filename) );
+                ]
+              in
+              ( {
+                  ninja with
+                  builds =
+                    Nj.BuildMap.add test_name
+                      (Nj.Build.make_with_vars ~outputs:[ Nj.Expr.Lit test_name ] ~rule:"test_scope"
+                         ~vars)
+                      ninja.builds;
+                },
+                (* TODO: to refactor to get a list and add '$' if needed when writing. *)
+                test_names ^ " $\n  " ^ test_name )
+          | _ -> failwith "TODO: to support all backends")
+        (ninja, "") expected_outputs
     in
     let test_name = Printf.sprintf "test_file_%s" tested_file |> Nj.Build.unpath in
     {
@@ -346,6 +350,8 @@ let run_file (file : string) (catala_exe : string) (catala_opts : string) (scope
 let get_catala_files_in_folder (dir : string) : string list =
   let rec loop result = function
     | f :: fs when Sys.is_directory f ->
+        (* TODO: needs to be refactored if we want the build.ninja file structured with
+           directories. *)
         Sys.readdir f |> Array.to_list
         |> List.map (Filename.concat f)
         |> List.append fs |> loop result
@@ -363,65 +369,71 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
   let catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts in
   match String.lowercase_ascii command with
   | "test" -> (
-      if Sys.is_directory file_or_folder then (
-        let results =
-          List.fold_left
-            (fun (exit : testing_result) file ->
-              let result = test_file file catala_exe catala_opts reset_test_outputs in
-              {
-                error_code =
-                  (if result.error_code <> 0 && exit.error_code = 0 then result.error_code
-                  else exit.error_code);
-                number_of_tests_run = exit.number_of_tests_run + result.number_of_tests_run;
-                number_correct = exit.number_correct + result.number_correct;
-              })
-            { error_code = 0; number_of_tests_run = 0; number_correct = 0 }
-            (get_catala_files_in_folder file_or_folder)
-        in
-        Cli.result_print
-          (Format.asprintf "Number of tests passed in folder %s: %s"
-             (Cli.print_with_style [ ANSITerminal.magenta ] "%s" file_or_folder)
-             (Cli.print_with_style
-                [
-                  (if results.number_correct = results.number_of_tests_run then ANSITerminal.green
-                  else ANSITerminal.red);
-                ]
-                "%d/%d" results.number_correct results.number_of_tests_run));
-        results.error_code)
-      else
-        let ninja_opt =
-          Cli.debug_print "building ninja rules...";
-          collect_all_ninja_build file_or_folder catala_exe catala_opts reset_test_outputs
-        in
-        match ninja_opt with
-        | Some ninja ->
-            let out = open_out "build.ninja" in
-            Cli.debug_print "writing build.ninja...";
-            let re_test_file = Re.Pcre.regexp "^test_file_" in
-            let all_test_files =
-              Nj.BuildMap.bindings ninja.builds
-              |> List.filter_map (fun (name, _) ->
-                     let len =
-                       try Array.length (Re.Pcre.(extract ~rex:re_test_file) name) with _ -> 0
-                     in
-                     if 0 < len then Some name else None)
-              |> String.concat " "
-            in
-            let ninja =
+      let ninja_opt, re_test_file_or_dir =
+        if Sys.is_directory file_or_folder then
+          let ninja, test_file_names =
+            List.fold_left
+              (fun (ninja, test_file_names) file ->
+                match
+                  collect_all_ninja_build ninja file catala_exe catala_opts reset_test_outputs
+                with
+                | None ->
+                    (* Skips none Catala file. *)
+                    (ninja, test_file_names)
+                | Some ninja ->
+                    let test_file_name = Printf.sprintf "test_file_%s" (file |> Nj.Build.unpath) in
+                    ( ninja,
+                      (* TODO: to refactor to get a list and add '$' if needed when writing. *)
+                      test_file_names ^ " $\n  " ^ test_file_name ))
+              (ninja_start catala_exe, "")
+              (get_catala_files_in_folder file_or_folder)
+          in
+          let test_dir_name = Printf.sprintf "test_dir_%s" (file_or_folder |> Nj.Build.unpath) in
+          ( Some
               {
                 ninja with
                 builds =
-                  Nj.BuildMap.add "test"
-                    (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
-                       ~inputs:[ Nj.Expr.Lit all_test_files ])
+                  Nj.BuildMap.add test_dir_name
+                    (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit test_dir_name ] ~rule:"phony"
+                       ~inputs:[ Nj.Expr.Lit test_file_names ])
                     ninja.builds;
-              }
-            in
-            Nj.write out ninja;
-            close_out out;
-            Cli.debug_print "executing 'ninja test'...";
-            Sys.command "ninja test"
-        | None -> -1)
+              },
+            Re.Pcre.regexp "^test_dir_" )
+        else (
+          Cli.debug_print "building ninja rules...";
+          ( collect_all_ninja_build (ninja_start catala_exe) file_or_folder catala_exe catala_opts
+              reset_test_outputs,
+            Re.Pcre.regexp "^test_file_" ))
+      in
+      match ninja_opt with
+      | Some ninja ->
+          let out = open_out "build.ninja" in
+          Cli.debug_print "writing build.ninja...";
+          let all_test_files =
+            Nj.BuildMap.bindings ninja.builds
+            |> List.filter_map (fun (name, _) ->
+                   let len =
+                     try Array.length (Re.Pcre.(extract ~rex:re_test_file_or_dir) name)
+                     with _ -> 0
+                   in
+                   if 0 < len then Some name else None)
+            |> String.concat " $\n"
+          in
+          let ninja =
+            {
+              ninja with
+              builds =
+                Nj.BuildMap.add "test"
+                  (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
+                     ~inputs:[ Nj.Expr.Lit all_test_files ])
+                  ninja.builds;
+            }
+          in
+          Nj.write out ninja;
+          close_out out;
+          Cli.debug_print "executing 'ninja test'...";
+          Sys.command "ninja test"
+      | None -> -1)
   | "run" -> (
       match scope with
       | Some scope -> run_file file_or_folder catala_exe catala_opts scope
