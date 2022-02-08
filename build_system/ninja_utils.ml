@@ -11,7 +11,7 @@ module Expr = struct
   let rec to_string = function
     | Lit s -> s
     | Var s -> "$" ^ s
-    | Seq ls -> List.fold_left (fun acc s -> acc ^ " " ^ to_string s) "" ls
+    | Seq ls -> List.fold_left (fun acc s -> acc ^ " " ^ to_string s) " " ls
 
   let list_to_string ?(sep = " ") ls = ls |> List.map to_string |> String.concat sep
 end
@@ -46,13 +46,15 @@ module Build = struct
   let make_with_inputs ~outputs ~rule ~inputs =
     { outputs; rule; inputs = Option.some inputs; vars = [] }
 
+  let empty = make ~outputs:[ Expr.Lit "empty" ] ~rule:"phony"
+
   (** [unpath path] replaces all '/' occurences with '-' in [path] to avoid ninja writing the
       corresponding file. *)
   let unpath path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> "-")) path
 
   let to_string build =
     Printf.sprintf "build %s: %s" (Expr.list_to_string build.outputs) build.rule
-    ^ (build.inputs |> Option.fold ~some:(fun ls -> Expr.list_to_string ls) ~none:"")
+    ^ (build.inputs |> Option.fold ~some:(fun ls -> " " ^ Expr.list_to_string ls) ~none:"")
     ^ "\n"
     ^ List.fold_left
         (fun acc (name, exp) -> acc ^ Printf.sprintf "  %s = %s\n" name (Expr.to_string exp))

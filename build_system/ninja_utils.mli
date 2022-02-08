@@ -36,6 +36,9 @@ module Build : sig
 
   val make_with_inputs : outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> t
 
+  val empty : t
+  (** [empty] is the minimal ninja build. *)
+
   val unpath : string -> string
   (** [unpath path] replaces all '/' occurences with '-' in [path] to avoid ninja writing the
       corresponding file. *)
