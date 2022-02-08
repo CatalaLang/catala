@@ -36,7 +36,9 @@ module Build : sig
 
   val make_with_inputs : outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> t
 
-  (* TODO: val with_inputs : Expr.t list -> string -> Expr.t list -> t *)
+  val unpath : string -> string
+  (** [unpath path] replaces all '/' occurences with '-' in [path] to avoid ninja writing the
+      corresponding file. *)
 
   val to_string : t -> string
 end

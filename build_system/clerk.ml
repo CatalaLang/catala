@@ -258,7 +258,9 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
       { error_code = 0; number_of_tests_run = 0; number_correct = 0 }
       expected_outputs
 
-let ninja_start catala_exe =
+(** [ninja_start catala_exe] returns the inital [ninja] data structure with only one rule:
+    'test_scope'. *)
+let ninja_start (catala_exe : string) : ninja =
   let test_scope_rule =
     Nj.Rule.make "test_scope"
       ~command:
@@ -279,7 +281,8 @@ let ninja_start catala_exe =
   in
   { rules = Nj.RuleMap.(empty |> add "test_scope" test_scope_rule); builds = Nj.BuildMap.empty }
 
-(* TODO: support all backends and options. *)
+(** [collect_all_ninja_build tested_file catala_exe catala_opts reset_test_outputs] creates and
+    returns all ninja build needed to test the [tested_file]. *)
 let collect_all_ninja_build (tested_file : string) (catala_exe : string) (_catala_opts : string)
     (_reset_test_outputs : bool) : ninja option =
   let expected_outputs = search_for_expected_outputs tested_file in
@@ -295,7 +298,7 @@ let collect_all_ninja_build (tested_file : string) (catala_exe : string) (_catal
             | Some scope -> scope
             | None -> failwith "Fixme: scope expected"
           in
-          let test_name = Printf.sprintf "test_%s_%s" scope tested_file in
+          let test_name = Printf.sprintf "test_%s_%s" scope tested_file |> Nj.Build.unpath in
           let vars =
             [
               ("scope", Nj.Expr.Lit scope);
@@ -359,7 +362,31 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
   let catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts in
   match String.lowercase_ascii command with
   | "test" -> (
-      if Sys.is_directory file_or_folder then failwith "TODO"
+      if Sys.is_directory file_or_folder then (
+        let results =
+          List.fold_left
+            (fun (exit : testing_result) file ->
+              let result = test_file file catala_exe catala_opts reset_test_outputs in
+              {
+                error_code =
+                  (if result.error_code <> 0 && exit.error_code = 0 then result.error_code
+                  else exit.error_code);
+                number_of_tests_run = exit.number_of_tests_run + result.number_of_tests_run;
+                number_correct = exit.number_correct + result.number_correct;
+              })
+            { error_code = 0; number_of_tests_run = 0; number_correct = 0 }
+            (get_catala_files_in_folder file_or_folder)
+        in
+        Cli.result_print
+          (Format.asprintf "Number of tests passed in folder %s: %s"
+             (Cli.print_with_style [ ANSITerminal.magenta ] "%s" file_or_folder)
+             (Cli.print_with_style
+                [
+                  (if results.number_correct = results.number_of_tests_run then ANSITerminal.green
+                  else ANSITerminal.red);
+                ]
+                "%d/%d" results.number_correct results.number_of_tests_run));
+        results.error_code)
       else
         let ninja_opt =
           Cli.debug_print "building ninja rules...";

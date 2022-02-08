@@ -46,6 +46,10 @@ module Build = struct
   let make_with_inputs ~outputs ~rule ~inputs =
     { outputs; rule; inputs = Option.some inputs; vars = [] }
 
+  (** [unpath path] replaces all '/' occurences with '-' in [path] to avoid ninja writing the
+      corresponding file. *)
+  let unpath path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> "-")) path
+
   let to_string build =
     Printf.sprintf "build %s: %s" (Expr.list_to_string build.outputs) build.rule
     ^ (build.inputs |> Option.fold ~some:(fun ls -> Expr.list_to_string ls) ~none:"")

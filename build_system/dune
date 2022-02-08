@@ -7,5 +7,5 @@
 
 (library
  (name ninja_utils)
- (modules ninja_utils))
-
+ (modules ninja_utils)
+ (libraries re))
