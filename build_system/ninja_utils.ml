@@ -1,7 +1,7 @@
 (** Expression containing variable references. *)
 module Expr = struct
   type t =
-    (* Sequence of expressions. *)
+    (* Sequence of sub-expressions. *)
     | Seq of t list
     (* Literal string. *)
     | Lit of string
@@ -11,7 +11,7 @@ module Expr = struct
   let rec to_string = function
     | Lit s -> s
     | Var s -> "$" ^ s
-    | Seq ls -> List.fold_left (fun acc s -> acc ^ " " ^ to_string s) " " ls
+    | Seq ls -> List.fold_left (fun acc s -> acc ^ " " ^ to_string s) "" ls
 
   let list_to_string ?(sep = " ") ls = ls |> List.map to_string |> String.concat sep
 end

@@ -1,7 +1,7 @@
 (** Expression containing variable references. *)
 module Expr : sig
   type t =
-    (* Sequence of expressions. *)
+    (* Sequence of sub-expressions. *)
     | Seq of t list
     (* Literal string. *)
     | Lit of string
@@ -24,6 +24,8 @@ end
 module Build : sig
   type t = {
     outputs : Expr.t list;
+    (* NOTE: what's the difference between [Expr.t list] and [Expr.Seq]? => [Expr.Seq] is a unique
+       expression with possible variable references => no space in its string representation. *)
     rule : string;
     inputs : Expr.t list option;
     vars : (string * Expr.t) list;

@@ -320,11 +320,12 @@ let collect_all_ninja_build (tested_file : string) (catala_exe : string) (_catal
         (ninja_start catala_exe, "")
         expected_outputs
     in
+    let test_name = Printf.sprintf "test_file_%s" tested_file |> Nj.Build.unpath in
     {
       ninja with
       builds =
-        Nj.BuildMap.add "test"
-          (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
+        Nj.BuildMap.add test_name
+          (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit test_name ] ~rule:"phony"
              ~inputs:[ Nj.Expr.Lit test_names ])
           ninja.builds;
     }
@@ -396,6 +397,26 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
         | Some ninja ->
             let out = open_out "build.ninja" in
             Cli.debug_print "writing build.ninja...";
+            let re_test_file = Re.Pcre.regexp "^test_file_" in
+            let all_test_files =
+              Nj.BuildMap.bindings ninja.builds
+              |> List.filter_map (fun (name, _) ->
+                     let len =
+                       try Array.length (Re.Pcre.(extract ~rex:re_test_file) name) with _ -> 0
+                     in
+                     if 0 < len then Some name else None)
+              |> String.concat " "
+            in
+            let ninja =
+              {
+                ninja with
+                builds =
+                  Nj.BuildMap.add "test"
+                    (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
+                       ~inputs:[ Nj.Expr.Lit all_test_files ])
+                    ninja.builds;
+              }
+            in
             Nj.write out ninja;
             close_out out;
             Cli.debug_print "executing 'ninja test'...";
