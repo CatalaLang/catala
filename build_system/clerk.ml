@@ -272,7 +272,7 @@ let ninja_start (catala_exe : string) : ninja =
               Lit "Interpret";
               Var "tested_file";
               (* TODO: find a way to add breaks *)
-              Lit "--unstyle | colordiff -u -b";
+              Lit "--unstyled 2>&1 | colordiff -u -b";
               Var "expected_output";
               Lit "-";
             ])
@@ -321,7 +321,12 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_catala_exe 
                 },
                 (* TODO: to refactor to get a list and add '$' if needed when writing. *)
                 test_names ^ " $\n  " ^ test_name )
-          | _ -> failwith "TODO: to support all backends")
+          | backend ->
+              catala_backend_to_string backend
+              |> Printf.sprintf "%s: Catala backend '%s' is not yet supported. "
+                   expected_output.complete_filename
+              |> Cli.warning_print;
+              (ninja, test_names))
         (ninja, "") expected_outputs
     in
     let test_name = Printf.sprintf "test_file_%s" tested_file |> Nj.Build.unpath in

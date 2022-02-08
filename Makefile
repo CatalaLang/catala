@@ -10,7 +10,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm
+EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm ninja
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
