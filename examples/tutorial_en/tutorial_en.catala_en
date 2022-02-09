@@ -135,20 +135,26 @@ programming. Scopes also have to be declared in metadata, so here we go:
 ```catala-metadata
 declaration scope IncomeTaxComputation:
   # Scope names use CamelCase.
-  context individual content Individual
-  # This line declares a context element of the scope, which is akin to
+  input individual content Individual
+  # This line declares a scope variable of the scope, which is akin to
   # a function parameter in computer science term. This is the piece of
   # data on which the scope will operate.
-  context fixed_percentage content decimal
-  context income_tax content money
+  internal fixed_percentage content decimal
+  output income_tax content money
 ```
 
 The scope is the basic abstraction unit in Catala programs, and the declaration
 of the scope is akin to a function signature: it contains a list of all the
-arguments along with their types. But in Catala, scopes' context elements stand
-for three things: arguments, local variables and outputs. The difference
-between these three categories will come from how the context elements are
-defined later in the code.
+arguments along with their types. But in Catala, scopes' variables stand
+for three things: input arguments, local variables and outputs. The difference
+between these three categories can be specified by the different input/output
+attributes preceding the variable names. "input" means that the variable has to
+be defined only when the scope IncomeTaxComputation is called. "internal" means
+that the variable cannot be seen from outside the scope: it is neither an input
+nor an output of the scope. "output" means that a caller scope can retrieve the
+computed value of the variable. Note that a variable can also be simulataneously
+an input and an output of the scope, in that case it should be annotated with
+"input output".
 
 We now have everything to annotate the contents of article 1, which is copied
 over below.
@@ -235,8 +241,8 @@ do that later.
 
 ## Rules
 
-So far, you've learnt how to declare a scope with some context elements, and
-give definitions to these context elements scattered accross the text of
+So far, you've learnt how to declare a scope with some variables, and
+give definitions to these variables scattered accross the text of
 the law at the relevant locations. But there is a pattern very frequent
 in legislative texts: what about conditions? A condition is a value that
 can be either true or false, like a boolean in programming. However, the
@@ -254,11 +260,11 @@ The children eligible for application of article 3
 ```catala
 # To deal with children eligibility, we create a new scope.
 declaration scope Child:
-  context age content integer
+  input age content integer
   # The age of the child can be declared as before.
-  context is_eligible_article_3 condition
+  output is_eligible_article_3 condition
   # For we declare the eligibility using the special "condition" keyword
-  # that stands for the content of the context element.
+  # that stands for the content of the variable.
 
 scope Child:
   rule is_eligible_article_3 under condition age < 18 consequence fulfilled
@@ -272,7 +278,7 @@ like boolean values.
 
 ## Functions
 
-Catala lets you define functions anywhere in your context elements. Indeed,
+Catala lets you define functions anywhere in your scope variable. Indeed,
 Catala is a functional language and encourages using functions to describe
 relationships between data. Here's what it looks
 like in the metadata definition when we want to define a two-brackets tax
@@ -288,10 +294,10 @@ declaration structure TwoBrackets:
 
 declaration scope TwoBracketsTaxComputation :
   input brackets content TwoBrackets
-  # This context element is standard, and contains the description of the
+  # This input variable contains the description of the
   # parameters of the tax formula.
   output tax_formula content money depends on money
-  # But for declaring the tax_formula context element, we declare it as
+  # But for declaring the tax_formula variable, we declare it as
   # a function: "content money depends on money" means a function that
   # returns money as output (the tax) and takes money as input (the income).
 ```
@@ -347,10 +353,10 @@ scope NewIncomeTaxComputation :
     -- rate1: 20%
     -- rate2: 40%
   }
-  # By defining the context element "brackets" of the subscope "two_brackets",
+  # By defining the input variable "brackets" of the subscope "two_brackets",
   # we have changed how the subscope will execute. The subscope will execute
   # with all the values defined by the caller, then compute the value
-  # of its other context elements.
+  # of its other variables.
 
   definition income_tax equals two_brackets.tax_formula of individual.income
   # After the subscope has executed, you can retrieve results from it. Here,
@@ -530,8 +536,8 @@ see the section about conditions above.
 
 ```catala
 declaration scope BooleanValues:
-  context value1 condition
-  context value2 content boolean
+  internal value1 condition
+  internal value2 content boolean
 
 scope BooleanValues:
   rule value1 under condition false and true consequence fulfilled
@@ -549,8 +555,8 @@ due to them being stored in 32 or 64 bits. Integers can be negative.
 
 ```catala
 declaration scope IntegerValues:
-  context value1 content integer
-  context value2 content integer
+  internal value1 content integer
+  internal value2 content integer
 
 scope IntegerValues:
   definition value1 under condition 12 - (5 * 3) < 65 consequence equals 45 / 9
@@ -566,8 +572,8 @@ approximate computations. Operators are suffixed with ".".
 
 ```catala
 declaration scope DecimalValues:
-  context value1 content decimal
-  context value2 content decimal
+  internal value1 content decimal
+  internal value2 content decimal
 
 scope DecimalValues:
   definition value1 under condition
@@ -590,8 +596,8 @@ yielding a decimal.
 
 ```catala
 declaration scope MoneyValues:
-  context value1 content decimal
-  context value2 content money
+  internal value1 content decimal
+  internal value2 content money
 
 scope MoneyValues:
   definition value1 under condition
@@ -616,8 +622,8 @@ duration operators are prefixed by "^".
 
 ```catala
 declaration scope DateValues:
-  context value1 content date
-  context value2 content duration
+  internal value1 content date
+  internal value2 content duration
 
 scope DateValues:
   definition value1 equals |2000-01-01| +@ 1 year # yields |2001-01-01|
@@ -635,8 +641,8 @@ to compute all sorts of values.
 
 ```catala
 declaration scope CollectionValues:
-  context value1 content collection integer
-  context value2 content integer
+  internal value1 content collection integer
+  internal value2 content integer
 
 scope CollectionValues:
   definition value1 equals [45;-6;3;4;0;2155]
