@@ -151,14 +151,14 @@ type smic_out = { brut_horaire_out : money }
 let embed_smic_out (x : smic_out) : runtime_value =
   Struct ([ "Smic_out" ], [ ("brut_horaire_out", embed_money x.brut_horaire_out) ])
 
-type smic_in = { date_courante_in : unit -> date; residence_in : unit -> collectivite }
+type smic_in = { date_courante_in : date; residence_in : collectivite }
 
 let embed_smic_in (x : smic_in) : runtime_value =
   Struct
     ( [ "Smic_in" ],
       [
-        ("date_courante_in", unembeddable x.date_courante_in);
-        ("résidence_in", unembeddable x.residence_in);
+        ("date_courante_in", embed_date x.date_courante_in);
+        ("résidence_in", embed_collectivite x.residence_in);
       ] )
 
 type prestations_familiales_out = {
@@ -181,18 +181,18 @@ let embed_prestations_familiales_out (x : prestations_familiales_out) : runtime_
       ] )
 
 type prestations_familiales_in = {
-  date_courante_in : unit -> date;
-  prestation_courante_in : unit -> element_prestations_familiales;
-  residence_in : unit -> collectivite;
+  date_courante_in : date;
+  prestation_courante_in : element_prestations_familiales;
+  residence_in : collectivite;
 }
 
 let embed_prestations_familiales_in (x : prestations_familiales_in) : runtime_value =
   Struct
     ( [ "PrestationsFamiliales_in" ],
       [
-        ("date_courante_in", unembeddable x.date_courante_in);
-        ("prestation_courante_in", unembeddable x.prestation_courante_in);
-        ("résidence_in", unembeddable x.residence_in);
+        ("date_courante_in", embed_date x.date_courante_in);
+        ("prestation_courante_in", embed_element_prestations_familiales x.prestation_courante_in);
+        ("résidence_in", embed_collectivite x.residence_in);
       ] )
 
 type allocation_familiales_avril2008_out = { age_minimum_alinea_1_l521_3_out : integer }
@@ -214,10 +214,10 @@ type enfant_le_plus_age_out = { le_plus_age_out : enfant }
 let embed_enfant_le_plus_age_out (x : enfant_le_plus_age_out) : runtime_value =
   Struct ([ "EnfantLePlusÂgé_out" ], [ ("le_plus_âgé_out", embed_enfant x.le_plus_age_out) ])
 
-type enfant_le_plus_age_in = { enfants_in : unit -> enfant array }
+type enfant_le_plus_age_in = { enfants_in : enfant array }
 
 let embed_enfant_le_plus_age_in (x : enfant_le_plus_age_in) : runtime_value =
-  Struct ([ "EnfantLePlusÂgé_in" ], [ ("enfants_in", unembeddable x.enfants_in) ])
+  Struct ([ "EnfantLePlusÂgé_in" ], [ ("enfants_in", embed_array embed_enfant x.enfants_in) ])
 
 type allocations_familiales_out = { montant_verse_out : money }
 
@@ -226,13 +226,13 @@ let embed_allocations_familiales_out (x : allocations_familiales_out) : runtime_
     ([ "AllocationsFamiliales_out" ], [ ("montant_versé_out", embed_money x.montant_verse_out) ])
 
 type allocations_familiales_in = {
-  personne_charge_effective_permanente_est_parent_in : unit -> bool;
-  personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
-  ressources_menage_in : unit -> money;
-  residence_in : unit -> collectivite;
-  date_courante_in : unit -> date;
-  enfants_a_charge_in : unit -> enfant array;
-  avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
+  personne_charge_effective_permanente_est_parent_in : bool;
+  personne_charge_effective_permanente_remplit_titre_I_in : bool;
+  ressources_menage_in : money;
+  residence_in : collectivite;
+  date_courante_in : date;
+  enfants_a_charge_in : enfant array;
+  avait_enfant_a_charge_avant_1er_janvier_2012_in : bool;
 }
 
 let embed_allocations_familiales_in (x : allocations_familiales_in) : runtime_value =
@@ -240,15 +240,15 @@ let embed_allocations_familiales_in (x : allocations_familiales_in) : runtime_va
     ( [ "AllocationsFamiliales_in" ],
       [
         ( "personne_charge_effective_permanente_est_parent_in",
-          unembeddable x.personne_charge_effective_permanente_est_parent_in );
+          embed_bool x.personne_charge_effective_permanente_est_parent_in );
         ( "personne_charge_effective_permanente_remplit_titre_I_in",
-          unembeddable x.personne_charge_effective_permanente_remplit_titre_I_in );
-        ("ressources_ménage_in", unembeddable x.ressources_menage_in);
-        ("résidence_in", unembeddable x.residence_in);
-        ("date_courante_in", unembeddable x.date_courante_in);
-        ("enfants_à_charge_in", unembeddable x.enfants_a_charge_in);
+          embed_bool x.personne_charge_effective_permanente_remplit_titre_I_in );
+        ("ressources_ménage_in", embed_money x.ressources_menage_in);
+        ("résidence_in", embed_collectivite x.residence_in);
+        ("date_courante_in", embed_date x.date_courante_in);
+        ("enfants_à_charge_in", embed_array embed_enfant x.enfants_a_charge_in);
         ( "avait_enfant_à_charge_avant_1er_janvier_2012_in",
-          unembeddable x.avait_enfant_a_charge_avant_1er_janvier_2012_in );
+          embed_bool x.avait_enfant_a_charge_avant_1er_janvier_2012_in );
       ] )
 
 type interface_allocations_familiales_out = { i_montant_verse_out : money }
@@ -260,13 +260,13 @@ let embed_interface_allocations_familiales_out (x : interface_allocations_famili
       [ ("i_montant_versé_out", embed_money x.i_montant_verse_out) ] )
 
 type interface_allocations_familiales_in = {
-  i_date_courante_in : unit -> date;
-  i_enfants_in : unit -> enfant_entree array;
-  i_ressources_menage_in : unit -> money;
-  i_residence_in : unit -> collectivite;
-  i_personne_charge_effective_permanente_est_parent_in : unit -> bool;
-  i_personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
-  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
+  i_date_courante_in : date;
+  i_enfants_in : enfant_entree array;
+  i_ressources_menage_in : money;
+  i_residence_in : collectivite;
+  i_personne_charge_effective_permanente_est_parent_in : bool;
+  i_personne_charge_effective_permanente_remplit_titre_I_in : bool;
+  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : bool;
 }
 
 let embed_interface_allocations_familiales_in (x : interface_allocations_familiales_in) :
@@ -274,51 +274,21 @@ let embed_interface_allocations_familiales_in (x : interface_allocations_familia
   Struct
     ( [ "InterfaceAllocationsFamiliales_in" ],
       [
-        ("i_date_courante_in", unembeddable x.i_date_courante_in);
-        ("i_enfants_in", unembeddable x.i_enfants_in);
-        ("i_ressources_ménage_in", unembeddable x.i_ressources_menage_in);
-        ("i_résidence_in", unembeddable x.i_residence_in);
+        ("i_date_courante_in", embed_date x.i_date_courante_in);
+        ("i_enfants_in", embed_array embed_enfant_entree x.i_enfants_in);
+        ("i_ressources_ménage_in", embed_money x.i_ressources_menage_in);
+        ("i_résidence_in", embed_collectivite x.i_residence_in);
         ( "i_personne_charge_effective_permanente_est_parent_in",
-          unembeddable x.i_personne_charge_effective_permanente_est_parent_in );
+          embed_bool x.i_personne_charge_effective_permanente_est_parent_in );
         ( "i_personne_charge_effective_permanente_remplit_titre_I_in",
-          unembeddable x.i_personne_charge_effective_permanente_remplit_titre_I_in );
+          embed_bool x.i_personne_charge_effective_permanente_remplit_titre_I_in );
         ( "i_avait_enfant_à_charge_avant_1er_janvier_2012_in",
-          unembeddable x.i_avait_enfant_a_charge_avant_1er_janvier_2012_in );
+          embed_bool x.i_avait_enfant_a_charge_avant_1er_janvier_2012_in );
       ] )
 
 let smic (smic_in : smic_in) =
-  let date_courante_ : unit -> date = smic_in.date_courante_in in
-  let residence_ : unit -> collectivite = smic_in.residence_in in
-  let date_courante_ : date =
-    log_variable_definition [ "Smic"; "date_courante" ] embed_date
-      (try date_courante_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 41;
-                start_column = 10;
-                end_line = 41;
-                end_column = 23;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let residence_ : collectivite =
-    log_variable_definition [ "Smic"; "résidence" ] embed_collectivite
-      (try residence_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 42;
-                start_column = 10;
-                end_line = 42;
-                end_column = 19;
-                law_headings = [ "Prologue" ];
-              }))
-  in
+  let date_courante_ : date = smic_in.date_courante_in in
+  let residence_ : collectivite = smic_in.residence_in in
   let brut_horaire_ : money =
     log_variable_definition [ "Smic"; "brut_horaire" ] embed_money
       (try
@@ -523,24 +493,7 @@ let allocation_familiales_avril2008
   { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
-  let enfants_ : unit -> enfant array = enfant_le_plus_age_in.enfants_in in
-  let enfants_ : enfant array =
-    log_variable_definition
-      [ "EnfantLePlusÂgé"; "enfants" ]
-      (embed_array embed_enfant)
-      (try enfants_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 84;
-                start_column = 10;
-                end_line = 84;
-                end_column = 17;
-                law_headings = [ "Prologue" ];
-              }))
-  in
+  let enfants_ : enfant array = enfant_le_plus_age_in.enfants_in in
   let le_plus_age_ : enfant =
     log_variable_definition
       [ "EnfantLePlusÂgé"; "le_plus_âgé" ]
@@ -573,11 +526,11 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   { le_plus_age_out = le_plus_age_ }
 
 let prestations_familiales (prestations_familiales_in : prestations_familiales_in) =
-  let date_courante_ : unit -> date = prestations_familiales_in.date_courante_in in
-  let prestation_courante_ : unit -> element_prestations_familiales =
+  let date_courante_ : date = prestations_familiales_in.date_courante_in in
+  let prestation_courante_ : element_prestations_familiales =
     prestations_familiales_in.prestation_courante_in
   in
-  let residence_ : unit -> collectivite = prestations_familiales_in.residence_in in
+  let residence_ : collectivite = prestations_familiales_in.residence_in in
   let age_l512_3_2_ : integer =
     log_variable_definition
       [ "PrestationsFamiliales"; "âge_l512_3_2" ]
@@ -592,57 +545,6 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 start_column = 10;
                 end_line = 68;
                 end_column = 22;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let date_courante_ : date =
-    log_variable_definition
-      [ "PrestationsFamiliales"; "date_courante" ]
-      embed_date
-      (try date_courante_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 70;
-                start_column = 10;
-                end_line = 70;
-                end_column = 23;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let prestation_courante_ : element_prestations_familiales =
-    log_variable_definition
-      [ "PrestationsFamiliales"; "prestation_courante" ]
-      embed_element_prestations_familiales
-      (try prestation_courante_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 71;
-                start_column = 10;
-                end_line = 71;
-                end_column = 29;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let residence_ : collectivite =
-    log_variable_definition
-      [ "PrestationsFamiliales"; "résidence" ]
-      embed_collectivite
-      (try residence_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 72;
-                start_column = 10;
-                end_line = 72;
-                end_column = 19;
                 law_headings = [ "Prologue" ];
               }))
   in
@@ -747,17 +649,39 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let smic_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "PrestationsFamiliales"; "smic.date_courante" ]
-      embed_date date_courante_
+  let smic_dot_date_courante_ : date =
+    try
+      log_variable_definition
+        [ "PrestationsFamiliales"; "smic.date_courante" ]
+        embed_date date_courante_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 41;
+             start_column = 10;
+             end_line = 41;
+             end_column = 23;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let smic_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "PrestationsFamiliales"; "smic.résidence" ]
-      embed_collectivite residence_
+  let smic_dot_residence_ : collectivite =
+    try
+      log_variable_definition
+        [ "PrestationsFamiliales"; "smic.résidence" ]
+        embed_collectivite residence_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 42;
+             start_column = 10;
+             end_line = 42;
+             end_column = 19;
+             law_headings = [ "Prologue" ];
+           })
   in
   let result_ : smic_out =
     log_end_call
@@ -1029,120 +953,18 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
   }
 
 let allocations_familiales (allocations_familiales_in : allocations_familiales_in) =
-  let personne_charge_effective_permanente_est_parent_ : unit -> bool =
+  let personne_charge_effective_permanente_est_parent_ : bool =
     allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
   in
-  let personne_charge_effective_permanente_remplit_titre__i_ : unit -> bool =
+  let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
   in
-  let ressources_menage_ : unit -> money = allocations_familiales_in.ressources_menage_in in
-  let residence_ : unit -> collectivite = allocations_familiales_in.residence_in in
-  let date_courante_ : unit -> date = allocations_familiales_in.date_courante_in in
-  let enfants_a_charge_ : unit -> enfant array = allocations_familiales_in.enfants_a_charge_in in
-  let avait_enfant_a_charge_avant_1er_janvier_2012_ : unit -> bool =
+  let ressources_menage_ : money = allocations_familiales_in.ressources_menage_in in
+  let residence_ : collectivite = allocations_familiales_in.residence_in in
+  let date_courante_ : date = allocations_familiales_in.date_courante_in in
+  let enfants_a_charge_ : enfant array = allocations_familiales_in.enfants_a_charge_in in
+  let avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
     allocations_familiales_in.avait_enfant_a_charge_avant_1er_janvier_2012_in
-  in
-  let personne_charge_effective_permanente_est_parent_ : bool =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "personne_charge_effective_permanente_est_parent" ]
-      embed_bool
-      (try try personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 90;
-                start_column = 10;
-                end_line = 90;
-                end_column = 57;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let personne_charge_effective_permanente_remplit_titre__i_ : bool =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "personne_charge_effective_permanente_remplit_titre_I" ]
-      embed_bool
-      (try try personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 91;
-                start_column = 10;
-                end_line = 91;
-                end_column = 62;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let ressources_menage_ : money =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "ressources_ménage" ]
-      embed_money
-      (try ressources_menage_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 92;
-                start_column = 10;
-                end_line = 92;
-                end_column = 27;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let residence_ : collectivite =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "résidence" ]
-      embed_collectivite
-      (try residence_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 93;
-                start_column = 10;
-                end_line = 93;
-                end_column = 19;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let date_courante_ : date =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "date_courante" ]
-      embed_date
-      (try date_courante_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 96;
-                start_column = 10;
-                end_line = 96;
-                end_column = 23;
-                law_headings = [ "Prologue" ];
-              }))
-  in
-  let enfants_a_charge_ : enfant array =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "enfants_à_charge" ]
-      (embed_array embed_enfant)
-      (try enfants_a_charge_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 99;
-                start_column = 10;
-                end_line = 99;
-                end_column = 26;
-                law_headings = [ "Prologue" ];
-              }))
   in
   let prise_en_compte_ : enfant -> prise_en_compte =
     log_variable_definition
@@ -1504,23 +1326,6 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
-    log_variable_definition
-      [ "AllocationsFamiliales"; "avait_enfant_à_charge_avant_1er_janvier_2012" ]
-      embed_bool
-      (try try avait_enfant_a_charge_avant_1er_janvier_2012_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./prologue.catala_fr";
-                start_line = 120;
-                start_column = 10;
-                end_line = 120;
-                end_column = 54;
-                law_headings = [ "Prologue" ];
-              }))
-  in
   let nombre_enfants_l521_1_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_l521_1" ]
@@ -1565,23 +1370,56 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let version_avril_2008_dot_age_minimum_alinea_1_l521_3_ : integer =
     result_.age_minimum_alinea_1_l521_3_out
   in
-  let prestations_familiales_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "AllocationsFamiliales"; "prestations_familiales.date_courante" ]
-      embed_date date_courante_
+  let prestations_familiales_dot_date_courante_ : date =
+    try
+      log_variable_definition
+        [ "AllocationsFamiliales"; "prestations_familiales.date_courante" ]
+        embed_date date_courante_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 70;
+             start_column = 10;
+             end_line = 70;
+             end_column = 23;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let prestations_familiales_dot_prestation_courante_ : unit -> element_prestations_familiales =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "AllocationsFamiliales"; "prestations_familiales.prestation_courante" ]
-      embed_element_prestations_familiales (AllocationsFamiliales ())
+  let prestations_familiales_dot_prestation_courante_ : element_prestations_familiales =
+    try
+      log_variable_definition
+        [ "AllocationsFamiliales"; "prestations_familiales.prestation_courante" ]
+        embed_element_prestations_familiales (AllocationsFamiliales ())
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 71;
+             start_column = 10;
+             end_line = 71;
+             end_column = 29;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let prestations_familiales_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "AllocationsFamiliales"; "prestations_familiales.résidence" ]
-      embed_collectivite residence_
+  let prestations_familiales_dot_residence_ : collectivite =
+    try
+      log_variable_definition
+        [ "AllocationsFamiliales"; "prestations_familiales.résidence" ]
+        embed_collectivite residence_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 72;
+             start_column = 10;
+             end_line = 72;
+             end_column = 19;
+             law_headings = [ "Prologue" ];
+           })
   in
   let result_ : prestations_familiales_out =
     log_end_call
@@ -1604,11 +1442,22 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     result_.regime_outre_mer_l751_1_out
   in
   let prestations_familiales_dot_base_mensuelle_ : money = result_.base_mensuelle_out in
-  let enfant_le_plus_age_dot_enfants_ : unit -> enfant array =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "AllocationsFamiliales"; "enfant_le_plus_âgé.enfants" ]
-      (embed_array embed_enfant) enfants_a_charge_
+  let enfant_le_plus_age_dot_enfants_ : enfant array =
+    try
+      log_variable_definition
+        [ "AllocationsFamiliales"; "enfant_le_plus_âgé.enfants" ]
+        (embed_array embed_enfant) enfants_a_charge_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 84;
+             start_column = 10;
+             end_line = 84;
+             end_column = 17;
+             law_headings = [ "Prologue" ];
+           })
   in
   let result_ : enfant_le_plus_age_out =
     log_end_call
@@ -4658,140 +4507,18 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
 
 let interface_allocations_familiales
     (interface_allocations_familiales_in : interface_allocations_familiales_in) =
-  let i_date_courante_ : unit -> date = interface_allocations_familiales_in.i_date_courante_in in
-  let i_enfants_ : unit -> enfant_entree array = interface_allocations_familiales_in.i_enfants_in in
-  let i_ressources_menage_ : unit -> money =
-    interface_allocations_familiales_in.i_ressources_menage_in
-  in
-  let i_residence_ : unit -> collectivite = interface_allocations_familiales_in.i_residence_in in
-  let i_personne_charge_effective_permanente_est_parent_ : unit -> bool =
+  let i_date_courante_ : date = interface_allocations_familiales_in.i_date_courante_in in
+  let i_enfants_ : enfant_entree array = interface_allocations_familiales_in.i_enfants_in in
+  let i_ressources_menage_ : money = interface_allocations_familiales_in.i_ressources_menage_in in
+  let i_residence_ : collectivite = interface_allocations_familiales_in.i_residence_in in
+  let i_personne_charge_effective_permanente_est_parent_ : bool =
     interface_allocations_familiales_in.i_personne_charge_effective_permanente_est_parent_in
   in
-  let i_personne_charge_effective_permanente_remplit_titre__i_ : unit -> bool =
+  let i_personne_charge_effective_permanente_remplit_titre__i_ : bool =
     interface_allocations_familiales_in.i_personne_charge_effective_permanente_remplit_titre_I_in
   in
-  let i_avait_enfant_a_charge_avant_1er_janvier_2012_ : unit -> bool =
-    interface_allocations_familiales_in.i_avait_enfant_a_charge_avant_1er_janvier_2012_in
-  in
-  let i_date_courante_ : date =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_date_courante" ]
-      embed_date
-      (try i_date_courante_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 72;
-                start_column = 10;
-                end_line = 72;
-                end_column = 25;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
-  let i_enfants_ : enfant_entree array =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_enfants" ]
-      (embed_array embed_enfant_entree)
-      (try i_enfants_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 73;
-                start_column = 10;
-                end_line = 73;
-                end_column = 19;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
-  let i_ressources_menage_ : money =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_ressources_ménage" ]
-      embed_money
-      (try i_ressources_menage_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 76;
-                start_column = 10;
-                end_line = 76;
-                end_column = 29;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
-  let i_residence_ : collectivite =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_résidence" ]
-      embed_collectivite
-      (try i_residence_ ()
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 77;
-                start_column = 10;
-                end_line = 77;
-                end_column = 21;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
-  let i_personne_charge_effective_permanente_est_parent_ : bool =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_personne_charge_effective_permanente_est_parent" ]
-      embed_bool
-      (try try i_personne_charge_effective_permanente_est_parent_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 79;
-                start_column = 10;
-                end_line = 79;
-                end_column = 59;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
-  let i_personne_charge_effective_permanente_remplit_titre__i_ : bool =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_personne_charge_effective_permanente_remplit_titre_I" ]
-      embed_bool
-      (try
-         try i_personne_charge_effective_permanente_remplit_titre__i_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 80;
-                start_column = 10;
-                end_line = 80;
-                end_column = 64;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
-  in
   let i_avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "i_avait_enfant_à_charge_avant_1er_janvier_2012" ]
-      embed_bool
-      (try try i_avait_enfant_a_charge_avant_1er_janvier_2012_ () with EmptyError -> false
-       with EmptyError ->
-         raise
-           (NoValueProvided
-              {
-                filename = "./epilogue.catala_fr";
-                start_line = 81;
-                start_column = 10;
-                end_line = 81;
-                end_column = 56;
-                law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-              }))
+    interface_allocations_familiales_in.i_avait_enfant_a_charge_avant_1er_janvier_2012_in
   in
   let enfants_a_charge_ : enfant array =
     log_variable_definition
@@ -4831,102 +4558,178 @@ let interface_allocations_familiales
                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
               }))
   in
-  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : unit -> bool =
-   fun (_ : unit) ->
-    log_variable_definition
-      [
-        "InterfaceAllocationsFamiliales";
-        "allocations_familiales.personne_charge_effective_permanente_est_parent";
-      ]
-      embed_bool
-      (try
-         if
-           log_decision_taken
-             {
-               filename = "./epilogue.catala_fr";
-               start_line = 90;
-               start_column = 20;
-               end_line = 90;
-               end_column = 69;
-               law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-             }
-             i_personne_charge_effective_permanente_est_parent_
-         then true
-         else raise EmptyError
-       with EmptyError -> false)
+  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : bool =
+    try
+      log_variable_definition
+        [
+          "InterfaceAllocationsFamiliales";
+          "allocations_familiales.personne_charge_effective_permanente_est_parent";
+        ]
+        embed_bool
+        (try
+           if
+             log_decision_taken
+               {
+                 filename = "./epilogue.catala_fr";
+                 start_line = 90;
+                 start_column = 20;
+                 end_line = 90;
+                 end_column = 69;
+                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+               }
+               i_personne_charge_effective_permanente_est_parent_
+           then true
+           else raise EmptyError
+         with EmptyError -> false)
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 90;
+             start_column = 10;
+             end_line = 90;
+             end_column = 57;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ :
-      unit -> bool =
-   fun (_ : unit) ->
-    log_variable_definition
-      [
-        "InterfaceAllocationsFamiliales";
-        "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I";
-      ]
-      embed_bool
-      (try
-         if
-           log_decision_taken
-             {
-               filename = "./epilogue.catala_fr";
-               start_line = 93;
-               start_column = 20;
-               end_line = 93;
-               end_column = 74;
-               law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-             }
-             i_personne_charge_effective_permanente_remplit_titre__i_
-         then true
-         else raise EmptyError
-       with EmptyError -> false)
+  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ : bool =
+    try
+      log_variable_definition
+        [
+          "InterfaceAllocationsFamiliales";
+          "allocations_familiales.personne_charge_effective_permanente_remplit_titre_I";
+        ]
+        embed_bool
+        (try
+           if
+             log_decision_taken
+               {
+                 filename = "./epilogue.catala_fr";
+                 start_line = 93;
+                 start_column = 20;
+                 end_line = 93;
+                 end_column = 74;
+                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+               }
+               i_personne_charge_effective_permanente_remplit_titre__i_
+           then true
+           else raise EmptyError
+         with EmptyError -> false)
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 91;
+             start_column = 10;
+             end_line = 91;
+             end_column = 62;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_ressources_menage_ : unit -> money =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "allocations_familiales.ressources_ménage" ]
-      embed_money i_ressources_menage_
+  let allocations_familiales_dot_ressources_menage_ : money =
+    try
+      log_variable_definition
+        [ "InterfaceAllocationsFamiliales"; "allocations_familiales.ressources_ménage" ]
+        embed_money i_ressources_menage_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 92;
+             start_column = 10;
+             end_line = 92;
+             end_column = 27;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_residence_ : unit -> collectivite =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "allocations_familiales.résidence" ]
-      embed_collectivite i_residence_
+  let allocations_familiales_dot_residence_ : collectivite =
+    try
+      log_variable_definition
+        [ "InterfaceAllocationsFamiliales"; "allocations_familiales.résidence" ]
+        embed_collectivite i_residence_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 93;
+             start_column = 10;
+             end_line = 93;
+             end_column = 19;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_date_courante_ : unit -> date =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "allocations_familiales.date_courante" ]
-      embed_date i_date_courante_
+  let allocations_familiales_dot_date_courante_ : date =
+    try
+      log_variable_definition
+        [ "InterfaceAllocationsFamiliales"; "allocations_familiales.date_courante" ]
+        embed_date i_date_courante_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 96;
+             start_column = 10;
+             end_line = 96;
+             end_column = 23;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_enfants_a_charge_ : unit -> enfant array =
-   fun (_ : unit) ->
-    log_variable_definition
-      [ "InterfaceAllocationsFamiliales"; "allocations_familiales.enfants_à_charge" ]
-      (embed_array embed_enfant) enfants_a_charge_
+  let allocations_familiales_dot_enfants_a_charge_ : enfant array =
+    try
+      log_variable_definition
+        [ "InterfaceAllocationsFamiliales"; "allocations_familiales.enfants_à_charge" ]
+        (embed_array embed_enfant) enfants_a_charge_
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 99;
+             start_column = 10;
+             end_line = 99;
+             end_column = 26;
+             law_headings = [ "Prologue" ];
+           })
   in
-  let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_ : unit -> bool =
-   fun (_ : unit) ->
-    log_variable_definition
-      [
-        "InterfaceAllocationsFamiliales";
-        "allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012";
-      ]
-      embed_bool
-      (try
-         if
-           log_decision_taken
-             {
-               filename = "./epilogue.catala_fr";
-               start_line = 96;
-               start_column = 20;
-               end_line = 96;
-               end_column = 66;
-               law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
-             }
-             i_avait_enfant_a_charge_avant_1er_janvier_2012_
-         then true
-         else raise EmptyError
-       with EmptyError -> false)
+  let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
+    try
+      log_variable_definition
+        [
+          "InterfaceAllocationsFamiliales";
+          "allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012";
+        ]
+        embed_bool
+        (try
+           if
+             log_decision_taken
+               {
+                 filename = "./epilogue.catala_fr";
+                 start_line = 96;
+                 start_column = 20;
+                 end_line = 96;
+                 end_column = 66;
+                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+               }
+               i_avait_enfant_a_charge_avant_1er_janvier_2012_
+           then true
+           else raise EmptyError
+         with EmptyError -> false)
+    with EmptyError ->
+      raise
+        (NoValueProvided
+           {
+             filename = "./prologue.catala_fr";
+             start_line = 120;
+             start_column = 10;
+             end_line = 120;
+             end_column = 54;
+             law_headings = [ "Prologue" ];
+           })
   in
   let result_ : allocations_familiales_out =
     log_end_call

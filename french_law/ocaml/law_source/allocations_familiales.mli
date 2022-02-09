@@ -65,13 +65,13 @@ type enfant = {
 type interface_allocations_familiales_out = { i_montant_verse_out : money }
 
 type interface_allocations_familiales_in = {
-  i_date_courante_in : unit -> date;
-  i_enfants_in : unit -> enfant_entree array;
-  i_ressources_menage_in : unit -> money;
-  i_residence_in : unit -> collectivite;
-  i_personne_charge_effective_permanente_est_parent_in : unit -> bool;
-  i_personne_charge_effective_permanente_remplit_titre_I_in : unit -> bool;
-  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : unit -> bool;
+  i_date_courante_in : date;
+  i_enfants_in : enfant_entree array;
+  i_ressources_menage_in : money;
+  i_residence_in : collectivite;
+  i_personne_charge_effective_permanente_est_parent_in : bool;
+  i_personne_charge_effective_permanente_remplit_titre_I_in : bool;
+  i_avait_enfant_a_charge_avant_1er_janvier_2012_in : bool;
 }
 
 val interface_allocations_familiales :

@@ -22,14 +22,13 @@ let compute_allocations_familiales ~(current_date : Runtime.date)
   let result =
     AF.interface_allocations_familiales
       {
-        AF.i_date_courante_in = (fun _ -> current_date);
-        AF.i_enfants_in = (fun _ -> children);
-        AF.i_ressources_menage_in = (fun _ -> money_of_units_int income);
-        AF.i_residence_in = (fun _ -> residence);
-        AF.i_personne_charge_effective_permanente_est_parent_in = (fun _ -> is_parent);
-        AF.i_personne_charge_effective_permanente_remplit_titre_I_in = (fun _ -> fills_title_I);
-        AF.i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
-          (fun _ -> had_rights_open_before_2012);
+        AF.i_date_courante_in = current_date;
+        AF.i_enfants_in = children;
+        AF.i_ressources_menage_in = money_of_units_int income;
+        AF.i_residence_in = residence;
+        AF.i_personne_charge_effective_permanente_est_parent_in = is_parent;
+        AF.i_personne_charge_effective_permanente_remplit_titre_I_in = fills_title_I;
+        AF.i_avait_enfant_a_charge_avant_1er_janvier_2012_in = had_rights_open_before_2012;
       }
   in
   money_to_float result.AF.i_montant_verse_out
