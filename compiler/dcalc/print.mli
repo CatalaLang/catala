@@ -22,6 +22,16 @@ val is_uppercase : CamomileLibraryDefault.Camomile.UChar.t -> bool
 
 val begins_with_uppercase : string -> bool
 
+(** {1 Common syntax highlighting helpers}*)
+
+val format_base_type : Format.formatter -> string -> unit
+
+val format_keyword : Format.formatter -> string -> unit
+
+val format_punctuation : Format.formatter -> string -> unit
+
+val format_operator : Format.formatter -> string -> unit
+
 (** {1 Formatters} *)
 
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
