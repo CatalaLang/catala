@@ -203,6 +203,19 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                let var_def = scope_def.scope_def_rules in
                let var_typ = scope_def.scope_def_typ in
                let is_cond = scope_def.scope_def_is_condition in
+               (* If the variable is tagged as input, then it shall not be redefined. *)
+               (match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+               | OnlyInput when not (Ast.RuleMap.is_empty var_def) ->
+                   Errors.raise_multispanned_error
+                     "It is impossible to give a definition to a scope variable tagged as input."
+                     (( Some "Relevant variable:",
+                        Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) )
+                     :: List.map
+                          (fun (rule, _) ->
+                            ( Some "Incriminated variable definition:",
+                              Pos.get_position (Ast.RuleName.get_info rule) ))
+                          (Ast.RuleMap.bindings var_def))
+               | _ -> ());
                let expr_def =
                  translate_def (Ast.ScopeDef.Var var) var_def var_typ ~is_cond
                    ~is_subscope_var:false

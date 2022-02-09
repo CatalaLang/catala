@@ -2,13 +2,17 @@
 
 ```catala
 declaration scope A:
-  context  a content integer
-  input b content integer
-  output c content integer
-  internal d content integer
+  internal a content integer
+  output b content integer
+  input c content integer
+  input output d content integer
+  context e content integer
+  context output f content integer
+
 
 scope A:
   definition a equals 0
-  definition c equals b + d
-  definition d equals 1 + a
+  definition b equals a + 1
+  definition e equals b + c + d + 1
+  definition f equals e + 1
 ```

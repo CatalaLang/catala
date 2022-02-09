@@ -321,7 +321,11 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         Bindlib.box_apply
           (fun merged_expr -> (Dcalc.Ast.ErrorOnEmpty merged_expr, Pos.get_position a_name))
           (match Pos.unmark a_io.io_input with
-          | OnlyInput | Reentrant -> merge_defaults a_expr new_e
+          | OnlyInput ->
+              Dcalc.Ast.make_app a_expr
+                [ Bindlib.box (Dcalc.Ast.ELit Dcalc.Ast.LUnit, Pos.no_pos) ]
+                Pos.no_pos
+          | Reentrant -> merge_defaults a_expr new_e
           | NoInput -> new_e)
       in
       let merged_expr =

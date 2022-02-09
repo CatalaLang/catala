@@ -1,24 +1,35 @@
 let A =
-  λ (A_in_8: A_in{"a_in": unit → integer; "b_in": unit → integer}) →
-    let a_9 : unit → integer = A_in_8."a_in"
+  λ (A_in_10: A_in{"c_in": unit → integer; "d_in": unit → integer;
+                 "e_in": unit → integer; "f_in": unit → integer}) →
+    let c_11 : unit → integer = A_in_10."c_in"
     in
-    let b_10 : unit → integer = A_in_8."b_in"
+    let d_12 : unit → integer = A_in_10."d_in"
     in
-    let a_11 : integer = error_empty
-      ⟨a_9 () | true ⊢
-        ⟨⟨true ⊢ ⟨⟨true ⊢ 0⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
-          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    let e_13 : unit → integer = A_in_10."e_in"
     in
-    let b_12 : integer = error_empty
-      ⟨b_10 () | true ⊢
-        ⟨true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    let f_14 : unit → integer = A_in_10."f_in"
     in
-    let d_13 : integer = error_empty
-      ⟨⟨true ⊢ ⟨⟨true ⊢ 1 + a_11⟩ | false ⊢ ∅ ⟩⟩ | true
+    let a_15 : integer = error_empty
+      ⟨⟨true ⊢ ⟨⟨true ⊢ 0⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
+        ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    in
+    let c_16 : integer = error_empty c_11 ()
+    in
+    let d_17 : integer = error_empty d_12 ()
+    in
+    let b_18 : integer = error_empty
+      ⟨⟨true ⊢ ⟨⟨true ⊢ a_15 + 1⟩ | false ⊢ ∅ ⟩⟩ | true
         ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
     in
-    let c_14 : integer = error_empty
-      ⟨⟨true ⊢ ⟨⟨true ⊢ b_12 + d_13⟩ | false ⊢ ∅ ⟩⟩ |
-        true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩
+    let e_19 : integer = error_empty
+      ⟨e_13 () | true ⊢
+        ⟨⟨true ⊢
+             ⟨⟨true ⊢ b_18 + c_16 + d_17 + 1⟩ | false ⊢ ∅ ⟩⟩
+          | true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
     in
-    A_out {"c_out"= c_14}
+    let f_20 : integer = error_empty
+      ⟨f_14 () | true ⊢
+        ⟨⟨true ⊢ ⟨⟨true ⊢ e_19 + 1⟩ | false ⊢ ∅ ⟩⟩ |
+          true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
+    in
+    A_out {"b_out"= b_18; "d_out"= d_17; "f_out"= f_20}

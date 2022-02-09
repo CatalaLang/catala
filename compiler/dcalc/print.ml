@@ -247,8 +247,8 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
            (fun fmt (x, tau, arg) ->
-             Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a@ %a@ %a@]@ %a@ %a@]@ %a@\n" format_keyword
-               "let" format_var x format_punctuation ":" (format_typ ctx) tau format_punctuation "="
+             Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@]@ %a@\n" format_keyword "let"
+               format_var x format_punctuation ":" (format_typ ctx) tau format_punctuation "="
                format_expr arg format_keyword "in"))
         xs_tau_arg format_expr body
   | EAbs ((binder, _), taus) ->
