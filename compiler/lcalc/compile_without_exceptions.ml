@@ -540,9 +540,12 @@ let translate_program (prgm : D.program) : A.program =
         |> D.StructMap.mapi (fun n l ->
                if List.mem n inputs_structs then
                  ListLabels.map l ~f:(fun (n, tau) ->
-                     Cli.debug_print @@ Format.asprintf "Input type: %a" D.pp_typ (fst tau);
                      Cli.debug_print
-                     @@ Format.asprintf "Output type: %a" D.pp_typ (fst (translate_typ tau));
+                     @@ Format.asprintf "Input type: %a" (Dcalc.Print.format_typ prgm.decl_ctx) tau;
+                     Cli.debug_print
+                     @@ Format.asprintf "Output type: %a"
+                          (Dcalc.Print.format_typ prgm.decl_ctx)
+                          (translate_typ tau);
                      (n, translate_typ tau))
                else l);
     }
