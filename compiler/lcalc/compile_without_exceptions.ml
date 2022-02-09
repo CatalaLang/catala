@@ -439,6 +439,30 @@ let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
   | Result e -> translate_expr ~append_esome:false ctx e
   | ScopeLet
       {
+        scope_let_kind = SubScopeVarDefinition;
+        scope_let_typ = typ;
+        scope_let_expr = D.EAbs ((binder, _), _), _pos;
+        scope_let_next = next;
+        scope_let_pos = pos;
+      } ->
+      (* special case : the subscope variable is always thunked. We remove this thunking. *)
+      let _, expr = Bindlib.unmbind binder in
+
+      let var_is_pure = true in
+      let var, next = Bindlib.unbind next in
+      Cli.debug_print @@ Format.asprintf "unbinding %a" Dcalc.Print.format_var var;
+      let ctx' = add_var pos var var_is_pure ctx in
+      let new_var = (find ~info:"variable that was just created" var ctx').var in
+      A.make_let_in new_var (translate_typ typ)
+        (translate_expr ctx ~append_esome:true expr)
+        (translate_scope_let ctx' next)
+  | ScopeLet { scope_let_kind = SubScopeVarDefinition; scope_let_pos = pos; _ } ->
+      Errors.raise_spanned_error
+        "Internal Error: found an SubScopeVarDefinition that does not satisfy the thunked \
+         invariant when translating Dcalc to Lcalc without exceptions."
+        pos
+  | ScopeLet
+      {
         scope_let_kind = kind;
         scope_let_typ = typ;
         scope_let_expr = expr;
