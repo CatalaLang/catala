@@ -3,19 +3,16 @@ let TestBool_6 :
     TestBool_out{"foo_out": bool; "bar_out": integer} =
   λ (TestBool_in_7: TestBool_in{"foo_in": unit → bool; "bar_in":
                        unit → integer}) →
-    let foo_8 : unit → bool = TestBool_in_7."foo_in"
-    in
-    let bar_9 : unit → integer = TestBool_in_7."bar_in"
-    in
+    let foo_8 : unit → bool = TestBool_in_7."foo_in" in
+    let bar_9 : unit → integer = TestBool_in_7."bar_in" in
     let bar_10 : integer = error_empty
       ⟨bar_9 () | true ⊢
         ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
-          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
-    in
+          ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩ in
     let foo_11 : bool = error_empty
       ⟨foo_8 () | true ⊢
         ⟨⟨true ⊢ ⟨⟨bar_10 < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
           ⟨true ⊢ ⟨⟨bar_10 >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
-          true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩
-    in
-    TestBool_out {"foo_out"= foo_11; "bar_out"= bar_10}
+          true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩ in
+    TestBool_out {"foo_out"= foo_11; "bar_out"= bar_10} in
+TestBool_6

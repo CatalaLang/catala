@@ -281,16 +281,17 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
   | EOp (Unop op) -> Format.fprintf fmt "%a" format_unop (op, Pos.no_pos)
   | EDefault (exceptions, just, cons) ->
       if List.length exceptions = 0 then
-        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a@ %a@]" format_punctuation "⟨" format_expr just
+        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" format_punctuation "⟨" format_expr just
           format_punctuation "⊢" format_expr cons format_punctuation "⟩"
       else
-        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a@ %a@ %a@ %a@]" format_punctuation "⟨"
+        Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a@ %a@ %a%a@]" format_punctuation "⟨"
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ",")
              format_expr)
           exceptions format_punctuation "|" format_expr just format_punctuation "⊢" format_expr cons
           format_punctuation "⟩"
-  | ErrorOnEmpty e' -> Format.fprintf fmt "error_empty@ %a" format_with_parens e'
+  | ErrorOnEmpty e' ->
+      Format.fprintf fmt "%a@ %a" format_operator "error_empty" format_with_parens e'
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"
