@@ -70,7 +70,125 @@ let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
 
   D.VarMap.update var (fun _ -> Some { expr; var = new_var; is_pure }) ctx
 
-(* D.VarMap.add var { expr; var = new_var; is_pure } ctx *)
+(* internal representation of scopes. We make here heavy use of bindlib. *)
+
+type scope_lets =
+  | Result of D.expr Pos.marked
+  | ScopeLet of {
+      scope_let_kind : D.scope_let_kind;
+      scope_let_typ : D.typ Pos.marked;
+      scope_let_expr : D.expr Pos.marked;
+      scope_let_next : (D.expr, scope_lets) Bindlib.binder;
+      scope_let_pos : Pos.t;
+    }
+
+type scope_body = {
+  scope_body_input_struct : D.StructName.t;
+  scope_body_output_struct : D.StructName.t;
+  scope_body_result : (D.expr, scope_lets) Bindlib.binder;
+}
+
+type scopes =
+  | Nil
+  | ScopeDef of {
+      scope_name : D.ScopeName.t;
+      scope_body : scope_body;
+      scope_next : (D.expr, scopes) Bindlib.binder;
+    }
+
+let union = D.VarMap.union (fun _ _ _ -> Some ())
+
+let rec fv_scope_lets scope_lets =
+  match scope_lets with
+  | Result e -> D.fv e
+  | ScopeLet { scope_let_expr = e; scope_let_next = next; _ } ->
+      let v, body = Bindlib.unbind next in
+      union (D.fv e) (D.VarMap.remove v (fv_scope_lets body))
+
+let fv_scope_body { scope_body_result = binder; _ } =
+  let v, body = Bindlib.unbind binder in
+  D.VarMap.remove v (fv_scope_lets body)
+
+let rec fv_scopes scopes =
+  match scopes with
+  | Nil -> D.VarMap.empty
+  | ScopeDef { scope_body = body; scope_next = next; _ } ->
+      let v, next = Bindlib.unbind next in
+
+      union (D.VarMap.remove v (fv_scopes next)) (fv_scope_body body)
+
+let _free_vars_scope_lets scope_lets = fv_scope_lets scope_lets |> D.VarMap.bindings |> List.map fst
+
+let _free_vars_scope_body scope_body = fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
+
+let free_vars_scopes scopes = fv_scopes scopes |> D.VarMap.bindings |> List.map fst
+
+let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
+    scope_lets Bindlib.box =
+  let pos = snd scope_let.D.scope_let_var in
+
+  Cli.debug_print
+  @@ Format.asprintf "binding let %a. Variable occurs = %b" Dcalc.Print.format_var
+       (fst scope_let.D.scope_let_var)
+       (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
+
+  let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
+  Bindlib.box_apply2
+    (fun expr binder ->
+      Cli.debug_print
+      @@ Format.asprintf "free variables in expression: %a"
+           (Format.pp_print_list Dcalc.Print.format_var)
+           (D.free_vars expr);
+      ScopeLet
+        {
+          scope_let_kind = scope_let.D.scope_let_kind;
+          scope_let_typ = scope_let.D.scope_let_typ;
+          scope_let_expr = expr;
+          scope_let_next = binder;
+          scope_let_pos = pos;
+        })
+    scope_let.D.scope_let_expr binder
+
+let bind_scope_body (body : D.scope_body) : scope_body Bindlib.box =
+  let body_result =
+    ListLabels.fold_right body.D.scope_body_lets
+      ~init:(Bindlib.box_apply (fun e -> Result e) body.D.scope_body_result)
+      ~f:(Fun.flip bind_scope_lets)
+  in
+
+  Cli.debug_print @@ Format.asprintf "binding arg %a" Dcalc.Print.format_var body.D.scope_body_arg;
+  let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
+
+  Cli.debug_print
+  @@ Format.asprintf "isfinal term is closed: %b" (Bindlib.is_closed scope_body_result);
+  Bindlib.box_apply
+    (fun scope_body_result ->
+      Cli.debug_print
+      @@ Format.asprintf "rank of the final term: %i" (Bindlib.binder_rank scope_body_result);
+      {
+        scope_body_output_struct = body.D.scope_body_output_struct;
+        scope_body_input_struct = body.D.scope_body_input_struct;
+        scope_body_result;
+      })
+    scope_body_result
+
+let bind_scope
+    ((scope_name, scope_var, scope_body) : D.ScopeName.t * D.expr Bindlib.var * D.scope_body)
+    (acc : scopes Bindlib.box) : scopes Bindlib.box =
+  Bindlib.box_apply2
+    (fun scope_body scope_next -> ScopeDef { scope_name; scope_body; scope_next })
+    (bind_scope_body scope_body) (Bindlib.bind_var scope_var acc)
+
+let bind_scopes (scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list) :
+    scopes Bindlib.box =
+  let result = ListLabels.fold_right scopes ~init:(Bindlib.box Nil) ~f:bind_scope in
+
+  Cli.debug_print
+  @@ Format.asprintf "free variable in the program : [%a]"
+       (Format.pp_print_list Dcalc.Print.format_var)
+       (free_vars_scopes (Bindlib.unbox result));
+
+  result
 
 (** [tau' = translate_typ tau] translate the a dcalc type into a lcalc type.
 
@@ -316,86 +434,6 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
       Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.format_var v;
       A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc)
 
-type scope_lets =
-  | Result of D.expr Pos.marked
-  | ScopeLet of {
-      scope_let_kind : D.scope_let_kind;
-      scope_let_typ : D.typ Pos.marked;
-      scope_let_expr : D.expr Pos.marked;
-      scope_let_next : (D.expr, scope_lets) Bindlib.binder;
-      scope_let_pos : Pos.t;
-    }
-
-let union = D.VarMap.union (fun _ _ _ -> Some ())
-
-let rec fv_scope_lets scope_lets =
-  match scope_lets with
-  | Result e -> D.fv e
-  | ScopeLet { scope_let_expr = e; scope_let_next = next; _ } ->
-      let v, body = Bindlib.unbind next in
-      union (D.fv e) (D.VarMap.remove v (fv_scope_lets body))
-
-type scope_body = {
-  scope_body_input_struct : D.StructName.t;
-  scope_body_output_struct : D.StructName.t;
-  scope_body_result : (D.expr, scope_lets) Bindlib.binder;
-}
-
-let fv_scope_body { scope_body_result = binder; _ } =
-  let v, body = Bindlib.unbind binder in
-  D.VarMap.remove v (fv_scope_lets body)
-
-let free_vars_scope_body scope_body = fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
-
-let translate_and_bind_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
-    scope_lets Bindlib.box =
-  let pos = snd scope_let.D.scope_let_var in
-
-  Cli.debug_print
-  @@ Format.asprintf "binding let %a. Variable occurs = %b" Dcalc.Print.format_var
-       (fst scope_let.D.scope_let_var)
-       (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
-
-  let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
-  Bindlib.box_apply2
-    (fun expr binder ->
-      Cli.debug_print
-      @@ Format.asprintf "free variables in expression: %a"
-           (Format.pp_print_list Dcalc.Print.format_var)
-           (D.free_vars expr);
-      ScopeLet
-        {
-          scope_let_kind = scope_let.D.scope_let_kind;
-          scope_let_typ = scope_let.D.scope_let_typ;
-          scope_let_expr = expr;
-          scope_let_next = binder;
-          scope_let_pos = pos;
-        })
-    scope_let.D.scope_let_expr binder
-
-let translate_and_bind (body : D.scope_body) : scope_body Bindlib.box =
-  let body_result =
-    ListLabels.fold_right body.D.scope_body_lets
-      ~init:(Bindlib.box_apply (fun e -> Result e) body.D.scope_body_result)
-      ~f:(Fun.flip translate_and_bind_lets)
-  in
-
-  Cli.debug_print @@ Format.asprintf "binding arg %a" Dcalc.Print.format_var body.D.scope_body_arg;
-  let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
-
-  Cli.debug_print
-  @@ Format.asprintf "isfinal term is closed: %b" (Bindlib.is_closed scope_body_result);
-  Bindlib.box_apply
-    (fun scope_body_result ->
-      Cli.debug_print
-      @@ Format.asprintf "rank of the final term: %i" (Bindlib.binder_rank scope_body_result);
-      {
-        scope_body_output_struct = body.D.scope_body_output_struct;
-        scope_body_input_struct = body.D.scope_body_input_struct;
-        scope_body_result;
-      })
-    scope_body_result
-
 let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
   match lets with
   | Result e -> translate_expr ~append_esome:false ctx e
@@ -438,6 +476,26 @@ let translate_scope_body (scope_pos : Pos.t) (_decl_ctx : D.decl_ctx) (ctx : ctx
         [ (D.TTuple ([], Some input_struct), Pos.no_pos) ]
         Pos.no_pos
 
+let rec translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) :
+    (A.expr Bindlib.var * (A.expr * Pos.t)) list Bindlib.box =
+  match scopes with
+  | Nil -> Bindlib.box []
+  | ScopeDef { scope_name; scope_body; scope_next } ->
+      let scope_var, next = Bindlib.unbind scope_next in
+      let new_ctx = add_var Pos.no_pos scope_var true ctx in
+      let new_scope_name = (find ~info:"variable that was just created" scope_var new_ctx).var in
+
+      let scope_pos = Pos.get_position (D.ScopeName.get_info scope_name) in
+
+      let new_body = translate_scope_body scope_pos decl_ctx ctx scope_body in
+      let tail = translate_scopes decl_ctx new_ctx next in
+
+      Bindlib.box_apply2 (fun body tail -> (new_scope_name, body) :: tail) new_body tail
+
+let translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) :
+    (A.expr Bindlib.var * (A.expr * Pos.t)) list =
+  Bindlib.unbox (translate_scopes decl_ctx ctx scopes)
+
 let translate_program (prgm : D.program) : A.program =
   (* modify the *)
   let inputs_structs =
@@ -467,31 +525,7 @@ let translate_program (prgm : D.program) : A.program =
   in
 
   let scopes =
-    prgm.scopes
-    |> ListLabels.fold_left ~init:([], D.VarMap.empty)
-         ~f:(fun ((acc, ctx) : _ * info D.VarMap.t) (scope_name, n, scope_body) ->
-           
-           let v, scope_body =
-             Bindlib.unbind (Bindlib.unbox (Bindlib.bind_var n (translate_and_bind scope_body)))
-           in
-
-           Cli.debug_print
-           @@ Format.asprintf "global free variable : %a"
-                (Format.pp_print_list Dcalc.Print.format_var)
-                (free_vars_scope_body scope_body);
-           let new_ctx = add_var Pos.no_pos v true ctx in
-
-           let new_n = find ~info:"variable that was just created ici" v new_ctx in
-
-           let scope_pos = Pos.get_position (D.ScopeName.get_info scope_name) in
-
-           let new_acc =
-             (new_n, Bindlib.unbox (translate_scope_body scope_pos decl_ctx ctx scope_body)) :: acc
-           in
-
-           (new_acc, new_ctx))
-    |> fst |> List.rev
-    |> List.map (fun (info, e) -> (info.var, e))
+    prgm.scopes |> bind_scopes |> Bindlib.unbox |> translate_scopes decl_ctx D.VarMap.empty
   in
 
   { scopes; decl_ctx }
