@@ -472,7 +472,11 @@ fixed version of the NewIncomeTaxComputation scope:
 declaration scope NewIncomeTaxComputationFixed:
   two_brackets scope TwoBracketsTaxComputation
   input individual content Individual
-  output income_tax content money
+  output tax_formula content money depends on money
+  context output income_tax content money
+  # This variable is tagged with "context", a new concept which we have not
+  # introduced yet. For now, ignore it as we'll come back to it in the section
+  # "Context scope variables".
 
 scope NewIncomeTaxComputationFixed :
   definition two_brackets.brackets equals TwoBrackets {
@@ -480,6 +484,7 @@ scope NewIncomeTaxComputationFixed :
     -- rate1: 20%
     -- rate2: 40%
   }
+  definition tax_formula of income equals two_brackets.tax_formula of income
 ```
 
 To define an exception to a rule, you have to first label the rule that
@@ -520,6 +525,68 @@ Note that the label system also lets you define more complicated exceptions
 patterns. Sometimes, you want to declare an exception to a groupe of
 piecewise definitions. To do that, simply use the same label for all
 the piecewise definitions.
+
+## Context scope variables
+
+With its "input","output" and "internal" variables, Catala's scope are close
+to regular functions with arguments, local variables and output. However, the
+law can sometimes be adversarial to good programming practices and define
+provisions that break the abstraction barrier normally associated to a function.
+
+This can be the case when an outside body of legislative text "reuses" a
+a legal concept but adding a twist on it. Consider the following fictionnal
+(but not quite pathological computational-wise) example.
+
+### Article 7
+
+The justice system delivers fines to individuals when they committed an offense.
+The fines are determined based on the amount of taxes paid by the individual.
+The more taxes the invidual pays, the higher the fine. However, the determination
+of the amount of taxes paid by an individual in this context shall include
+a flat tax fee of $500 for individuals earning less than $10,000.
+
+```catala
+# To compute the basis determined for issuing the fines, we create a new scope.
+declaration scope BasisForFineDetermination:
+  tax_computation scope NewIncomeTaxComputationFixed
+  # This scope will call the NewIncomeTaxComputationFixed scope that defines
+  # the proper tax computation.
+  input individual content Individual
+  output basis_for_fine content money
+
+scope BasisForFineDetermination :
+  # First, we link the inputs and outputs of the two scopes.
+  definition tax_computation.individual equals individual
+  definition basis_for_fine equals tax_computation.income_tax
+
+  # But then, how to account for the provision of the law that reverts the
+  # mechanism canceling taxes for individuals earning less than $10,000 dollars?
+
+  # This is where the "context" concept comes into play. Indeed, we had annotated
+  # the "income_tax" variable of "NewIncomeTaxComputationFixed" with the
+  # "context" attribute. "context" is a variant of "input" that exposes the
+  # variable as an input of the scope. However, it is more permissive than
+  # "input" because it lets you re-define the "context" variable inside its
+  # own scope. Then, you're faced with a choice for the value of "income_tax":
+  # do you take the value coming from its definition inside
+  # "NewIncomeTaxComputationFixed" or do you take the value coming from the
+  # input of the scope? This dilemma is resolved in two ways. First, by looking
+  # at the conditions of the definitions: only definitions that have a condition
+  # evaluating to "true" at runtime will be considered. If there's only one,
+  # the pick is easy. But what if two definitions trigger at the same time,
+  # one from the input and one from the "NewIncomeTaxComputationFixed" scope?
+  # Well, second, in that case we always prioritize the input definition for
+  # picking. In Catala, the caller scope has priority over the callee scope
+  # for "context" variable. It's as if the caller provided an extra exception
+  # for the definition of the scope variable.
+
+  # Back to our little problem, the solution is here to provide from the outside
+  # an exceptional definition for income tax for people earning less than
+  # $10,0000.
+  definition tax_computation.income_tax under condition
+    individual.income <=$ $10,000
+  consequence equals $500
+```
 
 ## Catala values
 
