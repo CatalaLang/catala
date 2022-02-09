@@ -1,0 +1,15 @@
+[ERROR] This subscope variable is a mandatory input but no definition was provided.
+
+Incriminated subscope:
+ --> tests/test_visibility/bad/forgot_input.catala_en
+  | 
+9 |   a scope A
+  |   ^
+  + Test
+
+Incriminated variable:
+ --> tests/test_visibility/bad/forgot_input.catala_en
+  | 
+6 |   input x content integer
+  |         ^
+  + Test

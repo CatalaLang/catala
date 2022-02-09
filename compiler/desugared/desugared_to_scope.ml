@@ -215,7 +215,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                    (* If the variable is tagged as input, then it shall not be redefined. *)
                    Errors.raise_multispanned_error
                      "It is impossible to give a definition to a scope variable tagged as input."
-                     (( Some "Relevant variable:",
+                     (( Some "Incriminated variable:",
                         Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) )
                      :: List.map
                           (fun (rule, _) ->
@@ -275,15 +275,27 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                              Errors.raise_multispanned_error
                                "It is impossible to give a definition to a subscope variable not \
                                 tagged as input or context."
-                               ((Some "Relevant subscope:", Ast.ScopeDef.get_position def_key)
-                               :: ( Some "Relevant variable:",
+                               ((Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key)
+                               :: ( Some "Incriminated variable:",
                                     Pos.get_position (Scopelang.Ast.ScopeVar.get_info sub_scope_var)
                                   )
                                :: List.map
                                     (fun (rule, _) ->
-                                      ( Some "Suscope variable definition:",
+                                      ( Some "Incriminated subscope variable definition:",
                                         Pos.get_position (Ast.RuleName.get_info rule) ))
                                     (Ast.RuleMap.bindings def))
+                         | OnlyInput when Ast.RuleMap.is_empty def && not is_cond ->
+                             (* If the subscope variable is tagged as input, then it shall be
+                                defined. *)
+                             Errors.raise_multispanned_error
+                               "This subscope variable is a mandatory input but no definition was \
+                                provided."
+                               [
+                                 (Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key);
+                                 ( Some "Incriminated variable:",
+                                   Pos.get_position (Scopelang.Ast.ScopeVar.get_info sub_scope_var)
+                                 );
+                               ]
                          | _ -> ());
                          (* Now that all is good, we can proceed with translating this redefinition
                             to a proper Scopelang term. *)
