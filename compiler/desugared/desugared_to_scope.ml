@@ -124,8 +124,8 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
 (** Translates a definition inside a scope, the resulting expression should be an {!constructor:
     Dcalc.Ast.EDefault} *)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Pos.marked) ~(is_cond : bool) ~(is_subscope_var : bool) :
-    Scopelang.Ast.expr Pos.marked =
+    (typ : Scopelang.Ast.typ Pos.marked) (io : Scopelang.Ast.io) ~(is_cond : bool)
+    ~(is_subscope_var : bool) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func = match Pos.unmark typ with Scopelang.Ast.TArrow (_, _) -> true | _ -> false in
   let is_rule_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.rule_parameter in
@@ -161,7 +161,8 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func_param_typ
   in
   if
-    Ast.RuleMap.cardinal def = 0 && is_subscope_var
+    Ast.RuleMap.cardinal def = 0
+    && is_subscope_var
     (* Here we have a special case for the empty definitions. Indeed, we could use the code for the
        regular case below that would create a convoluted default always returning empty error, and
        this would be correct. But it gets more complicated with functions. Indeed, if we create an
@@ -176,6 +177,12 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
        To avoid this complication we special case here and put an empty error for all subscope
        variables that are not defined. It covers the subtlety with functions described above but
        also conditions with the false default value. *)
+    && not
+         (is_cond
+         && match Pos.unmark io.Scopelang.Ast.io_input with OnlyInput -> true | _ -> false)
+    (* However, this special case suffers from an exception: when a condition is defined as an
+       OnlyInput to a subscope, since the [false] default value will not be provided by the calee
+       scope, it has to be placed in the caller. *)
   then (ELit LEmptyError, Pos.no_pos)
   else
     Bindlib.unbox
@@ -218,8 +225,8 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                | OnlyInput -> [] (* we do not provide any definition for an input-only variable *)
                | _ ->
                    let expr_def =
-                     translate_def (Ast.ScopeDef.Var var) var_def var_typ ~is_cond
-                       ~is_subscope_var:false
+                     translate_def (Ast.ScopeDef.Var var) var_def var_typ scope_def.Ast.scope_def_io
+                       ~is_cond ~is_subscope_var:false
                    in
                    [
                      Scopelang.Ast.Definition
@@ -281,7 +288,8 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          (* Now that all is good, we can proceed with translating this redefinition
                             to a proper Scopelang term. *)
                          let expr_def =
-                           translate_def def_key def def_typ ~is_cond ~is_subscope_var:true
+                           translate_def def_key def def_typ scope_def.Ast.scope_def_io ~is_cond
+                             ~is_subscope_var:true
                          in
                          let subscop_real_name =
                            Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes

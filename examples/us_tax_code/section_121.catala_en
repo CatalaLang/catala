@@ -6,8 +6,8 @@ declaration structure Period:
   data end content date
 
 declaration scope PeriodMerge:
-  input periods1 content collection Period
-  input periods2 content collection Period
+  context periods1 content collection Period
+  context periods2 content collection Period
   output output_periods content collection Period
 
 scope PeriodMerge:
@@ -45,7 +45,7 @@ declaration scope Section121SinglePerson:
   input gain_from_sale_or_exchange_of_property content money
   output income_excluded_from_gross_income_uncapped content money
   output income_excluded_from_gross_income content money
-  input output section_121_b_3_applies condition
+  context output section_121_b_3_applies condition
   input other_section_121a_sale content OtherSection121aSale
 
 declaration structure PersonalData:
@@ -69,9 +69,9 @@ declaration enumeration ReturnType:
   -- SingleReturnSurvivingSpouse content DeadSpouseInfo
 
 declaration scope Section121TwoPersons:
-  input output person1 content PersonalData
+  context output person1 content PersonalData
   section121Person1 scope Section121SinglePerson
-  input output person2 content PersonalData
+  context output person2 content PersonalData
   section121Person2 scope Section121SinglePerson
   internal section121a_requirements_met condition
   output section_121_b_2_A_condition condition

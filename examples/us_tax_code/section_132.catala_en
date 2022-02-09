@@ -12,7 +12,7 @@ declaration scope QualifiedEmployeeDiscount:
   output gross_profit_percentage content decimal
   output qualified_employee_discount content money
   output employee_discount content money
-  input aggregate_cost content money
+  context aggregate_cost content money
   input discount_type content DiscountType
   internal is_property content boolean
   internal is_services content boolean

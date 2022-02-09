@@ -371,7 +371,7 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         | NoInput -> failwith "should not happen"
         | OnlyInput ->
             Bindlib.box_apply
-              (fun new_e -> (Dcalc.Ast.ErrorOnEmpty new_e, Pos.get_position a_name))
+              (fun new_e -> (Dcalc.Ast.ErrorOnEmpty new_e, Pos.get_position subs_var))
               new_e
         | Reentrant ->
             Dcalc.Ast.make_abs
