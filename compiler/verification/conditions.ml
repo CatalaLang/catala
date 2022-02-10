@@ -134,8 +134,15 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : expr Pos.marked) : vc
           (List.map (generate_vc_must_not_return_empty ctx) (f :: args))
           (Pos.get_position e)
     | EIfThenElse (e1, e2, e3) ->
+        let e1_vc, vc_typ1 = generate_vc_must_not_return_empty ctx e1 in
+        let e2_vc, vc_typ2 = generate_vc_must_not_return_empty ctx e2 in
+        let e3_vc, vc_typ3 = generate_vc_must_not_return_empty ctx e3 in
         conjunction
-          (List.map (generate_vc_must_not_return_empty ctx) [ e1; e2; e3 ])
+          [
+            (e1_vc, vc_typ1);
+            ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
+              VarMap.union (fun _ _ _ -> failwith "should not happen") vc_typ2 vc_typ3 );
+          ]
           (Pos.get_position e)
     | ELit LEmptyError -> (Pos.same_pos_as (ELit (LBool false)) e, VarMap.empty)
     | EVar _
@@ -204,8 +211,15 @@ let rec generate_vs_must_not_return_confict (ctx : ctx) (e : expr Pos.marked) : 
           (List.map (generate_vs_must_not_return_confict ctx) (f :: args))
           (Pos.get_position e)
     | EIfThenElse (e1, e2, e3) ->
+        let e1_vc, vc_typ1 = generate_vs_must_not_return_confict ctx e1 in
+        let e2_vc, vc_typ2 = generate_vs_must_not_return_confict ctx e2 in
+        let e3_vc, vc_typ3 = generate_vs_must_not_return_confict ctx e3 in
         conjunction
-          (List.map (generate_vs_must_not_return_confict ctx) [ e1; e2; e3 ])
+          [
+            (e1_vc, vc_typ1);
+            ( (EIfThenElse (e1, e2_vc, e3_vc), Pos.get_position e),
+              VarMap.union (fun _ _ _ -> failwith "should not happen") vc_typ2 vc_typ3 );
+          ]
           (Pos.get_position e)
     | EVar _ | ELit _ | EOp _ -> (Pos.same_pos_as (ELit (LBool true)) e, VarMap.empty)
     | EDefault (exceptions, just, cons) ->
