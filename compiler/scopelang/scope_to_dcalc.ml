@@ -304,15 +304,8 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
 let translate_rule (ctx : ctx) (rule : Ast.rule)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) : Dcalc.Ast.scope_let list * ctx =
   match rule with
-  | Definition ((ScopeVar a, var_def_pos), tau, e) ->
+  | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
-      (* TODO: put io in a friendlier place, maybe in the Definition constructor? *)
-      let a_io =
-        (List.find
-           (fun local_var -> Ast.ScopeVar.compare local_var.scope_var_name (Pos.unmark a) = 0)
-           (Ast.ScopeMap.find ctx.scope_name ctx.scopes_parameters).scope_sig_local_vars)
-          .scope_var_io
-      in
       let a_var = Dcalc.Ast.Var.make a_name in
       let tau = translate_typ ctx tau in
       let new_e = translate_expr ctx e in
@@ -345,18 +338,11 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
           scope_vars =
             Ast.ScopeVarMap.add (Pos.unmark a) (a_var, Pos.unmark tau, a_io) ctx.scope_vars;
         } )
-  | Definition ((SubScopeVar (subs_name, subs_index, subs_var), var_def_pos), tau, e) ->
+  | Definition ((SubScopeVar (_subs_name, subs_index, subs_var), var_def_pos), tau, a_io, e) ->
       let a_name =
         Pos.map_under_mark
           (fun str -> str ^ "." ^ Pos.unmark (Ast.ScopeVar.get_info (Pos.unmark subs_var)))
           (Ast.SubScopeName.get_info (Pos.unmark subs_index))
-      in
-      let a_io =
-        (List.find
-           (fun local_var ->
-             Ast.ScopeVar.compare local_var.scope_var_name (Pos.unmark subs_var) = 0)
-           (Ast.ScopeMap.find subs_name ctx.scopes_parameters).scope_sig_local_vars)
-          .scope_var_io
       in
       let a_var = Dcalc.Ast.Var.make a_name in
       let tau = translate_typ ctx tau in

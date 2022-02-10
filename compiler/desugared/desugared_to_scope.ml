@@ -234,6 +234,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                              (var, Pos.get_position (Scopelang.Ast.ScopeVar.get_info var)),
                            Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) ),
                          var_typ,
+                         scope_def.Ast.scope_def_io,
                          expr_def );
                    ])
            | Dependency.Vertex.SubScope sub_scope_index ->
@@ -316,6 +317,7 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                                    (sub_scope_var, var_pos) ),
                                var_pos ),
                              def_typ,
+                             scope_def.Ast.scope_def_io,
                              expr_def ))
                    sub_scope_vars_redefs_candidates
                in

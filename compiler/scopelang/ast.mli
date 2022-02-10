@@ -95,7 +95,7 @@ type io = {
 }
 
 type rule =
-  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Definition of location Pos.marked * typ Pos.marked * io * expr Pos.marked
   | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 

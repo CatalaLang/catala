@@ -123,7 +123,7 @@ type io_input = NoInput | OnlyInput | Reentrant
 type io = { io_output : bool Pos.marked; io_input : io_input Pos.marked }
 
 type rule =
-  | Definition of location Pos.marked * typ Pos.marked * expr Pos.marked
+  | Definition of location Pos.marked * typ Pos.marked * io * expr Pos.marked
   | Assertion of expr Pos.marked
   | Call of ScopeName.t * SubScopeName.t
 

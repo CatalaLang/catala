@@ -191,7 +191,7 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@\n" Dcalc.Print.format_punctuation ";")
        (fun fmt rule ->
          match rule with
-         | Definition (loc, typ, e) ->
+         | Definition (loc, typ, _, e) ->
              Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Dcalc.Print.format_keyword "let"
                format_location (Pos.unmark loc) Dcalc.Print.format_punctuation ":" format_typ typ
                Dcalc.Print.format_punctuation "="
