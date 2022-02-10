@@ -1,0 +1,550 @@
+
+## Partie législative
+
+### Livre VIII : Aides personnelles au logement
+
+#### Titre II : Dispositions communes aux aides personnelles au logement
+
+##### Chapitre Ier : Principes généraux
+
+###### Section 1 : Définition
+
+####### Article L821-1 | LEGIARTI000038814980
+
+Les aides personnelles au logement ainsi que les primes accordées
+aux bénéficiaires de ces aides afin qu'ils déménagent pour s'assurer
+des conditions de logement plus adaptées sont régies par le présent livre.
+
+Les aides personnelles au logement comprennent :
+1° L'aide personnalisée au logement ;
+2° Les allocations de logement :
+a) L'allocation de logement familiale ;
+b) L'allocation de logement sociale.
+
+```catala-metadata
+déclaration énumération TypeAidePersonnelleLogement:
+  -- AidePersonnaliséeLogement
+  -- AllocationLogementFamiliale
+  -- AllocationLogementSociale
+```
+###### Section 2 : Règles de non-cumul
+
+####### Sous-section 1 : Aides personnelles au logement
+
+######## Article L821-2 | LEGIARTI000038814974
+
+Les aides personnelles au logement sont accordées au titre de
+la résidence principale.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  assertion ménage.logement.résidence_principale
+```
+
+##### Chapitre II : Conditions générales d'attribution
+
+```catala
+# Ce chapitre définit diverses conditions d'éligibilité concernant le logement.
+# La structure de ces conditions comporte des exceptions négatives à une condition
+# positive. Il n'y a pas vraiment de bonne manière de modéliser cela en Catala
+# pour le moment à part le code ci-dessous qui récapitule la méta-structure
+# logique des articles de loi de ce chapitre.
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle éligibilité_logement sous condition
+    condition_logement
+  conséquence rempli
+
+  exception règle éligibilité_logement sous condition
+    condition_non_ouverture_l822_8 ou
+    condition_non_ouverture_l822_9_decence_logement ou
+    condition_non_ouverture_l822_10_peuplement_logement
+  conséquence non rempli
+```
+
+###### Article L822-1 | LEGIARTI000038814948
+
+Les dispositions du présent livre relatives au bénéficiaire, à
+la résidence principale ou à la prise en compte des ressources
+applicables au conjoint, sont applicables, dans les mêmes conditions,
+au partenaire lié par un pacte civil de solidarité ou au concubin.
+
+```catala-metadata
+déclaration énumération SituationFamiliale:
+  -- Célibataire
+  -- Mariés
+  -- Pacsés
+  -- Concubins
+```
+
+##### Article L822-2 | LEGIARTI000038814944
+
+I.-Peuvent bénéficier d'une aide personnelle au logement :
+
+1° Les personnes de nationalité française ;
+
+2° Les personnes de nationalité étrangère remplissant les conditions
+prévues par les deux premiers alinéas de l'article L. 512-2 du
+code de la sécurité sociale.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_nationalité sous condition
+    selon demandeur.nationalité sous forme
+    -- Française: vrai
+    -- Étrangère: demandeur.satisfait_conditions_l512_2_code_sécurité_sociale
+  conséquence rempli
+```
+
+II.-Parmi les personnes mentionnées au I, peuvent bénéficier d'une aide
+personnelle au logement celles remplissant les conditions prévues par le
+présent livre pour son attribution qui sont locataires, résidents en
+logement-foyer ou qui accèdent à la propriété d'un local à usage exclusif
+d'habitation et constituant leur résidence principale.
+
+Les sous-locataires, sous les mêmes conditions, peuvent également en bénéficier.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette l822_2 règle condition_logement sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Locataire: vrai
+      -- RésidentLogementFoyer: vrai
+      -- AccessionPropriétéLocalUsageExclusifHabitation:
+        ménage.logement.résidence_principale
+      -- SousLocataire: vrai
+      -- ModeOccupation.Autre: faux
+  conséquence rempli
+```
+
+###### Article L822-3 | LEGIARTI000038814942
+
+Les aides personnelles au logement ne sont pas dues aux personnes locataires
+d'un logement dont elles-mêmes, leurs conjoints ou l'un de leurs ascendants
+ou descendants, jouissent d'une part de la propriété ou de l'usufruit,
+personnellement ou par l'intermédiaire de parts sociales de sociétés,
+quels que soient leurs formes et leurs objets.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition usufruit_ou_propriété_famille égal à
+    (selon ménage.logement.propriétaire sous forme
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
+      -- ParentOuAutre.Autre: faux) ou
+    (selon ménage.logement.usufruit sous forme
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: vrai
+      -- ParentOuAutre.Autre: faux)
+
+  étiquette l822_3_1 exception l822_2
+  règle condition_logement sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Locataire: usufruit_ou_propriété_famille
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+Par dérogation à la règle posée au premier alinéa, ces aides peuvent être
+versées si l'ensemble des parts de propriété et d'usufruit du logement
+ainsi détenues est inférieur à des seuils fixés par voie réglementaire.
+Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logement.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_1 règle condition_logement sous condition
+    usufruit_ou_propriété_famille et
+    (selon ménage.logement.propriétaire sous forme
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_propriété et
+    (selon ménage.logement.usufruit sous forme
+      -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
+      -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_usufruit
+  conséquence rempli
+
+  assertion seuil_l822_3_parts_propriété <. 20 %
+  assertion seuil_l822_3_parts_usufruit <. 20 %
+```
+
+###### Article L822-4 | LEGIARTI000038814940
+
+Les aides personnelles au logement ne sont pas dues si le local est loué ou
+sous-loué en partie à des tiers, sauf s'il s'agit d'une personne âgée ou
+handicapée adulte qui a passé un contrat conforme aux dispositions de
+l'article L. 442-1 du code de l'action sociale et des familles ou d'une
+personne de moins de trente ans.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette cas_base_l822_4 règle condition_logement
+  sous condition
+    ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme Non
+  conséquence non rempli
+
+exception cas_base_l822_4 règle condition_logement
+  sous condition
+    selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
+    -- Non: faux
+    -- Oui de personne: personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
+  conséquence rempli
+```
+
+Pour l'attribution d'une aide personnelle au logement, ces personnes sont
+assimilées à des locataires, au titre de la partie du logement qu'elles
+occupent.
+
+```catala
+# Pas d'ajout nécessaire
+```
+
+Toutefois, les conditions fixées à l'article L. 822-3 du présent code
+s'appliquent également au locataire, au sous-locataire et au propriétaire.
+
+```catala
+# Pas d'ajout nécessaire
+```
+
+Pour l'attribution d'une aide personnelle au logement, en cas d'intermédiation
+locative et en cas d'application des dispositions de l'article L. 442-8-1 du
+présent code prévoyant une sous-location totale du logement, le sous-locataire
+est assimilé au locataire.
+
+```catala
+
+```
+
+
+###### Article L822-5 | LEGIARTI000038814936
+
+Les aides personnelles au logement ne sont dues qu'aux personnes payant un minimum
+de loyer, compte tenu de leurs ressources et de la valeur en capital de leur
+patrimoine, lorsque cette valeur est supérieure à un montant fixé par voie
+réglementaire.
+
+```catala
+
+# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
+# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
+# de cette forme là.
+
+
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
+    si demandeur.patrimoine >€ seuil_l822_5_patrimoine alors
+      demandeur.patrimoine
+    sinon
+      0€
+
+```
+
+
+
+Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur d'une
+aide personnelle au logement ou son conjoint est bénéficiaire de l'allocation
+aux adultes handicapés prévue à l'article L. 821-1 du code de la sécurité sociale
+ou de l'allocation d'éducation de l'enfant handicapé prévue à l'article L. 541-1
+du même code, la valeur en capital du patrimoine appréciée pour l'ensemble du ménage
+n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
+
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette l822_5_2 exception l822_5_1 définition patrimoine_pris_en_compte
+  sous condition existe prestation dans ménage.prestations_reçues tel que
+    (prestation = AllocationSoutienEnfantHandicapé) ou
+    (prestation = AllocationAdulteHandicapé)
+  conséquence égal à 0€
+
+```
+
+La même dérogation s'applique au demandeur d'une aide personnelle au logement
+résidant dans un établissement d'hébergement pour personnes âgées dépendantes
+ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
+l'action sociale et des familles.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_5_2 définition patrimoine_pris_en_compte
+  sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
+  conséquence égal à 0€
+
+```
+
+
+###### Article L822-6 | LEGIARTI000038814934
+
+
+La détermination ainsi que les conditions de prise en compte des ressources et de
+la valeur du patrimoine sont définies par voie réglementaire.
+
+
+Les conditions de prise en compte des ressources, notamment les périodes de référence
+retenues, peuvent varier en fonction de la nature des ressources.
+
+```catala
+
+# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
+# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
+# de cette forme là.
+
+```
+
+###### Article L822-7 | LEGIARTI000038814932
+
+La prise en compte des ressources peut relever de dispositions spécifiques,
+lorsque le demandeur est âgé de moins de vingt-cinq ans et qu'il dispose d'un
+contrat de travail autre qu'un contrat à durée indéterminée.
+
+```catala
+# Todo juridique: que se passe-t-il si le demandeur est dans un ménage
+
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
+    (demandeur.age_demandeur <= 25) et non (demandeur.contrat_de_travail sous forme CDI)
+  conséquence rempli
+
+```
+
+
+###### Article L822-8 | LEGIARTI000038814930
+
+Les personnes rattachées au foyer fiscal de leurs parents, lorsque ces derniers
+sont assujettis à l'impôt sur la fortune immobilière en application de l'article
+964 du code général des impôts, ne peuvent bénéficier d'aucune aide personnelle au
+logement. Cette condition est appréciée pour chacun des membres du ménage.
+
+
+```catala
+# todo juridique: la condition, si elle est vérifiée par un membre du ménage
+# enlève-t-elle le droit aux APL pour l'ensemble des membres du ménage ?
+
+# Pour l'instant l'interpretation est que aucun membre du ménage ne doit être
+# rattaché à des parents payant l'ifi.
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_non_ouverture_l822_8
+  sous condition ménage.condition_rattaché_foyer_fiscal_parent_ifi
+  conséquence rempli
+```
+
+###### Article L822-9 | LEGIARTI000038814926
+
+Pour ouvrir droit à une aide personnelle au logement, le logement doit répondre à
+des exigences de décence définies en application des deux premiers alinéas de
+l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports
+locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
+
+```catala
+# todo informatique: structure inverse de la structure avec des conditions chainées
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_non_ouverture_l822_9_decence_logement
+  sous condition ménage.logement.logement_decent_l89_462
+  conséquence rempli
+```
+
+Lorsque le logement est loué en colocation, formalisée par la conclusion de plusieurs
+contrats entre les locataires et le bailleur, il est tenu compte, pour apprécier
+s'il répond à ces mêmes exigences, de l'ensemble des éléments, équipements et
+pièces dont dispose chaque colocataire.
+
+```catala
+# ne nécessite pas de code particulier
+```
+
+Les modalités d'application du présent article sont fixées par voie réglementaire.
+
+####### Article L822-10 | LEGIARTI000038814924
+
+L'attribution d'une aide personnelle au logement est subordonnée au
+respect de conditions de peuplement des logements.
+
+```catala
+# todo informatique: structure inverse de la structure avec des conditions chainées
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_non_ouverture_l822_10_peuplement_logement
+  sous condition condition_peuplement_logement_l822_10
+  conséquence rempli
+```
+
+Les modalités d'application du présent article sont fixées par voie réglementaire
+
+##### Chapitre III : Modalités de liquidation et de versement
+
+###### Article L823-1 | LEGIARTI000038814920
+
+Le montant des aides personnelles au logement est calculé en fonction d'un barème
+défini par voie réglementaire.
+
+Ce barème est établi en prenant en considération :
+
+1° La situation de famille du demandeur et le nombre de personnes à charge
+vivant habituellement au foyer ;
+
+2° Ses ressources et la valeur en capital de son patrimoine et, s'il y a lieu,
+de son conjoint et des personnes vivant habituellement à son foyer, telles que
+définies aux articles L. 822-5 à L. 822-8 ;
+
+3° Le montant du loyer payé, pris en compte dans la limite d'un plafond, ainsi
+que les dépenses accessoires retenues forfaitairement ;
+
+4° La qualité du demandeur : locataire, colocataire ou sous-locataire d'un
+logement meublé ou non, accédant à la propriété ou résident en logement-foyer.
+
+Pour l'application du 1°, les enfants à charge doivent respecter les conditions
+prévues à l'article L. 512-2 du code de la sécurité sociale.
+
+```catala
+# Cet article indique ce qu'on prend en compte mais pas comment on le prend
+# en compte, donc rien à formaliser, le code viendra dans la partie réglementaire
+# et décrétale qui se réferera elle à L823-1. Il sera peut-être utile par la suite
+# de vérifier que les parties réglementaire et décrétale se conforment bien à
+# L823-1 mais nous laissons cela pour le futur.
+```
+
+##### Article L823-2 | EGIARTI000038814918
+
+Pour effectuer le calcul découlant du 1° de l'article L. 823-1, l'enfant à
+charge est rattaché à la personne qui en assume la charge effective et
+permanente.
+
+En cas de résidence alternée de l'enfant au domicile de chacun des parents
+telle que prévue à l'article 373-2-9 du code civil, mise en œuvre de manière
+effective, les parents désignent le bénéficiaire de l'aide.
+
+Cependant, la charge de l'enfant pour le calcul des aides personnelles au
+logement est partagée entre les deux parents allocataires, soit sur demande
+conjointe des parents, soit si les parents sont en désaccord sur la désignation
+du bénéficiaire, selon des modalités définies par voie réglementaire.
+
+```catala
+déclaration énumération PriseEnCharge:
+  -- EffectiveEtPermanente
+  -- RésidenceAlternéeAllocataireUnique
+  -- RésidenceAlternéeAllocationsPartagée
+```
+
+##### Article Article L823-3 | LEGIARTI000038814916
+
+Sont assimilées aux loyers :
+
+1° Les mensualités acquittées au titre des charges de remboursement des prêts
+contractés pour l'acquisition du logement ou son amélioration ;
+
+2° La redevance déterminée par la loi n° 84-595 du 12 juillet 1984 définissant
+la location-accession à la propriété immobilière ;
+
+3° La rémunération de l'opérateur mentionnée au III de l'article 29-11 de la
+loi n° 65-557 du 10 juillet 1965 fixant le statut de la copropriété des
+immeubles bâtis ;
+
+4° L'indemnité d'occupation mentionnée à l'article L. 615-9 du présent code ;
+
+5° La redevance mentionnée à l'article L. 615-10 du présent code ;
+
+6° L'indemnité, prévue au 4° de l'article L. 442-1 du code de l'action sociale
+et des familles, représentative de la mise à disposition de la ou des pièces
+réservées à la personne accueillie.
+
+```catala
+# Ce n'est pas très intéressant de faire apparaître dans l'entrée du calcul
+# le détail de ce qui est inclus dans le terme "loyer". C'est d'ailleurs ce
+# que fait déjà la CAF sur ces outils informatiques. Donc le programme
+# Catala fera apparaître une unique case "loyers_l823_3"
+```
+
+##### Article L823-4 | LEGIARTI000038814914
+
+Le barème est révisé chaque année au 1er octobre.
+
+Sont indexés sur l'évolution de l'indice de référence des loyers défini à
+l'article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer
+les rapports locatifs et portant modification de la loi n° 86-1290 du 23
+décembre 1986 :
+
+1° Les plafonds de loyers ;
+
+2° Le montant forfaitaire des charges ;
+
+3° Les plafonds des charges de remboursement des contrats de prêts dont
+la signature est postérieure à la date de révision du barème ;
+
+4° Les équivalences de loyer et de charges locatives ;
+
+5° Le terme constant de la participation personnelle du ménage.
+
+```catala
+# Il n'est pas vraiment utile de coder pour notre calcul les règles que
+# doivent respecter les décrets qui chaque année mettent à jour les différents
+# éléments du barème de calcul. Même s'il pourrait être utile plus tard de
+# vérifier que leur évolution est bien conforme à L823-4.
+```
+
+##### Article L823-5 | LEGIARTI000038814912
+
+Les modalités d'ouverture et d'extinction des droits sont fixées par voie
+réglementaire.
+
+```catala
+# Rien à faire ici.
+```
+
+##### Article L823-6 | LEGIARTI000038814910
+
+Le bailleur auprès duquel l'aide est versée signale le déménagement de
+l'allocataire et la résiliation de son bail.
+
+Si l'allocataire procède à un remboursement anticipé de son prêt, le prêteur
+auprès duquel l'aide est versée signale ce remboursement anticipé à
+l'organisme payeur.
+
+Les délais dans lesquels ont lieu ces signalements sont définis par voie
+réglementaire.
+
+```catala
+# Rien à faire ici.
+```
+
+##### Article L823-7 | LEGIARTI000038814908
+
+L'aide personnelle au logement peut ne pas être versée lorsque son montant
+mensuel est inférieur à un montant, qui peut varier selon la nature de l'aide
+et la qualité du demandeur telle qu'elle est définie au 4° de
+l'article L. 823-1.
+
+Ce montant minimal est fixé par voie réglementaire.
+
+```catala
+# Voir ÉligibilitéAidePersonnelleLogement.montant_minimal_aide_personnelle_logement
+```
+
+##### Article L823-8 | LEGIARTI000038814906
+
+Une prime de déménagement est attribuée par les organismes mentionnés à
+l'article L. 812-1 aux personnes ou aux ménages qui emménagent dans un
+nouveau logement ouvrant droit à une aide personnelle au logement et qui
+ont à leur charge un enfant d'un rang déterminé. Le rang de l'enfant et la
+période durant laquelle doit avoir lieu le déménagement pour ouvrir droit à
+cette prime sont fixés par voie réglementaire.
+
+La prime est due si le droit à l'aide personnelle au logement est ouvert dans
+un délai fixé par voie réglementaire à compter de la date d'emménagement, même
+lorsqu'en application de l'article L. 823-7, il n'est pas procédé au versement
+de l'aide.
+
+```catala
+# Voir le champ d'application ÉligibilitéPrimeDeDéménagement.
+champ d'application ÉligibilitéPrimeDeDéménagement:
+  définition éligibilité_apl.logement égal à nouveau_logement
+  règle éligibilité_logement sous condition
+    éligibilité_apl.éligibilité et condition_rang_enfant et
+    condition_période_déménagement et
+    éligibilité_apl.date_ouverture_droits -@ date_emménagement
+     <=^ délai_après_emménagement_l823_8_2
+  conséquence rempli
+```
+
+#### Article L823-9 | LEGIARTI000038814904
+
+Les articles L. 161-1-5 et L. 553-2 du code de la sécurité sociale sont
+applicables au recouvrement des montants d'aide personnelle au logement
+indûment versés.
+
+```catala
+# Hors du champ de ce calcul.
+```
