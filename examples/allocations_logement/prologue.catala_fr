@@ -13,7 +13,11 @@ déclaration énumération TypeContratTravail:
   -- CDI
   -- Autres
 
-
+déclaration énumération SituationFamiliale:
+  -- Mariés
+  -- Pacsés
+  -- Concubinage
+  -- Célibataire
 
 déclaration énumération ModeOccupation:
   -- Locataire
@@ -42,10 +46,12 @@ déclaration structure Logement:
   donnée loué_ou_sous_loué_à_des_tiers contenu LouéOuSousLouéÀDesTiers
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
+  donnée loyers_l823_3 contenu argent
 
 déclaration structure EnfantÀCharge:
   donnée bénéficie_titre_personnel_aide_personnelle_logement
     contenu booléen
+  donnée prise_en_charge contenu PriseEnCharge
 
 déclaration structure Ménage:
   donnée prestations_reçues contenu collection PrestationReçue
@@ -70,9 +76,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   contexte ménage contenu Ménage
   contexte demandeur contenu Demandeur
   contexte condition_spécifique_prise_en_compte_revenus_demandeur condition
-  contexte bénéficie_prestation_mentionnée_l542_1_1 condition
-  contexte enfant_pris_en_compte_non_éligibilité
-    contenu booléen dépend de EnfantÀCharge
   contexte condition_nationalité condition
   contexte condition_logement condition
   contexte usufruit_ou_propriété_famille contenu booléen
@@ -82,4 +85,18 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   contexte patrimoine_pris_en_compte contenu argent
   contexte condition_non_ouverture_l822_8 condition
   contexte condition_non_ouverture_l822_9_decence_logement condition
+  contexte condition_non_ouverture_l822_10_peuplement_logement condition
+  contexte condition_peuplement_logement_l822_10 condition
+  contexte éligibilité_logement condition
+  contexte montant_minimal_aide_personnelle_logement
+    contenu argent dépend de ModeOccupation
+  contexte date_ouverture_droits contenu date
+
+déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
+  contexte date_emménagement contenu date
+  contexte nouveau_logement contenu logement
+  contexte condition_rang_enfant condition
+  contexte condition_période_déménagement condition
+  éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
+  contexte éligibilité_logement condition
 ```
