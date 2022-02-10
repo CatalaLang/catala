@@ -74,6 +74,8 @@ déclaration énumération SituationFamiliale:
   -- Mariés
   -- Pacsés
   -- Concubins
+  -- CélibataireSéparéDeFait # Voir R821-3
+  -- ConcubinageDontSéparéDeFait # Voir R821-3
 ```
 
 ##### Article L822-2 | LEGIARTI000038814944
@@ -158,6 +160,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
       -- ParentOuAutre.Autre: 0,0) <. seuil_l822_3_parts_usufruit
   conséquence rempli
+  # Les <. sont stricts par mention de R822-1
 
   assertion seuil_l822_3_parts_propriété <. 20 %
   assertion seuil_l822_3_parts_usufruit <. 20 %
@@ -210,7 +213,6 @@ est assimilé au locataire.
 
 ```
 
-
 ###### Article L822-5 | LEGIARTI000038814936
 
 Les aides personnelles au logement ne sont dues qu'aux personnes payant un minimum
@@ -224,7 +226,6 @@ réglementaire.
 # de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
 # de cette forme là.
 
-
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
     si demandeur.patrimoine >€ seuil_l822_5_patrimoine alors
@@ -234,15 +235,12 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
 
 ```
 
-
-
 Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur d'une
 aide personnelle au logement ou son conjoint est bénéficiaire de l'allocation
 aux adultes handicapés prévue à l'article L. 821-1 du code de la sécurité sociale
 ou de l'allocation d'éducation de l'enfant handicapé prévue à l'article L. 541-1
 du même code, la valeur en capital du patrimoine appréciée pour l'ensemble du ménage
 n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
-
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
@@ -530,7 +528,7 @@ de l'aide.
 ```catala
 # Voir le champ d'application ÉligibilitéPrimeDeDéménagement.
 champ d'application ÉligibilitéPrimeDeDéménagement:
-  définition éligibilité_apl.logement égal à nouveau_logement
+  définition éligibilité_apl.ménage.logement égal à nouveau_logement
   règle éligibilité_logement sous condition
     éligibilité_apl.éligibilité et condition_rang_enfant et
     condition_période_déménagement et

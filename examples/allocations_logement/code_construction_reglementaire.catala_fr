@@ -1,0 +1,107 @@
+## Partie réglementaire
+
+### Livre VIII : Aides personnelles au logement
+
+#### Titre II : Dispositions communes aux aides personnelles au logement
+
+##### Chapitre Ier : Principes généraux
+
+###### Section 1 : Règles de non-cumul
+
+####### Article R821-1 | LEGIARTI000038879023
+
+En vertu de la règle énoncée à l'article L. 821-2, une aide personnelle au
+logement ne peut être attribuée, au profit d'une même personne ou d'un même
+ménage, au titre de plusieurs logements.
+
+```catala
+# À voir quelles sont exactement les condition pour la résidence principale,
+# mais nous faisons ici l'hypothèse simplificatrice qu'il n'y a qu'une
+# résidence principale. Si ce n'est pas le cas, alors l'utilisateur du programme
+# pourra ne déclarer qu'une seule résidence principale (de son choix).
+```
+
+####### Article R821-2 | LEGIARTI000038879021
+
+Lorsque le conjoint ou les enfants à charge du bénéficiaire occupent, à
+titre de résidence principale, un local indépendant du logement occupé
+par le bénéficiaire et situé dans le même bâtiment, ces deux locaux sont
+assimilés au logement défini à l'article R. 822-23.
+
+```catala
+# Cet article définit la manière de remplir les champs du formulaire
+# de déclaration des résidences mais ne se traduit pas computationellement
+# pour nous.
+```
+
+####### Article R821-3 | LEGIARTI000038879019
+
+En cas de séparation, légale ou de fait, des conjoints entraînant la
+création de deux foyers distincts et l'occupation de deux résidences
+principales constatées par l'organisme payeur lors de l'ouverture du
+droit ou au début de la période de paiement, une aide personnelle au
+logement peut être accordée à chacun des conjoints.
+
+```catala
+# Voir SituationFamiliale dans L822-1.
+```
+
+####### Article R821-4 | LEGIARTI000038879017
+
+Lorsque plusieurs personnes ou ménages constituant des foyers distincts
+occupent le même logement et qu'ils sont copropriétaires du logement
+et cotitulaires du prêt ouvrant droit aux aides personnelles au
+logement, ou cotitulaires du bail ou de l'engagement de location,
+une aide personnelle au logement peut être accordée à chacune de ces
+personnes ou chacun de ces ménages.
+
+```catala
+# Chaque colocataire ou copropriétaire remplit sa demande d'APL en cochant
+# les cases déjà prévues.
+```
+
+###### Section 2 : Règle d'exclusivité
+
+####### Article R821-5 | LEGIARTI000038879013
+
+Lorsque les conditions d'ouverture du droit à l'aide personnalisée au logement
+sont remplies au titre d'un logement, seule cette aide est attribuée pour ce logement.
+
+```catala
+# TODO: quelles autres aides aux logements pourraient concurrencer les APL?
+```
+
+####### Article R821-6 | LEGIARTI000038879011
+
+Lorsqu'une personne bénéficie de l'allocation de logement au titre de
+l'acquisition du logement qu'elle occupe et qu'il lui est accordé un
+prêt aidé par l'Etat en accession à la propriété pour l'agrandissement
+de ce logement ou un prêt conventionné pour son amélioration, seule l'aide
+personnalisée au logement lui est attribuée dans les conditions prévues par
+les dispositions de la section 2 du chapitre II du titre III du présent livre
+applicables à ces catégories de prêts et le droit à l'allocation de logement
+est éteint à compter de l'ouverture du droit à l'aide personnalisée.
+
+```catala
+# TODO: quelle est la différence entre "allocation de logement" et "aide personnalisée"
+# Hypothèse : peut-être que cet article est une disposition de transition avec
+# la période où les allocations de logement n'étaient pas fusionnées en aide
+# personnalisée au logement.
+# Si c'est le cas, nous le laissons hors du champ du programme.
+```
+
+##### Chapitre II : Conditions générales d'attribution
+
+###### Section 1 : Conditions relatives au bénéficiaire
+
+####### Article R822-1 | LEGIARTI000038879005
+Les seuils mentionnés au second alinéa de l'article L. 822-3 sont
+fixés à 10 % pour les parts de propriété et à 10 % pour les parts
+d'usufruit, sans que l'ensemble de ces parts puisse égaler ou dépasser
+10 % de la propriété ou de l'usufruit du logement.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition seuil_l822_3_parts_propriété égal à 10%
+  définition seuil_l822_3_parts_usufruit égal à 10%
+```

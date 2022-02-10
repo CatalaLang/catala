@@ -13,12 +13,6 @@ déclaration énumération TypeContratTravail:
   -- CDI
   -- Autres
 
-déclaration énumération SituationFamiliale:
-  -- Mariés
-  -- Pacsés
-  -- Concubinage
-  -- Célibataire
-
 déclaration énumération ModeOccupation:
   -- Locataire
   -- RésidentLogementFoyer
@@ -94,7 +88,7 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
 
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   contexte date_emménagement contenu date
-  contexte nouveau_logement contenu logement
+  contexte nouveau_logement contenu Logement
   contexte condition_rang_enfant condition
   contexte condition_période_déménagement condition
   éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
