@@ -159,132 +159,46 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
 
 type testing_result = { error_code : int; number_of_tests_run : int; number_correct : int }
 
-let test_file (tested_file : string) (catala_exe : string) (catala_opts : string)
-    (reset_test_outputs : bool) : testing_result =
-  let expected_outputs = search_for_expected_outputs tested_file in
-  if List.length expected_outputs = 0 then (
-    Cli.debug_print (Format.asprintf "No expected outputs were found for test file %s" tested_file);
-    { error_code = 0; number_of_tests_run = 0; number_correct = 0 })
-  else
-    List.fold_left
-      (fun (exit : testing_result) expected_output ->
-        let catala_backend = catala_backend_to_string expected_output.backend in
-        let reproducible_catala_command =
-          [
-            catala_exe;
-            catala_opts;
-            (match expected_output.scope with None -> "" | Some scope -> "-s " ^ scope);
-            catala_backend;
-            tested_file;
-            "--unstyled";
-          ]
-        in
-        let command =
-          String.concat " "
-            (List.filter (fun s -> s <> "") reproducible_catala_command
-            @ (match expected_output.backend with
-              | Cli.Proof ->
-                  [ "--disable_counterexamples" ]
-                  (* Counterexamples can be different at each call because of the randomness inside
-                     SMT solver, so we can't expect their value to remain constant. Hence we disable
-                     the counterexamples when testing the replication of failed proofs. *)
-              | _ -> [])
-            @
-            match expected_output.backend with
-            | Cli.Interpret | Cli.Proof | Cli.Typecheck ->
-                if reset_test_outputs then
-                  [
-                    ">";
-                    Format.asprintf "%s%s" expected_output.output_dir
-                      expected_output.complete_filename;
-                    "2>&1 ";
-                  ]
-                else
-                  [
-                    "2>&1 ";
-                    "|";
-                    Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
-                      expected_output.complete_filename;
-                  ]
-            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scopelang | Cli.Latex | Cli.Html
-            | Cli.Makefile ->
-                (* for those backends, the output of the Catala compiler will be written in a
-                   temporary file which later we're going to diff with the *)
-                if reset_test_outputs then
-                  [
-                    "-o";
-                    Format.asprintf "%s%s" expected_output.output_dir
-                      expected_output.complete_filename;
-                  ]
-                else
-                  let temp_file =
-                    Filename.temp_file "clerk_"
-                      ("_" ^ catala_backend_to_string expected_output.backend)
-                  in
-                  [
-                    "-o";
-                    temp_file;
-                    ";";
-                    Format.asprintf "colordiff -u -b %s%s %s" expected_output.output_dir
-                      expected_output.complete_filename temp_file;
-                  ])
-        in
-        Cli.debug_print ("Running: " ^ command);
-        let result = Sys.command command in
-        if result <> 0 && not reset_test_outputs then (
-          Cli.error_print
-            (Format.asprintf "Test failed: %s@\nTo reproduce, run %s from folder %s"
-               (Cli.print_with_style [ ANSITerminal.magenta ] "%s%s" expected_output.output_dir
-                  expected_output.complete_filename)
-               (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-                  (String.concat " " (List.filter (fun s -> s <> "") reproducible_catala_command)))
-               (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Sys.getcwd ())));
-          {
-            error_code = 1;
-            number_of_tests_run = exit.number_of_tests_run + 1;
-            number_correct = exit.number_correct;
-          })
-        else (
-          Cli.result_print
-            (Format.asprintf "Test %s: %s"
-               (if reset_test_outputs then "reset" else "passed")
-               (Cli.print_with_style [ ANSITerminal.magenta ] "%s%s" expected_output.output_dir
-                  expected_output.complete_filename));
-          {
-            error_code = exit.error_code;
-            number_of_tests_run = exit.number_of_tests_run + 1;
-            number_correct = exit.number_correct + 1;
-          }))
-      { error_code = 0; number_of_tests_run = 0; number_correct = 0 }
-      expected_outputs
 
-(** [ninja_start catala_exe] returns the inital [ninja] data structure with only one rule:
-    'test_scope'. *)
-let ninja_start (catala_exe : string) : ninja =
-  let test_scope_rule =
-    Nj.Rule.make "test_scope"
-      ~command:
-        Nj.Expr.(
-          Seq
-            [
-              Lit (catala_exe ^ " -s");
-              Var "scope";
-              Lit "Interpret";
-              Var "tested_file";
-              (* TODO: find a way to add breaks *)
-              Lit "--unstyled 2>&1 | colordiff -u -b";
-              Var "expected_output";
-              Lit "-";
-            ])
+(** [ninja_start catala_exe] returns the inital [ninja] data structure with only two rules:
+    'test_with_scope' and 'test_without_scope'. *)
+let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
+  let common_cmd_exprs =
+    Nj.Expr.
+      [
+        Var "catala_cmd";
+        Var "tested_file";
+        Var "extra_flags";
+        Lit "--unstyled 2>&1 | colordiff -u -b";
+        Var "expected_output";
+        Lit "-";
+      ]
+  in
+  let catala_exe_opts = catala_exe ^ " " ^ catala_opts in
+  let test_with_scope_rule =
+    Nj.Rule.make "test_with_scope"
+      ~command:Nj.Expr.(Seq ([ Lit catala_exe_opts; Lit "-s"; Var "scope" ] @ common_cmd_exprs))
       ~description:
         Nj.Expr.(Seq [ Lit "Testing scope"; Var "scope"; Lit "of file"; Var "tested_file" ])
   in
-  { rules = Nj.RuleMap.(empty |> add "test_scope" test_scope_rule); builds = Nj.BuildMap.empty }
+  let test_without_scope_rule =
+    Nj.Rule.make "test_without_scope"
+      ~command:Nj.Expr.(Seq (Lit catala_exe_opts :: common_cmd_exprs))
+      ~description:Nj.Expr.(Seq [ Lit "Testing"; Lit "file"; Var "tested_file" ])
+  in
+  {
+    rules =
+      Nj.RuleMap.(
+        empty
+        |> add "test_without_scope" test_without_scope_rule
+        |> add "test_with_scope" test_with_scope_rule);
+    builds = Nj.BuildMap.empty;
+  }
 
 (** [collect_all_ninja_build ninja tested_file catala_exe catala_opts reset_test_outputs] creates
-    and returns all ninja build needed to test the [tested_file]. *)
-let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_catala_exe : string)
-    (_catala_opts : string) (_reset_test_outputs : bool) : ninja option =
+    and returns all ninja build declarations needed to test the [tested_file]. *)
+let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_reset_test_outputs : bool) :
+    ninja option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if List.length expected_outputs = 0 then (
     Cli.debug_print (Format.asprintf "No expected outputs were found for test file %s" tested_file);
@@ -294,29 +208,41 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_catala_exe 
       List.fold_left
         (fun (ninja, test_names) expected_output ->
           match expected_output.backend with
-          | Cli.Interpret ->
-              let scope =
-                match expected_output.scope with
-                | Some scope -> scope
-                | None ->
-                    failwith
-                      (Printf.sprintf "FIXME: scope expected (tested_file = '%s')" tested_file)
-              in
-              let test_name = Printf.sprintf "test_%s_%s" scope tested_file |> Nj.Build.unpath in
+          | Cli.Interpret | Cli.Proof | Cli.Typecheck | Cli.Dcalc | Cli.Scopelang ->
               let vars =
                 [
-                  ("scope", Nj.Expr.Lit scope);
+                  ("catala_cmd", Nj.Expr.Lit (catala_backend_to_string expected_output.backend));
                   ("tested_file", Nj.Expr.Lit tested_file);
                   ( "expected_output",
                     Nj.Expr.Lit (expected_output.output_dir ^ expected_output.complete_filename) );
                 ]
               in
+              let test_name, rule, vars =
+                match expected_output.scope with
+                | Some scope ->
+                    ( Printf.sprintf "test_%s_%s" scope tested_file |> Nj.Build.unpath,
+                      "test_with_scope",
+                      ("scope", Nj.Expr.Lit scope) :: vars )
+                | None ->
+                    ( Printf.sprintf "test_%s" tested_file |> Nj.Build.unpath,
+                      "test_without_scope",
+                      vars )
+              in
+              let vars =
+                match expected_output.backend with
+                | Cli.Proof ->
+                    ("extra_flags", Nj.Expr.Lit "--disable_counterexamples") :: vars
+                    (* Counterexamples can be different at each call because of the randomness
+                       inside SMT solver, so we can't expect their value to remain constant. Hence
+                       we disable the counterexamples when testing the replication of failed
+                       proofs. *)
+                | _ -> vars
+              in
               ( {
                   ninja with
                   builds =
                     Nj.BuildMap.add test_name
-                      (Nj.Build.make_with_vars ~outputs:[ Nj.Expr.Lit test_name ] ~rule:"test_scope"
-                         ~vars)
+                      (Nj.Build.make_with_vars ~outputs:[ Nj.Expr.Lit test_name ] ~rule ~vars)
                       ninja.builds;
                 },
                 (* TODO: to refactor to get a list and add '$' if needed when writing. *)
@@ -339,6 +265,28 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_catala_exe 
           ninja.builds;
     }
     |> Option.some
+
+(** [add_root_test_build ninja re_test_file_or_dir] collects all build outputs matching the
+    [re_test_file_or_dir] regexp and concates them into the 'test' build declaration -- the root of
+    the build declarations. *)
+let add_root_test_build (ninja : ninja) (re_test_file_or_dir : Re.Pcre.regexp) : ninja =
+  let all_test_files =
+    Nj.BuildMap.bindings ninja.builds
+    |> List.filter_map (fun (name, _) ->
+           let len =
+             try Array.length (Re.Pcre.(extract ~rex:re_test_file_or_dir) name) with _ -> 0
+           in
+           if 0 < len then Some name else None)
+    |> String.concat " $\n"
+  in
+  {
+    ninja with
+    builds =
+      Nj.BuildMap.add "test"
+        (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
+           ~inputs:[ Nj.Expr.Lit all_test_files ])
+        ninja.builds;
+  }
 
 (**{1 Running}*)
 
@@ -379,9 +327,7 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
           let ninja, test_file_names =
             List.fold_left
               (fun (ninja, test_file_names) file ->
-                match
-                  collect_all_ninja_build ninja file catala_exe catala_opts reset_test_outputs
-                with
+                match collect_all_ninja_build ninja file reset_test_outputs with
                 | None ->
                     (* Skips none Catala file. *)
                     (ninja, test_file_names)
@@ -390,7 +336,7 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
                     ( ninja,
                       (* TODO: to refactor to get a list and add '$' if needed when writing. *)
                       test_file_names ^ " $\n  " ^ test_file_name ))
-              (ninja_start catala_exe, "")
+              (ninja_start catala_exe catala_opts, "")
               (get_catala_files_in_folder file_or_folder)
           in
           let test_dir_name = Printf.sprintf "test_dir_%s" (file_or_folder |> Nj.Build.unpath) in
@@ -406,34 +352,16 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
             Re.Pcre.regexp "^test_dir_" )
         else (
           Cli.debug_print "building ninja rules...";
-          ( collect_all_ninja_build (ninja_start catala_exe) file_or_folder catala_exe catala_opts
-              reset_test_outputs,
+          ( collect_all_ninja_build
+              (ninja_start catala_exe catala_opts)
+              file_or_folder reset_test_outputs,
             Re.Pcre.regexp "^test_file_" ))
       in
       match ninja_opt with
       | Some ninja ->
           let out = open_out "build.ninja" in
           Cli.debug_print "writing build.ninja...";
-          let all_test_files =
-            Nj.BuildMap.bindings ninja.builds
-            |> List.filter_map (fun (name, _) ->
-                   let len =
-                     try Array.length (Re.Pcre.(extract ~rex:re_test_file_or_dir) name)
-                     with _ -> 0
-                   in
-                   if 0 < len then Some name else None)
-            |> String.concat " $\n"
-          in
-          let ninja =
-            {
-              ninja with
-              builds =
-                Nj.BuildMap.add "test"
-                  (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
-                     ~inputs:[ Nj.Expr.Lit all_test_files ])
-                  ninja.builds;
-            }
-          in
+          let ninja = add_root_test_build ninja re_test_file_or_dir in
           Nj.write out ninja;
           close_out out;
           Cli.debug_print "executing 'ninja test'...";
