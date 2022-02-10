@@ -1,9 +1,23 @@
+(* This file is part of the Catala build system, a specification language for tax and social
+   benefits computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
+   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
 open Cmdliner
 open Utils
 open Ninja_utils
 module Nj = Ninja_utils
 
-(**{1 Command line interface}*)
+(** {1 Command line interface} *)
 
 let file_or_folder =
   Arg.(required & pos 1 (some file) None & info [] ~docv:"FILE(S)" ~doc:"File or folder to process")
@@ -159,6 +173,51 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
 
 type testing_result = { error_code : int; number_of_tests_run : int; number_correct : int }
 
+(*         let command = *)
+(*           String.concat " " *)
+(*             (List.filter (fun s -> s <> "") reproducible_catala_command *)
+(*             @ (match expected_output.backend with *)
+(*               | Cli.Proof -> *)
+(*             @ *)
+(*             match expected_output.backend with *)
+(*             | Cli.Interpret | Cli.Proof | Cli.Typecheck -> *)
+(*                 if reset_test_outputs then *)
+(*                   [ *)
+(*                     ">"; *)
+(*                     Format.asprintf "%s%s" expected_output.output_dir *)
+(*                       expected_output.complete_filename; *)
+(*                     "2>&1 "; *)
+(*                   ] *)
+(*                 else *)
+(*                   [ *)
+(*                     "2>&1 "; *)
+(*                     "|"; *)
+(*                     Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir *)
+(*                       expected_output.complete_filename; *)
+(*                   ] *)
+(*             | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scopelang | Cli.Latex | Cli.Html *)
+(*             | Cli.Makefile -> *)
+(* (* for those backends, the output of the Catala compiler will be written in a *) (* temporary
+   file which later we're going to diff with the *) *)
+(*                 if reset_test_outputs then *)
+(*                   [ *)
+(*                     "-o"; *)
+(*                     Format.asprintf "%s%s" expected_output.output_dir *)
+(*                       expected_output.complete_filename; *)
+(*                   ] *)
+(*                 else *)
+(*                   let temp_file = *)
+(*                     Filename.temp_file "clerk_" *)
+(*                       ("_" ^ catala_backend_to_string expected_output.backend) *)
+(*                   in *)
+(*                   [ *)
+(*                     "-o"; *)
+(*                     temp_file; *)
+(*                     ";"; *)
+(*                     Format.asprintf "colordiff -u -b %s%s %s" expected_output.output_dir *)
+(*                       expected_output.complete_filename temp_file; *)
+(*                   ]) *)
+(*         in *)
 
 (** [ninja_start catala_exe] returns the inital [ninja] data structure with only two rules:
     'test_with_scope' and 'test_without_scope'. *)

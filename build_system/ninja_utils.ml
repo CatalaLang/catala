@@ -1,12 +1,19 @@
-(** Expression containing variable references. *)
+(* This file is part of the Catala build system, a specification language for tax and social
+   benefits computation rules. Copyright (C) 2020 Inria, contributor: Emile Rolley
+   <emile.rolley@tuta.io>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
 module Expr = struct
-  type t =
-    (* Sequence of sub-expressions. *)
-    | Seq of t list
-    (* Literal string. *)
-    | Lit of string
-    (* Variable reference. *)
-    | Var of string
+  type t = Seq of t list | Lit of string | Var of string
 
   let rec to_string = function
     | Lit s -> s
@@ -16,10 +23,7 @@ module Expr = struct
   let list_to_string ?(sep = " ") ls = ls |> List.map to_string |> String.concat sep
 end
 
-module VarMap : Map.S with type key = String.t = Map.Make (String)
-
 module Rule = struct
-  (* NOTE: is name is really needed despite the use of Map? *)
   type t = { name : string; command : Expr.t; description : Expr.t option }
 
   let make name ~command ~description = { name; command; description = Option.some description }
@@ -37,7 +41,6 @@ module Build = struct
     inputs : Expr.t list option;
     vars : (string * Expr.t) list;
   }
-  (** @note Currently, nothing nothing forces to build valid {!: Expr.t} for the variables. *)
 
   let make ~outputs ~rule = { outputs; rule; inputs = Option.none; vars = [] }
 
@@ -48,8 +51,6 @@ module Build = struct
 
   let empty = make ~outputs:[ Expr.Lit "empty" ] ~rule:"phony"
 
-  (** [unpath path] replaces all '/' occurences with '-' in [path] to avoid ninja writing the
-      corresponding file. *)
   let unpath path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> "-")) path
 
   let to_string build =
