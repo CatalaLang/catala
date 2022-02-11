@@ -283,7 +283,10 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (_reset_test_
                       "test_with_scope",
                       ("scope", Nj.Expr.Lit scope) :: vars )
                 | None ->
-                    ( Printf.sprintf "test_%s" tested_file |> Nj.Build.unpath,
+                    ( Printf.sprintf "test_%s_%s"
+                        (catala_backend_to_string expected_output.backend)
+                        tested_file
+                      |> Nj.Build.unpath,
                       "test_without_scope",
                       vars )
               in
