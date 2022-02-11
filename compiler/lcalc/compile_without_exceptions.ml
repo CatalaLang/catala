@@ -10,37 +10,34 @@ module A = Ast
     [try e1 with EmtpyError -> e2] as [match e1 with | None -> e2 | Some x -> x].
 
     When doing this naively, this requires to add matches and Some constructor everywhere. We apply
-    here an other technique where we generate what we call `hoists`. Hoists are expression whom could
-    minimally [raise EmptyError]. For instance in
+    here an other technique where we generate what we call `hoists`. Hoists are expression whom
+    could minimally [raise EmptyError]. For instance in
     [let x = <e1, e2, ..., en| e_just :- e_cons> * 3 in x + 1], the sub-expression
     [<e1, e2, ..., en| e_just :- e_cons>] can produce an empty error. So we make a hoist with a new
     variable [y] linked to the Dcalc expression [<e1, e2, ..., en| e_just :- e_cons>], and we return
     as the translated expression [let x = y * 3 in x + 1].
 
     The compilation of expressions is found in the functions [translate_and_hoist ctx e] and
-    [translate_expr ctx e]. Every option-generating expression when calling [translate_and_hoist] will
-    be hoisted and later handled by the [translate_expr] function. Every other cases is found in the
-    translate_and_hoist function. *)
+    [translate_expr ctx e]. Every option-generating expression when calling [translate_and_hoist]
+    will be hoisted and later handled by the [translate_expr] function. Every other cases is found
+    in the translate_and_hoist function. *)
 
-
-(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 type hoists = D.expr Pos.marked A.VarMap.t
+(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 
-
-
-(** Information about each encontered Dcalc variable is stored inside a context : what is the corresponding LCalc variable; an expression corresponding to the variable
-    build correctly using Bindlib, and a boolean `is_pure` indicating whenever the variable can be
-    an EmptyError and hence should be matched (false) or if it never can be EmptyError (true). *)
 type info = { expr : A.expr Pos.marked Bindlib.box; var : A.expr Bindlib.var; is_pure : bool }
+(** Information about each encontered Dcalc variable is stored inside a context : what is the
+    corresponding LCalc variable; an expression corresponding to the variable build correctly using
+    Bindlib, and a boolean `is_pure` indicating whenever the variable can be an EmptyError and hence
+    should be matched (false) or if it never can be EmptyError (true). *)
+
 let pp_info (fmt : Format.formatter) (info : info) =
   Format.fprintf fmt "{var: %a; is_pure: %b}" Print.format_var info.var info.is_pure
-    
 
-(** information context about variables in the current scope *)
 type ctx = info D.VarMap.t
+(** information context about variables in the current scope *)
 
 let pp_ctx (fmt : Format.formatter) (ctx : ctx) =
-
   let pp_binding (fmt : Format.formatter) ((v, info) : D.Var.t * info) =
     Format.fprintf fmt "%a: %a" Dcalc.Print.format_var v pp_info info
   in
@@ -50,8 +47,6 @@ let pp_ctx (fmt : Format.formatter) (ctx : ctx) =
   in
 
   Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (D.VarMap.bindings ctx)
-
-
 
 (** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a slightly better way. *)
 let find ?(info : string = "none") (n : D.Var.t) (ctx : ctx) : info =
@@ -69,7 +64,9 @@ let find ?(info : string = "none") (n : D.Var.t) (ctx : ctx) : info =
          Dcalc.Print.format_var n info)
       Pos.no_pos
 
-(** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable var, creating a unique corresponding variable in Lcalc, with the corresponding expression, and the boolean is_pure. It is usefull for debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
+(** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable var, creating a unique
+    corresponding variable in Lcalc, with the corresponding expression, and the boolean is_pure. It
+    is usefull for debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
 let add_var (pos : Pos.t) (var : D.Var.t) (is_pure : bool) (ctx : ctx) : ctx =
   let new_var = A.Var.make (Bindlib.name_of var, pos) in
   let expr = A.make_var (new_var, pos) in

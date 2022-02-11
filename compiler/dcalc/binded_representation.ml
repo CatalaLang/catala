@@ -1,12 +1,12 @@
-
 open Utils
-
 module D = Ast
 
-(** Alternative representation of the Dcalc Ast. It is currently used in the transformation without exceptions. We make heavy use of bindlib, binding each scope-let-variable and each scope explicitly. *)
+(** Alternative representation of the Dcalc Ast. It is currently used in the transformation without
+    exceptions. We make heavy use of bindlib, binding each scope-let-variable and each scope
+    explicitly. *)
 
-
-(** In [Ast], [Ast.scope_lets] is defined as a list of kind, var, and boxed expression. This representation binds using bindlib the tail of the list with the variable defined in the let. *)
+(** In [Ast], [Ast.scope_lets] is defined as a list of kind, var, and boxed expression. This
+    representation binds using bindlib the tail of the list with the variable defined in the let. *)
 type scope_lets =
   | Result of D.expr Pos.marked
   | ScopeLet of {
@@ -17,12 +17,14 @@ type scope_lets =
       scope_let_pos : Pos.t;
     }
 
-(** As a consequence, the scope_body contains only a result and input/output signature, as the other elements are stored inside the scope_let. The binder present is the argument of type [scope_body_input_struct]. *)
 type scope_body = {
   scope_body_input_struct : D.StructName.t;
   scope_body_output_struct : D.StructName.t;
   scope_body_result : (D.expr, scope_lets) Bindlib.binder;
 }
+(** As a consequence, the scope_body contains only a result and input/output signature, as the other
+    elements are stored inside the scope_let. The binder present is the argument of type
+    [scope_body_input_struct]. *)
 
 (* finally, we do the same transformation for the whole program for the kinded lets. This permit us to use bindlib variables for scopes names. *)
 type scopes =
@@ -35,8 +37,9 @@ type scopes =
 
 let union = D.VarMap.union (fun _ _ _ -> Some ())
 
-
-(** free variables. For each construction, we define two free variables functions. The first one generates [unit D.VarMap.t], since there is no [D.VarSet.t]. And the second returns a list. The second one is better from pretty printing in debug. *)
+(** free variables. For each construction, we define two free variables functions. The first one
+    generates [unit D.VarMap.t], since there is no [D.VarSet.t]. And the second returns a list. The
+    second one is better from pretty printing in debug. *)
 
 let rec fv_scope_lets scope_lets =
   match scope_lets with
@@ -62,7 +65,6 @@ let _free_vars_scope_lets scope_lets = fv_scope_lets scope_lets |> D.VarMap.bind
 let _free_vars_scope_body scope_body = fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
 
 let free_vars_scopes scopes = fv_scopes scopes |> D.VarMap.bindings |> List.map fst
-
 
 (** Actual transformation for scopes. It simply *)
 let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
@@ -92,7 +94,6 @@ let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
     scope_let.D.scope_let_expr binder
 
 let bind_scope_body (body : D.scope_body) : scope_body Bindlib.box =
-
   (* it is a fold_right and not a fold_left. *)
   let body_result =
     ListLabels.fold_right body.D.scope_body_lets
