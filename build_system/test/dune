@@ -1,5 +1,0 @@
-(dirs ..)
-
-(tests
-  (names ninja_utils)
-  (libraries alcotest ninja_utils))
