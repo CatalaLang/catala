@@ -94,7 +94,7 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
 let iota_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (iota_expr () e))) p.scopes }
 
-let beta_optimizations (p : program) : program =
+let _beta_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (beta_expr () e))) p.scopes }
 
 let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
@@ -112,5 +112,5 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib
 let peephole_optimizations (p : program) : program =
   { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr () e))) p.scopes }
 
-let optimize_program (p : program) : program =
-  p |> iota_optimizations |> peephole_optimizations |> beta_optimizations
+let optimize_program (p : program) : program = p |> iota_optimizations |> peephole_optimizations
+(* |> beta_optimizations *)
