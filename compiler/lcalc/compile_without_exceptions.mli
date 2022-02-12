@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Alain Delaët-Tixeuil
+   computation rules. Copyright (C) 2020-2022 Inria, contributor: Alain Delaët-Tixeuil
    <alain.delaet--tixeuil@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except

@@ -1,3 +1,17 @@
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020-2022 Inria, contributor: Alain Delaët-Tixeuil
+   <alain.delaet--tixeuil@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
 open Utils
 module D = Ast
 
@@ -22,11 +36,7 @@ type scope_body = {
   scope_body_output_struct : D.StructName.t;
   scope_body_result : (D.expr, scope_lets) Bindlib.binder;
 }
-(** As a consequence, the scope_body contains only a result and input/output signature, as the other
-    elements are stored inside the scope_let. The binder present is the argument of type
-    [scope_body_input_struct]. *)
 
-(* finally, we do the same transformation for the whole program for the kinded lets. This permit us to use bindlib variables for scopes names. *)
 type scopes =
   | Nil
   | ScopeDef of {
@@ -60,13 +70,13 @@ let rec fv_scopes scopes =
 
       union (D.VarMap.remove v (fv_scopes next)) (fv_scope_body body)
 
-let _free_vars_scope_lets scope_lets = fv_scope_lets scope_lets |> D.VarMap.bindings |> List.map fst
+let free_vars_scope_lets scope_lets = fv_scope_lets scope_lets |> D.VarMap.bindings |> List.map fst
 
-let _free_vars_scope_body scope_body = fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
+let free_vars_scope_body scope_body = fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
 
 let free_vars_scopes scopes = fv_scopes scopes |> D.VarMap.bindings |> List.map fst
 
-(** Actual transformation for scopes. It simply *)
+(** Actual transformation for scopes. *)
 let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
     scope_lets Bindlib.box =
   let pos = snd scope_let.D.scope_let_var in

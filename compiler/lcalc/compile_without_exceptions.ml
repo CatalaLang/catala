@@ -1,6 +1,21 @@
+(* This file is part of the Catala compiler, a specification language for tax and social benefits
+   computation rules. Copyright (C) 2020-2022 Inria, contributor: Alain Delaët-Tixeuil
+   <alain.delaet--tixeuil@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software distributed under the License
+   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+   or implied. See the License for the specific language governing permissions and limitations under
+   the License. *)
+
 open Utils
 module D = Dcalc.Ast
 module A = Ast
+open Dcalc.Binded_representation
 
 (*** hoisting *)
 
@@ -120,15 +135,15 @@ let disjoint_union_maps (pos : Pos.t) (cs : 'a A.VarMap.t list) : 'a A.VarMap.t 
 
   List.fold_left disjoint_union A.VarMap.empty cs
 
-(** [e' = translate_and_cut ctx e ] Translate the Dcalc expression e into an expression in Lcalc,
-    given we translate each cuts correctly. It ensures the equivalence between the execution of e
+(** [e' = translate_and_hoist ctx e ] Translate the Dcalc expression e into an expression in Lcalc,
+    given we translate each hoists correctly. It ensures the equivalence between the execution of e
     and the execution of e' are equivalent in an environement where each variable v, where (v, e_v)
-    is in cuts, has the non-empty value in e_v. *)
-let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box * cuts
-    =
+    is in hoists, has the non-empty value in e_v. *)
+let rec translate_and_hoist (ctx : ctx) (e : D.expr Pos.marked) :
+    A.expr Pos.marked Bindlib.box * hoists =
   let pos = Pos.get_position e in
   match Pos.unmark e with
-  (* empty-producing/using terms. We cut those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]),
+  (* empty-producing/using terms. We hoist those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]),
      EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
   | D.EVar v ->
       (* todo: for now, every unpure (such that [is_pure] is [false] in the current context) is
@@ -178,9 +193,9 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
   (* pure terms *)
   | D.ELit l -> (Bindlib.box (A.ELit (translate_lit l pos), pos), A.VarMap.empty)
   | D.EIfThenElse (e1, e2, e3) ->
-      let e1', c1 = translate_and_cut ctx e1 in
-      let e2', c2 = translate_and_cut ctx e2 in
-      let e3', c3 = translate_and_cut ctx e3 in
+      let e1', h1 = translate_and_hoist ctx e1 in
+      let e2', h2 = translate_and_hoist ctx e2 in
+      let e3', h3 = translate_and_hoist ctx e3 in
 
       let e' =
         Bindlib.box_apply3 (fun e1' e2' e3' -> (A.EIfThenElse (e1', e2', e3'), pos)) e1' e2' e3'
@@ -188,11 +203,11 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
 
       (*(* equivalent code : *) let e' = let+ e1' = e1' and+ e2' = e2' and+ e3' = e3' in
         (A.EIfThenElse (e1', e2', e3'), pos) in *)
-      (e', disjoint_union_maps pos [ c1; c2; c3 ])
+      (e', disjoint_union_maps pos [ h1; h2; h3 ])
   | D.EAssert e1 ->
       (* same behavior as in the ICFP paper: if e1 is empty, then no error is raised. *)
-      let e1', c1 = translate_and_cut ctx e1 in
-      (Bindlib.box_apply (fun e1' -> (A.EAssert e1', pos)) e1', c1)
+      let e1', h1 = translate_and_hoist ctx e1 in
+      (Bindlib.box_apply (fun e1' -> (A.EAssert e1', pos)) e1', h1)
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
@@ -210,78 +225,77 @@ let rec translate_and_cut (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marke
 
       (* here we take the guess that if we cannot build the closure because one of the variable is
          empty, then we cannot build the function. *)
-      let new_body, cuts = translate_and_cut ctx body in
+      let new_body, hoists = translate_and_hoist ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
 
       ( Bindlib.box_apply
           (fun new_binder -> (A.EAbs ((new_binder, pos_binder), List.map translate_typ ts), pos))
           new_binder,
-        cuts )
+        hoists )
   | EApp (e1, args) ->
-      (* general case is simple *)
-      let e1', c1 = translate_and_cut ctx e1 in
-      let args', c_args = args |> List.map (translate_and_cut ctx) |> List.split in
+      let e1', h1 = translate_and_hoist ctx e1 in
+      let args', h_args = args |> List.map (translate_and_hoist ctx) |> List.split in
 
-      let cuts = disjoint_union_maps pos (c1 :: c_args) in
+      let hoists = disjoint_union_maps pos (h1 :: h_args) in
       let e' =
         Bindlib.box_apply2
           (fun e1' args' -> (A.EApp (e1', args'), pos))
           e1' (Bindlib.box_list args')
       in
-      (e', cuts)
+      (e', hoists)
   | ETuple (args, s) ->
-      let args', c_args = args |> List.map (translate_and_cut ctx) |> List.split in
+      let args', h_args = args |> List.map (translate_and_hoist ctx) |> List.split in
 
-      let cuts = disjoint_union_maps pos c_args in
-      (Bindlib.box_apply (fun args' -> (A.ETuple (args', s), pos)) (Bindlib.box_list args'), cuts)
+      let hoists = disjoint_union_maps pos h_args in
+      (Bindlib.box_apply (fun args' -> (A.ETuple (args', s), pos)) (Bindlib.box_list args'), hoists)
   | ETupleAccess (e1, i, s, ts) ->
-      let e1', cuts = translate_and_cut ctx e1 in
+      let e1', hoists = translate_and_hoist ctx e1 in
       let e1' = Bindlib.box_apply (fun e1' -> (A.ETupleAccess (e1', i, s, ts), pos)) e1' in
-      (e1', cuts)
+      (e1', hoists)
   | EInj (e1, i, en, ts) ->
-      let e1', cuts = translate_and_cut ctx e1 in
+      let e1', hoists = translate_and_hoist ctx e1 in
       let e1' = Bindlib.box_apply (fun e1' -> (A.EInj (e1', i, en, ts), pos)) e1' in
-      (e1', cuts)
+      (e1', hoists)
   | EMatch (e1, cases, en) ->
-      let e1', c1 = translate_and_cut ctx e1 in
-      let cases', c_cases = cases |> List.map (translate_and_cut ctx) |> List.split in
+      let e1', h1 = translate_and_hoist ctx e1 in
+      let cases', h_cases = cases |> List.map (translate_and_hoist ctx) |> List.split in
 
-      let cuts = disjoint_union_maps pos (c1 :: c_cases) in
+      let hoists = disjoint_union_maps pos (h1 :: h_cases) in
       let e' =
         Bindlib.box_apply2
           (fun e1' cases' -> (A.EMatch (e1', cases', en), pos))
           e1' (Bindlib.box_list cases')
       in
-      (e', cuts)
+      (e', hoists)
   | EArray es ->
-      let es', cuts = es |> List.map (translate_and_cut ctx) |> List.split in
+      let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
 
       ( Bindlib.box_apply (fun es' -> (A.EArray es', pos)) (Bindlib.box_list es'),
-        disjoint_union_maps pos cuts )
+        disjoint_union_maps pos hoists )
   | EOp op -> (Bindlib.box (A.EOp op, pos), A.VarMap.empty)
 
 and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
     A.expr Pos.marked Bindlib.box =
-  let e', cs = translate_and_cut ctx e in
-  let cs = A.VarMap.bindings cs in
+  let e', hoists = translate_and_hoist ctx e in
+  let hoists = A.VarMap.bindings hoists in
 
   let _pos = Pos.get_position e in
 
-  (* build the cuts *)
+  (* build the hoists *)
   Cli.debug_print
-  @@ Format.asprintf "cut for the expression: [%a]"
+  @@ Format.asprintf "hoist for the expression: [%a]"
        (Format.pp_print_list Print.format_var)
-       (List.map fst cs);
+       (List.map fst hoists);
 
-  ListLabels.fold_left cs
+  ListLabels.fold_left hoists
     ~init:(if append_esome then A.make_some e' else e')
-    ~f:(fun acc (v, (c, pos_c)) ->
-      Cli.debug_print @@ Format.asprintf "cut using A.%a" Print.format_var v;
+    ~f:(fun acc (v, (hoist, pos_hoist)) ->
+      Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.format_var v;
 
       let c' : A.expr Pos.marked Bindlib.box =
-        match c with
-        (* Here we have to handle only the cases appearing in cuts, as defined the
-           [translate_and_cut] function. *)
+        match hoist with
+        (* Here we have to handle only the cases appearing in hoists, as defined the
+           [translate_and_hoist] function. *)
         | D.EVar v -> (find ~info:"should never happend" (Pos.unmark v) ctx).expr
         | D.EDefault (excep, just, cons) ->
             let excep' = List.map (translate_expr ctx) excep in
@@ -289,36 +303,40 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
             let cons' = translate_expr ctx cons in
             (* calls handle_option. *)
             A.make_app
-              (A.make_var (A.handle_default_opt, pos_c))
+              (A.make_var (A.handle_default_opt, pos_hoist))
               [
-                Bindlib.box_apply (fun excep' -> (A.EArray excep', pos_c)) (Bindlib.box_list excep');
+                Bindlib.box_apply
+                  (fun excep' -> (A.EArray excep', pos_hoist))
+                  (Bindlib.box_list excep');
                 just';
                 cons';
               ]
-              pos_c
-        | D.ELit D.LEmptyError -> A.make_none pos_c
+              pos_hoist
+        | D.ELit D.LEmptyError -> A.make_none pos_hoist
         | D.EAssert arg ->
             let arg' = translate_expr ctx arg in
 
             (* [ match arg with | None -> raise NoValueProvided | Some v -> assert {{ v }} ] *)
-            let silent_var = A.Var.make ("_", pos_c) in
-            let x = A.Var.make ("assertion_argument", pos_c) in
+            let silent_var = A.Var.make ("_", pos_hoist) in
+            let x = A.Var.make ("assertion_argument", pos_hoist) in
 
             A.make_matchopt_with_abs_arms arg'
               (A.make_abs [| silent_var |]
-                 (Bindlib.box (A.ERaise A.NoValueProvided, pos_c))
-                 pos_c [ (D.TAny, pos_c) ] pos_c)
+                 (Bindlib.box (A.ERaise A.NoValueProvided, pos_hoist))
+                 pos_hoist [ (D.TAny, pos_hoist) ] pos_hoist)
               (A.make_abs [| x |]
-                 (Bindlib.box_apply (fun arg -> (A.EAssert arg, pos_c)) (A.make_var (x, pos_c)))
-                 pos_c [ (D.TAny, pos_c) ] pos_c)
+                 (Bindlib.box_apply
+                    (fun arg -> (A.EAssert arg, pos_hoist))
+                    (A.make_var (x, pos_hoist)))
+                 pos_hoist [ (D.TAny, pos_hoist) ] pos_hoist)
         | _ ->
             Errors.raise_spanned_error
-              "Internal Error: An term was found in a position where it should not be" pos_c
+              "Internal Error: An term was found in a position where it should not be" pos_hoist
       in
 
       (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end ] *)
       Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.format_var v;
-      A.make_matchopt pos_c v (D.TAny, pos_c) c' (A.make_none pos_c) acc)
+      A.make_matchopt pos_hoist v (D.TAny, pos_hoist) c' (A.make_none pos_hoist) acc)
 
 let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
   match lets with
