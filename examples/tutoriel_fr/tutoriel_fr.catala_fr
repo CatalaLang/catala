@@ -6,6 +6,13 @@ législatifs avec ce langage. Ce document s'adresse principalement à des dével
 ou des personnes ayant déjà programmé, même si des juristes avec des appétences
 en informatique devraient pouvoir s'en sortir.
 
+```catala
+# Attention, ce tutoriel en français n'est peut-être pas à jour avec
+# les dernières fonctionnalités du langage. En effet, le tutoriel en anglais
+# disponible sur https://catala-lang.org/en/examples/tutorial constitue
+# la référence pour le langage.
+```
+
 ### Programmation littéraire
 
 Pour commencer à écrire un programme Catala, vous devez partir du texte

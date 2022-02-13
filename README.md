@@ -87,6 +87,12 @@ The Catala language is the only programming language to our knowledge that
 embeds default logic as a first-class feature, which is why it is the only
 language perfectly adapted to literate legislative programming.
 
+## Getting started
+
+To get started, the best place is the [tutorial](https://catala-lang.org/en/examples/tutorial)
+of the language. A [French version](https://catala-lang.org/fr/examples/tutoriel)
+is also available but might be out of sync with the latest language features.
+
 ## Building and installation
 
 Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
@@ -108,7 +114,8 @@ want to compile it from the sources of this repository or use nix. For that, see
 ### Catala
 
 Use `catala --help` if you have installed it to get more information about the command line
-options available. To get the development version of the help, run `make help_catala`
+options available. The man page is also [available online](https://catala-lang.org/en/doc/catala).
+To get the development version of the help, run `make help_catala`
 after `make build`. The `catala` binary corresponds to the Catala compiler.
 
 The top-level `Makefile` contains a lot of useful targets to run. To display
@@ -122,6 +129,29 @@ Use `clerk --help` if you have installed it to get more information about the co
 options available. To get the development version of the help, run `make help_clerk`
 after `make build`. The `clerk` binary corresponds to the Catala build system,
 responsible for testing among other things.
+
+## Documentation
+
+### Syntax cheat sheet
+
+A complete and handy reference of the Catala syntax can be found in the
+[cheat sheet](doc/syntax/syntax.pdf) (for French and English versions
+of the syntax).
+
+### Formal semantics
+
+To audit the formal proof of the partial certification of the Catala compiler,
+see [the dedicated readme](doc/formalization/README.md).
+
+### Compiler documentation
+
+The compiler documentation is auto-generated from its source code using
+`dune` and `odoc`. Use
+
+    make doc
+
+to generate the documentation, then open the `doc/odoc.html` file in any browser.
+The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
 
 ## Examples
 
@@ -142,23 +172,6 @@ To know how you can contribute to the project, see
 
 To know how to run or improve the Catala reference test suite,
 see [the dedicated readme](tests/README.md).
-
-## Documentation
-
-### Formal semantics
-
-To audit the formal proof of the partial certification of the Catala compiler,
-see [the dedicated readme](doc/formalization/README.md).
-
-### Compiler documentation
-
-The compiler documentation is auto-generated from its source code using
-`dune` and `odoc`. Use
-
-    make doc
-
-to generate the documentation, then open the `doc/odoc.html` file in any browser.
-The documentation is also accessible [online](https://catala-lang.org/ocaml_docs/).
 
 ## License
 
