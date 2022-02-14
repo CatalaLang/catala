@@ -166,8 +166,8 @@ let format_enum (fmt : Format.formatter)
     cases
 
 let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_decl) : unit =
-  Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ %a@ %a@ %a@ %a@]@ %a@]" Dcalc.Print.format_keyword "let"
-    Dcalc.Print.format_keyword "scope" ScopeName.format_t name
+  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Dcalc.Print.format_keyword
+    "let" Dcalc.Print.format_keyword "scope" ScopeName.format_t name
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
        (fun fmt (scope_var, (typ, vis)) ->

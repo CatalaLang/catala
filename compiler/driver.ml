@@ -293,23 +293,49 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               | Contents _ ->
                   Errors.raise_error "This backend does not work if the input is not a file"
             in
-            let output_file (extension : string) : string =
+            let new_output_file (extension : string) : string =
               match output_file with
               | Some f -> f
               | None -> Filename.remove_extension source_file ^ extension
             in
             (match backend with
             | Cli.OCaml ->
-                let output_file = output_file ".ml" in
+                let output_file = new_output_file ".ml" in
                 Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
                 let oc = open_out output_file in
                 let fmt = Format.formatter_of_out_channel oc in
                 Cli.debug_print "Compiling program into OCaml...";
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering;
                 close_out oc
-            | Cli.Python ->
+            | Cli.Python | Cli.Scalc ->
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
-                let output_file = output_file ".py" in
+                if backend = Cli.Scalc then begin
+                  let fmt, at_end =
+                    match output_file with
+                    | Some f ->
+                        let oc = open_out f in
+                        (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
+                    | None -> (Format.std_formatter, fun _ -> ())
+                  in
+                  if Option.is_some ex_scope then
+                    Format.fprintf fmt "%a\n"
+                      (Scalc.Print.format_scope ~debug prgm.decl_ctx)
+                      (let body =
+                         List.find
+                           (fun body -> body.Scalc.Ast.scope_body_name = scope_uid)
+                           prgm.scopes
+                       in
+                       body)
+                  else
+                    Format.fprintf fmt "%a\n"
+                      (Format.pp_print_list
+                         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+                         (fun fmt scope -> (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
+                      prgm.scopes;
+                  at_end ();
+                  exit 0
+                end;
+                let output_file = new_output_file ".py" in
                 Cli.debug_print "Compiling program into Python...";
                 Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
                 let oc = open_out output_file in
