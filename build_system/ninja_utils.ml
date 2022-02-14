@@ -49,6 +49,9 @@ module Build = struct
   let make_with_inputs ~outputs ~rule ~inputs =
     { outputs; rule; inputs = Option.some inputs; vars = [] }
 
+  let make_with_vars_and_inputs ~outputs ~rule ~inputs ~vars =
+    { outputs; rule; inputs = Option.some inputs; vars }
+
   let empty = make ~outputs:[ Expr.Lit "empty" ] ~rule:"phony"
 
   let unpath path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> "-")) path

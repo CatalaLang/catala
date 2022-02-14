@@ -314,10 +314,16 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) : Ru
               Lit "TEST on file"; Var "tested_file"; Lit "with the"; Var "catala_cmd"; Lit "command";
             ])
   in
+  let run_and_display_final_message =
+    Nj.Rule.make "run_and_display_final_message"
+      ~command:Nj.Expr.(Seq [ Lit ":" ])
+      ~description:Nj.Expr.(Seq [ Lit "All tests"; Var "test_file_or_folder"; Lit "passed!" ])
+  in
   Nj.RuleMap.(
     rules
     |> add test_with_scope_rule.name test_with_scope_rule
-    |> add test_without_scope_rule.name test_without_scope_rule)
+    |> add test_without_scope_rule.name test_without_scope_rule
+    |> add run_and_display_final_message.name run_and_display_final_message)
 
 (** [ninja_start catala_exe] returns the inital [ninja] data structure with rules needed to reset
     and test files. *)
@@ -409,10 +415,12 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
               ninja.builds;
         } )
 
-(** [add_root_test_build ninja re_test_file_or_dir] collects all build outputs matching the
-    [re_test_file_or_dir] regexp and concates them into the 'test' build declaration -- the root of
-    the build declarations. *)
-let add_root_test_build (ninja : ninja) (re_test_file_or_dir : Re.Pcre.regexp) : ninja =
+(** [add_root_test_build ninja re_test_file_or_dir test_file_or_dir] collects all build outputs
+    matching the [re_test_file_or_dir] regexp and concates them into the 'test' build declaration --
+    the root of the build declarations. The [test_file_or_dir] parameter is only used for
+    pretty-printing purposes. *)
+let add_root_test_build (ninja : ninja) (re_test_file_or_dir : Re.Pcre.regexp)
+    (test_file_or_dir_msg : string) : ninja =
   let all_test_files =
     Nj.BuildMap.bindings ninja.builds
     |> List.filter_map (fun (name, _) ->
@@ -426,8 +434,9 @@ let add_root_test_build (ninja : ninja) (re_test_file_or_dir : Re.Pcre.regexp) :
     ninja with
     builds =
       Nj.BuildMap.add "test"
-        (Nj.Build.make_with_inputs ~outputs:[ Nj.Expr.Lit "test" ] ~rule:"phony"
-           ~inputs:[ Nj.Expr.Lit all_test_files ])
+        (Nj.Build.make_with_vars_and_inputs ~outputs:[ Nj.Expr.Lit "test" ]
+           ~rule:"run_and_display_final_message" ~inputs:[ Nj.Expr.Lit all_test_files ]
+           ~vars:[ ("test_file_or_folder", Nj.Expr.Lit test_file_or_dir_msg) ])
         ninja.builds;
   }
 
@@ -505,20 +514,15 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
       | Some ninja ->
           let out = open_out "build.ninja" in
           Cli.debug_print "writing build.ninja...";
-          let ninja = add_root_test_build ninja re_test_file_or_dir in
+          let ninja =
+            add_root_test_build ninja re_test_file_or_dir
+              (if Sys.is_directory file_or_folder then "in folder \"" ^ file_or_folder ^ "\""
+              else "for file \"" ^ file_or_folder ^ "\"")
+          in
           Nj.write out ninja;
           close_out out;
           Cli.debug_print "executing 'ninja test'...";
-
-          if 0 == Sys.command "ninja test" then (
-            Cli.result_print
-              (Format.asprintf "for all tests in %s: %s "
-                 (Cli.print_with_style
-                    [ ANSITerminal.magenta; ANSITerminal.Bold ]
-                    "%s" file_or_folder)
-                 (Cli.print_with_style [ ANSITerminal.green; ANSITerminal.Bold ] "PASS"));
-            0)
-          else -1
+          Sys.command "ninja test"
       | None -> -1)
   | "run" -> (
       match scope with

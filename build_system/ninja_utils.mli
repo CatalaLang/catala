@@ -76,6 +76,9 @@ module Build : sig
 
   val make_with_inputs : outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> t
 
+  val make_with_vars_and_inputs :
+    outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> vars:(string * Expr.t) list -> t
+
   val empty : t
   (** [empty] is the minimal ninja build. *)
 
