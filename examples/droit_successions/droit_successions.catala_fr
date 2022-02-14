@@ -30,16 +30,16 @@ déclaration structure BienUsufruitRenteViagère:
   donnée prise_en_compte_pour_réserve_héréditaire contenu booléen
 
 déclaration champ d'application RéserveHéréditaire:
-  contexte quotité_réserve_héréditaire contenu décimal
-  contexte enfants contenu collection Enfant
-  contexte enfant_pris_en_compte_réserve_héréditaire contenu booléen dépend de Enfant
-  contexte enfants_réserve_héréditaire contenu collection Enfant
-  contexte conjoint_survivant_non_divorcé condition
+  sortie quotité_réserve_héréditaire contenu décimal
+  entrée enfants contenu collection Enfant
+  interne enfant_pris_en_compte_réserve_héréditaire contenu booléen dépend de Enfant
+  interne enfants_réserve_héréditaire contenu collection Enfant
+  entrée conjoint_survivant_non_divorcé condition
 
-  contexte patrimoine_total contenu argent
-  contexte biens_usufruit_rente_viagère contenu collection BienUsufruitRenteViagère
-  contexte patrimoine_assiette_réserve_héréditaire contenu argent
-  contexte montant_réserve_héréditaire contenu argent
+  entrée patrimoine_total contenu argent
+  entrée biens_usufruit_rente_viagère contenu collection BienUsufruitRenteViagère
+  sortie patrimoine_assiette_réserve_héréditaire contenu argent
+  sortie montant_réserve_héréditaire contenu argent
 ```
 
 ######## Article 913 | LEGIARTI000006435557

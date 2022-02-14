@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope A:
-  context x content integer
-  context y content integer
+  context output x content integer
+  context output y content integer
 
 scope A:
   definition x equals 0

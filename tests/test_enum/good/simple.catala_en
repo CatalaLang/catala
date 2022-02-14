@@ -6,8 +6,8 @@ declaration enumeration E:
   -- Case2
 
 declaration scope A:
-  context x content E
-  context y content integer
+  context output x content E
+  context output y content integer
 
 scope A:
   definition x equals Case1 content 2

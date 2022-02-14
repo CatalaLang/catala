@@ -327,11 +327,13 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
             Format.fprintf fmt "\t\tself.%a = %a" format_struct_field_name struct_field
               format_struct_field_name struct_field))
       struct_fields format_struct_name struct_name
-      (Format.pp_print_list
+      (if List.length struct_fields > 0 then
+       Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
          (fun _fmt (struct_field, _) ->
            Format.fprintf fmt "self.%a == other.%a" format_struct_field_name struct_field
-             format_struct_field_name struct_field))
+             format_struct_field_name struct_field)
+      else fun fmt _ -> Format.fprintf fmt "True")
       struct_fields format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")

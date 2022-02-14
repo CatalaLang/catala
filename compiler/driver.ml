@@ -206,7 +206,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           in
           if Option.is_some ex_scope then
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_scope prgm.decl_ctx)
+              (Dcalc.Print.format_scope ~debug prgm.decl_ctx)
               (let _, _, s = List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes in
                (scope_uid, s))
           else Format.fprintf fmt "%a\n" (Dcalc.Print.format_expr prgm.decl_ctx) prgrm_dcalc_expr;
@@ -307,7 +307,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       -1
 
 let main () =
-  let return_code = Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info) in
-  match return_code with
-  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
-  | _ -> Cmdliner.Term.exit (`Error `Term)
+  let return_code =
+    Cmdliner.Cmd.eval' (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))
+  in
+  exit return_code

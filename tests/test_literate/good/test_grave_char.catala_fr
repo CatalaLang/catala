@@ -15,7 +15,7 @@ let () = print_endline "Hello world!"
 
 ```catala
 déclaration champ d'application A:
-  contexte literate_parsing_is_ok contenu booléen
+  contexte sortie literate_parsing_is_ok contenu booléen
 
 champ  d'application A:
   définition literate_parsing_is_ok égal à vrai

@@ -135,20 +135,26 @@ programming. Scopes also have to be declared in metadata, so here we go:
 ```catala-metadata
 declaration scope IncomeTaxComputation:
   # Scope names use CamelCase.
-  context individual content Individual
-  # This line declares a context element of the scope, which is akin to
+  input individual content Individual
+  # This line declares a scope variable of the scope, which is akin to
   # a function parameter in computer science term. This is the piece of
   # data on which the scope will operate.
-  context fixed_percentage content decimal
-  context income_tax content money
+  internal fixed_percentage content decimal
+  output income_tax content money
 ```
 
 The scope is the basic abstraction unit in Catala programs, and the declaration
 of the scope is akin to a function signature: it contains a list of all the
-arguments along with their types. But in Catala, scopes' context elements stand
-for three things: arguments, local variables and outputs. The difference
-between these three categories will come from how the context elements are
-defined later in the code.
+arguments along with their types. But in Catala, scopes' variables stand
+for three things: input arguments, local variables and outputs. The difference
+between these three categories can be specified by the different input/output
+attributes preceding the variable names. "input" means that the variable has to
+be defined only when the scope IncomeTaxComputation is called. "internal" means
+that the variable cannot be seen from outside the scope: it is neither an input
+nor an output of the scope. "output" means that a caller scope can retrieve the
+computed value of the variable. Note that a variable can also be simulataneously
+an input and an output of the scope, in that case it should be annotated with
+"input output".
 
 We now have everything to annotate the contents of article 1, which is copied
 over below.
@@ -235,8 +241,8 @@ do that later.
 
 ## Rules
 
-So far, you've learnt how to declare a scope with some context elements, and
-give definitions to these context elements scattered accross the text of
+So far, you've learnt how to declare a scope with some variables, and
+give definitions to these variables scattered accross the text of
 the law at the relevant locations. But there is a pattern very frequent
 in legislative texts: what about conditions? A condition is a value that
 can be either true or false, like a boolean in programming. However, the
@@ -254,11 +260,11 @@ The children eligible for application of article 3
 ```catala
 # To deal with children eligibility, we create a new scope.
 declaration scope Child:
-  context age content integer
+  input age content integer
   # The age of the child can be declared as before.
-  context is_eligible_article_3 condition
+  output is_eligible_article_3 condition
   # For we declare the eligibility using the special "condition" keyword
-  # that stands for the content of the context element.
+  # that stands for the content of the variable.
 
 scope Child:
   rule is_eligible_article_3 under condition age < 18 consequence fulfilled
@@ -272,7 +278,7 @@ like boolean values.
 
 ## Functions
 
-Catala lets you define functions anywhere in your context elements. Indeed,
+Catala lets you define functions anywhere in your scope variable. Indeed,
 Catala is a functional language and encourages using functions to describe
 relationships between data. Here's what it looks
 like in the metadata definition when we want to define a two-brackets tax
@@ -287,11 +293,11 @@ declaration structure TwoBrackets:
 # has two tax brackets, each with their own tax rate.
 
 declaration scope TwoBracketsTaxComputation :
-  context brackets content TwoBrackets
-  # This context element is standard, and contains the description of the
+  input brackets content TwoBrackets
+  # This input variable contains the description of the
   # parameters of the tax formula.
-  context tax_formula content money depends on money
-  # But for declaring the tax_formula context element, we declare it as
+  output tax_formula content money depends on money
+  # But for declaring the tax_formula variable, we declare it as
   # a function: "content money depends on money" means a function that
   # returns money as output (the tax) and takes money as input (the income).
 ```
@@ -332,12 +338,12 @@ income tax is 20% of the income.
 
 ```catala
 declaration scope NewIncomeTaxComputation:
-  context two_brackets scope TwoBracketsTaxComputation
+  two_brackets scope TwoBracketsTaxComputation
   # This line says that we add the item two_brackets to the context.
   # However, the "scope" keyword tells that this item is not a piece of data
   # but rather a subscope that we can use to compute things.
-  context individual content Individual
-  context income_tax content money
+  input individual content Individual
+  output income_tax content money
 
 scope NewIncomeTaxComputation :
   # Since the subscope "two_brackets" is like a big function we can call,
@@ -347,10 +353,10 @@ scope NewIncomeTaxComputation :
     -- rate1: 20%
     -- rate2: 40%
   }
-  # By defining the context element "brackets" of the subscope "two_brackets",
+  # By defining the input variable "brackets" of the subscope "two_brackets",
   # we have changed how the subscope will execute. The subscope will execute
   # with all the values defined by the caller, then compute the value
-  # of its other context elements.
+  # of its other variables.
 
   definition income_tax equals two_brackets.tax_formula of individual.income
   # After the subscope has executed, you can retrieve results from it. Here,
@@ -404,8 +410,8 @@ as another scope:
 ```catala
 declaration scope Test1:
   # We include the scope to tax as a subscope.
-  context tax_computation scope NewIncomeTaxComputation
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputation
+  output income_tax content money
 
 # To execute that test, assuming that the Catala compiler can be called
 # with "catala", enter the following command:
@@ -434,8 +440,8 @@ This test should pass. Let us now consider a failing test case:
 
 ```catala
 declaration scope Test2:
-  context tax_computation scope NewIncomeTaxComputation
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputation
+  output income_tax content money
 
 scope Test2:
   definition tax_computation.individual equals Individual {
@@ -464,9 +470,13 @@ fixed version of the NewIncomeTaxComputation scope:
 
 ```catala
 declaration scope NewIncomeTaxComputationFixed:
-  context two_brackets scope TwoBracketsTaxComputation
-  context individual content Individual
-  context income_tax content money
+  two_brackets scope TwoBracketsTaxComputation
+  input individual content Individual
+  output tax_formula content money depends on money
+  context output income_tax content money
+  # This variable is tagged with "context", a new concept which we have not
+  # introduced yet. For now, ignore it as we'll come back to it in the section
+  # "Context scope variables".
 
 scope NewIncomeTaxComputationFixed :
   definition two_brackets.brackets equals TwoBrackets {
@@ -474,6 +484,7 @@ scope NewIncomeTaxComputationFixed :
     -- rate1: 20%
     -- rate2: 40%
   }
+  definition tax_formula of income equals two_brackets.tax_formula of income
 ```
 
 To define an exception to a rule, you have to first label the rule that
@@ -496,8 +507,8 @@ And the test that should now work:
 
 ```catala
 declaration scope Test3:
-  context tax_computation scope NewIncomeTaxComputationFixed
-  context income_tax content money
+  tax_computation scope NewIncomeTaxComputationFixed
+  output income_tax content money
 
 scope Test3:
   definition tax_computation.individual equals Individual {
@@ -515,6 +526,68 @@ patterns. Sometimes, you want to declare an exception to a groupe of
 piecewise definitions. To do that, simply use the same label for all
 the piecewise definitions.
 
+## Context scope variables
+
+With its "input","output" and "internal" variables, Catala's scope are close
+to regular functions with arguments, local variables and output. However, the
+law can sometimes be adversarial to good programming practices and define
+provisions that break the abstraction barrier normally associated to a function.
+
+This can be the case when an outside body of legislative text "reuses" a
+a legal concept but adding a twist on it. Consider the following fictionnal
+(but not quite pathological computational-wise) example.
+
+### Article 7
+
+The justice system delivers fines to individuals when they committed an offense.
+The fines are determined based on the amount of taxes paid by the individual.
+The more taxes the invidual pays, the higher the fine. However, the determination
+of the amount of taxes paid by an individual in this context shall include
+a flat tax fee of $500 for individuals earning less than $10,000.
+
+```catala
+# To compute the basis determined for issuing the fines, we create a new scope.
+declaration scope BasisForFineDetermination:
+  tax_computation scope NewIncomeTaxComputationFixed
+  # This scope will call the NewIncomeTaxComputationFixed scope that defines
+  # the proper tax computation.
+  input individual content Individual
+  output basis_for_fine content money
+
+scope BasisForFineDetermination :
+  # First, we link the inputs and outputs of the two scopes.
+  definition tax_computation.individual equals individual
+  definition basis_for_fine equals tax_computation.income_tax
+
+  # But then, how to account for the provision of the law that reverts the
+  # mechanism canceling taxes for individuals earning less than $10,000 dollars?
+
+  # This is where the "context" concept comes into play. Indeed, we had annotated
+  # the "income_tax" variable of "NewIncomeTaxComputationFixed" with the
+  # "context" attribute. "context" is a variant of "input" that exposes the
+  # variable as an input of the scope. However, it is more permissive than
+  # "input" because it lets you re-define the "context" variable inside its
+  # own scope. Then, you're faced with a choice for the value of "income_tax":
+  # do you take the value coming from its definition inside
+  # "NewIncomeTaxComputationFixed" or do you take the value coming from the
+  # input of the scope? This dilemma is resolved in two ways. First, by looking
+  # at the conditions of the definitions: only definitions that have a condition
+  # evaluating to "true" at runtime will be considered. If there's only one,
+  # the pick is easy. But what if two definitions trigger at the same time,
+  # one from the input and one from the "NewIncomeTaxComputationFixed" scope?
+  # Well, second, in that case we always prioritize the input definition for
+  # picking. In Catala, the caller scope has priority over the callee scope
+  # for "context" variable. It's as if the caller provided an extra exception
+  # for the definition of the scope variable.
+
+  # Back to our little problem, the solution is here to provide from the outside
+  # an exceptional definition for income tax for people earning less than
+  # $10,0000.
+  definition tax_computation.income_tax under condition
+    individual.income <=$ $10,000
+  consequence equals $500
+```
+
 ## Catala values
 
 So far, this tutorial has introduced you to the basic structure of Catala
@@ -530,8 +603,8 @@ see the section about conditions above.
 
 ```catala
 declaration scope BooleanValues:
-  context value1 condition
-  context value2 content boolean
+  internal value1 condition
+  internal value2 content boolean
 
 scope BooleanValues:
   rule value1 under condition false and true consequence fulfilled
@@ -549,8 +622,8 @@ due to them being stored in 32 or 64 bits. Integers can be negative.
 
 ```catala
 declaration scope IntegerValues:
-  context value1 content integer
-  context value2 content integer
+  internal value1 content integer
+  internal value2 content integer
 
 scope IntegerValues:
   definition value1 under condition 12 - (5 * 3) < 65 consequence equals 45 / 9
@@ -566,8 +639,8 @@ approximate computations. Operators are suffixed with ".".
 
 ```catala
 declaration scope DecimalValues:
-  context value1 content decimal
-  context value2 content decimal
+  internal value1 content decimal
+  internal value2 content decimal
 
 scope DecimalValues:
   definition value1 under condition
@@ -590,8 +663,8 @@ yielding a decimal.
 
 ```catala
 declaration scope MoneyValues:
-  context value1 content decimal
-  context value2 content money
+  internal value1 content decimal
+  internal value2 content money
 
 scope MoneyValues:
   definition value1 under condition
@@ -616,8 +689,8 @@ duration operators are prefixed by "^".
 
 ```catala
 declaration scope DateValues:
-  context value1 content date
-  context value2 content duration
+  internal value1 content date
+  internal value2 content duration
 
 scope DateValues:
   definition value1 equals |2000-01-01| +@ 1 year # yields |2001-01-01|
@@ -635,8 +708,8 @@ to compute all sorts of values.
 
 ```catala
 declaration scope CollectionValues:
-  context value1 content collection integer
-  context value2 content integer
+  internal value1 content collection integer
+  internal value2 content integer
 
 scope CollectionValues:
   definition value1 equals [45;-6;3;4;0;2155]

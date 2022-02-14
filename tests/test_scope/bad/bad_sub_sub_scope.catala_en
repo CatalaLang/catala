@@ -2,18 +2,18 @@
 
 ```catala
 declaration scope A:
-  context x content integer
-  context u content boolean
+  context output x content integer
+  context output u content boolean
 
 declaration scope B:
-  context a1 scope A
-  context a2 scope A
-  context y content integer
+  a1 scope A
+  a2 scope A
+  context output y content integer
 
 declaration scope C:
-  context a scope A
-  context b scope B
-  context z content integer
+  a scope A
+  b scope B
+  context output z content integer
 
 scope A:
  definition x equals 0

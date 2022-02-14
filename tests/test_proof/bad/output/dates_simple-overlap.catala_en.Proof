@@ -5,7 +5,6 @@
 6 |   context y content boolean
   |           ^
   + Test
-The solver generated the following counterexample to explain the faulty behavior:
---> counterexamples disabled
+Counterexample generation is disabled so none was generated.
 [RESULT] [A.x] This variable never returns an empty error
 [RESULT] [A.x] No two exceptions to ever overlap for this variable

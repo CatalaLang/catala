@@ -4,7 +4,7 @@
 
 ```catala
 deklaracja zakres Test_A7_U1_P3:
-  kontekst sprzedaz zakres OdplatneUzytkowanie
+  sprzedaz zakres OdplatneUzytkowanie
 
 zakres Test_A7_U1_P3:
   definicja sprzedaz.kwota wynosi 100 PLN

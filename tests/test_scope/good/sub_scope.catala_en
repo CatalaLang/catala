@@ -2,15 +2,15 @@
 
 ```catala
 declaration scope A:
-  context a content integer
-  context b content boolean
-  context a_base content integer
+  context output a content integer
+  context output b content boolean
+  context output a_base content integer
 
 declaration scope B:
-  context a content integer
-  context b content boolean
-  context scopeA scope A
-  context scopeAbis scope A
+  context output a content integer
+  context output b content boolean
+  scopeA scope A
+  scopeAbis scope A
 
 scope A:
   definition a_base equals 1
