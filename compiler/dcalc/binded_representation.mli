@@ -40,7 +40,8 @@ type scope_body = {
   scope_body_result : (D.expr, scope_lets) Bindlib.binder;
 }
 
-(* finally, we do the same transformation for the whole program for the kinded lets. This permit us to use bindlib variables for scopes names. *)
+(* finally, we do the same transformation for the whole program for the kinded lets. This permit us
+   to use bindlib variables for scopes names. *)
 type scopes =
   | Nil
   | ScopeDef of {
@@ -58,5 +59,6 @@ val free_vars_scope_body : scope_body -> D.Var.t list
 (* List of variables not binded inside scopes*)
 val free_vars_scopes : scopes -> D.Var.t list
 
-(* Transform a list of scopes into our representation of scopes. It requires that scopes are topologically-well-ordered, and ensure there is no free variables in the returned [scopes] *)
+(* Transform a list of scopes into our representation of scopes. It requires that scopes are
+   topologically-well-ordered, and ensure there is no free variables in the returned [scopes] *)
 val bind_scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list -> scopes Bindlib.box

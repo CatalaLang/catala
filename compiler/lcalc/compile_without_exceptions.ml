@@ -143,8 +143,8 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Pos.marked) :
     A.expr Pos.marked Bindlib.box * hoists =
   let pos = Pos.get_position e in
   match Pos.unmark e with
-  (* empty-producing/using terms. We hoist those. (D.EVar in some cases, EApp(D.EVar _, [ELit LUnit]),
-     EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
+  (* empty-producing/using terms. We hoist those. (D.EVar in some cases, EApp(D.EVar _, [ELit
+     LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure about assert. *)
   | D.EVar v ->
       (* todo: for now, every unpure (such that [is_pure] is [false] in the current context) is
          thunked, hence matched in the next case. This assumption can change in the future, and this
