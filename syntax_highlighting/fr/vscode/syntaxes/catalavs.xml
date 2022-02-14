@@ -162,7 +162,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(contexte)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
+          <string>(contexte|entrée|sortie|interne)(\s*)(|sortie)(\s+)([a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}][a-z\x{00e9}\x{00e8}\x{00e0}\x{00e2}\x{00f9}\x{00ee}\x{00f4}\x{00ea}\x{0153}\x{00e7}A-Z\x{00c9}\x{00c8}\x{00c0}\x{00c2}\x{00d9}\x{00ce}\x{00d4}\x{00ca}\x{0152}\x{00c7}0-9_\&apos;]*)</string>
           <key>captures</key>
           <dict>
             <key>1</key>
@@ -178,6 +178,16 @@
             <key>3</key>
             <dict>
               <key>name</key>
+              <string>keyword.other.catala_fr</string>
+            </dict>
+            <key>4</key>
+            <dict>
+              <key>name</key>
+              <string>text.catala_fr</string>
+            </dict>
+            <key>5</key>
+            <dict>
+              <key>name</key>
               <string>entity.name.function.catala_fr</string>
             </dict>
           </dict>
@@ -190,7 +200,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception|n'importe\s+quel)\b</string>
+          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception|n'importe\s+quel)\b</string>
           <key>name</key>
           <string>keyword.other.catala_fr</string>
         </dict>

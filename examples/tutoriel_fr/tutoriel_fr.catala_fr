@@ -117,12 +117,12 @@ préalablement dans les métadonnées, de la manière suivante:
 ```catala-metadata
 déclaration champ d'application CalculImpôtRevenu:
   # Les champs d'application utilisent le CamelCase
-  contexte personne contenu Personne
+  entrée personne contenu Personne
   # Cette ligne déclare un élémént de contexte du champ d'application,
   # cela ressemble à un paramètre de fonction en informatique. C'est la
   # donnée sur laquelle le champ d'application va intervenir
-  contexte pourcentage_fixe contenu décimal
-  contexte impôt_revenu contenu argent
+  interne pourcentage_fixe contenu décimal
+  sortie impôt_revenu contenu argent
 ```
 
 Nous avons maintenant tout ce dont nous avons besoin pour annoter le contenu
@@ -223,8 +223,8 @@ déclaration structure DeuxTranches:
   donnée taux2 contenu décimal
 
 déclaration champ d'application CalculImpôtDeuxTranches :
-  contexte tranches contenu DeuxTranches
-  contexte formule_imposition contenu argent dépend de argent
+  entrée tranches contenu DeuxTranches
+  sortie formule_imposition contenu argent dépend de argent
 ```
 
 Et dans le code :
@@ -260,13 +260,13 @@ l'impôt sur le revenu de l'article 1 est de 40% du revenu au-dessus de
 
 ```catala
 déclaration champ d'application NouveauCalculImpôtRevenu:
-  contexte deux_tranches champ d'application CalculImpôtDeuxTranches
+  deux_tranches champ d'application CalculImpôtDeuxTranches
   # Cette ligne indique que nous ajoutons l'élément deux_tranches au contexte.
   # Toutefois, les mots clé "champ d'application" indique que l'élément n'est
   # pas une donnée mais plutôt un sous-champ d'application qui peut être
   # utilisé pour calculer des choses.
-  contexte personne contenu Personne
-  contexte impôt_revenu contenu argent
+  entrée personne contenu Personne
+  sortie impôt_revenu contenu argent
 
 champ d'application NouveauCalculImpôtRevenu :
   définition deux_tranches.tranches égal à DeuxTranches {
@@ -312,8 +312,8 @@ champ d'application :
 
 ```catala
 déclaration champ d'application Test1:
-  contexte calcul_impôt champ d'application NouveauCalculImpôtRevenu
-  contexte impôt_revenu contenu argent
+  calcul_impôt champ d'application NouveauCalculImpôtRevenu
+  sortie impôt_revenu contenu argent
 
 champ d'application Test1:
   définition
@@ -339,8 +339,8 @@ Ce test devrait être bon. Maintenant étudions un test en échec :
 
 ```catala
 déclaration champ d'application Test2:
-  contexte calcul_impôt champ d'application NouveauCalculImpôtRevenu
-  contexte impôt_revenu contenu argent
+  calcul_impôt champ d'application NouveauCalculImpôtRevenu
+  sortie impôt_revenu contenu argent
 
 champ d'application Test2:
   définition calcul_impôt.personne égal à Personne {
@@ -371,9 +371,9 @@ version correcte du champ d'application NouveauCalculImpotRevenu :
 
 ```catala
 déclaration champ d'application NouveauCalculImpôtRevenuCorrect:
-  contexte deux_tranches champ d'application CalculImpôtDeuxTranches
-  contexte personne contenu Personne
-  contexte impôt_revenu contenu argent
+  deux_tranches champ d'application CalculImpôtDeuxTranches
+  entrée personne contenu Personne
+  sortie impôt_revenu contenu argent
 
 champ d'application NouveauCalculImpôtRevenuCorrect :
   définition deux_tranches.tranches égal à DeuxTranches {
@@ -401,8 +401,8 @@ Le test devrait désormais fonctionner :
 
 ```catala
 déclaration champ d'application Test3:
-  contexte calcul_impôt champ d'application NouveauCalculImpôtRevenuCorrect
-  contexte impôt_revenu contenu argent
+  calcul_impôt champ d'application NouveauCalculImpôtRevenuCorrect
+  sortie impôt_revenu contenu argent
 
 champ d'application Test3:
   définition calcul_impôt.personne égal à Personne {

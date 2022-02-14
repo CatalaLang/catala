@@ -13,12 +13,12 @@
 \newcommand{\li}[1]{\texttt{#1}}
 \begin{document}
 \begin{center}
-  2021-03-15
+  2022-02-09
   \hfill
   {\Huge\bfseries\sffamily
     Catala Syntax Cheat Sheet}
   \hfill
-  v.0.2.0
+  v.0.5.0
 \end{center}
 \hrule
 
@@ -156,9 +156,9 @@ déclaration énumeration Foo:
     \begin{minted}{catala_en}
 ```catala
 declaration scope Foo:
-  context bar content integer
-  context baz condition
-  context fizz scope Buzz
+  internal bar content integer
+  internal baz condition
+  fizz scope Buzz
 ```
 \end{minted}
     \vspace*{-1.75em}
@@ -167,9 +167,35 @@ declaration scope Foo:
     \begin{minted}{catala_fr}
 ```catala
 déclaration champ d'application Foo:
-  contexte bar contenu entier
-  contexte baz condition
+  interne bar contenu entier
+  interne baz condition
   contexte fizz champ d'application Buzz
+```
+\end{minted}
+    \vspace*{-1.75em}                                        \\
+    Input-output qualifiers &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+internal bar content ...
+output baz content ...
+input fizz content ...
+input output buzz content ...
+context biz content ...
+context output boz content ...
+```
+\end{minted}
+    \vspace*{-1.75em}
+                            &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+interne bar contenu ...
+sortie baz contenu ...
+entrée fizz contenu ...
+entrée sortie buzz contenu ...
+contexte biz contenu ...
+contexte sortie boz contenu ...
 ```
 \end{minted}
     \vspace*{-1.75em}                                        \\

@@ -69,31 +69,31 @@ déclaration structure EnfantEntrée:
   donnée d_a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
-  contexte date_courante contenu date
-  contexte enfants contenu collection EnfantEntrée
-  contexte enfants_à_charge contenu collection Enfant
-  contexte allocations_familiales champ d'application AllocationsFamiliales
-  contexte ressources_ménage contenu argent
-  contexte résidence contenu Collectivité
-  contexte montant_versé contenu argent
-  contexte personne_charge_effective_permanente_est_parent condition
-  contexte personne_charge_effective_permanente_remplit_titre_I condition
-  contexte avait_enfant_à_charge_avant_1er_janvier_2012 condition
+  entrée i_date_courante contenu date
+  entrée i_enfants contenu collection EnfantEntrée
+  interne enfants_à_charge contenu collection Enfant
+  allocations_familiales champ d'application AllocationsFamiliales
+  entrée i_ressources_ménage contenu argent
+  entrée i_résidence contenu Collectivité
+  sortie i_montant_versé contenu argent
+  entrée i_personne_charge_effective_permanente_est_parent condition
+  entrée i_personne_charge_effective_permanente_remplit_titre_I condition
+  entrée i_avait_enfant_à_charge_avant_1er_janvier_2012 condition
 
 champ d'application InterfaceAllocationsFamiliales:
-  définition allocations_familiales.date_courante égal à date_courante
+  définition allocations_familiales.date_courante égal à i_date_courante
   définition allocations_familiales.enfants_à_charge égal à enfants_à_charge
-  définition allocations_familiales.ressources_ménage égal à ressources_ménage
-  définition allocations_familiales.résidence égal à résidence
-  définition montant_versé égal à allocations_familiales.montant_versé
+  définition allocations_familiales.ressources_ménage égal à i_ressources_ménage
+  définition allocations_familiales.résidence égal à i_résidence
+  définition i_montant_versé égal à allocations_familiales.montant_versé
   règle allocations_familiales.personne_charge_effective_permanente_est_parent
-    sous condition personne_charge_effective_permanente_est_parent conséquence
+    sous condition i_personne_charge_effective_permanente_est_parent conséquence
     rempli
   règle allocations_familiales.personne_charge_effective_permanente_remplit_titre_I
-    sous condition personne_charge_effective_permanente_remplit_titre_I conséquence
+    sous condition i_personne_charge_effective_permanente_remplit_titre_I conséquence
     rempli
   règle allocations_familiales.avait_enfant_à_charge_avant_1er_janvier_2012
-    sous condition avait_enfant_à_charge_avant_1er_janvier_2012 conséquence
+    sous condition i_avait_enfant_à_charge_avant_1er_janvier_2012 conséquence
     rempli
 ```
 
@@ -109,18 +109,18 @@ particulières imposant une scolarité plus longue.
 
 ```catala
 champ d'application InterfaceAllocationsFamiliales:
-  définition enfants_à_charge égal à application pour enfant dans enfants de
+  définition enfants_à_charge égal à application pour enfant dans i_enfants de
     Enfant {
       -- identifiant : enfant.d_identifiant
       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
       -- date_de_naissance : enfant.d_date_de_naissance
       -- prise_en_charge : enfant.d_prise_en_charge
       -- âge: accès_année de
-        (|0000-01-01| +@ (date_courante -@ enfant.d_date_de_naissance))
+        (|0000-01-01| +@ (i_date_courante -@ enfant.d_date_de_naissance))
       -- obligation_scolaire :
-        (si enfant.d_date_de_naissance +@ 3 an >=@ date_courante alors
+        (si enfant.d_date_de_naissance +@ 3 an >=@ i_date_courante alors
           Avant
-        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ date_courante alors
+        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ i_date_courante alors
           Pendant
         sinon Après))
       -- a_déjà_ouvert_droit_aux_allocations_familiales:

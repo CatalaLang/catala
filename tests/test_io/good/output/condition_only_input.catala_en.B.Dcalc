@@ -1,0 +1,8 @@
+let B =
+  λ (B_in_13: B_in{}) →
+    let a.x_14 : bool = error_empty
+      ⟨true ⊢ ⟨⟨true ⊢ false⟩ | false ⊢ ∅ ⟩⟩ in
+    let result_15 : A_out{"y_out": integer} = A_2 (A_in {"x_in"= a.x_14}) in
+    let a.y_16 : integer = result_15."y_out" in
+    let __17 : unit = assert (a.y_16 = 1) in
+    B_out {}

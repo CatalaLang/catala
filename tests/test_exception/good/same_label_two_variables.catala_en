@@ -2,9 +2,9 @@
 
 ```catala
 declaration scope A:
-  context x content integer
-  context y content integer
-  context z content integer
+  context output x content integer
+  context output y content integer
+  context output z content integer
 
 scope A:
   label base

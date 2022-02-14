@@ -6,9 +6,9 @@ declaration enumeration E:
   -- Case2
 
 declaration scope A:
-  context x content E
-  context y content boolean
-  context z content boolean
+  context output x content E
+  context output y content boolean
+  context output z content boolean
 
 scope A:
   definition x equals Case1 content 2

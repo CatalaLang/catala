@@ -140,7 +140,8 @@ type binder = (expr, expr Pos.marked) Bindlib.binder
 type scope_let_kind =
   | DestructuringInputStruct  (** [let x = input.field]*)
   | ScopeVarDefinition  (** [let x = error_on_empty e]*)
-  | SubScopeVarDefinition  (** [let s.x = fun _ -> e] *)
+  | SubScopeVarDefinition
+      (** [let s.x = fun _ -> e] or [let s.x = error_on_empty e] for input-only subscope variables. *)
   | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let _ = assert e]*)

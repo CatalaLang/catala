@@ -433,43 +433,65 @@ type scope_use = {
         name = "scope_use_iter";
       }]
 
-type scope_decl_context_item_attribute = Context | Input | Output | Internal
+type io_input = Input | Context | Internal
+[@@deriving
+  visitors { variety = "map"; name = "io_input_map" },
+    visitors { variety = "iter"; name = "io_input_iter" }]
 
-type scope_decl_context_scope = {
-  scope_decl_context_scope_name : ident Pos.marked;
-  scope_decl_context_scope_sub_scope : constructor Pos.marked;
-  scope_decl_context_scope_attribute : (scope_decl_context_item_attribute[@opaque]) Pos.marked;
+type scope_decl_context_io = {
+  scope_decl_context_io_input : io_input Pos.marked;
+  scope_decl_context_io_output : bool Pos.marked;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = [ "ident_map"; "constructor_map"; "Pos.marked_map" ];
+      ancestors = [ "io_input_map"; "Pos.marked_map" ];
+      name = "scope_decl_context_io_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "io_input_iter"; "Pos.marked_iter" ];
+        name = "scope_decl_context_io_iter";
+      }]
+
+type scope_decl_context_scope = {
+  scope_decl_context_scope_name : ident Pos.marked;
+  scope_decl_context_scope_sub_scope : constructor Pos.marked;
+  scope_decl_context_scope_attribute : scope_decl_context_io;
+}
+[@@deriving
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "ident_map"; "constructor_map"; "scope_decl_context_io_map"; "Pos.marked_map" ];
       name = "scope_decl_context_scope_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = [ "ident_iter"; "constructor_iter"; "Pos.marked_iter" ];
+        ancestors =
+          [ "ident_iter"; "constructor_iter"; "scope_decl_context_io_iter"; "Pos.marked_iter" ];
         name = "scope_decl_context_scope_iter";
       }]
 
 type scope_decl_context_data = {
   scope_decl_context_item_name : ident Pos.marked;
   scope_decl_context_item_typ : typ Pos.marked;
-  scope_decl_context_item_attribute : (scope_decl_context_item_attribute[@opaque]) Pos.marked;
+  scope_decl_context_item_attribute : scope_decl_context_io;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = [ "typ_map"; "ident_map" ];
+      ancestors = [ "typ_map"; "scope_decl_context_io_map"; "ident_map" ];
       name = "scope_decl_context_data_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = [ "typ_iter"; "ident_iter" ];
+        ancestors = [ "typ_iter"; "scope_decl_context_io_iter"; "ident_iter" ];
         name = "scope_decl_context_data_iter";
       }]
 

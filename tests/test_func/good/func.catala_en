@@ -4,11 +4,11 @@
 declaration scope S:
   context f content integer depends on integer
   context b content boolean
-  context out content integer
+  context output out content integer
 
 declaration scope R:
-  context s scope S
-  context r content integer
+  s scope S
+  context output r content integer
 
 scope S:
   definition f of x under condition (x >= x) consequence equals x + x

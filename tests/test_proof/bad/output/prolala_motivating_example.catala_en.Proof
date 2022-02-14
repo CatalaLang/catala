@@ -9,8 +9,6 @@ Counterexample generation is disabled so none was generated.
 [RESULT] [Amount.amount] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.correct_amount] This variable never returns an empty error
 [RESULT] [Amount.correct_amount] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.eligibility.is_eligible] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_professor] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.eligibility.is_student] No two exceptions to ever overlap for this variable
 [RESULT] [Amount.number_of_advisors] This variable never returns an empty error
@@ -22,16 +20,16 @@ Counterexample generation is disabled so none was generated.
 [ERROR] [Eligibility.is_eligible] This variable might return an empty error:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
-11 |   context is_eligible content boolean
-   |           ^^^^^^^^^^^
+11 |   output is_eligible content boolean
+   |          ^^^^^^^^^^^
    + ProLaLa 2022 Super Cash Bonus
    +-+ Eligibility
 Counterexample generation is disabled so none was generated.
 [ERROR] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
-11 |   context is_eligible content boolean
-   |           ^^^^^^^^^^^
+11 |   output is_eligible content boolean
+   |          ^^^^^^^^^^^
    + ProLaLa 2022 Super Cash Bonus
    +-+ Eligibility
 Counterexample generation is disabled so none was generated.

@@ -2,17 +2,17 @@
 
 ```catala
 declaration scope A:
-  context x content integer
+  context output x content integer
 
 declaration scope B:
-  context a scope A
-  context y1 content integer
-  context y2 content integer
+  a scope A
+  context output y1 content integer
+  context output y2 content integer
 
 declaration scope C:
-  context b scope B
-  context z1 content integer
-  context z2 content integer
+  b scope B
+  context output z1 content integer
+  context output z2 content integer
 
 
 scope A:

@@ -8,8 +8,8 @@ Demo: https://asciinema.org/a/461790
 declaration scope Eligibility:
   context is_student content boolean
   context is_professor content boolean
-  context is_eligible content boolean
-  context is_eligible_correct condition
+  output is_eligible content boolean
+  output is_eligible_correct condition
 
 scope Eligibility:
   definition is_student equals true
@@ -53,7 +53,7 @@ scope Eligibility:
 
 ```catala-metadata
 declaration scope Amount:
-  context eligibility scope Eligibility
+  eligibility scope Eligibility
   context is_student content boolean
   context is_professor content boolean
   context number_of_advisors content integer

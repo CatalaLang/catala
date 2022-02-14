@@ -361,6 +361,15 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_CONTEXT ->
       L.update_acc lexbuf;
       CONTEXT
+  | MR_INPUT ->
+      L.update_acc lexbuf;
+      INPUT
+  | MR_OUTPUT ->
+      L.update_acc lexbuf;
+      OUTPUT
+  | MR_INTERNAL ->
+      L.update_acc lexbuf;
+      INTERNAL
   | MR_DECREASING ->
       L.update_acc lexbuf;
       DECREASING
