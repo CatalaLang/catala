@@ -72,6 +72,8 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "python" then Cli.Python
       else if backend = "proof" then Cli.Proof
       else if backend = "typecheck" then Cli.Typecheck
+      else if backend = "lcalc" then Cli.Lcalc
+      else if backend = "scalc" then Cli.Scalc
       else
         Errors.raise_error
           (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
@@ -251,7 +253,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                      result))
               results;
             0
-        | Cli.OCaml | Cli.Python ->
+        | Cli.OCaml | Cli.Python | Cli.Lcalc | Cli.Scalc ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
             let prgm =
@@ -261,6 +263,30 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               end
               else prgm
             in
+            if backend = Cli.Lcalc then begin
+              let fmt, at_end =
+                match output_file with
+                | Some f ->
+                    let oc = open_out f in
+                    (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
+                | None -> (Format.std_formatter, fun _ -> ())
+              in
+              if Option.is_some ex_scope then
+                Format.fprintf fmt "%a\n"
+                  (Lcalc.Print.format_scope ~debug prgm.decl_ctx)
+                  (let body =
+                     List.find (fun body -> body.Lcalc.Ast.scope_body_name = scope_uid) prgm.scopes
+                   in
+                   body)
+              else
+                Format.fprintf fmt "%a\n"
+                  (Format.pp_print_list
+                     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+                     (fun fmt scope -> (Lcalc.Print.format_scope prgm.decl_ctx) fmt scope))
+                  prgm.scopes;
+              at_end ();
+              exit 0
+            end;
             let source_file =
               match source_file with
               | FileName f -> f

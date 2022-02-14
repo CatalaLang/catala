@@ -30,33 +30,23 @@ let begins_with_uppercase (s : string) : bool =
 (** @note: (EmileRolley) seems to be factorizable with Dcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
-  | LBool b -> Format.fprintf fmt "%b" b
-  | LInt i -> Format.fprintf fmt "%s" (Runtime.integer_to_string i)
-  | LUnit -> Format.fprintf fmt "()"
+  | LBool b -> Dcalc.Print.format_lit_style fmt (string_of_bool b)
+  | LInt i -> Dcalc.Print.format_lit_style fmt (Runtime.integer_to_string i)
+  | LUnit -> Dcalc.Print.format_lit_style fmt "()"
   | LRat i ->
-      Format.fprintf fmt "%s"
+      Dcalc.Print.format_lit_style fmt
         (Runtime.decimal_to_string ~max_prec_digits:!Utils.Cli.max_prec_digits i)
   | LMoney e -> (
       match !Utils.Cli.locale_lang with
-      | En -> Format.fprintf fmt "$%s" (Runtime.money_to_string e)
-      | Fr -> Format.fprintf fmt "%s €" (Runtime.money_to_string e)
-      | Pl -> Format.fprintf fmt "%s PLN" (Runtime.money_to_string e))
-  | LDate d -> Format.fprintf fmt "%s" (Runtime.date_to_string d)
-  | LDuration d -> Format.fprintf fmt "%s" (Runtime.duration_to_string d)
-
-let format_uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) : unit =
-  Format.fprintf fmt "%a"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ".")
-       (fun fmt info ->
-         Format.fprintf fmt "%a"
-           (Utils.Cli.format_with_style
-              (if begins_with_uppercase (Pos.unmark info) then [ ANSITerminal.red ] else []))
-           (Format.asprintf "%a" Utils.Uid.MarkedString.format_info info)))
-    infos
+      | En -> Dcalc.Print.format_lit_style fmt (Format.asprintf "$%s" (Runtime.money_to_string e))
+      | Fr -> Dcalc.Print.format_lit_style fmt (Format.asprintf "%s €" (Runtime.money_to_string e))
+      | Pl ->
+          Dcalc.Print.format_lit_style fmt (Format.asprintf "%s PLN" (Runtime.money_to_string e)))
+  | LDate d -> Dcalc.Print.format_lit_style fmt (Runtime.date_to_string d)
+  | LDuration d -> Dcalc.Print.format_lit_style fmt (Runtime.duration_to_string d)
 
 let format_exception (fmt : Format.formatter) (exn : except) : unit =
-  Format.fprintf fmt
+  Dcalc.Print.format_operator fmt
     (match exn with
     | EmptyError -> "EmptyError"
     | ConflictError -> "ConflictError"
@@ -75,9 +65,9 @@ let needs_parens (e : expr Pos.marked) : bool =
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s" (Bindlib.name_of v)
 
-let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : expr Pos.marked) : unit
-    =
-  let format_expr = format_expr ctx in
+let rec format_expr (ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
+    (e : expr Pos.marked) : unit =
+  let format_expr = format_expr ctx ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then
       Format.fprintf fmt "%a%a%a" format_punctuation "(" format_expr e format_punctuation ")"
@@ -92,8 +82,8 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
            (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
         es format_punctuation ")"
   | ETuple (es, Some s) ->
-      Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a%a%a@]@]" Dcalc.Ast.StructName.format_t s
-        format_punctuation "{"
+      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" Dcalc.Ast.StructName.format_t s format_punctuation
+        "{"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
            (fun fmt (e, struct_field) ->
@@ -117,17 +107,17 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n))
             format_punctuation "\"")
   | EInj (e, n, en, _ts) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Ast.EnumConstructor.format_t
+      Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_enum_constructor
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ @[<hov 2>%a@]@]" format_keyword "match" format_expr e
+      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" format_keyword "match" format_expr e
         format_keyword "with"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "@[<hov 2>%a%a@ %a@]" Dcalc.Ast.EnumConstructor.format_t c
-               format_punctuation ":" format_expr e))
+             Format.fprintf fmt "@[<hov 2>%a %a%a@ %a@]" format_punctuation "|"
+               Dcalc.Print.format_enum_constructor c format_punctuation ":" format_expr e))
         (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
@@ -138,14 +128,14 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
            (fun fmt (x, tau, arg) ->
-             Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a@ %a@ %a@]@ %a@ %a@]@ %a@\n" format_keyword
-               "let" format_var x format_punctuation ":" (Dcalc.Print.format_typ ctx) tau
+             Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@ %a@]@\n" format_keyword "let"
+               format_var x format_punctuation ":" (Dcalc.Print.format_typ ctx) tau
                format_punctuation "=" format_expr arg format_keyword "in"))
         xs_tau_arg format_expr body
   | EAbs ((binder, _), taus) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
-      Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" format_punctuation "λ"
+      Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_punctuation "λ"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
            (fun fmt (x, tau) ->
@@ -158,7 +148,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop
         (op, Pos.no_pos) format_with_parens arg2
-  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not !Cli.debug_flag ->
+  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
       Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" Dcalc.Print.format_unop (op, Pos.no_pos)
@@ -174,9 +164,14 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
   | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
   | ECatch (e1, exn, e2) ->
-      Format.fprintf fmt "@[<hov 2>try@ %a@ with@ %a ->@ %a@]" format_with_parens e1
-        format_exception exn format_with_parens e2
-  | ERaise exn -> Format.fprintf fmt "@[<hov 2>raise@ %a@]" format_exception exn
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a ->@ %a@]" format_keyword "try" format_with_parens
+        e1 format_keyword "with" format_exception exn format_with_parens e2
+  | ERaise exn -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_keyword "raise" format_exception exn
   | EAssert e' ->
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"
+
+let format_scope (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
+    (body : scope_body) : unit =
+  Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_keyword "let" format_var body.scope_body_var
+    format_punctuation "=" (format_expr decl_ctx ~debug) body.scope_body_expr
