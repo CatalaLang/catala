@@ -242,7 +242,7 @@ let add_reset_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) : R
         Nj.Expr.(
           Seq
             [
-              Lit "Resetting scope";
+              Lit "RESET scope";
               Var "scope";
               Lit "of file";
               Var "tested_file";
@@ -258,7 +258,7 @@ let add_reset_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) : R
         Nj.Expr.(
           Seq
             [
-              Lit "Resetting";
+              Lit "RESET";
               Lit "file";
               Var "tested_file";
               Lit "with the";
@@ -295,7 +295,7 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) : Ru
         Nj.Expr.(
           Seq
             [
-              Lit "Testing scope";
+              Lit "TEST scope";
               Var "scope";
               Lit "of file";
               Var "tested_file";
@@ -311,11 +311,7 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) : Ru
         Nj.Expr.(
           Seq
             [
-              Lit "Testing on file";
-              Var "tested_file";
-              Lit "with the";
-              Var "catala_cmd";
-              Lit "command";
+              Lit "TEST on file"; Var "tested_file"; Lit "with the"; Var "catala_cmd"; Lit "command";
             ])
   in
   Nj.RuleMap.(
@@ -513,7 +509,16 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
           Nj.write out ninja;
           close_out out;
           Cli.debug_print "executing 'ninja test'...";
-          Sys.command "ninja test"
+
+          if 0 == Sys.command "ninja test" then (
+            Cli.result_print
+              (Format.asprintf "for all tests in %s: %s "
+                 (Cli.print_with_style
+                    [ ANSITerminal.magenta; ANSITerminal.Bold ]
+                    "%s" file_or_folder)
+                 (Cli.print_with_style [ ANSITerminal.green; ANSITerminal.Bold ] "PASS"));
+            0)
+          else -1
       | None -> -1)
   | "run" -> (
       match scope with
