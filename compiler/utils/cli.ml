@@ -81,6 +81,8 @@ type backend_option =
   | Typecheck
   | OCaml
   | Python
+  | Scalc
+  | Lcalc
   | Dcalc
   | Scopelang
   | Proof
@@ -162,8 +164,17 @@ let info =
            Catala program. Use the $(b,-s) option to restrict the output to a particular scope." );
       `I
         ( "$(b,Dcalc)",
-          "Prints a debugging verbatim of the scope language intermediate representation of the \
+          "Prints a debugging verbatim of the default calculus intermediate representation of the \
            Catala program. Use the $(b,-s) option to restrict the output to a particular scope." );
+      `I
+        ( "$(b,Lcalc)",
+          "Prints a debugging verbatim of the lambda calculus intermediate representation of the \
+           Catala program. Use the $(b,-s) option to restrict the output to a particular scope." );
+      `I
+        ( "$(b,Scalc)",
+          "Prints a debugging verbatim of the statement calculus intermediate representation of \
+           the Catala program. Use the $(b,-s) option to restrict the output to a particular \
+           scope." );
       `S Manpage.s_authors;
       `P "The authors are listed by alphabetical order.";
       `P "Nicolas Chataing <nicolas.chataing@ens.fr>";

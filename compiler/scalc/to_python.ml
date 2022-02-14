@@ -420,8 +420,9 @@ let format_program (fmt : Format.formatter) (p : Ast.program)
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-       (fun fmt (name, { Ast.func_params; Ast.func_body }) ->
-         Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_toplevel_name name
+       (fun fmt body ->
+         let { Ast.func_params; Ast.func_body } = body.scope_body_func in
+         Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_toplevel_name body.scope_body_var
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
               (fun fmt (var, typ) ->

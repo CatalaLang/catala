@@ -107,7 +107,7 @@ let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.
       Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_typ_with_parens t1 format_operator "→"
         format_typ t2
   | TArray t1 -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_base_type "array" format_typ t1
-  | TAny -> Format.fprintf fmt "any"
+  | TAny -> format_base_type fmt "any"
 
 (* (EmileRolley) NOTE: seems to be factorizable with Lcalc.Print.format_lit. *)
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
@@ -229,13 +229,13 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
         (fst (List.nth (Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ @[<hov 2>%a@]@]" format_keyword "match" format_expr e
+      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" format_keyword "match" format_expr e
         format_keyword "with"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n| ")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun fmt (e, c) ->
-             Format.fprintf fmt "@[<hov 2>%a%a@ %a@]" format_enum_constructor c format_punctuation
-               ":" format_expr e))
+             Format.fprintf fmt "@[<hov 2>%a %a%a@ %a@]" format_punctuation "|"
+               format_enum_constructor c format_punctuation ":" format_expr e))
         (List.combine es (List.map fst (Ast.EnumMap.find e_name ctx.ctx_enums)))
   | ELit l -> format_lit fmt (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
