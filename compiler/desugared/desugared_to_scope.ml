@@ -124,8 +124,8 @@ let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
 (** Translates a definition inside a scope, the resulting expression should be an {!constructor:
     Dcalc.Ast.EDefault} *)
 let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Pos.marked) ~(is_cond : bool) ~(is_subscope_var : bool) :
-    Scopelang.Ast.expr Pos.marked =
+    (typ : Scopelang.Ast.typ Pos.marked) (io : Scopelang.Ast.io) ~(is_cond : bool)
+    ~(is_subscope_var : bool) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func = match Pos.unmark typ with Scopelang.Ast.TArrow (_, _) -> true | _ -> false in
   let is_rule_func _ (r : Ast.rule) : bool = Option.is_some r.Ast.rule_parameter in
@@ -161,7 +161,8 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
     (if is_cond then Ast.always_false_rule else Ast.empty_rule) Pos.no_pos is_def_func_param_typ
   in
   if
-    Ast.RuleMap.cardinal def = 0 && is_subscope_var
+    Ast.RuleMap.cardinal def = 0
+    && is_subscope_var
     (* Here we have a special case for the empty definitions. Indeed, we could use the code for the
        regular case below that would create a convoluted default always returning empty error, and
        this would be correct. But it gets more complicated with functions. Indeed, if we create an
@@ -176,6 +177,12 @@ let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
        To avoid this complication we special case here and put an empty error for all subscope
        variables that are not defined. It covers the subtlety with functions described above but
        also conditions with the false default value. *)
+    && not
+         (is_cond
+         && match Pos.unmark io.Scopelang.Ast.io_input with OnlyInput -> true | _ -> false)
+    (* However, this special case suffers from an exception: when a condition is defined as an
+       OnlyInput to a subscope, since the [false] default value will not be provided by the calee
+       scope, it has to be placed in the caller. *)
   then (ELit LEmptyError, Pos.no_pos)
   else
     Bindlib.unbox
@@ -198,28 +205,59 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
       (List.map
          (fun vertex ->
            match vertex with
-           | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) ->
+           | Dependency.Vertex.Var (var : Scopelang.Ast.ScopeVar.t) -> (
                let scope_def = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
                let var_def = scope_def.scope_def_rules in
                let var_typ = scope_def.scope_def_typ in
                let is_cond = scope_def.scope_def_is_condition in
-               let expr_def =
-                 translate_def (Ast.ScopeDef.Var var) var_def var_typ ~is_cond
-                   ~is_subscope_var:false
-               in
-               [
-                 Scopelang.Ast.Definition
-                   ( ( Scopelang.Ast.ScopeVar
-                         (var, Pos.get_position (Scopelang.Ast.ScopeVar.get_info var)),
-                       Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) ),
-                     var_typ,
-                     expr_def );
-               ]
+               match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+               | OnlyInput when not (Ast.RuleMap.is_empty var_def) ->
+                   (* If the variable is tagged as input, then it shall not be redefined. *)
+                   Errors.raise_multispanned_error
+                     "It is impossible to give a definition to a scope variable tagged as input."
+                     (( Some "Incriminated variable:",
+                        Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) )
+                     :: List.map
+                          (fun (rule, _) ->
+                            ( Some "Incriminated variable definition:",
+                              Pos.get_position (Ast.RuleName.get_info rule) ))
+                          (Ast.RuleMap.bindings var_def))
+               | OnlyInput -> [] (* we do not provide any definition for an input-only variable *)
+               | _ ->
+                   let expr_def =
+                     translate_def (Ast.ScopeDef.Var var) var_def var_typ scope_def.Ast.scope_def_io
+                       ~is_cond ~is_subscope_var:false
+                   in
+                   [
+                     Scopelang.Ast.Definition
+                       ( ( Scopelang.Ast.ScopeVar
+                             (var, Pos.get_position (Scopelang.Ast.ScopeVar.get_info var)),
+                           Pos.get_position (Scopelang.Ast.ScopeVar.get_info var) ),
+                         var_typ,
+                         scope_def.Ast.scope_def_io,
+                         expr_def );
+                   ])
            | Dependency.Vertex.SubScope sub_scope_index ->
                (* Before calling the sub_scope, we need to include all the re-definitions of
                   subscope parameters*)
                let sub_scope =
                  Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
+               in
+               let sub_scope_vars_redefs_candidates =
+                 Ast.ScopeDefMap.filter
+                   (fun def_key scope_def ->
+                     match def_key with
+                     | Ast.ScopeDef.Var _ -> false
+                     | Ast.ScopeDef.SubScopeVar (sub_scope_index', _) ->
+                         sub_scope_index = sub_scope_index'
+                         (* We exclude subscope variables that have 0 re-definitions and are not
+                            visible in the input of the subscope *)
+                         && not
+                              ((match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+                               | Scopelang.Ast.NoInput -> true
+                               | _ -> false)
+                              && Ast.RuleMap.is_empty scope_def.scope_def_rules))
+                   scope.scope_defs
                in
                let sub_scope_vars_redefs =
                  Ast.ScopeDefMap.mapi
@@ -230,8 +268,41 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                      match def_key with
                      | Ast.ScopeDef.Var _ -> assert false (* should not happen *)
                      | Ast.ScopeDef.SubScopeVar (_, sub_scope_var) ->
+                         (* This definition redefines a variable of the correct subscope. But we
+                            have to check that this redefinition is allowed with respect to the io
+                            parameters of that subscope variable. *)
+                         (match Pos.unmark scope_def.Ast.scope_def_io.io_input with
+                         | Scopelang.Ast.NoInput ->
+                             Errors.raise_multispanned_error
+                               "It is impossible to give a definition to a subscope variable not \
+                                tagged as input or context."
+                               ((Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key)
+                               :: ( Some "Incriminated variable:",
+                                    Pos.get_position (Scopelang.Ast.ScopeVar.get_info sub_scope_var)
+                                  )
+                               :: List.map
+                                    (fun (rule, _) ->
+                                      ( Some "Incriminated subscope variable definition:",
+                                        Pos.get_position (Ast.RuleName.get_info rule) ))
+                                    (Ast.RuleMap.bindings def))
+                         | OnlyInput when Ast.RuleMap.is_empty def && not is_cond ->
+                             (* If the subscope variable is tagged as input, then it shall be
+                                defined. *)
+                             Errors.raise_multispanned_error
+                               "This subscope variable is a mandatory input but no definition was \
+                                provided."
+                               [
+                                 (Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key);
+                                 ( Some "Incriminated variable:",
+                                   Pos.get_position (Scopelang.Ast.ScopeVar.get_info sub_scope_var)
+                                 );
+                               ]
+                         | _ -> ());
+                         (* Now that all is good, we can proceed with translating this redefinition
+                            to a proper Scopelang term. *)
                          let expr_def =
-                           translate_def def_key def def_typ ~is_cond ~is_subscope_var:true
+                           translate_def def_key def def_typ scope_def.Ast.scope_def_io ~is_cond
+                             ~is_subscope_var:true
                          in
                          let subscop_real_name =
                            Scopelang.Ast.SubScopeMap.find sub_scope_index scope.scope_sub_scopes
@@ -246,14 +317,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                                    (sub_scope_var, var_pos) ),
                                var_pos ),
                              def_typ,
+                             scope_def.Ast.scope_def_io,
                              expr_def ))
-                   (Ast.ScopeDefMap.filter
-                      (fun def_key _def ->
-                        match def_key with
-                        | Ast.ScopeDef.Var _ -> false
-                        | Ast.ScopeDef.SubScopeVar (sub_scope_index', _) ->
-                            sub_scope_index = sub_scope_index')
-                      scope.scope_defs)
+                   sub_scope_vars_redefs_candidates
                in
                let sub_scope_vars_redefs =
                  List.map snd (Ast.ScopeDefMap.bindings sub_scope_vars_redefs)
@@ -269,8 +335,9 @@ let translate_scope (scope : Ast.scope) : Scopelang.Ast.scope_decl =
   let scope_sig =
     Scopelang.Ast.ScopeVarSet.fold
       (fun var acc ->
-        let typ = (Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs).scope_def_typ in
-        Scopelang.Ast.ScopeVarMap.add var typ acc)
+        let scope_def = Ast.ScopeDefMap.find (Ast.ScopeDef.Var var) scope.scope_defs in
+        let typ = scope_def.scope_def_typ in
+        Scopelang.Ast.ScopeVarMap.add var (typ, scope_def.scope_def_io) acc)
       scope.scope_vars Scopelang.Ast.ScopeVarMap.empty
   in
   {

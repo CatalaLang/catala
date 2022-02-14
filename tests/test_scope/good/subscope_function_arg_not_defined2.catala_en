@@ -3,18 +3,18 @@
 ```catala
 declaration scope Callee:
   context function condition depends on integer
-  context input content integer
-  context output condition
+  context input_v content integer
+  context output output_v condition
 
 declaration scope Caller:
-  context callee scope Callee
+  callee scope Callee
 
 
 scope Callee:
   rule function of x under condition x = 0 consequence fulfilled
-  definition output equals function of input
+  definition output_v equals function of input_v
 
 scope Caller:
-  definition callee.input equals 0
-  assertion callee.output
+  definition callee.input_v equals 0
+  assertion callee.output_v
 ```

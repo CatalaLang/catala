@@ -5,8 +5,8 @@ declaration structure Person:
   data disabled content boolean
 
 declaration scope Benefit:
-  context person content Person
-  context benefit content money
+  context output person content Person
+  context output benefit content money
 
 scope Benefit:
   definition person equals Person {

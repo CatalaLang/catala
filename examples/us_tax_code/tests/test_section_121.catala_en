@@ -4,16 +4,16 @@
 
 ```catala
 declaration scope Data:
-  context period_four_years_recent content Period
-  context period_one_year_recent content Period
-  context period_two_years_middle content Period
-  context date_of_sale_or_exchange content date
-  context gain_from_sale_or_exchange_of_property content money
-  context return_date content date
-  context person_ok_1 content PersonalData
-  context person_ok_2 content PersonalData
-  context person_ko_1 content PersonalData
-  context person_ko_2 content PersonalData
+  output period_four_years_recent content Period
+  output period_one_year_recent content Period
+  output period_two_years_middle content Period
+  output date_of_sale_or_exchange content date
+  output gain_from_sale_or_exchange_of_property content money
+  output return_date content date
+  output person_ok_1 content PersonalData
+  output person_ok_2 content PersonalData
+  output person_ko_1 content PersonalData
+  output person_ko_2 content PersonalData
 
 scope Data:
   definition date_of_sale_or_exchange equals |2021-01-01|
@@ -60,8 +60,8 @@ scope Data:
 ####################### Testing Section121SinglePerson #########################
 
 declaration scope Test1:
-  context scope121a scope Section121SinglePerson
-  context data_ scope Data
+  scope121a scope Section121SinglePerson
+  data_ scope Data
 
 scope Test1:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
@@ -74,8 +74,8 @@ scope Test1:
   assertion scope121a.requirements_met
 
 declaration scope Test2:
-  context scope121a scope Section121SinglePerson
-  context data_ scope Data
+  scope121a scope Section121SinglePerson
+  data_ scope Data
 
 scope Test2:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
@@ -88,8 +88,8 @@ scope Test2:
   assertion not scope121a.requirements_met
 
 declaration scope Test3:
-  context scope121a scope Section121SinglePerson
-  context data_ scope Data
+  scope121a scope Section121SinglePerson
+  data_ scope Data
 
 scope Test3:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
@@ -102,8 +102,8 @@ scope Test3:
   assertion not scope121a.requirements_met
 
 declaration scope Test4:
-  context scope121a scope Section121SinglePerson
-  context data_ scope Data
+  scope121a scope Section121SinglePerson
+  data_ scope Data
 
 scope Test4:
   definition scope121a.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
@@ -118,8 +118,8 @@ scope Test4:
 ###################### Testing Section121TwoPersons ############################
 
 declaration scope Test5:
-    context scope121 scope Section121TwoPersons
-    context data_ scope Data
+    scope121 scope Section121TwoPersons
+    data_ scope Data
 
 scope Test5:
    definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange
@@ -130,8 +130,8 @@ scope Test5:
    assertion scope121.income_excluded_from_gross_income = $250,000
 
 declaration scope Test6:
-    context scope121 scope Section121TwoPersons
-    context data_ scope Data
+    scope121 scope Section121TwoPersons
+    data_ scope Data
 
 scope Test6:
    definition scope121.date_of_sale_or_exchange equals data_.date_of_sale_or_exchange

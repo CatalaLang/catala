@@ -111,18 +111,23 @@ module MakeBackendIO (B : Backend) = struct
             (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
     in
     let counterexample : string option =
-      match model with
-      | None ->
-          Some
-            "The solver did not manage to generate a counterexample to explain the faulty behavior."
-      | Some model ->
-          if B.is_model_empty model then None
-          else
+      if !Cli.disable_counterexamples then
+        Some "Counterexample generation is disabled so none was generated."
+      else
+        match model with
+        | None ->
             Some
-              (Format.asprintf
-                 "The solver generated the following counterexample to explain the faulty behavior:\n\
-                  %s"
-                 (B.print_model ctx model))
+              "The solver did not manage to generate a counterexample to explain the faulty \
+               behavior."
+        | Some model ->
+            if B.is_model_empty model then None
+            else
+              Some
+                (Format.asprintf
+                   "The solver generated the following counterexample to explain the faulty \
+                    behavior:\n\
+                    %s"
+                   (B.print_model ctx model))
     in
     var_and_pos
     ^ match counterexample with None -> "" | Some counterexample -> "\n" ^ counterexample

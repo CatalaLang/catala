@@ -8,7 +8,7 @@ declaration structure Period:
 declaration scope PeriodMerge:
   context periods1 content collection Period
   context periods2 content collection Period
-  context output content collection Period
+  output output_periods content collection Period
 
 scope PeriodMerge:
   # Placeholders, overwritten by caller
@@ -18,7 +18,7 @@ scope PeriodMerge:
   # TODO: find a way to implement the merging of two collections of date
   # periods into a single non-overlapping collection of date periods such
   # that the output covers both input date ranges.
-  definition output equals []
+  definition output_periods equals []
 
 declaration structure PreviousSaleWhereSection121aApplied:
   data date_of_sale_or_exchange content date
@@ -30,23 +30,23 @@ declaration enumeration OtherSection121aSale:
     PreviousSaleWhereSection121aApplied
 
 declaration scope Section121SinglePerson:
-  context requirements_met condition
-  context requirements_ownership_met condition
-  context requirements_usage_met condition
-  context date_of_sale_or_exchange content date
-  context property_ownage content collection Period
+  output requirements_met condition
+  output requirements_ownership_met condition
+  output requirements_usage_met condition
+  input date_of_sale_or_exchange content date
+  input property_ownage content collection Period
   # Invariant: the periods in the collection are disjoint
-  context property_usage_as_principal_residence
+  input property_usage_as_principal_residence
     content collection Period
   # Invariant: the periods in the collection are disjoint
-  context aggregate_periods_from_last_five_years content duration
+  internal aggregate_periods_from_last_five_years content duration
     depends on collection Period
-  context gain_cap content money
-  context gain_from_sale_or_exchange_of_property content money
-  context income_excluded_from_gross_income_uncapped content money
-  context income_excluded_from_gross_income content money
-  context section_121_b_3_applies condition
-  context other_section_121a_sale content OtherSection121aSale
+  context output gain_cap content money
+  input gain_from_sale_or_exchange_of_property content money
+  output income_excluded_from_gross_income_uncapped content money
+  output income_excluded_from_gross_income content money
+  context output section_121_b_3_applies condition
+  input other_section_121a_sale content OtherSection121aSale
 
 declaration structure PersonalData:
   data property_ownage content collection Period
@@ -69,22 +69,22 @@ declaration enumeration ReturnType:
   -- SingleReturnSurvivingSpouse content DeadSpouseInfo
 
 declaration scope Section121TwoPersons:
-  context person1 content PersonalData
-  context section121Person1 scope Section121SinglePerson
-  context person2 content PersonalData
-  context section121Person2 scope Section121SinglePerson
-  context section121a_requirements_met condition
-  context section_121_b_2_A_condition condition
-  context gain_cap_person_1 content money
-  context gain_cap_person_2 content money
+  context output person1 content PersonalData
+  section121Person1 scope Section121SinglePerson
+  context output person2 content PersonalData
+  section121Person2 scope Section121SinglePerson
+  internal section121a_requirements_met condition
+  output section_121_b_2_A_condition condition
+  output gain_cap_person_1 content money
+  output gain_cap_person_2 content money
   context gain_cap content money
-  context return_type content ReturnType
-  context return_date content date
-  context date_of_sale_or_exchange content date
-  context gain_from_sale_or_exchange_of_property content money
-  context income_excluded_from_gross_income_uncapped content money
-  context income_excluded_from_gross_income content money
-  context period_merge scope PeriodMerge
+  input return_type content ReturnType
+  input return_date content date
+  input date_of_sale_or_exchange content date
+  input gain_from_sale_or_exchange_of_property content money
+  output income_excluded_from_gross_income_uncapped content money
+  output income_excluded_from_gross_income content money
+  period_merge scope PeriodMerge
 
 # Defining sub-scopes arguments
 scope Section121TwoPersons:
@@ -128,14 +128,14 @@ scope Section121TwoPersons:
   definition gain_cap_person_2 equals section121Person2.gain_cap
 
 declaration scope Section121TwoPasses:
-  context first_pass scope Section121TwoPersons
-  context second_pass scope Section121TwoPersons
-  context return_type content ReturnType
-  context return_date content date
-  context date_of_sale_or_exchange content date
-  context gain_from_sale_or_exchange_of_property content money
-  context period_merge scope PeriodMerge
-  context income_excluded_from_gross_income content money
+  first_pass scope Section121TwoPersons
+  second_pass scope Section121TwoPersons
+  input return_type content ReturnType
+  input return_date content date
+  input date_of_sale_or_exchange content date
+  input gain_from_sale_or_exchange_of_property content money
+  period_merge scope PeriodMerge
+  output income_excluded_from_gross_income content money
 
 # Defining sub-scopes arguments
 scope Section121TwoPasses:
@@ -323,13 +323,13 @@ scope Section121TwoPasses under condition
     -- SingleReturn of return : [] # does not happen
 
   definition second_pass.person1 equals PersonalData {
-    -- property_ownage: period_merge.output
+    -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
       first_pass.person1.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person1.other_section_121a_sale
   }
   definition second_pass.person2 equals PersonalData {
-    -- property_ownage: period_merge.output
+    -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
       first_pass.person2.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person2.other_section_121a_sale

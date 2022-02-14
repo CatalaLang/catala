@@ -1069,6 +1069,19 @@ let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.pro
   List.iter (check_unlabeled_exception scope_uid ctxt) use.scope_use_items;
   List.fold_left (process_scope_use_item precond scope_uid ctxt) prgm use.scope_use_items
 
+let attribute_to_io (attr : Ast.scope_decl_context_io) : Scopelang.Ast.io =
+  {
+    Scopelang.Ast.io_output = attr.scope_decl_context_io_output;
+    Scopelang.Ast.io_input =
+      Pos.map_under_mark
+        (fun io ->
+          match io with
+          | Ast.Input -> Scopelang.Ast.OnlyInput
+          | Ast.Internal -> Scopelang.Ast.NoInput
+          | Ast.Context -> Scopelang.Ast.Reentrant)
+        attr.scope_decl_context_io_input;
+  }
+
 (** Main function of this module *)
 let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desugared.Ast.program =
   let empty_prgm =
@@ -1094,20 +1107,16 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                 (let scope_vars_defs =
                    Desugared.Ast.IdentMap.fold
                      (fun _ v acc ->
-                       let x, y = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
+                       let v_sig = Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs in
                        let def_key = Desugared.Ast.ScopeDef.Var v in
                        Desugared.Ast.ScopeDefMap.add def_key
                          {
                            Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                           Desugared.Ast.scope_def_typ = x;
+                           Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
                            Desugared.Ast.scope_def_label_groups =
                              Name_resolution.label_groups ctxt s_uid def_key;
-                           Desugared.Ast.scope_def_is_condition = y;
-                           Desugared.Ast.scope_def_visibility =
-                             {
-                               Scopelang.Ast.visibility_input = true;
-                               Scopelang.Ast.visibility_output = true;
-                             };
+                           Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                           Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
                          }
                          acc)
                      s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty
@@ -1117,22 +1126,18 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                      (fun subscope_name subscope_uid acc ->
                        Desugared.Ast.IdentMap.fold
                          (fun _ v acc ->
-                           let x, y =
+                           let v_sig =
                              Scopelang.Ast.ScopeVarMap.find v ctxt.Name_resolution.var_typs
                            in
                            let def_key = Desugared.Ast.ScopeDef.SubScopeVar (subscope_name, v) in
                            Desugared.Ast.ScopeDefMap.add def_key
                              {
                                Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                               Desugared.Ast.scope_def_typ = x;
+                               Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
                                Desugared.Ast.scope_def_label_groups =
                                  Name_resolution.label_groups ctxt subscope_uid def_key;
-                               Desugared.Ast.scope_def_is_condition = y;
-                               Desugared.Ast.scope_def_visibility =
-                                 {
-                                   Scopelang.Ast.visibility_input = true;
-                                   Scopelang.Ast.visibility_output = true;
-                                 };
+                               Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                               Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
                              }
                              acc)
                          (Scopelang.Ast.ScopeMap.find subscope_uid ctxt.Name_resolution.scopes)

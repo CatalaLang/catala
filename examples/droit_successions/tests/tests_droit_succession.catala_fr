@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Enfants:
-  contexte base contenu Enfant dépend de entier
+  sortie base contenu Enfant dépend de entier
 
 champ d'application Enfants:
   définition base de identifiant égal à
@@ -18,7 +18,7 @@ champ d'application Enfants:
 
 ```catala
 déclaration champ d'application Test1:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
+  réserve_héréditaire champ d'application RéserveHéréditaire
 
 champ d'application Test1:
   définition réserve_héréditaire.patrimoine_total égal à 300 000€
@@ -29,8 +29,8 @@ champ d'application Test1:
 
 ```catala
 déclaration champ d'application Test2:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test2:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €
@@ -41,8 +41,8 @@ champ d'application Test2:
 
 ```catala
 déclaration champ d'application Test3:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test3:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €
@@ -54,8 +54,8 @@ champ d'application Test3:
 
 ```catala
 déclaration champ d'application Test4:
-  contexte réserve_héréditaire champ d'application RéserveHéréditaire
-  contexte enfants champ d'application Enfants
+  réserve_héréditaire champ d'application RéserveHéréditaire
+  enfants champ d'application Enfants
 
 champ d'application Test4:
   définition réserve_héréditaire.patrimoine_total égal à 300 000 €

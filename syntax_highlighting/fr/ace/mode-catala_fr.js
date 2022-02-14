@@ -63,9 +63,9 @@ ace.define(
             regex: "(\\s*\\#.*$)",
           },
           {
-            token: ["keyword.other", "text", "entity.name.function"],
+            token: ["keyword.other", "text", "keyword.other", "text", "entity.name.function"],
             regex:
-              "(contexte)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00d4\u00ca\u0152\u00c70-9_\\']*)",
+              "(contexte|entr\u00e9e|sortie|interne)(\\s*)(|sortie)(\\s+)([a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7][a-z\u00e9\u00e8\u00e0\u00e2\u00f9\u00ee\u00f4\u00ea\u0153\u00e7A-Z\u00c9\u00c8\u00c0\u00c2\u00d9\u00ce\u00d4\u00ca\u0152\u00c70-9_\\']*)",
           },
           {
             token: "keyword.control",
@@ -75,7 +75,7 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|collection|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tiquette|exception|n'importe\\s+quel)\\b",
+              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|collection|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|entr\u00e9e|sortie|interne|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tiquette|exception|n'importe\\s+quel)\\b",
           },
           {
             token: "constant.numeric",

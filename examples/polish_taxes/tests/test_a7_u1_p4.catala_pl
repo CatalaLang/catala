@@ -4,7 +4,7 @@
 
 ```catala
 deklaracja zakres Test_A7_U1_P4:
-  kontekst sprzedaz zakres PozyczkaLubDepozytNieprawidlowy
+  sprzedaz zakres PozyczkaLubDepozytNieprawidlowy
 
 zakres Test_A7_U1_P4:
   definicja sprzedaz.kwota wynosi 200 PLN

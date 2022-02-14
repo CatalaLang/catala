@@ -495,12 +495,35 @@ struct_scope:
   }, Pos.from_lpos $sloc)
 }
 
-scope_decl_item_attribute:
+scope_decl_item_attribute_input:
 | CONTEXT { Context, Pos.from_lpos $sloc }
 | INPUT { Input, Pos.from_lpos $sloc }
-| OUTPUT { Output, Pos.from_lpos $sloc }
-| INTERNAL { Internal, Pos.from_lpos $sloc }
-| { Context, Pos.from_lpos $sloc }
+
+scope_decl_item_attribute_output:
+| OUTPUT { true, Pos.from_lpos $sloc }
+| { false, Pos.from_lpos $sloc }
+
+scope_decl_item_attribute:
+| input = scope_decl_item_attribute_input
+  output = scope_decl_item_attribute_output {
+    {
+      scope_decl_context_io_input = input;
+      scope_decl_context_io_output = output
+    }
+  }
+| INTERNAL {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
+    }
+  }
+| OUTPUT {
+    {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
+    }
+  }
+
 
 scope_decl_item:
 | attr = scope_decl_item_attribute i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
@@ -516,14 +539,17 @@ scope_decl_item:
     }, Pos.from_lpos $sloc);
   }), Pos.from_lpos $sloc)
 }
-| attr = scope_decl_item_attribute i = ident SCOPE c = constructor {
+| i = ident SCOPE c = constructor {
   (ContextScope({
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
-    scope_decl_context_scope_attribute = attr;
+    scope_decl_context_scope_attribute = {
+      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
+      scope_decl_context_io_output = (false, Pos.from_lpos $sloc);
+    };
   }), Pos.from_lpos $sloc)
 }
-| attr = scope_decl_item_attribute i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
+| attr = scope_decl_item_attribute  i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
   (ContextData ({
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;

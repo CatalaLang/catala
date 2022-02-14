@@ -79,7 +79,7 @@ type scope_def = {
   scope_def_rules : rule RuleMap.t;
   scope_def_typ : Scopelang.Ast.typ Pos.marked;
   scope_def_is_condition : bool;
-  scope_def_visibility : Scopelang.Ast.visibility;
+  scope_def_io : Scopelang.Ast.io;
   scope_def_label_groups : RuleSet.t LabelMap.t;
 }
 

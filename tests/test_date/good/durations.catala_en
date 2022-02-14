@@ -2,13 +2,13 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content date
-  context z content boolean
-  context z2 content boolean
-  context z3 content duration
-  context d content decimal
-  context d2 content decimal
+  context output x content date
+  context output y content date
+  context output z content boolean
+  context output z2 content boolean
+  context output z3 content duration
+  context output d content decimal
+  context output d2 content decimal
 
 scope A:
   definition x equals |2019-01-01|
