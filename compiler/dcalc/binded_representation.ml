@@ -81,18 +81,13 @@ let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
     scope_lets Bindlib.box =
   let pos = snd scope_let.D.scope_let_var in
 
-  Cli.debug_print
-  @@ Format.asprintf "binding let %a. Variable occurs = %b" Print.format_var
-       (fst scope_let.D.scope_let_var)
-       (Bindlib.occur (fst scope_let.D.scope_let_var) acc);
-
+  (* Cli.debug_print @@ Format.asprintf "binding let %a. Variable occurs = %b" Print.format_var (fst
+     scope_let.D.scope_let_var) (Bindlib.occur (fst scope_let.D.scope_let_var) acc); *)
   let binder = Bindlib.bind_var (fst scope_let.D.scope_let_var) acc in
   Bindlib.box_apply2
     (fun expr binder ->
-      Cli.debug_print
-      @@ Format.asprintf "free variables in expression: %a"
-           (Format.pp_print_list Print.format_var)
-           (D.free_vars expr);
+      (* Cli.debug_print @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list
+         Print.format_var) (D.free_vars expr); *)
       ScopeLet
         {
           scope_let_kind = scope_let.D.scope_let_kind;
@@ -111,15 +106,15 @@ let bind_scope_body (body : D.scope_body) : scope_body Bindlib.box =
       ~f:(Fun.flip bind_scope_lets)
   in
 
-  Cli.debug_print @@ Format.asprintf "binding arg %a" Print.format_var body.D.scope_body_arg;
+  (* Cli.debug_print @@ Format.asprintf "binding arg %a" Print.format_var body.D.scope_body_arg; *)
   let scope_body_result = Bindlib.bind_var body.D.scope_body_arg body_result in
 
-  Cli.debug_print
-  @@ Format.asprintf "isfinal term is closed: %b" (Bindlib.is_closed scope_body_result);
+  (* Cli.debug_print @@ Format.asprintf "isfinal term is closed: %b" (Bindlib.is_closed
+     scope_body_result); *)
   Bindlib.box_apply
     (fun scope_body_result ->
-      Cli.debug_print
-      @@ Format.asprintf "rank of the final term: %i" (Bindlib.binder_rank scope_body_result);
+      (* Cli.debug_print @@ Format.asprintf "rank of the final term: %i" (Bindlib.binder_rank
+         scope_body_result); *)
       {
         scope_body_output_struct = body.D.scope_body_output_struct;
         scope_body_input_struct = body.D.scope_body_input_struct;
@@ -137,10 +132,6 @@ let bind_scope
 let bind_scopes (scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list) :
     scopes Bindlib.box =
   let result = ListLabels.fold_right scopes ~init:(Bindlib.box Nil) ~f:bind_scope in
-
-  Cli.debug_print
-  @@ Format.asprintf "free variable in the program : [%a]"
-       (Format.pp_print_list Print.format_var)
-       (free_vars_scopes (Bindlib.unbox result));
-
+  (* Cli.debug_print @@ Format.asprintf "free variable in the program : [%a]" (Format.pp_print_list
+     Print.format_var) (free_vars_scopes (Bindlib.unbox result)); *)
   result

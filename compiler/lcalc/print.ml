@@ -111,7 +111,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Fo
         (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
         format_expr e
   | EMatch (e, es, e_name) ->
-      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" format_keyword "match" format_expr e
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" format_keyword "match" format_expr e
         format_keyword "with"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
