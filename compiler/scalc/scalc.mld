@@ -8,7 +8,7 @@ rules in the language, every local variable has a unique id.
 
 The module describing the abstract syntax tree is:
 
-{!modules: Scalc.Ast}
+{!modules: Scalc.Ast Scalc.Print}
 
 {1 Compilation from lambda calculus }
 

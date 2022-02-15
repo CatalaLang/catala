@@ -7,7 +7,7 @@ default term, which has been eliminated through diverse compilation schemes.
 
 The module describing the abstract syntax tree is:
 
-{!modules: Lcalc.Ast}
+{!modules: Lcalc.Ast Lcalc.Print}
 
 This intermediate representation corresponds to the lambda calculus
 presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.

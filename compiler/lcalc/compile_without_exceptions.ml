@@ -405,7 +405,7 @@ let translate_scope_body (scope_pos : Pos.t) (_decl_ctx : D.decl_ctx) (ctx : ctx
         Pos.no_pos
 
 let rec translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) :
-    (A.expr Bindlib.var * (A.expr * Pos.t)) list Bindlib.box =
+    Ast.scope_body list Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box []
   | ScopeDef { scope_name; scope_body; scope_next } ->
@@ -418,10 +418,17 @@ let rec translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) :
       let new_body = translate_scope_body scope_pos decl_ctx ctx scope_body in
       let tail = translate_scopes decl_ctx new_ctx next in
 
-      Bindlib.box_apply2 (fun body tail -> (new_scope_name, body) :: tail) new_body tail
+      Bindlib.box_apply2
+        (fun body tail ->
+          {
+            Ast.scope_body_var = new_scope_name;
+            scope_body_name = scope_name;
+            scope_body_expr = body;
+          }
+          :: tail)
+        new_body tail
 
-let translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) :
-    (A.expr Bindlib.var * (A.expr * Pos.t)) list =
+let translate_scopes (decl_ctx : D.decl_ctx) (ctx : ctx) (scopes : scopes) : Ast.scope_body list =
   Bindlib.unbox (translate_scopes decl_ctx ctx scopes)
 
 let translate_program (prgm : D.program) : A.program =

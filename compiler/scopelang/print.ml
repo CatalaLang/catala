@@ -77,13 +77,14 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EEnumInj (e1, cons, _) ->
       Format.fprintf fmt "%a@ %a" Ast.EnumConstructor.format_t cons format_expr e1
   | EMatch (e1, _, cases) ->
-      Format.fprintf fmt "@[<hov 2>@[%a@ %a@ %a@]@ %a@]" Dcalc.Print.format_keyword "match"
+      Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" Dcalc.Print.format_keyword "match"
         format_expr e1 Dcalc.Print.format_keyword "with"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " Dcalc.Print.format_punctuation "|")
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun fmt (cons_name, case_expr) ->
-             Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Ast.EnumConstructor.format_t cons_name
-               Dcalc.Print.format_punctuation "→" format_expr case_expr))
+             Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" Dcalc.Print.format_punctuation "|"
+               Dcalc.Print.format_enum_constructor cons_name Dcalc.Print.format_punctuation "→"
+               format_expr case_expr))
         (Ast.EnumConstructorMap.bindings cases)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
@@ -104,7 +105,9 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
       Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" Dcalc.Print.format_punctuation "λ"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " ")
-           (fun fmt (x, tau) -> Format.fprintf fmt "@[(%a:@ %a)@]" format_var x format_typ tau))
+           (fun fmt (x, tau) ->
+             Format.fprintf fmt "@[%a%a%a@ %a%a@]" Dcalc.Print.format_punctuation "(" format_var x
+               Dcalc.Print.format_punctuation ":" format_typ tau Dcalc.Print.format_punctuation ")"))
         xs_tau Dcalc.Print.format_punctuation "→" format_expr body
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[%a@ %a@ %a@]" format_with_parens arg1 Dcalc.Print.format_binop
@@ -163,32 +166,27 @@ let format_enum (fmt : Format.formatter)
     cases
 
 let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_decl) : unit =
-  Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@ %a@]@\n@[<hov 2>  %a@]" Dcalc.Print.format_keyword
+  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Dcalc.Print.format_keyword
     "let" Dcalc.Print.format_keyword "scope" ScopeName.format_t name
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
        (fun fmt (scope_var, (typ, vis)) ->
-         Format.fprintf fmt "%a%a%a %a%s%s%a" Dcalc.Print.format_punctuation "(" ScopeVar.format_t
+         Format.fprintf fmt "%a%a%a %a%a%a%a%a" Dcalc.Print.format_punctuation "(" ScopeVar.format_t
            scope_var Dcalc.Print.format_punctuation ":" format_typ typ
+           Dcalc.Print.format_punctuation "|" Dcalc.Print.format_keyword
            (match Pos.unmark vis.io_input with
-           | NoInput ->
-               Format.asprintf "%a%a" Dcalc.Print.format_punctuation "|" Dcalc.Print.format_keyword
-                 "internal"
-           | OnlyInput ->
-               Format.asprintf "%a%a" Dcalc.Print.format_punctuation "|" Dcalc.Print.format_keyword
-                 "input"
-           | Reentrant ->
-               Format.asprintf "%a%a" Dcalc.Print.format_punctuation "|" Dcalc.Print.format_keyword
-                 "context")
-           (if Pos.unmark vis.io_output then
-            Format.asprintf "%a%a" Dcalc.Print.format_punctuation "|" Dcalc.Print.format_keyword
-              "output"
-           else "")
-           Dcalc.Print.format_punctuation ")"))
+           | NoInput -> "internal"
+           | OnlyInput -> "input"
+           | Reentrant -> "context")
+           (if Pos.unmark vis.io_output then fun fmt () ->
+            Format.fprintf fmt "%a@,%a" Dcalc.Print.format_punctuation "|"
+              Dcalc.Print.format_keyword "output"
+           else fun fmt () -> Format.fprintf fmt "@<0>")
+           () Dcalc.Print.format_punctuation ")"))
     (ScopeVarMap.bindings decl.scope_sig)
     Dcalc.Print.format_punctuation "="
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@\n" Dcalc.Print.format_punctuation ";")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Dcalc.Print.format_punctuation ";")
        (fun fmt rule ->
          match rule with
          | Definition (loc, typ, _, e) ->
@@ -216,12 +214,17 @@ let format_scope (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_de
     decl.scope_decl_rules
 
 let format_program (fmt : Format.formatter) (p : program) : unit =
-  Format.fprintf fmt "%a%s%a%s%a"
-    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_struct)
+  Format.fprintf fmt "%a%a%a%a%a"
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n") format_struct)
     (StructMap.bindings p.program_structs)
-    (if StructMap.is_empty p.program_structs then "" else "\n\n")
-    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_enum)
+    (fun fmt () ->
+      if StructMap.is_empty p.program_structs then Format.fprintf fmt ""
+      else Format.fprintf fmt "\n\n")
+    ()
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n") format_enum)
     (EnumMap.bindings p.program_enums)
-    (if EnumMap.is_empty p.program_enums then "" else "\n\n")
-    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n") format_scope)
+    (fun fmt () ->
+      if EnumMap.is_empty p.program_enums then Format.fprintf fmt "" else Format.fprintf fmt "\n\n")
+    ()
+    (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n") format_scope)
     (ScopeMap.bindings p.program_scopes)

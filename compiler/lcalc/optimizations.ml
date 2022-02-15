@@ -92,10 +92,30 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   | _ -> visitor_map beta_expr () e
 
 let iota_optimizations (p : program) : program =
-  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (iota_expr () e))) p.scopes }
+  {
+    p with
+    scopes =
+      List.map
+        (fun scope_body ->
+          {
+            scope_body with
+            scope_body_expr = Bindlib.unbox (iota_expr () scope_body.scope_body_expr);
+          })
+        p.scopes;
+  }
 
 let _beta_optimizations (p : program) : program =
-  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (beta_expr () e))) p.scopes }
+  {
+    p with
+    scopes =
+      List.map
+        (fun scope_body ->
+          {
+            scope_body with
+            scope_body_expr = Bindlib.unbox (beta_expr () scope_body.scope_body_expr);
+          })
+        p.scopes;
+  }
 
 let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   let default_mark e' = Pos.mark (Pos.get_position e) e' in
@@ -110,7 +130,17 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib
   | _ -> visitor_map peephole_expr () e
 
 let peephole_optimizations (p : program) : program =
-  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr () e))) p.scopes }
+  {
+    p with
+    scopes =
+      List.map
+        (fun scope_body ->
+          {
+            scope_body with
+            scope_body_expr = Bindlib.unbox (peephole_expr () scope_body.scope_body_expr);
+          })
+        p.scopes;
+  }
 
 let optimize_program (p : program) : program = p |> iota_optimizations |> peephole_optimizations
 (* |> beta_optimizations *)

@@ -51,4 +51,10 @@ and block = stmt Pos.marked list
 
 and func = { func_params : (LocalName.t Pos.marked * D.typ Pos.marked) list; func_body : block }
 
-type program = { decl_ctx : D.decl_ctx; scopes : (TopLevelName.t * func) list }
+type scope_body = {
+  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_var : TopLevelName.t;
+  scope_body_func : func;
+}
+
+type program = { decl_ctx : D.decl_ctx; scopes : scope_body list }

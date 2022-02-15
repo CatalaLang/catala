@@ -32,9 +32,13 @@ val format_punctuation : Format.formatter -> string -> unit
 
 val format_operator : Format.formatter -> string -> unit
 
+val format_lit_style : Format.formatter -> string -> unit
+
 (** {1 Formatters} *)
 
 val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
+
+val format_enum_constructor : Format.formatter -> Ast.EnumConstructor.t -> unit
 
 val format_tlit : Format.formatter -> Ast.typ_lit -> unit
 

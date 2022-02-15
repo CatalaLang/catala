@@ -60,6 +60,8 @@ type backend_option =
   | Typecheck
   | OCaml
   | Python
+  | Scalc
+  | Lcalc
   | Dcalc
   | Scopelang
   | Proof

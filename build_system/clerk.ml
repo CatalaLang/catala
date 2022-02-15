@@ -98,6 +98,8 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
   | Cli.Typecheck -> "Typecheck"
+  | Cli.Scalc -> "Scalc"
+  | Cli.Lcalc -> "Lcalc"
 
 type expected_output_descr = {
   base_filename : string;
@@ -204,8 +206,8 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
                     Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
                       expected_output.complete_filename;
                   ]
-            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scopelang | Cli.Latex | Cli.Html
-            | Cli.Makefile ->
+            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scalc | Cli.Lcalc | Cli.Scopelang | Cli.Latex
+            | Cli.Html | Cli.Makefile ->
                 (* for those backends, the output of the Catala compiler will be written in a
                    temporary file which later we're going to diff with the *)
                 if reset_test_outputs then
