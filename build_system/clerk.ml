@@ -114,6 +114,8 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
   | Cli.Typecheck -> "Typecheck"
+  | Cli.Scalc -> "Scalc"
+  | Cli.Lcalc -> "Lcalc"
 
 type expected_output_descr = {
   base_filename : string;

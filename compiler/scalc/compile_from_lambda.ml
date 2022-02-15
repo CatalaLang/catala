@@ -244,14 +244,21 @@ let translate_program (p : L.program) : A.program =
     scopes =
       (let _, new_scopes =
          List.fold_left
-           (fun (func_dict, new_scopes) (scope_name, scope_expr) ->
+           (fun (func_dict, new_scopes) body ->
              let new_scope_params, new_scope_body =
-               translate_scope p.decl_ctx func_dict scope_expr
+               translate_scope p.decl_ctx func_dict body.Lcalc.Ast.scope_body_expr
              in
-             let func_id = A.TopLevelName.fresh (Bindlib.name_of scope_name, Pos.no_pos) in
-             let func_dict = L.VarMap.add scope_name func_id func_dict in
+             let func_id =
+               A.TopLevelName.fresh (Bindlib.name_of body.Lcalc.Ast.scope_body_var, Pos.no_pos)
+             in
+             let func_dict = L.VarMap.add body.Lcalc.Ast.scope_body_var func_id func_dict in
              ( func_dict,
-               (func_id, { A.func_params = new_scope_params; A.func_body = new_scope_body })
+               {
+                 Ast.scope_body_name = body.Lcalc.Ast.scope_body_name;
+                 Ast.scope_body_var = func_id;
+                 scope_body_func =
+                   { A.func_params = new_scope_params; A.func_body = new_scope_body };
+               }
                :: new_scopes ))
            ( L.VarMap.singleton L.handle_default
                (A.TopLevelName.fresh ("handle_default", Pos.no_pos)),
