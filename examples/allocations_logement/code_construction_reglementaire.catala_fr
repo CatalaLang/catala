@@ -95,6 +95,7 @@ est éteint à compter de l'ouverture du droit à l'aide personnalisée.
 ###### Section 1 : Conditions relatives au bénéficiaire
 
 ####### Article R822-1 | LEGIARTI000038879005
+
 Les seuils mentionnés au second alinéa de l'article L. 822-3 sont
 fixés à 10 % pour les parts de propriété et à 10 % pour les parts
 d'usufruit, sans que l'ensemble de ces parts puisse égaler ou dépasser
@@ -105,3 +106,750 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
   définition seuil_l822_3_parts_propriété égal à 10%
   définition seuil_l822_3_parts_usufruit égal à 10%
 ```
+
+###### Section 2 : Conditions relatives aux ressources
+
+####### Sous-section 1 : Modalités générales de l'appréciation des ressources
+
+######## Article R822-2 | LEGIARTI000041419135
+
+Les ressources prises en compte pour le calcul de l'aide personnelle au logement
+sont celles dont bénéficient le demandeur ou l'allocataire, son conjoint et
+les personnes vivant habituellement au foyer.
+
+```catala
+# Ici "conjoint" veut implicitement dire également "concubin" car on
+# a vu que les deux cas étaient gérés de la même manière précédemment.
+champ d'application RessourcesAidePersonnelleLogement:
+  définition ressources_prises_en_compte égal à
+    ressources_demandeur +€
+    ressources_conjoint +€
+    ressources_personnes_vivant_habituellement_foyer
+
+  définition ressources_personnes_vivant_habituellement_foyer égal à
+    somme argent pour personne dans personnes_vivant_habituellement_foyer de
+      personne.ressources
+```
+
+Sont considérées comme vivant habituellement au foyer les personnes y ayant
+résidé plus de six mois au cours de la période mentionnée au 1° de l'article
+R. 822-3 précédant la période de paiement prévue par l'article R. 823-6 et
+qui y résident encore au moment de la demande de l'aide ou du réexamen du
+droit à celle-ci.
+
+```catala
+champ d'application RessourcesAidePersonnelleLogement:
+  assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
+    personne.durée_résidence_durant_période_r_822_3_1 >=^ 6 mois
+# Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
+# des différentes périodes mentionnées et en forçant l'utilisateur à bien
+# remplir toutes ses périodes de résidence mais cela rendrait le formulaire
+# plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
+# comme celui utilisé à la CNAF.
+```
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+```catala
+# La nota ne nous concerne pas car on ne considère le calcul qu'après 2021.
+```
+
+######## Article R822-3 | LEGIARTI000041419142
+
+Les ressources et les charges prises en compte pour le calcul de l'aide
+personnelle au logement sont appréciées, tous les trois mois, sous réserve
+des dispositions prévues à l'article R. 823-6-1, selon les périodes de
+référence suivantes :
+
+1° Pour les ressources mentionnées à l'article R. 822-4 prises en compte par
+la déclaration sociale nominative définie à l' article L. 133-5-3 du code de
+la sécurité sociale et les revenus d'activité perçus hors de France ou versés
+par une organisation internationale, sur une période de référence courant du
+treizième au deuxième mois précédant la date d'ouverture ou de réexamen du
+droit à l'aide personnelle au logement ;
+
+2° Pour les pensions alimentaires versées ou perçues, les frais de tutelle,
+les frais professionnels exposés, lorsque ceux-ci excèdent la déduction
+forfaitaire mentionnée au 3° de l'article 83 du code général des impôts ,
+et pour l'assujettissement à l'impôt sur la fortune immobilière mentionné à
+l'article 964 du même code, sur une période de référence correspondant à
+l'année civile qui précède la date d'ouverture ou de réexamen du droit à
+l'aide personnelle au logement.
+
+A défaut de déclaration par le bénéficiaire des ressources mentionnées au 2°,
+sont pris en compte à titre provisoire lors du réexamen de ses droits :
+
+a) Pour les pensions alimentaires versées et les frais de tutelle exposés,
+un montant nul ;
+
+b) Pour les pensions alimentaires reçues, les dernières ressources connues
+deux ans avant la date d'ouverture ou de réexamen du droit ;
+
+c) Pour la déduction des frais professionnels, la déduction forfaitaire
+mentionnée au 3° de l'article 83 du code général des impôts .
+
+Ces montants provisoires donnent lieu, le cas échéant, à régularisation, au
+vu des données de l'année civile antérieure à la période de référence
+transmises par l'administration fiscale ;
+
+3° Pour les autres revenus imposables, sous réserve pour les travailleurs
+indépendants des dispositions de l'article R. 822-5, sur une période de
+référence correspondant à l'avant-dernière année précédant la date d'ouverture
+ou de réexamen du droit à l'aide personnelle au logement.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n°2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois
+respectifs fixés par arrêté des ministres en charge du logement, de la santé
+et du budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
+à l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à compter
+du mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-4 | LEGIARTI000041419156
+
+I.-Les ressources prises en compte s'entendent du total des revenus nets
+catégoriels retenus pour l'établissement de l'impôt sur le revenu, des revenus
+taxés à un taux proportionnel ou soumis à un prélèvement libératoire de l'impôt
+sur le revenu ainsi que des revenus perçus hors de France ou versés par une
+organisation internationale.
+
+Sont également pris en compte :
+
+1° Suivant les règles applicables en matière d'imposition aux traitements
+et salaires prévues au deuxième alinéa du 3° de l'article 83 et au 5 (a) de
+l'article 158 du code général des impôts, les indemnités journalières
+mentionnées au 2° de l'article L. 431-1 du code de la sécurité sociale ;
+
+2° Les rémunérations liées aux heures supplémentaires ou assimilées mentionnées
+à l'article 81 quater du code général des impôts après application d'une
+déduction calculée selon les mêmes règles que celles mentionnées au deuxième
+alinéa du 3° de l'article 83 du même code.
+
+II.-Sont déduits du décompte des ressources :
+
+1° Les créances alimentaires mentionnées au 2° du II de l'article 156 du code
+général des impôts et majorées dans les conditions prévues au 7 de l'article
+158 du même code ;
+
+2° L'abattement mentionné à l'article 157 bis du code général des impôts pour
+les personnes nées avant le 1er janvier 1931 et pour les personnes invalides.
+
+III.-Ne sont pas déduits du décompte des ressources les déficits constatés au
+cours d'une année antérieure à celle de la période de référence définie au 3°
+de l'article R. 822-3 et qui font l'objet d'un report, en vertu des dispositions
+du I de l'article 156 du code général des impôts.
+
+IV.-Ne sont pas pris en compte les arrérages des rentes viagères constituées
+en faveur d'une personne handicapée, mentionnés à l'article 199 septies du
+même code.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié :
+Ces dispositions sont applicables au calcul des droits, d'une part,
+à l'aide personnalisée au logement prévue pour les accédants à la propriété
+par l'article L. 831-1 du code de la construction et de l'habitation,
+d'autre part, aux autres aides personnelles au logement prévues par le
+même code, à compter des mois respectifs fixés par arrêté des ministres
+en charge du logement, de la santé et du budget et, au plus tard,
+du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits à
+l’aide personnalisée au logement prévue pour les accédants à la propriété par
+l’article L. 831-1 du code de la construction et de l’habitation, à compter du
+mois de mai 2021.
+
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-5 | LEGIARTI000041419180
+
+Les revenus professionnels des travailleurs indépendants sont ceux pris en
+compte dans la catégorie des bénéfices industriels et commerciaux, des
+bénéfices agricoles et des bénéfices non commerciaux de l'avant-dernière
+année précédant la date d'ouverture ou de réexamen du droit.
+
+Pour les travailleurs ayant débuté une activité indépendante postérieurement
+ou au cours de l'avant-dernière année précédant la date d'ouverture ou de
+réexamen du droit, les revenus professionnels sont calculés par l'organisme
+chargé du calcul des aides personnelles au logement en appliquant au montant
+du chiffre d'affaires ou du total des recettes déclarés par le demandeur ou
+l'allocataire pendant la période de référence visée au 1° de l'article
+R. 822-3 précédant l'examen ou la révision du droit, un abattement dont le
+taux correspond à celui qui est mentionné aux articles 50-0,64 bis et 102 ter
+du code général des impôts pour chaque catégorie d'activité mentionnée à ces
+articles.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-6 | LEGIARTI000038878991
+
+Ne sont prises en compte que pour la fraction dépassant (le plafond
+individuel prévu à l'article L. 815-9 du code de la sécurité sociale multiplié
+par 1,25) les ressources de chacune des personnes vivant habituellement au foyer
+qui sont :
+
+1° Soit enfants du bénéficiaire de l'aide ou de son conjoint ;
+
+2° Soit ascendants du bénéficiaire ou de son conjoint ayant atteint un âge au
+moins égal à celui prévu par l'article L. 161-17-2 du code de la sécurité
+sociale augmenté de cinq années, ou d'un âge au moins égal à celui prévu par
+le même article en cas d'inaptitude au travail ou âgés d'au moins soixante-cinq
+ans s'ils percevaient l'allocation de solidarité aux personnes âgées ;
+
+3° Soit ascendants, descendants ou collatéraux au deuxième degré ou au troisième
+degré du bénéficiaire ou de son conjoint et titulaires de la carte
+" mobilité-inclusion " comportant la mention " invalidité " prévue à l'article
+L. 241-3 du code de l'action sociale et des familles ou de la carte d'invalidité
+prévue à l'article L. 241-3 du même code, dans sa rédaction antérieure au 1er
+janvier 2017.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+####### Sous-section 2 : Principes de neutralisation et d'abattement
+
+######## Article R822-7 | LEGIARTI000041419409
+
+Les ressources, déterminées dans les conditions prévues aux articles
+R. 822-2 à R. 822-6, sont diminuées d'un abattement forfaitaire, lorsque
+les deux conjoints ont exercé une activité professionnelle productrice de
+revenus au cours de la période de référence définie au 1° de l'article
+R. 822-3 et que chacun des deux revenus professionnels pris en compte dans
+les ressources a été au moins égal à douze fois la base mensuelle de calcul
+des allocations familiales en vigueur à la date de la demande ou du réexamen
+du droit.
+
+```catala
+champ d'application RessourcesAidePersonnelleLogement:
+  définition abbattement_r_822_7 égal à
+    si demandeur_exerce_activité_rémunérée et
+      conjoint_exerce_activité_rémunérée et
+      (ressources_conjoint +€ ressources_conjoint) >=€
+       prestations_familiales.base_mensuelle *€ 12.0
+    alors
+      montant_forfaitaire_r_822_7
+    sinon 0€
+```
+
+Le montant de cet abattement est fixé par arrêté des ministres chargés du
+logement, du budget, de la sécurité sociale et de l'agriculture.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du code
+de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-8 | LEGIARTI000041419400
+
+Lorsque le bénéficiaire justifie qu'en raison d'obligations professionnelles,
+lui-même ou son conjoint est contraint d'occuper, de manière habituelle, un
+logement distinct de sa ou de leur résidence principale et qu'il supporte des
+charges de loyer supplémentaires correspondant à ce logement, il est procédé
+à un abattement forfaitaire sur ses ressources ou sur celles du ménage.
+
+```catala
+champ d'application RessourcesAidePersonnelleLogement:
+  définition abattement_r_822_8 égal à
+    selon paiement_logement_distinct_professionnel sous forme
+    -- OuiAvecLoyerOuCharges de loyer_ou_charges:
+      montant_forfaitaire_r_822_8
+    -- Non: 0€
+```
+
+L'abattement est appliqué à compter du premier jour du mois civil suivant celui
+au cours duquel le bénéficiaire doit supporter ces charges. Il est supprimé à
+compter du premier jour du mois civil au cours duquel le bénéficiaire cesse de
+les supporter.
+
+Le montant de cet abattement est fixé par un arrêté des ministres chargés du
+logement, du budget, de la sécurité sociale et de l'agriculture.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à
+compter du mois de janvier 2021 ou, pour le calcul des droits à l’aide
+personnalisée au logement prévue pour les accédants à la propriété par
+l’article L. 831-1 du code de la construction et de l’habitation, à compter
+du mois de mai 2021.
+
+######## Article R822-9 | LEGIARTI000041419395
+
+L'abattement prévu à l'article R. 822-8 est applicable aux
+ressources prises en compte pour le calcul de l'aide personnelle au
+logement due, à compter de la date d'ouverture du droit ou de son
+renouvellement, aux personnes isolées résidant en logement-foyer,
+lorsqu'elles apportent la preuve qu'elles assument ou contribuent à
+assumer financièrement des charges familiales.
+
+```catala
+# Cet article indique comment remplir le formulaire quand on est dans
+# la situation décrite mais n'apporte pas d'informations supplémentaires
+# sur le calcul.
+```
+
+######### Article R822-10 | LEGIARTI000041419390
+
+Lorsque le bénéficiaire est accédant à la propriété et qu'il est une personne
+seule assumant une charge familiale telle que définie à l'article R. 823-4,
+il est opéré sur ses ressources un abattement de :
+
+1° 901 euros pour le bénéficiaire ayant une ou deux personnes à charge ;
+
+2° 1 350 euros dès trois personnes à charge.
+
+```catala
+champ d'application RessourcesAidePersonnelleLogement:
+  définition abattement_r_822_10 égal
+    selon situation_familiale sous forme
+    -- Célibataire ou CélibataireSéparéDeFait:
+      si nombre de personnes_à_charge = 0 alors 0 €
+      sinon si nombre de personnes_à_charge <= 2 alors 901 €
+      sinon 1 350 €
+    -- n'importe quel: 0 €
+```
+
+######## Article R822-11 | LEGIARTI000041419384
+
+Il n'est pas tenu compte, à partir du premier jour du mois civil suivant celui
+au cours duquel survient l'événement ou le changement de situation, sous réserve
+que la preuve en soit apportée :
+
+1° Des ressources du conjoint du bénéficiaire :
+
+a) Soit décédé ;
+
+b) Soit absent du domicile, en raison d'une décision de justice prononçant le
+divorce ou d'une convention de divorce par consentement mutuel conclue en
+application de l'article 229-1 du code civil ;
+
+c) Soit absent du domicile, en raison d'une décision de justice autorisant
+la résidence séparée ou homologuant, en cas de demande conjointe en divorce,
+la convention temporaire passée à ce sujet entre les époux ;
+
+d) Soit absent du domicile, en raison d'une séparation de fait des époux ;
+
+2° Des revenus d'activité professionnelle ou des indemnités de chômage perçus
+par le conjoint du bénéficiaire :
+
+a) Soit détenu, les ressources du conjoint étant toutefois prises en
+considération s'il est placé sous le régime de la semi-liberté ;
+
+b) Soit cessant toute activité professionnelle pour se consacrer à un enfant
+de moins de trois ans ou à plusieurs enfants.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-12 | LEGIARTI000041419379
+
+Lorsque l'une des situations mentionnées à l'article R. 822-11 prend fin,
+il est tenu compte :
+
+1° Des ressources perçues par le conjoint du bénéficiaire à partir du premier
+jour du mois au cours duquel la vie commune est reprise ;
+
+2° Des revenus d'activité professionnelle ou des indemnités de chômage, à
+partir du premier jour du mois au cours duquel :
+
+a) Soit la période de détention expire ;
+b) Soit les conditions relatives à l'âge ou au nombre d'enfants auxquels
+l'intéressé se consacre ne sont plus remplies ;
+
+c) Soit l'intéressé reprend une activité professionnelle.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-13 | LEGIARTI000041419372
+
+Lorsque le bénéficiaire ou son conjoint apporte la preuve de la cessation de
+son activité professionnelle et de son admission au bénéfice d'une pension
+de retraite ou d'invalidité ou d'une rente d'accident de travail ou de
+l'allocation aux adultes handicapés, les revenus d'activité professionnelle
+et les indemnités de chômage inclus dans les ressources de l'intéressé sont
+affectés d'un abattement de 30 %.
+
+Cette mesure s'applique à partir du premier jour du mois civil suivant celui
+au cours duquel survient le changement de situation.
+
+Lorsque le bénéficiaire ou son conjoint reprend une activité professionnelle
+rémunérée, l'abattement prévu au premier alinéa est supprimé à partir du
+premier jour du mois civil au cours duquel intervient la reprise d'activité.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces
+dispositions sont applicables au calcul des droits, d'une part, à l'aide
+personnalisée au logement prévue pour les accédants à la propriété par
+l'article L. 831-1 du code de la construction et de l'habitation, d'autre
+part, aux autres aides personnelles au logement prévues par le même code,
+à compter des mois respectifs fixés par arrêté des ministres en charge du
+logement, de la santé et du budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
+à l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à
+compter du mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######### Article R822-14 | LEGIARTI000041419358
+
+Lorsque le bénéficiaire ou son conjoint se trouve, depuis au moins deux mois
+consécutifs, à la date d'effet de la demande ou pendant au moins deux mois
+consécutifs au cours de la période de paiement, en chômage total et qu'il
+perçoit l'allocation d'assurance prévue à l'article L. 5422-1 du code du
+travail ou lorsqu'il se trouve en chômage partiel et qu'il perçoit l'allocation
+spécifique prévue à l'article L. 5122-1 du même code, ou perçoit l'allocation
+des travailleurs indépendants mentionnée à l'article L. 5424-25 du même code,
+les revenus d'activité professionnelle dont bénéficie l'intéressé sont affectés
+d'un abattement de 30 %.
+
+Cette mesure s'applique à partir du premier jour du deuxième mois civil suivant
+celui au cours duquel est intervenu le changement de situation.
+
+Le nombre minimal d'heures de chômage partiel requis pour bénéficier de cet
+abattement de 30 % est de quarante heures sur une période de deux mois
+consécutifs.
+
+La rémunération dont bénéficient les personnes relevant des conventions conclues
+en application de l'article L. 1233-68 du code du travail est assimilée,
+pendant la durée de la formation et pour l'application des dispositions du
+deuxième alinéa du présent article, à l'allocation de chômage à laquelle elle
+s'est substituée lors de l'entrée en formation.
+
+Lorsque l'intéressé reprend une activité professionnelle rémunérée,
+l'abattement est supprimé à partir du premier jour du mois civil au cours
+duquel intervient la reprise d'activité.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces
+dispositions sont applicables au calcul des droits à l’aide personnelle au
+logement à compter du mois de janvier 2021 ou, pour le calcul des droits à
+l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à compter
+du mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-15 | LEGIARTI000041419346
+
+Il n'est tenu compte ni des revenus d'activité professionnelle, ni des
+indemnités de chômage de l'intéressé lorsque celui-ci ou son conjoint est
+en chômage total depuis au moins deux mois consécutifs à la date d'effet de
+la demande ou pendant au moins deux mois consécutifs au cours de la période
+de paiement et s'il se trouve dans l'une des situations suivantes :
+
+1° Il ne bénéficie pas ou ne bénéficie plus d'une indemnisation dans les
+conditions mentionnées par l'article R. 822-14 ;
+
+2° Son indemnisation a atteint le montant minimum prévu par l'accord mentionné
+à l'article L. 5422-20 du code du travail, après application du taux dégressif
+prévu à l'article L. 5422-3 du même code ;
+
+3° Il perçoit l'allocation de solidarité spécifique prévue par les articles
+L. 5423-1 à L. 5423-3 du code du travail.
+
+Les droits sont examinés sur cette nouvelle base à compter du premier jour du
+mois civil suivant celui au cours duquel sont intervenus le changement de
+situation, la cessation du versement ou la diminution du montant de l'allocation
+d'assurance, ou l'admission à l'allocation de solidarité spécifique.
+
+Lorsque l'intéressé reprend une activité professionnelle rémunérée, il est tenu
+compte de ses ressources à partir du premier jour du mois civil au cours duquel
+intervient la reprise d'activité.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-16 | LEGIARTI000041419340
+
+Lorsque le bénéficiaire ou son conjoint justifie d'une interruption de travail
+supérieure à six mois, dans les conditions mentionnées à l'article R. 324-1
+du code de la sécurité sociale, il est procédé, à compter du premier jour du
+mois civil suivant celui au cours duquel est intervenu le changement de
+situation, à un abattement de 30 % sur les revenus d'activité professionnelle
+et les indemnités de chômage perçus par l'intéressé.
+
+Cette mesure s'applique jusqu'au dernier jour du mois civil précédant celui
+au cours duquel la situation considérée prend fin.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois
+respectifs fixés par arrêté des ministres en charge du logement, de la santé
+et du budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits à
+l’aide personnalisée au logement prévue pour les accédants à la propriété par
+l’article L. 831-1 du code de la construction et de l’habitation, à compter du
+mois de mai 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+######## Article R822-17 | LEGIARTI000041419333
+
+Lorsque le bénéficiaire ou son conjoint perçoit le revenu de solidarité
+active mentionné à l'article L. 262-2 du code de l'action sociale et des
+familles, il n'est tenu compte ni des revenus d'activité professionnelle, ni
+des indemnités de chômage dont bénéficie l'intéressé, à compter du premier
+jour du mois civil suivant celui au cours duquel ces conditions sont réunies
+et jusqu'au dernier jour du mois civil au cours duquel ces conditions cessent
+d'être réunies.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
+à l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à
+compter du mois de mai 2021.
+
+######## Article R822-18 | LEGIARTI000043616221
+
+Lorsque le bénéficiaire, son conjoint ou une personne à charge est ou a été
+titulaire d'un contrat de professionnalisation mentionné à l'article L. 6325-1
+du code du travail, les revenus mensuels perçus par l'intéressé dans le cadre
+de ce contrat sont diminués d'un abattement égal à leur montant sans pouvoir
+excéder le montant mensuel du salaire minimum de croissance.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 3 du décret
+n° 2021-720 du 4 juin 2021.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+####### Sous-section 3 : Montant forfaitaire de ressources applicable aux étudiants
+
+######## Article R822-20 | LEGIARTI000041419188
+
+Lorsque à la date de la demande de l'aide personnelle au logement ou du
+réexamen du droit à cette aide, le demandeur ou l'allocataire occupe un
+logement à usage locatif, qu'il satisfait les conditions d'âge fixées pour
+l'attribution d'une bourse d'enseignement supérieur sur critères sociaux et
+poursuit des études, les ressources du bénéficiaire ou du ménage sont réputées
+égales à un montant forfaitaire.
+
+Ce montant est minoré lorsque le demandeur ou l'allocataire est titulaire
+d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt
+sur le revenu.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces
+dispositions sont applicables au calcul des droits, d'une part, à
+l'aide personnalisée au logement prévue pour les accédants à la propriété
+par l'article L. 831-1 du code de la construction et de l'habitation,
+d'autre part, aux autres aides personnelles au logement prévues par le
+même code, à compter des mois respectifs fixés par arrêté des ministres
+en charge du logement, de la santé et du budget et, au plus tard, du 1er
+janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020,
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié :
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
+à l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à compter
+du mois de mai 2021.

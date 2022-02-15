@@ -47,10 +47,14 @@ déclaration structure EnfantÀCharge:
     contenu booléen
   donnée prise_en_charge contenu PriseEnCharge
 
+déclaration énumération PersonneÀCharge:
+  -- EnfantÀCharge contenu EnfantÀCharge
+  -- ParentÀCharge
+
 déclaration structure Ménage:
   donnée prestations_reçues contenu collection PrestationReçue
   donnée logement contenu Logement
-  donnée enfants_à_charge contenu collection EnfantÀCharge
+  donnée personnes_à_charge contenu collection PersonneÀCharge
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
 
@@ -93,4 +97,33 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   contexte condition_période_déménagement condition
   éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
   contexte éligibilité_logement condition
+
+déclaration structure PersonneVivantHabituellementAuFoyer:
+  donnée durée_résidence_durant_période_r_822_3_1 contenu durée
+  donnée ressources contexte argent
+
+déclaration énumération PaiementLogementDistinctProfessionnel:
+  -- OuiAvecLoyerOuCharges contenu argent
+  -- Non
+
+déclaration champ d'application RessourcesAidePersonnelleLogement:
+  contexte ressources_demandeur contenu argent
+  contexte ressources_conjoint contenu argent
+  contexte ressources_personnes_vivant_habituellement_foyer contenu argent
+  contexte ressources_prises_en_compte contenu argent
+  contexte personnes_vivant_habituellement_foyer contenu
+    collection PersonneVivantHabituellementAuFoyer
+  contexte paiement_logement_distinct_professionnel contenu
+    PaiementLogementDistinctProfessionnel
+  contexte abattement_r_822_8 contenu argent
+  contexte montant_forfaitaire_r_822_8 contenu argent
+  contexte abattement_r_822_7 contenu argent
+  contexte montant_forfaitaire_r_822_7 contenu argent
+  contexte abattement_r_822_10 contenu argent
+  contexte demandeur_exerce_activité_rémunérée contenu booléen
+  contexte conjoint_exerce_activité_rémunérée contenu booléen
+  contexte personnes_à_charge contenu collection PersonneÀCharge
+  contexte situation_familiale contenu SituationFamiliale
+
+  prestations_familiales champ d'application PrestationsFamiliales
 ```
