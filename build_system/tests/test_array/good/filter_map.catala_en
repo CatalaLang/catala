@@ -1,0 +1,18 @@
+## Article
+
+```catala
+declaration scope A:
+   output x content collection money
+
+scope A:
+   definition x equals [$0; $4 +$ $5; $8 *$ 0.65]
+
+declaration scope B:
+   a scope A
+   output y content collection money
+   output z content collection boolean
+
+scope B:
+   definition y equals filter for m in a.x of (m >=$ $4.95)
+   definition z equals map for m in a.x of (m >=$ $4.95)
+```
