@@ -140,7 +140,7 @@ def a(a_in_1:AIn):
             return handle_default([local_var_11], local_var_27, local_var_29)
         local_var_4 = handle_default([local_var_5], local_var_7, local_var_9)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="tests/test_array/good/aggregation_2.catala_en",
+        raise NoValueProvided(SourcePosition(filename="build_system/tests/test_array/good/aggregation_2.catala_en",
             start_line=9, start_column=19, end_line=9, end_column=20,
             law_headings=["Article"]))
     x_3 = local_var_4
@@ -200,7 +200,7 @@ def b(b_in_41:BIn):
         local_var_49 = handle_default([local_var_50], local_var_72,
             local_var_74)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="tests/test_array/good/aggregation_2.catala_en",
+        raise NoValueProvided(SourcePosition(filename="build_system/tests/test_array/good/aggregation_2.catala_en",
             start_line=21, start_column=11, end_line=21, end_column=17,
             law_headings=["Article"]))
     argmin_48 = local_var_49
@@ -251,7 +251,7 @@ def b(b_in_41:BIn):
         local_var_87 = handle_default([local_var_88], local_var_110,
             local_var_112)
     except EmptyError:
-        raise NoValueProvided(SourcePosition(filename="tests/test_array/good/aggregation_2.catala_en",
+        raise NoValueProvided(SourcePosition(filename="build_system/tests/test_array/good/aggregation_2.catala_en",
             start_line=20, start_column=11, end_line=20, end_column=17,
             law_headings=["Article"]))
     argmax_86 = local_var_87

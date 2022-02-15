@@ -76,7 +76,7 @@ let a =
                                (fun (_: _) -> raise EmptyError))|])
                        (fun (_: _) -> false) (fun (_: _) -> raise EmptyError))))
           with EmptyError -> (raise (NoValueProvided
-          {filename = "tests/test_array/good/aggregation_2.catala_en";
+          {filename = "build_system/tests/test_array/good/aggregation_2.catala_en";
             start_line=9; start_column=19; end_line=9; end_column=20;
             law_headings=["Article"]})))) in
     {x_out = x_}
@@ -123,7 +123,7 @@ let b =
                           (fun (_: _) -> raise EmptyError))|])
                   (fun (_: _) -> false) (fun (_: _) -> raise EmptyError)))
           with EmptyError -> (raise (NoValueProvided
-          {filename = "tests/test_array/good/aggregation_2.catala_en";
+          {filename = "build_system/tests/test_array/good/aggregation_2.catala_en";
             start_line=21; start_column=11; end_line=21; end_column=17;
             law_headings=["Article"]}))))
     in
@@ -161,7 +161,7 @@ let b =
                           (fun (_: _) -> raise EmptyError))|])
                   (fun (_: _) -> false) (fun (_: _) -> raise EmptyError)))
           with EmptyError -> (raise (NoValueProvided
-          {filename = "tests/test_array/good/aggregation_2.catala_en";
+          {filename = "build_system/tests/test_array/good/aggregation_2.catala_en";
             start_line=20; start_column=11; end_line=20; end_column=17;
             law_headings=["Article"]}))))
     in

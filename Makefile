@@ -255,8 +255,11 @@ test_suite: .FORCE
 test_examples: .FORCE
 	@$(CLERK) test examples
 
+test_clerk:
+	@$(CLERK) test $(BUILD_SYSTEM_DIR)/tests
+
 #> tests					: Run interpreter tests
-tests: test_suite test_examples
+tests: test_suite test_examples test_clerk
 
 #> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
 tests_ocaml: run_french_law_library_ocaml_tests

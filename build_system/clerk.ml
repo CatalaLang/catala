@@ -461,7 +461,9 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
       List.fold_left
         (fun (ninja, test_names) expected_output ->
           match expected_output.backend with
-          | Cli.Interpret | Cli.Proof | Cli.Typecheck | Cli.Dcalc | Cli.Scopelang ->
+          (* (Emile) NOTE: Scopelang <> Scalc ?*)
+          | Cli.Interpret | Cli.Proof | Cli.Typecheck | Cli.Dcalc | Cli.Scopelang | Cli.Scalc
+          | Cli.Lcalc ->
               let vars =
                 [
                   ("catala_cmd", Nj.Expr.Lit (catala_backend_to_string expected_output.backend));
