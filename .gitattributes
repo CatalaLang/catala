@@ -1,4 +1,3 @@
-*.catala* linguist-language=Markdown
 *.ml linguist-language=OCaml
 *.mld linguist-documentation
 *.md linguist-documentation
