@@ -1,0 +1,115 @@
+## Section 1001
+
+```catala-metadata
+declaration enumeration gain_or_loss
+  -- Gain content money
+  -- Loss content money
+
+declaration scope Section1001:
+  input amount_realized content money
+  # We do not treat the cost basis as an input of the system, and assume that
+  # whoever invokes this section has figured out the adjusted basis already. The
+  # cost basis will be introduced in §1012 which goes from cost basis to
+  # adjusted basis.
+  input adjusted_basis content money
+  context gain_or_loss_realized content gain_or_loss
+  output gain_or_loss_recognized content gain_or_loss
+```
+
+### (a) Computation of gain or loss
+
+The gain from the sale or other disposition of property shall be the excess of
+the amount realized therefrom over the adjusted basis provided in section 1011
+for determining gain, and the loss shall be the excess of the adjusted basis
+provided in such section for determining loss over the amount realized.
+
+```catala
+scope Section1001:
+  definition gain_or_loss_realized under condition
+    amount_realized >=$ adjusted_basis
+  equals
+    Gain of (excess_of of amount_realized adjusted_basis)
+
+  definition gain_or_loss_realized under condition
+    adjusted_basis >$ amount_realized
+  equals
+    Loss of (excess_of of adjusted_basis amount_realized)
+
+# NB: we do not break down the amount realized; our rationale: whoever is
+# looking at this section probably already ran their computation to figure out
+# the amount realized and doesn't want to deal with a tedious system where they
+# would have to input e.g. property tax, date of sale, etc.
+```
+
+(b) Amount realized
+
+The amount realized from the sale or other disposition of property shall be the
+sum of any money received plus the fair market value of the property (other than
+money) received. In determining the amount realized—
+
+(1) there shall not be taken into account any amount received as reimbursement
+  for real property taxes which are treated under section 164(d) as imposed on the
+  purchaser, and
+
+(2) there shall be taken into account amounts representing real property taxes
+  which are treated under section 164(d) as imposed on the taxpayer if such taxes
+  are to be paid by the purchaser.
+
+
+(c) Recognition of gain or loss
+
+Except as otherwise provided in this subtitle, the entire amount of the gain or
+loss, determined under this section, on the sale or exchange of property shall
+be recognized.
+
+```catala
+scope Section1001:
+  definition gain_or_loss_recognized equals gain_or_loss_realized
+
+# SL: this is weird, not sure what this is supposed to indicate computationally
+# speaking
+```
+
+(d) Installment sales
+
+Nothing in this section shall be construed to prevent (in the case of property
+sold under contract providing for payment in installments) the taxation of that
+portion of any installment payment representing gain or profit in the year in
+which such payment is received.
+
+(e) Certain term interests
+  (1) In general
+
+  In determining gain or loss from the sale or other disposition of a term
+  interest in property, that portion of the adjusted basis of such interest
+  which is determined pursuant to section 1014, 1015, or 1041 (to the extent
+  that such adjusted basis is a portion of the entire adjusted basis of the
+  property) shall be disregarded.
+
+
+```catala
+scope Section1001:
+  exception e1 definition adjusted_basis
+  under condition
+    ???
+  consequence equals
+    adjusted_basis -$ portion_whatever
+```
+
+(2) Term interest in property definedFor purposes of paragraph (1), the term “term interest in property” means—
+(A) a life interest in property,
+(B) an interest in property for a term of years, or
+(C) an income interest in a trust.
+
+(3) Exception
+
+Paragraph (1) shall not apply to a sale or other disposition which is a part of a transaction in which the entire interest in property is transferred to any person or persons.
+
+```catala
+scope Section1001:
+  exception e1 definition e1
+  under condition
+    // part of a transaction in which etc.
+  consequence equals
+    original adjusted_basis
+```
