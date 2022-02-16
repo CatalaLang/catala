@@ -75,7 +75,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
       (* scope variables*)
       cons
   | EAbs ((binder, _), [ (TLit TUnit, _) ]) -> (
-      (* sub-scope variables *)
+      (* context sub-scope variables *)
       let _, body = Bindlib.unmbind binder in
       match Pos.unmark body with
       | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> arg
@@ -88,6 +88,9 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
                (Print.format_expr ~debug:true ctx.decl)
                e)
             (Pos.get_position e))
+  | ErrorOnEmpty (EApp ((EOp (Unop (Log _)), _), [ d ]), _)
+  | EApp ((EOp (Unop (Log _)), _), [ (ErrorOnEmpty d, _) ]) ->
+      d (* input subscope variables and non-input scope variable *)
   | _ ->
       Errors.raise_spanned_error
         (Format.asprintf

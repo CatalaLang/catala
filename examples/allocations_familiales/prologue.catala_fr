@@ -39,9 +39,9 @@ déclaration énumération Collectivité :
   -- Mayotte
 
 déclaration champ d'application Smic :
-  contexte date_courante contenu date
-  contexte résidence contenu Collectivité
-  contexte brut_horaire contenu argent
+  entrée date_courante contenu date
+  entrée résidence contenu Collectivité
+  sortie brut_horaire contenu argent
 
 déclaration énumération PriseEnCompte:
   -- Complète
@@ -63,98 +63,98 @@ déclaration énumération ÉlémentPrestationsFamiliales:
   -- AllocationJournalièrePresenceParentale
 
 déclaration champ d'application PrestationsFamiliales:
-  contexte droit_ouvert condition dépend de Enfant
-  contexte conditions_hors_âge condition dépend de Enfant
-  contexte plafond_l512_3_2 contenu argent
-  contexte âge_l512_3_2 contenu entier
-  contexte régime_outre_mer_l751_1 condition
-  contexte date_courante contenu date
-  contexte prestation_courante contenu ÉlémentPrestationsFamiliales
-  contexte résidence contenu Collectivité
-  contexte smic champ d'application Smic
-  contexte base_mensuelle contenu argent
+  sortie droit_ouvert condition dépend de Enfant
+  sortie conditions_hors_âge condition dépend de Enfant
+  interne plafond_l512_3_2 contenu argent
+  sortie âge_l512_3_2 contenu entier
+  sortie régime_outre_mer_l751_1 condition
+  entrée date_courante contenu date
+  entrée prestation_courante contenu ÉlémentPrestationsFamiliales
+  entrée résidence contenu Collectivité
+  smic champ d'application Smic
+  sortie base_mensuelle contenu argent
 
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
   définition smic.date_courante égal à date_courante
 
 déclaration champ d'application AllocationFamilialesAvril2008:
-  contexte âge_minimum_alinéa_1_l521_3 contenu entier
+  sortie âge_minimum_alinéa_1_l521_3 contenu entier
 
 déclaration champ d'application EnfantLePlusÂgé:
-  contexte enfants contenu collection Enfant
-  contexte le_plus_âgé contenu Enfant
+  entrée enfants contenu collection Enfant
+  sortie le_plus_âgé contenu Enfant
 
 déclaration champ d'application AllocationsFamiliales:
 
   # Variables concernant le ménage
-  contexte personne_charge_effective_permanente_est_parent condition
-  contexte personne_charge_effective_permanente_remplit_titre_I condition
-  contexte ressources_ménage contenu argent
-  contexte résidence contenu Collectivité
+  entrée personne_charge_effective_permanente_est_parent condition
+  entrée personne_charge_effective_permanente_remplit_titre_I condition
+  entrée ressources_ménage contenu argent
+  entrée résidence contenu Collectivité
 
   # Date à laquelle le calcul est effectué
-  contexte date_courante contenu date
+  entrée date_courante contenu date
 
   # Variables concernant les enfants du ménage
-  contexte enfants_à_charge contenu collection Enfant
-  contexte enfants_à_charge_droit_ouvert_prestation_familiale
+  entrée enfants_à_charge contenu collection Enfant
+  interne enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
-  contexte prise_en_compte contenu PriseEnCompte dépend de Enfant
-  contexte versement contenu VersementAllocations dépend de Enfant
+  interne prise_en_compte contenu PriseEnCompte dépend de Enfant
+  interne versement contenu VersementAllocations dépend de Enfant
 
-  contexte montant_versé contenu argent
+  sortie montant_versé contenu argent
 
   # Variables liées à la base des allications familiales
-  contexte droit_ouvert_base condition
-  contexte montant_initial_base contenu argent
-  contexte montant_initial_base_premier_enfant contenu argent
-  contexte montant_initial_base_deuxième_enfant contenu argent
-  contexte montant_initial_base_troisième_enfant_et_plus contenu argent
-  contexte rapport_enfants_total_moyen contenu décimal
-  contexte nombre_moyen_enfants contenu décimal
-  contexte nombre_total_enfants contenu décimal
-  contexte montant_avec_garde_alternée_base contenu argent
-  contexte montant_versé_base contenu argent
+  interne droit_ouvert_base condition
+  interne montant_initial_base contenu argent
+  interne montant_initial_base_premier_enfant contenu argent
+  interne montant_initial_base_deuxième_enfant contenu argent
+  interne montant_initial_base_troisième_enfant_et_plus contenu argent
+  interne rapport_enfants_total_moyen contenu décimal
+  interne nombre_moyen_enfants contenu décimal
+  interne nombre_total_enfants contenu décimal
+  interne montant_avec_garde_alternée_base contenu argent
+  interne montant_versé_base contenu argent
 
   # Variables liées à Mayotte
-  contexte avait_enfant_à_charge_avant_1er_janvier_2012 condition
-  contexte montant_initial_base_premier_enfant_mayotte contenu argent
-  contexte montant_initial_base_deuxième_enfant_mayotte contenu argent
-  contexte montant_initial_base_troisième_enfant_mayotte contenu argent
-  contexte montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
+  entrée avait_enfant_à_charge_avant_1er_janvier_2012 condition
+  interne montant_initial_base_premier_enfant_mayotte contenu argent
+  interne montant_initial_base_deuxième_enfant_mayotte contenu argent
+  interne montant_initial_base_troisième_enfant_mayotte contenu argent
+  interne montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 
   # Variables liées à l'allocation forfaitaire
-  contexte droit_ouvert_forfaitaire condition dépend de Enfant
-  contexte montant_versé_forfaitaire_par_enfant contenu argent
-  contexte montant_versé_forfaitaire contenu argent
+  interne droit_ouvert_forfaitaire condition dépend de Enfant
+  interne montant_versé_forfaitaire_par_enfant contenu argent
+  interne montant_versé_forfaitaire contenu argent
 
   # Variables liées aux majorations des allocations familiales
-  contexte droit_ouvert_majoration condition dépend de Enfant
-  contexte montant_initial_métropole_majoration contenu argent dépend de Enfant
-  contexte montant_initial_majoration contenu argent dépend de Enfant
-  contexte montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
-  contexte montant_versé_majoration contenu argent
+  interne droit_ouvert_majoration condition dépend de Enfant
+  interne montant_initial_métropole_majoration contenu argent dépend de Enfant
+  interne montant_initial_majoration contenu argent dépend de Enfant
+  interne montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  interne montant_versé_majoration contenu argent
 
   # Variables liées au complément dégressif
-  contexte droit_ouvert_complément condition
-  contexte montant_base_complément_pour_base_et_majoration contenu argent
-  contexte complément_dégressif contenu argent dépend de argent
-  contexte montant_versé_complément_pour_base_et_majoration contenu argent
-  contexte montant_versé_complément_pour_forfaitaire contenu argent
+  interne droit_ouvert_complément condition
+  interne montant_base_complément_pour_base_et_majoration contenu argent
+  interne complément_dégressif contenu argent dépend de argent
+  interne montant_versé_complément_pour_base_et_majoration contenu argent
+  interne montant_versé_complément_pour_forfaitaire contenu argent
 
   # Sous-champs d'applications
-  contexte prestations_familiales champ d'application PrestationsFamiliales
-  contexte version_avril_2008 champ d'application AllocationFamilialesAvril2008
-  contexte enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
+  prestations_familiales champ d'application PrestationsFamiliales
+  version_avril_2008 champ d'application AllocationFamilialesAvril2008
+  enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
 
   # Plafonds, âges limites et autres constantes
-  contexte nombre_enfants_l521_1 contenu entier
-  contexte âge_minimum_alinéa_1_l521_3 contenu entier dépend de Enfant
-  contexte nombre_enfants_alinéa_2_l521_3 contenu entier
-  contexte est_enfant_le_plus_âgé contenu booléen dépend de Enfant
-  contexte plafond_I_d521_3 contenu argent
-  contexte plafond_II_d521_3 contenu argent
+  interne nombre_enfants_l521_1 contenu entier
+  interne âge_minimum_alinéa_1_l521_3 contenu entier dépend de Enfant
+  interne nombre_enfants_alinéa_2_l521_3 contenu entier
+  interne est_enfant_le_plus_âgé contenu booléen dépend de Enfant
+  interne plafond_I_d521_3 contenu argent
+  interne plafond_II_d521_3 contenu argent
 
 champ d'application AllocationsFamiliales:
   définition prestations_familiales.prestation_courante égal à

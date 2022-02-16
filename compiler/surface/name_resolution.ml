@@ -48,6 +48,12 @@ type struct_context = typ Pos.marked Scopelang.Ast.StructFieldMap.t
 type enum_context = typ Pos.marked Scopelang.Ast.EnumConstructorMap.t
 (** Types of the payloads of the cases of an enum *)
 
+type var_sig = {
+  var_sig_typ : typ Pos.marked;
+  var_sig_is_condition : bool;
+  var_sig_io : Ast.scope_decl_context_io;
+}
+
 type context = {
   local_var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions arguments or pattern
@@ -65,8 +71,8 @@ type context = {
   scopes : scope_context Scopelang.Ast.ScopeMap.t;  (** For each scope, its context *)
   structs : struct_context Scopelang.Ast.StructMap.t;  (** For each struct, its context *)
   enums : enum_context Scopelang.Ast.EnumMap.t;  (** For each enum, its context *)
-  var_typs : (typ Pos.marked * bool) (* is it a condition? *) Scopelang.Ast.ScopeVarMap.t;
-      (** The types of each scope variable declared *)
+  var_typs : var_sig Scopelang.Ast.ScopeVarMap.t;
+      (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
 
@@ -87,10 +93,13 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.marked =
-  fst (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs)
+  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
 
 let is_var_cond (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : bool =
-  snd (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs)
+  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
+
+let get_var_io (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : Ast.scope_decl_context_io =
+  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
@@ -256,7 +265,14 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       {
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
-        var_typs = Scopelang.Ast.ScopeVarMap.add uid (data_typ, is_cond) ctxt.var_typs;
+        var_typs =
+          Scopelang.Ast.ScopeVarMap.add uid
+            {
+              var_sig_typ = data_typ;
+              var_sig_is_condition = is_cond;
+              var_sig_io = decl.scope_decl_context_item_attribute;
+            }
+            ctxt.var_typs;
       }
 
 (** Process an item declaration *)

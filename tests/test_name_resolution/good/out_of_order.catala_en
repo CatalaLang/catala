@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope S:
-  context a content A
-  context b content B
+  context output a content A
+  context output b content B
 
 declaration structure A:
    data x content integer

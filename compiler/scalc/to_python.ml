@@ -327,11 +327,13 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
             Format.fprintf fmt "\t\tself.%a = %a" format_struct_field_name struct_field
               format_struct_field_name struct_field))
       struct_fields format_struct_name struct_name
-      (Format.pp_print_list
+      (if List.length struct_fields > 0 then
+       Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
          (fun _fmt (struct_field, _) ->
            Format.fprintf fmt "self.%a == other.%a" format_struct_field_name struct_field
-             format_struct_field_name struct_field))
+             format_struct_field_name struct_field)
+      else fun fmt _ -> Format.fprintf fmt "True")
       struct_fields format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
@@ -418,8 +420,9 @@ let format_program (fmt : Format.formatter) (p : Ast.program)
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-       (fun fmt (name, { Ast.func_params; Ast.func_body }) ->
-         Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_toplevel_name name
+       (fun fmt body ->
+         let { Ast.func_params; Ast.func_body } = body.scope_body_func in
+         Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_toplevel_name body.scope_body_var
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
               (fun fmt (var, typ) ->

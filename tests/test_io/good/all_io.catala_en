@@ -1,0 +1,18 @@
+## Test
+
+```catala
+declaration scope A:
+  internal a content integer
+  output b content integer
+  input c content integer
+  input output d content integer
+  context e content integer
+  context output f content integer
+
+
+scope A:
+  definition a equals 0
+  definition b equals a + 1
+  definition e equals b + c + d + 1
+  definition f equals e + 1
+```

@@ -67,6 +67,16 @@ let rec peephole_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   | ERaise _ | ELit _ | EOp _ -> Bindlib.box e
 
 let peephole_optimizations (p : program) : program =
-  { p with scopes = List.map (fun (var, e) -> (var, Bindlib.unbox (peephole_expr e))) p.scopes }
+  {
+    p with
+    scopes =
+      List.map
+        (fun scope_body ->
+          {
+            scope_body with
+            scope_body_expr = Bindlib.unbox (peephole_expr scope_body.scope_body_expr);
+          })
+        p.scopes;
+  }
 
 let optimize_program (p : program) : program = peephole_optimizations p

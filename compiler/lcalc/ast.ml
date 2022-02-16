@@ -88,4 +88,10 @@ let handle_default = Var.make ("handle_default", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = { decl_ctx : D.decl_ctx; scopes : (Var.t * expr Pos.marked) list }
+type scope_body = {
+  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_var : Var.t;
+  scope_body_expr : expr Pos.marked;
+}
+
+type program = { decl_ctx : D.decl_ctx; scopes : scope_body list }

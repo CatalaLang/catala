@@ -10,8 +10,8 @@ Cycle variable B, declared:
 Used here in the definition of another cycle variable A:
  --> tests/test_scope/bad/cyclic_scopes.catala_en
   | 
-5 |   context b scope B
-  |           ^
+5 |   b scope B
+  |   ^
   + Article
 
 Cycle variable A, declared:
@@ -24,6 +24,6 @@ Cycle variable A, declared:
 Used here in the definition of another cycle variable B:
  --> tests/test_scope/bad/cyclic_scopes.catala_en
   | 
-9 |   context a scope A
-  |           ^
+9 |   a scope A
+  |   ^
   + Article

@@ -94,4 +94,10 @@ val handle_default : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 
-type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : (Var.t * expr Pos.marked) list }
+type scope_body = {
+  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_var : Var.t;
+  scope_body_expr : expr Pos.marked;
+}
+
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : scope_body list }

@@ -4,7 +4,7 @@
 
 ```catala
 declaration scope TestSection132_1:
-  context section_132 scope QualifiedEmployeeDiscount
+  section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_1:
   definition section_132.customer_price equals $1500
@@ -18,7 +18,7 @@ scope TestSection132_1:
 
 ```catala
 declaration scope TestSection132_2:
-  context section_132 scope QualifiedEmployeeDiscount
+  section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_2:
   definition section_132.customer_price equals $1500
@@ -32,7 +32,7 @@ scope TestSection132_2:
 
 ```catala
 declaration scope TestSection132_3:
-  context section_132 scope QualifiedEmployeeDiscount
+  section_132 scope QualifiedEmployeeDiscount
 
 scope TestSection132_3:
   definition section_132.customer_price equals $1500

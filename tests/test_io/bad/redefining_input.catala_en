@@ -1,0 +1,9 @@
+# Test
+
+```catala
+declaration scope A:
+  input a content integer
+
+scope A:
+  definition a equals 0
+```

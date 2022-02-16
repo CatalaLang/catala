@@ -15,7 +15,7 @@ let () = print_endline "Hello world!"
 
 ```catala
 declaration scope A:
-  context literate_parsing_is_ok content boolean
+  context output literate_parsing_is_ok content boolean
 
 scope A:
   definition literate_parsing_is_ok equals true

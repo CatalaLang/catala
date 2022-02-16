@@ -9,9 +9,9 @@ declaration enumeration F:
   -- Case2
 
 declaration scope A:
-  context e content E
-  context f content F
-  context x content integer
+  context output e content E
+  context output f content F
+  context output x content integer
 
 scope A:
   definition e equals E.Case1

@@ -81,8 +81,8 @@ let info =
       `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
-  Term.info "clerk" ~version ~doc ~exits ~man
+  let exits = Cmd.Exit.defaults @ [ Cmd.Exit.info ~doc:"on error." 1 ] in
+  Cmd.info "clerk" ~version ~doc ~exits ~man
 
 (**{1 Testing}*)
 
@@ -98,6 +98,8 @@ let catala_backend_to_string (backend : Cli.backend_option) : string =
   | Cli.Html -> "Html"
   | Cli.Python -> "Python"
   | Cli.Typecheck -> "Typecheck"
+  | Cli.Scalc -> "Scalc"
+  | Cli.Lcalc -> "Lcalc"
 
 type expected_output_descr = {
   base_filename : string;
@@ -204,8 +206,8 @@ let test_file (tested_file : string) (catala_exe : string) (catala_opts : string
                     Format.asprintf "colordiff -u -b %s%s -" expected_output.output_dir
                       expected_output.complete_filename;
                   ]
-            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scopelang | Cli.Latex | Cli.Html
-            | Cli.Makefile ->
+            | Cli.Python | Cli.OCaml | Cli.Dcalc | Cli.Scalc | Cli.Lcalc | Cli.Scopelang | Cli.Latex
+            | Cli.Html | Cli.Makefile ->
                 (* for those backends, the output of the Catala compiler will be written in a
                    temporary file which later we're going to diff with the *)
                 if reset_test_outputs then
@@ -328,7 +330,5 @@ let driver (file_or_folder : string) (command : string) (catala_exe : string opt
       1
 
 let _ =
-  let return_code = Cmdliner.Term.eval (clerk_t driver, info) in
-  match return_code with
-  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
-  | _ -> Cmdliner.Term.exit (`Error `Term)
+  let return_code = Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)) in
+  exit return_code

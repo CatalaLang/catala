@@ -101,7 +101,7 @@
         'name' : 'comment.line.catala_fr'
       }
       {
-        'match' : '(contexte)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00d4}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
+        'match' : '(contexte|entr\\x{00e9}e|sortie|interne)(\\s*)(|sortie)(\\s+)([a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}][a-z\\x{00e9}\\x{00e8}\\x{00e0}\\x{00e2}\\x{00f9}\\x{00ee}\\x{00f4}\\x{00ea}\\x{0153}\\x{00e7}A-Z\\x{00c9}\\x{00c8}\\x{00c0}\\x{00c2}\\x{00d9}\\x{00ce}\\x{00d4}\\x{00ca}\\x{0152}\\x{00c7}0-9_\\\']*)'
         'captures' : {
           '1' : {
             'name' : 'keyword.other.catala_fr'
@@ -110,6 +110,12 @@
             'name' : 'text.catala_fr'
           }
           '3' : {
+            'name' : 'keyword.other.catala_fr'
+          }
+          '4' : {
+            'name' : 'text.catala_fr'
+          }
+          '5' : {
             'name' : 'entity.name.function.catala_fr'
           }
         }
@@ -119,7 +125,7 @@
         'name' : 'keyword.control.catala_fr'
       }
       {
-        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|règle|sous\\s+condition|condition|donnée|conséquence|rempli|égal\\s+à|assertion|définition|étiquette|exception|n\'importe\\s+quel)\\b'
+        'match' : '\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|dépend\\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\\s+condition|condition|donnée|conséquence|rempli|égal\\s+à|assertion|définition|étiquette|exception|n\'importe\\s+quel)\\b'
         'name' : 'keyword.other.catala_fr'
       }
       {

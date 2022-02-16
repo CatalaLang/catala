@@ -1,6 +1,4 @@
-*.catala* linguist-language=Markdown
 *.ml linguist-language=OCaml
-*.fst linguist-language=Fstar
 *.mld linguist-documentation
 *.md linguist-documentation
 *.hints linguist-generated

@@ -4,7 +4,7 @@
 
 ```catala
 deklaracja zakres Test_A7_U1_P9:
-  kontekst sprzedaz zakres UmowaSpolki
+  sprzedaz zakres UmowaSpolki
 
 zakres Test_A7_U1_P9:
   definicja sprzedaz.kwota wynosi 1000 PLN

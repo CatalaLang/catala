@@ -60,6 +60,8 @@ type backend_option =
   | Typecheck
   | OCaml
   | Python
+  | Scalc
+  | Lcalc
   | Dcalc
   | Scopelang
   | Proof
@@ -92,7 +94,7 @@ val catala_t :
 
 val version : string
 
-val info : Cmdliner.Term.info
+val info : Cmdliner.Cmd.info
 
 (**{1 Terminal formatting}*)
 

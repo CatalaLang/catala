@@ -2,9 +2,9 @@
 
 ```catala
 declaration scope A:
-  context x content money
-  context y content money
-  context z content money
+  context output x content money
+  context output y content money
+  context output z content money
 
 scope A:
   definition x equals $123.54

@@ -1,3 +1,3 @@
 [RESULT] Computation successful! Results:
 [RESULT] out = 1
-[RESULT] t = T {"a": S {"x": 0, "y": false}, "b": S {"x": 1, "y": true}}
+[RESULT] t = T {"a"= S {"x"= 0; "y"= false}; "b"= S {"x"= 1; "y"= true}}

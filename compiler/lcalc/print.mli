@@ -22,10 +22,13 @@ val begins_with_uppercase : string -> bool
 
 (** {1 Formatters} *)
 
-val format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
-
 val format_lit : Format.formatter -> Ast.lit Pos.marked -> unit
 
 val format_var : Format.formatter -> Ast.Var.t -> unit
 
-val format_expr : Dcalc.Ast.decl_ctx -> Format.formatter -> Ast.expr Pos.marked -> unit
+val format_exception : Format.formatter -> Ast.except -> unit
+
+val format_expr :
+  Dcalc.Ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.expr Pos.marked -> unit
+
+val format_scope : Dcalc.Ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.scope_body -> unit
