@@ -74,18 +74,18 @@ let backend =
         ~doc:"Backend selection (see the list of commands for available options).")
 
 type backend_option =
-  | Latex
-  | Makefile
+  | Dcalc
   | Html
   | Interpret
-  | Typecheck
+  | Latex
+  | Lcalc
+  | Makefile
   | OCaml
+  | Proof
   | Python
   | Scalc
-  | Lcalc
-  | Dcalc
   | Scopelang
-  | Proof
+  | Typecheck
 
 let language =
   Arg.(

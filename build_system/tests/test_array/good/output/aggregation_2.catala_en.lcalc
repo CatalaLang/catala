@@ -1,0 +1,118 @@
+let A =
+  λ (A_in: A_in{"x_in": unit → array S{"id": integer; "income": money}}) →
+    let x : unit → array S{"id": integer; "income": money} = A_in."x_in" in
+    let x : array S{"id": integer; "income": money} =
+      try
+        handle_default [λ (_: any) → x ()] (λ (_: any) → true)
+          (λ (_: any) →
+             handle_default
+               [λ (_: any) →
+                  handle_default [] (λ (_: any) → true)
+                    (λ (_: any) →
+                       handle_default
+                         [λ (_: any) →
+                            handle_default [] (λ (_: any) → true)
+                              (λ (_: any) →
+                                 [S {"id": 0, "income": $0.00};
+                                   S {"id": 1, "income": $4.00 +$ $5.00};
+                                   S {"id": 2, "income": $8.00 *$ 0.65}])]
+                         (λ (_: any) → false)
+                         (λ (_: any) → raise EmptyError))]
+               (λ (_: any) → true)
+               (λ (_: any) →
+                  handle_default
+                    [λ (_: any) →
+                       handle_default [] (λ (_: any) → false)
+                         (λ (_: any) → raise EmptyError)]
+                    (λ (_: any) → false)
+                    (λ (_: any) → raise EmptyError))) with EmptyError ->
+        raise NoValueProvided in
+    A_out {"x_out": x}
+
+let B =
+                          λ (B_in: B_in{}) →
+                            let a.x :
+                              unit →
+                                array S{"id": integer; "income": money} =
+                              λ (_: unit) → raise EmptyError in
+                            let result :
+                              A_out{"x_out":
+                                array S{"id": integer; "income": money}} =
+                              A (A_in {"x_in": a.x}) in
+                            let a.x : array S{"id": integer; "income": money}
+                              = result."x_out" in
+                            let argmin : S{"id": integer; "income": money} =
+                              try
+                                handle_default
+                                  [λ (_: any) →
+                                     handle_default [] (λ (_: any) → true)
+                                       (λ (_: any) →
+                                          handle_default
+                                            [λ (_: any) →
+                                               handle_default []
+                                                 (λ (_: any) → true)
+                                                 (λ (_: any) →
+                                                    let predicate : any =
+                                                      λ (m: any) →
+                                                        m."income" +$ $5.00
+                                                      in
+                                                    fold
+                                                      (λ (acc: any)
+                                                         (item: any) →
+                                                         if
+                                                           predicate acc <$
+                                                             predicate item
+                                                           then acc else item)
+                                                      (S {"id": - 1,
+                                                         "income": $20.00})
+                                                      a.x)]
+                                            (λ (_: any) → false)
+                                            (λ (_: any) → raise EmptyError))]
+                                  (λ (_: any) → true)
+                                  (λ (_: any) →
+                                     handle_default
+                                       [λ (_: any) →
+                                          handle_default []
+                                            (λ (_: any) → false)
+                                            (λ (_: any) → raise EmptyError)]
+                                       (λ (_: any) → false)
+                                       (λ (_: any) → raise EmptyError))
+                                with EmptyError -> raise NoValueProvided in
+                            let argmax : S{"id": integer; "income": money} =
+                              try
+                                handle_default
+                                  [λ (_: any) →
+                                     handle_default [] (λ (_: any) → true)
+                                       (λ (_: any) →
+                                          handle_default
+                                            [λ (_: any) →
+                                               handle_default []
+                                                 (λ (_: any) → true)
+                                                 (λ (_: any) →
+                                                    let predicate : any =
+                                                      λ (m: any) →
+                                                        m."income" *$ 2. in
+                                                    fold
+                                                      (λ (acc: any)
+                                                         (item: any) →
+                                                         if
+                                                           predicate acc >$
+                                                             predicate item
+                                                           then acc else item)
+                                                      (S {"id": - 1,
+                                                         "income": $0.00})
+                                                      a.x)]
+                                            (λ (_: any) → false)
+                                            (λ (_: any) → raise EmptyError))]
+                                  (λ (_: any) → true)
+                                  (λ (_: any) →
+                                     handle_default
+                                       [λ (_: any) →
+                                          handle_default []
+                                            (λ (_: any) → false)
+                                            (λ (_: any) → raise EmptyError)]
+                                       (λ (_: any) → false)
+                                       (λ (_: any) → raise EmptyError))
+                                with EmptyError -> raise NoValueProvided in
+                            B_out {"argmax_out": argmax,
+                              "argmin_out": argmin}
