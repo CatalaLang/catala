@@ -43,6 +43,9 @@ type context = {
   ctx_z3structs : Sort.sort StructMap.t;
       (* A map from Catala struct names to the corresponding Z3 sort, from which we can retrieve the
          constructor and the accessors *)
+  ctx_z3unit : Sort.sort * Expr.expr;
+  (* A pair containing the Z3 encodings of the unit type, encoded as a tuple of 0 elements,
+     and the unit value *)
 }
 (** The context contains all the required information to encode a VC represented as a Catala term to
     Z3. The fields [ctx_decl] and [ctx_var] are computed before starting the translation to Z3, and
@@ -108,7 +111,9 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     match ty with
     (* TODO: Print boolean according to current language *)
     | TBool -> Expr.to_string e
-    | TUnit -> failwith "[Z3 model]: Pretty-printing of unit literals not supported"
+    (* TUnit is only used for the absence of an enum constructor argument.
+       Hence, when pretty-printing, we print nothing to remain closer from Catala sources *)
+    | TUnit -> ""
     | TInt -> Expr.to_string e
     | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
     (* TODO: Print the right money symbol according to language *)
@@ -193,7 +198,7 @@ let print_model (ctx : context) (model : Model.model) : string =
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   match t with
   | TBool -> Boolean.mk_sort ctx.ctx_z3
-  | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
+  | TUnit -> fst ctx.ctx_z3unit
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "[Z3 encoding] TRat type not supported"
   | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -557,6 +562,15 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
           ] )
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
+(** [create_z3unit] creates a Z3 sort and expression corresponding
+    to the unit type and value respectively.
+    Concretely, we represent unit as a tuple with 0 elements **)
+let create_z3unit (ctx : Z3.context) : Z3.context * (Sort.sort * Expr.expr) =
+  let unit_sort = Tuple.mk_sort ctx (Symbol.mk_string ctx "unit") [] [] in
+  let mk_unit = Tuple.get_mk_decl unit_sort in
+  let unit_val = Expr.mk_app ctx mk_unit [] in
+  ctx, (unit_sort, unit_val)
+
 module Backend = struct
   type backend_context = context
 
@@ -590,6 +604,7 @@ module Backend = struct
       (if !Cli.disable_counterexamples then [] else [ ("model", "true") ]) @ [ ("proof", "false") ]
     in
     let z3_ctx = mk_context cfg in
+    let z3_ctx, z3unit = create_z3unit z3_ctx in
     {
       ctx_z3 = z3_ctx;
       ctx_decl = decl_ctx;
@@ -599,7 +614,10 @@ module Backend = struct
       ctx_z3datatypes = EnumMap.empty;
       ctx_z3matchsubsts = VarMap.empty;
       ctx_z3structs = StructMap.empty;
+      ctx_z3unit = z3unit;
     }
+
+
 end
 
 module Io = Io.MakeBackendIO (Backend)
