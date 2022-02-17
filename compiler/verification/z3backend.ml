@@ -178,20 +178,22 @@ let print_model (ctx : context) (model : Model.model) : string =
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
        (fun fmt d ->
-         match Model.get_const_interp model d with
-         (* TODO: Better handling of this case *)
-         | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
-         (* Prints "name : value\n" *)
-         | Some e ->
-             if FuncDecl.get_arity d = 0 then
-               (* Constant case *)
+         if FuncDecl.get_arity d = 0 then begin
+           (* Constant case *)
+           match Model.get_const_interp model d with
+           (* TODO: Better handling of this case *)
+           | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+           (* Print "name : value\n" *)
+           | Some e ->
                let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
                let v = StringMap.find symbol_name ctx.ctx_z3vars in
+               Cli.error_print "testbis\n";
                Format.fprintf fmt "%s %s : %s"
                  (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
                  (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
                  (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
-             else failwith "[Z3 model]: Printing of functions is not yet supported"))
+         end
+         else failwith "[Z3 model]: Printing of functions is not yet supported"))
     decls
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
