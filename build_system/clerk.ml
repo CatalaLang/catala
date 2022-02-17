@@ -507,12 +507,11 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
                 },
                 test_names ^ " $\n  " ^ test_name )
           | Cli.Python | Cli.OCaml | Cli.Latex | Cli.Html | Cli.Makefile ->
-              let tmp_file =
-                Filename.temp_file "clerk_" ("_" ^ catala_backend_to_string expected_output.backend)
-              in
+              let catala_backend = catala_backend_to_string expected_output.backend in
+              let tmp_file = Filename.temp_file "clerk_" ("_" ^ catala_backend) in
               let vars =
                 [
-                  ("catala_cmd", Nj.Expr.Lit (catala_backend_to_string expected_output.backend));
+                  ("catala_cmd", Nj.Expr.Lit catala_backend);
                   ("tested_file", Nj.Expr.Lit tested_file);
                   ( "expected_output",
                     Nj.Expr.Lit (expected_output.output_dir ^ expected_output.complete_filename) );
@@ -523,7 +522,7 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
               let test_name, rule, vars =
                 match expected_output.scope with
                 | Some scope ->
-                    ( Printf.sprintf "%s_%s_%s" output_build_kind scope tested_file
+                    ( Printf.sprintf "%s_%s_%s_%s" output_build_kind scope catala_backend tested_file
                       |> Nj.Build.unpath,
                       output_build_kind ^ "_with_scope_and_output",
                       ("scope", Nj.Expr.Lit scope) :: vars )
