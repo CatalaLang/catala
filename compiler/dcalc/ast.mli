@@ -145,7 +145,6 @@ type scope_let_kind =
   | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let _ = assert e]*)
-[@@deriving show]
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;

@@ -133,7 +133,6 @@ type scope_let_kind =
   | CallingSubScope
   | DestructuringSubScopeResults
   | Assertion
-[@@deriving show]
 
 type scope_let = {
   scope_let_var : expr Bindlib.var Pos.marked;
@@ -145,9 +144,9 @@ type scope_let = {
 type scope_body = {
   scope_body_lets : scope_let list;
   scope_body_result : expr Pos.marked Bindlib.box;
-  (* {x1 = x1; x2 = x2; x3 = x3; ... } *)
+  (** {x1 = x1; x2 = x2; x3 = x3; ... } *)
   scope_body_arg : expr Bindlib.var;
-  (* x: input_struct *)
+  (** x: input_struct *)
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
 }
@@ -167,9 +166,10 @@ end
 
 module VarMap = Map.Make (Var)
 
-let union = VarMap.union (fun _ _ _ -> Some ())
+let union: unit VarMap.t -> unit VarMap.t -> unit VarMap.t = VarMap.union (fun _ _ _ -> Some ())
 
-let rec fv e =
+
+let rec fv (e: expr Pos.marked) : unit VarMap.t =
   match Pos.unmark e with
   | EVar (v, _) -> VarMap.singleton v ()
   | ETuple (es, _) | EArray es -> es |> List.map fv |> List.fold_left union VarMap.empty
@@ -184,7 +184,8 @@ let rec fv e =
       let vs, body = Bindlib.unmbind binder in
       Array.fold_right VarMap.remove vs (fv body)
 
-let free_vars e = fv e |> VarMap.bindings |> List.map fst
+
+let free_vars (e: expr Pos.marked): Var.t list = fv e |> VarMap.bindings |> List.map fst
 
 type vars = expr Bindlib.mvar
 
