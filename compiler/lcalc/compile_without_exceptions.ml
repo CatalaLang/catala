@@ -17,8 +17,6 @@ module D = Dcalc.Ast
 module A = Ast
 open Dcalc.Binded_representation
 
-(*** hoisting *)
-
 (** The main idea around this pass is to compile Dcalc to Lcalc without using [raise EmptyError] nor
     [try _ with EmptyError -> _]. To do so, we use the same technique as in rust or erlang to handle
     this kind of exceptions. Each [raise EmptyError] will be translated as [None] and each
@@ -446,7 +444,6 @@ let translate_scopes (ctx : ctx) (scopes : scopes) : Ast.scope_body list =
   Bindlib.unbox (translate_scopes ctx scopes)
 
 let translate_program (prgm : D.program) : A.program =
-  (* modify the *)
   let inputs_structs =
     ListLabels.fold_left prgm.scopes ~init:[] ~f:(fun acc (_, _, body) ->
         body.D.scope_body_input_struct :: acc)
