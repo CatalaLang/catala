@@ -71,59 +71,71 @@ déclaration énumération Nationalité:
   -- Étrangère
 
 déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
-  contexte ménage contenu Ménage
-  contexte demandeur contenu Demandeur
-  contexte condition_spécifique_prise_en_compte_revenus_demandeur condition
-  contexte condition_nationalité condition
-  contexte condition_logement condition
-  contexte usufruit_ou_propriété_famille contenu booléen
-  contexte seuil_l822_3_parts_propriété contenu décimal
-  contexte seuil_l822_3_parts_usufruit contenu décimal
-  contexte seuil_l822_5_patrimoine contenu argent
-  contexte patrimoine_pris_en_compte contenu argent
-  contexte condition_non_ouverture_l822_8 condition
-  contexte condition_non_ouverture_l822_9_decence_logement condition
-  contexte condition_non_ouverture_l822_10_peuplement_logement condition
-  contexte condition_peuplement_logement_l822_10 condition
-  contexte éligibilité_logement condition
-  contexte montant_minimal_aide_personnelle_logement
+  entrée ménage contenu Ménage
+  entrée demandeur contenu Demandeur
+  entrée sortie date_ouverture_droits contenu date
+  interne condition_spécifique_prise_en_compte_revenus_demandeur condition
+  interne condition_nationalité condition
+  interne condition_logement condition
+  interne usufruit_ou_propriété_famille contenu booléen
+  interne seuil_l822_3_parts_propriété contenu décimal
+  interne seuil_l822_3_parts_usufruit contenu décimal
+  interne seuil_l822_5_patrimoine contenu argent
+  interne patrimoine_pris_en_compte contenu argent
+  interne condition_non_ouverture_l822_8 condition
+  interne condition_non_ouverture_l822_9_decence_logement condition
+  interne condition_non_ouverture_l822_10_peuplement_logement condition
+  interne condition_peuplement_logement_l822_10 condition
+  interne éligibilité_logement condition
+  interne montant_minimal_aide_personnelle_logement
     contenu argent dépend de ModeOccupation
-  contexte date_ouverture_droits contenu date
+  sortie éligibilité condition
 
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
-  contexte date_emménagement contenu date
-  contexte nouveau_logement contenu Logement
-  contexte condition_rang_enfant condition
-  contexte condition_période_déménagement condition
+  entrée date_emménagement contenu date
+  entrée ménage contenu Ménage
+  entrée demandeur contenu Demandeur
+  entrée date_ouverture_droits contenu date
+  interne condition_rang_enfant condition
+  interne condition_période_déménagement condition
   éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
-  contexte éligibilité_logement condition
+  interne éligibilité_logement condition
+  interne délai_après_emménagement_l823_8_2 contenu durée
+
+champ d'application ÉligibilitéPrimeDeDéménagement:
+  définition éligibilité_apl.ménage égal à ménage
+  définition éligibilité_apl.demandeur égal à demandeur
+  définition éligibilité_apl.date_ouverture_droits égal à date_ouverture_droits
 
 déclaration structure PersonneVivantHabituellementAuFoyer:
   donnée durée_résidence_durant_période_r_822_3_1 contenu durée
-  donnée ressources contexte argent
+  donnée ressources contenu argent
 
 déclaration énumération PaiementLogementDistinctProfessionnel:
   -- OuiAvecLoyerOuCharges contenu argent
   -- Non
 
 déclaration champ d'application RessourcesAidePersonnelleLogement:
-  contexte ressources_demandeur contenu argent
-  contexte ressources_conjoint contenu argent
-  contexte ressources_personnes_vivant_habituellement_foyer contenu argent
-  contexte ressources_prises_en_compte contenu argent
-  contexte personnes_vivant_habituellement_foyer contenu
+  entrée ressources_demandeur contenu argent
+  entrée ressources_conjoint contenu argent
+  interne ressources_personnes_vivant_habituellement_foyer contenu argent
+  interne ressources_prises_en_compte contenu argent
+  entrée personnes_vivant_habituellement_foyer contenu
     collection PersonneVivantHabituellementAuFoyer
-  contexte paiement_logement_distinct_professionnel contenu
+  entrée paiement_logement_distinct_professionnel contenu
     PaiementLogementDistinctProfessionnel
-  contexte abattement_r_822_8 contenu argent
-  contexte montant_forfaitaire_r_822_8 contenu argent
-  contexte abattement_r_822_7 contenu argent
-  contexte montant_forfaitaire_r_822_7 contenu argent
-  contexte abattement_r_822_10 contenu argent
-  contexte demandeur_exerce_activité_rémunérée contenu booléen
-  contexte conjoint_exerce_activité_rémunérée contenu booléen
-  contexte personnes_à_charge contenu collection PersonneÀCharge
-  contexte situation_familiale contenu SituationFamiliale
-
+  interne abattement_r_822_8 contenu argent
+  interne montant_forfaitaire_r_822_8 contenu argent
+  interne abattement_r_822_7 contenu argent
+  interne montant_forfaitaire_r_822_7 contenu argent
+  interne abattement_r_822_10 contenu argent
+  entrée demandeur_exerce_activité_rémunérée contenu booléen
+  entrée conjoint_exerce_activité_rémunérée contenu booléen
+  entrée personnes_à_charge contenu collection PersonneÀCharge
+  entrée situation_familiale contenu SituationFamiliale
   prestations_familiales champ d'application PrestationsFamiliales
+
+déclaration champ d'application PrestationsFamiliales:
+  sortie base_mensuelle contenu argent
+  # TODO: connecter au vrai champ d'application
 ```

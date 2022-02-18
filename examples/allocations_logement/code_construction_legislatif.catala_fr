@@ -178,13 +178,14 @@ personne de moins de trente ans.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette cas_base_l822_4 règle condition_logement
   sous condition
-    ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme Non
+    ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
+      LouéOuSousLouéÀDesTiers.Non
   conséquence non rempli
 
 exception cas_base_l822_4 règle condition_logement
   sous condition
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
-    -- Non: faux
+    -- LouéOuSousLouéÀDesTiers.Non: faux
     -- Oui de personne: personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
   conséquence rempli
 ```
@@ -528,7 +529,6 @@ de l'aide.
 ```catala
 # Voir le champ d'application ÉligibilitéPrimeDeDéménagement.
 champ d'application ÉligibilitéPrimeDeDéménagement:
-  définition éligibilité_apl.ménage.logement égal à nouveau_logement
   règle éligibilité_logement sous condition
     éligibilité_apl.éligibilité et condition_rang_enfant et
     condition_période_déménagement et

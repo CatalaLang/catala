@@ -472,7 +472,11 @@ let get_def_key (name : Ast.qident) (scope_uid : Scopelang.Ast.ScopeName.t) (ctx
       in
       let x_uid = get_var_uid subscope_real_uid ctxt x in
       Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
-  | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
+  | _ ->
+      Errors.raise_spanned_error
+        "This quantity defines the field of a struct, which is not supported in Catala. Please \
+         define the whole struct instead."
+        default_pos
 
 let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
     context =
