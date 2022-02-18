@@ -108,6 +108,7 @@ type enfant_entree = {
   d_date_de_naissance : date;
   d_prise_en_charge : prise_en_charge;
   d_a_deja_ouvert_droit_aux_allocations_familiales : bool;
+  d_beneficie_titre_personnel_aide_personnelle_logement : bool;
 }
 
 let embed_enfant_entree (x : enfant_entree) : runtime_value =
@@ -120,6 +121,8 @@ let embed_enfant_entree (x : enfant_entree) : runtime_value =
         ("d_prise_en_charge", embed_prise_en_charge x.d_prise_en_charge);
         ( "d_a_déjà_ouvert_droit_aux_allocations_familiales",
           embed_bool x.d_a_deja_ouvert_droit_aux_allocations_familiales );
+        ( "d_bénéficie_titre_personnel_aide_personnelle_logement",
+          embed_bool x.d_beneficie_titre_personnel_aide_personnelle_logement );
       ] )
 
 type enfant = {
@@ -130,6 +133,7 @@ type enfant = {
   age : integer;
   prise_en_charge : prise_en_charge;
   a_deja_ouvert_droit_aux_allocations_familiales : bool;
+  beneficie_titre_personnel_aide_personnelle_logement : bool;
 }
 
 let embed_enfant (x : enfant) : runtime_value =
@@ -144,6 +148,8 @@ let embed_enfant (x : enfant) : runtime_value =
         ("prise_en_charge", embed_prise_en_charge x.prise_en_charge);
         ( "a_déjà_ouvert_droit_aux_allocations_familiales",
           embed_bool x.a_deja_ouvert_droit_aux_allocations_familiales );
+        ( "bénéficie_titre_personnel_aide_personnelle_logement",
+          embed_bool x.beneficie_titre_personnel_aide_personnelle_logement );
       ] )
 
 type smic_out = { brut_horaire_out : money }
@@ -449,9 +455,9 @@ let smic (smic_in : smic_in) =
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 43;
+                 start_line = 44;
                  start_column = 10;
-                 end_line = 43;
+                 end_line = 44;
                  end_column = 22;
                  law_headings = [ "Prologue" ];
                }
@@ -462,9 +468,9 @@ let smic (smic_in : smic_in) =
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 43;
+                start_line = 44;
                 start_column = 10;
-                end_line = 43;
+                end_line = 44;
                 end_column = 22;
                 law_headings = [ "Prologue" ];
               }))
@@ -483,9 +489,9 @@ let allocation_familiales_avril2008
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 81;
+                start_line = 82;
                 start_column = 10;
-                end_line = 81;
+                end_line = 82;
                 end_column = 37;
                 law_headings = [ "Prologue" ];
               }))
@@ -509,6 +515,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
              age = integer_of_string "0";
              prise_en_charge = EffectiveEtPermanente ();
              a_deja_ouvert_droit_aux_allocations_familiales = false;
+             beneficie_titre_personnel_aide_personnelle_logement = false;
            }
            enfants_
        with EmptyError ->
@@ -516,9 +523,9 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 85;
+                start_line = 86;
                 start_column = 10;
-                end_line = 85;
+                end_line = 86;
                 end_column = 21;
                 law_headings = [ "Prologue" ];
               }))
@@ -541,9 +548,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 68;
+                start_line = 69;
                 start_column = 10;
-                end_line = 68;
+                end_line = 69;
                 end_column = 22;
                 law_headings = [ "Prologue" ];
               }))
@@ -629,9 +636,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 74;
+                 start_line = 75;
                  start_column = 10;
-                 end_line = 74;
+                 end_line = 75;
                  end_column = 24;
                  law_headings = [ "Prologue" ];
                }
@@ -642,9 +649,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 74;
+                start_line = 75;
                 start_column = 10;
-                end_line = 74;
+                end_line = 75;
                 end_column = 24;
                 law_headings = [ "Prologue" ];
               }))
@@ -659,9 +666,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 41;
+             start_line = 42;
              start_column = 10;
-             end_line = 41;
+             end_line = 42;
              end_column = 23;
              law_headings = [ "Prologue" ];
            })
@@ -676,9 +683,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 42;
+             start_line = 43;
              start_column = 10;
-             end_line = 42;
+             end_line = 43;
              end_column = 19;
              law_headings = [ "Prologue" ];
            })
@@ -702,9 +709,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              log_decision_taken
                {
                  filename = "./securite_sociale_L.catala_fr";
-                 start_line = 354;
+                 start_line = 357;
                  start_column = 5;
-                 end_line = 359;
+                 end_line = 362;
                  end_column = 30;
                  law_headings =
                    [
@@ -728,9 +735,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 69;
+                start_line = 70;
                 start_column = 10;
-                end_line = 69;
+                end_line = 70;
                 end_column = 33;
                 law_headings = [ "Prologue" ];
               }))
@@ -769,9 +776,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 67;
+                start_line = 68;
                 start_column = 11;
-                end_line = 67;
+                end_line = 68;
                 end_column = 27;
                 law_headings = [ "Prologue" ];
               }))
@@ -788,9 +795,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                  log_decision_taken
                    {
                      filename = "./securite_sociale_L.catala_fr";
-                     start_line = 68;
+                     start_line = 71;
                      start_column = 5;
-                     end_line = 71;
+                     end_line = 74;
                      end_column = 57;
                      law_headings =
                        [
@@ -824,9 +831,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 66;
+                    start_line = 67;
                     start_column = 10;
-                    end_line = 66;
+                    end_line = 67;
                     end_column = 29;
                     law_headings = [ "Prologue" ];
                   })
@@ -835,9 +842,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 66;
+                start_line = 67;
                 start_column = 10;
-                end_line = 66;
+                end_line = 67;
                 end_column = 29;
                 law_headings = [ "Prologue" ];
               }))
@@ -849,86 +856,113 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
       (try
          fun (param_ : enfant) ->
            try
-             handle_default
-               [|
-                 (fun (_ : _) ->
-                   if
+             try
+               try
+                 if
+                   log_decision_taken
+                     {
+                       filename = "./autres_codes.catala_fr";
+                       start_line = 24;
+                       start_column = 5;
+                       end_line = 24;
+                       end_column = 63;
+                       law_headings =
+                         [
+                           "Article L821-3";
+                           "Sous-section 1 : Aides personnelles au logement";
+                           "Section 2 : Règles de non-cumul";
+                           "Chapitre Ier : Principes généraux";
+                           "Titre II : Dispositions communes aux aides personnelles au logement";
+                           "Livre VIII : Aides personnelles au logement";
+                           "Partie législative";
+                           "Code de la construction et de l'habitation";
+                         ];
+                     }
+                     param_.beneficie_titre_personnel_aide_personnelle_logement
+                 then false
+                 else raise EmptyError
+               with EmptyError ->
+                 handle_default
+                   [|
+                     (fun (_ : _) ->
+                       if
+                         log_decision_taken
+                           {
+                             filename = "./securite_sociale_L.catala_fr";
+                             start_line = 52;
+                             start_column = 5;
+                             end_line = 53;
+                             end_column = 50;
+                             law_headings =
+                               [
+                                 "Article L512-3";
+                                 "Chapitre 2 : Champ d'application";
+                                 "Titre 1 : Champ d'application - Généralités";
+                                 "Livre 5 : Prestations familiales et prestations assimilées";
+                                 "Partie législative";
+                                 "Code de la sécurité sociale";
+                               ];
+                           }
+                           ((match param_.obligation_scolaire with
+                            | Avant _ -> true
+                            | Pendant _ -> false
+                            | Apres _ -> false)
+                           ||
+                           match param_.obligation_scolaire with
+                           | Avant _ -> false
+                           | Pendant _ -> true
+                           | Apres _ -> false)
+                       then true
+                       else raise EmptyError);
+                     (fun (_ : _) ->
+                       if
+                         log_decision_taken
+                           {
+                             filename = "./securite_sociale_L.catala_fr";
+                             start_line = 63;
+                             start_column = 5;
+                             end_line = 65;
+                             end_column = 32;
+                             law_headings =
+                               [
+                                 "Article L512-3";
+                                 "Chapitre 2 : Champ d'application";
+                                 "Titre 1 : Champ d'application - Généralités";
+                                 "Livre 5 : Prestations familiales et prestations assimilées";
+                                 "Partie législative";
+                                 "Code de la sécurité sociale";
+                               ];
+                           }
+                           ((match param_.obligation_scolaire with
+                            | Avant _ -> false
+                            | Pendant _ -> false
+                            | Apres _ -> true)
+                           && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
+                           && param_.age <! age_l512_3_2_)
+                       then true
+                       else raise EmptyError);
+                   |]
+                   (fun (_ : _) ->
                      log_decision_taken
                        {
-                         filename = "./securite_sociale_L.catala_fr";
-                         start_line = 60;
-                         start_column = 5;
-                         end_line = 62;
-                         end_column = 32;
-                         law_headings =
-                           [
-                             "Article L512-3";
-                             "Chapitre 2 : Champ d'application";
-                             "Titre 1 : Champ d'application - Généralités";
-                             "Livre 5 : Prestations familiales et prestations assimilées";
-                             "Partie législative";
-                             "Code de la sécurité sociale";
-                           ];
+                         filename = "./prologue.catala_fr";
+                         start_line = 66;
+                         start_column = 10;
+                         end_line = 66;
+                         end_column = 22;
+                         law_headings = [ "Prologue" ];
                        }
-                       ((match param_.obligation_scolaire with
-                        | Avant _ -> false
-                        | Pendant _ -> false
-                        | Apres _ -> true)
-                       && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
-                       && param_.age <! age_l512_3_2_)
-                   then true
-                   else raise EmptyError);
-                 (fun (_ : _) ->
-                   if
-                     log_decision_taken
-                       {
-                         filename = "./securite_sociale_L.catala_fr";
-                         start_line = 49;
-                         start_column = 5;
-                         end_line = 50;
-                         end_column = 50;
-                         law_headings =
-                           [
-                             "Article L512-3";
-                             "Chapitre 2 : Champ d'application";
-                             "Titre 1 : Champ d'application - Généralités";
-                             "Livre 5 : Prestations familiales et prestations assimilées";
-                             "Partie législative";
-                             "Code de la sécurité sociale";
-                           ];
-                       }
-                       ((match param_.obligation_scolaire with
-                        | Avant _ -> true
-                        | Pendant _ -> false
-                        | Apres _ -> false)
-                       ||
-                       match param_.obligation_scolaire with
-                       | Avant _ -> false
-                       | Pendant _ -> true
-                       | Apres _ -> false)
-                   then true
-                   else raise EmptyError);
-               |]
-               (fun (_ : _) ->
-                 log_decision_taken
-                   {
-                     filename = "./prologue.catala_fr";
-                     start_line = 65;
-                     start_column = 10;
-                     end_line = 65;
-                     end_column = 22;
-                     law_headings = [ "Prologue" ];
-                   }
-                   true)
-               (fun (_ : _) -> false)
+                       false)
+                   (fun (_ : _) -> raise EmptyError)
+             with EmptyError -> false
            with EmptyError ->
              raise
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 65;
+                    start_line = 66;
                     start_column = 10;
-                    end_line = 65;
+                    end_line = 66;
                     end_column = 22;
                     law_headings = [ "Prologue" ];
                   })
@@ -937,9 +971,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 65;
+                start_line = 66;
                 start_column = 10;
-                end_line = 65;
+                end_line = 66;
                 end_column = 22;
                 law_headings = [ "Prologue" ];
               }))
@@ -980,9 +1014,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 263;
+                         start_line = 266;
                          start_column = 5;
-                         end_line = 264;
+                         end_line = 267;
                          end_column = 48;
                          law_headings =
                            [
@@ -1007,9 +1041,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 253;
+                         start_line = 256;
                          start_column = 5;
-                         end_line = 254;
+                         end_line = 257;
                          end_column = 56;
                          law_headings =
                            [
@@ -1034,9 +1068,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 214;
+                         start_line = 217;
                          start_column = 5;
-                         end_line = 214;
+                         end_line = 217;
                          end_column = 70;
                          law_headings =
                            [
@@ -1061,9 +1095,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 204;
+                         start_line = 207;
                          start_column = 5;
-                         end_line = 204;
+                         end_line = 207;
                          end_column = 69;
                          law_headings =
                            [
@@ -1088,9 +1122,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 184;
+                         start_line = 187;
                          start_column = 5;
-                         end_line = 184;
+                         end_line = 187;
                          end_column = 60;
                          law_headings =
                            [
@@ -1115,9 +1149,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./prologue.catala_fr";
-                     start_line = 102;
+                     start_line = 103;
                      start_column = 11;
-                     end_line = 102;
+                     end_line = 103;
                      end_column = 26;
                      law_headings = [ "Prologue" ];
                    }
@@ -1128,9 +1162,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 102;
+                    start_line = 103;
                     start_column = 11;
-                    end_line = 102;
+                    end_line = 103;
                     end_column = 26;
                     law_headings = [ "Prologue" ];
                   })
@@ -1139,9 +1173,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 102;
+                start_line = 103;
                 start_column = 11;
-                end_line = 102;
+                end_line = 103;
                 end_column = 26;
                 law_headings = [ "Prologue" ];
               }))
@@ -1160,9 +1194,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 269;
+                         start_line = 272;
                          start_column = 5;
-                         end_line = 270;
+                         end_line = 273;
                          end_column = 48;
                          law_headings =
                            [
@@ -1187,9 +1221,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 258;
+                         start_line = 261;
                          start_column = 5;
-                         end_line = 259;
+                         end_line = 262;
                          end_column = 56;
                          law_headings =
                            [
@@ -1214,9 +1248,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 218;
+                         start_line = 221;
                          start_column = 5;
-                         end_line = 218;
+                         end_line = 221;
                          end_column = 70;
                          law_headings =
                            [
@@ -1241,9 +1275,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 208;
+                         start_line = 211;
                          start_column = 5;
-                         end_line = 208;
+                         end_line = 211;
                          end_column = 69;
                          law_headings =
                            [
@@ -1268,9 +1302,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./securite_sociale_L.catala_fr";
-                         start_line = 188;
+                         start_line = 191;
                          start_column = 5;
-                         end_line = 188;
+                         end_line = 191;
                          end_column = 60;
                          law_headings =
                            [
@@ -1295,9 +1329,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./prologue.catala_fr";
-                     start_line = 103;
+                     start_line = 104;
                      start_column = 11;
-                     end_line = 103;
+                     end_line = 104;
                      end_column = 20;
                      law_headings = [ "Prologue" ];
                    }
@@ -1308,9 +1342,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 103;
+                    start_line = 104;
                     start_column = 11;
-                    end_line = 103;
+                    end_line = 104;
                     end_column = 20;
                     law_headings = [ "Prologue" ];
                   })
@@ -1319,9 +1353,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 103;
+                start_line = 104;
                 start_column = 11;
-                end_line = 103;
+                end_line = 104;
                 end_column = 20;
                 law_headings = [ "Prologue" ];
               }))
@@ -1336,9 +1370,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 151;
+                start_line = 152;
                 start_column = 11;
-                end_line = 151;
+                end_line = 152;
                 end_column = 32;
                 law_headings = [ "Prologue" ];
               }))
@@ -1353,9 +1387,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 153;
+                start_line = 154;
                 start_column = 11;
-                end_line = 153;
+                end_line = 154;
                 end_column = 41;
                 law_headings = [ "Prologue" ];
               }))
@@ -1380,9 +1414,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 70;
+             start_line = 71;
              start_column = 10;
-             end_line = 70;
+             end_line = 71;
              end_column = 23;
              law_headings = [ "Prologue" ];
            })
@@ -1397,9 +1431,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 71;
+             start_line = 72;
              start_column = 10;
-             end_line = 71;
+             end_line = 72;
              end_column = 29;
              law_headings = [ "Prologue" ];
            })
@@ -1414,9 +1448,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 72;
+             start_line = 73;
              start_column = 10;
-             end_line = 72;
+             end_line = 73;
              end_column = 19;
              law_headings = [ "Prologue" ];
            })
@@ -1452,9 +1486,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 84;
+             start_line = 85;
              start_column = 10;
-             end_line = 84;
+             end_line = 85;
              end_column = 17;
              law_headings = [ "Prologue" ];
            })
@@ -1504,9 +1538,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 152;
+                    start_line = 153;
                     start_column = 11;
-                    end_line = 152;
+                    end_line = 153;
                     end_column = 38;
                     law_headings = [ "Prologue" ];
                   })
@@ -1515,9 +1549,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 152;
+                start_line = 153;
                 start_column = 11;
-                end_line = 152;
+                end_line = 153;
                 end_column = 38;
                 law_headings = [ "Prologue" ];
               }))
@@ -1546,9 +1580,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 100;
+                start_line = 101;
                 start_column = 11;
-                end_line = 100;
+                end_line = 101;
                 end_column = 61;
                 law_headings = [ "Prologue" ];
               }))
@@ -1565,9 +1599,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 154;
+                    start_line = 155;
                     start_column = 11;
-                    end_line = 154;
+                    end_line = 155;
                     end_column = 33;
                     law_headings = [ "Prologue" ];
                   })
@@ -1576,9 +1610,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 154;
+                start_line = 155;
                 start_column = 11;
-                end_line = 154;
+                end_line = 155;
                 end_column = 33;
                 law_headings = [ "Prologue" ];
               }))
@@ -1706,9 +1740,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 156;
+                 start_line = 157;
                  start_column = 11;
-                 end_line = 156;
+                 end_line = 157;
                  end_column = 28;
                  law_headings = [ "Prologue" ];
                }
@@ -1723,9 +1757,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 156;
+                start_line = 157;
                 start_column = 11;
-                end_line = 156;
+                end_line = 157;
                 end_column = 28;
                 law_headings = [ "Prologue" ];
               }))
@@ -1853,9 +1887,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 155;
+                 start_line = 156;
                  start_column = 11;
-                 end_line = 155;
+                 end_line = 156;
                  end_column = 27;
                  law_headings = [ "Prologue" ];
                }
@@ -1870,9 +1904,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 155;
+                start_line = 156;
                 start_column = 11;
-                end_line = 155;
+                end_line = 156;
                 end_column = 27;
                 law_headings = [ "Prologue" ];
               }))
@@ -1888,9 +1922,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                log_decision_taken
                  {
                    filename = "./securite_sociale_L.catala_fr";
-                   start_line = 426;
+                   start_line = 429;
                    start_column = 5;
-                   end_line = 427;
+                   end_line = 430;
                    end_column = 71;
                    law_headings =
                      [
@@ -1915,9 +1949,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 139;
+                start_line = 140;
                 start_column = 11;
-                end_line = 139;
+                end_line = 140;
                 end_column = 34;
                 law_headings = [ "Prologue" ];
               }))
@@ -1935,9 +1969,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_L.catala_fr";
-                       start_line = 420;
+                       start_line = 423;
                        start_column = 6;
-                       end_line = 421;
+                       end_line = 424;
                        end_column = 72;
                        law_headings =
                          [
@@ -1960,9 +1994,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_L.catala_fr";
-                       start_line = 119;
+                       start_line = 122;
                        start_column = 5;
-                       end_line = 125;
+                       end_line = 128;
                        end_column = 59;
                        law_headings =
                          [
@@ -1996,9 +2030,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 127;
+                    start_line = 128;
                     start_column = 11;
-                    end_line = 127;
+                    end_line = 128;
                     end_column = 35;
                     law_headings = [ "Prologue" ];
                   })
@@ -2007,9 +2041,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 127;
+                start_line = 128;
                 start_column = 11;
-                end_line = 127;
+                end_line = 128;
                 end_column = 35;
                 law_headings = [ "Prologue" ];
               }))
@@ -2032,9 +2066,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 124;
+                start_line = 125;
                 start_column = 11;
-                end_line = 124;
+                end_line = 125;
                 end_column = 64;
                 law_headings = [ "Prologue" ];
               }))
@@ -2321,9 +2355,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 123;
+                 start_line = 124;
                  start_column = 11;
-                 end_line = 123;
+                 end_line = 124;
                  end_column = 56;
                  law_headings = [ "Prologue" ];
                }
@@ -2339,9 +2373,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 123;
+                start_line = 124;
                 start_column = 11;
-                end_line = 123;
+                end_line = 124;
                 end_column = 56;
                 law_headings = [ "Prologue" ];
               }))
@@ -2628,9 +2662,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 122;
+                 start_line = 123;
                  start_column = 11;
-                 end_line = 122;
+                 end_line = 123;
                  end_column = 55;
                  law_headings = [ "Prologue" ];
                }
@@ -2646,9 +2680,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 122;
+                start_line = 123;
                 start_column = 11;
-                end_line = 122;
+                end_line = 123;
                 end_column = 55;
                 law_headings = [ "Prologue" ];
               }))
@@ -2971,9 +3005,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 121;
+                 start_line = 122;
                  start_column = 11;
-                 end_line = 121;
+                 end_line = 122;
                  end_column = 54;
                  law_headings = [ "Prologue" ];
                }
@@ -2989,9 +3023,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 121;
+                start_line = 122;
                 start_column = 11;
-                end_line = 121;
+                end_line = 122;
                 end_column = 54;
                 law_headings = [ "Prologue" ];
               }))
@@ -3006,9 +3040,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 115;
+                start_line = 116;
                 start_column = 11;
-                end_line = 115;
+                end_line = 116;
                 end_column = 31;
                 law_headings = [ "Prologue" ];
               }))
@@ -3044,9 +3078,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 114;
+                start_line = 115;
                 start_column = 11;
-                end_line = 114;
+                end_line = 115;
                 end_column = 31;
                 law_headings = [ "Prologue" ];
               }))
@@ -3086,9 +3120,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 110;
+                start_line = 111;
                 start_column = 11;
-                end_line = 110;
+                end_line = 111;
                 end_column = 46;
                 law_headings = [ "Prologue" ];
               }))
@@ -3129,9 +3163,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_L.catala_fr";
-                       start_line = 406;
+                       start_line = 409;
                        start_column = 5;
-                       end_line = 407;
+                       end_line = 410;
                        end_column = 72;
                        law_headings =
                          [
@@ -3154,9 +3188,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                log_decision_taken
                  {
                    filename = "./prologue.catala_fr";
-                   start_line = 108;
+                   start_line = 109;
                    start_column = 11;
-                   end_line = 108;
+                   end_line = 109;
                    end_column = 28;
                    law_headings = [ "Prologue" ];
                  }
@@ -3166,9 +3200,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./securite_sociale_L.catala_fr";
-                     start_line = 101;
+                     start_line = 104;
                      start_column = 5;
-                     end_line = 101;
+                     end_line = 104;
                      end_column = 70;
                      law_headings =
                        [
@@ -3190,9 +3224,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 108;
+                start_line = 109;
                 start_column = 11;
-                end_line = 108;
+                end_line = 109;
                 end_column = 28;
                 law_headings = [ "Prologue" ];
               }))
@@ -3210,9 +3244,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_L.catala_fr";
-                       start_line = 313;
+                       start_line = 316;
                        start_column = 5;
-                       end_line = 315;
+                       end_line = 318;
                        end_column = 58;
                        law_headings =
                          [
@@ -3251,9 +3285,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                    log_decision_taken
                      {
                        filename = "./securite_sociale_L.catala_fr";
-                       start_line = 299;
+                       start_line = 302;
                        start_column = 5;
-                       end_line = 300;
+                       end_line = 303;
                        end_column = 58;
                        law_headings =
                          [
@@ -3303,9 +3337,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 132;
+                    start_line = 133;
                     start_column = 11;
-                    end_line = 132;
+                    end_line = 133;
                     end_column = 34;
                     law_headings = [ "Prologue" ];
                   })
@@ -3314,9 +3348,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 132;
+                start_line = 133;
                 start_column = 11;
-                end_line = 132;
+                end_line = 133;
                 end_column = 34;
                 law_headings = [ "Prologue" ];
               }))
@@ -3389,9 +3423,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./prologue.catala_fr";
-                     start_line = 141;
+                     start_line = 142;
                      start_column = 11;
-                     end_line = 141;
+                     end_line = 142;
                      end_column = 31;
                      law_headings = [ "Prologue" ];
                    }
@@ -3402,9 +3436,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 141;
+                    start_line = 142;
                     start_column = 11;
-                    end_line = 141;
+                    end_line = 142;
                     end_column = 31;
                     law_headings = [ "Prologue" ];
                   })
@@ -3413,9 +3447,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 141;
+                start_line = 142;
                 start_column = 11;
-                end_line = 141;
+                end_line = 142;
                 end_column = 31;
                 law_headings = [ "Prologue" ];
               }))
@@ -3499,9 +3533,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 128;
+                 start_line = 129;
                  start_column = 11;
-                 end_line = 128;
+                 end_line = 129;
                  end_column = 47;
                  law_headings = [ "Prologue" ];
                }
@@ -3512,9 +3546,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 128;
+                start_line = 129;
                 start_column = 11;
-                end_line = 128;
+                end_line = 129;
                 end_column = 47;
                 law_headings = [ "Prologue" ];
               }))
@@ -3625,9 +3659,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 112;
+                 start_line = 113;
                  start_column = 11;
-                 end_line = 112;
+                 end_line = 113;
                  end_column = 56;
                  law_headings = [ "Prologue" ];
                }
@@ -3638,9 +3672,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 112;
+                start_line = 113;
                 start_column = 11;
-                end_line = 112;
+                end_line = 113;
                 end_column = 56;
                 law_headings = [ "Prologue" ];
               }))
@@ -3739,9 +3773,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 111;
+                 start_line = 112;
                  start_column = 11;
-                 end_line = 111;
+                 end_line = 112;
                  end_column = 47;
                  law_headings = [ "Prologue" ];
                }
@@ -3752,9 +3786,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 111;
+                start_line = 112;
                 start_column = 11;
-                end_line = 111;
+                end_line = 112;
                 end_column = 47;
                 law_headings = [ "Prologue" ];
               }))
@@ -3771,9 +3805,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 113;
+                start_line = 114;
                 start_column = 11;
-                end_line = 113;
+                end_line = 114;
                 end_column = 38;
                 law_headings = [ "Prologue" ];
               }))
@@ -3792,9 +3826,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                      log_decision_taken
                        {
                          filename = "./epilogue.catala_fr";
-                         start_line = 27;
+                         start_line = 28;
                          start_column = 5;
-                         end_line = 27;
+                         end_line = 28;
                          end_column = 44;
                          law_headings = [ "Règles diverses"; "Épilogue"; "Décrets divers" ];
                        }
@@ -3919,9 +3953,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./prologue.catala_fr";
-                     start_line = 133;
+                     start_line = 134;
                      start_column = 11;
-                     end_line = 133;
+                     end_line = 134;
                      end_column = 47;
                      law_headings = [ "Prologue" ];
                    }
@@ -3932,9 +3966,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 133;
+                    start_line = 134;
                     start_column = 11;
-                    end_line = 133;
+                    end_line = 134;
                     end_column = 47;
                     law_headings = [ "Prologue" ];
                   })
@@ -3943,9 +3977,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 133;
+                start_line = 134;
                 start_column = 11;
-                end_line = 133;
+                end_line = 134;
                 end_column = 47;
                 law_headings = [ "Prologue" ];
               }))
@@ -3979,9 +4013,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 129;
+                start_line = 130;
                 start_column = 11;
-                end_line = 129;
+                end_line = 130;
                 end_column = 36;
                 law_headings = [ "Prologue" ];
               }))
@@ -4047,9 +4081,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 109;
+                 start_line = 110;
                  start_column = 11;
-                 end_line = 109;
+                 end_line = 110;
                  end_column = 31;
                  law_headings = [ "Prologue" ];
                }
@@ -4061,9 +4095,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 109;
+                start_line = 110;
                 start_column = 11;
-                end_line = 109;
+                end_line = 110;
                 end_column = 31;
                 law_headings = [ "Prologue" ];
               }))
@@ -4155,9 +4189,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  log_decision_taken
                    {
                      filename = "./prologue.catala_fr";
-                     start_line = 134;
+                     start_line = 135;
                      start_column = 11;
-                     end_line = 134;
+                     end_line = 135;
                      end_column = 37;
                      law_headings = [ "Prologue" ];
                    }
@@ -4183,9 +4217,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 134;
+                    start_line = 135;
                     start_column = 11;
-                    end_line = 134;
+                    end_line = 135;
                     end_column = 37;
                     law_headings = [ "Prologue" ];
                   })
@@ -4194,9 +4228,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 134;
+                start_line = 135;
                 start_column = 11;
-                end_line = 134;
+                end_line = 135;
                 end_column = 37;
                 law_headings = [ "Prologue" ];
               }))
@@ -4271,9 +4305,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              log_decision_taken
                {
                  filename = "./prologue.catala_fr";
-                 start_line = 143;
+                 start_line = 144;
                  start_column = 11;
-                 end_line = 143;
+                 end_line = 144;
                  end_column = 52;
                  law_headings = [ "Prologue" ];
                }
@@ -4284,9 +4318,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 143;
+                start_line = 144;
                 start_column = 11;
-                end_line = 143;
+                end_line = 144;
                 end_column = 52;
                 law_headings = [ "Prologue" ];
               }))
@@ -4301,9 +4335,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 116;
+                start_line = 117;
                 start_column = 11;
-                end_line = 116;
+                end_line = 117;
                 end_column = 43;
                 law_headings = [ "Prologue" ];
               }))
@@ -4348,9 +4382,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                (NoValueProvided
                   {
                     filename = "./prologue.catala_fr";
-                    start_line = 135;
+                    start_line = 136;
                     start_column = 11;
-                    end_line = 135;
+                    end_line = 136;
                     end_column = 49;
                     law_headings = [ "Prologue" ];
                   })
@@ -4359,9 +4393,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 135;
+                start_line = 136;
                 start_column = 11;
-                end_line = 135;
+                end_line = 136;
                 end_column = 49;
                 law_headings = [ "Prologue" ];
               }))
@@ -4377,9 +4411,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 117;
+                start_line = 118;
                 start_column = 11;
-                end_line = 117;
+                end_line = 118;
                 end_column = 29;
                 law_headings = [ "Prologue" ];
               }))
@@ -4417,9 +4451,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 136;
+                start_line = 137;
                 start_column = 11;
-                end_line = 136;
+                end_line = 137;
                 end_column = 35;
                 law_headings = [ "Prologue" ];
               }))
@@ -4434,9 +4468,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 140;
+                start_line = 141;
                 start_column = 11;
-                end_line = 140;
+                end_line = 141;
                 end_column = 58;
                 law_headings = [ "Prologue" ];
               }))
@@ -4464,9 +4498,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 142;
+                start_line = 143;
                 start_column = 11;
-                end_line = 142;
+                end_line = 143;
                 end_column = 59;
                 law_headings = [ "Prologue" ];
               }))
@@ -4488,9 +4522,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
            (NoValueProvided
               {
                 filename = "./prologue.catala_fr";
-                start_line = 105;
+                start_line = 106;
                 start_column = 10;
-                end_line = 105;
+                end_line = 106;
                 end_column = 23;
                 law_headings = [ "Prologue" ];
               }))
@@ -4544,6 +4578,8 @@ let interface_allocations_familiales
                prise_en_charge = enfant_.d_prise_en_charge;
                a_deja_ouvert_droit_aux_allocations_familiales =
                  enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
+               beneficie_titre_personnel_aide_personnelle_logement =
+                 enfant_.d_beneficie_titre_personnel_aide_personnelle_logement;
              })
            i_enfants_
        with EmptyError ->
@@ -4551,9 +4587,9 @@ let interface_allocations_familiales
            (NoValueProvided
               {
                 filename = "./epilogue.catala_fr";
-                start_line = 74;
+                start_line = 76;
                 start_column = 11;
-                end_line = 74;
+                end_line = 76;
                 end_column = 27;
                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
               }))
@@ -4571,9 +4607,9 @@ let interface_allocations_familiales
              log_decision_taken
                {
                  filename = "./epilogue.catala_fr";
-                 start_line = 90;
+                 start_line = 92;
                  start_column = 20;
-                 end_line = 90;
+                 end_line = 92;
                  end_column = 69;
                  law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                }
@@ -4586,9 +4622,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 90;
+             start_line = 91;
              start_column = 10;
-             end_line = 90;
+             end_line = 91;
              end_column = 57;
              law_headings = [ "Prologue" ];
            })
@@ -4606,9 +4642,9 @@ let interface_allocations_familiales
              log_decision_taken
                {
                  filename = "./epilogue.catala_fr";
-                 start_line = 93;
+                 start_line = 95;
                  start_column = 20;
-                 end_line = 93;
+                 end_line = 95;
                  end_column = 74;
                  law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                }
@@ -4621,9 +4657,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 91;
+             start_line = 92;
              start_column = 10;
-             end_line = 91;
+             end_line = 92;
              end_column = 62;
              law_headings = [ "Prologue" ];
            })
@@ -4638,9 +4674,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 92;
+             start_line = 93;
              start_column = 10;
-             end_line = 92;
+             end_line = 93;
              end_column = 27;
              law_headings = [ "Prologue" ];
            })
@@ -4655,9 +4691,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 93;
+             start_line = 94;
              start_column = 10;
-             end_line = 93;
+             end_line = 94;
              end_column = 19;
              law_headings = [ "Prologue" ];
            })
@@ -4672,9 +4708,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 96;
+             start_line = 97;
              start_column = 10;
-             end_line = 96;
+             end_line = 97;
              end_column = 23;
              law_headings = [ "Prologue" ];
            })
@@ -4689,9 +4725,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 99;
+             start_line = 100;
              start_column = 10;
-             end_line = 99;
+             end_line = 100;
              end_column = 26;
              law_headings = [ "Prologue" ];
            })
@@ -4709,9 +4745,9 @@ let interface_allocations_familiales
              log_decision_taken
                {
                  filename = "./epilogue.catala_fr";
-                 start_line = 96;
+                 start_line = 98;
                  start_column = 20;
-                 end_line = 96;
+                 end_line = 98;
                  end_column = 66;
                  law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                }
@@ -4724,9 +4760,9 @@ let interface_allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 120;
+             start_line = 121;
              start_column = 10;
-             end_line = 120;
+             end_line = 121;
              end_column = 54;
              law_headings = [ "Prologue" ];
            })
@@ -4761,9 +4797,9 @@ let interface_allocations_familiales
            (NoValueProvided
               {
                 filename = "./epilogue.catala_fr";
-                start_line = 78;
+                start_line = 80;
                 start_column = 10;
-                end_line = 78;
+                end_line = 80;
                 end_column = 25;
                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
               }))
