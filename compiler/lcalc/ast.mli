@@ -30,7 +30,7 @@ type lit =
   | LDate of Runtime.date
   | LDuration of Runtime.duration
 
-type except = ConflictError | EmptyError | NoValueProvided | Crash [@@deriving show]
+type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 type expr =
   | EVar of expr Bindlib.var Pos.marked
@@ -101,8 +101,6 @@ val option_enum_config : (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked
 val make_none : Pos.t -> expr Pos.marked Bindlib.box
 
 val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
-
-val make_some' : expr Pos.marked -> expr
 
 val make_matchopt_with_abs_arms :
   expr Pos.marked Bindlib.box ->

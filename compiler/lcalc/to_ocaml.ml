@@ -17,7 +17,7 @@ open Ast
 open Backends
 module D = Dcalc.Ast
 
-let find_struct s ctx =
+let find_struct (s: D.StructName.t) (ctx: D.decl_ctx) : (D.StructFieldName.t * D.typ Pos.marked) list =
   try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
@@ -26,7 +26,7 @@ let find_struct s ctx =
          s_name)
       pos
 
-let find_enum en ctx =
+let find_enum (en: D.EnumName.t) (ctx: D.decl_ctx) : (D.EnumConstructor.t * D.typ Pos.marked) list =
   try D.EnumMap.find en ctx.D.ctx_enums
   with Not_found ->
     let en_name, pos = D.EnumName.get_info en in
@@ -100,7 +100,7 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
       Errors.raise_spanned_error
-        "Internal error: a log operator has not been caught by the\n         expression match"
+        "Internal error: a log operator has not been caught by the expression match"
         (Pos.get_position op)
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
@@ -195,7 +195,7 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
     || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
   then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
-  else Format.fprintf fmt "%s_%i_" lowercase_name (Bindlib.uid_of v)
+  else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with

@@ -104,6 +104,7 @@ let iota_optimizations (p : program) : program =
         p.scopes;
   }
 
+(* TODO: beta optimizations apply inlining of the program. We left the inclusion of beta-optimization as future work since its produce code that is harder to read, and can produce exponential blowup of the size of the generated program. *)
 let _beta_optimizations (p : program) : program =
   {
     p with
@@ -143,4 +144,3 @@ let peephole_optimizations (p : program) : program =
   }
 
 let optimize_program (p : program) : program = p |> iota_optimizations |> peephole_optimizations
-(* |> beta_optimizations *)
