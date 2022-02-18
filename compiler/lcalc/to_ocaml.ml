@@ -17,7 +17,8 @@ open Ast
 open Backends
 module D = Dcalc.Ast
 
-let find_struct (s: D.StructName.t) (ctx: D.decl_ctx) : (D.StructFieldName.t * D.typ Pos.marked) list =
+let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
+    (D.StructFieldName.t * D.typ Pos.marked) list =
   try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
@@ -26,7 +27,8 @@ let find_struct (s: D.StructName.t) (ctx: D.decl_ctx) : (D.StructFieldName.t * D
          s_name)
       pos
 
-let find_enum (en: D.EnumName.t) (ctx: D.decl_ctx) : (D.EnumConstructor.t * D.typ Pos.marked) list =
+let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) : (D.EnumConstructor.t * D.typ Pos.marked) list
+    =
   try D.EnumMap.find en ctx.D.ctx_enums
   with Not_found ->
     let en_name, pos = D.EnumName.get_info en in

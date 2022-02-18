@@ -12,6 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from the default calculus to the lambda calculus. This translation uses an option monad to handle empty defaults terms. *)
+(** Translation from the default calculus to the lambda calculus. This translation uses an option
+    monad to handle empty defaults terms. *)
 
 val translate_program : Dcalc.Ast.program -> Ast.program

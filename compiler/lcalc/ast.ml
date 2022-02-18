@@ -91,7 +91,7 @@ let some_constr : D.EnumConstructor.t = D.EnumConstructor.fresh ("ESome", Pos.no
 let option_enum_config : (D.EnumConstructor.t * D.typ Pos.marked) list =
   [ (none_constr, (D.TLit D.TUnit, Pos.no_pos)); (some_constr, (D.TAny, Pos.no_pos)) ]
 
-let make_none (pos : Pos.t): expr Pos.marked Bindlib.box =
+let make_none (pos : Pos.t) : expr Pos.marked Bindlib.box =
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
   Bindlib.box @@ mark @@ EInj (mark @@ ELit LUnit, 0, option_enum, [])
 
@@ -101,7 +101,6 @@ let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
 
   let+ e = e in
   mark @@ EInj (e, 1, option_enum, [])
-
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the

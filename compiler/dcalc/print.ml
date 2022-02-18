@@ -288,8 +288,8 @@ let rec format_expr ?(debug : bool = false) (ctx : Ast.decl_ctx) (fmt : Format.f
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " format_punctuation ",")
              format_expr)
-          exceptions format_punctuation "|" format_expr just format_punctuation "⊢" format_expr cons
-          format_punctuation "⟩"
+          exceptions format_punctuation "|" format_expr just format_punctuation "⊢" format_expr
+          cons format_punctuation "⟩"
   | ErrorOnEmpty e' ->
       Format.fprintf fmt "%a@ %a" format_operator "error_empty" format_with_parens e'
   | EAssert e' ->

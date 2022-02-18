@@ -30,17 +30,17 @@ type scope_lets =
       scope_let_pos : Utils.Pos.t;
     }
 
-(** As a consequence, the scope_body contains only a result and input/output signature, as the other
-    elements are stored inside the scope_let. The binder present is the argument of type
-    [scope_body_input_struct]. *)
 type scope_body = {
   scope_body_input_struct : D.StructName.t;
   scope_body_output_struct : D.StructName.t;
   scope_body_result : (D.expr, scope_lets) Bindlib.binder;
 }
+(** As a consequence, the scope_body contains only a result and input/output signature, as the other
+    elements are stored inside the scope_let. The binder present is the argument of type
+    [scope_body_input_struct]. *)
 
 (** Finally, we do the same transformation for the whole program for the kinded lets. This permit us
-   to use bindlib variables for scopes names. *)
+    to use bindlib variables for scopes names. *)
 type scopes =
   | Nil
   | ScopeDef of {
@@ -49,15 +49,15 @@ type scopes =
       scope_next : (D.expr, scopes) Bindlib.binder;
     }
 
-(** List of variables not binded inside a scope_lets *)
 val free_vars_scope_lets : scope_lets -> D.Var.t list
+(** List of variables not binded inside a scope_lets *)
 
-(** List of variables not binded inside a scope_body. *)
 val free_vars_scope_body : scope_body -> D.Var.t list
+(** List of variables not binded inside a scope_body. *)
 
-(** List of variables not binded inside scopes*)
 val free_vars_scopes : scopes -> D.Var.t list
+(** List of variables not binded inside scopes*)
 
-(** Transform a list of scopes into our representation of scopes. It requires that scopes are
-   topologically-well-ordered, and ensure there is no free variables in the returned [scopes] *)
 val bind_scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list -> scopes Bindlib.box
+(** Transform a list of scopes into our representation of scopes. It requires that scopes are
+    topologically-well-ordered, and ensure there is no free variables in the returned [scopes] *)
