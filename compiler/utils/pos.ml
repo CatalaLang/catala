@@ -12,8 +12,7 @@
    or implied. See the License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = { code_pos : Lexing.position * Lexing.position; [@opaque] law_pos : string list }
-[@@deriving show]
+type t = { code_pos : Lexing.position * Lexing.position; law_pos : string list }
 
 let from_lpos (p : Lexing.position * Lexing.position) : t = { code_pos = p; law_pos = [] }
 
@@ -168,7 +167,7 @@ let retrieve_loc_text (pos : t) : string =
              else Cli.print_with_style blue_style "%*s+-+ " (spaces + (2 * i) - 1) ""))
   with Sys_error _ -> "Location:" ^ to_string pos
 
-type 'a marked = 'a * t [@@deriving show]
+type 'a marked = 'a * t
 
 let no_pos : t =
   let zero_pos =
