@@ -407,16 +407,16 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
           | And -> (ctx, Boolean.mk_and ctx.ctx_z3 [ e1; e2 ])
           | Or -> (ctx, Boolean.mk_or ctx.ctx_z3 [ e1; e2 ])
           | Xor -> (ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2)
-          | Add KInt | Add KRat -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
+          | Add KInt | Add KRat | Add KMoney -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
           | Add _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Add not supported"
-          | Sub KInt | Sub KRat -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
+          | Sub KInt | Sub KRat | Sub KMoney -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
           | Sub _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Sub not supported"
-          | Mult KInt | Mult KRat -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
+          | Mult KInt | Mult KRat | Mult KMoney -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
           | Mult _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Mult not supported"
-          | Div KInt | Div KRat -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
+          | Div KInt | Div KRat | Div KMoney -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
           | Div _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
           | Lt KInt | Lt KRat | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
