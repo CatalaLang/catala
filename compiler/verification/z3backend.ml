@@ -115,7 +115,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
        pretty-printing, we print nothing to remain closer from Catala sources *)
     | TUnit -> ""
     | TInt -> Expr.to_string e
-    | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
+    | TRat -> Arithmetic.Real.to_decimal_string e 7
     (* TODO: Print the right money symbol according to language *)
     | TMoney ->
         let z3_str = Expr.to_string e in
@@ -213,7 +213,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   | TBool -> Boolean.mk_sort ctx.ctx_z3
   | TUnit -> fst ctx.ctx_z3unit
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TRat -> failwith "[Z3 encoding] TRat type not supported"
+  | TRat -> Arithmetic.Real.mk_sort ctx.ctx_z3
   | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   (* Dates are encoded as integers, corresponding to the number of days since Jan 1, 1900 *)
   | TDate -> Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -302,7 +302,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
-  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
+  | LRat r -> Arithmetic.Real.mk_numeral_s ctx.ctx_z3 (string_of_float (Runtime.decimal_to_float r))
   | LMoney m ->
       let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
       Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
@@ -407,32 +407,32 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
           | And -> (ctx, Boolean.mk_and ctx.ctx_z3 [ e1; e2 ])
           | Or -> (ctx, Boolean.mk_or ctx.ctx_z3 [ e1; e2 ])
           | Xor -> (ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2)
-          | Add KInt -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
+          | Add KInt | Add KRat -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
           | Add _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Add not supported"
-          | Sub KInt -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
+          | Sub KInt | Sub KRat -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
           | Sub _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Sub not supported"
-          | Mult KInt -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
+          | Mult KInt | Mult KRat -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
           | Mult _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Mult not supported"
-          | Div KInt -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
+          | Div KInt | Div KRat -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
           | Div _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
-          | Lt KInt | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
+          | Lt KInt | Lt KRat | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
           | Lt _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Lt not supported"
-          | Lte KInt | Lte KMoney | Lte KDate -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
+          | Lte KInt | Lte KRat | Lte KMoney | Lte KDate -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
           | Lte _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Lte not \
                  supported"
-          | Gt KInt | Gt KMoney | Gt KDate -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
+          | Gt KInt | Gt KRat | Gt KMoney | Gt KDate -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
           | Gt _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Gt not supported"
-          | Gte KInt | Gte KMoney | Gte KDate -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
+          | Gte KInt | Gte KRat | Gte KMoney | Gte KDate -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
           | Gte _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Gte not \
