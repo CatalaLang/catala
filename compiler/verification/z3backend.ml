@@ -329,6 +329,9 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.fun
           let ctx = add_funcdecl v fd ctx in
           let ctx = add_z3var name v ctx in
           (ctx, fd)
+      | TAny ->
+          failwith
+            "[Z3 Encoding] A function being applied has type TAny, the type was not fully inferred"
       | _ ->
           failwith
             "[Z3 Encoding] Ill-formed VC, a function application does not have a function type")
