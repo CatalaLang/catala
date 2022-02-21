@@ -174,12 +174,12 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
            format_typ_with_parens)
         ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum (ts, e) when D.EnumName.compare e Ast.option_enum = 0 ->
-      Format.fprintf fmt "@[<hov 2>(%a)@] %a"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ,@ ")
-           format_typ_with_parens)
-        ts format_enum_name e
+  | TEnum ([ t ], e) when D.EnumName.compare e Ast.option_enum = 0 ->
+      Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t format_enum_name e
+  | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
+      Errors.raise_spanned_error
+        "Internal Error: found an typing parameter for an eoption type of the wrong lenght."
+        (Pos.get_position typ)
   | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ_with_parens t2
