@@ -465,11 +465,18 @@ let run_file (file : string) (catala_exe : string) (catala_opts : string) (scope
 
 let get_catala_files_in_folder (dir : string) : string list =
   let rec loop result = function
-    | f :: fs when Sys.is_directory f ->
-        Sys.readdir f |> Array.to_list
-        |> List.map (Filename.concat f)
-        |> List.append fs |> loop result
-    | f :: fs -> loop (f :: result) fs
+    | f :: fs ->
+        let f_is_dir =
+          try Sys.is_directory f
+          with Sys_error e ->
+            Printf.sprintf "skipping %s" e |> Cli.warning_print;
+            false
+        in
+        if f_is_dir then
+          Sys.readdir f |> Array.to_list
+          |> List.map (Filename.concat f)
+          |> List.append fs |> loop result
+        else loop (f :: result) fs
     | [] -> result
   in
   let all_files_in_folder = loop [] [ dir ] in
