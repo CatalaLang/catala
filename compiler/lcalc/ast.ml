@@ -93,14 +93,14 @@ let option_enum_config : (D.EnumConstructor.t * D.typ Pos.marked) list =
 
 let make_none (pos : Pos.t) : expr Pos.marked Bindlib.box =
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
-  Bindlib.box @@ mark @@ EInj (mark @@ ELit LUnit, 0, option_enum, [])
+  Bindlib.box @@ mark @@ EInj (mark @@ ELit LUnit, 0, option_enum, [ (D.TLit D.TUnit, pos) ])
 
 let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox e in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 
   let+ e = e in
-  mark @@ EInj (e, 1, option_enum, [])
+  mark @@ EInj (e, 1, option_enum, [ (D.TAny, pos) ])
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the
