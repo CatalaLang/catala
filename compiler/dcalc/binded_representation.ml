@@ -42,34 +42,34 @@ type scopes =
 let union : unit D.VarMap.t -> unit D.VarMap.t -> unit D.VarMap.t =
   D.VarMap.union (fun _ _ _ -> Some ())
 
-let rec fv_scope_lets (scope_lets : scope_lets) : unit D.VarMap.t =
+let rec free_vars_set_scope_lets (scope_lets : scope_lets) : unit D.VarMap.t =
   match scope_lets with
-  | Result e -> D.fv e
+  | Result e -> D.free_vars_set e
   | ScopeLet { scope_let_expr = e; scope_let_next = next; _ } ->
       let v, body = Bindlib.unbind next in
-      union (D.fv e) (D.VarMap.remove v (fv_scope_lets body))
+      union (D.free_vars_set e) (D.VarMap.remove v (free_vars_set_scope_lets body))
 
-let fv_scope_body (scope_body : scope_body) : unit D.VarMap.t =
+let free_vars_set_scope_body (scope_body : scope_body) : unit D.VarMap.t =
   let { scope_body_result = binder; _ } = scope_body in
   let v, body = Bindlib.unbind binder in
-  D.VarMap.remove v (fv_scope_lets body)
+  D.VarMap.remove v (free_vars_set_scope_lets body)
 
-let rec fv_scopes (scopes : scopes) : unit D.VarMap.t =
+let rec free_vars_set_scopes (scopes : scopes) : unit D.VarMap.t =
   match scopes with
   | Nil -> D.VarMap.empty
   | ScopeDef { scope_body = body; scope_next = next; _ } ->
       let v, next = Bindlib.unbind next in
 
-      union (D.VarMap.remove v (fv_scopes next)) (fv_scope_body body)
+      union (D.VarMap.remove v (free_vars_set_scopes next)) (free_vars_set_scope_body body)
 
-let free_vars_scope_lets (scope_lets : scope_lets) : D.Var.t list =
-  fv_scope_lets scope_lets |> D.VarMap.bindings |> List.map fst
+let free_vars_list_scope_lets (scope_lets : scope_lets) : D.Var.t list =
+  free_vars_set_scope_lets scope_lets |> D.VarMap.bindings |> List.map fst
 
-let free_vars_scope_body (scope_body : scope_body) : D.Var.t list =
-  fv_scope_body scope_body |> D.VarMap.bindings |> List.map fst
+let free_vars_list_scope_body (scope_body : scope_body) : D.Var.t list =
+  free_vars_set_scope_body scope_body |> D.VarMap.bindings |> List.map fst
 
-let free_vars_scopes (scopes : scopes) : D.Var.t list =
-  fv_scopes scopes |> D.VarMap.bindings |> List.map fst
+let free_vars_list_scopes (scopes : scopes) : D.Var.t list =
+  free_vars_set_scopes scopes |> D.VarMap.bindings |> List.map fst
 
 (** Actual transformation for scopes. *)
 let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
@@ -82,7 +82,7 @@ let bind_scope_lets (acc : scope_lets Bindlib.box) (scope_let : D.scope_let) :
   Bindlib.box_apply2
     (fun expr binder ->
       (* Cli.debug_print @@ Format.asprintf "free variables in expression: %a" (Format.pp_print_list
-         Print.format_var) (D.free_vars expr); *)
+         Print.format_var) (D.free_vars_list expr); *)
       ScopeLet
         {
           scope_let_kind = scope_let.D.scope_let_kind;
@@ -128,5 +128,5 @@ let bind_scopes (scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) li
     scopes Bindlib.box =
   let result = ListLabels.fold_right scopes ~init:(Bindlib.box Nil) ~f:bind_scope in
   (* Cli.debug_print @@ Format.asprintf "free variable in the program : [%a]" (Format.pp_print_list
-     Print.format_var) (free_vars_scopes (Bindlib.unbox result)); *)
+     Print.format_var) (free_vars_list_scopes (Bindlib.unbox result)); *)
   result

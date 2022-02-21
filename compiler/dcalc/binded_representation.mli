@@ -49,13 +49,13 @@ type scopes =
       scope_next : (D.expr, scopes) Bindlib.binder;
     }
 
-val free_vars_scope_lets : scope_lets -> D.Var.t list
+val free_vars_list_scope_lets : scope_lets -> D.Var.t list
 (** List of variables not binded inside a scope_lets *)
 
-val free_vars_scope_body : scope_body -> D.Var.t list
+val free_vars_list_scope_body : scope_body -> D.Var.t list
 (** List of variables not binded inside a scope_body. *)
 
-val free_vars_scopes : scopes -> D.Var.t list
+val free_vars_list_scopes : scopes -> D.Var.t list
 (** List of variables not binded inside scopes*)
 
 val bind_scopes : (D.ScopeName.t * D.expr Bindlib.var * D.scope_body) list -> scopes Bindlib.box

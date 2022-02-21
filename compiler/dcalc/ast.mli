@@ -183,9 +183,9 @@ end
 
 module VarMap : Map.S with type key = Var.t
 
-val fv : expr Pos.marked -> unit VarMap.t
+val free_vars_set : expr Pos.marked -> unit VarMap.t
 
-val free_vars : expr Pos.marked -> Var.t list
+val free_vars_list : expr Pos.marked -> Var.t list
 
 type vars = expr Bindlib.mvar
 

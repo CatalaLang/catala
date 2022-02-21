@@ -166,22 +166,25 @@ module VarMap = Map.Make (Var)
 
 let union : unit VarMap.t -> unit VarMap.t -> unit VarMap.t = VarMap.union (fun _ _ _ -> Some ())
 
-let rec fv (e : expr Pos.marked) : unit VarMap.t =
+let rec free_vars_set (e : expr Pos.marked) : unit VarMap.t =
   match Pos.unmark e with
   | EVar (v, _) -> VarMap.singleton v ()
-  | ETuple (es, _) | EArray es -> es |> List.map fv |> List.fold_left union VarMap.empty
-  | ETupleAccess (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 | EInj (e1, _, _, _) -> fv e1
+  | ETuple (es, _) | EArray es -> es |> List.map free_vars_set |> List.fold_left union VarMap.empty
+  | ETupleAccess (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 | EInj (e1, _, _, _) ->
+      free_vars_set e1
   | EApp (e1, es) | EMatch (e1, es, _) ->
-      e1 :: es |> List.map fv |> List.fold_left union VarMap.empty
+      e1 :: es |> List.map free_vars_set |> List.fold_left union VarMap.empty
   | EDefault (es, ejust, econs) ->
-      ejust :: econs :: es |> List.map fv |> List.fold_left union VarMap.empty
+      ejust :: econs :: es |> List.map free_vars_set |> List.fold_left union VarMap.empty
   | EOp _ | ELit _ -> VarMap.empty
-  | EIfThenElse (e1, e2, e3) -> [ e1; e2; e3 ] |> List.map fv |> List.fold_left union VarMap.empty
+  | EIfThenElse (e1, e2, e3) ->
+      [ e1; e2; e3 ] |> List.map free_vars_set |> List.fold_left union VarMap.empty
   | EAbs ((binder, _), _) ->
       let vs, body = Bindlib.unmbind binder in
-      Array.fold_right VarMap.remove vs (fv body)
+      Array.fold_right VarMap.remove vs (free_vars_set body)
 
-let free_vars (e : expr Pos.marked) : Var.t list = fv e |> VarMap.bindings |> List.map fst
+let free_vars_list (e : expr Pos.marked) : Var.t list =
+  free_vars_set e |> VarMap.bindings |> List.map fst
 
 type vars = expr Bindlib.mvar
 
