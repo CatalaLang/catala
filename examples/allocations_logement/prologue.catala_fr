@@ -41,11 +41,25 @@ déclaration structure Logement:
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
   donnée loyers_l823_3 contenu argent
+  donnée surface_en_mètres_carrés contenu entier
 
 déclaration structure EnfantÀCharge:
   donnée bénéficie_titre_personnel_aide_personnelle_logement
     contenu booléen
   donnée prise_en_charge contenu PriseEnCharge
+  donnée âge contenu entier
+
+déclaration énumération Parenté:
+  -- Ascendant
+  -- Descendant
+  -- CollatéralDeuxièmeTroisièmeDegré
+
+déclaration structure ParentÀCharge:
+  donnée âge contenu entier
+  donnée ressources contenu argent
+  donnée ascendant_descendant_collatéral_deuxième_troisième_degré contenu booléen
+  donnée parenté contenu Parenté
+  donnée incapacité_80_pourcent_ou_restriction_emploi contenu booléen
 
 déclaration énumération PersonneÀCharge:
   -- EnfantÀCharge contenu EnfantÀCharge
@@ -55,8 +69,13 @@ déclaration structure Ménage:
   donnée prestations_reçues contenu collection PrestationReçue
   donnée logement contenu Logement
   donnée personnes_à_charge contenu collection PersonneÀCharge
+  donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
+
+déclaration structure Patrimoine:
+  donnée produisant_revenu_période_r822_3_3_r822_4 contenu argent
+  donnée ne_produisant_pas_revenu_période_r822_3_3_r822_4 contenu argent
 
 déclaration structure Demandeur:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
@@ -64,7 +83,7 @@ déclaration structure Demandeur:
   donnée age_demandeur contenu entier
   donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
-  donnée patrimoine contenu argent
+  donnée patrimoine contenu Patrimoine
 
 déclaration énumération Nationalité:
   -- Française
@@ -74,9 +93,15 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
   entrée sortie date_ouverture_droits contenu date
+  interne patrimoine_total_demandeur contenu argent
   interne condition_spécifique_prise_en_compte_revenus_demandeur condition
   interne condition_nationalité condition
-  interne condition_logement condition
+  interne prise_en_compte_personne_à_charge contenu
+    condition dépend de PersonneÀCharge
+  interne personnes_à_charge_prises_en_compte contenu collection PersonneÀCharge
+  interne condition_logement_mode_occupation condition
+  interne condition_logement_location_tiers condition
+  interne condition_logement_surface condition
   interne usufruit_ou_propriété_famille contenu booléen
   interne seuil_l822_3_parts_propriété contenu décimal
   interne seuil_l822_3_parts_usufruit contenu décimal
@@ -134,6 +159,10 @@ déclaration champ d'application RessourcesAidePersonnelleLogement:
   entrée personnes_à_charge contenu collection PersonneÀCharge
   entrée situation_familiale contenu SituationFamiliale
   prestations_familiales champ d'application PrestationsFamiliales
+  entrée mode_occupation contenu ModeOccupation
+  entrée condition_âge_bourse_enseignement_supérieur condition
+  entrée demandeur_poursuit_des_études condition
+  interne ressources_forfaitaires_r822_20 contenu argent
 
 déclaration champ d'application PrestationsFamiliales:
   sortie base_mensuelle contenu argent

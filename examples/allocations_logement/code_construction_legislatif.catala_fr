@@ -50,8 +50,15 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
 # pour le moment à part le code ci-dessous qui récapitule la méta-structure
 # logique des articles de loi de ce chapitre.
 champ d'application ÉligibilitéAidePersonnelleLogement:
+
   règle éligibilité_logement sous condition
-    condition_logement
+    # La condition logement est en fait l'amalgame de plusieurs sous-conditions
+    # portant toutes sur le logement définies au long des diverses parties
+    # du code de la construction et de l'habitation. Attention, ne pas oublier
+    # de modifier cette liste en cas de rajout d'une sous-condition.
+    condition_logement_mode_occupation et
+    condition_logement_location_tiers et
+    condition_logement_surface
   conséquence rempli
 
   exception règle éligibilité_logement sous condition
@@ -107,7 +114,7 @@ Les sous-locataires, sous les mêmes conditions, peuvent également en bénéfic
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette l822_2 règle condition_logement sous condition
+  étiquette l822_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: vrai
       -- RésidentLogementFoyer: vrai
@@ -137,7 +144,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- ParentOuAutre.Autre: faux)
 
   étiquette l822_3_1 exception l822_2
-  règle condition_logement sous condition
+  règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire: usufruit_ou_propriété_famille
       -- n'importe quel: faux
@@ -151,7 +158,7 @@ Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logeme
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception l822_3_1 règle condition_logement sous condition
+  exception l822_3_1 règle condition_logement_mode_occupation sous condition
     usufruit_ou_propriété_famille et
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
@@ -176,13 +183,13 @@ personne de moins de trente ans.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette cas_base_l822_4 règle condition_logement
+  étiquette cas_base_l822_4 règle condition_logement_location_tiers
   sous condition
     ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
       LouéOuSousLouéÀDesTiers.Non
   conséquence non rempli
 
-exception cas_base_l822_4 règle condition_logement
+exception cas_base_l822_4 règle condition_logement_location_tiers
   sous condition
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: faux
@@ -228,9 +235,13 @@ réglementaire.
 # de cette forme là.
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition patrimoine_total_demandeur égal à
+    demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +€
+    demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
+
   étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
-    si demandeur.patrimoine >€ seuil_l822_5_patrimoine alors
-      demandeur.patrimoine
+    si patrimoine_total_demandeur >€ seuil_l822_5_patrimoine alors
+      patrimoine_total_demandeur
     sinon
       0€
 
@@ -245,7 +256,7 @@ n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette l822_5_2 exception l822_5_1 définition patrimoine_pris_en_compte
+  étiquette l822_5_2 exception r822_22_3 définition patrimoine_pris_en_compte
   sous condition existe prestation dans ménage.prestations_reçues tel que
     (prestation = AllocationSoutienEnfantHandicapé) ou
     (prestation = AllocationAdulteHandicapé)
@@ -259,11 +270,14 @@ ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
 l'action sociale et des familles.
 
 ```catala
+# Cette exception devrait se cumuler normalement avec la précédente puisqu'elle
+# donne le même résultat, on ne devrait pas avoir à les prioriser les unes par
+# rapport aux autres. On pourrait rajouter un sucre syntaxique pour activer
+# ça en vérifiant que les conséquences sont syntaxiquement les mêmes.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l822_5_2 définition patrimoine_pris_en_compte
   sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
   conséquence égal à 0€
-
 ```
 
 

@@ -839,6 +839,18 @@ Ce montant est minoré lorsque le demandeur ou l'allocataire est titulaire
 d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt
 sur le revenu.
 
+```catala
+champ d'application RessourcesAidePersonnelleLogement:
+  exception définition ressources_prises_en_compte sous condition
+     mode_occupation = Locataire et
+     condition_âge_bourse_enseignement_supérieur et
+     demandeur_poursuit_des_études
+  conséquence égal à ressources_forfaitaires_r822_20
+
+# Le montant minoré sera défini plus tard, et donc constituera une définition
+# au cas de base de ressources_forfaitaires_r822_20
+```
+
 NOTA:
 
 Se reporter aux conditions d'application prévues à l'article 25 du décret
@@ -859,3 +871,327 @@ au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
 à l’aide personnalisée au logement prévue pour les accédants à la propriété
 par l’article L. 831-1 du code de la construction et de l’habitation, à compter
 du mois de mai 2021.
+
+######## Article D822-21 | LEGIARTI000041407871
+
+Les montants mentionnés à l'article R. 822-20 sont fixés par arrêté des ministres
+chargés du logement, du budget, de la sécurité sociale et de l'agriculture.
+Ils évoluent, le 1er janvier de chaque année, comme l'indice de référence des
+loyers défini à l'article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à
+améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du
+23 décembre 1986. Ils sont arrondis à la centaine d'euros la plus proche.
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du code
+de la construction et de l'habitation, d'autre part, aux autres aides personnelles
+au logement prévues par le même code, à compter des mois respectifs fixés par
+arrêté des ministres en charge du logement, de la santé et du budget et, au plus
+tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+ont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+```catala
+# Cet article régit la manière dont les montants forfaitaires de ressources
+# évoluent d'année en année mais nous ne cherhons pas à formaliser cela
+# dans ce calculateur.
+```
+
+####### Sous-section 4 : Prise en compte du patrimoine
+
+######## Article R822-22 | LEGIARTI000041419223
+
+Le montant prévu au premier alinéa de l'article L. 822-5 est fixé à 30 000 euros.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition seuil_l822_5_patrimoine égal à 30 000 €
+```
+
+Il est appliqué à la somme de la valeur du patrimoine mobilier financier et de
+la valeur estimée de l'ensemble du patrimoine immobilier, à l'exception de la
+résidence principale et des biens à usage professionnel.
+
+Lorsque la valeur du patrimoine est supérieure à 30 000 euros, seul le patrimoine
+n'ayant pas produit, au cours de la période de référence définie au 3° de
+l'article R. 822-3, de revenus retenus pour l'établissement de l'impôt sur
+le revenu au titre des revenus nets catégoriels mentionnés à l'article
+R. 822-4 est pris en compte pour le calcul de l'aide.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette r822_22_3 exception l822_5_1 définition patrimoine_pris_en_compte sous condition
+    patrimoine_total_demandeur >=€ seuil_l822_5_patrimoine
+  conséquence
+    demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
+```
+
+Ce patrimoine est considéré comme procurant un revenu annuel égal à 50 % de
+sa valeur locative s'il s'agit d'immeubles bâtis, à 80 % de cette valeur s'il
+s'agit de terrains non bâtis et à 3 % du montant des capitaux.
+
+La valeur estimée du patrimoine est déterminée sur la base de la dernière valeur
+déclarée par l'allocataire, qui est tenu de porter à la connaissance du service
+instructeur les changements substantiels de sa situation patrimoniale.
+
+La dernière valeur déclarée s'entend :
+
+1° Pour le patrimoine financier, de la valeur figurant sur les derniers relevés
+bancaires reçus par le bénéficiaire de l'aide personnelle au logement ;
+
+2° Pour le patrimoine immobilier, de la valeur locative figurant sur le dernier
+avis d'imposition à la taxe d'habitation ou à la taxe foncière reçu par le
+bénéficiaire.
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du
+code de la construction et de l'habitation, d'autre part, aux autres aides
+personnelles au logement prévues par le même code, à compter des mois respectifs
+fixés par arrêté des ministres en charge du logement, de la santé et du budget
+et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article
+25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions
+sont applicables au calcul des droits à l’aide personnelle au logement à compter
+du mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du code
+de la construction et de l’habitation, à compter du mois de mai 2021.
+
+###### Section 3 : Conditions relatives au logement
+
+####### Article R822-23 | LEGIARTI000038878949
+
+Est considéré comme résidence principale, pour l'application du premier alinéa
+du II de l'article L. 822-2, le logement effectivement occupé soit par le
+bénéficiaire de l'aide personnelle au logement, soit par son conjoint, soit
+par une des personnes à charge au sens de l'article R. 823-4, au moins huit
+mois par an, sauf obligation professionnelle, raison de santé ou cas de force
+majeure.
+
+```catala
+# Nous avons déjà asserté à l'article L821-2 qu'il fallait que le logement
+# soit la résidence principale du ménage. Les conditions de détermination
+# de la résidence principale dans cet article ne sont pas très intéressantes à
+# formaliser, donc nous choissisons de ne pas les inclure dans le programme.
+# Par contre il serait utile de les rappeler dans l'interface du formulaire
+# de déclaration.
+```
+
+####### Article R822-24 | LEGIARTI000038878947
+
+
+Le logement au titre duquel le droit à l'aide personnelle au logement est ouvert
+doit répondre aux caractéristiques de décence définies par le décret n° 2002-120
+du 30 janvier 2002 relatif aux caractéristiques du logement décent.
+
+```catala
+# Décence du logement déjà prise en compte dans L822-9
+```
+
+####### Article R822-25 | LEGIARTI000038878945
+
+Le logement au titre duquel le droit à l'aide personnelle au logement est
+ouvert doit présenter une surface habitable globale au moins égale à neuf
+mètres carrés pour une personne seule, seize mètres carrés pour un ménage
+sans enfant ou deux personnes, augmentée de neuf mètres carrés par personne
+en plus, dans la limite de soixante-dix mètres carrés pour huit personnes et
+plus.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_logement_surface sous condition
+    # TODO : implémenter variable internes
+    soit nombre_personnes_total égal à
+      (selon ménage.situation_familiale sous forme
+      -- Célibataire: 1
+      -- Mariés: 2
+      -- Pacsés: 2
+      -- Concubins: 2
+      -- CélibataireSéparéDeFait: 1
+      -- ConcubinageDontSéparéDeFait: 2) +
+      ménage.nombre_autres_occupants_logement +
+      nombre de ménage.personnes_à_charge
+    dans
+    soit surface_minimale_sans_seuil égal à
+      (selon ménage.situation_familiale sous forme
+      -- Célibataire: 9
+      -- Mariés: 16
+      -- Pacsés: 16
+      -- Concubins: 16
+      -- CélibataireSéparéDeFait: 9
+      -- ConcubinageDontSéparéDeFait: 16) +
+      (ménage.nombre_autres_occupants_logement +
+      nombre de ménage.personnes_à_charge) * 9
+    dans
+    si
+      surface_minimale_sans_seuil >= 70 et
+      nombre_personnes_total >= 8
+    alors 70 sinon
+      surface_minimale_sans_seuil
+  conséquence rempli
+```
+
+##### Chapitre III : Modalités de liquidation et de versement
+
+###### Section 1 : Calcul, liquidation et versement des aides
+
+####### Article R823-1 | LEGIARTI000038878939
+
+Les aides personnelles au logement et les primes de déménagement sont liquidées
+et payées par la caisse d'allocations familiales compétente au regard de
+la résidence du bénéficiaire ou, lorsque le bénéficiaire relève d'un régime
+de protection sociale des professions agricoles, par la caisse de la mutualité
+sociale agricole compétente.
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
+######## Article R823-2 | LEGIARTI000038878937
+
+Les aides personnelles au logement sont attribuées sur la demande de l'intéressé
+déposée auprès de l'organisme payeur mentionné à l'article R. 823-1 dont il
+relève. Cette demande est conforme à un modèle type.
+
+Elle est assortie de pièces justificatives définies par arrêté des ministres
+chargés du logement, du budget, de la sécurité sociale et de l'agriculture.
+Le même arrêté définit le modèle-type de la demande et précise celles de ces
+pièces justificatives qui doivent être produites chaque année et, parmi
+celles-ci, celles dont le défaut de présentation avant la date qu'il fixe
+entraîne la suspension du paiement de l'aide.
+
+Le fait que le logement réponde aux conditions de décence mentionnées à l'article
+R. 822-24 est justifié par une attestation du bailleur.
+
+La personne de nationalité étrangère qui demande à bénéficier des aides
+personnelles au logement justifie, en outre, de la régularité de son séjour
+par la production d'un des titres de séjour ou documents prévus à l'article
+D. 512-1 du code de la sécurité sociale.
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
+####### Article R823-3 | LEGIARTI000038878935
+
+Les changements survenus, au cours de la période de paiement de l'aide, dans
+la situation du bénéficiaire ou du ménage font l'objet de justifications
+fournies avec la demande de révision du montant de l'aide.
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
+####### Article R823-5 | LEGIARTI000038878931
+
+Pour l'application de l'article L. 823-2, en cas de résidence alternée, les
+modalités de prise en compte de l'enfant à charge pour le calcul de l'aide ne
+peuvent être remises en cause par les parents qu'au bout d'un an, sauf
+modification, avant cette échéance, des modalités de résidence de l'enfant.
+
+```catala
+# Pas pertinent pour le calcul du montant: il s'agit de s'assurer que les parents
+# ne changent pas les modalités de résidence tous les quatre matins.
+```
+
+####### Article R823-4 | LEGIARTI000038878933
+
+
+Sont considérés comme personnes à charge, sous réserve qu'ils vivent
+habituellement au foyer :
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition personnes_à_charge_prises_en_compte égal à
+    filtrer pour personne_à_charge dans ménage.personnes_à_charge de
+      prise_en_compte_personne_à_charge de personne_à_charge
+  # TODO: changer ménage.personnes_à_charges par personnes_à_charge_prises_en_compte
+```
+
+1° Les enfants de moins de vingt et un ans et considérés comme à charge au
+sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
+l'article L. 823-2 du présent code ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+      -- EnfantÀCharge contenu enfant: enfant.âge <= 21
+      -- ParentÀCharge contenu parent: faux
+  conséquence rempli
+```
+
+2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources
+déterminées dans les conditions prévues aux articles R. 822-3 à R. 822-6
+n'excèdent pas le plafond individuel prévu à l'article L. 815-9 du code de
+la sécurité sociale, en vigueur au 31 décembre de l'année de référence
+multiplié par 1,25 :
+
+a) Ayant au moins l'âge prévu par le 1° de l'article L. 351-8 du code de la
+sécurité sociale ou, s'ils sont titulaires de l'allocation de solidarité aux
+personnes âgées, soixante-cinq ans ;
+
+b) Ayant au moins l'âge prévu par l'article L. 161-17-2 du code de la sécurité
+sociale et bénéficiaires des articles L. 161-19, L. 351-8 ou L. 643-3 du même
+code ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  étiquette r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+      -- EnfantÀCharge contenu enfant: faux
+      -- ParentÀCharge contenu parent:
+        parent.parenté = Ascendant et
+        parent.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        (
+          (parent.âge >= âge_l351_8_sécu ou
+            (titulaire_allocation_personne_âgée et parent.âge >= 65)
+          ) ou
+          (parent.âge >= âge_l161_17_2_sécu et bénéficiaire_l161_19_l351_8_l643_3_sécu)
+        )
+  conséquence rempli
+```
+
+3° Les ascendants, descendants ou collatéraux au deuxième ou au troisième degré
+du bénéficiaire ou de son conjoint dont l'incapacité permanente est au moins
+égale à 80 % ou qui présentent, compte tenu de leur handicap, une restriction
+substantielle et durable dans l'accès à l'emploi au sens de l'article L. 821-2
+du code de la sécurité sociale reconnue par la commission des droits et de
+l'autonomie des personnes handicapées prévue par l'article L. 146-9 du code
+de l'action sociale et des familles, et dont les ressources déterminées dans
+les conditions prévues aux articles R. 822-3 à R. 822-6 n'excèdent pas le plafond
+individuel prévu à l'article L. 815-9 du code de la sécurité sociale en vigueur
+au 31 décembre de l'année de référence multiplié par 1,25.
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+   selon personne_à_charge sous forme
+      -- EnfantÀCharge contenu enfant: faux
+      -- ParentÀCharge contenu parent:
+        # Pas besoin de préciser parenté car inclusif ici
+        incapacité_80_pourcent_ou_restriction_emploi et
+        parent.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25
+  conséquence rempli
+```
