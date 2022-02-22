@@ -82,12 +82,12 @@ let info =
           "Tests a Catala source file given expected outputs provided in a directory called \
            `output` at the same level that the tested file. If the tested file is `foo.catala_en`, \
            then `output` should contain expected output files like `foo.catala_en.$(i,BACKEND)` \
-           where  $(i,BACKEND) is chosen among: `Interpret`, `Dcalc`, `Scopelang`, `html`, `tex`, \
-           `py`, `ml` and `d` (for Makefile dependencies). For the `Interpret` backend, the scope \
-           to test is selected by naming the expected output file \
-           `foo.catala_en.$(i,SCOPE).interpret`. When the argument of $(b,clerk) is a folder, it \
-           recursively looks for Catala files coupled with `output` directories and matching \
-           expected output on which to perform tests." );
+           where  $(i,BACKEND) is chosen among: `Interpret`, `Dcalc`, `Scalc`, `Lcalc`, \
+           `Typecheck, `Scopelang`, `html`, `tex`, `py`, `ml` and `d` (for Makefile dependencies). \
+           For the `Interpret` backend, the scope to test is selected by naming the expected \
+           output file `foo.catala_en.$(i,SCOPE).interpret`. When the argument of $(b,clerk) is a \
+           folder, it recursively looks for Catala files coupled with `output` directories and \
+           matching expected output on which to perform tests." );
       `I
         ("run", "Runs the Catala interpreter on a given scope of a given file. See the `-s` option.");
       `S Manpage.s_authors;
@@ -338,7 +338,7 @@ let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
   }
 
 (** [collect_all_ninja_build ninja tested_file catala_exe catala_opts reset_test_outputs] creates
-    and returns all ninja build declarations needed to test the [tested_file]. *)
+    and returns all ninja build statements needed to test the [tested_file]. *)
 let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_outputs : bool) :
     (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
@@ -499,7 +499,7 @@ let ninja_building_context_init (ninja_init : Nj.ninja) : ninja_building_context
   }
 
 (** [collect_in_directory ctx file_or_folder ninja_start reset_test_outputs] updates the building
-    context [ctx] by adding new ninja build declarations needed to test files in [folder].*)
+    context [ctx] by adding new ninja build statements needed to test files in [folder].*)
 let collect_in_folder (ctx : ninja_building_context) (folder : string) (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   let ninja, test_file_names =
@@ -545,7 +545,7 @@ let collect_in_folder (ctx : ninja_building_context) (folder : string) (ninja_st
     }
 
 (** [collect_in_file ctx file_or_folder ninja_start reset_test_outputs] updates the building context
-    [ctx] by adding new ninja build declarations needed to test the [tested_file].*)
+    [ctx] by adding new ninja build statements needed to test the [tested_file].*)
 let collect_in_file (ctx : ninja_building_context) (tested_file : string) (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   match collect_all_ninja_build ninja_start tested_file reset_test_outputs with

@@ -58,7 +58,7 @@ end
 
 (** {1 Ninja builds} *)
 
-(** Helper module to build ninja build declarations. *)
+(** Helper module to build ninja build statements. *)
 module Build : sig
   type t = {
     outputs : Expr.t list;
@@ -98,8 +98,7 @@ module BuildMap : Map.S with type key = String.t
 (** {1 Ninja} *)
 
 type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
-(** Represents the minimal ninja architectures (list of rule and build declarations) needed for
-    clerk. *)
+(** Represents the minimal ninja architectures (list of rule and build statements) needed for clerk. *)
 
 val empty : ninja
 (** [empty] returns the empty empty ninja structure. *)
