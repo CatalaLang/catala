@@ -1,0 +1,14 @@
+## Test
+
+> Include: ../section_1001.catala_en
+
+```catala
+declaration scope Test1:
+  section_1001 scope Section1001
+
+scope Test1:
+  definition section_1001.amount_realized equals $300,000
+  definition section_1001.adjusted_basis_input equals $250,000
+  definition section_1001.sale_part_transaction_entire_interest_transferred equals true
+  assertion section_1001.gain_or_loss_recognized = Gain content $50,000
+```

@@ -5,7 +5,19 @@ declaration enumeration GainOrLoss:
   -- Gain content money
   -- Loss content money
 
+declaration scope Section1014:
+  input output adjusted_basis content money # TODO: implement
+declaration scope Section1015:
+  input output adjusted_basis content money # TODO: implement
+declaration scope Section1041:
+  input output adjusted_basis content money # TODO: implement
+
+
 declaration scope Section1001:
+  section_1014 scope Section1014
+  section_1015 scope Section1015
+  section_1041 scope Section1041
+
   input amount_realized content money
   # We do not treat the cost basis as an input of the system, and assume that
   # whoever invokes this section has figured out the adjusted basis already. The
@@ -13,7 +25,6 @@ declaration scope Section1001:
   # adjusted basis.
   input adjusted_basis_input content money
   # TODO: use #114 when implemented to only have one variable
-  input adjusted_basis_fraction_pursutant_s1014_s1015_s1041 content money
   input sale_part_transaction_entire_interest_transferred content boolean
   internal s1001_e_1_applies condition
   internal adjusted_basis content money
@@ -97,9 +108,14 @@ property) shall be disregarded.
 scope Section1001:
   rule s1001_e_1_applies fulfilled
 
+  definition section_1014.adjusted_basis equals adjusted_basis_input
+  definition section_1015.adjusted_basis equals adjusted_basis_input
+  definition section_1041.adjusted_basis equals adjusted_basis_input
+
   definition adjusted_basis equals
     if s1001_e_1_applies then
-      adjusted_basis_input -$ adjusted_basis_fraction_pursutant_s1014_s1015_s1041
+      adjusted_basis_input -$ section_1014.adjusted_basis -$
+      section_1015.adjusted_basis -$ section_1041.adjusted_basis
     else
       adjusted_basis_input
 ```
