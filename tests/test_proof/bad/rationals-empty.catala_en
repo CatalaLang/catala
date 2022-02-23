@@ -1,0 +1,11 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content decimal
+  context y content boolean
+
+scope A:
+  definition x equals 1.
+  definition y under condition x >. 1./.3. consequence equals true
+```
