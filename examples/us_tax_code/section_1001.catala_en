@@ -1,7 +1,7 @@
 ## Section 1001
 
 ```catala-metadata
-declaration enumeration gain_or_loss
+declaration enumeration GainOrLoss:
   -- Gain content money
   -- Loss content money
 
@@ -11,9 +11,12 @@ declaration scope Section1001:
   # whoever invokes this section has figured out the adjusted basis already. The
   # cost basis will be introduced in §1012 which goes from cost basis to
   # adjusted basis.
-  input adjusted_basis content money
-  context gain_or_loss_realized content gain_or_loss
-  output gain_or_loss_recognized content gain_or_loss
+  input adjusted_basis_input content money
+  input adjusted_basis_fraction_pursutant_s1014_s1015_s1041 content money
+  input sale_part_transaction_entire_interest_transferred content boolean
+  internal adjusted_basis content money
+  context gain_or_loss_realized content GainOrLoss
+  output gain_or_loss_recognized content GainOrLoss
 ```
 
 ### (a) Computation of gain or loss
@@ -27,13 +30,13 @@ provided in such section for determining loss over the amount realized.
 scope Section1001:
   definition gain_or_loss_realized under condition
     amount_realized >=$ adjusted_basis
-  equals
-    Gain of (excess_of of amount_realized adjusted_basis)
+  consequence equals
+    Gain content (amount_realized -$ adjusted_basis)
 
   definition gain_or_loss_realized under condition
     adjusted_basis >$ amount_realized
-  equals
-    Loss of (excess_of of adjusted_basis amount_realized)
+  consequence equals
+    Loss content (adjusted_basis -$ amount_realized)
 
 # NB: we do not break down the amount realized; our rationale: whoever is
 # looking at this section probably already ran their computation to figure out
@@ -41,7 +44,7 @@ scope Section1001:
 # would have to input e.g. property tax, date of sale, etc.
 ```
 
-(b) Amount realized
+### (b) Amount realized
 
 The amount realized from the sale or other disposition of property shall be the
 sum of any money received plus the fair market value of the property (other than
@@ -56,7 +59,7 @@ money) received. In determining the amount realized—
   are to be paid by the purchaser.
 
 
-(c) Recognition of gain or loss
+### (c) Recognition of gain or loss
 
 Except as otherwise provided in this subtitle, the entire amount of the gain or
 loss, determined under this section, on the sale or exchange of property shall
@@ -70,46 +73,51 @@ scope Section1001:
 # speaking
 ```
 
-(d) Installment sales
+### (d) Installment sales
 
 Nothing in this section shall be construed to prevent (in the case of property
 sold under contract providing for payment in installments) the taxation of that
 portion of any installment payment representing gain or profit in the year in
 which such payment is received.
 
-(e) Certain term interests
-  (1) In general
+### (e) Certain term interests
 
-  In determining gain or loss from the sale or other disposition of a term
-  interest in property, that portion of the adjusted basis of such interest
-  which is determined pursuant to section 1014, 1015, or 1041 (to the extent
-  that such adjusted basis is a portion of the entire adjusted basis of the
-  property) shall be disregarded.
+#### (1) In general
+
+In determining gain or loss from the sale or other disposition of a term
+interest in property, that portion of the adjusted basis of such interest
+which is determined pursuant to section 1014, 1015, or 1041 (to the extent
+that such adjusted basis is a portion of the entire adjusted basis of the
+property) shall be disregarded.
 
 
 ```catala
 scope Section1001:
-  exception e1 definition adjusted_basis
-  under condition
-    ???
-  consequence equals
-    adjusted_basis -$ portion_whatever
+  definition adjusted_basis equals
+    adjusted_basis_input -$ adjusted_basis_fraction_pursutant_s1014_s1015_s1041
 ```
 
-(2) Term interest in property definedFor purposes of paragraph (1), the term “term interest in property” means—
+#### (2) Term interest in property defined
+
+For purposes of paragraph (1), the term “term interest in property” means—
+
 (A) a life interest in property,
+
 (B) an interest in property for a term of years, or
+
 (C) an income interest in a trust.
 
-(3) Exception
+#### (3) Exception
 
-Paragraph (1) shall not apply to a sale or other disposition which is a part of a transaction in which the entire interest in property is transferred to any person or persons.
+Paragraph (1) shall not apply to a sale or other disposition which is a part of
+a transaction in which the entire interest in property is transferred to
+any person or persons.
 
 ```catala
 scope Section1001:
-  exception e1 definition e1
+  exception definition adjusted_basis
   under condition
-    // part of a transaction in which etc.
+    sale_part_transaction_entire_interest_transferred
   consequence equals
-    original adjusted_basis
+    adjusted_basis_input
 ```
