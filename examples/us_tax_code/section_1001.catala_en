@@ -12,8 +12,10 @@ declaration scope Section1001:
   # cost basis will be introduced in §1012 which goes from cost basis to
   # adjusted basis.
   input adjusted_basis_input content money
+  # TODO: use #114 when implemented to only have one variable
   input adjusted_basis_fraction_pursutant_s1014_s1015_s1041 content money
   input sale_part_transaction_entire_interest_transferred content boolean
+  internal s1001_e_1_applies condition
   internal adjusted_basis content money
   context gain_or_loss_realized content GainOrLoss
   output gain_or_loss_recognized content GainOrLoss
@@ -93,8 +95,13 @@ property) shall be disregarded.
 
 ```catala
 scope Section1001:
+  rule s1001_e_1_applies fulfilled
+
   definition adjusted_basis equals
-    adjusted_basis_input -$ adjusted_basis_fraction_pursutant_s1014_s1015_s1041
+    if s1001_e_1_applies then
+      adjusted_basis_input -$ adjusted_basis_fraction_pursutant_s1014_s1015_s1041
+    else
+      adjusted_basis_input
 ```
 
 #### (2) Term interest in property defined
@@ -115,9 +122,8 @@ any person or persons.
 
 ```catala
 scope Section1001:
-  exception definition adjusted_basis
+  exception rule s1001_e_1_applies
   under condition
     sale_part_transaction_entire_interest_transferred
-  consequence equals
-    adjusted_basis_input
+  consequence not fulfilled
 ```
