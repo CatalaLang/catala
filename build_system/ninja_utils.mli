@@ -47,13 +47,12 @@ module Expr : sig
     | Seq of t list
     (* Sequence of sub-expressions. *)
 
+  val format : Format.formatter -> t -> unit
+  (** [format fmt exp] outputs in [fmt] the string representation of the ninja expression [exp]. *)
 
-  val to_string : t -> string
-  (** [to_string exp] returns the string representation of an ninja expression [exp]. *)
-
-  val list_to_string : ?sep:string -> t list -> string
-  (** [list_to_string ?sep ls] returns the string representation of a list [ls] of ninja expressions
-      concatenated with the separator [sep] -- by default ' '. *)
+  val format_list : Format.formatter -> t list -> unit
+  (** [format fmt ls] outputs in [fmt] the string representation of a list [ls]
+      of ninja expressions [exp] by adding a space between each expression. *)
 end
 
 (** {1 Ninja rules} *)
@@ -75,8 +74,8 @@ rule <name>
   val make : string -> command:Expr.t -> description:Expr.t -> t
   (** [make name ~command ~description] returns the corresponding ninja {!type: Rule.t}. *)
 
-  val to_string : t -> string
-  (** [to_string rule] returns the string representation of the [rule]. *)
+  val format : Format.formatter -> t -> unit
+  (** [format fmt rule] outputs in [fmt] the string representation of the ninja [rule]. *)
 end
 
 (** {1 Ninja builds} *)
@@ -116,7 +115,8 @@ build <outputs>: <rule> [<inputs>]
   (** [unpath ~sep path] replaces all [/] occurences with [sep] in [path] to avoid ninja writing the
       corresponding file and use it as sub command. By default, [sep] is set to ["-"]. *)
 
-  val to_string : t -> string
+  val format : Format.formatter -> t -> unit
+  (** [format fmt build] outputs in [fmt] the string representation of the ninja [build]. *)
 end
 
 (** {1 Maps} *)
@@ -133,6 +133,5 @@ type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
 val empty : ninja
 (** [empty] returns the empty empty ninja structure. *)
 
-val write : out_channel -> ninja -> unit
-(** [write out ninja] writes in [out] the string representation of all [ninja.rules] and
-    [ninja.builds]. *)
+val format : Format.formatter -> ninja -> unit
+(** [format fmt build] outputs in [fmt] the string representation of all [ninja.rules] and [ninja.builds]. *)

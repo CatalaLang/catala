@@ -15,12 +15,17 @@
 module Expr = struct
   type t = Lit of string | Var of string | Seq of t list
 
-  let rec to_string = function
-    | Lit s -> s
-    | Var s -> "$" ^ s
-    | Seq ls -> List.fold_left (fun acc s -> acc ^ " " ^ to_string s) "" ls
+  let rec format fmt = function
+    | Lit s -> Format.fprintf fmt "%s" s
+    | Var s -> Format.fprintf fmt "$%s" s
+    | Seq ls -> format_list fmt ls
 
-  let list_to_string ?(sep = " ") ls = ls |> List.map to_string |> String.concat sep
+  and format_list fmt = function
+    | hd :: tl ->
+        Format.fprintf fmt "%a%a" format hd
+          (fun fmt tl -> tl |> List.iter (fun s -> Format.fprintf fmt " %a" format s))
+          tl
+    | [] -> ()
 end
 
 module Rule = struct
@@ -28,10 +33,13 @@ module Rule = struct
 
   let make name ~command ~description = { name; command; description = Option.some description }
 
-  let to_string rule =
-    Printf.sprintf "rule %s\n  command =%s\n" rule.name (Expr.to_string rule.command)
-    ^ (rule.description
-      |> Option.fold ~some:(fun e -> "  description =" ^ Expr.to_string e ^ "\n") ~none:"")
+  let format fmt rule =
+    let format_description fmt = function
+      | Some e -> Format.fprintf fmt "  description = %a\n" Expr.format e
+      | None -> Format.fprintf fmt "\n"
+    in
+    Format.fprintf fmt "rule %s\n  command = %a\n%a" rule.name Expr.format rule.command
+      format_description rule.description
 end
 
 module Build = struct
@@ -56,13 +64,16 @@ module Build = struct
 
   let unpath ?(sep = "-") path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> sep)) path
 
-  let to_string build =
-    Printf.sprintf "build %s: %s" (Expr.list_to_string build.outputs) build.rule
-    ^ (build.inputs |> Option.fold ~some:(fun ls -> " " ^ Expr.list_to_string ls) ~none:"")
-    ^ "\n"
-    ^ List.fold_left
-        (fun acc (name, exp) -> acc ^ Printf.sprintf "  %s = %s\n" name (Expr.to_string exp))
-        "" build.vars
+  let format fmt build =
+    let format_inputs fmt = function
+      | Some exs -> Format.fprintf fmt " %a" Expr.format_list exs
+      | None -> ()
+    in
+    let format_vars fmt vars =
+      List.iter (fun (name, exp) -> Format.fprintf fmt "  %s = %a\n" name Expr.format exp) vars
+    in
+    Format.fprintf fmt "build %a: %s%a\n%a" Expr.format_list build.outputs build.rule format_inputs
+      build.inputs format_vars build.vars
 end
 
 module RuleMap : Map.S with type key = String.t = Map.Make (String)
@@ -73,9 +84,7 @@ type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
 
 let empty = { rules = RuleMap.empty; builds = BuildMap.empty }
 
-let write out ninja =
-  let write_for_all iter to_string =
-    iter (fun _name rule -> Printf.fprintf out "%s\n" (to_string rule))
-  in
-  write_for_all RuleMap.iter Rule.to_string ninja.rules;
-  write_for_all BuildMap.iter Build.to_string ninja.builds
+let format fmt ninja =
+  let format_for_all iter format = iter (fun _name rule -> Format.fprintf fmt "%a\n" format rule) in
+  format_for_all RuleMap.iter Rule.format ninja.rules;
+  format_for_all BuildMap.iter Build.format ninja.builds

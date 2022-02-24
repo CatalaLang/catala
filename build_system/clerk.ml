@@ -534,7 +534,7 @@ let collect_in_folder (ctx : ninja_building_context) (folder : string) (ninja_st
       last_valid_ninja = ninja_start;
       curr_ninja;
       all_file_names = folder :: ctx.all_file_names;
-      all_test_builds = ctx.all_test_builds ^ "  $\n  " ^ test_dir_name;
+      all_test_builds = ctx.all_test_builds ^ " $\n  " ^ test_dir_name;
     }
   else
     {
@@ -555,7 +555,7 @@ let collect_in_file (ctx : ninja_building_context) (tested_file : string) (ninja
         last_valid_ninja = ninja;
         curr_ninja = Some ninja;
         all_file_names = tested_file :: ctx.all_file_names;
-        all_test_builds = ctx.all_test_builds ^ "  $\n  " ^ test_file_name;
+        all_test_builds = ctx.all_test_builds ^ " $\n  " ^ test_file_name;
       }
   | None ->
       {
@@ -607,7 +607,9 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
       else
         let out = open_out "build.ninja" in
         Cli.debug_print "writing build.ninja...";
-        Nj.write out (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
+        Nj.format
+          (Format.formatter_of_out_channel out)
+          (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
         close_out out;
         Cli.debug_print "executing 'ninja test'...";
         Sys.command "ninja test"
