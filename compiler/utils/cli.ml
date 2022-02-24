@@ -195,8 +195,8 @@ let info =
       `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Cmd.Exit.defaults @ [ Cmd.Exit.info ~doc:"on error." 1 ] in
-  Cmd.info "catala" ~version ~doc ~exits ~man
+  let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
+  Term.info "catala" ~version ~doc ~exits ~man
 
 (**{1 Terminal formatting}*)
 

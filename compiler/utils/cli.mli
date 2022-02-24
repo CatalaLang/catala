@@ -95,7 +95,7 @@ val catala_t :
 
 val version : string
 
-val info : Cmdliner.Cmd.info
+val info : Cmdliner.Term.info
 
 (**{1 Terminal formatting}*)
 

@@ -41,8 +41,11 @@ type context = {
   (* A map from Catala temporary variables, generated when translating a match, to the corresponding
      enum accessor call as a Z3 expression *)
   ctx_z3structs : Sort.sort StructMap.t;
-      (* A map from Catala struct names to the corresponding Z3 sort, from which we can retrieve the
-         constructor and the accessors *)
+  (* A map from Catala struct names to the corresponding Z3 sort, from which we can retrieve the
+     constructor and the accessors *)
+  ctx_z3unit : Sort.sort * Expr.expr;
+      (* A pair containing the Z3 encodings of the unit type, encoded as a tuple of 0 elements, and
+         the unit value *)
 }
 (** The context contains all the required information to encode a VC represented as a Catala term to
     Z3. The fields [ctx_decl] and [ctx_var] are computed before starting the translation to Z3, and
@@ -108,9 +111,11 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
     match ty with
     (* TODO: Print boolean according to current language *)
     | TBool -> Expr.to_string e
-    | TUnit -> failwith "[Z3 model]: Pretty-printing of unit literals not supported"
+    (* TUnit is only used for the absence of an enum constructor argument. Hence, when
+       pretty-printing, we print nothing to remain closer from Catala sources *)
+    | TUnit -> ""
     | TInt -> Expr.to_string e
-    | TRat -> failwith "[Z3 model]: Pretty-printing of rational literals not supported"
+    | TRat -> Arithmetic.Real.to_decimal_string e !Cli.max_prec_digits
     (* TODO: Print the right money symbol according to language *)
     | TMoney ->
         let z3_str = Expr.to_string e in
@@ -173,29 +178,42 @@ let print_model (ctx : context) (model : Model.model) : string =
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
        (fun fmt d ->
-         match Model.get_const_interp model d with
-         (* TODO: Better handling of this case *)
-         | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
-         (* Prints "name : value\n" *)
-         | Some e ->
-             if FuncDecl.get_arity d = 0 then
-               (* Constant case *)
+         if FuncDecl.get_arity d = 0 then
+           (* Constant case *)
+           match Model.get_const_interp model d with
+           (* TODO: Better handling of this case *)
+           | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+           (* Print "name : value\n" *)
+           | Some e ->
                let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
                let v = StringMap.find symbol_name ctx.ctx_z3vars in
                Format.fprintf fmt "%s %s : %s"
                  (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
                  (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
                  (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
-             else failwith "[Z3 model]: Printing of functions is not yet supported"))
+         else
+           (* Declaration d is a function *)
+           match Model.get_func_interp model d with
+           (* TODO: Better handling of this case *)
+           | None -> failwith "[Z3 model]: A variable does not have an associated Z3 solution"
+           (* Print "name : value\n" *)
+           | Some f ->
+               let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
+               let v = StringMap.find symbol_name ctx.ctx_z3vars in
+               Format.fprintf fmt "%s %s : %s"
+                 (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
+                 (Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Bindlib.name_of v))
+                 (* TODO: Model of a Z3 function should be pretty-printed *)
+                 (Model.FuncInterp.to_string f)))
     decls
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal type [t] **)
 let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   match t with
   | TBool -> Boolean.mk_sort ctx.ctx_z3
-  | TUnit -> failwith "[Z3 encoding] TUnit type not supported"
+  | TUnit -> fst ctx.ctx_z3unit
   | TInt -> Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TRat -> failwith "[Z3 encoding] TRat type not supported"
+  | TRat -> Arithmetic.Real.mk_sort ctx.ctx_z3
   | TMoney -> Arithmetic.Integer.mk_sort ctx.ctx_z3
   (* Dates are encoded as integers, corresponding to the number of days since Jan 1, 1900 *)
   | TDate -> Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -284,7 +302,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LBool b -> if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
   | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | LInt n -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
-  | LRat _ -> failwith "[Z3 encoding] LRat literals not supported"
+  | LRat r -> Arithmetic.Real.mk_numeral_s ctx.ctx_z3 (string_of_float (Runtime.decimal_to_float r))
   | LMoney m ->
       let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
       Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
@@ -311,6 +329,9 @@ let find_or_create_funcdecl (ctx : context) (v : Var.t) : context * FuncDecl.fun
           let ctx = add_funcdecl v fd ctx in
           let ctx = add_z3var name v ctx in
           (ctx, fd)
+      | TAny ->
+          failwith
+            "[Z3 Encoding] A function being applied has type TAny, the type was not fully inferred"
       | _ ->
           failwith
             "[Z3 Encoding] Ill-formed VC, a function application does not have a function type")
@@ -389,32 +410,32 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
           | And -> (ctx, Boolean.mk_and ctx.ctx_z3 [ e1; e2 ])
           | Or -> (ctx, Boolean.mk_or ctx.ctx_z3 [ e1; e2 ])
           | Xor -> (ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2)
-          | Add KInt -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
+          | Add KInt | Add KRat | Add KMoney -> (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
           | Add _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Add not supported"
-          | Sub KInt -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
+          | Sub KInt | Sub KRat | Sub KMoney -> (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
           | Sub _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Sub not supported"
-          | Mult KInt -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
+          | Mult KInt | Mult KRat | Mult KMoney -> (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
           | Mult _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Mult not supported"
-          | Div KInt -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
+          | Div KInt | Div KRat | Div KMoney -> (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
           | Div _ ->
               failwith "[Z3 encoding] application of non-integer binary operator Div not supported"
-          | Lt KInt | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
+          | Lt KInt | Lt KRat | Lt KMoney | Lt KDate -> (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
           | Lt _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Lt not supported"
-          | Lte KInt | Lte KMoney | Lte KDate -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
+          | Lte KInt | Lte KRat | Lte KMoney | Lte KDate -> (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
           | Lte _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Lte not \
                  supported"
-          | Gt KInt | Gt KMoney | Gt KDate -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
+          | Gt KInt | Gt KRat | Gt KMoney | Gt KDate -> (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
           | Gt _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Gt not supported"
-          | Gte KInt | Gte KMoney | Gte KDate -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
+          | Gte KInt | Gte KRat | Gte KMoney | Gte KDate -> (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
           | Gte _ ->
               failwith
                 "[Z3 encoding] application of non-integer or money binary operator Gte not \
@@ -557,6 +578,14 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr 
           ] )
   | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
+(** [create_z3unit] creates a Z3 sort and expression corresponding to the unit type and value
+    respectively. Concretely, we represent unit as a tuple with 0 elements **)
+let create_z3unit (ctx : Z3.context) : Z3.context * (Sort.sort * Expr.expr) =
+  let unit_sort = Tuple.mk_sort ctx (Symbol.mk_string ctx "unit") [] [] in
+  let mk_unit = Tuple.get_mk_decl unit_sort in
+  let unit_val = Expr.mk_app ctx mk_unit [] in
+  (ctx, (unit_sort, unit_val))
+
 module Backend = struct
   type backend_context = context
 
@@ -590,6 +619,7 @@ module Backend = struct
       (if !Cli.disable_counterexamples then [] else [ ("model", "true") ]) @ [ ("proof", "false") ]
     in
     let z3_ctx = mk_context cfg in
+    let z3_ctx, z3unit = create_z3unit z3_ctx in
     {
       ctx_z3 = z3_ctx;
       ctx_decl = decl_ctx;
@@ -599,6 +629,7 @@ module Backend = struct
       ctx_z3datatypes = EnumMap.empty;
       ctx_z3matchsubsts = VarMap.empty;
       ctx_z3structs = StructMap.empty;
+      ctx_z3unit = z3unit;
     }
 end
 

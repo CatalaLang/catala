@@ -88,7 +88,8 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
                (Print.format_expr ~debug:true ctx.decl)
                e)
             (Pos.get_position e))
-  | EApp ((EOp (Unop (Log _)), _), [ ((ErrorOnEmpty (EDefault (_, _, _), _), _) as d) ]) ->
+  | ErrorOnEmpty (EApp ((EOp (Unop (Log _)), _), [ d ]), _)
+  | EApp ((EOp (Unop (Log _)), _), [ (ErrorOnEmpty d, _) ]) ->
       d (* input subscope variables and non-input scope variable *)
   | _ ->
       Errors.raise_spanned_error
