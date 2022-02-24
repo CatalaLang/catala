@@ -15,7 +15,7 @@
 
 (bug_reports https://github.com/CatalaLang/catala/issues)
 
-(authors "Denis Merigoux, Nicolas Chataing")
+(authors "Denis Merigoux, Nicolas Chataing, Emile Rolley")
 
 (maintainers "contact@catala-lang.org")
 
@@ -77,12 +77,31 @@
  (synopsis
   "A collection of algorithms and computations defined by French law")
  (description
-  "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org")
+  "This library contains the implementations of algorithmic portions of French
+   law. The library source code was generated from Catala annotations of the
+   relevant portions of the French law, see https://catala-lang.org")
  (depends
   (ocaml
    (>= 4.11.0))
   (catala
    (= :version))
   (conf-npm :dev)))
+
+(package
+ (name ninja_utils)
+ (synopsis
+  "A collection of utility functions used to generate Ninja build files")
+ (description
+  "This library contains the implementations of utility functions used to
+   generate Ninja build files -- see https://ninja-build.org. It's currently
+   used by the Catala build system (see
+                                     https://github.com/CatalaLang/catala/tree/master/build_system)")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (re
+    (>= 1.10.3))
+  (catala
+   (= :version))))
 
 (using menhir 2.1)
