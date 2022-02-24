@@ -175,6 +175,8 @@ let no_pos : t =
   in
   { code_pos = (zero_pos, zero_pos); law_pos = [] }
 
+let mark pos e : 'a marked = (e, pos)
+
 let unmark ((x, _) : 'a marked) : 'a = x
 
 let get_position ((_, x) : 'a marked) : t = x

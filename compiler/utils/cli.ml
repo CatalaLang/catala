@@ -36,6 +36,8 @@ let optimize_flag = ref false
 
 let disable_counterexamples = ref false
 
+let avoid_exceptions_flag = ref false
+
 open Cmdliner
 
 let file =
@@ -60,6 +62,11 @@ let trace_opt =
         ~doc:
           "Displays a trace of the interpreter's computation or generates logging instructions in \
            translate programs.")
+
+let avoid_exceptions =
+  Arg.(
+    value & flag
+    & info [ "avoid_exceptions" ] ~doc:"Compiles the default calculus without exceptions")
 
 let wrap_weaved_output =
   Arg.(
@@ -126,7 +133,7 @@ let output =
 
 let catala_t f =
   Term.(
-    const f $ file $ debug $ unstyled $ wrap_weaved_output $ backend $ language
+    const f $ file $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions $ backend $ language
     $ max_prec_digits_opt $ trace_opt $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
 
 let version = "0.5.0"

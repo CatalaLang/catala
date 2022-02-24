@@ -119,7 +119,7 @@ type expr =
       (** The [MarkedString.info] is the former enum case name *)
   | EArray of expr Pos.marked list
   | ELit of lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * typ Pos.marked list
+  | EAbs of ((expr, expr Pos.marked) Bindlib.mbinder[@opaque]) Pos.marked * typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EAssert of expr Pos.marked
   | EOp of operator
@@ -182,6 +182,10 @@ module Var : sig
 end
 
 module VarMap : Map.S with type key = Var.t
+
+val free_vars_set : expr Pos.marked -> unit VarMap.t
+
+val free_vars_list : expr Pos.marked -> Var.t list
 
 type vars = expr Bindlib.mvar
 

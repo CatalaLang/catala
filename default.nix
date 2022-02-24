@@ -19,15 +19,16 @@
 , js_of_ocaml-ppx
 , camomile
 , cppo
+, ppx_deriving
 , z3
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
 buildDunePackage rec {
   pname = "catala";
-  version = "0.3.0";
+  version = "0.5.0";
 
-  minimumOCamlVersion = "4.08";
+  minimumOCamlVersion = "4.11";
 
   src = ./.;
 
@@ -53,6 +54,8 @@ buildDunePackage rec {
     z3
 
     pkgs.z3
+
+    ppx_deriving
 
     unionfind
     bindlib
