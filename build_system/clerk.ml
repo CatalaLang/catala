@@ -565,6 +565,12 @@ let collect_in_file (ctx : ninja_building_context) (tested_file : string) (ninja
         all_failed_names = tested_file :: ctx.all_failed_names;
       }
 
+(** {1 Return code values} *)
+
+let return_ok = 0
+
+let return_err = 1
+
 let driver (files_or_folders : string list) (command : string) (catala_exe : string option)
     (catala_opts : string option) (debug : bool) (scope : string option) (reset_test_outputs : bool)
     : int =
@@ -597,7 +603,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
             |> Printf.sprintf "No test case found for %s"
             |> Cli.warning_print)
           ctx.all_failed_names;
-      if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then 0
+      if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then return_ok
       else
         let out = open_out "build.ninja" in
         Cli.debug_print "writing build.ninja...";
@@ -613,7 +619,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
               (fun ret f -> ret + run_file f catala_exe catala_opts scope)
               0 files_or_folders
           in
-          if 0 <> res then 1 else 0
+          if 0 <> res then return_err else return_ok
       | None ->
           Cli.error_print "Please provide a scope to run with the -s option";
           1)

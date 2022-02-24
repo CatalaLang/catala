@@ -134,6 +134,8 @@ options available. To get the development version of the help, run `make help_cl
 after `make build`. The `clerk` binary corresponds to the Catala build system,
 responsible for testing among other things.
 
+To get more information about Clerk, see [the dedicated readme](https://github.com/CatalaLang/catala/tree/master/build_system/README.md)
+
 ## Documentation
 
 ### Syntax cheat sheet

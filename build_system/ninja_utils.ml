@@ -13,7 +13,7 @@
    the License. *)
 
 module Expr = struct
-  type t = Seq of t list | Lit of string | Var of string
+  type t = Lit of string | Var of string | Seq of t list
 
   let rec to_string = function
     | Lit s -> s
@@ -54,7 +54,7 @@ module Build = struct
 
   let empty = make ~outputs:[ Expr.Lit "empty" ] ~rule:"phony"
 
-  let unpath path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> "-")) path
+  let unpath ?(sep = "-") path = Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> sep)) path
 
   let to_string build =
     Printf.sprintf "build %s: %s" (Expr.list_to_string build.outputs) build.rule
