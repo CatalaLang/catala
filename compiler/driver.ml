@@ -36,6 +36,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
     Cli.disable_counterexamples := disable_counterexamples;
+    Cli.avoid_exceptions_flag := avoid_exceptions;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);

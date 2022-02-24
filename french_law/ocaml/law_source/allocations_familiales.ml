@@ -287,9 +287,9 @@ let embed_interface_allocations_familiales_in (x : interface_allocations_familia
       ] )
 
 let smic (smic_in : smic_in) =
-  let date_courante_2011_ : date = smic_in.date_courante_in in
-  let residence_2012_ : collectivite = smic_in.residence_in in
-  let brut_horaire_2013_ : money =
+  let date_courante_ : date = smic_in.date_courante_in in
+  let residence_ : collectivite = smic_in.residence_in in
+  let brut_horaire_ : money =
     log_variable_definition [ "Smic"; "brut_horaire" ] embed_money
       (try
          handle_default
@@ -313,9 +313,9 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2021 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2021 12 31
-                     && residence_2012_ = Mayotte ())
+                     (date_courante_ >=@ date_of_numbers 2021 1 1
+                     && date_courante_ <=@ date_of_numbers 2021 12 31
+                     && residence_ = Mayotte ())
                  then money_of_cents_string "774"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -338,14 +338,13 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2021 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2021 12 31
-                     && (residence_2012_ = Metropole () || residence_2012_ = Guadeloupe ()
-                       || residence_2012_ = Guyane () || residence_2012_ = Martinique ()
-                       || residence_2012_ = LaReunion ()
-                        || residence_2012_ = SaintBarthelemy ()
-                        || residence_2012_ = SaintMartin ()
-                        || residence_2012_ = SaintPierreEtMiquelon ()))
+                     (date_courante_ >=@ date_of_numbers 2021 1 1
+                     && date_courante_ <=@ date_of_numbers 2021 12 31
+                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                        || residence_ = SaintPierreEtMiquelon ()))
                  then money_of_cents_string "1025"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -368,9 +367,9 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2020 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2020 12 31
-                     && residence_2012_ = Mayotte ())
+                     (date_courante_ >=@ date_of_numbers 2020 1 1
+                     && date_courante_ <=@ date_of_numbers 2020 12 31
+                     && residence_ = Mayotte ())
                  then money_of_cents_string "766"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -393,14 +392,13 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2020 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2020 12 31
-                     && (residence_2012_ = Metropole () || residence_2012_ = Guadeloupe ()
-                       || residence_2012_ = Guyane () || residence_2012_ = Martinique ()
-                       || residence_2012_ = LaReunion ()
-                        || residence_2012_ = SaintBarthelemy ()
-                        || residence_2012_ = SaintMartin ()
-                        || residence_2012_ = SaintPierreEtMiquelon ()))
+                     (date_courante_ >=@ date_of_numbers 2020 1 1
+                     && date_courante_ <=@ date_of_numbers 2020 12 31
+                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                        || residence_ = SaintPierreEtMiquelon ()))
                  then money_of_cents_string "1015"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -423,9 +421,9 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2019 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2019 12 31
-                     && residence_2012_ = Mayotte ())
+                     (date_courante_ >=@ date_of_numbers 2019 1 1
+                     && date_courante_ <=@ date_of_numbers 2019 12 31
+                     && residence_ = Mayotte ())
                  then money_of_cents_string "757"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -448,14 +446,13 @@ let smic (smic_in : smic_in) =
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2011_ >=@ date_of_numbers 2019 1 1
-                     && date_courante_2011_ <=@ date_of_numbers 2019 12 31
-                     && (residence_2012_ = Metropole () || residence_2012_ = Guadeloupe ()
-                       || residence_2012_ = Guyane () || residence_2012_ = Martinique ()
-                       || residence_2012_ = LaReunion ()
-                        || residence_2012_ = SaintBarthelemy ()
-                        || residence_2012_ = SaintMartin ()
-                        || residence_2012_ = SaintPierreEtMiquelon ()))
+                     (date_courante_ >=@ date_of_numbers 2019 1 1
+                     && date_courante_ <=@ date_of_numbers 2019 12 31
+                     && (residence_ = Metropole () || residence_ = Guadeloupe ()
+                       || residence_ = Guyane () || residence_ = Martinique ()
+                       || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                       || residence_ = SaintMartin ()
+                        || residence_ = SaintPierreEtMiquelon ()))
                  then money_of_cents_string "1003"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -484,11 +481,11 @@ let smic (smic_in : smic_in) =
                 law_headings = [ "Prologue" ];
               }))
   in
-  { brut_horaire_out = brut_horaire_2013_ }
+  { brut_horaire_out = brut_horaire_ }
 
 let allocation_familiales_avril2008
     (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) =
-  let age_minimum_alinea_1_l521_3_2023_ : integer =
+  let age_minimum_alinea_1_l521_3_ : integer =
     log_variable_definition
       [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3" ]
       embed_integer
@@ -505,11 +502,11 @@ let allocation_familiales_avril2008
                 law_headings = [ "Prologue" ];
               }))
   in
-  { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_2023_ }
+  { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
 let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
-  let enfants_2025_ : enfant array = enfant_le_plus_age_in.enfants_in in
-  let le_plus_age_2026_ : enfant =
+  let enfants_ : enfant array = enfant_le_plus_age_in.enfants_in in
+  let le_plus_age_ : enfant =
     log_variable_definition
       [ "EnfantLePlusÂgé"; "le_plus_âgé" ]
       embed_enfant
@@ -517,8 +514,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
          try
            try
              Array.fold_left
-               (fun (acc_2027_ : _) (item_2028_ : _) ->
-                 if acc_2027_.age >! item_2028_.age then acc_2027_ else item_2028_)
+               (fun (acc_ : _) (item_ : _) -> if acc_.age >! item_.age then acc_ else item_)
                {
                  identifiant = ~-!(integer_of_string "1");
                  obligation_scolaire = Pendant ();
@@ -528,7 +524,7 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
                  prise_en_charge = EffectiveEtPermanente ();
                  a_deja_ouvert_droit_aux_allocations_familiales = false;
                }
-               enfants_2025_
+               enfants_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -543,15 +539,15 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
                 law_headings = [ "Prologue" ];
               }))
   in
-  { le_plus_age_out = le_plus_age_2026_ }
+  { le_plus_age_out = le_plus_age_ }
 
 let prestations_familiales (prestations_familiales_in : prestations_familiales_in) =
-  let date_courante_2030_ : date = prestations_familiales_in.date_courante_in in
-  let prestation_courante_2031_ : element_prestations_familiales =
+  let date_courante_ : date = prestations_familiales_in.date_courante_in in
+  let prestation_courante_ : element_prestations_familiales =
     prestations_familiales_in.prestation_courante_in
   in
-  let residence_2032_ : collectivite = prestations_familiales_in.residence_in in
-  let age_l512_3_2_2033_ : integer =
+  let residence_ : collectivite = prestations_familiales_in.residence_in in
+  let age_l512_3_2_ : integer =
     log_variable_definition
       [ "PrestationsFamiliales"; "âge_l512_3_2" ]
       embed_integer
@@ -568,7 +564,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let base_mensuelle_2034_ : money =
+  let base_mensuelle_ : money =
     log_variable_definition
       [ "PrestationsFamiliales"; "base_mensuelle" ]
       embed_money
@@ -596,8 +592,8 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2030_ >=@ date_of_numbers 2021 4 1
-                     && date_courante_2030_ <@ date_of_numbers 2022 4 1)
+                     (date_courante_ >=@ date_of_numbers 2021 4 1
+                     && date_courante_ <@ date_of_numbers 2022 4 1)
                  then money_of_cents_string "41481"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -622,8 +618,8 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2030_ >=@ date_of_numbers 2020 4 1
-                     && date_courante_2030_ <@ date_of_numbers 2021 4 1)
+                     (date_courante_ >=@ date_of_numbers 2020 4 1
+                     && date_courante_ <@ date_of_numbers 2021 4 1)
                  then money_of_cents_string "41404"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -646,8 +642,8 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Décrets divers";
                          ];
                      }
-                     (date_courante_2030_ >=@ date_of_numbers 2019 4 1
-                     && date_courante_2030_ <@ date_of_numbers 2020 4 1)
+                     (date_courante_ >=@ date_of_numbers 2019 4 1
+                     && date_courante_ <@ date_of_numbers 2020 4 1)
                  then money_of_cents_string "41316"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -676,12 +672,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let smic_dot_date_courante_2040_ : date =
+  let smic_dot_date_courante_ : date =
     try
       log_variable_definition
         [ "PrestationsFamiliales"; "smic.date_courante" ]
         embed_date
-        (try try date_courante_2030_ with EmptyError -> raise EmptyError
+        (try try date_courante_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -695,12 +691,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let smic_dot_residence_2041_ : collectivite =
+  let smic_dot_residence_ : collectivite =
     try
       log_variable_definition
         [ "PrestationsFamiliales"; "smic.résidence" ]
         embed_collectivite
-        (try try residence_2032_ with EmptyError -> raise EmptyError
+        (try try residence_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -714,19 +710,16 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let result_2042_ : smic_out =
+  let result_ : smic_out =
     log_end_call
       [ "PrestationsFamiliales"; "smic"; "Smic" ]
       (log_begin_call
          [ "PrestationsFamiliales"; "smic"; "Smic" ]
          smic
-         {
-           date_courante_in = smic_dot_date_courante_2040_;
-           residence_in = smic_dot_residence_2041_;
-         })
+         { date_courante_in = smic_dot_date_courante_; residence_in = smic_dot_residence_ })
   in
-  let smic_dot_brut_horaire_2043_ : money = result_2042_.brut_horaire_out in
-  let regime_outre_mer_l751_1_2044_ : bool =
+  let smic_dot_brut_horaire_ : money = result_.brut_horaire_out in
+  let regime_outre_mer_l751_1_ : bool =
     log_variable_definition
       [ "PrestationsFamiliales"; "régime_outre_mer_l751_1" ]
       embed_bool
@@ -752,10 +745,9 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                        "Code de la sécurité sociale";
                      ];
                  }
-                 (residence_2032_ = Guadeloupe () || residence_2032_ = Guyane ()
-                || residence_2032_ = Martinique () || residence_2032_ = LaReunion ()
-                 || residence_2032_ = SaintBarthelemy ()
-                 || residence_2032_ = SaintMartin ())
+                 (residence_ = Guadeloupe () || residence_ = Guyane () || residence_ = Martinique ()
+                || residence_ = LaReunion () || residence_ = SaintBarthelemy ()
+                || residence_ = SaintMartin ())
              then true
              else raise EmptyError
            with EmptyError -> raise EmptyError
@@ -772,7 +764,7 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let plafond_l512_3_2_2045_ : money =
+  let plafond_l512_3_2_ : money =
     log_variable_definition
       [ "PrestationsFamiliales"; "plafond_l512_3_2" ]
       embed_money
@@ -798,13 +790,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                          "Code de la sécurité sociale";
                        ];
                    }
-                   regime_outre_mer_l751_1_2044_
-               then
-                 smic_dot_brut_horaire_2043_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
+                   regime_outre_mer_l751_1_
+               then smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
                else raise EmptyError
              with EmptyError -> raise EmptyError
            with EmptyError -> (
-             try smic_dot_brut_horaire_2043_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
+             try smic_dot_brut_horaire_ *$ decimal_of_string "0.55" *$ decimal_of_string "169."
              with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -819,12 +810,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let conditions_hors_age_2046_ : enfant -> bool =
+  let conditions_hors_age_ : enfant -> bool =
     log_variable_definition
       [ "PrestationsFamiliales"; "conditions_hors_âge" ]
       unembeddable
       (try
-         fun (param_2047_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                try
@@ -846,20 +837,20 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (((match param_2047_.obligation_scolaire with
+                     (((match param_.obligation_scolaire with
                        | Avant _ -> true
                        | Pendant _ -> false
                        | Apres _ -> false)
-                      || (match param_2047_.obligation_scolaire with
+                      || (match param_.obligation_scolaire with
                          | Avant _ -> false
                          | Pendant _ -> true
                          | Apres _ -> false)
                       ||
-                      match param_2047_.obligation_scolaire with
+                      match param_.obligation_scolaire with
                       | Avant _ -> false
                       | Pendant _ -> false
                       | Apres _ -> true)
-                     && param_2047_.remuneration_mensuelle <=$ plafond_l512_3_2_2045_)
+                     && param_.remuneration_mensuelle <=$ plafond_l512_3_2_)
                  then true
                  else raise EmptyError
                with EmptyError -> raise EmptyError
@@ -887,12 +878,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let droit_ouvert_2057_ : enfant -> bool =
+  let droit_ouvert_ : enfant -> bool =
     log_variable_definition
       [ "PrestationsFamiliales"; "droit_ouvert" ]
       unembeddable
       (try
-         fun (param_2058_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              handle_default
                [|
@@ -916,12 +907,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         ((match param_2058_.obligation_scolaire with
+                         ((match param_.obligation_scolaire with
                           | Avant _ -> false
                           | Pendant _ -> false
                           | Apres _ -> true)
-                         && param_2058_.remuneration_mensuelle <=$ plafond_l512_3_2_2045_
-                         && param_2058_.age <! age_l512_3_2_2033_)
+                         && param_.remuneration_mensuelle <=$ plafond_l512_3_2_
+                         && param_.age <! age_l512_3_2_)
                      then true
                      else raise EmptyError
                    with EmptyError -> raise EmptyError);
@@ -945,12 +936,12 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         ((match param_2058_.obligation_scolaire with
+                         ((match param_.obligation_scolaire with
                           | Avant _ -> true
                           | Pendant _ -> false
                           | Apres _ -> false)
                          ||
-                         match param_2058_.obligation_scolaire with
+                         match param_.obligation_scolaire with
                          | Avant _ -> false
                          | Pendant _ -> true
                          | Apres _ -> false)
@@ -994,33 +985,33 @@ let prestations_familiales (prestations_familiales_in : prestations_familiales_i
               }))
   in
   {
-    droit_ouvert_out = droit_ouvert_2057_;
-    conditions_hors_age_out = conditions_hors_age_2046_;
-    age_l512_3_2_out = age_l512_3_2_2033_;
-    regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_2044_;
-    base_mensuelle_out = base_mensuelle_2034_;
+    droit_ouvert_out = droit_ouvert_;
+    conditions_hors_age_out = conditions_hors_age_;
+    age_l512_3_2_out = age_l512_3_2_;
+    regime_outre_mer_l751_1_out = regime_outre_mer_l751_1_;
+    base_mensuelle_out = base_mensuelle_;
   }
 
 let allocations_familiales (allocations_familiales_in : allocations_familiales_in) =
-  let personne_charge_effective_permanente_est_parent_2073_ : bool =
+  let personne_charge_effective_permanente_est_parent_ : bool =
     allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
   in
-  let personne_charge_effective_permanente_remplit_titre__i_2074_ : bool =
+  let personne_charge_effective_permanente_remplit_titre__i_ : bool =
     allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
   in
-  let ressources_menage_2075_ : money = allocations_familiales_in.ressources_menage_in in
-  let residence_2076_ : collectivite = allocations_familiales_in.residence_in in
-  let date_courante_2077_ : date = allocations_familiales_in.date_courante_in in
-  let enfants_a_charge_2078_ : enfant array = allocations_familiales_in.enfants_a_charge_in in
-  let avait_enfant_a_charge_avant_1er_janvier_2012_2079_ : bool =
+  let ressources_menage_ : money = allocations_familiales_in.ressources_menage_in in
+  let residence_ : collectivite = allocations_familiales_in.residence_in in
+  let date_courante_ : date = allocations_familiales_in.date_courante_in in
+  let enfants_a_charge_ : enfant array = allocations_familiales_in.enfants_a_charge_in in
+  let avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
     allocations_familiales_in.avait_enfant_a_charge_avant_1er_janvier_2012_in
   in
-  let prise_en_compte_2080_ : enfant -> prise_en_compte =
+  let prise_en_compte_ : enfant -> prise_en_compte =
     log_variable_definition
       [ "AllocationsFamiliales"; "prise_en_compte" ]
       unembeddable
       (try
-         fun (param_2081_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              handle_default
                [|
@@ -1044,7 +1035,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2081_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1073,7 +1064,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2081_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1102,7 +1093,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2081_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> true
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1131,7 +1122,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2081_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> true
                          | EffectiveEtPermanente _ -> false
@@ -1160,7 +1151,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2081_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> true
@@ -1205,12 +1196,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let versement_2114_ : enfant -> versement_allocations =
+  let versement_ : enfant -> versement_allocations =
     log_variable_definition
       [ "AllocationsFamiliales"; "versement" ]
       unembeddable
       (try
-         fun (param_2115_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              handle_default
                [|
@@ -1234,7 +1225,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2115_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1263,7 +1254,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2115_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1292,7 +1283,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2115_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> true
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> false
@@ -1321,7 +1312,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2115_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> true
                          | EffectiveEtPermanente _ -> false
@@ -1350,7 +1341,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (match param_2115_.prise_en_charge with
+                         (match param_.prise_en_charge with
                          | GardeAlterneePartageAllocations _ -> false
                          | GardeAlterneeAllocataireUnique _ -> false
                          | EffectiveEtPermanente _ -> true
@@ -1395,7 +1386,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let nombre_enfants_l521_1_2148_ : integer =
+  let nombre_enfants_l521_1_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_l521_1" ]
       embed_integer
@@ -1412,7 +1403,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let nombre_enfants_alinea_2_l521_3_2149_ : integer =
+  let nombre_enfants_alinea_2_l521_3_ : integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_enfants_alinéa_2_l521_3" ]
       embed_integer
@@ -1429,22 +1420,22 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let result_2150_ : allocation_familiales_avril2008_out =
+  let result_ : allocation_familiales_avril2008_out =
     log_end_call
       [ "AllocationsFamiliales"; "version_avril_2008"; "AllocationFamilialesAvril2008" ]
       (log_begin_call
          [ "AllocationsFamiliales"; "version_avril_2008"; "AllocationFamilialesAvril2008" ]
          allocation_familiales_avril2008 ())
   in
-  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_2151_ : integer =
-    result_2150_.age_minimum_alinea_1_l521_3_out
+  let version_avril_2008_dot_age_minimum_alinea_1_l521_3_ : integer =
+    result_.age_minimum_alinea_1_l521_3_out
   in
-  let prestations_familiales_dot_date_courante_2152_ : date =
+  let prestations_familiales_dot_date_courante_ : date =
     try
       log_variable_definition
         [ "AllocationsFamiliales"; "prestations_familiales.date_courante" ]
         embed_date
-        (try try date_courante_2077_ with EmptyError -> raise EmptyError
+        (try try date_courante_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -1458,7 +1449,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let prestations_familiales_dot_prestation_courante_2153_ : element_prestations_familiales =
+  let prestations_familiales_dot_prestation_courante_ : element_prestations_familiales =
     try
       log_variable_definition
         [ "AllocationsFamiliales"; "prestations_familiales.prestation_courante" ]
@@ -1477,12 +1468,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let prestations_familiales_dot_residence_2154_ : collectivite =
+  let prestations_familiales_dot_residence_ : collectivite =
     try
       log_variable_definition
         [ "AllocationsFamiliales"; "prestations_familiales.résidence" ]
         embed_collectivite
-        (try try residence_2076_ with EmptyError -> raise EmptyError
+        (try try residence_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -1496,35 +1487,33 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let result_2155_ : prestations_familiales_out =
+  let result_ : prestations_familiales_out =
     log_end_call
       [ "AllocationsFamiliales"; "prestations_familiales"; "PrestationsFamiliales" ]
       (log_begin_call
          [ "AllocationsFamiliales"; "prestations_familiales"; "PrestationsFamiliales" ]
          prestations_familiales
          {
-           date_courante_in = prestations_familiales_dot_date_courante_2152_;
-           prestation_courante_in = prestations_familiales_dot_prestation_courante_2153_;
-           residence_in = prestations_familiales_dot_residence_2154_;
+           date_courante_in = prestations_familiales_dot_date_courante_;
+           prestation_courante_in = prestations_familiales_dot_prestation_courante_;
+           residence_in = prestations_familiales_dot_residence_;
          })
   in
-  let prestations_familiales_dot_droit_ouvert_2156_ : enfant -> bool =
-    result_2155_.droit_ouvert_out
+  let prestations_familiales_dot_droit_ouvert_ : enfant -> bool = result_.droit_ouvert_out in
+  let prestations_familiales_dot_conditions_hors_age_ : enfant -> bool =
+    result_.conditions_hors_age_out
   in
-  let prestations_familiales_dot_conditions_hors_age_2157_ : enfant -> bool =
-    result_2155_.conditions_hors_age_out
+  let prestations_familiales_dot_age_l512_3_2_ : integer = result_.age_l512_3_2_out in
+  let prestations_familiales_dot_regime_outre_mer_l751_1_ : bool =
+    result_.regime_outre_mer_l751_1_out
   in
-  let prestations_familiales_dot_age_l512_3_2_2158_ : integer = result_2155_.age_l512_3_2_out in
-  let prestations_familiales_dot_regime_outre_mer_l751_1_2159_ : bool =
-    result_2155_.regime_outre_mer_l751_1_out
-  in
-  let prestations_familiales_dot_base_mensuelle_2160_ : money = result_2155_.base_mensuelle_out in
-  let enfant_le_plus_age_dot_enfants_2161_ : enfant array =
+  let prestations_familiales_dot_base_mensuelle_ : money = result_.base_mensuelle_out in
+  let enfant_le_plus_age_dot_enfants_ : enfant array =
     try
       log_variable_definition
         [ "AllocationsFamiliales"; "enfant_le_plus_âgé.enfants" ]
         (embed_array embed_enfant)
-        (try try enfants_a_charge_2078_ with EmptyError -> raise EmptyError
+        (try try enfants_a_charge_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -1538,21 +1527,21 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              law_headings = [ "Prologue" ];
            })
   in
-  let result_2162_ : enfant_le_plus_age_out =
+  let result_ : enfant_le_plus_age_out =
     log_end_call
       [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
       (log_begin_call
          [ "AllocationsFamiliales"; "enfant_le_plus_âgé"; "EnfantLePlusÂgé" ]
          enfant_le_plus_age
-         { enfants_in = enfant_le_plus_age_dot_enfants_2161_ })
+         { enfants_in = enfant_le_plus_age_dot_enfants_ })
   in
-  let enfant_le_plus_age_dot_le_plus_age_2163_ : enfant = result_2162_.le_plus_age_out in
-  let age_minimum_alinea_1_l521_3_2164_ : enfant -> integer =
+  let enfant_le_plus_age_dot_le_plus_age_ : enfant = result_.le_plus_age_out in
+  let age_minimum_alinea_1_l521_3_ : enfant -> integer =
     log_variable_definition
       [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
       unembeddable
       (try
-         fun (param_2165_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                try
@@ -1575,9 +1564,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (param_2165_.date_de_naissance +@ duration_of_numbers 11 0 0
+                       (param_.date_de_naissance +@ duration_of_numbers 11 0 0
                        <=@ date_of_numbers 2008 4 30)
-                   then version_avril_2008_dot_age_minimum_alinea_1_l521_3_2151_
+                   then version_avril_2008_dot_age_minimum_alinea_1_l521_3_
                    else raise EmptyError
                  with EmptyError -> raise EmptyError
                with EmptyError -> integer_of_string "14"
@@ -1605,7 +1594,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let enfants_a_charge_droit_ouvert_prestation_familiale_2166_ : enfant array =
+  let enfants_a_charge_droit_ouvert_prestation_familiale_ : enfant array =
     log_variable_definition
       [ "AllocationsFamiliales"; "enfants_à_charge_droit_ouvert_prestation_familiale" ]
       (embed_array embed_enfant)
@@ -1613,7 +1602,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          try
            try
              array_filter
-               (fun (enfant_2167_ : _) ->
+               (fun (enfant_ : _) ->
                  log_end_call
                    [ "PrestationsFamiliales"; "droit_ouvert" ]
                    (log_variable_definition
@@ -1621,11 +1610,11 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                       unembeddable
                       (log_begin_call
                          [ "PrestationsFamiliales"; "droit_ouvert" ]
-                         prestations_familiales_dot_droit_ouvert_2156_
+                         prestations_familiales_dot_droit_ouvert_
                          (log_variable_definition
                             [ "PrestationsFamiliales"; "droit_ouvert"; "input" ]
-                            unembeddable enfant_2167_))))
-               enfants_a_charge_2078_
+                            unembeddable enfant_))))
+               enfants_a_charge_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -1640,15 +1629,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let est_enfant_le_plus_age_2168_ : enfant -> bool =
+  let est_enfant_le_plus_age_ : enfant -> bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé" ]
       unembeddable
       (try
-         fun (param_2169_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
-               try enfant_le_plus_age_dot_le_plus_age_2163_ = param_2169_
+               try enfant_le_plus_age_dot_le_plus_age_ = param_
                with EmptyError -> raise EmptyError
              with EmptyError -> raise EmptyError
            with EmptyError ->
@@ -1674,7 +1663,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let plafond__i_i_d521_3_2170_ : money =
+  let plafond__i_i_d521_3_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "plafond_II_d521_3" ]
       embed_money
@@ -1703,13 +1692,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2021 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2021 12 31)
+                       (date_courante_ >=@ date_of_numbers 2021 1 1
+                       && date_courante_ <=@ date_of_numbers 2021 12 31)
                    then
                      money_of_cents_string "8155800"
                      +$ money_of_cents_string "582700"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1733,13 +1722,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2020 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2020 12 31)
+                       (date_courante_ >=@ date_of_numbers 2020 1 1
+                       && date_courante_ <=@ date_of_numbers 2020 12 31)
                    then
                      money_of_cents_string "8083100"
                      +$ money_of_cents_string "577500"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1763,13 +1752,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2019 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2019 12 31)
+                       (date_courante_ >=@ date_of_numbers 2019 1 1
+                       && date_courante_ <=@ date_of_numbers 2019 12 31)
                    then
                      money_of_cents_string "7955800"
                      +$ money_of_cents_string "568400"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1793,13 +1782,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2018 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2018 12 31)
+                       (date_courante_ >=@ date_of_numbers 2018 1 1
+                       && date_courante_ <=@ date_of_numbers 2018 12 31)
                    then
                      money_of_cents_string "7877000"
                      +$ money_of_cents_string "562800"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
              |]
@@ -1819,7 +1808,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  money_of_cents_string "7830000"
                  +$ money_of_cents_string "559500"
                     *$ decimal_of_integer
-                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -1834,7 +1823,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let plafond__i_d521_3_2177_ : money =
+  let plafond__i_d521_3_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "plafond_I_d521_3" ]
       embed_money
@@ -1863,13 +1852,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2021 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2021 12 31)
+                       (date_courante_ >=@ date_of_numbers 2021 1 1
+                       && date_courante_ <=@ date_of_numbers 2021 12 31)
                    then
                      money_of_cents_string "5827900"
                      +$ money_of_cents_string "582700"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1893,13 +1882,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2020 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2020 12 31)
+                       (date_courante_ >=@ date_of_numbers 2020 1 1
+                       && date_courante_ <=@ date_of_numbers 2020 12 31)
                    then
                      money_of_cents_string "5775900"
                      +$ money_of_cents_string "577500"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1923,13 +1912,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2019 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2019 12 31)
+                       (date_courante_ >=@ date_of_numbers 2019 1 1
+                       && date_courante_ <=@ date_of_numbers 2019 12 31)
                    then
                      money_of_cents_string "5684900"
                      +$ money_of_cents_string "568400"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -1953,13 +1942,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2018 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2018 12 31)
+                       (date_courante_ >=@ date_of_numbers 2018 1 1
+                       && date_courante_ <=@ date_of_numbers 2018 12 31)
                    then
                      money_of_cents_string "5628600"
                      +$ money_of_cents_string "562800"
                         *$ decimal_of_integer
-                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                             (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
              |]
@@ -1979,7 +1968,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  money_of_cents_string "5595000"
                  +$ money_of_cents_string "559500"
                     *$ decimal_of_integer
-                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+                         (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -1994,7 +1983,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let droit_ouvert_complement_2184_ : bool =
+  let droit_ouvert_complement_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_complément" ]
       embed_bool
@@ -2021,8 +2010,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          "Code de la sécurité sociale";
                        ];
                    }
-                   (prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                   && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                   (prestations_familiales_dot_regime_outre_mer_l751_1_
+                   && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                       = integer_of_string "1")
                then false
                else raise EmptyError
@@ -2041,12 +2030,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let droit_ouvert_forfaitaire_2185_ : enfant -> bool =
+  let droit_ouvert_forfaitaire_ : enfant -> bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
       unembeddable
       (try
-         fun (param_2186_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                try
@@ -2070,8 +2059,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       (prestations_familiales_dot_regime_outre_mer_l751_1_
+                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           = integer_of_string "1")
                    then false
                    else raise EmptyError
@@ -2096,9 +2085,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (array_length enfants_a_charge_2078_ >=! nombre_enfants_alinea_2_l521_3_2149_
-                       && param_2186_.age = prestations_familiales_dot_age_l512_3_2_2158_
-                       && param_2186_.a_deja_ouvert_droit_aux_allocations_familiales
+                       (array_length enfants_a_charge_ >=! nombre_enfants_alinea_2_l521_3_
+                       && param_.age = prestations_familiales_dot_age_l512_3_2_
+                       && param_.a_deja_ouvert_droit_aux_allocations_familiales
                        && log_end_call
                             [ "PrestationsFamiliales"; "conditions_hors_âge" ]
                             (log_variable_definition
@@ -2106,10 +2095,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                unembeddable
                                (log_begin_call
                                   [ "PrestationsFamiliales"; "conditions_hors_âge" ]
-                                  prestations_familiales_dot_conditions_hors_age_2157_
+                                  prestations_familiales_dot_conditions_hors_age_
                                   (log_variable_definition
                                      [ "PrestationsFamiliales"; "conditions_hors_âge"; "input" ]
-                                     unembeddable param_2186_))))
+                                     unembeddable param_))))
                    then true
                    else raise EmptyError
                  with EmptyError -> raise EmptyError)
@@ -2137,7 +2126,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_quatrieme_enfant_et_plus_mayotte_2187_ : money =
+  let montant_initial_base_quatrieme_enfant_et_plus_mayotte_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_quatrième_enfant_et_plus_mayotte" ]
       embed_money
@@ -2145,12 +2134,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          try
            try
              if
-               array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+               array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                >! integer_of_string "3"
              then
-               prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0463"
+               prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0463"
                *$ decimal_of_integer
-                    (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                    (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                     -! integer_of_string "3")
              else money_of_cents_string "0"
            with EmptyError -> raise EmptyError
@@ -2167,7 +2156,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_troisieme_enfant_mayotte_2188_ : money =
+  let montant_initial_base_troisieme_enfant_mayotte_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_troisième_enfant_mayotte" ]
       embed_money
@@ -2194,14 +2183,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2020 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2020 12 31)
+                       (date_courante_ >=@ date_of_numbers 2020 1 1
+                       && date_courante_ <=@ date_of_numbers 2020 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.143"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.143"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2224,14 +2212,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2019 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2019 12 31)
+                       (date_courante_ >=@ date_of_numbers 2019 1 1
+                       && date_courante_ <=@ date_of_numbers 2019 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1259"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1259"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2254,14 +2241,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2018 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2018 12 31)
+                       (date_courante_ >=@ date_of_numbers 2018 1 1
+                       && date_courante_ <=@ date_of_numbers 2018 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1089"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1089"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2284,14 +2270,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2017 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2017 12 31)
+                       (date_courante_ >=@ date_of_numbers 2017 1 1
+                       && date_courante_ <=@ date_of_numbers 2017 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0918"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0918"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2314,14 +2299,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2016 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2016 12 31)
+                       (date_courante_ >=@ date_of_numbers 2016 1 1
+                       && date_courante_ <=@ date_of_numbers 2016 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0842"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0842"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2344,14 +2328,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2015 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2015 12 31)
+                       (date_courante_ >=@ date_of_numbers 2015 1 1
+                       && date_courante_ <=@ date_of_numbers 2015 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0766"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0766"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2374,14 +2357,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2014 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2014 12 31)
+                       (date_courante_ >=@ date_of_numbers 2014 1 1
+                       && date_courante_ <=@ date_of_numbers 2014 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.069"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.069"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2404,14 +2386,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2013 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2013 12 31)
+                       (date_courante_ >=@ date_of_numbers 2013 1 1
+                       && date_courante_ <=@ date_of_numbers 2013 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.075"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.075"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2434,14 +2415,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2012 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2012 12 31)
+                       (date_courante_ >=@ date_of_numbers 2012 1 1
+                       && date_courante_ <=@ date_of_numbers 2012 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0539"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0539"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2464,14 +2444,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2011 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2011 12 31)
+                       (date_courante_ >=@ date_of_numbers 2011 1 1
+                       && date_courante_ <=@ date_of_numbers 2011 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "2"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0463"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0463"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2490,9 +2469,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              (fun (_ : _) ->
                try
                  if
-                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                    >! integer_of_string "2"
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.16"
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
                  else money_of_cents_string "0"
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
@@ -2508,7 +2487,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_deuxieme_enfant_mayotte_2201_ : money =
+  let montant_initial_base_deuxieme_enfant_mayotte_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_deuxième_enfant_mayotte" ]
       embed_money
@@ -2535,14 +2514,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2020 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2020 12 31)
+                       (date_courante_ >=@ date_of_numbers 2020 1 1
+                       && date_courante_ <=@ date_of_numbers 2020 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.3068"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.3068"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2565,14 +2543,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2019 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2019 12 31)
+                       (date_courante_ >=@ date_of_numbers 2019 1 1
+                       && date_courante_ <=@ date_of_numbers 2019 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2936"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2936"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2595,14 +2572,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2018 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2018 12 31)
+                       (date_courante_ >=@ date_of_numbers 2018 1 1
+                       && date_courante_ <=@ date_of_numbers 2018 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.284"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.284"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2625,14 +2601,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2017 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2017 12 31)
+                       (date_courante_ >=@ date_of_numbers 2017 1 1
+                       && date_courante_ <=@ date_of_numbers 2017 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2672"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2672"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2655,14 +2630,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2016 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2016 12 31)
+                       (date_courante_ >=@ date_of_numbers 2016 1 1
+                       && date_courante_ <=@ date_of_numbers 2016 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.273"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.273"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2685,14 +2659,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2015 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2015 12 31)
+                       (date_courante_ >=@ date_of_numbers 2015 1 1
+                       && date_courante_ <=@ date_of_numbers 2015 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2555"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2555"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2715,14 +2688,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2014 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2014 12 31)
+                       (date_courante_ >=@ date_of_numbers 2014 1 1
+                       && date_courante_ <=@ date_of_numbers 2014 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2496"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2496"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2745,14 +2717,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2013 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2013 12 31)
+                       (date_courante_ >=@ date_of_numbers 2013 1 1
+                       && date_courante_ <=@ date_of_numbers 2013 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2437"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2437"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2775,14 +2746,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2012 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2012 12 31)
+                       (date_courante_ >=@ date_of_numbers 2012 1 1
+                       && date_courante_ <=@ date_of_numbers 2012 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.2379"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.2379"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2805,14 +2775,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2011 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2011 12 31)
+                       (date_courante_ >=@ date_of_numbers 2011 1 1
+                       && date_courante_ <=@ date_of_numbers 2011 12 31)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "1"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.232"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.232"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2831,9 +2800,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              (fun (_ : _) ->
                try
                  if
-                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                    >! integer_of_string "1"
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.32"
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
                  else money_of_cents_string "0"
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
@@ -2849,7 +2818,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_premier_enfant_mayotte_2214_ : money =
+  let montant_initial_base_premier_enfant_mayotte_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant_mayotte" ]
       embed_money
@@ -2876,10 +2845,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       avait_enfant_a_charge_avant_1er_janvier_2012_2079_
+                       avait_enfant_a_charge_avant_1er_janvier_2012_
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
                      then money_of_cents_string "5728"
                      else money_of_cents_string "0"
@@ -2904,15 +2873,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2020 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2020 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2020 1 1
+                       && date_courante_ <=@ date_of_numbers 2020 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0717"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0717"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2935,15 +2903,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2019 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2019 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2019 1 1
+                       && date_courante_ <=@ date_of_numbers 2019 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0847"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0847"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2966,15 +2933,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2018 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2018 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2018 1 1
+                       && date_courante_ <=@ date_of_numbers 2018 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0976"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0976"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -2997,15 +2963,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2017 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2017 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2017 1 1
+                       && date_courante_ <=@ date_of_numbers 2017 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.115"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.115"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3028,15 +2993,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2016 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2016 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2016 1 1
+                       && date_courante_ <=@ date_of_numbers 2016 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1163"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1163"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3059,15 +3023,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2015 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2015 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2015 1 1
+                       && date_courante_ <=@ date_of_numbers 2015 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.122"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.122"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3090,15 +3053,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2014 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2014 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2014 1 1
+                       && date_courante_ <=@ date_of_numbers 2014 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1278"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1278"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3121,15 +3083,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2013 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2013 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2013 1 1
+                       && date_courante_ <=@ date_of_numbers 2013 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1335"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1335"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3152,15 +3113,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2012 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2012 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2012 1 1
+                       && date_courante_ <=@ date_of_numbers 2012 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1393"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1393"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3183,15 +3143,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (date_courante_2077_ >=@ date_of_numbers 2011 1 1
-                       && date_courante_2077_ <=@ date_of_numbers 2011 12 31
-                       && not avait_enfant_a_charge_avant_1er_janvier_2012_2079_)
+                       (date_courante_ >=@ date_of_numbers 2011 1 1
+                       && date_courante_ <=@ date_of_numbers 2011 12 31
+                       && not avait_enfant_a_charge_avant_1er_janvier_2012_)
                    then
                      if
-                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                        >! integer_of_string "0"
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.145"
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.145"
                      else money_of_cents_string "0"
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -3210,9 +3169,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
              (fun (_ : _) ->
                try
                  if
-                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                   array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                    >! integer_of_string "0"
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0588"
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
                  else money_of_cents_string "0"
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
@@ -3228,15 +3187,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let nombre_total_enfants_2228_ : decimal =
+  let nombre_total_enfants_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_total_enfants" ]
       embed_decimal
       (try
          try
-           try
-             decimal_of_integer
-               (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_)
+           try decimal_of_integer (array_length enfants_a_charge_droit_ouvert_prestation_familiale_)
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -3251,7 +3208,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let nombre_moyen_enfants_2229_ : decimal =
+  let nombre_moyen_enfants_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "nombre_moyen_enfants" ]
       embed_decimal
@@ -3259,8 +3216,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
          try
            try
              Array.fold_left
-               (fun (acc_2230_ : decimal) (enfant_2231_ : _) ->
-                 acc_2230_
+               (fun (acc_ : decimal) (enfant_ : _) ->
+                 acc_
                  +&
                  match
                    log_end_call
@@ -3270,15 +3227,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                         unembeddable
                         (log_begin_call
                            [ "AllocationsFamiliales"; "prise_en_compte" ]
-                           prise_en_compte_2080_
+                           prise_en_compte_
                            (log_variable_definition
                               [ "AllocationsFamiliales"; "prise_en_compte"; "input" ]
-                              unembeddable enfant_2231_)))
+                              unembeddable enfant_)))
                  with
                  | Complete _ -> decimal_of_string "1."
                  | Partagee _ -> decimal_of_string "0.5"
                  | Zero _ -> decimal_of_string "0.")
-               (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+               (decimal_of_string "0.") enfants_a_charge_droit_ouvert_prestation_familiale_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -3293,7 +3250,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_premier_enfant_2235_ : money =
+  let montant_initial_base_premier_enfant_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_premier_enfant" ]
       embed_money
@@ -3319,10 +3276,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                          "Code de la sécurité sociale";
                        ];
                    }
-                   (prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                   && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                   (prestations_familiales_dot_regime_outre_mer_l751_1_
+                   && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                       = integer_of_string "1")
-               then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0588"
+               then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0588"
                else raise EmptyError
              with EmptyError -> raise EmptyError
            with EmptyError -> money_of_cents_string "0"
@@ -3339,7 +3296,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let droit_ouvert_base_2236_ : bool =
+  let droit_ouvert_base_ : bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_base" ]
       embed_bool
@@ -3366,8 +3323,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (residence_2076_ = Mayotte ()
-                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       (residence_ = Mayotte ()
+                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           >=! integer_of_string "1")
                    then true
                    else raise EmptyError
@@ -3393,8 +3350,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       (prestations_familiales_dot_regime_outre_mer_l751_1_
+                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           >=! integer_of_string "1")
                    then true
                    else raise EmptyError
@@ -3431,7 +3388,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >=! integer_of_string "2")
                  then true
                  else raise EmptyError
@@ -3449,12 +3406,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let droit_ouvert_majoration_2241_ : enfant -> bool =
+  let droit_ouvert_majoration_ : enfant -> bool =
     log_variable_definition
       [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
       unembeddable
       (try
-         fun (param_2242_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                try
@@ -3477,9 +3434,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
-                        >=! nombre_enfants_alinea_2_l521_3_2149_
-                       && param_2242_.age
+                       (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
+                        >=! nombre_enfants_alinea_2_l521_3_
+                       && param_.age
                           >=! log_end_call
                                 [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
                                 (log_variable_definition
@@ -3491,14 +3448,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                    unembeddable
                                    (log_begin_call
                                       [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                      age_minimum_alinea_1_l521_3_2164_
+                                      age_minimum_alinea_1_l521_3_
                                       (log_variable_definition
                                          [
                                            "AllocationsFamiliales";
                                            "âge_minimum_alinéa_1_l521_3";
                                            "input";
                                          ]
-                                         unembeddable param_2242_))))
+                                         unembeddable param_))))
                    then true
                    else raise EmptyError
                  with EmptyError -> raise EmptyError
@@ -3530,13 +3487,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "est_enfant_le_plus_âgé" ]
-                                    est_enfant_le_plus_age_2168_
+                                    est_enfant_le_plus_age_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "est_enfant_le_plus_âgé"; "input";
                                        ]
-                                       unembeddable param_2242_)))))
-                       && param_2242_.age
+                                       unembeddable param_)))))
+                       && param_.age
                           >=! log_end_call
                                 [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
                                 (log_variable_definition
@@ -3548,14 +3505,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                    unembeddable
                                    (log_begin_call
                                       [ "AllocationsFamiliales"; "âge_minimum_alinéa_1_l521_3" ]
-                                      age_minimum_alinea_1_l521_3_2164_
+                                      age_minimum_alinea_1_l521_3_
                                       (log_variable_definition
                                          [
                                            "AllocationsFamiliales";
                                            "âge_minimum_alinéa_1_l521_3";
                                            "input";
                                          ]
-                                         unembeddable param_2242_))))
+                                         unembeddable param_))))
                    then true
                    else raise EmptyError
                  with EmptyError -> raise EmptyError)
@@ -3583,12 +3540,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let complement_degressif_2243_ : money -> money =
+  let complement_degressif_ : money -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "complément_dégressif" ]
       unembeddable
       (try
-         fun (param_2244_ : money) ->
+         fun (param_ : money) ->
            try
              try
                handle_default
@@ -3613,13 +3570,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  "Code de la sécurité sociale";
                                ];
                            }
-                           (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_
-                           && ressources_menage_2075_
-                              <=$ plafond__i_i_d521_3_2170_
-                                  +$ (param_2244_ *$ decimal_of_string "12."))
+                           (ressources_menage_ >$ plafond__i_i_d521_3_
+                           && ressources_menage_
+                              <=$ plafond__i_i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                        then
-                         (plafond__i_i_d521_3_2170_
-                         +$ ((param_2244_ *$ decimal_of_string "12.") -$ ressources_menage_2075_))
+                         (plafond__i_i_d521_3_
+                         +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
                          *$ (decimal_of_string "1." /& decimal_of_string "12.")
                        else raise EmptyError
                      with EmptyError -> raise EmptyError);
@@ -3643,13 +3599,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  "Code de la sécurité sociale";
                                ];
                            }
-                           (ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                           && ressources_menage_2075_
-                              <=$ plafond__i_d521_3_2177_ +$ (param_2244_ *$ decimal_of_string "12.")
-                           )
+                           (ressources_menage_ >$ plafond__i_d521_3_
+                           && ressources_menage_
+                              <=$ plafond__i_d521_3_ +$ (param_ *$ decimal_of_string "12."))
                        then
-                         (plafond__i_d521_3_2177_
-                         +$ ((param_2244_ *$ decimal_of_string "12.") -$ ressources_menage_2075_))
+                         (plafond__i_d521_3_
+                         +$ ((param_ *$ decimal_of_string "12.") -$ ressources_menage_))
                          *$ (decimal_of_string "1." /& decimal_of_string "12.")
                        else raise EmptyError
                      with EmptyError -> raise EmptyError);
@@ -3690,7 +3645,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_forfaitaire_par_enfant_2249_ : money =
+  let montant_verse_forfaitaire_par_enfant_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_forfaitaire_par_enfant" ]
       embed_money
@@ -3717,8 +3672,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_)
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.0559"
+                     (ressources_menage_ >$ plafond__i_i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0559"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
              (fun (_ : _) ->
@@ -3741,9 +3696,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                     && ressources_menage_2075_ <=$ plafond__i_i_d521_3_2170_)
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1117"
+                     (ressources_menage_ >$ plafond__i_d521_3_
+                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1117"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
              (fun (_ : _) ->
@@ -3766,8 +3721,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ <=$ plafond__i_d521_3_2177_)
-                 then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.20234"
+                     (ressources_menage_ <=$ plafond__i_d521_3_)
+                 then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.20234"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
            |]
@@ -3795,7 +3750,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_troisieme_enfant_et_plus_2255_ : money =
+  let montant_initial_base_troisieme_enfant_et_plus_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_troisième_enfant_et_plus" ]
       embed_money
@@ -3822,15 +3777,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_)
+                     (ressources_menage_ >$ plafond__i_i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "2"
                    then
-                     prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.1025"
+                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.1025"
                      *$ decimal_of_integer
-                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           -! integer_of_string "2")
                    else money_of_cents_string "0"
                  else raise EmptyError
@@ -3855,16 +3810,16 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                     && ressources_menage_2075_ <=$ plafond__i_i_d521_3_2170_)
+                     (ressources_menage_ >$ plafond__i_d521_3_
+                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "2"
                    then
-                     prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.205"
+                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.205"
                      *$ decimal_of_integer
-                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           -! integer_of_string "2")
                    else money_of_cents_string "0"
                  else raise EmptyError
@@ -3889,15 +3844,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ <=$ plafond__i_d521_3_2177_)
+                     (ressources_menage_ <=$ plafond__i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "2"
                    then
-                     prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.41"
+                     prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.41"
                      *$ decimal_of_integer
-                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                          (array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           -! integer_of_string "2")
                    else money_of_cents_string "0"
                  else raise EmptyError
@@ -3927,7 +3882,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_deuxieme_enfant_2261_ : money =
+  let montant_initial_base_deuxieme_enfant_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base_deuxième_enfant" ]
       embed_money
@@ -3954,12 +3909,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_)
+                     (ressources_menage_ >$ plafond__i_i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "1"
-                   then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.08"
+                   then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
                    else money_of_cents_string "0"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -3983,13 +3938,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                     && ressources_menage_2075_ <=$ plafond__i_i_d521_3_2170_)
+                     (ressources_menage_ >$ plafond__i_d521_3_
+                     && ressources_menage_ <=$ plafond__i_i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "1"
-                   then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.16"
+                   then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
                    else money_of_cents_string "0"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -4013,12 +3968,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            "Code de la sécurité sociale";
                          ];
                      }
-                     (ressources_menage_2075_ <=$ plafond__i_d521_3_2177_)
+                     (ressources_menage_ <=$ plafond__i_d521_3_)
                  then
                    if
-                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                     array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                      >! integer_of_string "1"
-                   then prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.32"
+                   then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.32"
                    else money_of_cents_string "0"
                  else raise EmptyError
                with EmptyError -> raise EmptyError);
@@ -4047,15 +4002,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let rapport_enfants_total_moyen_2267_ : decimal =
+  let rapport_enfants_total_moyen_ : decimal =
     log_variable_definition
       [ "AllocationsFamiliales"; "rapport_enfants_total_moyen" ]
       embed_decimal
       (try
          try
            try
-             if nombre_total_enfants_2228_ = decimal_of_string "0." then decimal_of_string "0."
-             else nombre_moyen_enfants_2229_ /& nombre_total_enfants_2228_
+             if nombre_total_enfants_ = decimal_of_string "0." then decimal_of_string "0."
+             else nombre_moyen_enfants_ /& nombre_total_enfants_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4070,12 +4025,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_metropole_majoration_2268_ : enfant -> money =
+  let montant_initial_metropole_majoration_ : enfant -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
       unembeddable
       (try
-         fun (param_2269_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              handle_default
                [|
@@ -4099,14 +4054,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                   unembeddable
                                   (log_begin_call
                                      [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                     droit_ouvert_majoration_2241_
+                                     droit_ouvert_majoration_
                                      (log_variable_definition
                                         [
                                           "AllocationsFamiliales";
                                           "droit_ouvert_majoration";
                                           "input";
                                         ]
-                                        unembeddable param_2269_)))))
+                                        unembeddable param_)))))
                      then money_of_cents_string "0"
                      else raise EmptyError
                    with EmptyError -> raise EmptyError);
@@ -4130,7 +4085,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_
+                         (ressources_menage_ >$ plafond__i_i_d521_3_
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
                               (log_variable_definition
@@ -4138,14 +4093,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_2241_
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
                                        ]
-                                       unembeddable param_2269_))))
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.04"
+                                       unembeddable param_))))
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.04"
                      else raise EmptyError
                    with EmptyError -> raise EmptyError);
                  (fun (_ : _) ->
@@ -4168,8 +4122,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         ((ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                          && ressources_menage_2075_ <=$ plafond__i_i_d521_3_2170_)
+                         ((ressources_menage_ >$ plafond__i_d521_3_
+                          && ressources_menage_ <=$ plafond__i_i_d521_3_)
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
                               (log_variable_definition
@@ -4177,14 +4131,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_2241_
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
                                        ]
-                                       unembeddable param_2269_))))
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.08"
+                                       unembeddable param_))))
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.08"
                      else raise EmptyError
                    with EmptyError -> raise EmptyError);
                  (fun (_ : _) ->
@@ -4207,7 +4160,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                "Code de la sécurité sociale";
                              ];
                          }
-                         (ressources_menage_2075_ <=$ plafond__i_d521_3_2177_
+                         (ressources_menage_ <=$ plafond__i_d521_3_
                          && log_end_call
                               [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
                               (log_variable_definition
@@ -4215,14 +4168,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_2241_
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
                                        ]
-                                       unembeddable param_2269_))))
-                     then
-                       prestations_familiales_dot_base_mensuelle_2160_ *$ decimal_of_string "0.16"
+                                       unembeddable param_))))
+                     then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.16"
                      else raise EmptyError
                    with EmptyError -> raise EmptyError);
                |]
@@ -4261,17 +4213,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_forfaitaire_2276_ : money =
+  let montant_verse_forfaitaire_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_forfaitaire" ]
       embed_money
       (try
          try
            try
-             montant_verse_forfaitaire_par_enfant_2249_
+             montant_verse_forfaitaire_par_enfant_
              *$ decimal_of_integer
                   (Array.fold_left
-                     (fun (acc_2277_ : integer) (enfant_2278_ : _) ->
+                     (fun (acc_ : integer) (enfant_ : _) ->
                        if
                          log_end_call
                            [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
@@ -4280,13 +4232,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                               unembeddable
                               (log_begin_call
                                  [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire" ]
-                                 droit_ouvert_forfaitaire_2185_
+                                 droit_ouvert_forfaitaire_
                                  (log_variable_definition
                                     [ "AllocationsFamiliales"; "droit_ouvert_forfaitaire"; "input" ]
-                                    unembeddable enfant_2278_)))
-                       then acc_2277_ +! integer_of_string "1"
-                       else acc_2277_)
-                     (integer_of_string "0") enfants_a_charge_2078_)
+                                    unembeddable enfant_)))
+                       then acc_ +! integer_of_string "1"
+                       else acc_)
+                     (integer_of_string "0") enfants_a_charge_)
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4301,7 +4253,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_base_2279_ : money =
+  let montant_initial_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_base" ]
       embed_money
@@ -4328,12 +4280,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Décrets divers";
                            ];
                        }
-                       (residence_2076_ = Mayotte ())
+                       (residence_ = Mayotte ())
                    then
-                     montant_initial_base_premier_enfant_mayotte_2214_
-                     +$ (montant_initial_base_deuxieme_enfant_mayotte_2201_
-                        +$ (montant_initial_base_troisieme_enfant_mayotte_2188_
-                          +$ montant_initial_base_quatrieme_enfant_et_plus_mayotte_2187_))
+                     montant_initial_base_premier_enfant_mayotte_
+                     +$ (montant_initial_base_deuxieme_enfant_mayotte_
+                        +$ (montant_initial_base_troisieme_enfant_mayotte_
+                          +$ montant_initial_base_quatrieme_enfant_et_plus_mayotte_))
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
                (fun (_ : _) ->
@@ -4356,10 +4308,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                       (prestations_familiales_dot_regime_outre_mer_l751_1_
+                       && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                           = integer_of_string "1")
-                   then montant_initial_base_premier_enfant_2235_
+                   then montant_initial_base_premier_enfant_
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
              |]
@@ -4376,8 +4328,8 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                  true)
              (fun (_ : _) ->
                try
-                 montant_initial_base_deuxieme_enfant_2261_
-                 +$ montant_initial_base_troisieme_enfant_et_plus_2255_
+                 montant_initial_base_deuxieme_enfant_
+                 +$ montant_initial_base_troisieme_enfant_et_plus_
                with EmptyError -> raise EmptyError)
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4392,12 +4344,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_initial_majoration_2284_ : enfant -> money =
+  let montant_initial_majoration_ : enfant -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_initial_majoration" ]
       unembeddable
       (try
-         fun (param_2285_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                handle_default
@@ -4429,19 +4381,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_2241_
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
                                        ]
-                                       unembeddable param_2285_)))
-                           && prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                                       unembeddable param_)))
+                           && prestations_familiales_dot_regime_outre_mer_l751_1_
+                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                               = integer_of_string "1"
-                           && param_2285_.age >=! integer_of_string "16")
-                       then
-                         prestations_familiales_dot_base_mensuelle_2160_
-                         *$ decimal_of_string "0.0567"
+                           && param_.age >=! integer_of_string "16")
+                       then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0567"
                        else raise EmptyError
                      with EmptyError -> raise EmptyError);
                    (fun (_ : _) ->
@@ -4471,20 +4421,18 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                                  unembeddable
                                  (log_begin_call
                                     [ "AllocationsFamiliales"; "droit_ouvert_majoration" ]
-                                    droit_ouvert_majoration_2241_
+                                    droit_ouvert_majoration_
                                     (log_variable_definition
                                        [
                                          "AllocationsFamiliales"; "droit_ouvert_majoration"; "input";
                                        ]
-                                       unembeddable param_2285_)))
-                           && prestations_familiales_dot_regime_outre_mer_l751_1_2159_
-                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_2166_
+                                       unembeddable param_)))
+                           && prestations_familiales_dot_regime_outre_mer_l751_1_
+                           && array_length enfants_a_charge_droit_ouvert_prestation_familiale_
                               = integer_of_string "1"
-                           && param_2285_.age >=! integer_of_string "11"
-                           && param_2285_.age <! integer_of_string "16")
-                       then
-                         prestations_familiales_dot_base_mensuelle_2160_
-                         *$ decimal_of_string "0.0369"
+                           && param_.age >=! integer_of_string "11"
+                           && param_.age <! integer_of_string "16")
+                       then prestations_familiales_dot_base_mensuelle_ *$ decimal_of_string "0.0369"
                        else raise EmptyError
                      with EmptyError -> raise EmptyError);
                  |]
@@ -4512,14 +4460,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                           unembeddable
                           (log_begin_call
                              [ "AllocationsFamiliales"; "montant_initial_métropole_majoration" ]
-                             montant_initial_metropole_majoration_2268_
+                             montant_initial_metropole_majoration_
                              (log_variable_definition
                                 [
                                   "AllocationsFamiliales";
                                   "montant_initial_métropole_majoration";
                                   "input";
                                 ]
-                                unembeddable param_2285_)))
+                                unembeddable param_)))
                    with EmptyError -> raise EmptyError)
              with EmptyError -> raise EmptyError
            with EmptyError ->
@@ -4545,7 +4493,7 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_complement_pour_forfaitaire_2290_ : money =
+  let montant_verse_complement_pour_forfaitaire_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_complément_pour_forfaitaire" ]
       embed_money
@@ -4573,14 +4521,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (ressources_menage_2075_ >$ plafond__i_i_d521_3_2170_
-                       && ressources_menage_2075_
-                          <=$ plafond__i_i_d521_3_2170_
-                              +$ (montant_verse_forfaitaire_2276_ *$ decimal_of_string "12."))
+                       (ressources_menage_ >$ plafond__i_i_d521_3_
+                       && ressources_menage_
+                          <=$ plafond__i_i_d521_3_
+                              +$ (montant_verse_forfaitaire_ *$ decimal_of_string "12."))
                    then
-                     (plafond__i_i_d521_3_2170_
-                     +$ ((montant_verse_forfaitaire_2276_ *$ decimal_of_string "12.")
-                        -$ ressources_menage_2075_))
+                     (plafond__i_i_d521_3_
+                     +$ ((montant_verse_forfaitaire_ *$ decimal_of_string "12.")
+                        -$ ressources_menage_))
                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -4604,14 +4552,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                              "Code de la sécurité sociale";
                            ];
                        }
-                       (ressources_menage_2075_ >$ plafond__i_d521_3_2177_
-                       && ressources_menage_2075_
-                          <=$ plafond__i_d521_3_2177_
-                              +$ (montant_verse_forfaitaire_2276_ *$ decimal_of_string "12."))
+                       (ressources_menage_ >$ plafond__i_d521_3_
+                       && ressources_menage_
+                          <=$ plafond__i_d521_3_
+                              +$ (montant_verse_forfaitaire_ *$ decimal_of_string "12."))
                    then
-                     (plafond__i_d521_3_2177_
-                     +$ ((montant_verse_forfaitaire_2276_ *$ decimal_of_string "12.")
-                        -$ ressources_menage_2075_))
+                     (plafond__i_d521_3_
+                     +$ ((montant_verse_forfaitaire_ *$ decimal_of_string "12.")
+                        -$ ressources_menage_))
                      *$ (decimal_of_string "1." /& decimal_of_string "12.")
                    else raise EmptyError
                  with EmptyError -> raise EmptyError);
@@ -4641,13 +4589,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_avec_garde_alternee_base_2295_ : money =
+  let montant_avec_garde_alternee_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_avec_garde_alternée_base" ]
       embed_money
       (try
          try
-           try montant_initial_base_2279_ *$ rapport_enfants_total_moyen_2267_
+           try montant_initial_base_ *$ rapport_enfants_total_moyen_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4662,12 +4610,12 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_avec_garde_alternee_majoration_2296_ : enfant -> money =
+  let montant_avec_garde_alternee_majoration_ : enfant -> money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
       unembeddable
       (try
-         fun (param_2297_ : enfant) ->
+         fun (param_ : enfant) ->
            try
              try
                try
@@ -4678,10 +4626,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                       unembeddable
                       (log_begin_call
                          [ "AllocationsFamiliales"; "montant_initial_majoration" ]
-                         montant_initial_majoration_2284_
+                         montant_initial_majoration_
                          (log_variable_definition
                             [ "AllocationsFamiliales"; "montant_initial_majoration"; "input" ]
-                            unembeddable param_2297_)))
+                            unembeddable param_)))
                  *$
                  match
                    log_end_call
@@ -4691,10 +4639,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                         unembeddable
                         (log_begin_call
                            [ "AllocationsFamiliales"; "prise_en_compte" ]
-                           prise_en_compte_2080_
+                           prise_en_compte_
                            (log_variable_definition
                               [ "AllocationsFamiliales"; "prise_en_compte"; "input" ]
-                              unembeddable param_2297_)))
+                              unembeddable param_)))
                  with
                  | Complete _ -> decimal_of_string "1."
                  | Partagee _ -> decimal_of_string "0.5"
@@ -4724,14 +4672,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_base_2301_ : money =
+  let montant_verse_base_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_base" ]
       embed_money
       (try
          try
            try
-             if droit_ouvert_base_2236_ then montant_avec_garde_alternee_base_2295_
+             if droit_ouvert_base_ then montant_avec_garde_alternee_base_
              else money_of_cents_string "0"
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
@@ -4747,17 +4695,17 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_majoration_2302_ : money =
+  let montant_verse_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_majoration" ]
       embed_money
       (try
          try
            try
-             if droit_ouvert_base_2236_ then
+             if droit_ouvert_base_ then
                Array.fold_left
-                 (fun (acc_2303_ : money) (enfant_2304_ : _) ->
-                   acc_2303_
+                 (fun (acc_ : money) (enfant_ : _) ->
+                   acc_
                    +$ log_end_call
                         [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
                         (log_variable_definition
@@ -4769,15 +4717,15 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                            unembeddable
                            (log_begin_call
                               [ "AllocationsFamiliales"; "montant_avec_garde_alternée_majoration" ]
-                              montant_avec_garde_alternee_majoration_2296_
+                              montant_avec_garde_alternee_majoration_
                               (log_variable_definition
                                  [
                                    "AllocationsFamiliales";
                                    "montant_avec_garde_alternée_majoration";
                                    "input";
                                  ]
-                                 unembeddable enfant_2304_))))
-                 (money_of_cents_string "0") enfants_a_charge_2078_
+                                 unembeddable enfant_))))
+                 (money_of_cents_string "0") enfants_a_charge_
              else money_of_cents_string "0"
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
@@ -4793,13 +4741,13 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_base_complement_pour_base_et_majoration_2305_ : money =
+  let montant_base_complement_pour_base_et_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_base_complément_pour_base_et_majoration" ]
       embed_money
       (try
          try
-           try montant_verse_base_2301_ +$ montant_verse_majoration_2302_
+           try montant_verse_base_ +$ montant_verse_majoration_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4814,14 +4762,14 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_complement_pour_base_et_majoration_2306_ : money =
+  let montant_verse_complement_pour_base_et_majoration_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé_complément_pour_base_et_majoration" ]
       embed_money
       (try
          try
            try
-             if droit_ouvert_complement_2184_ then
+             if droit_ouvert_complement_ then
                log_end_call
                  [ "AllocationsFamiliales"; "complément_dégressif" ]
                  (log_variable_definition
@@ -4829,10 +4777,10 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                     unembeddable
                     (log_begin_call
                        [ "AllocationsFamiliales"; "complément_dégressif" ]
-                       complement_degressif_2243_
+                       complement_degressif_
                        (log_variable_definition
                           [ "AllocationsFamiliales"; "complément_dégressif"; "input" ]
-                          unembeddable montant_base_complement_pour_base_et_majoration_2305_)))
+                          unembeddable montant_base_complement_pour_base_et_majoration_)))
              else money_of_cents_string "0"
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
@@ -4848,19 +4796,19 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
                 law_headings = [ "Prologue" ];
               }))
   in
-  let montant_verse_2307_ : money =
+  let montant_verse_ : money =
     log_variable_definition
       [ "AllocationsFamiliales"; "montant_versé" ]
       embed_money
       (try
          try
            try
-             if droit_ouvert_base_2236_ then
-               montant_verse_base_2301_
-               +$ (montant_verse_majoration_2302_
-                  +$ (montant_verse_forfaitaire_2276_
-                     +$ (montant_verse_complement_pour_base_et_majoration_2306_
-                       +$ montant_verse_complement_pour_forfaitaire_2290_)))
+             if droit_ouvert_base_ then
+               montant_verse_base_
+               +$ (montant_verse_majoration_
+                  +$ (montant_verse_forfaitaire_
+                     +$ (montant_verse_complement_pour_base_et_majoration_
+                       +$ montant_verse_complement_pour_forfaitaire_)))
              else money_of_cents_string "0"
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
@@ -4879,9 +4827,9 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
   let (_ : unit) =
     if
       try
-        personne_charge_effective_permanente_est_parent_2073_
-        || (not personne_charge_effective_permanente_est_parent_2073_)
-           && personne_charge_effective_permanente_remplit_titre__i_2074_
+        personne_charge_effective_permanente_est_parent_
+        || (not personne_charge_effective_permanente_est_parent_)
+           && personne_charge_effective_permanente_remplit_titre__i_
       with EmptyError ->
         raise
           (NoValueProvided
@@ -4904,26 +4852,24 @@ let allocations_familiales (allocations_familiales_in : allocations_familiales_i
     then ()
     else raise AssertionFailed
   in
-  { montant_verse_out = montant_verse_2307_ }
+  { montant_verse_out = montant_verse_ }
 
 let interface_allocations_familiales
     (interface_allocations_familiales_in : interface_allocations_familiales_in) =
-  let i_date_courante_2310_ : date = interface_allocations_familiales_in.i_date_courante_in in
-  let i_enfants_2311_ : enfant_entree array = interface_allocations_familiales_in.i_enfants_in in
-  let i_ressources_menage_2312_ : money =
-    interface_allocations_familiales_in.i_ressources_menage_in
-  in
-  let i_residence_2313_ : collectivite = interface_allocations_familiales_in.i_residence_in in
-  let i_personne_charge_effective_permanente_est_parent_2314_ : bool =
+  let i_date_courante_ : date = interface_allocations_familiales_in.i_date_courante_in in
+  let i_enfants_ : enfant_entree array = interface_allocations_familiales_in.i_enfants_in in
+  let i_ressources_menage_ : money = interface_allocations_familiales_in.i_ressources_menage_in in
+  let i_residence_ : collectivite = interface_allocations_familiales_in.i_residence_in in
+  let i_personne_charge_effective_permanente_est_parent_ : bool =
     interface_allocations_familiales_in.i_personne_charge_effective_permanente_est_parent_in
   in
-  let i_personne_charge_effective_permanente_remplit_titre__i_2315_ : bool =
+  let i_personne_charge_effective_permanente_remplit_titre__i_ : bool =
     interface_allocations_familiales_in.i_personne_charge_effective_permanente_remplit_titre_I_in
   in
-  let i_avait_enfant_a_charge_avant_1er_janvier_2012_2316_ : bool =
+  let i_avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
     interface_allocations_familiales_in.i_avait_enfant_a_charge_avant_1er_janvier_2012_in
   in
-  let enfants_a_charge_2317_ : enfant array =
+  let enfants_a_charge_ : enfant array =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "enfants_à_charge" ]
       (embed_array embed_enfant)
@@ -4931,30 +4877,27 @@ let interface_allocations_familiales
          try
            try
              Array.map
-               (fun (enfant_2318_ : _) ->
+               (fun (enfant_ : _) ->
                  {
-                   identifiant = enfant_2318_.d_identifiant;
+                   identifiant = enfant_.d_identifiant;
                    obligation_scolaire =
                      (if
-                      enfant_2318_.d_date_de_naissance +@ duration_of_numbers 3 0 0
-                      >=@ i_date_courante_2310_
+                      enfant_.d_date_de_naissance +@ duration_of_numbers 3 0 0 >=@ i_date_courante_
                      then Avant ()
                      else if
-                     enfant_2318_.d_date_de_naissance +@ duration_of_numbers 16 0 0
-                     >=@ i_date_courante_2310_
+                     enfant_.d_date_de_naissance +@ duration_of_numbers 16 0 0 >=@ i_date_courante_
                     then Pendant ()
                      else Apres ());
-                   remuneration_mensuelle = enfant_2318_.d_remuneration_mensuelle;
-                   date_de_naissance = enfant_2318_.d_date_de_naissance;
+                   remuneration_mensuelle = enfant_.d_remuneration_mensuelle;
+                   date_de_naissance = enfant_.d_date_de_naissance;
                    age =
                      year_of_date
-                       (date_of_numbers 0 1 1
-                       +@ (i_date_courante_2310_ -@ enfant_2318_.d_date_de_naissance));
-                   prise_en_charge = enfant_2318_.d_prise_en_charge;
+                       (date_of_numbers 0 1 1 +@ (i_date_courante_ -@ enfant_.d_date_de_naissance));
+                   prise_en_charge = enfant_.d_prise_en_charge;
                    a_deja_ouvert_droit_aux_allocations_familiales =
-                     enfant_2318_.d_a_deja_ouvert_droit_aux_allocations_familiales;
+                     enfant_.d_a_deja_ouvert_droit_aux_allocations_familiales;
                  })
-               i_enfants_2311_
+               i_enfants_
            with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
@@ -4969,7 +4912,7 @@ let interface_allocations_familiales
                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
               }))
   in
-  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2319_ : bool =
+  let allocations_familiales_dot_personne_charge_effective_permanente_est_parent_ : bool =
     try
       log_variable_definition
         [
@@ -4989,7 +4932,7 @@ let interface_allocations_familiales
                    end_column = 69;
                    law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                  }
-                 i_personne_charge_effective_permanente_est_parent_2314_
+                 i_personne_charge_effective_permanente_est_parent_
              then true
              else raise EmptyError
            with EmptyError -> raise EmptyError
@@ -5006,8 +4949,7 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2320_ : bool
-      =
+  let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_ : bool =
     try
       log_variable_definition
         [
@@ -5027,7 +4969,7 @@ let interface_allocations_familiales
                    end_column = 74;
                    law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                  }
-                 i_personne_charge_effective_permanente_remplit_titre__i_2315_
+                 i_personne_charge_effective_permanente_remplit_titre__i_
              then true
              else raise EmptyError
            with EmptyError -> raise EmptyError
@@ -5044,12 +4986,12 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_ressources_menage_2321_ : money =
+  let allocations_familiales_dot_ressources_menage_ : money =
     try
       log_variable_definition
         [ "InterfaceAllocationsFamiliales"; "allocations_familiales.ressources_ménage" ]
         embed_money
-        (try try i_ressources_menage_2312_ with EmptyError -> raise EmptyError
+        (try try i_ressources_menage_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -5063,12 +5005,12 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_residence_2322_ : collectivite =
+  let allocations_familiales_dot_residence_ : collectivite =
     try
       log_variable_definition
         [ "InterfaceAllocationsFamiliales"; "allocations_familiales.résidence" ]
         embed_collectivite
-        (try try i_residence_2313_ with EmptyError -> raise EmptyError
+        (try try i_residence_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -5082,12 +5024,12 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_date_courante_2323_ : date =
+  let allocations_familiales_dot_date_courante_ : date =
     try
       log_variable_definition
         [ "InterfaceAllocationsFamiliales"; "allocations_familiales.date_courante" ]
         embed_date
-        (try try i_date_courante_2310_ with EmptyError -> raise EmptyError
+        (try try i_date_courante_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -5101,12 +5043,12 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_enfants_a_charge_2324_ : enfant array =
+  let allocations_familiales_dot_enfants_a_charge_ : enfant array =
     try
       log_variable_definition
         [ "InterfaceAllocationsFamiliales"; "allocations_familiales.enfants_à_charge" ]
         (embed_array embed_enfant)
-        (try try enfants_a_charge_2317_ with EmptyError -> raise EmptyError
+        (try try enfants_a_charge_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError)
     with EmptyError ->
       raise
@@ -5120,7 +5062,7 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2325_ : bool =
+  let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_ : bool =
     try
       log_variable_definition
         [
@@ -5140,7 +5082,7 @@ let interface_allocations_familiales
                    end_column = 66;
                    law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
                  }
-                 i_avait_enfant_a_charge_avant_1er_janvier_2012_2316_
+                 i_avait_enfant_a_charge_avant_1er_janvier_2012_
              then true
              else raise EmptyError
            with EmptyError -> raise EmptyError
@@ -5157,7 +5099,7 @@ let interface_allocations_familiales
              law_headings = [ "Prologue" ];
            })
   in
-  let result_2326_ : allocations_familiales_out =
+  let result_ : allocations_familiales_out =
     log_end_call
       [ "InterfaceAllocationsFamiliales"; "allocations_familiales"; "AllocationsFamiliales" ]
       (log_begin_call
@@ -5165,25 +5107,24 @@ let interface_allocations_familiales
          allocations_familiales
          {
            personne_charge_effective_permanente_est_parent_in =
-             allocations_familiales_dot_personne_charge_effective_permanente_est_parent_2319_;
+             allocations_familiales_dot_personne_charge_effective_permanente_est_parent_;
            personne_charge_effective_permanente_remplit_titre_I_in =
-             allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_2320_;
-           ressources_menage_in = allocations_familiales_dot_ressources_menage_2321_;
-           residence_in = allocations_familiales_dot_residence_2322_;
-           date_courante_in = allocations_familiales_dot_date_courante_2323_;
-           enfants_a_charge_in = allocations_familiales_dot_enfants_a_charge_2324_;
+             allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_;
+           ressources_menage_in = allocations_familiales_dot_ressources_menage_;
+           residence_in = allocations_familiales_dot_residence_;
+           date_courante_in = allocations_familiales_dot_date_courante_;
+           enfants_a_charge_in = allocations_familiales_dot_enfants_a_charge_;
            avait_enfant_a_charge_avant_1er_janvier_2012_in =
-             allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_2325_;
+             allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_;
          })
   in
-  let allocations_familiales_dot_montant_verse_2327_ : money = result_2326_.montant_verse_out in
-  let i_montant_verse_2328_ : money =
+  let allocations_familiales_dot_montant_verse_ : money = result_.montant_verse_out in
+  let i_montant_verse_ : money =
     log_variable_definition
       [ "InterfaceAllocationsFamiliales"; "i_montant_versé" ]
       embed_money
       (try
-         try
-           try allocations_familiales_dot_montant_verse_2327_ with EmptyError -> raise EmptyError
+         try try allocations_familiales_dot_montant_verse_ with EmptyError -> raise EmptyError
          with EmptyError -> raise EmptyError
        with EmptyError ->
          raise
@@ -5197,4 +5138,4 @@ let interface_allocations_familiales
                 law_headings = [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
               }))
   in
-  { i_montant_verse_out = i_montant_verse_2328_ }
+  { i_montant_verse_out = i_montant_verse_ }

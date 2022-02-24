@@ -36,6 +36,8 @@ let optimize_flag = ref false
 
 let disable_counterexamples = ref false
 
+let avoid_exceptions_flag = ref false
+
 open Cmdliner
 
 let file =

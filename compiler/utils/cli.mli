@@ -38,6 +38,9 @@ val trace_flag : bool ref
 val disable_counterexamples : bool ref
 (** Disables model-generated counterexamples for proofs that fail. *)
 
+val avoid_exceptions_flag : bool ref
+(** Avoids using [try ... with] exceptions when compiling the default calculus. *)
+
 (** {2 CLI terms} *)
 
 val file : string Cmdliner.Term.t
