@@ -95,6 +95,27 @@
   (conf-npm :dev)))
 
 (package
+ (name clerk)
+ (authors "Emile Rolley" "Denis Merigoux")
+ (synopsis
+  "Build system for Catala, a specification language for tax and social
+   benefits computation rules")
+ (description
+  "Clerk is a build system for Catala, a specification language for tax and social
+   benefits computation rules, see https://catala-lang.org")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (cmdliner
+   (= 1.0.4))
+  (re
+   (>= 1.9.0))
+  (ANSITerminal
+   (>= 0.8.2))
+  (catala
+   (= :version))))
+
+(package
  (name ninja_utils)
  (authors "Emile Rolley")
  (synopsis
@@ -108,8 +129,6 @@
   (ocaml
    (>= 4.11.0))
   (re
-    (>= 1.10.3))
-  (catala
-   (= :version))))
+    (>= 1.10.3))))
 
 (using menhir 2.1)
