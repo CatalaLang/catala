@@ -15,7 +15,13 @@
 
 (bug_reports https://github.com/CatalaLang/catala/issues)
 
-(authors "Denis Merigoux, Nicolas Chataing, Emile Rolley")
+(authors
+  "Denis Merigoux"
+  "Nicolas Chataing"
+  "Emile Rolley"
+  "Louis Gesbert"
+  "Aymeric Fromherz"
+  "Alain Delaët-Tixeuil")
 
 (maintainers "contact@catala-lang.org")
 
@@ -74,6 +80,7 @@
 
 (package
  (name french_law)
+ (authors "Denis Merigoux")
  (synopsis
   "A collection of algorithms and computations defined by French law")
  (description
@@ -89,6 +96,7 @@
 
 (package
  (name ninja_utils)
+ (authors "Emile Rolley")
  (synopsis
   "A collection of utility functions used to generate Ninja build files")
  (description

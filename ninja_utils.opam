@@ -9,7 +9,7 @@ This library contains the implementations of utility functions used to
    used by the Catala build system (see
                                      https://github.com/CatalaLang/catala/tree/master/build_system)"""
 maintainer: ["contact@catala-lang.org"]
-authors: ["Denis Merigoux, Nicolas Chataing, Emile Rolley"]
+authors: ["Emile Rolley"]
 license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"

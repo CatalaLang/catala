@@ -102,6 +102,7 @@ let info =
         ("run", "Runs the Catala interpreter on a given scope of a given file. See the `-s` option.");
       `S Manpage.s_authors;
       `P "Denis Merigoux <denis.merigoux@inria.fr>";
+      `P "Emile Rolley <emile.rolley@tuta.io>";
       `S Manpage.s_examples;
       `P "Typical usage:";
       `Pre "clerk test file.catala_en";

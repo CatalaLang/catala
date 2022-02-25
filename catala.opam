@@ -8,7 +8,14 @@ Catala is a domain-specific language for deriving faithful-by-construction
 algorithms from legislative texts. See https://catala-lang.org for more information
 """
 maintainer: ["contact@catala-lang.org"]
-authors: ["Denis Merigoux, Nicolas Chataing, Emile Rolley"]
+authors: [
+  "Denis Merigoux"
+  "Nicolas Chataing"
+  "Emile Rolley"
+  "Louis Gesbert"
+  "Aymeric Fromherz"
+  "Alain Delaët-Tixeuil"
+]
 license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
