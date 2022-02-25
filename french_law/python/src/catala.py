@@ -12,7 +12,7 @@
 from gmpy2 import log2, mpz, mpq, mpfr, t_divmod  # type: ignore
 import datetime
 import dateutil.relativedelta
-from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union
+from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
 from functools import reduce
 from enum import Enum
 import copy
@@ -511,6 +511,31 @@ def handle_default(
             return cons(Unit())
         else:
             raise EmptyError
+    else:
+        return acc
+
+
+def handle_default_opt(
+    exceptions: List[Optional[Any]],
+    just: Optional[bool],
+    cons: Optional[Alpha]
+) -> Optional[Alpha]:
+    acc: Optional[Alpha] = None
+    for exception in exceptions:
+        if acc is None:
+            acc = exception
+        elif not (acc is None) and exception is None:
+            pass  # acc stays the same
+        elif not (acc is None) and not (exception is None):
+            raise ConflictError
+    if acc is None:
+        if just is None:
+            return None
+        else:
+            if just:
+                return cons
+            else:
+                return None
     else:
         return acc
 

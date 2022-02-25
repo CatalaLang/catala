@@ -67,7 +67,6 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) : A.block * A.ex
           ([], []) args
       in
       let new_args = List.rev new_args in
-      let args_stmts = List.rev args_stmts in
       (f_stmts @ args_stmts, (A.EApp (new_f, new_args), Pos.get_position expr))
   | L.EArray args ->
       let args_stmts, new_args =
@@ -78,7 +77,6 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) : A.block * A.ex
           ([], []) args
       in
       let new_args = List.rev new_args in
-      let args_stmts = List.rev args_stmts in
       (args_stmts, (A.EArray new_args, Pos.get_position expr))
   | L.EOp op -> ([], (A.EOp op, Pos.get_position expr))
   | L.ELit l -> ([], (A.ELit l, Pos.get_position expr))
@@ -260,8 +258,12 @@ let translate_program (p : L.program) : A.program =
                    { A.func_params = new_scope_params; A.func_body = new_scope_body };
                }
                :: new_scopes ))
-           ( L.VarMap.singleton L.handle_default
-               (A.TopLevelName.fresh ("handle_default", Pos.no_pos)),
+           ( (if !Cli.avoid_exceptions_flag then
+              L.VarMap.singleton L.handle_default_opt
+                (A.TopLevelName.fresh ("handle_default_opt", Pos.no_pos))
+             else
+               L.VarMap.singleton L.handle_default
+                 (A.TopLevelName.fresh ("handle_default", Pos.no_pos))),
              [] )
            p.L.scopes
        in
