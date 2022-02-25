@@ -128,7 +128,7 @@ champ d'application RessourcesAidePersonnelleLogement:
 
   définition ressources_personnes_vivant_habituellement_foyer égal à
     somme argent pour personne dans personnes_vivant_habituellement_foyer de
-      personne.ressources
+      personne.PersonneVivantHabituellementAuFoyer.ressources
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -931,7 +931,7 @@ R. 822-4 est pris en compte pour le calcul de l'aide.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette r822_22_3 exception l822_5_1 définition patrimoine_pris_en_compte sous condition
     patrimoine_total_demandeur >=€ seuil_l822_5_patrimoine
-  conséquence
+  conséquence égal à
     demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
 ```
 
@@ -1020,10 +1020,9 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  règle condition_logement_surface sous condition
-    # TODO : implémenter variable internes
-    soit nombre_personnes_total égal à
-      (selon ménage.situation_familiale sous forme
+  # TODO : remplacer par variables locales
+  définition nombre_personnes_logement égal à
+    (selon ménage.situation_familiale sous forme
       -- Célibataire: 1
       -- Mariés: 2
       -- Pacsés: 2
@@ -1032,9 +1031,9 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 2) +
       ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge
-    dans
-    soit surface_minimale_sans_seuil égal à
-      (selon ménage.situation_familiale sous forme
+
+  définition condition_logement_surface_minimale_sans_seuil_m_carrés égal à
+    (selon ménage.situation_familiale sous forme
       -- Célibataire: 9
       -- Mariés: 16
       -- Pacsés: 16
@@ -1043,12 +1042,16 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- ConcubinageDontSéparéDeFait: 16) +
       (ménage.nombre_autres_occupants_logement +
       nombre de ménage.personnes_à_charge) * 9
-    dans
+
+  règle condition_logement_surface sous condition
     si
-      surface_minimale_sans_seuil >= 70 et
-      nombre_personnes_total >= 8
-    alors 70 sinon
-      surface_minimale_sans_seuil
+      condition_logement_surface_minimale_sans_seuil_m_carrés >= 70 et
+      nombre_personnes_logement >= 8
+    alors
+      (ménage.logement.surface_m_carrés >= 70)
+    sinon
+      (ménage.logement.surface_m_carrés >=
+        condition_logement_surface_minimale_sans_seuil_m_carrés)
   conséquence rempli
 ```
 
@@ -1124,7 +1127,7 @@ habituellement au foyer :
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
   définition personnes_à_charge_prises_en_compte égal à
-    filtrer pour personne_à_charge dans ménage.personnes_à_charge de
+    filtre pour personne_à_charge dans ménage.personnes_à_charge de
       prise_en_compte_personne_à_charge de personne_à_charge
   # TODO: changer ménage.personnes_à_charges par personnes_à_charge_prises_en_compte
 ```
@@ -1137,8 +1140,8 @@ l'article L. 823-2 du présent code ;
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
-      -- EnfantÀCharge contenu enfant: enfant.âge <= 21
-      -- ParentÀCharge contenu parent: faux
+    -- EnfantÀCharge de enfant: enfant.EnfantÀCharge.âge <= 21
+    -- ParentÀCharge de parent: faux
   conséquence rempli
 ```
 
@@ -1160,15 +1163,17 @@ code ;
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
-      -- EnfantÀCharge contenu enfant: faux
-      -- ParentÀCharge contenu parent:
+      -- EnfantÀCharge de enfant: faux
+      -- ParentÀCharge de parent:
         parent.parenté = Ascendant et
-        parent.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
+        parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25 et
         (
-          (parent.âge >= âge_l351_8_sécu ou
-            (titulaire_allocation_personne_âgée et parent.âge >= 65)
+          (parent.ParentÀCharge.âge >= âge_l351_8_sécu ou
+            (parent.titulaire_allocation_personne_âgée et
+              parent.ParentÀCharge.âge >= 65)
           ) ou
-          (parent.âge >= âge_l161_17_2_sécu et bénéficiaire_l161_19_l351_8_l643_3_sécu)
+          (parent.ParentÀCharge.âge >= âge_l161_17_2_sécu et
+            parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
   conséquence rempli
 ```
@@ -1188,10 +1193,10 @@ au 31 décembre de l'année de référence multiplié par 1,25.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
    selon personne_à_charge sous forme
-      -- EnfantÀCharge contenu enfant: faux
-      -- ParentÀCharge contenu parent:
+      -- EnfantÀCharge de enfant: faux
+      -- ParentÀCharge de parent:
         # Pas besoin de préciser parenté car inclusif ici
-        incapacité_80_pourcent_ou_restriction_emploi et
-        parent.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25
+        parent.incapacité_80_pourcent_ou_restriction_emploi et
+        parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25
   conséquence rempli
 ```

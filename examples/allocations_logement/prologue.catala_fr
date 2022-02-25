@@ -41,7 +41,7 @@ déclaration structure Logement:
   donnée usufruit contenu ParentOuAutre
   donnée logement_decent_l89_462 contenu booléen
   donnée loyers_l823_3 contenu argent
-  donnée surface_en_mètres_carrés contenu entier
+  donnée surface_m_carrés contenu entier
 
 déclaration structure EnfantÀCharge:
   donnée bénéficie_titre_personnel_aide_personnelle_logement
@@ -60,10 +60,12 @@ déclaration structure ParentÀCharge:
   donnée ascendant_descendant_collatéral_deuxième_troisième_degré contenu booléen
   donnée parenté contenu Parenté
   donnée incapacité_80_pourcent_ou_restriction_emploi contenu booléen
+  donnée bénéficiaire_l161_19_l351_8_l643_3_sécu contenu booléen
+  donnée titulaire_allocation_personne_âgée contenu booléen
 
 déclaration énumération PersonneÀCharge:
   -- EnfantÀCharge contenu EnfantÀCharge
-  -- ParentÀCharge
+  -- ParentÀCharge contenu ParentÀCharge
 
 déclaration structure Ménage:
   donnée prestations_reçues contenu collection PrestationReçue
@@ -96,11 +98,13 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne patrimoine_total_demandeur contenu argent
   interne condition_spécifique_prise_en_compte_revenus_demandeur condition
   interne condition_nationalité condition
-  interne prise_en_compte_personne_à_charge contenu
-    condition dépend de PersonneÀCharge
+  interne prise_en_compte_personne_à_charge condition
+    dépend de PersonneÀCharge
   interne personnes_à_charge_prises_en_compte contenu collection PersonneÀCharge
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
+  interne condition_logement_surface_minimale_sans_seuil_m_carrés contenu entier
+  interne nombre_personnes_logement contenu entier
   interne condition_logement_surface condition
   interne usufruit_ou_propriété_famille contenu booléen
   interne seuil_l822_3_parts_propriété contenu décimal
@@ -114,6 +118,9 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne éligibilité_logement condition
   interne montant_minimal_aide_personnelle_logement
     contenu argent dépend de ModeOccupation
+  interne âge_l351_8_sécu contenu entier
+  interne âge_l161_17_2_sécu contenu entier
+  interne plafond_individuel_l815_9_sécu contenu argent
   sortie éligibilité condition
 
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
