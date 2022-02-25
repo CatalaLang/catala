@@ -48,7 +48,7 @@ let catalac =
 let ninja_output =
   Arg.(
     value
-    & opt (some file) None
+    & opt (some string) None
     & info [ "o"; "output" ] ~docv:"OUTPUT"
         ~doc:
           "$(i, OUTPUT) is the file that will contain the build.ninja file output. If not \
@@ -591,7 +591,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
     Option.fold ~none:(Filename.temp_file "clerk_build" ".ninja") ~some:Fun.id ninja_output
   in
   match String.lowercase_ascii command with
-  | "test" ->
+  | "test" -> (
       Cli.debug_print "building ninja rules...";
       let ctx =
         List.fold_left
@@ -605,6 +605,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
           (ninja_building_context_init (ninja_start catala_exe catala_opts))
           files_or_folders
       in
+      Printf.printf "is none: %b\n" (Option.is_none ctx.curr_ninja);
       let there_is_some_fails = 0 <> List.length ctx.all_failed_names in
       let ninja = match ctx.curr_ninja with Some ninja -> ninja | None -> ctx.last_valid_ninja in
       if there_is_some_fails then
@@ -617,15 +618,19 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
           ctx.all_failed_names;
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then return_ok
       else
-        let out = open_out ninja_output in
-        Cli.debug_print ("writing " ^ ninja_output ^ "...");
-        Nj.format
-          (Format.formatter_of_out_channel out)
-          (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
-        close_out out;
-        let ninja_cmd = "ninja test -f " ^ ninja_output in
-        Cli.debug_print ("executing '" ^ ninja_cmd ^ "'...");
-        Sys.command ninja_cmd
+        try
+          let out = open_out ninja_output in
+          Cli.debug_print ("writing " ^ ninja_output ^ "...");
+          Nj.format
+            (Format.formatter_of_out_channel out)
+            (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
+          close_out out;
+          let ninja_cmd = "ninja test -f " ^ ninja_output in
+          Cli.debug_print ("executing '" ^ ninja_cmd ^ "'...");
+          Sys.command ninja_cmd
+        with Sys_error e ->
+          e |> Printf.sprintf "can not write in %s" |> Cli.error_print;
+          return_err)
   | "run" -> (
       match scope with
       | Some scope ->
