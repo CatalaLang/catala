@@ -38,6 +38,9 @@ val trace_flag : bool ref
 val disable_counterexamples : bool ref
 (** Disables model-generated counterexamples for proofs that fail. *)
 
+val avoid_exceptions_flag : bool ref
+(** Avoids using [try ... with] exceptions when compiling the default calculus. *)
+
 (** {2 CLI terms} *)
 
 val file : string Cmdliner.Term.t
@@ -79,6 +82,7 @@ val catala_t :
   bool ->
   bool ->
   bool ->
+  bool ->
   string ->
   string option ->
   int option ->
@@ -90,11 +94,11 @@ val catala_t :
   'a) ->
   'a Cmdliner.Term.t
 (** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output backend language max_prec_digits_opt trace_opt disable_counterexamples optimize ex_scope output] *)
+    [catala_t file debug unstyled wrap_weaved_output avoid_exceptions backend language max_prec_digits_opt trace_opt disable_counterexamples optimize ex_scope output] *)
 
 val version : string
 
-val info : Cmdliner.Cmd.info
+val info : Cmdliner.Term.info
 
 (**{1 Terminal formatting}*)
 

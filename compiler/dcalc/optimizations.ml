@@ -123,9 +123,11 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked) 
               ((ELit (LBool false) | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ])), _),
               _ ) ->
               (ELit LEmptyError, pos)
-          | [], just, cons ->
+          | [], just, cons when not !Cli.avoid_exceptions_flag ->
               (* without exceptions, a default is just an [if then else] raising an error in the
-                 else case *)
+                 else case. This exception is only valid in the context of
+                 compilation_with_exceptions, so we desactivate with a global flag to know if we
+                 will be compiling using exceptions or the option monad. *)
               (EIfThenElse (just, cons, (ELit LEmptyError, pos)), pos)
           | exceptions, just, cons -> (EDefault (exceptions, just, cons), pos))
         (List.map rec_helper exceptions |> Bindlib.box_list)

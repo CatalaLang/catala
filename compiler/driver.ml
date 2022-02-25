@@ -26,15 +26,17 @@ let extensions = [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "p
 (** Entry function for the executable. Returns a negative number in case of error. Usage:
     [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
 let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
-    (wrap_weaved_output : bool) (backend : string) (language : string option)
-    (max_prec_digits : int option) (trace : bool) (disable_counterexamples : bool) (optimize : bool)
-    (ex_scope : string option) (output_file : string option) : int =
+    (wrap_weaved_output : bool) (avoid_exceptions : bool) (backend : string)
+    (language : string option) (max_prec_digits : int option) (trace : bool)
+    (disable_counterexamples : bool) (optimize : bool) (ex_scope : string option)
+    (output_file : string option) : int =
   try
     Cli.debug_flag := debug;
     Cli.style_flag := not unstyled;
     Cli.trace_flag := trace;
     Cli.optimize_flag := optimize;
     Cli.disable_counterexamples := disable_counterexamples;
+    Cli.avoid_exceptions_flag := avoid_exceptions;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with FileName f -> filename := f | Contents c -> Cli.contents := c);
@@ -255,7 +257,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             0
         | Cli.OCaml | Cli.Python | Cli.Lcalc | Cli.Scalc ->
             Cli.debug_print "Compiling program into lambda calculus...";
-            let prgm = Lcalc.Compile_with_exceptions.translate_program prgm in
+            let prgm =
+              if avoid_exceptions then Lcalc.Compile_without_exceptions.translate_program prgm
+              else Lcalc.Compile_with_exceptions.translate_program prgm
+            in
             let prgm =
               if optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";
@@ -355,7 +360,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       -1
 
 let main () =
-  let return_code =
-    Cmdliner.Cmd.eval' (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))
-  in
-  exit return_code
+  let return_code = Cmdliner.Term.eval (Cli.catala_t (fun f -> driver (FileName f)), Cli.info) in
+  match return_code with
+  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
+  | _ -> Cmdliner.Term.exit (`Error `Term)

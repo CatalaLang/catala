@@ -1,0 +1,20 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+
+declaration scope A:
+  context x content E
+  context y content integer
+
+scope A:
+  definition x equals Case1 content 2
+  definition y under condition match x with pattern
+    -- Case1 of i : i > 0
+    -- Case2 : false consequence equals 2
+  definition y under condition match x with pattern
+    -- Case1 of i : false
+    -- Case2 : true consequence equals 2
+```

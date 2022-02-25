@@ -90,7 +90,38 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val option_enum : Dcalc.Ast.EnumName.t
+
+val none_constr : Dcalc.Ast.EnumConstructor.t
+
+val some_constr : Dcalc.Ast.EnumConstructor.t
+
+val option_enum_config : (Dcalc.Ast.EnumConstructor.t * Dcalc.Ast.typ Pos.marked) list
+
+val make_none : Pos.t -> expr Pos.marked Bindlib.box
+
+val make_some : expr Pos.marked Bindlib.box -> expr Pos.marked Bindlib.box
+
+val make_matchopt_with_abs_arms :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
+val make_matchopt :
+  Pos.t ->
+  Var.t ->
+  Dcalc.Ast.typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+(** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding to
+    [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
+
 val handle_default : Var.t
+
+val handle_default_opt : Var.t
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 

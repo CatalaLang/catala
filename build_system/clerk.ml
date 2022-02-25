@@ -99,8 +99,8 @@ let info =
       `P "Please file bug reports at https://github.com/CatalaLang/catala/issues";
     ]
   in
-  let exits = Cmd.Exit.defaults @ [ Cmd.Exit.info ~doc:"on error." 1 ] in
-  Cmd.info "clerk" ~version ~doc ~exits ~man
+  let exits = Term.default_exits @ [ Term.exit_info ~doc:"on error." 1 ] in
+  Term.info "clerk" ~version ~doc ~exits ~man
 
 (**{1 Testing}*)
 
@@ -630,5 +630,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
       1
 
 let _ =
-  let return_code = Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)) in
-  exit return_code
+  let return_code = Cmdliner.Term.eval (clerk_t driver, info) in
+  match return_code with
+  | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
+  | _ -> Cmdliner.Term.exit (`Error `Term)
