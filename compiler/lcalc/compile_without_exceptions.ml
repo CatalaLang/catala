@@ -101,9 +101,9 @@ let rec translate_typ (tau : D.typ Pos.marked) : D.typ Pos.marked =
       | D.TEnum (ts, en) -> D.TEnum (List.map translate_typ ts, en)
       | D.TAny -> D.TAny
       | D.TArray ts -> D.TArray (translate_typ ts)
-      (* catala is not polymorphic*)
-      | D.TArrow ((D.TLit D.TUnit, _), t2) ->
-          D.TEnum ([ translate_typ t2 ], A.option_enum) (* D.TAny *)
+      (* catala is not polymorphic *)
+      | D.TArrow ((D.TLit D.TUnit, pos_unit), t2) ->
+          D.TEnum ([ (D.TLit D.TUnit, pos_unit); translate_typ t2 ], A.option_enum) (* D.TAny *)
       | D.TArrow (t1, t2) -> D.TArrow (translate_typ t1, translate_typ t2)
     end
 
