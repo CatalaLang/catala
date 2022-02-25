@@ -33,6 +33,8 @@ type source_position = {
   law_headings : string list;
 }
 
+type 'a eoption = ENone of unit | ESome of 'a
+
 (** {1 Exceptions} *)
 
 exception EmptyError
@@ -172,6 +174,9 @@ val duration_to_string : duration -> string
 val handle_default : (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a
 (** @raise EmptyError
     @raise ConflictError *)
+
+val handle_default_opt : 'a eoption array -> bool eoption -> 'a eoption -> 'a eoption
+(** @raise ConflictError *)
 
 val no_input : unit -> 'a
 

@@ -17,6 +17,26 @@ open Ast
 open Backends
 module D = Dcalc.Ast
 
+let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
+    (D.StructFieldName.t * D.typ Pos.marked) list =
+  try D.StructMap.find s ctx.D.ctx_structs
+  with Not_found ->
+    let s_name, pos = D.StructName.get_info s in
+    Errors.raise_spanned_error
+      (Format.asprintf "Internal Error: Structure %s was not found in the current environment."
+         s_name)
+      pos
+
+let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) : (D.EnumConstructor.t * D.typ Pos.marked) list
+    =
+  try D.EnumMap.find en ctx.D.ctx_enums
+  with Not_found ->
+    let en_name, pos = D.EnumName.get_info en in
+    Errors.raise_spanned_error
+      (Format.asprintf "Internal Error: Enumeration %s was not found in the current environment."
+         en_name)
+      pos
+
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
   | LBool b -> Dcalc.Print.format_lit fmt (Pos.same_pos_as (Dcalc.Ast.LBool b) l)
@@ -40,14 +60,6 @@ let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
 let format_op_kind (fmt : Format.formatter) (k : Dcalc.Ast.op_kind) =
   Format.fprintf fmt "%s"
     (match k with KInt -> "!" | KRat -> "&" | KMoney -> "$" | KDate -> "@" | KDuration -> "^")
-
-let format_log_entry (fmt : Format.formatter) (entry : Dcalc.Ast.log_entry) : unit =
-  Format.fprintf fmt "%s"
-    (match entry with
-    | VarDef _ -> ":="
-    | BeginCall -> "→ "
-    | EndCall -> "← "
-    | PosRecordIfTrueBool -> "☛ ")
 
 let format_binop (fmt : Format.formatter) (op : Dcalc.Ast.binop Pos.marked) : unit =
   match Pos.unmark op with
@@ -88,9 +100,10 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   match Pos.unmark op with
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
-  | Log (entry, infos) ->
-      Format.fprintf fmt "@[<hov 2>log_entry@ \"%a|%a\"@]" format_log_entry entry format_uid_list
-        infos
+  | Log (_entry, _infos) ->
+      Errors.raise_spanned_error
+        "Internal error: a log operator has not been caught by the expression match"
+        (Pos.get_position op)
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
@@ -158,10 +171,16 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
       Format.fprintf fmt "@[<hov 2>(%a)@]"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-           (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
+           format_typ_with_parens)
         ts
   | TTuple (_, Some s) -> Format.fprintf fmt "%a" format_struct_name s
-  | TEnum (_, e) -> Format.fprintf fmt "%a" format_enum_name e
+  | TEnum ([ t ], e) when D.EnumName.compare e Ast.option_enum = 0 ->
+      Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t format_enum_name e
+  | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
+      Errors.raise_spanned_error
+        "Internal Error: found an typing parameter for an eoption type of the wrong lenght."
+        (Pos.get_position typ)
+  | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
@@ -173,8 +192,10 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_") lowercase_name
   in
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
-  if lowercase_name = "handle_default" || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v) then
-    Format.fprintf fmt "%s" lowercase_name
+  if
+    List.mem lowercase_name [ "handle_default"; "handle_default_opt" ]
+    || Dcalc.Print.begins_with_uppercase (Bindlib.name_of v)
+  then Format.fprintf fmt "%s" lowercase_name
   else if lowercase_name = "_" then Format.fprintf fmt "%s" lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
 
@@ -220,7 +241,7 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
              (fun fmt (e, struct_field) ->
                Format.fprintf fmt "@[<hov 2>%a =@ %a@]" format_struct_field_name struct_field
                  format_with_parens e))
-          (List.combine es (List.map fst (Dcalc.Ast.StructMap.find s ctx.ctx_structs)))
+          (List.combine es (List.map fst (find_struct s ctx)))
   | EArray es ->
       Format.fprintf fmt "@[<hov 2>[|%a|]@]"
         (Format.pp_print_list
@@ -238,10 +259,10 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
             format_with_parens e1
       | Some s ->
           Format.fprintf fmt "%a.%a" format_with_parens e1 format_struct_field_name
-            (fst (List.nth (Dcalc.Ast.StructMap.find s ctx.ctx_structs) n)))
+            (fst (List.nth (find_struct s ctx) n)))
   | EInj (e, n, en, _ts) ->
       Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_enum_cons_name
-        (fst (List.nth (Dcalc.Ast.EnumMap.find en ctx.ctx_enums) n))
+        (fst (List.nth (find_enum en ctx) n))
         format_with_parens e
   | EMatch (e, es, e_name) ->
       Format.fprintf fmt "@[<hov 2>match@ %a@]@ with@\n%a" format_with_parens e
@@ -261,13 +282,13 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (e : exp
                  | _ -> assert false
                  (* should not happen *))
                e))
-        (List.combine es (List.map fst (Dcalc.Ast.EnumMap.find e_name ctx.ctx_enums)))
+        (List.combine es (List.map fst (find_enum e_name ctx)))
   | ELit l -> Format.fprintf fmt "%a" format_lit (Pos.same_pos_as l e)
   | EApp ((EAbs ((binder, _), taus), _), args) ->
       let xs, body = Bindlib.unmbind binder in
       let xs_tau = List.map2 (fun x tau -> (x, tau)) (Array.to_list xs) taus in
       let xs_tau_arg = List.map2 (fun (x, tau) arg -> (x, tau, arg)) xs_tau args in
-      Format.fprintf fmt "%a%a"
+      Format.fprintf fmt "(%a%a)"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
            (fun fmt (x, tau, arg) ->
@@ -410,11 +431,9 @@ let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Form
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-          Format.fprintf fmt "%a@\n@\n" format_struct_decl
-            (s, Dcalc.Ast.StructMap.find s ctx.Dcalc.Ast.ctx_structs)
+          Format.fprintf fmt "%a@\n@\n" format_struct_decl (s, find_struct s ctx)
       | Scopelang.Dependency.TVertex.Enum e ->
-          Format.fprintf fmt "%a@\n@\n" format_enum_decl
-            (e, Dcalc.Ast.EnumMap.find e ctx.Dcalc.Ast.ctx_enums))
+          Format.fprintf fmt "%a@\n@\n" format_enum_decl (e, find_enum e ctx))
     (type_ordering @ scope_structs)
 
 let format_program (fmt : Format.formatter) (p : Ast.program)

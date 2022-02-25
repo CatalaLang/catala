@@ -74,17 +74,62 @@ let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box 
 
 let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply2
-    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
-    (make_abs
-       (Array.of_list [ x ])
-       e2
-       (Pos.get_position (Bindlib.unbox e2))
-       [ tau ]
-       (Pos.get_position (Bindlib.unbox e2)))
-    (Bindlib.box_list [ e1 ])
+  let pos = Pos.get_position (Bindlib.unbox e2) in
+
+  make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
+
+let ( let+ ) x f = Bindlib.box_apply f x
+
+let ( and+ ) x y = Bindlib.box_pair x y
+
+let option_enum : D.EnumName.t = D.EnumName.fresh ("eoption", Pos.no_pos)
+
+let none_constr : D.EnumConstructor.t = D.EnumConstructor.fresh ("ENone", Pos.no_pos)
+
+let some_constr : D.EnumConstructor.t = D.EnumConstructor.fresh ("ESome", Pos.no_pos)
+
+let option_enum_config : (D.EnumConstructor.t * D.typ Pos.marked) list =
+  [ (none_constr, (D.TLit D.TUnit, Pos.no_pos)); (some_constr, (D.TAny, Pos.no_pos)) ]
+
+let make_none (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
+  Bindlib.box @@ mark
+  @@ EInj (mark @@ ELit LUnit, 0, option_enum, [ (D.TLit D.TUnit, pos); (D.TAny, pos) ])
+
+let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+  let pos = Pos.get_position @@ Bindlib.unbox e in
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
+  let+ e = e in
+  mark @@ EInj (e, 1, option_enum, [ (D.TLit D.TUnit, pos); (D.TAny, pos) ])
+
+(** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
+    [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the
+    form [EAbs ...].*)
+let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box)
+    (e_none : expr Pos.marked Bindlib.box) (e_some : expr Pos.marked Bindlib.box) :
+    expr Pos.marked Bindlib.box =
+  let pos = Pos.get_position @@ Bindlib.unbox arg in
+  let mark : 'a -> 'a Pos.marked = Pos.mark pos in
+
+  let+ arg = arg and+ e_none = e_none and+ e_some = e_some in
+
+  mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
+
+(** [make_matchopt pos v tau arg e_none e_some] builds an expression
+    [match arg with | None () -> e_none | Some v -> e_some]. It binds v to e_some, permitting it to
+    be used inside the expression. There is no requirements on the form of both e_some and e_none. *)
+let make_matchopt (pos : Pos.t) (v : Var.t) (tau : D.typ Pos.marked)
+    (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
+    (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+  let x = Var.make ("_", pos) in
+
+  make_matchopt_with_abs_arms arg
+    (make_abs (Array.of_list [ x ]) e_none pos [ (D.TLit D.TUnit, pos) ] pos)
+    (make_abs (Array.of_list [ v ]) e_some pos [ tau ] pos)
 
 let handle_default = Var.make ("handle_default", Pos.no_pos)
+
+let handle_default_opt = Var.make ("handle_default_opt", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
 

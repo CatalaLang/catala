@@ -31,6 +31,8 @@ type source_position = {
   law_headings : string list;
 }
 
+type 'a eoption = ENone of unit | ESome of 'a
+
 exception EmptyError
 
 exception AssertionFailed
@@ -212,6 +214,21 @@ let handle_default : 'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) ->
       None exceptions
   in
   match except with Some x -> x | None -> if just () then cons () else raise EmptyError
+
+let handle_default_opt (exceptions : 'a eoption array) (just : bool eoption) (cons : 'a eoption) :
+    'a eoption =
+  let except =
+    Array.fold_left
+      (fun acc except ->
+        match (acc, except) with
+        | ENone _, _ -> except
+        | ESome _, ENone _ -> acc
+        | ESome _, ESome _ -> raise ConflictError)
+      (ENone ()) exceptions
+  in
+  match except with
+  | ESome _ -> except
+  | ENone _ -> ( match just with ESome b -> if b then cons else ENone () | ENone _ -> ENone ())
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 

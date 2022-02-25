@@ -93,7 +93,7 @@ type log_entry = VarDef of typ | BeginCall | EndCall | PosRecordIfTrueBool
 type unop =
   | Not
   | Minus of op_kind
-  | Log of log_entry * (Utils.Uid.MarkedString.info list[@opaque])
+  | Log of log_entry * Utils.Uid.MarkedString.info list
   | Length
   | IntToRat
   | GetDay
@@ -103,7 +103,7 @@ type unop =
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 
 type expr =
-  | EVar of (expr Bindlib.var[@opaque]) Pos.marked
+  | EVar of expr Bindlib.var Pos.marked
   | ETuple of expr Pos.marked list * struct_name option
   | ETupleAccess of expr Pos.marked * int * struct_name option * typ Pos.marked list
   | EInj of expr Pos.marked * int * enum_name * typ Pos.marked list
@@ -143,8 +143,8 @@ type scope_let = {
 
 type scope_body = {
   scope_body_lets : scope_let list;
-  scope_body_result : expr Pos.marked Bindlib.box;
-  scope_body_arg : expr Bindlib.var;
+  scope_body_result : expr Pos.marked Bindlib.box;  (** {x1 = x1; x2 = x2; x3 = x3; ... } *)
+  scope_body_arg : expr Bindlib.var;  (** x: input_struct *)
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
 }
@@ -163,6 +163,28 @@ module Var = struct
 end
 
 module VarMap = Map.Make (Var)
+
+let union : unit VarMap.t -> unit VarMap.t -> unit VarMap.t = VarMap.union (fun _ _ _ -> Some ())
+
+let rec free_vars_set (e : expr Pos.marked) : unit VarMap.t =
+  match Pos.unmark e with
+  | EVar (v, _) -> VarMap.singleton v ()
+  | ETuple (es, _) | EArray es -> es |> List.map free_vars_set |> List.fold_left union VarMap.empty
+  | ETupleAccess (e1, _, _, _) | EAssert e1 | ErrorOnEmpty e1 | EInj (e1, _, _, _) ->
+      free_vars_set e1
+  | EApp (e1, es) | EMatch (e1, es, _) ->
+      e1 :: es |> List.map free_vars_set |> List.fold_left union VarMap.empty
+  | EDefault (es, ejust, econs) ->
+      ejust :: econs :: es |> List.map free_vars_set |> List.fold_left union VarMap.empty
+  | EOp _ | ELit _ -> VarMap.empty
+  | EIfThenElse (e1, e2, e3) ->
+      [ e1; e2; e3 ] |> List.map free_vars_set |> List.fold_left union VarMap.empty
+  | EAbs ((binder, _), _) ->
+      let vs, body = Bindlib.unmbind binder in
+      Array.fold_right VarMap.remove vs (free_vars_set body)
+
+let free_vars_list (e : expr Pos.marked) : Var.t list =
+  free_vars_set e |> VarMap.bindings |> List.map fst
 
 type vars = expr Bindlib.mvar
 
