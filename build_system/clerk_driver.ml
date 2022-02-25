@@ -605,7 +605,6 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
           (ninja_building_context_init (ninja_start catala_exe catala_opts))
           files_or_folders
       in
-      Printf.printf "is none: %b\n" (Option.is_none ctx.curr_ninja);
       let there_is_some_fails = 0 <> List.length ctx.all_failed_names in
       let ninja = match ctx.curr_ninja with Some ninja -> ninja | None -> ctx.last_valid_ninja in
       if there_is_some_fails then

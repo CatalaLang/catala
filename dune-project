@@ -73,6 +73,10 @@
   (cppo
    (>= 1))
   (obelisk :dev)
+  (alcotest
+   (and
+     :with-test
+     (>= 1.5.0)))
   (ocamlformat
    (and
     :dev
@@ -112,6 +116,10 @@
    (>= 1.9.0))
   (ANSITerminal
    (>= 0.8.2))
+  (alcotest
+   (and
+     :with-test
+     (>= 1.5.0)))
   (catala
    (= :version))))
 
