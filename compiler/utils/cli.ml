@@ -244,8 +244,8 @@ let log_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.black ] "
 
 (** All the printers below print their argument after the correct marker *)
 
-let concat_with_line_depending_prefix_and_suffix (prefix : int -> string) (suffix : int -> string)
-    (ss : string list) =
+let concat_with_line_depending_prefix_and_suffix
+    (prefix : int -> string) (suffix : int -> string) (ss : string list) =
   match ss with
   | hd :: rest ->
       let out, _ =

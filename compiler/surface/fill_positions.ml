@@ -22,8 +22,8 @@ let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
       method! visit_marked f env x =
         (f env (Pos.unmark x), Pos.overwrite_law_info (Pos.get_position x) env)
 
-      method! visit_LawHeading (env : string list) (heading : Ast.law_heading)
-          (children : Ast.law_structure list) =
+      method! visit_LawHeading
+          (env : string list) (heading : Ast.law_heading) (children : Ast.law_structure list) =
         let env = Pos.unmark heading.law_heading_name :: env in
         Ast.LawHeading
           ( super#visit_law_heading env heading,

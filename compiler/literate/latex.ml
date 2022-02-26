@@ -39,7 +39,10 @@ let pre_latexify (s : string) : string =
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
     Prints an LaTeX complete documùent structure around the [wrapped] content. *)
-let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : Format.formatter)
+let wrap_latex
+    (source_files : string list)
+    (language : C.backend_lang)
+    (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) =
   Format.fprintf fmt
     "\\documentclass[%s, 11pt, a4paper]{article}\n\n\
@@ -104,8 +107,8 @@ let wrap_latex (source_files : string list) (language : C.backend_lang) (fmt : F
 
 (** {1 Weaving} *)
 
-let rec law_structure_to_latex (language : C.backend_lang) (fmt : Format.formatter)
-    (i : A.law_structure) : unit =
+let rec law_structure_to_latex
+    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) : unit =
   match i with
   | A.LawHeading (heading, children) ->
       Format.fprintf fmt "\\%s*{%s}\n\n"

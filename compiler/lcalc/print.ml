@@ -65,7 +65,10 @@ let needs_parens (e : expr Pos.marked) : bool =
 let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
-let rec format_expr (ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
+let rec format_expr
+    (ctx : Dcalc.Ast.decl_ctx)
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
     (e : expr Pos.marked) : unit =
   let format_expr = format_expr ctx ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
@@ -171,7 +174,10 @@ let rec format_expr (ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Fo
       Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" format_keyword "assert" format_punctuation "("
         format_expr e' format_punctuation ")"
 
-let format_scope (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
+let format_scope
+    (decl_ctx : Dcalc.Ast.decl_ctx)
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
     (body : scope_body) : unit =
   Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_keyword "let" format_var body.scope_body_var
     format_punctuation "=" (format_expr decl_ctx ~debug) body.scope_body_expr

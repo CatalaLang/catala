@@ -50,7 +50,10 @@ let remove_cb_last_lines : string -> string =
 (** Usage: [wrap_html source_files custom_pygments language fmt wrapped]
 
     Prints an HTML complete page structure around the [wrapped] content. *)
-let wrap_html (source_files : string list) (language : Cli.backend_lang) (fmt : Format.formatter)
+let wrap_html
+    (source_files : string list)
+    (language : Cli.backend_lang)
+    (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) : unit =
   let pygments = "pygmentize" in
   let css_file = Filename.temp_file "catala_css_pygments" "" in
@@ -135,8 +138,8 @@ let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
 
 (** {1 Weaving} *)
 
-let rec law_structure_to_html (language : C.backend_lang) (fmt : Format.formatter)
-    (i : A.law_structure) : unit =
+let rec law_structure_to_html
+    (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) : unit =
   match i with
   | A.LawText t ->
       let t = pre_html t in

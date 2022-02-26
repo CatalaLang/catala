@@ -214,7 +214,9 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) : A.bloc
               Pos.get_position block_expr );
           ])
 
-let translate_scope (decl_ctx : D.decl_ctx) (func_dict : A.TopLevelName.t L.VarMap.t)
+let translate_scope
+    (decl_ctx : D.decl_ctx)
+    (func_dict : A.TopLevelName.t L.VarMap.t)
     (scope_expr : L.expr Pos.marked) : (A.LocalName.t Pos.marked * D.typ Pos.marked) list * A.block
     =
   match Pos.unmark scope_expr with

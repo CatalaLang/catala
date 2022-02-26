@@ -95,8 +95,8 @@ let syntax_hints_style = [ ANSITerminal.yellow ]
     Raises an error message featuring the [error_loc] position where the parser has failed, the
     [token] on which the parser has failed, and the error message [msg]. If available, displays
     [last_good_loc] the location of the last token correctly parsed. *)
-let raise_parser_error (error_loc : Pos.t) (last_good_loc : Pos.t option) (token : string)
-    (msg : string) : 'a =
+let raise_parser_error
+    (error_loc : Pos.t) (last_good_loc : Pos.t option) (token : string) (msg : string) : 'a =
   Errors.raise_multispanned_error
     (Printf.sprintf "Syntax error at token %s\n%s"
        (Cli.print_with_style syntax_hints_style "\"%s\"" token)
@@ -124,9 +124,11 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       the last checkpoint of a valid Menhir state before the parsing error. [token_list] is provided
       by things like {!val: Surface.Lexer_common.token_list_language_agnostic} and is used to
       provide suggestions of the tokens acceptable at the failure point *)
-  let fail (lexbuf : lexbuf) (env : 'semantic_value I.env)
-      (token_list : (string * Tokens.token) list) (last_input_needed : 'semantic_value I.env option)
-      : 'a =
+  let fail
+      (lexbuf : lexbuf)
+      (env : 'semantic_value I.env)
+      (token_list : (string * Tokens.token) list)
+      (last_input_needed : 'semantic_value I.env option) : 'a =
     let wrong_token = Utf8.lexeme lexbuf in
     let acceptable_tokens, last_positions =
       match last_input_needed with
@@ -188,10 +190,12 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       (Utf8.lexeme lexbuf) msg
 
   (** Main parsing loop *)
-  let rec loop (next_token : unit -> Tokens.token * Lexing.position * Lexing.position)
-      (token_list : (string * Tokens.token) list) (lexbuf : lexbuf)
-      (last_input_needed : 'semantic_value I.env option) (checkpoint : 'semantic_value I.checkpoint)
-      : Ast.source_file =
+  let rec loop
+      (next_token : unit -> Tokens.token * Lexing.position * Lexing.position)
+      (token_list : (string * Tokens.token) list)
+      (lexbuf : lexbuf)
+      (last_input_needed : 'semantic_value I.env option)
+      (checkpoint : 'semantic_value I.checkpoint) : Ast.source_file =
     match checkpoint with
     | I.InputNeeded env ->
         let token = next_token () in
@@ -208,10 +212,11 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
 
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type difference for
       [lexbuf]. *)
-  let sedlex_with_menhir (lexer' : lexbuf -> Tokens.token)
+  let sedlex_with_menhir
+      (lexer' : lexbuf -> Tokens.token)
       (token_list : (string * Tokens.token) list)
-      (target_rule : Lexing.position -> 'semantic_value I.checkpoint) (lexbuf : lexbuf) :
-      Ast.source_file =
+      (target_rule : Lexing.position -> 'semantic_value I.checkpoint)
+      (lexbuf : lexbuf) : Ast.source_file =
     let lexer : unit -> Tokens.token * Lexing.position * Lexing.position =
       with_tokenizer lexer' lexbuf
     in
@@ -260,8 +265,9 @@ let rec parse_source_file (source_file : Pos.input_file) (language : Cli.backend
   }
 
 (** Expands the include directives in a parsing result, thus parsing new source files *)
-and expand_includes (source_file : string) (commands : Ast.law_structure list)
-    (language : Cli.backend_lang) : Ast.program =
+and expand_includes
+    (source_file : string) (commands : Ast.law_structure list) (language : Cli.backend_lang) :
+    Ast.program =
   List.fold_left
     (fun acc command ->
       match command with

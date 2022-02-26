@@ -93,8 +93,9 @@ module MakeBackendIO (B : Backend) = struct
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
              (Bindlib.name_of (Pos.unmark vc.vc_variable)))
 
-  let print_negative_result (vc : Conditions.verification_condition) (ctx : B.backend_context)
-      (model : B.model option) : string =
+  let print_negative_result
+      (vc : Conditions.verification_condition) (ctx : B.backend_context) (model : B.model option) :
+      string =
     let var_and_pos =
       match vc.Conditions.vc_kind with
       | Conditions.NoEmptyError ->
@@ -133,8 +134,8 @@ module MakeBackendIO (B : Backend) = struct
     ^ match counterexample with None -> "" | Some counterexample -> "\n" ^ counterexample
 
   (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
-  let encode_and_check_vc (decl_ctx : decl_ctx)
-      (vc : Conditions.verification_condition * vc_encoding_result) : unit =
+  let encode_and_check_vc
+      (decl_ctx : decl_ctx) (vc : Conditions.verification_condition * vc_encoding_result) : unit =
     let vc, z3_vc = vc in
 
     Cli.debug_print

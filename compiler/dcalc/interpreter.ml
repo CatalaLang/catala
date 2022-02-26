@@ -26,8 +26,9 @@ let log_indent = ref 0
 
 (** {1 Evaluation} *)
 
-let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
-    (args : A.expr Pos.marked list) : A.expr Pos.marked =
+let rec evaluate_operator
+    (ctx : Ast.decl_ctx) (op : A.operator Pos.marked) (args : A.expr Pos.marked list) :
+    A.expr Pos.marked =
   (* Try to apply [div] and if a [Division_by_zero] exceptions is catched, use [op] to raise
      multispanned errors. *)
   let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =

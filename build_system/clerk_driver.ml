@@ -600,9 +600,8 @@ let return_err = 1
 (** [add_root_test_build ctx files_or_folders reset_test_outputs] updates the [ctx] by adding ninja
     build statements needed to test or [reset_test_outputs] [files_or_folders]. *)
 let add_test_builds
-    (ctx : ninja_building_context)
-    (files_or_folders : string list)
-    (reset_test_outputs : bool) : ninja_building_context =
+    (ctx : ninja_building_context) (files_or_folders : string list) (reset_test_outputs : bool) :
+    ninja_building_context =
   files_or_folders
   |> List.fold_left
        (fun ctx file_or_folder ->

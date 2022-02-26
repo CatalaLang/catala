@@ -35,9 +35,12 @@ let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) : A.expr Pos.ma
   let dummy_var = A.Var.make ("_", pos) in
   A.make_abs [| dummy_var |] e pos [ (D.TAny, pos) ] pos
 
-let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
-    (just : D.expr Pos.marked) (cons : D.expr Pos.marked) (pos_default : Pos.t) :
-    A.expr Pos.marked Bindlib.box =
+let rec translate_default
+    (ctx : ctx)
+    (exceptions : D.expr Pos.marked list)
+    (just : D.expr Pos.marked)
+    (cons : D.expr Pos.marked)
+    (pos_default : Pos.t) : A.expr Pos.marked Bindlib.box =
   let exceptions =
     List.map (fun except -> thunk_expr (translate_expr ctx except) pos_default) exceptions
   in

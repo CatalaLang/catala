@@ -16,9 +16,14 @@ module Allocations_familiales = Law_source.Allocations_familiales
 module AF = Allocations_familiales
 open Runtime
 
-let compute_allocations_familiales ~(current_date : Runtime.date)
-    ~(children : AF.enfant_entree array) ~(income : int) ~(residence : AF.collectivite)
-    ~(is_parent : bool) ~(fills_title_I : bool) ~(had_rights_open_before_2012 : bool) : float =
+let compute_allocations_familiales
+    ~(current_date : Runtime.date)
+    ~(children : AF.enfant_entree array)
+    ~(income : int)
+    ~(residence : AF.collectivite)
+    ~(is_parent : bool)
+    ~(fills_title_I : bool)
+    ~(had_rights_open_before_2012 : bool) : float =
   let result =
     AF.interface_allocations_familiales
       {

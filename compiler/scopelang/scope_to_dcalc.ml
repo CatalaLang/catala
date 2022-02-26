@@ -41,7 +41,10 @@ type ctx = {
   local_vars : Dcalc.Ast.Var.t Ast.VarMap.t;
 }
 
-let empty_ctx (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx) (scopes_ctx : scope_sigs_ctx)
+let empty_ctx
+    (struct_ctx : Ast.struct_ctx)
+    (enum_ctx : Ast.enum_ctx)
+    (scopes_ctx : scope_sigs_ctx)
     (scope_name : Ast.ScopeName.t) =
   {
     structs = struct_ctx;
@@ -68,7 +71,8 @@ let rec translate_typ (ctx : ctx) (t : Ast.typ Pos.marked) : Dcalc.Ast.typ Pos.m
     | Ast.TAny -> Dcalc.Ast.TAny)
     t
 
-let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
+let merge_defaults
+    (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
     (callee : Dcalc.Ast.expr Pos.marked Bindlib.box) : Dcalc.Ast.expr Pos.marked Bindlib.box =
   let caller =
     Dcalc.Ast.make_app caller
@@ -85,7 +89,9 @@ let merge_defaults (caller : Dcalc.Ast.expr Pos.marked Bindlib.box)
   in
   body
 
-let tag_with_log_entry (e : Dcalc.Ast.expr Pos.marked Bindlib.box) (l : Dcalc.Ast.log_entry)
+let tag_with_log_entry
+    (e : Dcalc.Ast.expr Pos.marked Bindlib.box)
+    (l : Dcalc.Ast.log_entry)
     (markings : Utils.Uid.MarkedString.info list) : Dcalc.Ast.expr Pos.marked Bindlib.box =
   Bindlib.box_apply
     (fun e ->
@@ -301,8 +307,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
     also return the new translation context available after the assignment to use in later rule
     translations. The list is actually a list of list because we want to group in assignments that
     are independent of each other to speed up the translation by minimizing Bindlib.bind_mvar *)
-let translate_rule (ctx : ctx) (rule : Ast.rule)
-    ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) : Dcalc.Ast.scope_let list * ctx =
+let translate_rule
+    (ctx : ctx) (rule : Ast.rule) ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info) :
+    Dcalc.Ast.scope_let list * ctx =
   match rule with
   | Definition ((ScopeVar a, var_def_pos), tau, a_io, e) ->
       let a_name = Ast.ScopeVar.get_info (Pos.unmark a) in
@@ -543,7 +550,9 @@ let translate_rule (ctx : ctx) (rule : Ast.rule)
         ],
         ctx )
 
-let translate_rules (ctx : ctx) (rules : Ast.rule list)
+let translate_rules
+    (ctx : ctx)
+    (rules : Ast.rule list)
     ((sigma_name, pos_sigma) : Utils.Uid.MarkedString.info)
     (sigma_return_struct_name : Ast.StructName.t) :
     Dcalc.Ast.scope_let list * Dcalc.Ast.expr Pos.marked Bindlib.box * ctx =
@@ -568,9 +577,12 @@ let translate_rules (ctx : ctx) (rules : Ast.rule list)
   in
   (scope_lets, return_exp, new_ctx)
 
-let translate_scope_decl (struct_ctx : Ast.struct_ctx) (enum_ctx : Ast.enum_ctx)
-    (sctx : scope_sigs_ctx) (scope_name : Ast.ScopeName.t) (sigma : Ast.scope_decl) :
-    Dcalc.Ast.scope_body * Dcalc.Ast.struct_ctx =
+let translate_scope_decl
+    (struct_ctx : Ast.struct_ctx)
+    (enum_ctx : Ast.enum_ctx)
+    (sctx : scope_sigs_ctx)
+    (scope_name : Ast.ScopeName.t)
+    (sigma : Ast.scope_decl) : Dcalc.Ast.scope_body * Dcalc.Ast.struct_ctx =
   let sigma_info = Ast.ScopeName.get_info sigma.scope_decl_name in
   let scope_sig = Ast.ScopeMap.find sigma.scope_decl_name sctx in
   let scope_variables = scope_sig.scope_sig_local_vars in
