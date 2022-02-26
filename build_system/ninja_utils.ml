@@ -68,8 +68,7 @@ module Build = struct
     let format_inputs fmt = function
       | Some exs -> Format.fprintf fmt " %a" Expr.format_list exs
       | None -> ()
-    in
-    let format_vars fmt vars =
+    and format_vars fmt vars =
       List.iter (fun (name, exp) -> Format.fprintf fmt "  %s = %a\n" name Expr.format exp) vars
     in
     Format.fprintf fmt "build %a: %s%a\n%a" Expr.format_list build.outputs build.rule format_inputs

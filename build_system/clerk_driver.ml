@@ -188,9 +188,12 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
           else None)
     (Array.to_list output_files)
 
-let add_reset_rules_aux ~(redirect : string) ~(with_scope_output_rule : string)
-    ~(without_scope_output_rule : string) (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
-    Rule.t Nj.RuleMap.t =
+let add_reset_rules_aux
+    ~(redirect : string)
+    ~(with_scope_output_rule : string)
+    ~(without_scope_output_rule : string)
+    (catala_exe_opts : string)
+    (rules : Rule.t Nj.RuleMap.t) : Rule.t Nj.RuleMap.t =
   let reset_common_cmd_exprs =
     Nj.Expr.
       [
@@ -240,9 +243,12 @@ let add_reset_rules_aux ~(redirect : string) ~(with_scope_output_rule : string)
     |> add reset_with_scope_rule.name reset_with_scope_rule
     |> add reset_without_scope_rule.name reset_without_scope_rule)
 
-let add_test_rules_aux ~(test_common_cmd_exprs : Expr.t list) ~(with_scope_output_rule : string)
-    ~(without_scope_output_rule : string) (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
-    Rule.t Nj.RuleMap.t =
+let add_test_rules_aux
+    ~(test_common_cmd_exprs : Expr.t list)
+    ~(with_scope_output_rule : string)
+    ~(without_scope_output_rule : string)
+    (catala_exe_opts : string)
+    (rules : Rule.t Nj.RuleMap.t) : Rule.t Nj.RuleMap.t =
   let test_with_scope_rule =
     Nj.Rule.make with_scope_output_rule
       ~command:
@@ -383,8 +389,11 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
                   vars )
           in
 
-          let ninja_add_new_rule (rule_output : string) (rule : string)
-              (vars : (string * Nj.Expr.t) list) (ninja : ninja) : ninja =
+          let ninja_add_new_rule
+              (rule_output : string)
+              (rule : string)
+              (vars : (string * Nj.Expr.t) list)
+              (ninja : ninja) : ninja =
             {
               ninja with
               builds =
@@ -509,7 +518,10 @@ let ninja_building_context_init (ninja_init : Nj.ninja) : ninja_building_context
 
 (** [collect_in_directory ctx file_or_folder ninja_start reset_test_outputs] updates the building
     context [ctx] by adding new ninja build statements needed to test files in [folder].*)
-let collect_in_folder (ctx : ninja_building_context) (folder : string) (ninja_start : Nj.ninja)
+let collect_in_folder
+    (ctx : ninja_building_context)
+    (folder : string)
+    (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   let ninja, test_file_names =
     List.fold_left
@@ -555,7 +567,10 @@ let collect_in_folder (ctx : ninja_building_context) (folder : string) (ninja_st
 
 (** [collect_in_file ctx file_or_folder ninja_start reset_test_outputs] updates the building context
     [ctx] by adding new ninja build statements needed to test the [tested_file].*)
-let collect_in_file (ctx : ninja_building_context) (tested_file : string) (ninja_start : Nj.ninja)
+let collect_in_file
+    (ctx : ninja_building_context)
+    (tested_file : string)
+    (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   match collect_all_ninja_build ninja_start tested_file reset_test_outputs with
   | Some (test_file_name, ninja) ->
@@ -580,30 +595,48 @@ let return_ok = 0
 
 let return_err = 1
 
-let driver (files_or_folders : string list) (command : string) (catala_exe : string option)
-    (catala_opts : string option) (debug : bool) (scope : string option) (reset_test_outputs : bool)
+(** {1 Driver} *)
+
+(** [add_root_test_build ctx files_or_folders reset_test_outputs] updates the [ctx] by adding ninja
+    build statements needed to test or [reset_test_outputs] [files_or_folders]. *)
+let add_test_builds
+    (ctx : ninja_building_context)
+    (files_or_folders : string list)
+    (reset_test_outputs : bool) : ninja_building_context =
+  files_or_folders
+  |> List.fold_left
+       (fun ctx file_or_folder ->
+         let curr_ninja =
+           match ctx.curr_ninja with Some ninja -> ninja | None -> ctx.last_valid_ninja
+         in
+         if Sys.is_directory file_or_folder then
+           collect_in_folder ctx file_or_folder curr_ninja reset_test_outputs
+         else collect_in_file ctx file_or_folder curr_ninja reset_test_outputs)
+       ctx
+
+let driver
+    (files_or_folders : string list)
+    (command : string)
+    (catala_exe : string option)
+    (catala_opts : string option)
+    (debug : bool)
+    (scope : string option)
+    (reset_test_outputs : bool)
     (ninja_output : string option) : int =
   if debug then Cli.debug_flag := true;
-  let files_or_folders = List.sort_uniq String.compare files_or_folders in
-  let catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe in
-  let catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts in
-  let ninja_output =
+  let files_or_folders = List.sort_uniq String.compare files_or_folders
+  and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe
+  and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
+  and ninja_output =
     Option.fold ~none:(Filename.temp_file "clerk_build" ".ninja") ~some:Fun.id ninja_output
   in
   match String.lowercase_ascii command with
   | "test" -> (
       Cli.debug_print "building ninja rules...";
       let ctx =
-        List.fold_left
-          (fun ctx file_or_folder ->
-            let curr_ninja =
-              match ctx.curr_ninja with Some ninja -> ninja | None -> ctx.last_valid_ninja
-            in
-            if Sys.is_directory file_or_folder then
-              collect_in_folder ctx file_or_folder curr_ninja reset_test_outputs
-            else collect_in_file ctx file_or_folder curr_ninja reset_test_outputs)
+        add_test_builds
           (ninja_building_context_init (ninja_start catala_exe catala_opts))
-          files_or_folders
+          files_or_folders reset_test_outputs
       in
       let there_is_some_fails = 0 <> List.length ctx.all_failed_names in
       let ninja = match ctx.curr_ninja with Some ninja -> ninja | None -> ctx.last_valid_ninja in
@@ -647,7 +680,6 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
       1
 
 let main () =
-  let return_code = Cmdliner.Term.eval (clerk_t driver, info) in
-  match return_code with
+  match Cmdliner.Term.eval (clerk_t driver, info) with
   | `Ok 0 -> Cmdliner.Term.exit (`Ok 0)
   | _ -> Cmdliner.Term.exit (`Error `Term)
