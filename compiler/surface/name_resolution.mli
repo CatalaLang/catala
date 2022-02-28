@@ -57,7 +57,7 @@ type var_sig = {
 }
 
 type context = {
-  local_var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions arguments or pattern
           matching *)
   scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;  (** The names of the scopes *)
@@ -121,7 +121,7 @@ val label_groups :
 
 val is_type_cond : Ast.typ Pos.marked -> bool
 
-val add_def_local_var : context -> ident Pos.marked -> context * Scopelang.Ast.Var.t
+val add_def_local_var : context -> ident Pos.marked -> context * Desugared.Ast.Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :

@@ -61,6 +61,7 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {1 AST} *)
 
+(**{2 Expressions}*)
 type location =
   | ScopeVar of ScopeVar.t Pos.marked * StateName.t option
   | SubScopeVar of
@@ -89,11 +90,50 @@ type expr =
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
 
+(** {2 Variable helpers} *)
+
+module Var : sig
+  type t = expr Bindlib.var
+
+  val make : string Pos.marked -> t
+
+  val compare : t -> t -> int
+end
+
+module VarMap : Map.S with type key = Var.t
+
+type vars = expr Bindlib.mvar
+
+val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
+
+val make_abs :
+  vars ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  Scopelang.Ast.typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val make_app :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val make_let_in :
+  Var.t ->
+  Scopelang.Ast.typ Pos.marked ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
+(** {2 Rules and scopes}*)
+
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr Pos.marked Bindlib.box;
   rule_cons : expr Pos.marked Bindlib.box;
-  rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
+  rule_parameter : (Var.t * Scopelang.Ast.typ Pos.marked) option;
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
@@ -101,7 +141,7 @@ val empty_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
 
 val always_false_rule : Pos.t -> Scopelang.Ast.typ Pos.marked option -> rule
 
-type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
+type assertion = expr Pos.marked Bindlib.box
 
 type variation_typ = Increasing | Decreasing
 

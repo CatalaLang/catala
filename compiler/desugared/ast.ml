@@ -135,11 +135,24 @@ type expr =
   | EArray of expr Pos.marked list
   | ErrorOnEmpty of expr Pos.marked
 
+module Var = struct
+  type t = expr Bindlib.var
+
+  let make (s : string Pos.marked) : t =
+    Bindlib.new_var
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
+      (Pos.unmark s)
+
+  let compare x y = Bindlib.compare_vars x y
+end
+
+type vars = expr Bindlib.mvar
+
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr Pos.marked Bindlib.box;
   rule_cons : expr Pos.marked Bindlib.box;
-  rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
+  rule_parameter : (Var.t * Scopelang.Ast.typ Pos.marked) option;
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
@@ -148,9 +161,7 @@ let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked opti
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
     rule_cons = Bindlib.box (ELit Dcalc.Ast.LEmptyError, pos);
     rule_parameter =
-      (match have_parameter with
-      | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
-      | None -> None);
+      (match have_parameter with Some typ -> Some (Var.make ("dummy", pos), typ) | None -> None);
     rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("empty", pos);
   }
@@ -160,14 +171,12 @@ let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.mark
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool true), pos);
     rule_cons = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
     rule_parameter =
-      (match have_parameter with
-      | Some typ -> Some (Scopelang.Ast.Var.make ("dummy", pos), typ)
-      | None -> None);
+      (match have_parameter with Some typ -> Some (Var.make ("dummy", pos), typ) | None -> None);
     rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("always_false", pos);
   }
 
-type assertion = Scopelang.Ast.expr Pos.marked Bindlib.box
+type assertion = expr Pos.marked Bindlib.box
 
 type variation_typ = Increasing | Decreasing
 
@@ -256,3 +265,28 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
       in
       add_locs acc locs)
     def ScopeDefMap.empty
+
+let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
+
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
+    (taus : Scopelang.Ast.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
+
+let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
+    : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
+
+let make_let_in (x : Var.t) (tau : Scopelang.Ast.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
+    (make_abs
+       (Array.of_list [ x ])
+       e2
+       (Pos.get_position (Bindlib.unbox e2))
+       [ tau ]
+       (Pos.get_position (Bindlib.unbox e2)))
+    (Bindlib.box_list [ e1 ])
+
+module VarMap = Map.Make (Var)
