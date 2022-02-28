@@ -30,7 +30,9 @@ open Utils
     Indeed, during interpretation, subscopes are executed atomically. *)
 
 module Vertex : sig
-  type t = Var of Scopelang.Ast.ScopeVar.t | SubScope of Scopelang.Ast.SubScopeName.t
+  type t =
+    | Var of Ast.ScopeVar.t * Ast.StateName.t option
+    | SubScope of Scopelang.Ast.SubScopeName.t
 
   val format_t : Format.formatter -> t -> unit
 

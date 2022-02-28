@@ -34,11 +34,17 @@ module LabelSet : Set.S with type elt = LabelName.t
 
 module StateName : Uid.Id with type info = Uid.MarkedString.info
 
+module ScopeVar : Uid.Id with type info = Uid.MarkedString.info
+
+module ScopeVarSet : Set.S with type elt = ScopeVar.t
+
+module ScopeVarMap : Map.S with type key = ScopeVar.t
+
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef : sig
   type t =
-    | Var of Scopelang.Ast.ScopeVar.t
-    | SubScopeVar of Scopelang.Ast.SubScopeName.t * Scopelang.Ast.ScopeVar.t
+    | Var of ScopeVar.t * StateName.t option
+    | SubScopeVar of Scopelang.Ast.SubScopeName.t * ScopeVar.t
 
   val compare : t -> t -> int
 
@@ -55,10 +61,38 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t
 
 (** {1 AST} *)
 
+type location =
+  | ScopeVar of ScopeVar.t Pos.marked * StateName.t option
+  | SubScopeVar of
+      Scopelang.Ast.ScopeName.t * Scopelang.Ast.SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
+
+module LocationSet : Set.S with type elt = location Pos.marked
+
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
+    higher-order abstract syntax*)
+type expr =
+  | ELocation of location
+  | EVar of expr Bindlib.var Pos.marked
+  | EStruct of Scopelang.Ast.StructName.t * expr Pos.marked Scopelang.Ast.StructFieldMap.t
+  | EStructAccess of expr Pos.marked * Scopelang.Ast.StructFieldName.t * Scopelang.Ast.StructName.t
+  | EEnumInj of expr Pos.marked * Scopelang.Ast.EnumConstructor.t * Scopelang.Ast.EnumName.t
+  | EMatch of
+      expr Pos.marked
+      * Scopelang.Ast.EnumName.t
+      * expr Pos.marked Scopelang.Ast.EnumConstructorMap.t
+  | ELit of Dcalc.Ast.lit
+  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * Scopelang.Ast.typ Pos.marked list
+  | EApp of expr Pos.marked * expr Pos.marked list
+  | EOp of Dcalc.Ast.operator
+  | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
+  | EIfThenElse of expr Pos.marked * expr Pos.marked * expr Pos.marked
+  | EArray of expr Pos.marked list
+  | ErrorOnEmpty of expr Pos.marked
+
 type rule = {
   rule_id : RuleName.t;
-  rule_just : Scopelang.Ast.expr Pos.marked Bindlib.box;
-  rule_cons : Scopelang.Ast.expr Pos.marked Bindlib.box;
+  rule_just : expr Pos.marked Bindlib.box;
+  rule_cons : expr Pos.marked Bindlib.box;
   rule_parameter : (Scopelang.Ast.Var.t * Scopelang.Ast.typ Pos.marked) option;
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
@@ -85,8 +119,10 @@ type scope_def = {
   scope_def_label_groups : RuleSet.t LabelMap.t;
 }
 
+type var_or_states = WholeVar | States of StateName.t list
+
 type scope = {
-  scope_vars : Scopelang.Ast.ScopeVarSet.t;
+  scope_vars : var_or_states ScopeVarMap.t;
   scope_sub_scopes : Scopelang.Ast.ScopeName.t Scopelang.Ast.SubScopeMap.t;
   scope_uid : Scopelang.Ast.ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
@@ -101,5 +137,7 @@ type program = {
 }
 
 (** {1 Helpers} *)
+
+val locations_used : expr Pos.marked -> LocationSet.t
 
 val free_variables : rule RuleMap.t -> Pos.t ScopeDefMap.t

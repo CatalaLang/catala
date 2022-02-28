@@ -32,7 +32,7 @@ type scope_def_context = {
 }
 
 type scope_context = {
-  var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
+  var_idmap : Desugared.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;  (** Scope variables *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes_idmap : Scopelang.Ast.SubScopeName.t Desugared.Ast.IdentMap.t;
@@ -73,7 +73,7 @@ type context = {
   scopes : scope_context Scopelang.Ast.ScopeMap.t;  (** For each scope, its context *)
   structs : struct_context Scopelang.Ast.StructMap.t;  (** For each struct, its context *)
   enums : enum_context Scopelang.Ast.EnumMap.t;  (** For each enum, its context *)
-  var_typs : var_sig Scopelang.Ast.ScopeVarMap.t;
+  var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -94,18 +94,18 @@ let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
     (Pos.get_position ident)
 
 (** Gets the type associated to an uid *)
-let get_var_typ (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : typ Pos.marked =
-  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
+let get_var_typ (ctxt : context) (uid : Desugared.Ast.ScopeVar.t) : typ Pos.marked =
+  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_typ
 
-let is_var_cond (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : bool =
-  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
+let is_var_cond (ctxt : context) (uid : Desugared.Ast.ScopeVar.t) : bool =
+  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_is_condition
 
-let get_var_io (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : Ast.scope_decl_context_io =
-  (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
+let get_var_io (ctxt : context) (uid : Desugared.Ast.ScopeVar.t) : Ast.scope_decl_context_io =
+  (Desugared.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
-    ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
+    ((x, pos) : ident Pos.marked) : Desugared.Ast.ScopeVar.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
   | None ->
@@ -128,11 +128,11 @@ let is_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y 
   Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
-let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
+let belongs_to (ctxt : context) (uid : Desugared.Ast.ScopeVar.t)
     (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.exists
-    (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
+    (fun _ var_uid -> Desugared.Ast.ScopeVar.compare uid var_uid = 0)
     scope.var_idmap
 
 (** Retrieves the type of a scope definition from the context *)
@@ -141,7 +141,7 @@ let get_def_typ (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : typ Pos.mark
   | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
      the original subscope *)
-  | Desugared.Ast.ScopeDef.Var x ->
+  | Desugared.Ast.ScopeDef.Var (x, _) ->
       get_var_typ ctxt x
 
 let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
@@ -149,7 +149,7 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   | Desugared.Ast.ScopeDef.SubScopeVar (_, x)
   (* we don't need to look at the subscope prefix because [x] is already the uid referring back to
      the original subscope *)
-  | Desugared.Ast.ScopeDef.Var x ->
+  | Desugared.Ast.ScopeDef.Var (x, _) ->
       is_var_cond ctxt x
 
 let label_groups (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t)
@@ -256,11 +256,11 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
            (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
            name)
         [
-          (Some "first use", Pos.get_position (Scopelang.Ast.ScopeVar.get_info use));
+          (Some "first use", Pos.get_position (Desugared.Ast.ScopeVar.get_info use));
           (Some "second use", pos);
         ]
   | None ->
-      let uid = Scopelang.Ast.ScopeVar.fresh (name, pos) in
+      let uid = Desugared.Ast.ScopeVar.fresh (name, pos) in
       let scope_ctxt =
         { scope_ctxt with var_idmap = Desugared.Ast.IdentMap.add name uid scope_ctxt.var_idmap }
       in
@@ -277,7 +277,7 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
         var_typs =
-          Scopelang.Ast.ScopeVarMap.add uid
+          Desugared.Ast.ScopeVarMap.add uid
             {
               var_sig_typ = data_typ;
               var_sig_is_condition = is_cond;
@@ -471,13 +471,20 @@ let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
 
 (** {1 Scope uses pass} *)
 
-let get_def_key (name : Ast.qident) (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
-    (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
+let get_def_key (name : Ast.qident) (state : Ast.ident Pos.marked option)
+    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (default_pos : Pos.t) :
+    Desugared.Ast.ScopeDef.t =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match name with
   | [ x ] ->
       let x_uid = get_var_uid scope_uid ctxt x in
-      Desugared.Ast.ScopeDef.Var x_uid
+      Desugared.Ast.ScopeDef.Var
+        ( x_uid,
+          Option.map
+            (fun state ->
+              let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
+              Desugared.Ast.IdentMap.find (Pos.unmark state) var_sig.var_sig_states_idmap)
+            state )
   | [ y; x ] ->
       let subscope_uid : Scopelang.Ast.SubScopeName.t = get_subscope_uid scope_uid ctxt y in
       let subscope_real_uid : Scopelang.Ast.ScopeName.t =
@@ -496,7 +503,7 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
       Scopelang.Ast.ScopeMap.update s_name
         (fun (s_ctxt : scope_context option) ->
           let def_key =
-            get_def_key (Pos.unmark d.definition_name) s_name ctxt
+            get_def_key (Pos.unmark d.definition_name) d.definition_state s_name ctxt
               (Pos.get_position d.definition_expr)
           in
           match s_ctxt with
@@ -640,7 +647,7 @@ let form_context (prgm : Ast.program) : context =
       local_var_idmap = Desugared.Ast.IdentMap.empty;
       scope_idmap = Desugared.Ast.IdentMap.empty;
       scopes = Scopelang.Ast.ScopeMap.empty;
-      var_typs = Scopelang.Ast.ScopeVarMap.empty;
+      var_typs = Desugared.Ast.ScopeVarMap.empty;
       structs = Scopelang.Ast.StructMap.empty;
       struct_idmap = Desugared.Ast.IdentMap.empty;
       field_idmap = Desugared.Ast.IdentMap.empty;
