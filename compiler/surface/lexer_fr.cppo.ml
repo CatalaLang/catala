@@ -53,6 +53,8 @@
 #define MS_FILLED "rempli"
 #define MS_DEFINITION "définition"
 #define MR_DEFINITION "d", 0xE9, "finition"
+#define MS_STATE "état"
+#define MR_STATE 0xE9, "tat"
 #define MS_LABEL "étiquette"
 #define MR_LABEL 0xE9, "tiquette"
 #define MS_EXCEPTION "exception"

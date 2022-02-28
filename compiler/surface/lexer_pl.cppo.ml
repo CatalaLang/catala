@@ -43,6 +43,7 @@
 #define MS_SUM "suma"
 #define MS_FILLED "spelnione"
 #define MS_DEFINITION "definicja"
+#define MS_STATE "stan"
 #define MS_LABEL "etykieta"
 #define MS_EXCEPTION "wyjątek"
 #define MR_EXCEPTION "wyj", 0x0105, "tek"

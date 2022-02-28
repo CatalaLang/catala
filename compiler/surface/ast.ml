@@ -327,6 +327,7 @@ type rule = {
   rule_name : qident Pos.marked;
   rule_id : Desugared.Ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Pos.marked;
+  rule_state : ident Pos.marked option;
 }
 [@@deriving
   visitors
@@ -350,6 +351,7 @@ type definition = {
   definition_condition : expression Pos.marked option;
   definition_id : Desugared.Ast.RuleName.t; [@opaque]
   definition_expr : expression Pos.marked;
+  definition_state : ident Pos.marked option;
 }
 [@@deriving
   visitors
@@ -480,6 +482,7 @@ type scope_decl_context_data = {
   scope_decl_context_item_name : ident Pos.marked;
   scope_decl_context_item_typ : typ Pos.marked;
   scope_decl_context_item_attribute : scope_decl_context_io;
+  scope_decl_context_item_states : ident Pos.marked list;
 }
 [@@deriving
   visitors
@@ -609,4 +612,5 @@ let rule_to_def (rule : rule) : definition =
     definition_condition = rule.rule_condition;
     definition_id = rule.rule_id;
     definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
+    definition_state = rule.rule_state;
   }

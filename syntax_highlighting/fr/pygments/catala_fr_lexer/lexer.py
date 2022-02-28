@@ -30,7 +30,7 @@ class CatalaFrLexer(RegexLexer):
              bygroups(Keyword.Declaration, Text, Keyword.Declaration, Text, Name.Variable)),
             (u'\\b(selon|sous\\s+forme|fix\xe9|par|d\xe9croissante|croissante|varie|avec|on\\s+a|dans|tel\\s+que|existe|pour|tout|de|si|alors|sinon|initial)\\b',
              bygroups(Keyword.Reserved)),
-            (u'\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|d\xe9pend\\s+de|d\xe9claration|inclus|collection|contenu|optionnel|structure|\xe9num\xe9ration|contexte|entr\xe9e|sortie|interne|r\xe8gle|sous\\s+condition|condition|donn\xe9e|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition|\xe9tiquette|exception|n\'importe\\s+quel)\\b',
+            (u'\\b(champ\\s+d\'application|si\\s+et\\s+seulement\\s+si|d\xe9pend\\s+de|d\xe9claration|inclus|collection|contenu|optionnel|structure|\xe9num\xe9ration|contexte|entr\xe9e|sortie|interne|r\xe8gle|sous\\s+condition|condition|donn\xe9e|cons\xe9quence|rempli|\xe9gal\\s+\xe0|assertion|d\xe9finition|\xe9tat|\xe9tiquette|exception|n\'importe\\s+quel)\\b',
              bygroups(Keyword.Declaration)),
             (u'(\\|[0-9]+\\-[0-9]+\\-[0-9]+\\|)', bygroups(Number.Integer)),
             (u'\\b(vrai|faux)\\b', bygroups(Keyword.Constant)),
