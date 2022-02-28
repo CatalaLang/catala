@@ -52,6 +52,8 @@ type var_sig = {
   var_sig_typ : typ Pos.marked;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
+  var_sig_states_idmap : Desugared.Ast.StateName.t Desugared.Ast.IdentMap.t;
+  var_sig_states_list : Desugared.Ast.StateName.t list;
 }
 
 type context = {
@@ -262,6 +264,15 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
       let scope_ctxt =
         { scope_ctxt with var_idmap = Desugared.Ast.IdentMap.add name uid scope_ctxt.var_idmap }
       in
+      let states_idmap, states_list =
+        List.fold_right
+          (fun state_id (states_idmap, states_list) ->
+            let state_uid = Desugared.Ast.StateName.fresh state_id in
+            ( Desugared.Ast.IdentMap.add (Pos.unmark state_id) state_uid states_idmap,
+              state_uid :: states_list ))
+          decl.scope_decl_context_item_states
+          (Desugared.Ast.IdentMap.empty, [])
+      in
       {
         ctxt with
         scopes = Scopelang.Ast.ScopeMap.add scope scope_ctxt ctxt.scopes;
@@ -271,6 +282,8 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
               var_sig_typ = data_typ;
               var_sig_is_condition = is_cond;
               var_sig_io = decl.scope_decl_context_item_attribute;
+              var_sig_states_idmap = states_idmap;
+              var_sig_states_list = states_list;
             }
             ctxt.var_typs;
       }

@@ -52,6 +52,8 @@ type var_sig = {
   var_sig_typ : typ Pos.marked;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
+  var_sig_states_idmap : Desugared.Ast.StateName.t Desugared.Ast.IdentMap.t;
+  var_sig_states_list : Desugared.Ast.StateName.t list;
 }
 
 type context = {

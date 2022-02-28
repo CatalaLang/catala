@@ -32,6 +32,8 @@ module LabelMap : Map.S with type key = LabelName.t
 
 module LabelSet : Set.S with type elt = LabelName.t
 
+module StateName : Uid.Id with type info = Uid.MarkedString.info
+
 (** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
 module ScopeDef : sig
   type t =
