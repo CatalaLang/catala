@@ -20,46 +20,107 @@ open Utils
 
 type target_scope_vars =
   | WholeVar of Scopelang.Ast.ScopeVar.t
-  | States of (Desugared.Ast.StateName.t * Scopelang.Ast.ScopeVar.t) list
+  | States of (Ast.StateName.t * Scopelang.Ast.ScopeVar.t) list
 
 type ctx = {
-  scope_var_mapping : target_scope_vars Desugared.Ast.ScopeVarMap.t;
-  var_mapping : Scopelang.Ast.Var.t Desugared.Ast.VarMap.t;
+  scope_var_mapping : target_scope_vars Ast.ScopeVarMap.t;
+  var_mapping : Scopelang.Ast.Var.t Ast.VarMap.t;
 }
 
-let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr Pos.marked) :
-    Scopelang.Ast.expr Pos.marked =
-  Pos.map_under_mark
-    (fun e ->
-      match e with
-      | Desugared.Ast.ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
-          (* When referring to a subscope variable in an expression, we are referring to the output,
-             hence we take the last state. *)
-          let new_s_var =
-            match Desugared.Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
-            | WholeVar new_s_var -> Pos.same_pos_as new_s_var s_var
-            | States states -> Pos.same_pos_as (snd (List.hd (List.rev states))) s_var
-          in
-          Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var))
-      | Desugared.Ast.ELocation (ScopeVar (s_var, None)) ->
-          Scopelang.Ast.ELocation
+let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
+    Scopelang.Ast.expr Pos.marked Bindlib.box =
+  match Pos.unmark e with
+  | Ast.ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
+      (* When referring to a subscope variable in an expression, we are referring to the output,
+         hence we take the last state. *)
+      let new_s_var =
+        match Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
+        | WholeVar new_s_var -> Pos.same_pos_as new_s_var s_var
+        | States states -> Pos.same_pos_as (snd (List.hd (List.rev states))) s_var
+      in
+      Bindlib.box
+        (Scopelang.Ast.ELocation (SubScopeVar (s_name, ss_name, new_s_var)), Pos.get_position e)
+  | Ast.ELocation (ScopeVar (s_var, None)) ->
+      Bindlib.box
+        ( Scopelang.Ast.ELocation
             (ScopeVar
-               (match Desugared.Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
+               (match Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
                | WholeVar new_s_var -> Pos.same_pos_as new_s_var s_var
-               | States _ -> failwith "should not happen"))
-      | Desugared.Ast.ELocation (ScopeVar (s_var, Some state)) ->
-          Scopelang.Ast.ELocation
+               | States _ -> failwith "should not happen")),
+          Pos.get_position e )
+  | Ast.ELocation (ScopeVar (s_var, Some state)) ->
+      Bindlib.box
+        ( Scopelang.Ast.ELocation
             (ScopeVar
-               (match Desugared.Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
+               (match Ast.ScopeVarMap.find (Pos.unmark s_var) ctx.scope_var_mapping with
                | WholeVar _ -> failwith "should not happen"
-               | States states -> Pos.same_pos_as (List.assoc state states) s_var))
-      | Desugared.Ast.EVar v ->
-          Scopelang.Ast.EVar
-            (Pos.same_pos_as (Desugared.Ast.VarMap.find (Pos.unmark v) ctx.var_mapping) v)
-      | EStruct (s_name, fields) ->
-          EStruct (s_name, Scopelang.Ast.StructFieldMap.map (translate_expr ctx) fields)
-      | _ -> assert false)
-    e
+               | States states -> Pos.same_pos_as (List.assoc state states) s_var)),
+          Pos.get_position e )
+  | Ast.EVar v ->
+      Bindlib.box_apply
+        (fun v -> Pos.same_pos_as v e)
+        (Bindlib.box_var (Ast.VarMap.find (Pos.unmark v) ctx.var_mapping))
+  | EStruct (s_name, fields) ->
+      Bindlib.box_apply
+        (fun new_fields -> (Scopelang.Ast.EStruct (s_name, new_fields), Pos.get_position e))
+        (Scopelang.Ast.StructFieldMapLift.lift_box
+           (Scopelang.Ast.StructFieldMap.map (translate_expr ctx) fields))
+  | EStructAccess (e1, s_name, f_name) ->
+      Bindlib.box_apply
+        (fun new_e1 -> (Scopelang.Ast.EStructAccess (new_e1, s_name, f_name), Pos.get_position e))
+        (translate_expr ctx e1)
+  | EEnumInj (e1, cons, e_name) ->
+      Bindlib.box_apply
+        (fun new_e1 -> (Scopelang.Ast.EEnumInj (new_e1, cons, e_name), Pos.get_position e))
+        (translate_expr ctx e1)
+  | EMatch (e1, e_name, arms) ->
+      Bindlib.box_apply2
+        (fun new_e1 new_arms ->
+          (Scopelang.Ast.EMatch (new_e1, e_name, new_arms), Pos.get_position e))
+        (translate_expr ctx e1)
+        (Scopelang.Ast.EnumConstructorMapLift.lift_box
+           (Scopelang.Ast.EnumConstructorMap.map (translate_expr ctx) arms))
+  | ELit l -> Bindlib.box (Scopelang.Ast.ELit l, Pos.get_position e)
+  | EAbs ((binder, binder_pos), typs) ->
+      let vars, body = Bindlib.unmbind binder in
+      let new_vars =
+        Array.map (fun var -> Scopelang.Ast.Var.make (Bindlib.name_of var, binder_pos)) vars
+      in
+      let ctx =
+        List.fold_left2
+          (fun ctx var new_var ->
+            { ctx with var_mapping = Ast.VarMap.add var new_var ctx.var_mapping })
+          ctx (Array.to_list vars) (Array.to_list new_vars)
+      in
+      Bindlib.box_apply
+        (fun new_binder ->
+          (Scopelang.Ast.EAbs ((new_binder, binder_pos), typs), Pos.get_position e))
+        (Bindlib.bind_mvar new_vars (translate_expr ctx body))
+  | EApp (e1, args) ->
+      Bindlib.box_apply2
+        (fun new_e1 new_args -> (Scopelang.Ast.EApp (new_e1, new_args), Pos.get_position e))
+        (translate_expr ctx e1)
+        (Bindlib.box_list (List.map (translate_expr ctx) args))
+  | EOp op -> Bindlib.box (Scopelang.Ast.EOp op, Pos.get_position e)
+  | EDefault (excepts, just, cons) ->
+      Bindlib.box_apply3
+        (fun new_excepts new_just new_cons ->
+          (Scopelang.Ast.EDefault (new_excepts, new_just, new_cons), Pos.get_position e))
+        (Bindlib.box_list (List.map (translate_expr ctx) excepts))
+        (translate_expr ctx just) (translate_expr ctx cons)
+  | EIfThenElse (e1, e2, e3) ->
+      Bindlib.box_apply3
+        (fun new_e1 new_e2 new_e3 ->
+          (Scopelang.Ast.EIfThenElse (new_e1, new_e2, new_e3), Pos.get_position e))
+        (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
+  | EArray args ->
+      Bindlib.box_apply
+        (fun new_args -> (Scopelang.Ast.EArray new_args, Pos.get_position e))
+        (Bindlib.box_list (List.map (translate_expr ctx) args))
+  | ErrorOnEmpty e1 ->
+      Bindlib.box_apply
+        (fun new_e1 -> (Scopelang.Ast.ErrorOnEmpty new_e1, Pos.get_position e))
+        (translate_expr ctx e1)
 
 (** {1 Rule tree construction} *)
 
