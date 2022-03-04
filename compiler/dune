@@ -2,6 +2,7 @@
  (name driver)
  (public_name catala.driver)
  (libraries
+  dynlink
   utils
   surface
   desugared
@@ -11,7 +12,7 @@
   scalc
   runtime
   verification)
- (modules driver))
+ (modules plugin driver))
 
 (library
  (name runtime)

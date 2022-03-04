@@ -68,7 +68,7 @@ let raise_failed_pandoc (command : string) (error_code : int) : 'a =
     "Weaving failed: pandoc command \"%s\" returned with error code %d" command
     error_code
 
-let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
+let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
   let pandoc = "pandoc" in
   let tmp_file_in = Filename.temp_file "catala_pandoc" "in" in
   let tmp_file_out = Filename.temp_file "catala_pandoc" "out" in
@@ -80,10 +80,7 @@ let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
       "-f";
       "markdown+multiline_tables";
       "-t";
-      (match backend with
-      | Cli.Html -> "html"
-      | Cli.Latex -> "latex"
-      | _ -> failwith "should not happen");
+      (match backend with `Html -> "html" | `Latex -> "latex");
       "-o";
       tmp_file_out;
     |]
