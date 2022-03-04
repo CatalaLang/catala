@@ -1120,7 +1120,6 @@ modification, avant cette échéance, des modalités de résidence de l'enfant.
 
 ####### Article R823-4 | LEGIARTI000038878933
 
-
 Sont considérés comme personnes à charge, sous réserve qu'ils vivent
 habituellement au foyer :
 
@@ -1199,4 +1198,339 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
         parent.incapacité_80_pourcent_ou_restriction_emploi et
         parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25
   conséquence rempli
+```
+
+####### Article R823-5 | LEGIARTI000038878931
+
+Pour l'application de l'article L. 823-2, en cas de résidence alternée, les 
+modalités de prise en compte de l'enfant à charge pour le calcul de l'aide 
+ne peuvent être remises en cause par les parents qu'au bout d'un an, sauf 
+modification, avant cette échéance, des modalités de résidence de l'enfant.
+
+```catala
+# Cet article exprime un délai durant lequel le calcul de l'aide, dans le cadre
+# d'une résidence alternée, ne peut être remis en cause. Il pose également une
+# exception : la modification des modalités de résidence de l'enfant avant échéance.
+```
+
+####### Article R823-6 | LEGIARTI000041419232
+
+Le montant mensuel de l'aide personnelle au logement est calculé pour une 
+période de trois mois à compter de la date à laquelle les conditions 
+d'ouverture du droit à cette aide sont réunies, sous réserve des cas prévus 
+aux articles R. 822-7 à R. 822-17, R. 823-7, R. 823-10 à R. 823-14 ainsi 
+que, le cas échéant, R. 832-9.
+
+Il est calculé sur la base du loyer effectivement payé pour le mois de 
+juillet de l'année précédente ou, en cas d'accession à la propriété, sur 
+la base de la mensualité acquittée au titre des charges.
+
+Le droit à l'aide personnelle au logement et son montant mensuel sont 
+réexaminés tous les trois mois sous réserve des cas prévus au premier 
+alinéa, y compris, pendant une période qui ne peut dépasser neuf mois 
+consécutifs, à la suite d'un réexamen aboutissant à un versement nul ou 
+inférieur au seuil de versement, sans qu'il soit nécessaire à l'allocataire 
+de déposer une nouvelle demande d'aide.
+
+A l'expiration du délai de neuf mois, une nouvelle demande d'aide doit être 
+déposée pour qu'il soit procédé à un nouvel examen du droit et que l'aide 
+puisse être à nouveau versée.
+
+```catala
+# Les délais d'examen des demandes définis dans cet article ne sont pas 
+# nécessairement pertinents à formaliser pour le moment. 
+# En revanche, l'alinéa 2 qui définit une base de calcul fixe pour deux cas:
+# le loyer du mois de juillet de l'année précédente pour la location et la 
+# mensualité acquittée au titre des charges pour la propriété peut être
+# intéressant à traiter (peut-être complexité au niveau du renvoi à un mois
+# et non pas une date précise au niveau du calcul de jours ?). 
+```
+
+NOTA:
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret 
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret n° 
+2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions 
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au 
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du 
+code de la construction et de l'habitation, d'autre part, aux autres aides 
+personnelles au logement prévues par le même code, à compter des mois 
+respectifs fixés par arrêté des ministres en charge du logement, de la santé 
+et du budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, 
+l'article 25 du décret n° 2019-1574 du 30 décembre 2019 a été modifié : 
+Ces dispositions sont applicables au calcul des droits à l’aide personnelle 
+au logement à compter du mois de janvier 2021 ou, pour le calcul des droits
+à l’aide personnalisée au logement prévue pour les accédants à la propriété 
+par l’article L. 831-1 du code de la construction et de l’habitation, 
+à compter du mois de mai 2021.
+
+####### Article R823-6-1 | LEGIARTI000042932258
+
+Lorsqu'au moment du réexamen trimestriel du droit à l'aide personnelle au 
+logement il est constaté que le bénéficiaire perçoit également le revenu 
+de solidarité active défini à l'article L. 262-2 du code de l'action sociale 
+et des familles, ou la prime d'activité définie à l'article L. 841-1 du code 
+de la sécurité sociale ou l'allocation aux adultes handicapés définie à 
+l'article L. 821-1 du même code, l'échéance trimestrielle de son droit à l'aide
+personnelle au logement est avancée pour coïncider avec le prochain réexamen 
+trimestriel de celle de ces aides dont il bénéficie.
+
+La réduction de la durée de la période mentionnée au premier alinéa s'applique 
+également lorsque le conjoint du bénéficiaire ou tout autre membre du foyer a 
+droit à une prestation attribuée sous une condition de ressources calculée 
+trimestriellement.
+
+Cet alignement de la période de droit à l'aide s'effectue par ordre de priorité 
+sur le revenu de solidarité active, la prime d'activité et l'allocation aux 
+adultes handicapés.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+NOTA :
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret 
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret 
+n° 2020-451 du 20 avril 2020 l'article susvisé a été modifié : Ces dispositions 
+sont applicables au calcul des droits, d'une part, à l'aide personnalisée au 
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du 
+code de la construction et de l'habitation, d'autre part, aux autres aides 
+personnelles au logement prévues par le même code, à compter des mois respectifs 
+fixéspar arrêté des ministres en charge du logement, de la santé et du budget et,
+au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25 
+du décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions sont 
+applicables au calcul des droits à l’aide personnelle au logement à compter du 
+mois de janvier 2021 ou, pour le calcul des droits à l’aide personnalisée au 
+logement prévue pour les accédants à la propriété par l’article L. 831-1 du
+code de la construction et de l’habitation, à compter du mois de mai 2021.
+
+####### Article R823-7 | LEGIARTI000038878927
+
+Lorsque le bénéficiaire s'installe dans un nouveau logement au cours de la 
+période de paiement, le montant de l'aide personnelle au logement est révisé
+sur la base du loyer principal effectivement payé pour le premier mois de 
+location du nouveau logement.
+
+Indépendamment de tout changement de logement, le montant de l'aide personnalisée 
+au logement est révisé en cours de période de paiement, lorsqu'en application 
+d'un avenant à la convention, un nouveau loyer est notifié au bénéficiaire.
+
+```catala
+# Il peut être intéressant de définir comment, en cas de loyer différent 
+# (dû à un déménagement ou à un changement de prix), le calcul évolue. 
+```
+
+####### Article R823-8 | LEGIARTI000038878925
+
+Les aides personnelles au logement sont versées mensuellement à terme échu, 
+dans les conditions définies par les conventions mentionnées à l'article L. 812-2.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article D823-9 | LEGIARTI000038878923
+
+Les modalités de liquidation et de versement des aides personnelles au 
+logement sont fixées :
+
+1° Pour les ménages occupant un logement dont ils sont locataires ou 
+sous-locataires, y compris un logement dans une résidence universitaire 
+définie à l'article L. 631-12 et dans une résidence-service définie à 
+l'article L. 631-13, par les règles communes figurant aux articles 
+D. 823-16 à D. 823-19, et, en outre, pour les allocations de logement, 
+par les règles particulières figurant aux articles D. 842-1 à D. 842-4 ;
+
+2° Pour les ménages résidant dans un logement-foyer défini à l'article
+L. 633-1 et conventionné en application du 5° de l'article L. 831-1, par 
+les règles figurant aux articles R. 832-20 à R. 832-23 et D. 832-24 à 
+D. 832-28 ;
+
+3° Pour les ménages résidant dans un logement-foyer défini à l'article 
+L. 633-1 autre que celui mentionné au 2° du présent article et dans les 
+chambres des résidences gérées par les centres régionaux des œuvres 
+universitaires et scolaires mentionnées au 1° de l'article R. 822-29 du 
+code de l'éducation, assimilées, au sens et pour l'application du titre 
+IV du présent livre, à des logements-foyers, par les règles figurant 
+aux articles R. 842-14 et D. 842-15 à D. 842-18 du présent code ;
+
+4° Pour les ménages propriétaires occupant un logement relevant du 1° 
+de l'article L. 831-1 et les occupants titulaires de contrats de 
+location-accession relevant du 6° du même article, par les règles 
+figurant aux articles R. 832-5 à R. 832-9 et D. 832-10 à D. 832-19 ;
+
+5° Pour les autres ménages occupant un logement dont ils sont 
+propriétaires, ou pour lequel ils sont titulaires d'un contrat de 
+location-accession, par les règles figurant aux articles R. 842-5 
+et D. 842-6 à D. 842-13.
+
+```catala
+# Renvoi aux différents modes d'occupation définis dans le prologue. 
+```
+
+####### Article R823-10 | LEGIARTI000038878919
+
+Les aides personnelles au logement sont dues à compter du premier 
+jour du mois civil suivant celui au cours duquel les conditions
+d'ouverture du droit sont réunies.
+
+Toutefois, lorsque ces conditions sont réunies antérieurement au 
+mois de la demande, l'aide est due à compter du premier jour du 
+mois au cours duquel la demande est déposée.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article R823-11 | LEGIARTI000038878917
+
+Par dérogation à l'article R. 823-10, l'aide est due à compter du premier 
+jour du mois civil au cours duquel les conditions d'ouverture du droit 
+sont réunies :
+
+1° Aux personnes qui, hébergées par un organisme logeant à titre temporaire 
+des personnes défavorisées ou par une association agréée en application de 
+l'article L. 121-9 du code de l'action sociale et des familles et bénéficiant
+de l'aide mentionnée à l'article L. 851-1 du code de la sécurité sociale, 
+accèdent à un logement ouvrant droit à l'une des aides personnelles au logement ;
+
+2° Aux personnes dont le logement a fait l'objet d'un arrêté d'insalubrité 
+ou de péril lorsque, dans les conditions définies au I de l'article L. 521-2 
+du présent code, elles reprennent le paiement du loyer ou de toute autre somme 
+versée en contrepartie de l'occupation de ce logement ou lorsqu'elles sont relogées.
+
+```catala
+# Pas pertinent pour le moment.
+# Mais d'autres modes d'occupation peuvent peut-être être ajoutés?
+```
+
+####### Article R823-12 | LEGIARTI000038878915
+
+Les aides personnelles au logement cessent d'être dues à partir du premier 
+jour du mois civil au cours duquel les conditions d'ouverture du droit 
+cessent d'être réunies.
+
+Par dérogation à l'alinéa précédent, le droit aux aides personnelles au 
+logement est éteint à partir du premier jour du mois civil suivant celui 
+au cours duquel survient le décès du bénéficiaire.
+
+```catala
+# Cet article traite de l'extinction du droit à cette aide, ce n'est pas 
+# pertinent pour le moment.
+```
+
+####### Article R823-13 | LEGIARTI000038878913
+
+Tout changement de nature à modifier les droits aux aides personnelles au 
+logement, en particulier tout changement de la composition familiale, prend 
+effet et cesse de produire ses effets selon les règles prévues pour 
+l'ouverture et pour l'extinction des droits définies, respectivement, 
+au premier alinéa de l'article R. 823-10 et au premier alinéa de l'article 
+R. 823-12, sauf en cas de décès du conjoint du bénéficiaire ou d'une personne 
+à charge, où le changement prend effet le premier jour du mois civil suivant 
+celui au cours duquel survient le décès.
+
+Lorsqu'une séparation, telle que mentionnée à l'article R. 821-3, intervient 
+en cours de période de paiement, le droit à l'aide du bénéficiaire est 
+réexaminé en fonction de la nouvelle situation et la révision du droit prend 
+effet le premier jour du mois civil suivant celui au cours duquel la séparation 
+a eu lieu.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article R823-14 | LEGIARTI000038878911
+
+Les dispositions des articles R. 823-10 et R. 823-12 ne peuvent avoir pour effet 
+d'interrompre le droit aux aides personnelles au logement.
+
+Par dérogation aux dispositions des articles R. 831-2, R. 832-6 et R. 832-8, 
+en cas de déménagement, de conclusion ou de résiliation des conventions mentionnées 
+à l'article L. 831-1, le droit aux aides personnelles au logement :
+
+1° Est ouvert à compter du premier jour du mois civil au cours duquel les conditions 
+d'ouverture du droit sont réunies ;
+
+2° S'éteint le dernier jour du mois civil au cours duquel ces conditions cessent 
+d'être réunies.
+
+```catala
+# Cet article met en place des délais qu'il n'est pas nécessaire de codifier pour
+# le moment. 
+```
+
+####### Article D823-15 | LEGIARTI000038878909
+
+Le signalement par le bailleur du déménagement du bénéficiaire et de la résiliation 
+de son bail a lieu dans un délai d'un mois à compter de la date de déménagement 
+ou de la résiliation du bail.
+
+Ce délai peut être prolongé d'un mois supplémentaire si le bailleur apporte la
+preuve qu'il n'était manifestement pas en mesure de signaler ces évènements dans 
+le délai d'un mois.
+
+Le signalement par le prêteur du remboursement anticipé du prêt a lieu dans un délai 
+d'un mois à compter de la date de remboursement du solde du prêt.
+
+```catala
+# Cet article n'appelle pas nécessairement à codification mais il présente une petite
+# difficulté : les informations dont il est question et qui peuvent potentiellement
+# être appréhendées comme des variables à l'entrée dans le cadre du calcul ne sont pas
+# renseignées par l'allocataire mais par son bailleur ou prêteur. 
+```
+
+####### Article D823-16 | LEGIARTI000038878905
+
+Pour les ménages mentionnés au 1° de l'article D. 823-9, le montant mensuel de l'aide 
+est calculé selon la formule suivante :
+
+" Af = L + C-Pp "
+
+où :
+
+1° " Af " est l'aide mensuelle résultant de la formule de calcul ;
+
+2° " L " est le loyer éligible, correspondant au loyer principal pris en compte dans 
+la limite d'un plafond fixé par arrêté en fonction de la zone géographique et, sauf 
+dans le cas où le logement occupé est une chambre, de la composition familiale ;
+
+3° " C " est le montant forfaitaire au titre des charges, fixé par arrêté en fonction
+de la composition familiale ;
+
+4° " Pp " est la participation personnelle du ménage calculée selon les dispositions 
+de l'article D. 823-17.
+
+Le montant ainsi calculé est diminué lorsque le loyer principal dépasse un plafond 
+de dégressivité. Il décroît proportionnellement au dépassement de ce plafond, de telle 
+sorte qu'il soit nul lorsqu'il atteint un plafond de suppression. Le montant de ces 
+plafonds est obtenu par l'application de coefficients multiplicateurs, fixés par 
+arrêté en fonction de la zone géographique, au montant du plafond de loyer mentionné 
+au 2°. Le plafond de dégressivité ne peut être inférieur à ce plafond de loyer
+multiplié par 2,5. Toutefois, cette diminution ne s'applique pas lorsque le demandeur 
+ou son conjoint est bénéficiaire de l'allocation aux adultes handicapés prévue à 
+l'article L. 821-1 du code de la sécurité sociale ou de l'allocation d'éducation de 
+l'enfant handicapé prévue à l'article L. 541-1 du même code.
+
+Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arrêté.
+
+Le montant qui en résulte est diminué d'un montant représentatif des contributions 
+sociales qui s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant 
+représentatif.
+
+Pour les locataires qui bénéficient de la réduction de loyer de solidarité en application 
+de l'article L. 442-2-1, ce résultat est réduit d'un montant égal à 98 % de la réduction 
+de loyer de solidarité.
+
+Lorsque ce dernier résultat, calculé selon les dispositions précédentes, est inférieur à 
+un montant fixé par arrêté, selon celle des trois aides dont le ménage bénéficie, il 
+n'est pas procédé à son versement.
+
+```catala
+# Cet article est très important car il exprime la formule pour le calcul de l'aide!!
 ```
