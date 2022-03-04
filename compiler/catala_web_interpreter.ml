@@ -8,9 +8,19 @@ let _ =
            (language : Js.js_string Js.t) (trace : bool) =
          driver
            (Contents (Js.to_string contents))
-           false false false false "Interpret"
-           (Some (Js.to_string language))
-           None trace false false
-           (Some (Js.to_string scope))
-           None
+           {
+             Utils.Cli.debug = false;
+             unstyled = false;
+             wrap_weaved_output = false;
+             avoid_exceptions = false;
+             backend = "Interpret";
+             plugins_dirs = [];
+             language = Some (Js.to_string language);
+             max_prec_digits = None;
+             trace = false;
+             disable_counterexamples = false;
+             optimize = false;
+             ex_scope = Some (Js.to_string scope);
+             output_file = None;
+           }
     end)
