@@ -61,6 +61,11 @@ doc:
 install:
 	dune build @install
 
+#> demo plugins
+plugins:
+	dune build compiler/plugins/
+	@echo "define CATALA_PLUGINS=_build/default/compiler/plugins to test the plugins"
+
 ##########################################
 # Rules related to promoted files
 ##########################################
@@ -306,6 +311,7 @@ website-assets: doc js_build literate_examples grammar.html catala.html build_fr
 all: \
 	build js_build doc website-assets\
 	tests \
+	plugins \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
 	tests_ocaml bench_ocaml \
 	build_french_law_library_js \
@@ -340,4 +346,4 @@ help_catala:
 ##########################################
 .PHONY: inspect clean all literate_examples english allocations_familiales pygments \
 	install build_dev build doc format dependencies dependencies-ocaml \
-	catala.html help parser-messages
+	catala.html help parser-messages plugins
