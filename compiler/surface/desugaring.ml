@@ -1171,20 +1171,44 @@ let desugar_program (ctxt : Name_resolution.context) (prgm : Ast.program) : Desu
                              }
                              acc
                        | states ->
-                           List.fold_left
-                             (fun acc state ->
-                               let def_key = Desugared.Ast.ScopeDef.Var (v, Some state) in
-                               Desugared.Ast.ScopeDefMap.add def_key
-                                 {
-                                   Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
-                                   Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
-                                   Desugared.Ast.scope_def_label_groups =
-                                     Name_resolution.label_groups ctxt s_uid def_key;
-                                   Desugared.Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
-                                   Desugared.Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
-                                 }
-                                 acc)
-                             acc states)
+                           fst
+                             (List.fold_left
+                                (fun (acc, i) state ->
+                                  let def_key = Desugared.Ast.ScopeDef.Var (v, Some state) in
+                                  ( Desugared.Ast.ScopeDefMap.add def_key
+                                      {
+                                        Desugared.Ast.scope_def_rules = Desugared.Ast.RuleMap.empty;
+                                        Desugared.Ast.scope_def_typ = v_sig.var_sig_typ;
+                                        Desugared.Ast.scope_def_label_groups =
+                                          Name_resolution.label_groups ctxt s_uid def_key;
+                                        Desugared.Ast.scope_def_is_condition =
+                                          v_sig.var_sig_is_condition;
+                                        Desugared.Ast.scope_def_io =
+                                          (* The first state should have the input I/O of the
+                                             original variable, and the last state should have the
+                                             output I/O of the original variable. All intermediate
+                                             states shall have "internal" I/O.*)
+                                          (let original_io = attribute_to_io v_sig.var_sig_io in
+                                           let io_input =
+                                             if i = 0 then original_io.io_input
+                                             else
+                                               ( Scopelang.Ast.NoInput,
+                                                 Pos.get_position
+                                                   (Desugared.Ast.StateName.get_info state) )
+                                           in
+                                           let io_output =
+                                             if i = List.length states - 1 then
+                                               original_io.io_output
+                                             else
+                                               ( false,
+                                                 Pos.get_position
+                                                   (Desugared.Ast.StateName.get_info state) )
+                                           in
+                                           { io_input; io_output });
+                                      }
+                                      acc,
+                                    i + 1 ))
+                                (acc, 0) states))
                      s_context.Name_resolution.var_idmap Desugared.Ast.ScopeDefMap.empty
                  in
                  let scope_and_subscope_vars_defs =
