@@ -253,7 +253,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                         | Some inside_def_state ->
                             if Desugared.Ast.StateName.compare inside_def_state (List.hd states) = 0
                             then
-                              failwith "cannot reference the variable when defining its first state"
+                              Errors.raise_spanned_error
+                                "It is impossible to refer to the variable you are defining when \
+                                 defining its first state."
+                                pos
                             else
                               (* Tricky: we have to retrieve in the list the previous state with
                                  respect to the state that we are defining. *)

@@ -1,0 +1,14 @@
+[ERROR] This identifier is not a state declared for variable foo.
+
+  --> tests/test_variable_state/bad/unknown_state.catala_en
+   |
+12 |   definition foo state basz equals foo + 1
+   |                        ^^^^
+   + Test
+
+Variable declaration:
+ --> tests/test_variable_state/bad/unknown_state.catala_en
+  |
+5 |   output foo content integer
+  |          ^^^
+  + Test

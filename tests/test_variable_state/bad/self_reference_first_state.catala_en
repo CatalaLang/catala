@@ -5,12 +5,9 @@ declaration scope A:
   output foo content integer
     state bar
     state baz
-    state fizz
 
 scope A:
-  definition foo state bar equals 1
+  definition foo state bar equals foo + 1
 
   definition foo state baz equals foo + 1
-
-  definition foo state fizz equals foo + 1
 ```

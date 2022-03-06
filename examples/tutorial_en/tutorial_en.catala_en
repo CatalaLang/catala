@@ -621,13 +621,13 @@ declaration scope WealthTax:
 scope WealthTax:
   definition wealth state total equals total_wealth
   definition wealth state after_charity_deductions equals
-    wealth - # Here, "wealth" refers to the state "total"
+    wealth -$ # Here, "wealth" refers to the state "total"
       value_of_buildings_used_for_charity
   definition wealth state after_capping equals
-    if wealth >= $2,500,000 then $2,500,000 else wealth
+    if wealth >=$ $2,500,000 then $2,500,000 else wealth
     # Here, "wealth" refers to the state "after_charity_decuctions"
 
-  assertion wealth > $0
+  assertion wealth >$ $0
   # Outside of the definition of "wealth", "wealth" always refer to the final
   # state of the variable, here "after_capping".
 
