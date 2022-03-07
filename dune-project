@@ -32,7 +32,7 @@
  (synopsis
   "Compiler and library for the literate programming language for tax code specification")
  (description
-  "Catala is a domain-specific language for deriving faithful-by-construction\nalgorithms from legislative texts. See https://catala-lang.org for more information\n")
+  "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information")
  (depends
   (ocaml
    (>= 4.11.0))
@@ -88,7 +88,7 @@
  (synopsis
   "A collection of algorithms and computations defined by French law")
  (description
-  "This library contains the implementations of algorithmic portions of French\n   law. The library source code was generated from Catala annotations of the\n   relevant portions of the French law, see https://catala-lang.org")
+  "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org")
  (depends
   (ocaml
    (>= 4.11.0))
@@ -100,9 +100,9 @@
  (name clerk)
  (authors "Emile Rolley" "Denis Merigoux")
  (synopsis
-  "Build system for Catala, a specification language for tax and social\n   benefits computation rules")
+  "Build system for Catala, a specification language for tax and social benefits computation rules")
  (description
-  "Clerk is a build system for Catala, a specification language for tax and social\n   benefits computation rules, see https://catala-lang.org")
+  "Clerk is a build system for Catala, a specification language for tax and social benefits computation rules, see https://catala-lang.org")
  (depends
   (ocaml
    (>= 4.11.0))
@@ -125,7 +125,7 @@
  (synopsis
   "A collection of utility functions used to generate Ninja build files")
  (description
-  "This library contains the implementations of utility functions used to\n   generate Ninja build files -- see https://ninja-build.org. It's currently\n   used by the Catala build system (see\n                                     https://github.com/CatalaLang/catala/tree/master/build_system)")
+  "This library contains the implementations of utility functions used to generate Ninja build files -- see https://ninja-build.org. It's currently used by the Catala build system (see https://github.com/CatalaLang/catala/tree/master/build_system)")
  (depends
   (ocaml
    (>= 4.11.0))
