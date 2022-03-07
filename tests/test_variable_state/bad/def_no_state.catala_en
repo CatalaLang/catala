@@ -1,0 +1,11 @@
+## Test
+
+```catala
+declaration scope A:
+  output foo content integer
+    state bar
+    state baz
+
+scope A:
+  definition foo equals 2
+```

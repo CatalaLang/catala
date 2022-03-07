@@ -13,7 +13,7 @@
 \newcommand{\li}[1]{\texttt{#1}}
 \begin{document}
 \begin{center}
-  2022-02-09
+  2022-02-28
   \hfill
   {\Huge\bfseries\sffamily
     Catala Syntax Cheat Sheet}
@@ -109,8 +109,8 @@
   \section*{Metadata declaration}
   \begin{tabular}{p{0.22\columnwidth}p{0.3\columnwidth}p{0.425\columnwidth}}
     \toprule
-    Feature                 & English syntax & French syntax \\\midrule
-    Structure declaration   &
+    Feature                       & English syntax & French syntax \\\midrule
+    Structure declaration         &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -120,7 +120,7 @@ declaration structure Foo:
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -131,7 +131,7 @@ déclaration structure Foo:
 \end{minted}
     \vspace*{-1.75em}
     \\
-    Enumeration declaration &
+    Enumeration declaration       &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -141,7 +141,7 @@ declaration enumeration Foo:
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -150,8 +150,8 @@ déclaration énumeration Foo:
   -- Baz
 ```
 \end{minted}
-    \vspace*{-1.75em}                                        \\
-    Scope declaration       &
+    \vspace*{-1.75em}                                              \\
+    Scope declaration             &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -162,7 +162,7 @@ declaration scope Foo:
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -172,8 +172,8 @@ déclaration champ d'application Foo:
   contexte fizz champ d'application Buzz
 ```
 \end{minted}
-    \vspace*{-1.75em}                                        \\
-    Input-output qualifiers &
+    \vspace*{-1.75em}                                              \\
+    Input-output qualifiers       &
     \vspace*{-1.75em}
     \begin{minted}{catala_en}
 ```catala
@@ -186,7 +186,7 @@ context output boz content ...
 ```
 \end{minted}
     \vspace*{-1.75em}
-                            &
+                                  &
     \vspace*{-1.75em}
     \begin{minted}{catala_fr}
 ```catala
@@ -198,7 +198,27 @@ contexte biz contenu ...
 contexte sortie boz contenu ...
 ```
 \end{minted}
-    \vspace*{-1.75em}                                        \\
+    \vspace*{-1.75em}                                              \\
+    State transitions declaration &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_en}
+```catala
+internal foo content ...
+  state bar
+  state buzz
+```
+\end{minted}
+    \vspace*{-1.75em}
+                                  &
+    \vspace*{-1.75em}
+    \begin{minted}{catala_fr}
+```catala
+interne foo contenu ...
+  état bar
+  état buzz
+```
+\end{minted}
+    \vspace*{-1.75em}                                              \\
     \bottomrule
   \end{tabular}
 
@@ -478,7 +498,7 @@ vrai    faux
 
   \section*{Scope use and related items}
   \begin{center}
-    \begin{tabular}{p{0.22\columnwidth}p{0.35\columnwidth}p{0.35\columnwidth}}
+    \begin{tabular}{p{0.22\columnwidth}p{0.36\columnwidth}p{0.35\columnwidth}}
       \toprule
       Feature                                 & English syntax & French syntax \\\midrule
       Scope use                               &
@@ -655,6 +675,23 @@ exception definition bar ...
       \begin{minted}{catala_fr}
 ```catala
 exception définition bar ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+      \\
+      State definition                        &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_en}
+```catala
+definition foo state bar equals ...
+```
+\end{minted}
+      \vspace*{-1.75em}
+                                              &
+      \vspace*{-1.75em}
+      \begin{minted}{catala_fr}
+```catala
+définition foo état bar égal à ...
 ```
 \end{minted}
       \vspace*{-1.75em}

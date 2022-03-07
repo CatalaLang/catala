@@ -37,11 +37,14 @@ module StructFieldName = Dcalc.Ast.StructFieldName
 
 module StructFieldMap : Map.S with type key = StructFieldName.t = Map.Make (StructFieldName)
 
+module StructFieldMapLift = Bindlib.Lift (StructFieldMap)
 module EnumName = Dcalc.Ast.EnumName
 module EnumMap = Dcalc.Ast.EnumMap
 module EnumConstructor = Dcalc.Ast.EnumConstructor
 
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t = Map.Make (EnumConstructor)
+
+module EnumConstructorMapLift = Bindlib.Lift (EnumConstructorMap)
 
 type location =
   | ScopeVar of ScopeVar.t Pos.marked

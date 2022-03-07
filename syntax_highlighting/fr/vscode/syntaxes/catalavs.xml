@@ -200,7 +200,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|étiquette|exception|n'importe\s+quel)\b</string>
+          <string>\b(champ\s+d&apos;application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|état|étiquette|exception|n'importe\s+quel)\b</string>
           <key>name</key>
           <string>keyword.other.catala_fr</string>
         </dict>
