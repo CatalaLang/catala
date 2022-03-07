@@ -174,11 +174,20 @@ let filename_to_expected_output_descr (output_dir : string) (filename : string) 
       in
       Some { output_dir; complete_filename; base_filename; backend; scope }
 
+(** [readdir_sort dirname] returns the sorted subdirectories of [dirname] in an array or an empty
+    array if the [dirname] doesn't exist. *)
+let readdir_sort (dirname : string) : string array =
+  try
+    let dirs = Sys.readdir dirname in
+    Array.fast_sort String.compare dirs;
+    dirs
+  with Sys_error _ -> Array.make 0 ""
+
 (** Given a file, looks in the relative [output] directory if there are files with the same base
     name that contain expected outputs for different *)
 let search_for_expected_outputs (file : string) : expected_output_descr list =
   let output_dir = Filename.dirname file ^ Filename.dir_sep ^ "output/" in
-  let output_files = try Sys.readdir output_dir with Sys_error _ -> Array.make 0 "" in
+  let output_files = readdir_sort output_dir in
   List.filter_map
     (fun output_file ->
       match filename_to_expected_output_descr output_dir output_file with
@@ -478,7 +487,7 @@ let get_catala_files_in_folder (dir : string) : string list =
             false
         in
         if f_is_dir then
-          Sys.readdir f |> Array.to_list
+          readdir_sort f |> Array.to_list
           |> List.map (Filename.concat f)
           |> List.append fs |> loop result
         else loop (f :: result) fs
