@@ -478,12 +478,12 @@ let get_def_key (name : Ast.qident) (state : Ast.ident Pos.marked option)
   match name with
   | [ x ] ->
       let x_uid = get_var_uid scope_uid ctxt x in
+      let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
       Desugared.Ast.ScopeDef.Var
         ( x_uid,
-          Option.map
-            (fun state ->
-              let var_sig = Desugared.Ast.ScopeVarMap.find x_uid ctxt.var_typs in
-              try Desugared.Ast.IdentMap.find (Pos.unmark state) var_sig.var_sig_states_idmap
+          match state with
+          | Some state -> (
+              try Some (Desugared.Ast.IdentMap.find (Pos.unmark state) var_sig.var_sig_states_idmap)
               with Not_found ->
                 Errors.raise_multispanned_error
                   (Format.asprintf "This identifier is not a state declared for variable %a."
@@ -493,7 +493,19 @@ let get_def_key (name : Ast.qident) (state : Ast.ident Pos.marked option)
                     ( Some "Variable declaration:",
                       Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
                   ])
-            state )
+          | None ->
+              if not (Desugared.Ast.IdentMap.is_empty var_sig.var_sig_states_idmap) then
+                Errors.raise_multispanned_error
+                  (Format.asprintf
+                     "This definition does not indicate which state has to be considered for \
+                      variable %a."
+                     Desugared.Ast.ScopeVar.format_t x_uid)
+                  [
+                    (None, Pos.get_position x);
+                    ( Some "Variable declaration:",
+                      Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
+                  ]
+              else None )
   | [ y; x ] ->
       let subscope_uid : Scopelang.Ast.SubScopeName.t = get_subscope_uid scope_uid ctxt y in
       let subscope_real_uid : Scopelang.Ast.ScopeName.t =
