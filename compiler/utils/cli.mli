@@ -56,18 +56,18 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
 
 type backend_option =
-  | Latex
-  | Makefile
+  | Dcalc
   | Html
   | Interpret
-  | Typecheck
+  | Latex
+  | Lcalc
+  | Makefile
   | OCaml
+  | Proof
   | Python
   | Scalc
-  | Lcalc
-  | Dcalc
   | Scopelang
-  | Proof
+  | Typecheck
 
 val language : string option Cmdliner.Term.t
 
