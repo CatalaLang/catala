@@ -15,7 +15,13 @@
 
 (bug_reports https://github.com/CatalaLang/catala/issues)
 
-(authors "Denis Merigoux, Nicolas Chataing")
+(authors
+  "Denis Merigoux"
+  "Nicolas Chataing"
+  "Emile Rolley"
+  "Louis Gesbert"
+  "Aymeric Fromherz"
+  "Alain Delaët-Tixeuil")
 
 (maintainers "contact@catala-lang.org")
 
@@ -67,6 +73,10 @@
   (cppo
    (>= 1))
   (obelisk :dev)
+  (alcotest
+   (and
+     :with-test
+     (>= 1.5.0)))
   (ocamlformat
    (and
     :dev
@@ -74,15 +84,59 @@
 
 (package
  (name french_law)
+ (authors "Denis Merigoux")
  (synopsis
   "A collection of algorithms and computations defined by French law")
  (description
-  "This library contains the implementations of algorithmic portions of French law. The library source code was generated from Catala annotations of the relevant portions of the French law, see https://catala-lang.org")
+  "This library contains the implementations of algorithmic portions of French
+   law. The library source code was generated from Catala annotations of the
+   relevant portions of the French law, see https://catala-lang.org")
  (depends
   (ocaml
    (>= 4.11.0))
   (catala
    (= :version))
   (conf-npm :dev)))
+
+(package
+ (name clerk)
+ (authors "Emile Rolley" "Denis Merigoux")
+ (synopsis
+  "Build system for Catala, a specification language for tax and social
+   benefits computation rules")
+ (description
+  "Clerk is a build system for Catala, a specification language for tax and social
+   benefits computation rules, see https://catala-lang.org")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (cmdliner
+   (= 1.0.4))
+  (re
+   (>= 1.9.0))
+  (ANSITerminal
+   (>= 0.8.2))
+  (alcotest
+   (and
+     :with-test
+     (>= 1.5.0)))
+  (catala
+   (= :version))))
+
+(package
+ (name ninja_utils)
+ (authors "Emile Rolley")
+ (synopsis
+  "A collection of utility functions used to generate Ninja build files")
+ (description
+  "This library contains the implementations of utility functions used to
+   generate Ninja build files -- see https://ninja-build.org. It's currently
+   used by the Catala build system (see
+                                     https://github.com/CatalaLang/catala/tree/master/build_system)")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (re
+    (>= 1.10.3))))
 
 (using menhir 2.1)
