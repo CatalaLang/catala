@@ -315,9 +315,7 @@ and format_block (ctx : Dcalc.Ast.decl_ctx) (fmt : Format.formatter) (b : block)
     (format_statement ctx) fmt
     (List.filter (fun s -> match Pos.unmark s with SLocalDecl _ -> false | _ -> true) b)
 
-let format_ctx
-    (type_ordering : Scopelang.Dependency.TVertex.t list)
-    (fmt : Format.formatter)
+let format_ctx (type_ordering : Scopelang.Dependency.TVertex.t list) (fmt : Format.formatter)
     (ctx : D.decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     Format.fprintf fmt
@@ -427,9 +425,8 @@ let format_ctx
             (e, Dcalc.Ast.EnumMap.find e ctx.Dcalc.Ast.ctx_enums))
     (type_ordering @ scope_structs)
 
-let format_program
-    (fmt : Format.formatter) (p : Ast.program) (type_ordering : Scopelang.Dependency.TVertex.t list)
-    : unit =
+let format_program (fmt : Format.formatter) (p : Ast.program)
+    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
   (* We disable the style flag in order to enjoy formatting from the pretty-printers of Dcalc and
      Lcalc but without the color terminal markers. *)
   Cli.style_flag := false;

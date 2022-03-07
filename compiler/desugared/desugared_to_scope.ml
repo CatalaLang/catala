@@ -51,8 +51,8 @@ let def_map_to_tree (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t) :
 (** From the {!type: rule_tree}, builds an {!constructor: Dcalc.Ast.EDefault} expression in the
     scope language. The [~toplevel] parameter is used to know when to place the toplevel binding in
     the case of functions. *)
-let rec rule_tree_to_expr
-    ~(toplevel : bool) (def_pos : Pos.t) (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
+let rec rule_tree_to_expr ~(toplevel : bool) (def_pos : Pos.t)
+    (is_func : Scopelang.Ast.Var.t option) (tree : rule_tree) :
     Scopelang.Ast.expr Pos.marked Bindlib.box =
   let exceptions, base_rules =
     match tree with Leaf r -> ([], r) | Node (exceptions, r) -> (exceptions, r)
@@ -123,12 +123,8 @@ let rec rule_tree_to_expr
 
 (** Translates a definition inside a scope, the resulting expression should be an {!constructor:
     Dcalc.Ast.EDefault} *)
-let translate_def
-    (def_info : Ast.ScopeDef.t)
-    (def : Ast.rule Ast.RuleMap.t)
-    (typ : Scopelang.Ast.typ Pos.marked)
-    (io : Scopelang.Ast.io)
-    ~(is_cond : bool)
+let translate_def (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.RuleMap.t)
+    (typ : Scopelang.Ast.typ Pos.marked) (io : Scopelang.Ast.io) ~(is_cond : bool)
     ~(is_subscope_var : bool) : Scopelang.Ast.expr Pos.marked =
   (* Here, we have to transform this list of rules into a default tree. *)
   let is_def_func = match Pos.unmark typ with Scopelang.Ast.TArrow (_, _) -> true | _ -> false in

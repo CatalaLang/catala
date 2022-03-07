@@ -64,22 +64,15 @@ type vars = expr Bindlib.mvar
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
 
-let make_abs
-    (xs : vars)
-    (e : expr Pos.marked Bindlib.box)
-    (pos_binder : Pos.t)
-    (taus : D.typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
+    (taus : D.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in
-    (x : Var.t)
-    (tau : D.typ Pos.marked)
-    (e1 : expr Pos.marked Bindlib.box)
+let make_let_in (x : Var.t) (tau : D.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position (Bindlib.unbox e2) in
 
@@ -112,10 +105,9 @@ let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and e_none to be in the
     form [EAbs ...].*)
-let make_matchopt_with_abs_arms
-    (arg : expr Pos.marked Bindlib.box)
-    (e_none : expr Pos.marked Bindlib.box)
-    (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
+let make_matchopt_with_abs_arms (arg : expr Pos.marked Bindlib.box)
+    (e_none : expr Pos.marked Bindlib.box) (e_some : expr Pos.marked Bindlib.box) :
+    expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox arg in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 
@@ -126,12 +118,8 @@ let make_matchopt_with_abs_arms
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to e_some, permitting it to
     be used inside the expression. There is no requirements on the form of both e_some and e_none. *)
-let make_matchopt
-    (pos : Pos.t)
-    (v : Var.t)
-    (tau : D.typ Pos.marked)
-    (arg : expr Pos.marked Bindlib.box)
-    (e_none : expr Pos.marked Bindlib.box)
+let make_matchopt (pos : Pos.t) (v : Var.t) (tau : D.typ Pos.marked)
+    (arg : expr Pos.marked Bindlib.box) (e_none : expr Pos.marked Bindlib.box)
     (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let x = Var.make ("_", pos) in
 

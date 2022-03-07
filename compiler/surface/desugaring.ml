@@ -56,10 +56,9 @@ let translate_unop (op : Ast.unop) : Dcalc.Ast.unop =
 module LiftStructFieldMap = Bindlib.Lift (Scopelang.Ast.StructFieldMap)
 module LiftEnumConstructorMap = Bindlib.Lift (Scopelang.Ast.EnumConstructorMap)
 
-let disambiguate_constructor
-    (ctxt : Name_resolution.context)
-    (constructor : (string Pos.marked option * string Pos.marked) list)
-    (pos : Pos.t) : Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t =
+let disambiguate_constructor (ctxt : Name_resolution.context)
+    (constructor : (string Pos.marked option * string Pos.marked) list) (pos : Pos.t) :
+    Scopelang.Ast.EnumName.t * Scopelang.Ast.EnumConstructor.t =
   let enum, constructor =
     match constructor with
     | [ c ] -> c
@@ -109,9 +108,7 @@ let disambiguate_constructor
 
     Translates [expr] into its desugared equivalent. [scope] is used to disambiguate the scope and
     subscopes variables than occur in the expresion *)
-let rec translate_expr
-    (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
+let rec translate_expr (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     ((expr, pos) : Ast.expression Pos.marked) : Scopelang.Ast.expr Pos.marked Bindlib.box =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   let rec_helper = translate_expr scope ctxt in
@@ -733,10 +730,8 @@ let rec translate_expr
   | Builtin GetMonth -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetMonth), pos)
   | Builtin GetYear -> Bindlib.box (Scopelang.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
 
-and disambiguate_match_and_build_expression
-    (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
-    (cases : Ast.match_case Pos.marked list) :
+and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
+    (ctxt : Name_resolution.context) (cases : Ast.match_case Pos.marked list) :
     Scopelang.Ast.expr Pos.marked Bindlib.box Scopelang.Ast.EnumConstructorMap.t
     * Scopelang.Ast.EnumName.t =
   let create_var = function
@@ -745,12 +740,8 @@ and disambiguate_match_and_build_expression
         let ctxt, param_var = Name_resolution.add_def_local_var ctxt param in
         (ctxt, (param_var, Pos.get_position param))
   in
-  let bind_case_body
-      (c_uid : Dcalc.Ast.EnumConstructor.t)
-      (e_uid : Dcalc.Ast.EnumName.t)
-      (ctxt : Name_resolution.context)
-      (param_pos : Pos.t)
-      (case_body : ('a * Pos.t) Bindlib.box)
+  let bind_case_body (c_uid : Dcalc.Ast.EnumConstructor.t) (e_uid : Dcalc.Ast.EnumName.t)
+      (ctxt : Name_resolution.context) (param_pos : Pos.t) (case_body : ('a * Pos.t) Bindlib.box)
       (e_binder : (Scopelang.Ast.expr, Scopelang.Ast.expr * Pos.t) Bindlib.mbinder Bindlib.box) :
       'c Bindlib.box =
     Bindlib.box_apply2
@@ -870,10 +861,9 @@ and disambiguate_match_and_build_expression
 (** A scope use can be annotated with a pervasive precondition, in which case this precondition has
     to be appended to the justifications of each definition in the subscope use. This is what this
     function does. *)
-let merge_conditions
-    (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (cond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (default_pos : Pos.t) : Scopelang.Ast.expr Pos.marked Bindlib.box =
+let merge_conditions (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (cond : Scopelang.Ast.expr Pos.marked Bindlib.box option) (default_pos : Pos.t) :
+    Scopelang.Ast.expr Pos.marked Bindlib.box =
   match (precond, cond) with
   | Some precond, Some cond ->
       let op_term =
@@ -887,16 +877,13 @@ let merge_conditions
   | None, None -> Bindlib.box (Scopelang.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 
 (** Translates a surface definition into condition into a desugared {!type: Desugared.Ast.rule} *)
-let process_default
-    (ctxt : Name_resolution.context)
-    (scope : Scopelang.Ast.ScopeName.t)
-    (def_key : Desugared.Ast.ScopeDef.t Pos.marked)
-    (rule_id : Desugared.Ast.RuleName.t)
+let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.ScopeName.t)
+    (def_key : Desugared.Ast.ScopeDef.t Pos.marked) (rule_id : Desugared.Ast.RuleName.t)
     (param_uid : Scopelang.Ast.Var.t Pos.marked option)
     (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
     (exception_to_rules : Desugared.Ast.RuleSet.t Pos.marked)
-    (just : Ast.expression Pos.marked option)
-    (cons : Ast.expression Pos.marked) : Desugared.Ast.rule =
+    (just : Ast.expression Pos.marked option) (cons : Ast.expression Pos.marked) :
+    Desugared.Ast.rule =
   let just = match just with Some just -> Some (translate_expr scope ctxt just) | None -> None in
   let just = merge_conditions precond just (Pos.get_position def_key) in
   let cons = translate_expr scope ctxt cons in
@@ -921,12 +908,9 @@ let process_default
   }
 
 (** Wrapper around {!val: process_default} that performs some name disambiguation *)
-let process_def
-    (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (scope_uid : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (def : Ast.definition) : Desugared.Ast.program =
+let process_def (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+    (prgm : Desugared.Ast.program) (def : Ast.definition) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   let def_key =
@@ -986,22 +970,16 @@ let process_def
   }
 
 (** Translates a {!type: Surface.Ast.rule} from the surface language *)
-let process_rule
-    (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (rule : Ast.rule) : Desugared.Ast.program =
+let process_rule (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+    (prgm : Desugared.Ast.program) (rule : Ast.rule) : Desugared.Ast.program =
   let def = Ast.rule_to_def rule in
   process_def precond scope ctxt prgm def
 
 (** Translates assertions *)
-let process_assert
-    (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
-    (scope_uid : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (ass : Ast.assertion) : Desugared.Ast.program =
+let process_assert (precond : Scopelang.Ast.expr Pos.marked Bindlib.box option)
+    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+    (prgm : Desugared.Ast.program) (ass : Ast.assertion) : Desugared.Ast.program =
   let scope : Desugared.Ast.scope = Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes in
   let ass =
     translate_expr scope_uid ctxt
@@ -1027,12 +1005,9 @@ let process_assert
   { prgm with program_scopes = Scopelang.Ast.ScopeMap.add scope_uid new_scope prgm.program_scopes }
 
 (** Translates a surface definition, rule or assertion *)
-let process_scope_use_item
-    (precond : Ast.expression Pos.marked option)
-    (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
-    (prgm : Desugared.Ast.program)
-    (item : Ast.scope_use_item Pos.marked) : Desugared.Ast.program =
+let process_scope_use_item (precond : Ast.expression Pos.marked option)
+    (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
+    (prgm : Desugared.Ast.program) (item : Ast.scope_use_item Pos.marked) : Desugared.Ast.program =
   let precond = Option.map (translate_expr scope ctxt) precond in
   match Pos.unmark item with
   | Ast.Rule rule -> process_rule precond scope ctxt prgm rule
@@ -1043,9 +1018,7 @@ let process_scope_use_item
 (** {1 Translating top-level items} *)
 
 (* If this is an unlabeled exception, ensures that it has a unique default definition *)
-let check_unlabeled_exception
-    (scope : Scopelang.Ast.ScopeName.t)
-    (ctxt : Name_resolution.context)
+let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_resolution.context)
     (item : Ast.scope_use_item Pos.marked) : unit =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
   match Pos.unmark item with
@@ -1081,9 +1054,8 @@ let check_unlabeled_exception
   | _ -> ()
 
 (** Translates a surface scope use, which is a bunch of definitions *)
-let process_scope_use
-    (ctxt : Name_resolution.context) (prgm : Desugared.Ast.program) (use : Ast.scope_use) :
-    Desugared.Ast.program =
+let process_scope_use (ctxt : Name_resolution.context) (prgm : Desugared.Ast.program)
+    (use : Ast.scope_use) : Desugared.Ast.program =
   let name = fst use.scope_use_name in
   let scope_uid = Desugared.Ast.IdentMap.find name ctxt.scope_idmap in
   (* Make sure the scope exists *)

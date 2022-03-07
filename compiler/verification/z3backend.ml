@@ -470,9 +470,8 @@ let rec translate_op (ctx : context) (op : operator) (args : expr Pos.marked lis
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3 expression **)
 and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr =
-  let translate_match_arm
-      (head : Expr.expr) (ctx : context) (e : expr Pos.marked * FuncDecl.func_decl list) :
-      context * Expr.expr =
+  let translate_match_arm (head : Expr.expr) (ctx : context)
+      (e : expr Pos.marked * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Pos.unmark e with
     | EAbs (e, _) ->

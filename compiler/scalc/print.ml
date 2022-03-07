@@ -20,10 +20,7 @@ let needs_parens (_e : expr Pos.marked) : bool = false
 let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
   Format.fprintf fmt "%a_%s" LocalName.format_t v (string_of_int (LocalName.hash v))
 
-let rec format_expr
-    (decl_ctx : Dcalc.Ast.decl_ctx)
-    ?(debug : bool = false)
-    (fmt : Format.formatter)
+let rec format_expr (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
     (e : expr Pos.marked) : unit =
   let format_expr = format_expr decl_ctx ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
@@ -87,11 +84,8 @@ let rec format_expr
   | EOp (Binop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_binop (op, Pos.no_pos)
   | EOp (Unop op) -> Format.fprintf fmt "%a" Dcalc.Print.format_unop (op, Pos.no_pos)
 
-let rec format_statement
-    (decl_ctx : Dcalc.Ast.decl_ctx)
-    ?(debug : bool = false)
-    (fmt : Format.formatter)
-    (stmt : stmt Pos.marked) : unit =
+let rec format_statement (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false)
+    (fmt : Format.formatter) (stmt : stmt Pos.marked) : unit =
   if debug then () else ();
   match Pos.unmark stmt with
   | SInnerFuncDef (name, func) ->
@@ -146,18 +140,14 @@ let rec format_statement
                (format_block decl_ctx ~debug) arm_block))
         (List.combine (Dcalc.Ast.EnumMap.find enum decl_ctx.ctx_enums) arms)
 
-and format_block
-    (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter) (block : block)
-    : unit =
+and format_block (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
+    (block : block) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Dcalc.Print.format_punctuation ";")
     (format_statement decl_ctx ~debug)
     fmt block
 
-let format_scope
-    (decl_ctx : Dcalc.Ast.decl_ctx)
-    ?(debug : bool = false)
-    (fmt : Format.formatter)
+let format_scope (decl_ctx : Dcalc.Ast.decl_ctx) ?(debug : bool = false) (fmt : Format.formatter)
     (body : scope_body) : unit =
   if debug then () else ();
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Dcalc.Print.format_keyword "let"

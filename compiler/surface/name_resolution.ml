@@ -102,9 +102,8 @@ let get_var_io (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) : Ast.scope_dec
   (Scopelang.Ast.ScopeVarMap.find uid ctxt.var_typs).var_sig_io
 
 (** Get the variable uid inside the scope given in argument *)
-let get_var_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) ((x, pos) : ident Pos.marked) :
-    Scopelang.Ast.ScopeVar.t =
+let get_var_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((x, pos) : ident Pos.marked) : Scopelang.Ast.ScopeVar.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt x scope.var_idmap with
   | None ->
@@ -114,9 +113,8 @@ let get_var_uid
   | Some uid -> uid
 
 (** Get the subscope uid inside the scope given in argument *)
-let get_subscope_uid
-    (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) ((y, pos) : ident Pos.marked) :
-    Scopelang.Ast.SubScopeName.t =
+let get_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    ((y, pos) : ident Pos.marked) : Scopelang.Ast.SubScopeName.t =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match Desugared.Ast.IdentMap.find_opt y scope.sub_scopes_idmap with
   | None -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
@@ -128,9 +126,8 @@ let is_subscope_uid (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context) (y 
   Desugared.Ast.IdentMap.mem y scope.sub_scopes_idmap
 
 (** Checks if the var_uid belongs to the scope scope_uid *)
-let belongs_to
-    (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t) (scope_uid : Scopelang.Ast.ScopeName.t) : bool
-    =
+let belongs_to (ctxt : context) (uid : Scopelang.Ast.ScopeVar.t)
+    (scope_uid : Scopelang.Ast.ScopeName.t) : bool =
   let scope = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   Desugared.Ast.IdentMap.exists
     (fun _ var_uid -> Scopelang.Ast.ScopeVar.compare uid var_uid = 0)
@@ -153,9 +150,8 @@ let is_def_cond (ctxt : context) (def : Desugared.Ast.ScopeDef.t) : bool =
   | Desugared.Ast.ScopeDef.Var x ->
       is_var_cond ctxt x
 
-let label_groups
-    (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t) (def : Desugared.Ast.ScopeDef.t) :
-    Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
+let label_groups (ctxt : context) (s_uid : Scopelang.Ast.ScopeName.t)
+    (def : Desugared.Ast.ScopeDef.t) : Desugared.Ast.RuleSet.t Desugared.Ast.LabelMap.t =
   try
     (Desugared.Ast.ScopeDefMap.find def
        (Scopelang.Ast.ScopeMap.find s_uid ctxt.scopes).scope_defs_contexts)
@@ -165,9 +161,8 @@ let label_groups
 (** {1 Declarations pass} *)
 
 (** Process a subscope declaration *)
-let process_subscope_decl
-    (scope : Scopelang.Ast.ScopeName.t) (ctxt : context) (decl : Ast.scope_decl_context_scope) :
-    context =
+let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    (decl : Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope ctxt.scopes in
@@ -245,9 +240,8 @@ let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
         typ_pos )
 
 (** Process data declaration *)
-let process_data_decl
-    (scope : Scopelang.Ast.ScopeName.t) (ctxt : context) (decl : Ast.scope_decl_context_data) :
-    context =
+let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    (decl : Ast.scope_decl_context_data) : context =
   (* First check the type of the context data *)
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
@@ -282,9 +276,8 @@ let process_data_decl
       }
 
 (** Process an item declaration *)
-let process_item_decl
-    (scope : Scopelang.Ast.ScopeName.t) (ctxt : context) (decl : Ast.scope_decl_context_item) :
-    context =
+let process_item_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    (decl : Ast.scope_decl_context_item) : context =
   match decl with
   | Ast.ContextData data_decl -> process_data_decl scope ctxt data_decl
   | Ast.ContextScope sub_decl -> process_subscope_decl scope ctxt sub_decl
@@ -450,16 +443,12 @@ let process_decl_item (ctxt : context) (item : Ast.code_item Pos.marked) : conte
   | ScopeUse _ -> ctxt
 
 (** Process a code block *)
-let process_code_block
-    (ctxt : context)
-    (block : Ast.code_block)
+let process_code_block (ctxt : context) (block : Ast.code_block)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
 (** Process a law structure, only considering the code blocks *)
-let rec process_law_structure
-    (ctxt : context)
-    (s : Ast.law_structure)
+let rec process_law_structure (ctxt : context) (s : Ast.law_structure)
     (process_item : context -> Ast.code_item Pos.marked -> context) : context =
   match s with
   | Ast.LawHeading (_, children) ->
@@ -469,10 +458,7 @@ let rec process_law_structure
 
 (** {1 Scope uses pass} *)
 
-let get_def_key
-    (name : Ast.qident)
-    (scope_uid : Scopelang.Ast.ScopeName.t)
-    (ctxt : context)
+let get_def_key (name : Ast.qident) (scope_uid : Scopelang.Ast.ScopeName.t) (ctxt : context)
     (default_pos : Pos.t) : Desugared.Ast.ScopeDef.t =
   let scope_ctxt = Scopelang.Ast.ScopeMap.find scope_uid ctxt.scopes in
   match name with
@@ -608,9 +594,8 @@ let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d 
         ctxt.scopes;
   }
 
-let process_scope_use_item
-    (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context) (sitem : Ast.scope_use_item Pos.marked) :
-    context =
+let process_scope_use_item (s_name : Scopelang.Ast.ScopeName.t) (ctxt : context)
+    (sitem : Ast.scope_use_item Pos.marked) : context =
   match Pos.unmark sitem with
   | Rule r -> process_definition ctxt s_name (Ast.rule_to_def r)
   | Definition d -> process_definition ctxt s_name d

@@ -191,24 +191,16 @@ type vars = expr Bindlib.mvar
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun x -> (x, pos)) (Bindlib.box_var x)
 
-let make_abs
-    (xs : vars)
-    (e : expr Pos.marked Bindlib.box)
-    (pos_binder : Pos.t)
-    (taus : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
+    (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in
-    (x : Var.t)
-    (tau : typ Pos.marked)
-    (e1 : expr Pos.marked Bindlib.box)
-    (e2 : expr Pos.marked Bindlib.box)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
 
 let empty_thunked_term : expr Pos.marked =
@@ -243,11 +235,8 @@ let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos
     ]
     pos_scope
 
-let build_scope_typ_from_sig
-    (ctx : decl_ctx)
-    (scope_input_struct_name : StructName.t)
-    (scope_return_struct_name : StructName.t)
-    (pos : Pos.t) : typ Pos.marked =
+let build_scope_typ_from_sig (ctx : decl_ctx) (scope_input_struct_name : StructName.t)
+    (scope_return_struct_name : StructName.t) (pos : Pos.t) : typ Pos.marked =
   let scope_sig = StructMap.find scope_input_struct_name ctx.ctx_structs in
   let scope_return_typ = StructMap.find scope_return_struct_name ctx.ctx_structs in
   let result_typ = (TTuple (List.map snd scope_return_typ, Some scope_return_struct_name), pos) in

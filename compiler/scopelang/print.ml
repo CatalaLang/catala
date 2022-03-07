@@ -143,8 +143,7 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
            (fun fmt e -> Format.fprintf fmt "@[%a@]" format_expr e))
         es Dcalc.Print.format_punctuation "]"
 
-let format_struct
-    (fmt : Format.formatter)
+let format_struct (fmt : Format.formatter)
     ((name, fields) : StructName.t * (StructFieldName.t * typ Pos.marked) list) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Dcalc.Print.format_keyword "type"
     StructName.format_t name Dcalc.Print.format_punctuation "=" Dcalc.Print.format_punctuation "{"
@@ -155,8 +154,7 @@ let format_struct
            Dcalc.Print.format_punctuation ":" format_typ typ))
     fields Dcalc.Print.format_punctuation "}"
 
-let format_enum
-    (fmt : Format.formatter)
+let format_enum (fmt : Format.formatter)
     ((name, cases) : EnumName.t * (EnumConstructor.t * typ Pos.marked) list) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Dcalc.Print.format_keyword "type"
     EnumName.format_t name Dcalc.Print.format_punctuation "="

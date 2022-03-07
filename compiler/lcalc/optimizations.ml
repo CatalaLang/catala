@@ -18,9 +18,8 @@ let ( let+ ) x f = Bindlib.box_apply f x
 
 let ( and+ ) x y = Bindlib.box_pair x y
 
-let visitor_map
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a) (e : expr Pos.marked) :
-    expr Pos.marked Bindlib.box =
+let visitor_map (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box) (ctx : 'a)
+    (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   (* calls [t ctx] on every direct childs of [e], then rebuild an abstract syntax tree modified.
      Used in other transformations. *)
   let default_mark e' = Pos.same_pos_as e' e in

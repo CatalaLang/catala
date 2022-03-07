@@ -159,22 +159,15 @@ type vars = expr Bindlib.mvar
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
 
-let make_abs
-    (xs : vars)
-    (e : expr Pos.marked Bindlib.box)
-    (pos_binder : Pos.t)
-    (taus : typ Pos.marked list)
-    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
+    (taus : typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
 
 let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
     : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in
-    (x : Var.t)
-    (tau : typ Pos.marked)
-    (e1 : expr Pos.marked Bindlib.box)
+let make_let_in (x : Var.t) (tau : typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
     (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))

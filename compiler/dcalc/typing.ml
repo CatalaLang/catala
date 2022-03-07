@@ -43,8 +43,8 @@ let typ_needs_parens (t : typ Pos.marked UnionFind.elem) : bool =
   let t = UnionFind.get (UnionFind.find t) in
   match Pos.unmark t with TArrow _ | TArray _ -> true | _ -> false
 
-let rec format_typ
-    (ctx : Ast.decl_ctx) (fmt : Format.formatter) (typ : typ Pos.marked UnionFind.elem) : unit =
+let rec format_typ (ctx : Ast.decl_ctx) (fmt : Format.formatter)
+    (typ : typ Pos.marked UnionFind.elem) : unit =
   let format_typ = format_typ ctx in
   let format_typ_with_parens (fmt : Format.formatter) (t : typ Pos.marked UnionFind.elem) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
@@ -67,9 +67,8 @@ let rec format_typ
   | TAny d -> Format.fprintf fmt "any[%d]" (Any.hash d)
 
 (** Raises an error if unification cannot be performed *)
-let rec unify
-    (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem) (t2 : typ Pos.marked UnionFind.elem) :
-    unit =
+let rec unify (ctx : Ast.decl_ctx) (t1 : typ Pos.marked UnionFind.elem)
+    (t2 : typ Pos.marked UnionFind.elem) : unit =
   let unify = unify ctx in
   (* Cli.debug_print (Format.asprintf "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
      t2); *)
@@ -343,9 +342,8 @@ let rec typecheck_expr_bottom_up (ctx : Ast.decl_ctx) (env : env) (e : A.expr Po
            :: err_pos ))
 
 (** Checks whether the expression can be typed with the provided type *)
-and typecheck_expr_top_down
-    (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.marked) (tau : typ Pos.marked UnionFind.elem) :
-    unit =
+and typecheck_expr_top_down (ctx : Ast.decl_ctx) (env : env) (e : A.expr Pos.marked)
+    (tau : typ Pos.marked UnionFind.elem) : unit =
   (* Cli.debug_print (Format.asprintf "Typechecking %a : %a" (Print.format_expr ctx) e (format_typ
      ctx) tau); *)
   try
