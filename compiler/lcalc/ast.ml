@@ -121,7 +121,7 @@ let make_none (pos : Pos.t) : expr Pos.marked Bindlib.box =
 let make_some (e : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox e in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
-  let+ e = e in
+  let+ e in
   mark @@ EInj (e, 1, option_enum, [ (D.TLit D.TUnit, pos); (D.TAny, pos) ])
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
@@ -134,7 +134,7 @@ let make_matchopt_with_abs_arms
   let pos = Pos.get_position @@ Bindlib.unbox arg in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
 
-  let+ arg = arg and+ e_none = e_none and+ e_some = e_some in
+  let+ arg and+ e_none and+ e_some in
 
   mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
 

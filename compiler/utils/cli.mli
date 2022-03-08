@@ -17,6 +17,28 @@
 
 type backend_lang = En | Fr | Pl
 
+type backend_option =
+  | Dcalc
+  | Html
+  | Interpret
+  | Latex
+  | Lcalc
+  | Makefile
+  | OCaml
+  | Proof
+  | Python
+  | Scalc
+  | Scopelang
+  | Typecheck
+
+val catala_backend_option_to_string : backend_option -> string
+(** [catala_backend_to_string backend] returns the string representation of the
+    given [backend].*)
+
+val catala_backend_option_of_string : string -> backend_option option
+(** [catala_backend_option_of_string backend] returns the {!type:
+    backend_option} corresponding to the [backend] string. *)
+
 (** {2 Configuration globals} *)
 
 val source_files : string list ref
@@ -50,21 +72,6 @@ val unstyled : bool Cmdliner.Term.t
 val trace_opt : bool Cmdliner.Term.t
 val wrap_weaved_output : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
-
-type backend_option =
-  | Dcalc
-  | Html
-  | Interpret
-  | Latex
-  | Lcalc
-  | Makefile
-  | OCaml
-  | Proof
-  | Python
-  | Scalc
-  | Scopelang
-  | Typecheck
-
 val language : string option Cmdliner.Term.t
 val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
