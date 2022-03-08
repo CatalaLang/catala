@@ -29,7 +29,7 @@ let extensions =
 
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage:
-    [driver source_file debug dcalc unstyled wrap_weaved_output backend plugins_dirs language max_prec_digits trace optimize scope_to_execute output_file]*)
+    [driver source_file options]*)
 let driver source_file (options : Cli.options) : int =
   try
     Cli.set_option_globals options;
