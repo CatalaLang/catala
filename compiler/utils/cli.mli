@@ -104,7 +104,7 @@ val info : Cmdliner.Term.info
 
 (**{2 Markers}*)
 
-val print_with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
+val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 
 val format_with_style : ANSITerminal.style list -> Format.formatter -> string -> unit
 
@@ -128,12 +128,18 @@ val concat_with_line_depending_prefix_and_suffix :
 val add_prefix_to_each_line : string -> (int -> string) -> string
 (** The int argument of the prefix corresponds to the line number, starting at 0 *)
 
-val debug_print : string -> unit
+val debug_print : ('a, out_channel, unit) format -> 'a
 
-val error_print : string -> unit
+val debug_format : ('a, Format.formatter, unit) format -> 'a
 
-val warning_print : string -> unit
+val error_print : ('a, out_channel, unit) format -> 'a
 
-val result_print : string -> unit
+val warning_print : ('a, out_channel, unit) format -> 'a
 
-val log_print : string -> unit
+val result_print : ('a, out_channel, unit) format -> 'a
+
+val result_format : ('a, Format.formatter, unit) format -> 'a
+
+val log_print : ('a, out_channel, unit) format -> 'a
+
+val log_format : ('a, Format.formatter, unit) format -> 'a

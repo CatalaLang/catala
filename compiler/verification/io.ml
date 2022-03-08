@@ -84,12 +84,12 @@ module MakeBackendIO (B : Backend) = struct
     match vc.Conditions.vc_kind with
     | Conditions.NoEmptyError ->
         Format.asprintf "%s This variable never returns an empty error"
-          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+          (Cli.with_style [ ANSITerminal.yellow ] "[%s.%s]"
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
              (Bindlib.name_of (Pos.unmark vc.vc_variable)))
     | Conditions.NoOverlappingExceptions ->
         Format.asprintf "%s No two exceptions to ever overlap for this variable"
-          (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+          (Cli.with_style [ ANSITerminal.yellow ] "[%s.%s]"
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
              (Bindlib.name_of (Pos.unmark vc.vc_variable)))
 
@@ -99,13 +99,13 @@ module MakeBackendIO (B : Backend) = struct
       match vc.Conditions.vc_kind with
       | Conditions.NoEmptyError ->
           Format.asprintf "%s This variable might return an empty error:\n%s"
-            (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+            (Cli.with_style [ ANSITerminal.yellow ] "[%s.%s]"
                (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
                (Bindlib.name_of (Pos.unmark vc.vc_variable)))
             (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
       | Conditions.NoOverlappingExceptions ->
           Format.asprintf "%s At least two exceptions overlap for this variable:\n%s"
-            (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
+            (Cli.with_style [ ANSITerminal.yellow ] "[%s.%s]"
                (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
                (Bindlib.name_of (Pos.unmark vc.vc_variable)))
             (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
@@ -137,26 +137,22 @@ module MakeBackendIO (B : Backend) = struct
       (vc : Conditions.verification_condition * vc_encoding_result) : unit =
     let vc, z3_vc = vc in
 
-    Cli.debug_print
-      (Format.asprintf "For this variable:\n%s\n"
-         (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard)));
-    Cli.debug_print
-      (Format.asprintf "This verification condition was generated for %s:@\n%a"
-         (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
-            (match vc.vc_kind with
-            | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
-            | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
-         (Dcalc.Print.format_expr decl_ctx)
-         vc.vc_guard);
+    Cli.debug_print "For this variable:\n%s\n"
+      (Pos.retrieve_loc_text (Pos.get_position vc.Conditions.vc_guard));
+    Cli.debug_format "This verification condition was generated for %a:@\n%a"
+      (Cli.format_with_style [ ANSITerminal.yellow ])
+      (match vc.vc_kind with
+      | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
+      | NoOverlappingExceptions -> "no two exceptions to ever overlap")
+      (Dcalc.Print.format_expr decl_ctx)
+      vc.vc_guard;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
-        Cli.debug_print
-          (Format.asprintf "The translation to Z3 is the following:@\n%s"
-             (B.print_encoding encoding));
+        Cli.debug_print "The translation to Z3 is the following:@\n%s" (B.print_encoding encoding);
         match B.solve_vc_encoding backend_ctx encoding with
-        | ProvenTrue -> Cli.result_print (print_positive_result vc)
-        | ProvenFalse model -> Cli.error_print (print_negative_result vc backend_ctx model)
+        | ProvenTrue -> Cli.result_print "%s" (print_positive_result vc)
+        | ProvenFalse model -> Cli.error_print "%s" (print_negative_result vc backend_ctx model)
         | Unknown -> failwith "The solver failed at proving or disproving the VC")
-    | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
+    | Fail msg -> Cli.error_print "The translation to Z3 failed:@\n%s" msg
 end

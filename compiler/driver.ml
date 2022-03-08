@@ -49,17 +49,15 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           let ext = Filename.extension !filename in
           if ext = "" then
             Errors.raise_error
-              (Printf.sprintf
-                 "No file extension found for the file '%s'. (Try to add one or to specify the -l \
-                  flag)"
-                 !filename);
+              "No file extension found for the file '%s'. (Try to add one or to specify the -l \
+               flag)"
+              !filename;
           try List.assoc ext extensions with Not_found -> ext)
     in
     let language =
       try List.assoc l languages
       with Not_found ->
-        Errors.raise_error
-          (Printf.sprintf "The selected language (%s) is not supported by Catala" l)
+        Errors.raise_error "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
     let backend =
@@ -76,9 +74,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
       else if backend = "typecheck" then Cli.Typecheck
       else if backend = "lcalc" then Cli.Lcalc
       else if backend = "scalc" then Cli.Scalc
-      else
-        Errors.raise_error
-          (Printf.sprintf "The selected backend (%s) is not supported by Catala" backend)
+      else Errors.raise_error "The selected backend (%s) is not supported by Catala" backend
     in
     let prgm = Surface.Parser_driver.parse_top_level_file source_file language in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
@@ -96,7 +92,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           | Some f -> f
           | None -> Filename.remove_extension source_file ^ ".d"
         in
-        Cli.debug_print (Format.asprintf "Writing list of dependencies to %s..." output_file);
+        Cli.debug_print "Writing list of dependencies to %s..." output_file;
         let oc = open_out output_file in
         Printf.fprintf oc "%s:\\\n%s\n%s:"
           (String.concat "\\\n"
@@ -115,12 +111,11 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               Errors.raise_error
                 "The literate programming backends do not work if the input is not a file"
         in
-        Cli.debug_print
-          (Printf.sprintf "Weaving literate program into %s"
-             (match backend with
-             | Cli.Latex -> "LaTeX"
-             | Cli.Html -> "HTML"
-             | _ -> assert false (* should not happen *)));
+        Cli.debug_print "Weaving literate program into %s"
+          (match backend with
+          | Cli.Latex -> "LaTeX"
+          | Cli.Html -> "HTML"
+          | _ -> assert false (* should not happen *));
         let output_file =
           match output_file with
           | Some f -> f
@@ -138,7 +133,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           | _ -> assert false
           (* should not happen *)
         in
-        Cli.debug_print (Printf.sprintf "Writing to %s" output_file);
+        Cli.debug_print "Writing to %s" output_file;
         let fmt = Format.formatter_of_out_channel oc in
         if wrap_weaved_output then
           match backend with
@@ -161,13 +156,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
           | None, _ ->
               snd
                 (try Desugared.Ast.IdentMap.choose ctxt.scope_idmap
-                 with Not_found ->
-                   Errors.raise_error (Printf.sprintf "There isn't any scope inside the program."))
+                 with Not_found -> Errors.raise_error "There isn't any scope inside the program.")
           | Some name, _ -> (
               match Desugared.Ast.IdentMap.find_opt name ctxt.scope_idmap with
-              | None ->
-                  Errors.raise_error
-                    (Printf.sprintf "There is no scope \"%s\" inside the program." name)
+              | None -> Errors.raise_error "There is no scope \"%s\" inside the program." name
               | Some uid -> uid)
         in
         Cli.debug_print "Desugaring...";
@@ -244,15 +236,13 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
               List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
             in
             Cli.debug_print "End of interpretation";
-            Cli.result_print
-              (Format.asprintf "Computation successful!%s"
-                 (if List.length results > 0 then " Results:" else ""));
+            Cli.result_print "Computation successful!%s"
+              (if List.length results > 0 then " Results:" else "");
             List.iter
               (fun ((var, _), result) ->
-                Cli.result_print
-                  (Format.asprintf "@[<hov 2>%s@ =@ %a@]" var
-                     (Dcalc.Print.format_expr prgm.decl_ctx)
-                     result))
+                Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
+                  (Dcalc.Print.format_expr prgm.decl_ctx)
+                  result)
               results;
             0
         | Cli.OCaml | Cli.Python | Cli.Lcalc | Cli.Scalc ->
@@ -306,7 +296,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
             (match backend with
             | Cli.OCaml ->
                 let output_file = new_output_file ".ml" in
-                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                Cli.debug_print "Writing to %s..." output_file;
                 let oc = open_out output_file in
                 let fmt = Format.formatter_of_out_channel oc in
                 Cli.debug_print "Compiling program into OCaml...";
@@ -342,7 +332,7 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
                 end;
                 let output_file = new_output_file ".py" in
                 Cli.debug_print "Compiling program into Python...";
-                Cli.debug_print (Printf.sprintf "Writing to %s..." output_file);
+                Cli.debug_print "Writing to %s..." output_file;
                 let oc = open_out output_file in
                 let fmt = Format.formatter_of_out_channel oc in
                 Scalc.To_python.format_program fmt prgm type_ordering;
@@ -353,10 +343,10 @@ let driver (source_file : Pos.input_file) (debug : bool) (unstyled : bool)
         (* should not happen *))
   with
   | Errors.StructuredError (msg, pos) ->
-      Cli.error_print (Errors.print_structured_error msg pos);
+      Cli.error_print "%s" (Errors.print_structured_error msg pos);
       -1
   | Sys_error msg ->
-      Cli.error_print ("System error: " ^ msg);
+      Cli.error_print "System error: %s" msg;
       -1
 
 let main () =

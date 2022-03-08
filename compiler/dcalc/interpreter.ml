@@ -33,11 +33,12 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
   let apply_div_or_raise_err (div : unit -> A.expr) (op : A.operator Pos.marked) : A.expr =
     try div ()
     with Division_by_zero ->
-      Errors.raise_multispanned_error "division by zero at runtime"
+      Errors.raise_multispanned_error
         [
           (Some "The division operator:", Pos.get_position op);
           (Some "The null denominator:", Pos.get_position (List.nth args 1));
         ]
+        "division by zero at runtime"
   in
   let get_binop_args_pos (args : (A.expr * Pos.t) list) : (string option * Pos.t) list =
     [ (None, Pos.get_position (List.nth args 0)); (None, Pos.get_position (List.nth args 1)) ]
@@ -47,9 +48,8 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
   let apply_cmp_or_raise_err (cmp : unit -> A.expr) (args : (A.expr * Pos.t) list) : A.expr =
     try cmp ()
     with Runtime.UncomparableDurations ->
-      Errors.raise_multispanned_error
+      Errors.raise_multispanned_error (get_binop_args_pos args)
         "Cannot compare together durations that cannot be converted to a precise number of days"
-        (get_binop_args_pos args)
   in
   Pos.same_pos_as
     (match (Pos.unmark op, List.map Pos.unmark args) with
@@ -93,9 +93,8 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
           (fun _ ->
             try A.ELit (LRat Runtime.(d1 /^ d2))
             with Runtime.IndivisableDurations ->
-              Errors.raise_multispanned_error
-                "Cannot divide durations that cannot be converted to a precise number of days"
-                (get_binop_args_pos args))
+              Errors.raise_multispanned_error (get_binop_args_pos args)
+                "Cannot divide durations that cannot be converted to a precise number of days")
           op
     | A.Binop (A.Lt KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <! i2))
     | A.Binop (A.Lte KInt), [ ELit (LInt i1); ELit (LInt i2) ] -> A.ELit (LBool Runtime.(i1 <=! i2))
@@ -192,9 +191,9 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                | A.ELit (A.LBool b), _ -> b
                | _ ->
                    Errors.raise_spanned_error
+                     (Pos.get_position (List.nth args 0))
                      "This predicate evaluated to something else than a boolean (should not happen \
-                      if the term was well-typed)"
-                     (Pos.get_position (List.nth args 0)))
+                      if the term was well-typed)")
              es)
     | A.Binop _, ([ ELit LEmptyError; _ ] | [ _; ELit LEmptyError ]) -> A.ELit LEmptyError
     | A.Unop (A.Minus KInt), [ ELit (LInt i) ] -> A.ELit (LInt Runtime.(integer_of_int 0 -! i))
@@ -212,48 +211,44 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         if !Cli.trace_flag then (
           match entry with
           | VarDef _ ->
-              Cli.log_print
-                (Format.asprintf "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
-                   Print.format_uid_list infos
-                   (match e' with
-                   (* | Ast.EAbs _ -> Cli.print_with_style [ ANSITerminal.green ] "<function>" *)
-                   | _ ->
-                       let expr_str =
-                         Format.asprintf "%a" (Print.format_expr ctx ~debug:false) (e', Pos.no_pos)
-                       in
-                       let expr_str =
-                         Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-                           ~subst:(fun _ -> " ")
-                           expr_str
-                       in
-                       Cli.print_with_style [ ANSITerminal.green ] "%s" expr_str))
+              (* TODO: this usage of Format is broken, Formatting requires that all is formatted in
+                 one pass, without going through intermediate "%s" *)
+              Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
+                Print.format_uid_list infos
+                (match e' with
+                (* | Ast.EAbs _ -> Cli.with_style [ ANSITerminal.green ] "<function>" *)
+                | _ ->
+                    let expr_str =
+                      Format.asprintf "%a" (Print.format_expr ctx ~debug:false) (e', Pos.no_pos)
+                    in
+                    let expr_str =
+                      Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+                        ~subst:(fun _ -> " ")
+                        expr_str
+                    in
+                    Cli.with_style [ ANSITerminal.green ] "%s" expr_str)
           | PosRecordIfTrueBool -> (
               let pos = Pos.get_position op in
               match (pos <> Pos.no_pos, e') with
               | true, ELit (LBool true) ->
-                  Cli.log_print
-                    (Format.asprintf "%*s%a%s:\n%s" (!log_indent * 2) "" Print.format_log_entry
-                       entry
-                       (Cli.print_with_style [ ANSITerminal.green ] "Definition applied")
-                       (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
-                            Format.asprintf "%*s" (!log_indent * 2) "")))
+                  Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) "" Print.format_log_entry entry
+                    (Cli.with_style [ ANSITerminal.green ] "Definition applied")
+                    (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
+                         Format.asprintf "%*s" (!log_indent * 2) ""))
               | _ -> ())
           | BeginCall ->
-              Cli.log_print
-                (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
-                   Print.format_uid_list infos);
+              Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
+                Print.format_uid_list infos;
               log_indent := !log_indent + 1
           | EndCall ->
               log_indent := !log_indent - 1;
-              Cli.log_print
-                (Format.asprintf "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
-                   Print.format_uid_list infos))
+              Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.format_log_entry entry
+                Print.format_uid_list infos)
         else ();
         e'
     | A.Unop _, [ ELit LEmptyError ] -> A.ELit LEmptyError
     | _ ->
         Errors.raise_multispanned_error
-          "Operator applied to the wrong arguments\n(should nothappen if the term was well-typed)"
           ([ (Some "Operator:", Pos.get_position op) ]
           @ List.mapi
               (fun i arg ->
@@ -262,15 +257,15 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
                        (Print.format_expr ctx ~debug:true)
                        arg),
                   Pos.get_position arg ))
-              args))
+              args)
+          "Operator applied to the wrong arguments\n(should not happen if the term was well-typed)")
     op
 
 and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.marked =
   match Pos.unmark e with
   | EVar _ ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error (Pos.get_position e)
         "free variable found at evaluation (should not happen if term was well-typed"
-        (Pos.get_position e)
   | EApp (e1, args) -> (
       let e1 = evaluate_expr ctx e1 in
       let args = List.map (evaluate_expr ctx) args in
@@ -279,18 +274,16 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           if Bindlib.mbinder_arity binder = List.length args then
             evaluate_expr ctx (Bindlib.msubst binder (Array.of_list (List.map Pos.unmark args)))
           else
-            Errors.raise_spanned_error
-              (Format.asprintf "wrong function call, expected %d arguments, got %d"
-                 (Bindlib.mbinder_arity binder) (List.length args))
-              (Pos.get_position e)
+            Errors.raise_spanned_error (Pos.get_position e)
+              "wrong function call, expected %d arguments, got %d" (Bindlib.mbinder_arity binder)
+              (List.length args)
       | EOp op ->
           Pos.same_pos_as (Pos.unmark (evaluate_operator ctx (Pos.same_pos_as op e1) args)) e
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position e)
             "function has not been reduced to a lambda at evaluation (should not happen if the \
-             term was well-typed"
-            (Pos.get_position e))
+             term was well-typed")
   | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
   | ETuple (es, s) ->
       let new_es = List.map (evaluate_expr ctx) es in
@@ -305,27 +298,23 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           | Some s, Some s' when s = s' -> ()
           | _ ->
               Errors.raise_multispanned_error
+                [ (None, Pos.get_position e); (None, Pos.get_position e1) ]
                 "Error during tuple access: not the same structs (should not happen if the term \
-                 was well-typed)"
-                [ (None, Pos.get_position e); (None, Pos.get_position e1) ]);
+                 was well-typed)");
           match List.nth_opt es n with
           | Some e' -> e'
           | None ->
-              Errors.raise_spanned_error
-                (Format.asprintf
-                   "The tuple has %d components but the %i-th element was requested (should not \
-                    happen if the term was well-type)"
-                   (List.length es) n)
-                (Pos.get_position e1))
+              Errors.raise_spanned_error (Pos.get_position e1)
+                "The tuple has %d components but the %i-th element was requested (should not \
+                 happen if the term was well-type)"
+                (List.length es) n)
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
-          Errors.raise_spanned_error
-            (Format.asprintf
-               "The expression %a should be a tuple with %d components but is not (should not \
-                happen if the term was well-typed)"
-               (Print.format_expr ctx ~debug:true)
-               e n)
-            (Pos.get_position e1))
+          Errors.raise_spanned_error (Pos.get_position e1)
+            "The expression %a should be a tuple with %d components but is not (should not happen \
+             if the term was well-typed)"
+            (Print.format_expr ctx ~debug:true)
+            e n)
   | EInj (e1, n, en, ts) ->
       let e1' = evaluate_expr ctx e1 in
       if is_empty_error e1' then Pos.same_pos_as (A.ELit LEmptyError) e
@@ -336,25 +325,23 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       | A.EInj (e1, n, e_name', _) ->
           if e_name <> e_name' then
             Errors.raise_multispanned_error
+              [ (None, Pos.get_position e); (None, Pos.get_position e1) ]
               "Error during match: two different enums found (should not happend if the term was \
-               well-typed)"
-              [ (None, Pos.get_position e); (None, Pos.get_position e1) ];
+               well-typed)";
           let es_n =
             match List.nth_opt es n with
             | Some es_n -> es_n
             | None ->
-                Errors.raise_spanned_error
+                Errors.raise_spanned_error (Pos.get_position e)
                   "sum type index error (should not happend if the term was well-typed)"
-                  (Pos.get_position e)
           in
           let new_e = Pos.same_pos_as (A.EApp (es_n, [ e1 ])) e in
           evaluate_expr ctx new_e
       | A.ELit A.LEmptyError -> Pos.same_pos_as (A.ELit A.LEmptyError) e
       | _ ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position e1)
             "Expected a term having a sum type as an argument to a match (should not happend if \
-             the term was well-typed"
-            (Pos.get_position e1))
+             the term was well-typed")
   | EDefault (exceptions, just, cons) -> (
       let exceptions = List.map (evaluate_expr ctx) exceptions in
       let empty_count = List.length (List.filter is_empty_error exceptions) in
@@ -366,29 +353,27 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
           | ELit (LBool true) -> evaluate_expr ctx cons
           | ELit (LBool false) -> Pos.same_pos_as (A.ELit LEmptyError) e
           | _ ->
-              Errors.raise_spanned_error
+              Errors.raise_spanned_error (Pos.get_position e)
                 "Default justification has not been reduced to a boolean at evaluation (should not \
-                 happen if the term was well-typed"
-                (Pos.get_position e))
+                 happen if the term was well-typed")
       | 1 -> List.find (fun sub -> not (is_empty_error sub)) exceptions
       | _ ->
           Errors.raise_multispanned_error
-            "There is a conflict between multiple validd consequences for assigning the same \
-             variable."
             (List.map
                (fun except ->
                  (Some "This consequence has a valid justification:", Pos.get_position except))
-               (List.filter (fun sub -> not (is_empty_error sub)) exceptions)))
+               (List.filter (fun sub -> not (is_empty_error sub)) exceptions))
+            "There is a conflict between multiple validd consequences for assigning the same \
+             variable.")
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr ctx cond) with
       | ELit (LBool true) -> evaluate_expr ctx et
       | ELit (LBool false) -> evaluate_expr ctx ef
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position cond)
             "Expected a boolean literal for the result of this condition (should not happen if the \
-             term was well-typed)"
-            (Pos.get_position cond))
+             term was well-typed)")
   | EArray es ->
       let new_es = List.map (evaluate_expr ctx) es in
       if List.exists is_empty_error new_es then Pos.same_pos_as (A.ELit LEmptyError) e
@@ -396,10 +381,9 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
   | ErrorOnEmpty e' ->
       let e' = evaluate_expr ctx e' in
       if Pos.unmark e' = A.ELit LEmptyError then
-        Errors.raise_spanned_error
+        Errors.raise_spanned_error (Pos.get_position e)
           "This variable evaluated to an empty term (no rule that defined it applied in this \
            situation)"
-          (Pos.get_position e)
       else e'
   | EAssert e' -> (
       match Pos.unmark (evaluate_expr ctx e') with
@@ -407,21 +391,17 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) : A.expr Pos.mark
       | ELit (LBool false) -> (
           match Pos.unmark e' with
           | EApp ((Ast.EOp (Binop op), pos_op), [ ((ELit _, _) as e1); ((ELit _, _) as e2) ]) ->
-              Errors.raise_spanned_error
-                (Format.asprintf "Assertion failed: %a %a %a"
-                   (Print.format_expr ctx ~debug:false)
-                   e1 Print.format_binop (op, pos_op)
-                   (Print.format_expr ctx ~debug:false)
-                   e2)
-                (Pos.get_position e')
-          | _ ->
-              Errors.raise_spanned_error (Format.asprintf "Assertion failed") (Pos.get_position e'))
+              Errors.raise_spanned_error (Pos.get_position e') "Assertion failed: %a %a %a"
+                (Print.format_expr ctx ~debug:false)
+                e1 Print.format_binop (op, pos_op)
+                (Print.format_expr ctx ~debug:false)
+                e2
+          | _ -> Errors.raise_spanned_error (Pos.get_position e') "Assertion failed")
       | ELit LEmptyError -> Pos.same_pos_as (A.ELit LEmptyError) e
       | _ ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position e')
             "Expected a boolean literal for the result of this assertion (should not happen if the \
-             term was well-typed)"
-            (Pos.get_position e'))
+             term was well-typed)")
 
 (** {1 API} *)
 
@@ -442,11 +422,9 @@ let interpret_program (ctx : Ast.decl_ctx) (e : Ast.expr Pos.marked) :
           in
           List.map2 (fun arg var -> (var, arg)) args s_out_fields
       | _ ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position e)
             "The interpretation of a program should always yield a struct corresponding to the \
-             scope variables"
-            (Pos.get_position e))
+             scope variables")
   | _ ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error (Pos.get_position e)
         "The interpreter can only interpret terms starting with functions having thunked arguments"
-        (Pos.get_position e)

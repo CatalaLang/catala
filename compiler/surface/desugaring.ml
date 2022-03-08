@@ -63,29 +63,25 @@ let disambiguate_constructor (ctxt : Name_resolution.context)
     match constructor with
     | [ c ] -> c
     | _ ->
-        Errors.raise_spanned_error "The deep pattern matching syntactic sugar is not yet supported"
-          pos
+        Errors.raise_spanned_error pos
+          "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
     try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
     with Not_found ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error (Pos.get_position constructor)
         "The name of this constructor has not been defined before, maybe it is a typo?"
-        (Pos.get_position constructor)
   in
   match enum with
   | None ->
       if Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1 then
-        Errors.raise_spanned_error
-          (Format.asprintf
-             "This constructor name is ambiguous, it can belong to %a. Disambiguate it by \
-              prefixing it with the enum name."
-             (Format.pp_print_list
-                ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                (fun fmt (s_name, _) ->
-                  Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-             (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-          (Pos.get_position constructor);
+        Errors.raise_spanned_error (Pos.get_position constructor)
+          "This constructor name is ambiguous, it can belong to %a. Disambiguate it by prefixing \
+           it with the enum name."
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+             (fun fmt (s_name, _) -> Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+          (Scopelang.Ast.EnumMap.bindings possible_c_uids);
       Scopelang.Ast.EnumMap.choose possible_c_uids
   | Some enum -> (
       try
@@ -95,14 +91,11 @@ let disambiguate_constructor (ctxt : Name_resolution.context)
           let c_uid = Scopelang.Ast.EnumMap.find e_uid possible_c_uids in
           (e_uid, c_uid)
         with Not_found ->
-          Errors.raise_spanned_error
-            (Format.asprintf "Enum %s does not contain case %s" (Pos.unmark enum)
-               (Pos.unmark constructor))
-            pos
+          Errors.raise_spanned_error pos "Enum %s does not contain case %s" (Pos.unmark enum)
+            (Pos.unmark constructor)
       with Not_found ->
-        Errors.raise_spanned_error
-          (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
-          (Pos.get_position enum))
+        Errors.raise_spanned_error (Pos.get_position enum) "Enum %s has not been defined before"
+          (Pos.unmark enum))
 
 (** Usage: [translate_expr scope ctxt expr]
 
@@ -203,17 +196,17 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
             Desugared.Ast.ELit
               (Dcalc.Ast.LDuration (Runtime.duration_of_numbers 0 0 (Runtime.integer_to_int i)))
         | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-            Errors.raise_spanned_error
-              "Impossible to specify decimal amounts of days, months or years" pos
+            Errors.raise_spanned_error pos
+              "Impossible to specify decimal amounts of days, months or years"
         | LDate date ->
             if Pos.unmark date.literal_date_month > 12 then
               Errors.raise_spanned_error
-                "There is an error in this date: the month number is bigger than 12"
-                (Pos.get_position date.literal_date_month);
+                (Pos.get_position date.literal_date_month)
+                "There is an error in this date: the month number is bigger than 12";
             if Pos.unmark date.literal_date_day > 31 then
               Errors.raise_spanned_error
-                "There is an error in this date: the day number is bigger than 31"
-                (Pos.get_position date.literal_date_day);
+                (Pos.get_position date.literal_date_day)
+                "There is an error in this date: the day number is bigger than 31";
             Desugared.Ast.ELit
               (Dcalc.Ast.LDate
                  (try
@@ -222,10 +215,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                       (Pos.unmark date.literal_date_month)
                       (Pos.unmark date.literal_date_day)
                   with Runtime.ImpossibleDate ->
-                    Errors.raise_spanned_error
+                    Errors.raise_spanned_error pos
                       "There is an error in this date, it does not correspond to a correct \
-                       calendar day"
-                      pos))
+                       calendar day"))
       in
       Bindlib.box (untyped_term, pos)
   | Ident x -> (
@@ -253,10 +245,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                         | Some inside_def_state ->
                             if Desugared.Ast.StateName.compare inside_def_state (List.hd states) = 0
                             then
-                              Errors.raise_spanned_error
+                              Errors.raise_spanned_error pos
                                 "It is impossible to refer to the variable you are defining when \
                                  defining its first state."
-                                pos
                             else
                               (* Tricky: we have to retrieve in the list the previous state with
                                  respect to the state that we are defining. *)
@@ -300,23 +291,21 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
           let x_possible_structs =
             try Desugared.Ast.IdentMap.find (Pos.unmark x) ctxt.field_idmap
             with Not_found ->
-              Errors.raise_spanned_error "Unknown subscope or struct field name"
-                (Pos.get_position x)
+              Errors.raise_spanned_error (Pos.get_position x)
+                "Unknown subscope or struct field name"
           in
           match c with
           | None ->
               (* No constructor name was specified *)
               if Scopelang.Ast.StructMap.cardinal x_possible_structs > 1 then
-                Errors.raise_spanned_error
-                  (Format.asprintf
-                     "This struct field name is ambiguous, it can belong to %a. Disambiguate it by \
-                      prefixing it with the struct name."
-                     (Format.pp_print_list
-                        ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                        (fun fmt (s_name, _) ->
-                          Format.fprintf fmt "%a" Scopelang.Ast.StructName.format_t s_name))
-                     (Scopelang.Ast.StructMap.bindings x_possible_structs))
-                  (Pos.get_position x)
+                Errors.raise_spanned_error (Pos.get_position x)
+                  "This struct field name is ambiguous, it can belong to %a. Disambiguate it by \
+                   prefixing it with the struct name."
+                  (Format.pp_print_list
+                     ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                     (fun fmt (s_name, _) ->
+                       Format.fprintf fmt "%a" Scopelang.Ast.StructName.format_t s_name))
+                  (Scopelang.Ast.StructMap.bindings x_possible_structs)
               else
                 let s_uid, f_uid = Scopelang.Ast.StructMap.choose x_possible_structs in
                 Bindlib.box_apply (fun e -> (Desugared.Ast.EStructAccess (e, f_uid, s_uid), pos)) e
@@ -329,14 +318,11 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                     (fun e -> (Desugared.Ast.EStructAccess (e, f_uid, c_uid), pos))
                     e
                 with Not_found ->
-                  Errors.raise_spanned_error
-                    (Format.asprintf "Struct %s does not contain field %s" (Pos.unmark c_name)
-                       (Pos.unmark x))
-                    pos
+                  Errors.raise_spanned_error pos "Struct %s does not contain field %s"
+                    (Pos.unmark c_name) (Pos.unmark x)
               with Not_found ->
-                Errors.raise_spanned_error
-                  (Format.asprintf "Struct %s has not been defined before" (Pos.unmark c_name))
-                  (Pos.get_position c_name))))
+                Errors.raise_spanned_error (Pos.get_position c_name)
+                  "Struct %s has not been defined before" (Pos.unmark c_name))))
   | FunCall (f, arg) ->
       Bindlib.box_apply2
         (fun f arg -> (Desugared.Ast.EApp (f, [ arg ]), pos))
@@ -345,9 +331,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       let s_uid =
         try Desugared.Ast.IdentMap.find (Pos.unmark s_name) ctxt.struct_idmap
         with Not_found ->
-          Errors.raise_spanned_error "This identifier should refer to a struct name"
-            (Pos.get_position s_name)
+          Errors.raise_spanned_error (Pos.get_position s_name)
+            "This identifier should refer to a struct name"
       in
+
       let s_fields =
         List.fold_left
           (fun s_fields (f_name, f_e) ->
@@ -356,18 +343,16 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                 Scopelang.Ast.StructMap.find s_uid
                   (Desugared.Ast.IdentMap.find (Pos.unmark f_name) ctxt.field_idmap)
               with Not_found ->
-                Errors.raise_spanned_error
-                  (Format.asprintf "This identifier should refer to a field of struct %s"
-                     (Pos.unmark s_name))
-                  (Pos.get_position f_name)
+                Errors.raise_spanned_error (Pos.get_position f_name)
+                  "This identifier should refer to a field of struct %s" (Pos.unmark s_name)
             in
             (match Scopelang.Ast.StructFieldMap.find_opt f_uid s_fields with
             | None -> ()
             | Some e_field ->
                 Errors.raise_multispanned_error
-                  (Format.asprintf "The field %a has been defined twice:"
-                     Scopelang.Ast.StructFieldName.format_t f_uid)
-                  [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]);
+                  [ (None, Pos.get_position f_e); (None, Pos.get_position (Bindlib.unbox e_field)) ]
+                  "The field %a has been defined twice:" Scopelang.Ast.StructFieldName.format_t
+                  f_uid);
             let f_e = translate_expr scope inside_definition_of ctxt f_e in
             Scopelang.Ast.StructFieldMap.add f_uid f_e s_fields)
           Scopelang.Ast.StructFieldMap.empty fields
@@ -376,11 +361,9 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       Scopelang.Ast.StructFieldMap.iter
         (fun expected_f _ ->
           if not (Scopelang.Ast.StructFieldMap.mem expected_f s_fields) then
-            Errors.raise_spanned_error
-              (Format.asprintf "Missing field for structure %a: \"%a\""
-                 Scopelang.Ast.StructName.format_t s_uid Scopelang.Ast.StructFieldName.format_t
-                 expected_f)
-              pos)
+            Errors.raise_spanned_error pos "Missing field for structure %a: \"%a\""
+              Scopelang.Ast.StructName.format_t s_uid Scopelang.Ast.StructFieldName.format_t
+              expected_f)
         expected_s_fields;
 
       Bindlib.box_apply
@@ -390,26 +373,24 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       let possible_c_uids =
         try Desugared.Ast.IdentMap.find (Pos.unmark constructor) ctxt.constructor_idmap
         with Not_found ->
-          Errors.raise_spanned_error
+          Errors.raise_spanned_error (Pos.get_position constructor)
             "The name of this constructor has not been defined before, maybe it is a typo?"
-            (Pos.get_position constructor)
       in
+
       match enum with
       | None ->
           if
             (* No constructor name was specified *)
             Scopelang.Ast.EnumMap.cardinal possible_c_uids > 1
           then
-            Errors.raise_spanned_error
-              (Format.asprintf
-                 "This constructor name is ambiguous, it can belong to %a. Desambiguate it by \
-                  prefixing it with the enum name."
-                 (Format.pp_print_list
-                    ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-                    (fun fmt (s_name, _) ->
-                      Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
-                 (Scopelang.Ast.EnumMap.bindings possible_c_uids))
-              (Pos.get_position constructor)
+            Errors.raise_spanned_error (Pos.get_position constructor)
+              "This constructor name is ambiguous, it can belong to %a. Desambiguate it by \
+               prefixing it with the enum name."
+              (Format.pp_print_list
+                 ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
+                 (fun fmt (s_name, _) ->
+                   Format.fprintf fmt "%a" Scopelang.Ast.EnumName.format_t s_name))
+              (Scopelang.Ast.EnumMap.bindings possible_c_uids)
           else
             let e_uid, c_uid = Scopelang.Ast.EnumMap.choose possible_c_uids in
             let payload = Option.map (translate_expr scope inside_definition_of ctxt) payload in
@@ -441,14 +422,11 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
                     pos ))
                 (Bindlib.box_opt payload)
             with Not_found ->
-              Errors.raise_spanned_error
-                (Format.asprintf "Enum %s does not contain case %s" (Pos.unmark enum)
-                   (Pos.unmark constructor))
-                pos
+              Errors.raise_spanned_error pos "Enum %s does not contain case %s" (Pos.unmark enum)
+                (Pos.unmark constructor)
           with Not_found ->
-            Errors.raise_spanned_error
-              (Format.asprintf "Enum %s has not been defined before" (Pos.unmark enum))
-              (Pos.get_position enum)))
+            Errors.raise_spanned_error (Pos.get_position enum) "Enum %s has not been defined before"
+              (Pos.unmark enum)))
   | MatchWith (e1, (cases, _cases_pos)) ->
       let e1 = translate_expr scope inside_definition_of ctxt e1 in
       let cases_d, e_uid =
@@ -462,9 +440,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
       (match snd (Pos.unmark pattern) with
       | None -> ()
       | Some binding ->
-          Errors.print_spanned_warning
-            "This binding will be ignored (remove it to suppress warning)"
-            (Pos.get_position binding));
+          Errors.format_spanned_warning (Pos.get_position binding)
+            "This binding will be ignored (remove it to suppress warning)");
       let enum_uid, c_uid =
         disambiguate_constructor ctxt (fst (Pos.unmark pattern)) (Pos.get_position pattern)
       in
@@ -524,11 +501,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
         | Ast.Duration -> Dcalc.Ast.KDuration
         | Ast.Date -> Dcalc.Ast.KDate
         | _ ->
-            Errors.raise_spanned_error
-              (Format.asprintf "It is impossible to compute the arg-%s of two values of type %a"
-                 (if max_or_min then "max" else "min")
-                 Print.format_primitive_typ pred_typ)
-              pos
+            Errors.raise_spanned_error pos
+              "It is impossible to compute the arg-%s of two values of type %a"
+              (if max_or_min then "max" else "min")
+              Print.format_primitive_typ pred_typ
       in
       let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
       let f_pred =
@@ -602,10 +578,8 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
               ( Desugared.Ast.ELit (Dcalc.Ast.LDuration (Runtime.duration_of_numbers 0 0 0)),
                 Pos.get_position op' )
         | Ast.Aggregate (Ast.AggregateSum t) ->
-            Errors.raise_spanned_error
-              (Format.asprintf "It is impossible to sum two values of type %a together"
-                 Print.format_primitive_typ t)
-              pos
+            Errors.raise_spanned_error pos "It is impossible to sum two values of type %a together"
+              Print.format_primitive_typ t
         | Ast.Aggregate (Ast.AggregateExtremum (_, _, init)) -> rec_helper init
         | Ast.Aggregate Ast.AggregateCount ->
             Bindlib.box
@@ -661,11 +635,10 @@ let rec translate_expr (scope : Scopelang.Ast.ScopeName.t)
               | Ast.Duration -> (Dcalc.Ast.KDuration, (Scopelang.Ast.TLit TDuration, pos))
               | Ast.Date -> (Dcalc.Ast.KDate, (Scopelang.Ast.TLit TDate, pos))
               | _ ->
-                  Errors.raise_spanned_error
-                    (Format.asprintf "It is impossible to compute the %s of two values of type %a"
-                       (if max_or_min then "max" else "min")
-                       Print.format_primitive_typ t)
-                    pos
+                  Errors.raise_spanned_error pos
+                    "It is impossible to compute the %s of two values of type %a"
+                    (if max_or_min then "max" else "min")
+                    Print.format_primitive_typ t
             in
             let cmp_op = if max_or_min then Dcalc.Ast.Gt op_kind else Dcalc.Ast.Lt op_kind in
             make_extr_body cmp_op typ
@@ -814,22 +787,21 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
               if e_uid = e_uid' then e_uid
               else
                 Errors.raise_spanned_error
-                  (Format.asprintf
-                     "This case matches a constructor of enumeration %a but previous case were \
-                      matching constructors of enumeration %a"
-                     Scopelang.Ast.EnumName.format_t e_uid Scopelang.Ast.EnumName.format_t e_uid')
                   (Pos.get_position case.Ast.match_case_pattern)
+                  "This case matches a constructor of enumeration %a but previous case were \
+                   matching constructors of enumeration %a"
+                  Scopelang.Ast.EnumName.format_t e_uid Scopelang.Ast.EnumName.format_t e_uid'
         in
         (match Scopelang.Ast.EnumConstructorMap.find_opt c_uid cases_d with
         | None -> ()
         | Some e_case ->
             Errors.raise_multispanned_error
-              (Format.asprintf "The constructor %a has been matched twice:"
-                 Scopelang.Ast.EnumConstructor.format_t c_uid)
               [
                 (None, Pos.get_position case.match_case_expr);
                 (None, Pos.get_position (Bindlib.unbox e_case));
-              ]);
+              ]
+              "The constructor %a has been matched twice:" Scopelang.Ast.EnumConstructor.format_t
+              c_uid);
         let ctxt, (param_var, param_pos) = create_var binding in
         let case_body = translate_expr scope inside_definition_of ctxt case.Ast.match_case_expr in
         let e_binder = Bindlib.bind_mvar (Array.of_list [ param_var ]) case_body in
@@ -838,19 +810,19 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
     | Ast.WildCard match_case_expr -> (
         let nb_cases = List.length cases in
         let raise_wildcard_not_last_case_err () =
-          Errors.raise_multispanned_error "Wildcard must be the last match case"
+          Errors.raise_multispanned_error
             [
               (Some "Not ending wildcard:", case_pos);
               (Some "Next reachable case:", curr_index + 1 |> List.nth cases |> Pos.get_position);
             ]
+            "Wildcard must be the last match case"
         in
         match e_uid with
         | None ->
             if 1 = nb_cases then
-              Errors.raise_spanned_error
+              Errors.raise_spanned_error case_pos
                 "Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used \
                  as single match case)"
-                case_pos
             else raise_wildcard_not_last_case_err ()
         | Some e_uid ->
             if curr_index < nb_cases - 1 then raise_wildcard_not_last_case_err ();
@@ -862,12 +834,10 @@ and disambiguate_match_and_build_expression (scope : Scopelang.Ast.ScopeName.t)
                      | None -> Some c_uid)
             in
             if Scopelang.Ast.EnumConstructorMap.is_empty missing_constructors then
-              Errors.print_spanned_warning
-                (Format.asprintf
-                   "Unreachable match case, all constructors of the enumeration %a are already \
-                    specified"
-                   Scopelang.Ast.EnumName.format_t e_uid)
-                case_pos;
+              Errors.format_spanned_warning case_pos
+                "Unreachable match case, all constructors of the enumeration %a are already \
+                 specified"
+                Scopelang.Ast.EnumName.format_t e_uid;
             (* The current used strategy is to replace the wildcard branch:
                    match foo with
                    | Case1 x -> x
@@ -943,12 +913,12 @@ let process_default (ctxt : Name_resolution.context) (scope : Scopelang.Ast.Scop
        | Scopelang.Ast.TArrow (t_in, _), Some param_uid -> Some (Pos.unmark param_uid, t_in)
        | Scopelang.Ast.TArrow _, None ->
            Errors.raise_spanned_error
-             "This definition has a function type but the parameter is missing"
              (Pos.get_position (Bindlib.unbox cons))
+             "This definition has a function type but the parameter is missing"
        | _, Some _ ->
            Errors.raise_spanned_error
-             "This definition has a parameter but its type is not a function"
              (Pos.get_position (Bindlib.unbox cons))
+             "This definition has a parameter but its type is not a function"
        | _ -> None);
     rule_exception_to_rules = exception_to_rules;
     rule_id;
@@ -993,10 +963,9 @@ let process_def (precond : Desugared.Ast.expr Pos.marked Bindlib.box option)
             ( Desugared.Ast.LabelMap.find label_id scope_def.scope_def_label_groups,
               Pos.get_position def.Ast.definition_name )
           with Not_found ->
-            Errors.raise_spanned_error
-              (Format.asprintf "Unknown label for the scope variable %a: \"%s\""
-                 Desugared.Ast.ScopeDef.format_t def_key (Pos.unmark label))
-              (Pos.get_position label))
+            Errors.raise_spanned_error (Pos.get_position label)
+              "Unknown label for the scope variable %a: \"%s\"" Desugared.Ast.ScopeDef.format_t
+              def_key (Pos.unmark label))
     in
     let scope_def =
       {
@@ -1091,13 +1060,13 @@ let check_unlabeled_exception (scope : Scopelang.Ast.ScopeName.t) (ctxt : Name_r
       | Ast.UnlabeledException -> (
           match scope_def_ctxt.default_exception_rulename with
           | None ->
-              Errors.raise_spanned_error "This exception does not have a corresponding definition"
-                (Pos.get_position item)
+              Errors.raise_spanned_error (Pos.get_position item)
+                "This exception does not have a corresponding definition"
           | Some (Ambiguous pos) ->
               Errors.raise_multispanned_error
-                "This exception can refer to several definitions. Try using labels to disambiguate"
                 ([ (Some "Ambiguous exception", Pos.get_position item) ]
                 @ List.map (fun p -> (Some "Candidate definition", p)) pos)
+                "This exception can refer to several definitions. Try using labels to disambiguate"
           | Some (Unique _) -> ()))
   | _ -> ()
 

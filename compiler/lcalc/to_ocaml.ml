@@ -22,20 +22,16 @@ let find_struct (s : D.StructName.t) (ctx : D.decl_ctx) :
   try D.StructMap.find s ctx.D.ctx_structs
   with Not_found ->
     let s_name, pos = D.StructName.get_info s in
-    Errors.raise_spanned_error
-      (Format.asprintf "Internal Error: Structure %s was not found in the current environment."
-         s_name)
-      pos
+    Errors.raise_spanned_error pos
+      "Internal Error: Structure %s was not found in the current environment." s_name
 
 let find_enum (en : D.EnumName.t) (ctx : D.decl_ctx) : (D.EnumConstructor.t * D.typ Pos.marked) list
     =
   try D.EnumMap.find en ctx.D.ctx_enums
   with Not_found ->
     let en_name, pos = D.EnumName.get_info en in
-    Errors.raise_spanned_error
-      (Format.asprintf "Internal Error: Enumeration %s was not found in the current environment."
-         en_name)
-      pos
+    Errors.raise_spanned_error pos
+      "Internal Error: Enumeration %s was not found in the current environment." en_name
 
 let format_lit (fmt : Format.formatter) (l : lit Pos.marked) : unit =
   match Pos.unmark l with
@@ -101,9 +97,8 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | Minus k -> Format.fprintf fmt "~-%a" format_op_kind k
   | Not -> Format.fprintf fmt "%s" "not"
   | Log (_entry, _infos) ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error (Pos.get_position op)
         "Internal error: a log operator has not been caught by the expression match"
-        (Pos.get_position op)
   | Length -> Format.fprintf fmt "%s" "array_length"
   | IntToRat -> Format.fprintf fmt "%s" "decimal_of_integer"
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
@@ -177,9 +172,8 @@ let rec format_typ (fmt : Format.formatter) (typ : Dcalc.Ast.typ Pos.marked) : u
   | TEnum ([ t ], e) when D.EnumName.compare e Ast.option_enum = 0 ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t format_enum_name e
   | TEnum (_, e) when D.EnumName.compare e Ast.option_enum = 0 ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error (Pos.get_position typ)
         "Internal Error: found an typing parameter for an eoption type of the wrong lenght."
-        (Pos.get_position typ)
   | TEnum (_ts, e) -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
       Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1 format_typ_with_parens t2

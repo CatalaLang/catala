@@ -361,7 +361,7 @@ let collect_all_ninja_build (ninja : ninja) (tested_file : string) (reset_test_o
     (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if List.length expected_outputs = 0 then (
-    Cli.debug_print (Format.asprintf "No expected outputs were found for test file %s" tested_file);
+    Cli.debug_print "No expected outputs were found for test file %s" tested_file;
     None)
   else
     let ninja, test_names =
@@ -472,7 +472,7 @@ let run_file (file : string) (catala_exe : string) (catala_opts : string) (scope
     String.concat " "
       (List.filter (fun s -> s <> "") [ catala_exe; catala_opts; "-s " ^ scope; "Interpret"; file ])
   in
-  Cli.debug_print ("Running: " ^ command);
+  Cli.debug_print "Running: %s" command;
   Sys.command command
 
 (** {1 Driver} *)
@@ -483,7 +483,7 @@ let get_catala_files_in_folder (dir : string) : string list =
         let f_is_dir =
           try Sys.is_directory f
           with Sys_error e ->
-            Printf.sprintf "skipping %s" e |> Cli.warning_print;
+            Cli.warning_print "skipping %s" e;
             false
         in
         if f_is_dir then
@@ -630,24 +630,23 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
         List.iter
           (fun f ->
             f
-            |> Cli.print_with_style [ ANSITerminal.magenta ] "%s"
-            |> Printf.sprintf "No test case found for %s"
-            |> Cli.warning_print)
+            |> Cli.with_style [ ANSITerminal.magenta ] "%s"
+            |> Cli.warning_print "No test case found for %s")
           ctx.all_failed_names;
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then return_ok
       else
         try
           let out = open_out ninja_output in
-          Cli.debug_print ("writing " ^ ninja_output ^ "...");
+          Cli.debug_print "writing %s..." ninja_output;
           Nj.format
             (Format.formatter_of_out_channel out)
             (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
           close_out out;
           let ninja_cmd = "ninja test -f " ^ ninja_output in
-          Cli.debug_print ("executing '" ^ ninja_cmd ^ "'...");
+          Cli.debug_print "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
         with Sys_error e ->
-          e |> Printf.sprintf "can not write in %s" |> Cli.error_print;
+          Cli.error_print "can not write in %s" e;
           return_err)
   | "run" -> (
       match scope with
@@ -662,7 +661,7 @@ let driver (files_or_folders : string list) (command : string) (catala_exe : str
           Cli.error_print "Please provide a scope to run with the -s option";
           1)
   | _ ->
-      Cli.error_print (Format.asprintf "The command \"%s\" is unknown to clerk." command);
+      Cli.error_print "The command \"%s\" is unknown to clerk." command;
       1
 
 let main () =
