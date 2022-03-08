@@ -3,9 +3,8 @@ opam-version: "2.0"
 version: "0.6.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
-description: """
-Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information
-"""
+description:
+  "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information"
 maintainer: ["contact@catala-lang.org"]
 authors: [
   "Denis Merigoux"
