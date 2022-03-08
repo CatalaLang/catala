@@ -211,7 +211,7 @@ let rec evaluate_operator (ctx : Ast.decl_ctx) (op : A.operator Pos.marked)
         if !Cli.trace_flag then (
           match entry with
           | VarDef _ ->
-              (* FIXME: this usage of Format is broken, Formatting requires that all is formatted in
+              (* TODO: this usage of Format is broken, Formatting requires that all is formatted in
                  one pass, without going through intermediate "%s" *)
               Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.format_log_entry entry
                 Print.format_uid_list infos
