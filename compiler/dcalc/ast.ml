@@ -246,10 +246,11 @@ let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
   | TAny, TAny -> true
   | _, _ -> false
 
-and equal_typs_list (tys1 : typ Pos.marked list) (tys2 : typ Pos.marked list) : bool =
+and equal_typs_list (tys1 : typ Pos.marked list) (tys2 : typ Pos.marked list) :
+    bool =
   List.length tys1 = List.length tys2
-  && (* OCaml && operator short-circuits when a clause is false, we can safely assume here that both
-        lists have equal length *)
+  && (* OCaml && operator short-circuits when a clause is false, we can safely
+        assume here that both lists have equal length *)
   List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
 
 let equal_log_entries (l1 : log_entry) (l2 : log_entry) : bool =
@@ -259,8 +260,8 @@ let equal_log_entries (l1 : log_entry) (l2 : log_entry) : bool =
 
 let equal_unops (op1 : unop) (op2 : unop) : bool =
   match (op1, op2) with
-  (* Log entries contain a typ which contain position information, we thus need to descend into
-     them *)
+  (* Log entries contain a typ which contain position information, we thus need
+     to descend into them *)
   | Log (l1, info1), Log (l2, info2) -> equal_log_entries l1 l2 && info1 = info2
   (* All the other cases can be discharged through equality *)
   | _ -> op1 = op2
@@ -289,22 +290,25 @@ let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
       &&
       let vars1, body1 = Bindlib.unmbind (Pos.unmark b1) in
       let body2 =
-        Bindlib.msubst (Pos.unmark b2) (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1)
+        Bindlib.msubst (Pos.unmark b2)
+          (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1)
       in
       equal_exprs body1 body2
   | EAssert e1, EAssert e2 -> equal_exprs e1 e2
   | EOp op1, EOp op2 -> equal_ops op1 op2
   | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
-      equal_exprs def1 def2 && equal_exprs cons1 cons2 && equal_exprs_list exc1 exc2
+      equal_exprs def1 def2 && equal_exprs cons1 cons2
+      && equal_exprs_list exc1 exc2
   | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
       equal_exprs if1 if2 && equal_exprs then1 then2 && equal_exprs else1 else2
   | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal_exprs e1 e2
   | _, _ -> false
 
-and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) : bool =
+and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
+    bool =
   List.length es1 = List.length es2
-  && (* OCaml && operator short-circuits when a clause is false, we can safely assume here that both
-        lists have equal length *)
+  && (* OCaml && operator short-circuits when a clause is false, we can safely
+        assume here that both lists have equal length *)
   List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
 
 let build_whole_scope_expr
