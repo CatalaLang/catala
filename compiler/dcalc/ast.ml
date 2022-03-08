@@ -226,7 +226,29 @@ let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
 
 and equal_typs_list (tys1 : typ Pos.marked list) (tys2 : typ Pos.marked list) : bool =
   List.length tys1 = List.length tys2
-  && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+  && (* OCaml && operator short-circuits when a clause is false, we can safely assume here that both
+        lists have equal length *)
+  List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+
+let equal_log_entries (l1 : log_entry) (l2 : log_entry) : bool =
+  match (l1, l2) with
+  | VarDef t1, VarDef t2 -> equal_typs (t1, Pos.no_pos) (t2, Pos.no_pos)
+  | x, y -> x = y
+
+let equal_unops (op1 : unop) (op2 : unop) : bool =
+  match (op1, op2) with
+  (* Log entries contain a typ which contain position information, we thus need to descend into
+     them *)
+  | Log (l1, info1), Log (l2, info2) -> equal_log_entries l1 l2 && info1 = info2
+  (* All the other cases can be discharged through equality *)
+  | _ -> op1 = op2
+
+let equal_ops (op1 : operator) (op2 : operator) : bool =
+  match (op1, op2) with
+  | Ternop op1, Ternop op2 -> op1 = op2
+  | Binop op1, Binop op2 -> op1 = op2
+  | Unop op1, Unop op2 -> equal_unops op1 op2
+  | _, _ -> false
 
 let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
   match (Pos.unmark e1, Pos.unmark e2) with
@@ -249,7 +271,7 @@ let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
       in
       equal_exprs body1 body2
   | EAssert e1, EAssert e2 -> equal_exprs e1 e2
-  | EOp op1, EOp op2 -> op1 = op2 (* TODO: Recurse for log_entry containing typ *)
+  | EOp op1, EOp op2 -> equal_ops op1 op2
   | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
       equal_exprs def1 def2 && equal_exprs cons1 cons2 && equal_exprs_list exc1 exc2
   | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
