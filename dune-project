@@ -117,6 +117,8 @@
     :with-test
     (>= 1.5.0)))
   (catala
+   (= :version))
+  (ninja_utils
    (= :version))))
 
 (package
