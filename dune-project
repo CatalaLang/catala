@@ -80,7 +80,7 @@
   (ocamlformat
    (and
     :dev
-    (= 0.19.0)))))
+    (= 0.20.1)))))
 
 (package
  (name french_law)
