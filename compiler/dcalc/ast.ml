@@ -215,62 +215,65 @@ let is_value (e : expr Pos.marked) : bool =
   match Pos.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
 
 let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
-  match Pos.unmark ty1, Pos.unmark ty2 with
+  match (Pos.unmark ty1, Pos.unmark ty2) with
   | TLit l1, TLit l2 -> l1 = l2
   | TTuple (tys1, n1), TTuple (tys2, n2) ->
-    n1 = n2 && List.length tys1 = List.length tys2 &&
-    List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+      n1 = n2
+      && List.length tys1 = List.length tys2
+      && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
   | TEnum (tys1, n1), TEnum (tys2, n2) ->
-    n1 = n2 && List.length tys1 = List.length tys2 &&
-    List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+      n1 = n2
+      && List.length tys1 = List.length tys2
+      && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typs t1 t2 && equal_typs t1' t2'
   | TArray t1, TArray t2 -> equal_typs t1 t2
   | TAny, TAny -> true
   | _, _ -> false
 
 let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
-  match Pos.unmark e1, Pos.unmark e2 with
+  match (Pos.unmark e1, Pos.unmark e2) with
   | EVar v1, EVar v2 -> Pos.unmark v1 = Pos.unmark v2
   | ETuple (es1, n1), ETuple (es2, n2) ->
-    n1 = n2 && List.length es1 = List.length es2 &&
-    (* OCaml && operator short-circuits when a clause is false, we can
-       safely assume here that both lists have equal length *)
-    List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
+      n1 = n2
+      && List.length es1 = List.length es2
+      && (* OCaml && operator short-circuits when a clause is false, we can safely assume here that
+            both lists have equal length *)
+      List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
   | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
-    equal_exprs e1 e2 && id1 = id2 && n1 = n2 &&
-    List.length tys1 = List.length tys2 &&
-    List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+      equal_exprs e1 e2 && id1 = id2 && n1 = n2
+      && List.length tys1 = List.length tys2
+      && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
   | EInj (e1, id1, n1, tys1), EInj (e2, id2, n2, tys2) ->
-    equal_exprs e1 e2 && id1 = id2 && n1 = n2 &&
-    List.length tys1 = List.length tys2 &&
-    List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+      equal_exprs e1 e2 && id1 = id2 && n1 = n2
+      && List.length tys1 = List.length tys2
+      && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
   | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
-    n1 = n2 && equal_exprs e1 e2 && List.length cases1 = List.length cases2 &&
-    List.for_all (fun (x, y) -> equal_exprs x y) (List.combine cases1 cases2)
+      n1 = n2 && equal_exprs e1 e2
+      && List.length cases1 = List.length cases2
+      && List.for_all (fun (x, y) -> equal_exprs x y) (List.combine cases1 cases2)
   | EArray es1, EArray es2 ->
-    List.length es1 = List.length es2 &&
-    List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
+      List.length es1 = List.length es2
+      && List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
   | ELit l1, ELit l2 -> l1 = l2
-  | EAbs (b1, tys1) , EAbs (b2, tys2) ->
-    List.length tys1 = List.length tys2 &&
-    List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2) &&
-    let vars1, body1 = Bindlib.unmbind (Pos.unmark b1) in
-    let body2 = Bindlib.msubst (Pos.unmark b2) (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1) in
-    equal_exprs body1 body2
-
+  | EAbs (b1, tys1), EAbs (b2, tys2) ->
+      List.length tys1 = List.length tys2
+      && List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+      &&
+      let vars1, body1 = Bindlib.unmbind (Pos.unmark b1) in
+      let body2 =
+        Bindlib.msubst (Pos.unmark b2) (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1)
+      in
+      equal_exprs body1 body2
   | EAssert e1, EAssert e2 -> equal_exprs e1 e2
   | EOp op1, EOp op2 -> op1 = op2 (* TODO: Recurse for log_entry containing typ *)
   | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
-    equal_exprs def1 def2 && equal_exprs cons1 cons2 &&
-    List.length exc1 = List.length exc2 &&
-    List.for_all (fun (x, y) -> equal_exprs x y) (List.combine exc1 exc2)
-
+      equal_exprs def1 def2 && equal_exprs cons1 cons2
+      && List.length exc1 = List.length exc2
+      && List.for_all (fun (x, y) -> equal_exprs x y) (List.combine exc1 exc2)
   | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
-    equal_exprs if1 if2 && equal_exprs then1 then2 && equal_exprs else1 else2
+      equal_exprs if1 if2 && equal_exprs then1 then2 && equal_exprs else1 else2
   | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal_exprs e1 e2
-
   | _, _ -> false
-
 
 let build_whole_scope_expr (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
   let body_expr =
