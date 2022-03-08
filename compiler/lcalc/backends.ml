@@ -1,15 +1,17 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2021 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2021 Inria, contributor:
+   Denis Merigoux <denis.merigoux@inria.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 let to_ascii (s : string) : string =
@@ -48,7 +50,8 @@ let to_lowercase (s : string) : string =
       out :=
         !out
         ^ (if is_uppercase && not !is_first then "_" else "")
-        ^ String.lowercase_ascii (String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c));
+        ^ String.lowercase_ascii
+            (String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c));
       is_first := false)
     s;
   !out
@@ -59,13 +62,18 @@ let to_uppercase (s : string) : string =
   let out = ref "" in
   CamomileLibraryDefault.Camomile.UTF8.iter
     (fun c ->
-      let is_underscore = c = CamomileLibraryDefault.Camomile.UChar.of_char '_' in
-      let c_string = String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c) in
+      let is_underscore =
+        c = CamomileLibraryDefault.Camomile.UChar.of_char '_'
+      in
+      let c_string =
+        String.make 1 (CamomileLibraryDefault.Camomile.UChar.char_of c)
+      in
       out :=
         !out
         ^
         if is_underscore then ""
-        else if !last_was_underscore || !is_first then String.uppercase_ascii c_string
+        else if !last_was_underscore || !is_first then
+          String.uppercase_ascii c_string
         else c_string;
       last_was_underscore := is_underscore;
       is_first := false)

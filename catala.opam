@@ -38,9 +38,7 @@ depends: [
   "camomile" {>= "1.0.2"}
   "z3" {>= "4.8.11"}
   "cppo" {>= "1"}
-  "obelisk" {dev}
   "alcotest" {with-test & >= "1.5.0"}
-  "ocamlformat" {dev & = "0.19.0"}
   "odoc" {with-doc}
 ]
 build: [
