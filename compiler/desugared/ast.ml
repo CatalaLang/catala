@@ -1,15 +1,17 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Nicolas Chataing
-   <nicolas.chataing@ens.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   Nicolas Chataing <nicolas.chataing@ens.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 (** Abstract syntax tree of the desugared representation *)
@@ -20,33 +22,35 @@ open Utils
 
 module IdentMap : Map.S with type key = String.t = Map.Make (String)
 
-module RuleName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module RuleName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
 
 module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
-
 module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
 
-module LabelName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module LabelName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
 
 module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
-
 module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
 
-module StateName : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module StateName : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
 
-module ScopeVar : Uid.Id with type info = Uid.MarkedString.info = Uid.Make (Uid.MarkedString) ()
+module ScopeVar : Uid.Id with type info = Uid.MarkedString.info =
+  Uid.Make (Uid.MarkedString) ()
 
 module ScopeVarSet : Set.S with type elt = ScopeVar.t = Set.Make (ScopeVar)
-
 module ScopeVarMap : Map.S with type key = ScopeVar.t = Map.Make (ScopeVar)
 
-(** Inside a scope, a definition can refer either to a scope def, or a subscope def *)
+(** Inside a scope, a definition can refer either to a scope def, or a subscope
+    def *)
 module ScopeDef = struct
   type t =
     | Var of ScopeVar.t * StateName.t option
     | SubScopeVar of Scopelang.Ast.SubScopeName.t * ScopeVar.t
-        (** In this case, the [ScopeVar.t] lives inside the context of the subscope's original
-            declaration *)
+        (** In this case, the [ScopeVar.t] lives inside the context of the
+            subscope's original declaration *)
 
   let compare x y =
     match (x, y) with
@@ -67,24 +71,27 @@ module ScopeDef = struct
     match x with
     | Var (x, None) -> Pos.get_position (ScopeVar.get_info x)
     | Var (_, Some sx) -> Pos.get_position (StateName.get_info sx)
-    | SubScopeVar (x, _) -> Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
+    | SubScopeVar (x, _) ->
+        Pos.get_position (Scopelang.Ast.SubScopeName.get_info x)
 
   let format_t fmt x =
     match x with
     | Var (v, None) -> ScopeVar.format_t fmt v
-    | Var (v, Some sv) -> Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+    | Var (v, Some sv) ->
+        Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
     | SubScopeVar (s, v) ->
-        Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s ScopeVar.format_t v
+        Format.fprintf fmt "%a.%a" Scopelang.Ast.SubScopeName.format_t s
+          ScopeVar.format_t v
 
   let hash x =
     match x with
     | Var (v, None) -> ScopeVar.hash v
     | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
-    | SubScopeVar (w, v) -> Int.logxor (Scopelang.Ast.SubScopeName.hash w) (ScopeVar.hash v)
+    | SubScopeVar (w, v) ->
+        Int.logxor (Scopelang.Ast.SubScopeName.hash w) (ScopeVar.hash v)
 end
 
 module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
-
 module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 
 (** {1 AST} *)
@@ -92,9 +99,12 @@ module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 type location =
   | ScopeVar of ScopeVar.t Pos.marked * StateName.t option
   | SubScopeVar of
-      Scopelang.Ast.ScopeName.t * Scopelang.Ast.SubScopeName.t Pos.marked * ScopeVar.t Pos.marked
+      Scopelang.Ast.ScopeName.t
+      * Scopelang.Ast.SubScopeName.t Pos.marked
+      * ScopeVar.t Pos.marked
 
-module LocationSet : Set.S with type elt = location Pos.marked = Set.Make (struct
+module LocationSet : Set.S with type elt = location Pos.marked =
+Set.Make (struct
   type t = location Pos.marked
 
   let compare x y =
@@ -106,28 +116,38 @@ module LocationSet : Set.S with type elt = location Pos.marked = Set.Make (struc
     | ScopeVar ((x, _), Some sx), ScopeVar ((y, _), Some sy) ->
         let cmp = ScopeVar.compare x y in
         if cmp = 0 then StateName.compare sx sy else cmp
-    | SubScopeVar (_, (xsubindex, _), (xsubvar, _)), SubScopeVar (_, (ysubindex, _), (ysubvar, _))
-      ->
+    | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
+        SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
         let c = Scopelang.Ast.SubScopeName.compare xsubindex ysubindex in
         if c = 0 then ScopeVar.compare xsubvar ysubvar else c
     | ScopeVar _, SubScopeVar _ -> -1
     | SubScopeVar _, ScopeVar _ -> 1
 end)
 
-(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib} library, based on
-    higher-order abstract syntax*)
+(** The expressions use the {{:https://lepigre.fr/ocaml-bindlib/} Bindlib}
+    library, based on higher-order abstract syntax*)
 type expr =
   | ELocation of location
   | EVar of expr Bindlib.var Pos.marked
-  | EStruct of Scopelang.Ast.StructName.t * expr Pos.marked Scopelang.Ast.StructFieldMap.t
-  | EStructAccess of expr Pos.marked * Scopelang.Ast.StructFieldName.t * Scopelang.Ast.StructName.t
-  | EEnumInj of expr Pos.marked * Scopelang.Ast.EnumConstructor.t * Scopelang.Ast.EnumName.t
+  | EStruct of
+      Scopelang.Ast.StructName.t
+      * expr Pos.marked Scopelang.Ast.StructFieldMap.t
+  | EStructAccess of
+      expr Pos.marked
+      * Scopelang.Ast.StructFieldName.t
+      * Scopelang.Ast.StructName.t
+  | EEnumInj of
+      expr Pos.marked
+      * Scopelang.Ast.EnumConstructor.t
+      * Scopelang.Ast.EnumName.t
   | EMatch of
       expr Pos.marked
       * Scopelang.Ast.EnumName.t
       * expr Pos.marked Scopelang.Ast.EnumConstructorMap.t
   | ELit of Dcalc.Ast.lit
-  | EAbs of (expr, expr Pos.marked) Bindlib.mbinder Pos.marked * Scopelang.Ast.typ Pos.marked list
+  | EAbs of
+      (expr, expr Pos.marked) Bindlib.mbinder Pos.marked
+      * Scopelang.Ast.typ Pos.marked list
   | EApp of expr Pos.marked * expr Pos.marked list
   | EOp of Dcalc.Ast.operator
   | EDefault of expr Pos.marked list * expr Pos.marked * expr Pos.marked
@@ -156,30 +176,36 @@ type rule = {
   rule_exception_to_rules : RuleSet.t Pos.marked;
 }
 
-let empty_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
+let empty_rule
+    (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule
+    =
   {
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
     rule_cons = Bindlib.box (ELit Dcalc.Ast.LEmptyError, pos);
     rule_parameter =
-      (match have_parameter with Some typ -> Some (Var.make ("dummy", pos), typ) | None -> None);
+      (match have_parameter with
+      | Some typ -> Some (Var.make ("dummy", pos), typ)
+      | None -> None);
     rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("empty", pos);
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule =
+let always_false_rule
+    (pos : Pos.t) (have_parameter : Scopelang.Ast.typ Pos.marked option) : rule
+    =
   {
     rule_just = Bindlib.box (ELit (Dcalc.Ast.LBool true), pos);
     rule_cons = Bindlib.box (ELit (Dcalc.Ast.LBool false), pos);
     rule_parameter =
-      (match have_parameter with Some typ -> Some (Var.make ("dummy", pos), typ) | None -> None);
+      (match have_parameter with
+      | Some typ -> Some (Var.make ("dummy", pos), typ)
+      | None -> None);
     rule_exception_to_rules = (RuleSet.empty, pos);
     rule_id = RuleName.fresh ("always_false", pos);
   }
 
 type assertion = expr Pos.marked Bindlib.box
-
 type variation_typ = Increasing | Decreasing
-
 type reference_typ = Decree | Law
 
 type meta_assertion =
@@ -241,11 +267,14 @@ let rec locations_used (e : expr Pos.marked) : LocationSet.t =
         (LocationSet.union (locations_used just) (locations_used cons))
         excepts
   | EArray es ->
-      List.fold_left (fun acc e' -> LocationSet.union acc (locations_used e')) LocationSet.empty es
+      List.fold_left
+        (fun acc e' -> LocationSet.union acc (locations_used e'))
+        LocationSet.empty es
   | ErrorOnEmpty e' -> locations_used e'
 
 let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
-  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) : Pos.t ScopeDefMap.t =
+  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) :
+      Pos.t ScopeDefMap.t =
     LocationSet.fold
       (fun (loc, loc_pos) acc ->
         ScopeDefMap.add
@@ -269,15 +298,26 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
 let make_var ((x, pos) : Var.t Pos.marked) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var x)
 
-let make_abs (xs : vars) (e : expr Pos.marked Bindlib.box) (pos_binder : Pos.t)
-    (taus : Scopelang.Ast.typ Pos.marked list) (pos : Pos.t) : expr Pos.marked Bindlib.box =
-  Bindlib.box_apply (fun b -> (EAbs ((b, pos_binder), taus), pos)) (Bindlib.bind_mvar xs e)
+let make_abs
+    (xs : vars)
+    (e : expr Pos.marked Bindlib.box)
+    (pos_binder : Pos.t)
+    (taus : Scopelang.Ast.typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun b -> (EAbs ((b, pos_binder), taus), pos))
+    (Bindlib.bind_mvar xs e)
 
-let make_app (e : expr Pos.marked Bindlib.box) (u : expr Pos.marked Bindlib.box list) (pos : Pos.t)
-    : expr Pos.marked Bindlib.box =
+let make_app
+    (e : expr Pos.marked Bindlib.box)
+    (u : expr Pos.marked Bindlib.box list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2 (fun e u -> (EApp (e, u), pos)) e (Bindlib.box_list u)
 
-let make_let_in (x : Var.t) (tau : Scopelang.Ast.typ Pos.marked) (e1 : expr Pos.marked Bindlib.box)
+let make_let_in
+    (x : Var.t)
+    (tau : Scopelang.Ast.typ Pos.marked)
+    (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply2
     (fun e u -> (EApp (e, u), Pos.get_position (Bindlib.unbox e2)))
