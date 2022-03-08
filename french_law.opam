@@ -13,7 +13,6 @@ depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.11.0"}
   "catala" {= version}
-  "conf-npm" {dev}
   "odoc" {with-doc}
 ]
 build: [
