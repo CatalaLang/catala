@@ -82,16 +82,14 @@ type context = {
 
 (** Temporary function raising an error message saying that a feature is not supported yet *)
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
-  Errors.raise_spanned_error (Printf.sprintf "Unsupported feature: %s" msg) pos
+  Errors.raise_spanned_error pos "Unsupported feature: %s" msg
 
 (** Function to call whenever an identifier used somewhere has not been declared in the program
     previously *)
 let raise_unknown_identifier (msg : string) (ident : ident Pos.marked) =
-  Errors.raise_spanned_error
-    (Printf.sprintf "\"%s\": unknown identifier %s"
-       (Utils.Cli.print_with_style [ ANSITerminal.yellow ] "%s" (Pos.unmark ident))
-       msg)
-    (Pos.get_position ident)
+  Errors.raise_spanned_error (Pos.get_position ident) "\"%s\": unknown identifier %s"
+    (Utils.Cli.with_style [ ANSITerminal.yellow ] "%s" (Pos.unmark ident))
+    msg
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : Desugared.Ast.ScopeVar.t) : typ Pos.marked =
@@ -171,13 +169,13 @@ let process_subscope_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Desugared.Ast.IdentMap.find_opt subscope scope_ctxt.sub_scopes_idmap with
   | Some use ->
       Errors.raise_multispanned_error
-        (Format.asprintf "Subscope name \"%a\" already used"
-           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-           subscope)
         [
           (Some "first use", Pos.get_position (Scopelang.Ast.SubScopeName.get_info use));
           (Some "second use", s_pos);
         ]
+        "Subscope name \"%a\" already used"
+        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+        subscope
   | None ->
       let sub_scope_uid = Scopelang.Ast.SubScopeName.fresh (name, name_pos) in
       let original_subscope_uid =
@@ -226,11 +224,10 @@ let rec process_base_typ (ctxt : context) ((typ, typ_pos) : Ast.base_typ Pos.mar
               match Desugared.Ast.IdentMap.find_opt ident ctxt.enum_idmap with
               | Some e_uid -> (Scopelang.Ast.TEnum e_uid, typ_pos)
               | None ->
-                  Errors.raise_spanned_error
-                    (Format.asprintf "Unknown type \"%a\", not a struct or enum previously declared"
-                       (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-                       ident)
-                    typ_pos)))
+                  Errors.raise_spanned_error typ_pos
+                    "Unknown type \"%a\", not a struct or enum previously declared"
+                    (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+                    ident)))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((typ, typ_pos) : Ast.typ Pos.marked) :
@@ -252,13 +249,13 @@ let process_data_decl (scope : Scopelang.Ast.ScopeName.t) (ctxt : context)
   match Desugared.Ast.IdentMap.find_opt name scope_ctxt.var_idmap with
   | Some use ->
       Errors.raise_multispanned_error
-        (Format.asprintf "var name \"%a\" already used"
-           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-           name)
         [
           (Some "first use", Pos.get_position (Desugared.Ast.ScopeVar.get_info use));
           (Some "second use", pos);
         ]
+        "var name \"%a\" already used"
+        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+        name
   | None ->
       let uid = Desugared.Ast.ScopeVar.fresh (name, pos) in
       let scope_ctxt =
@@ -393,10 +390,10 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
 let process_name_item (ctxt : context) (item : Ast.code_item Pos.marked) : context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
-      (Format.asprintf "%s name \"%a\" already defined" msg
-         (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-         name)
       [ (Some "First definition:", Pos.get_position use); (Some "Second definition:", pos) ]
+      "%s name \"%a\" already defined" msg
+      (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+      name
   in
   match Pos.unmark item with
   | ScopeDecl decl -> (
@@ -486,25 +483,24 @@ let get_def_key (name : Ast.qident) (state : Ast.ident Pos.marked option)
               try Some (Desugared.Ast.IdentMap.find (Pos.unmark state) var_sig.var_sig_states_idmap)
               with Not_found ->
                 Errors.raise_multispanned_error
-                  (Format.asprintf "This identifier is not a state declared for variable %a."
-                     Desugared.Ast.ScopeVar.format_t x_uid)
                   [
                     (None, Pos.get_position state);
                     ( Some "Variable declaration:",
                       Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
-                  ])
+                  ]
+                  "This identifier is not a state declared for variable %a."
+                  Desugared.Ast.ScopeVar.format_t x_uid)
           | None ->
               if not (Desugared.Ast.IdentMap.is_empty var_sig.var_sig_states_idmap) then
                 Errors.raise_multispanned_error
-                  (Format.asprintf
-                     "This definition does not indicate which state has to be considered for \
-                      variable %a."
-                     Desugared.Ast.ScopeVar.format_t x_uid)
                   [
                     (None, Pos.get_position x);
                     ( Some "Variable declaration:",
                       Pos.get_position (Desugared.Ast.ScopeVar.get_info x_uid) );
                   ]
+                  "This definition does not indicate which state has to be considered for variable \
+                   %a."
+                  Desugared.Ast.ScopeVar.format_t x_uid
               else None )
   | [ y; x ] ->
       let subscope_uid : Scopelang.Ast.SubScopeName.t = get_subscope_uid scope_uid ctxt y in
@@ -513,7 +509,7 @@ let get_def_key (name : Ast.qident) (state : Ast.ident Pos.marked option)
       in
       let x_uid = get_var_uid subscope_real_uid ctxt x in
       Desugared.Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid)
-  | _ -> Errors.raise_spanned_error "Structs are not handled yet" default_pos
+  | _ -> Errors.raise_spanned_error default_pos "Structs are not handled yet"
 
 let process_definition (ctxt : context) (s_name : Scopelang.Ast.ScopeName.t) (d : Ast.definition) :
     context =
@@ -647,10 +643,10 @@ let process_scope_use (ctxt : context) (suse : Ast.scope_use) : context =
     try Desugared.Ast.IdentMap.find (Pos.unmark suse.Ast.scope_use_name) ctxt.scope_idmap
     with Not_found ->
       Errors.raise_spanned_error
-        (Format.asprintf "\"%a\": this scope has not been declared anywhere, is it a typo?"
-           (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
-           (Pos.unmark suse.Ast.scope_use_name))
         (Pos.get_position suse.Ast.scope_use_name)
+        "\"%a\": this scope has not been declared anywhere, is it a typo?"
+        (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
+        (Pos.unmark suse.Ast.scope_use_name)
   in
   List.fold_left (process_scope_use_item s_name) ctxt suse.Ast.scope_use_items
 

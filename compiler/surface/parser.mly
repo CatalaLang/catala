@@ -466,8 +466,8 @@ ident:
  match Localisation.lex_builtin i with
  | Some _ ->
     Errors.raise_spanned_error
-      (Printf.sprintf "Reserved builtin name")
       (Pos.from_lpos $sloc)
+      "Reserved builtin name"
  | None ->
     (i, Pos.from_lpos $sloc)
 }

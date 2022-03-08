@@ -156,10 +156,10 @@ let format_ternop (fmt : Format.formatter) (op : ternop Pos.marked) : unit =
 let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   Format.fprintf fmt "@<2>%s"
     (match entry with
-    | VarDef _ -> Utils.Cli.print_with_style [ ANSITerminal.blue ] "≔ "
-    | BeginCall -> Utils.Cli.print_with_style [ ANSITerminal.yellow ] "→ "
-    | EndCall -> Utils.Cli.print_with_style [ ANSITerminal.yellow ] "← "
-    | PosRecordIfTrueBool -> Utils.Cli.print_with_style [ ANSITerminal.green ] "☛ ")
+    | VarDef _ -> Utils.Cli.with_style [ ANSITerminal.blue ] "≔ "
+    | BeginCall -> Utils.Cli.with_style [ ANSITerminal.yellow ] "→ "
+    | EndCall -> Utils.Cli.with_style [ ANSITerminal.yellow ] "← "
+    | PosRecordIfTrueBool -> Utils.Cli.with_style [ ANSITerminal.green ] "☛ ")
 
 let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
   Format.fprintf fmt "%s"

@@ -268,25 +268,24 @@ let translate_def (ctx : ctx) (def_info : Ast.ScopeDef.t) (def : Ast.rule Ast.Ru
       match Pos.unmark typ with
       | Scopelang.Ast.TArrow (t_param, _) -> Some t_param
       | _ ->
-          Errors.raise_spanned_error
-            (Format.asprintf
-               "The definitions of %a are function but its type, %a, is not a function type"
-               Ast.ScopeDef.format_t def_info Scopelang.Print.format_typ typ)
-            (Pos.get_position typ)
+          Errors.raise_spanned_error (Pos.get_position typ)
+            "The definitions of %a are function but its type, %a, is not a function type"
+            Ast.ScopeDef.format_t def_info Scopelang.Print.format_typ typ
     else if (not is_def_func) && all_rules_not_func then None
     else
-      Errors.raise_multispanned_error
-        "some definitions of the same variable are functions while others aren't"
-        (List.map
-           (fun (_, r) ->
-             ( Some "This definition is a function:",
-               Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
-           (Ast.RuleMap.bindings (Ast.RuleMap.filter is_rule_func def))
+      let spans =
+        List.map
+          (fun (_, r) ->
+            (Some "This definition is a function:", Pos.get_position (Bindlib.unbox r.Ast.rule_cons)))
+          (Ast.RuleMap.bindings (Ast.RuleMap.filter is_rule_func def))
         @ List.map
             (fun (_, r) ->
               ( Some "This definition is not a function:",
                 Pos.get_position (Bindlib.unbox r.Ast.rule_cons) ))
-            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_rule_func n r)) def)))
+            (Ast.RuleMap.bindings (Ast.RuleMap.filter (fun n r -> not (is_rule_func n r)) def))
+      in
+      Errors.raise_multispanned_error spans
+        "some definitions of the same variable are functions while others aren't"
   in
   let top_list = def_map_to_tree def_info def in
   let top_value =
@@ -350,13 +349,13 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                | OnlyInput when not (Ast.RuleMap.is_empty var_def) ->
                    (* If the variable is tagged as input, then it shall not be redefined. *)
                    Errors.raise_multispanned_error
-                     "It is impossible to give a definition to a scope variable tagged as input."
                      ((Some "Incriminated variable:", Pos.get_position (Ast.ScopeVar.get_info var))
                      :: List.map
                           (fun (rule, _) ->
                             ( Some "Incriminated variable definition:",
                               Pos.get_position (Ast.RuleName.get_info rule) ))
                           (Ast.RuleMap.bindings var_def))
+                     "It is impossible to give a definition to a scope variable tagged as input."
                | OnlyInput -> [] (* we do not provide any definition for an input-only variable *)
                | _ ->
                    let expr_def =
@@ -417,8 +416,6 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                          (match Pos.unmark scope_def.Ast.scope_def_io.io_input with
                          | Scopelang.Ast.NoInput ->
                              Errors.raise_multispanned_error
-                               "It is impossible to give a definition to a subscope variable not \
-                                tagged as input or context."
                                ((Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key)
                                :: ( Some "Incriminated variable:",
                                     Pos.get_position (Ast.ScopeVar.get_info sub_scope_var) )
@@ -427,17 +424,19 @@ let translate_scope (ctx : ctx) (scope : Ast.scope) : Scopelang.Ast.scope_decl =
                                       ( Some "Incriminated subscope variable definition:",
                                         Pos.get_position (Ast.RuleName.get_info rule) ))
                                     (Ast.RuleMap.bindings def))
+                               "It is impossible to give a definition to a subscope variable not \
+                                tagged as input or context."
                          | OnlyInput when Ast.RuleMap.is_empty def && not is_cond ->
                              (* If the subscope variable is tagged as input, then it shall be
                                 defined. *)
                              Errors.raise_multispanned_error
-                               "This subscope variable is a mandatory input but no definition was \
-                                provided."
                                [
                                  (Some "Incriminated subscope:", Ast.ScopeDef.get_position def_key);
                                  ( Some "Incriminated variable:",
                                    Pos.get_position (Ast.ScopeVar.get_info sub_scope_var) );
                                ]
+                               "This subscope variable is a mandatory input but no definition was \
+                                provided."
                          | _ -> ());
                          (* Now that all is good, we can proceed with translating this redefinition
                             to a proper Scopelang term. *)

@@ -112,15 +112,14 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
             struct_sig ([], e_fields)
         in
         if Ast.StructFieldMap.cardinal remaining_e_fields > 0 then
-          Errors.raise_spanned_error
-            (Format.asprintf "The fields \"%a\" do not belong to the structure %a"
-               Ast.StructName.format_t struct_name
-               (Format.pp_print_list
-                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-                  (fun fmt (field_name, _) ->
-                    Format.fprintf fmt "%a" Ast.StructFieldName.format_t field_name))
-               (Ast.StructFieldMap.bindings remaining_e_fields))
-            (Pos.get_position e)
+          Errors.raise_spanned_error (Pos.get_position e)
+            "The fields \"%a\" do not belong to the structure %a" Ast.StructName.format_t
+            struct_name
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+               (fun fmt (field_name, _) ->
+                 Format.fprintf fmt "%a" Ast.StructFieldName.format_t field_name))
+            (Ast.StructFieldMap.bindings remaining_e_fields)
         else
           Bindlib.box_apply
             (fun d_fields -> Dcalc.Ast.ETuple (d_fields, Some struct_name))
@@ -130,10 +129,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         let _, field_index =
           try List.assoc field_name (List.mapi (fun i (x, y) -> (x, (y, i))) struct_sig)
           with Not_found ->
-            Errors.raise_spanned_error
-              (Format.asprintf "The field \"%a\" does not belong to the structure %a"
-                 Ast.StructFieldName.format_t field_name Ast.StructName.format_t struct_name)
-              (Pos.get_position e)
+            Errors.raise_spanned_error (Pos.get_position e)
+              "The field \"%a\" does not belong to the structure %a" Ast.StructFieldName.format_t
+              field_name Ast.StructName.format_t struct_name
         in
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply
@@ -149,10 +147,9 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
         let _, constructor_index =
           try List.assoc constructor (List.mapi (fun i (x, y) -> (x, (y, i))) enum_sig)
           with Not_found ->
-            Errors.raise_spanned_error
-              (Format.asprintf "The constructor \"%a\" does not belong to the enum %a"
-                 Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
-              (Pos.get_position e)
+            Errors.raise_spanned_error (Pos.get_position e)
+              "The constructor \"%a\" does not belong to the enum %a" Ast.EnumConstructor.format_t
+              constructor Ast.EnumName.format_t enum_name
         in
         let e1 = translate_expr ctx e1 in
         Bindlib.box_apply
@@ -171,26 +168,23 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
               let case_e =
                 try Ast.EnumConstructorMap.find constructor e_cases
                 with Not_found ->
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The constructor %a of enum %a is missing from this pattern matching"
-                       Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name)
-                    (Pos.get_position e)
+                  Errors.raise_spanned_error (Pos.get_position e)
+                    "The constructor %a of enum %a is missing from this pattern matching"
+                    Ast.EnumConstructor.format_t constructor Ast.EnumName.format_t enum_name
               in
               let case_d = translate_expr ctx case_e in
               (case_d :: d_cases, Ast.EnumConstructorMap.remove constructor e_cases))
             enum_sig ([], cases)
         in
         if Ast.EnumConstructorMap.cardinal remaining_e_cases > 0 then
-          Errors.raise_spanned_error
-            (Format.asprintf "Patter matching is incomplete for enum %a: missing cases %a"
-               Ast.EnumName.format_t enum_name
-               (Format.pp_print_list
-                  ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-                  (fun fmt (case_name, _) ->
-                    Format.fprintf fmt "%a" Ast.EnumConstructor.format_t case_name))
-               (Ast.EnumConstructorMap.bindings remaining_e_cases))
-            (Pos.get_position e)
+          Errors.raise_spanned_error (Pos.get_position e)
+            "Patter matching is incomplete for enum %a: missing cases %a" Ast.EnumName.format_t
+            enum_name
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+               (fun fmt (case_name, _) ->
+                 Format.fprintf fmt "%a" Ast.EnumConstructor.format_t case_name))
+            (Ast.EnumConstructorMap.bindings remaining_e_cases)
         else
           let e1 = translate_expr ctx e1 in
           Bindlib.box_apply2
@@ -273,18 +267,17 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) : Dcalc.Ast.expr Po
           Bindlib.box_var v
         with Not_found ->
           Errors.raise_multispanned_error
-            (Format.asprintf
-               "The variable %a.%a cannot be used here, as it is not part subscope %a's results. \
-                Maybe you forgot to qualify it as an output?"
-               Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
-               Ast.SubScopeName.format_t (Pos.unmark s))
             [
               (Some "Incriminated variable usage:", Pos.get_position e);
               ( Some "Incriminated subscope variable declaration:",
                 Pos.get_position (Ast.ScopeVar.get_info (Pos.unmark a)) );
               ( Some "Incriminated subscope declaration:",
                 Pos.get_position (Ast.SubScopeName.get_info (Pos.unmark s)) );
-            ])
+            ]
+            "The variable %a.%a cannot be used here, as it is not part subscope %a's results. \
+             Maybe you forgot to qualify it as an output?"
+            Ast.SubScopeName.format_t (Pos.unmark s) Ast.ScopeVar.format_t (Pos.unmark a)
+            Ast.SubScopeName.format_t (Pos.unmark s))
     | EIfThenElse (cond, et, ef) ->
         Bindlib.box_apply3
           (fun c t f -> Dcalc.Ast.EIfThenElse (c, t, f))

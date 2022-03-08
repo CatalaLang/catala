@@ -206,7 +206,7 @@ let info =
 
 let time : float ref = ref (Unix.gettimeofday ())
 
-let print_with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
+let with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format) =
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
 
 let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
@@ -221,24 +221,24 @@ let time_marker () =
   let delta = (new_time -. old_time) *. 1000. in
   if delta > 50. then
     Printf.printf "%s"
-      (print_with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[TIME] %.0f ms\n" delta)
+      (with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[TIME] %.0f ms\n" delta)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
 let debug_marker () =
   time_marker ();
-  print_with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
+  with_style [ ANSITerminal.Bold; ANSITerminal.magenta ] "[DEBUG] "
 
 (** Prints [\[ERROR\]] in red on the terminal error output *)
-let error_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
+let error_marker () = with_style [ ANSITerminal.Bold; ANSITerminal.red ] "[ERROR] "
 
 (** Prints [\[WARNING\]] in yellow on the terminal standard output *)
-let warning_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
+let warning_marker () = with_style [ ANSITerminal.Bold; ANSITerminal.yellow ] "[WARNING] "
 
 (** Prints [\[RESULT\]] in green on the terminal standard output *)
-let result_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
+let result_marker () = with_style [ ANSITerminal.Bold; ANSITerminal.green ] "[RESULT] "
 
 (** Prints [\[LOG\]] in red on the terminal error output *)
-let log_marker () = print_with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[LOG] "
+let log_marker () = with_style [ ANSITerminal.Bold; ANSITerminal.black ] "[LOG] "
 
 (**{2 Printers}*)
 
@@ -265,29 +265,28 @@ let add_prefix_to_each_line (s : string) (prefix : int -> string) =
     (fun _ -> "\n")
     (String.split_on_char '\n' s)
 
-let debug_print (s : string) =
-  if !debug_flag then begin
-    Printf.printf "%s\n" (debug_marker () ^ s);
-    flush stdout;
-    flush stdout
-  end
+let debug_print (format : ('a, out_channel, unit) format) =
+  if !debug_flag then Printf.printf ("%s" ^^ format ^^ "\n%!") (debug_marker ())
+  else Printf.ifprintf stdout format
 
-let error_print (s : string) =
-  Printf.eprintf "%s\n" (error_marker () ^ s);
-  flush stderr;
-  flush stderr
+let debug_format (format : ('a, Format.formatter, unit) format) =
+  if !debug_flag then Format.printf ("%s@[<hov>" ^^ format ^^ "@]@.") (debug_marker ())
+  else Format.ifprintf Format.std_formatter format
 
-let warning_print (s : string) =
-  Printf.printf "%s\n" (warning_marker () ^ s);
-  flush stdout;
-  flush stdout
+let error_print (format : ('a, out_channel, unit) format) =
+  Printf.eprintf ("%s" ^^ format ^^ "\n%!") (error_marker ())
 
-let result_print (s : string) =
-  Printf.printf "%s\n" (result_marker () ^ s);
-  flush stdout;
-  flush stdout
+let warning_print (format : ('a, out_channel, unit) format) =
+  Printf.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
 
-let log_print (s : string) =
-  Printf.printf "%s\n" (log_marker () ^ s);
-  flush stdout;
-  flush stdout
+let result_print (format : ('a, out_channel, unit) format) =
+  Printf.printf ("%s" ^^ format ^^ "\n%!") (result_marker ())
+
+let result_format (format : ('a, Format.formatter, unit) format) =
+  Format.printf ("%s" ^^ format ^^ "\n%!") (result_marker ())
+
+let log_print (format : ('a, out_channel, unit) format) =
+  Printf.printf ("%s" ^^ format ^^ "\n%!") (log_marker ())
+
+let log_format (format : ('a, Format.formatter, unit) format) =
+  Format.printf ("%s@[<hov>" ^^ format ^^ "@]@.") (log_marker ())
