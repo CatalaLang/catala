@@ -375,6 +375,7 @@ rule:
   except = option(exception_to)
   RULE
   name_and_param = rule_expr cond = option(condition_consequence)
+  state = option(state)
   consequence = rule_consequence {
     let (name, param_applied) = name_and_param in
     let cons : bool Pos.marked = consequence in
@@ -389,6 +390,7 @@ rule:
         (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
           Pos.from_lpos $sloc);
       rule_consequence = cons;
+      rule_state = state;
   }, $sloc)
 }
 
@@ -397,6 +399,9 @@ definition_parameters:
 
 label:
 | LABEL i = ident { i }
+
+state:
+| STATE s = ident { s }
 
 exception_to:
 | EXCEPTION i = option(ident) {
@@ -408,6 +413,7 @@ definition:
   except = option(exception_to)
   DEFINITION
   name = qident param = option(definition_parameters)
+  state = option(state)
   cond = option(condition_consequence) DEFINED_AS e = expression {
     let def_exception = match except with | None -> NotAnException | Some x -> x in
     ({
@@ -421,6 +427,7 @@ definition:
           (String.concat "." (List.map (fun i -> Pos.unmark i) (Pos.unmark name)),
             Pos.from_lpos $sloc);
       definition_expr = e;
+      definition_state = state;
     }, $sloc)
 }
 
@@ -459,8 +466,8 @@ ident:
  match Localisation.lex_builtin i with
  | Some _ ->
     Errors.raise_spanned_error
-      (Printf.sprintf "Reserved builtin name")
       (Pos.from_lpos $sloc)
+      "Reserved builtin name"
  | None ->
     (i, Pos.from_lpos $sloc)
 }
@@ -526,17 +533,22 @@ scope_decl_item_attribute:
 
 
 scope_decl_item:
-| attr = scope_decl_item_attribute i = ident CONTENT t = typ func_typ = option(struct_scope_func) { (ContextData ({
+| attr = scope_decl_item_attribute
+  i = ident
+  CONTENT t = typ func_typ = option(struct_scope_func)
+  states = list(state)
+{ (ContextData ({
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
   scope_decl_context_item_typ =
-    let (typ, typ_pos) = t in
+    (let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
     | Some (arg_typ, arg_pos) -> (Func  {
       arg_typ = (Data arg_typ, arg_pos);
       return_typ = (Data typ, typ_pos);
-    }, Pos.from_lpos $sloc);
+    }, Pos.from_lpos $sloc));
+  scope_decl_context_item_states = states;
   }), Pos.from_lpos $sloc)
 }
 | i = ident SCOPE c = constructor {
@@ -549,17 +561,21 @@ scope_decl_item:
     };
   }), Pos.from_lpos $sloc)
 }
-| attr = scope_decl_item_attribute  i = ident _condition = CONDITION func_typ = option(struct_scope_func) {
+| attr = scope_decl_item_attribute
+  i = ident _condition = CONDITION func_typ = option(struct_scope_func)
+  states = list(state)
+{
   (ContextData ({
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
     scope_decl_context_item_typ =
-      match func_typ with
+      (match func_typ with
       | None -> (Base (Condition), Pos.from_lpos $loc(_condition))
       | Some (arg_typ, arg_pos) -> (Func  {
         arg_typ = (Data arg_typ, arg_pos);
         return_typ = (Condition, Pos.from_lpos $loc(_condition));
-      }, Pos.from_lpos $sloc);
+      }, Pos.from_lpos $sloc));
+    scope_decl_context_item_states = states;
     }), Pos.from_lpos $sloc
   )
 }

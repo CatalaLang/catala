@@ -1,15 +1,18 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributors: Denis Merigoux
-   <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2020 Inria,
+   contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
+   <emile.rolley@tuta.io>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 (** Abstract syntax tree built by the Catala parser *)
@@ -19,10 +22,11 @@
 open Utils
 (** {1 Visitor classes for programs} *)
 
-(** To allow for quick traversal and/or modification of this AST structure, we provide a
-    {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design pattern}. This feature is
-    implemented via {{:https://gitlab.inria.fr/fpottier/visitors} François Pottier's OCaml visitors
-    library}. *)
+(** To allow for quick traversal and/or modification of this AST structure, we
+    provide a {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design
+    pattern}. This feature is implemented via
+    {{:https://gitlab.inria.fr/fpottier/visitors} François Pottier's OCaml
+    visitors library}. *)
 
 (** {1 Type definitions} *)
 
@@ -40,9 +44,18 @@ type ident = (string[@opaque])
 
 type qident = ident Pos.marked list
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map"; "ident_map" ]; name = "qident_map" },
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "Pos.marked_map"; "ident_map" ];
+      name = "qident_map";
+    },
     visitors
-      { variety = "iter"; ancestors = [ "Pos.marked_iter"; "ident_iter" ]; name = "qident_iter" }]
+      {
+        variety = "iter";
+        ancestors = [ "Pos.marked_iter"; "ident_iter" ];
+        name = "qident_iter";
+      }]
 
 type primitive_typ =
   | Integer
@@ -54,10 +67,22 @@ type primitive_typ =
   | Date
   | Named of constructor
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "constructor_map" ]; name = "primitive_typ_map" },
-    visitors { variety = "iter"; ancestors = [ "constructor_iter" ]; name = "primitive_typ_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "constructor_map" ];
+      name = "primitive_typ_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "constructor_iter" ];
+        name = "primitive_typ_iter";
+      }]
 
-type base_typ_data = Primitive of primitive_typ | Collection of base_typ_data Pos.marked
+type base_typ_data =
+  | Primitive of primitive_typ
+  | Collection of base_typ_data Pos.marked
 [@@deriving
   visitors
     {
@@ -75,7 +100,12 @@ type base_typ_data = Primitive of primitive_typ | Collection of base_typ_data Po
 type base_typ = Condition | Data of base_typ_data
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "base_typ_data_map" ]; name = "base_typ_map"; nude = true },
+    {
+      variety = "map";
+      ancestors = [ "base_typ_data_map" ];
+      name = "base_typ_map";
+      nude = true;
+    },
     visitors
       {
         variety = "iter";
@@ -84,16 +114,42 @@ type base_typ = Condition | Data of base_typ_data
         nude = true;
       }]
 
-type func_typ = { arg_typ : base_typ Pos.marked; return_typ : base_typ Pos.marked }
+type func_typ = {
+  arg_typ : base_typ Pos.marked;
+  return_typ : base_typ Pos.marked;
+}
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "base_typ_map" ]; name = "func_typ_map"; nude = true },
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "base_typ_map" ];
+      name = "func_typ_map";
+      nude = true;
+    },
     visitors
-      { variety = "iter"; ancestors = [ "base_typ_iter" ]; name = "func_typ_iter"; nude = true }]
+      {
+        variety = "iter";
+        ancestors = [ "base_typ_iter" ];
+        name = "func_typ_iter";
+        nude = true;
+      }]
 
 type typ = Base of base_typ | Func of func_typ
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "func_typ_map" ]; name = "typ_map"; nude = true },
-    visitors { variety = "iter"; ancestors = [ "func_typ_iter" ]; name = "typ_iter"; nude = true }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "func_typ_map" ];
+      name = "typ_map";
+      nude = true;
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "func_typ_iter" ];
+        name = "typ_iter";
+        nude = true;
+      }]
 
 type struct_decl_field = {
   struct_decl_field_name : ident Pos.marked;
@@ -101,7 +157,11 @@ type struct_decl_field = {
 }
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "typ_map"; "ident_map" ]; name = "struct_decl_field_map" },
+    {
+      variety = "map";
+      ancestors = [ "typ_map"; "ident_map" ];
+      name = "struct_decl_field_map";
+    },
     visitors
       {
         variety = "iter";
@@ -114,18 +174,38 @@ type struct_decl = {
   struct_decl_fields : struct_decl_field Pos.marked list;
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "struct_decl_field_map" ]; name = "struct_decl_map" },
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "struct_decl_field_map" ];
+      name = "struct_decl_map";
+    },
     visitors
-      { variety = "iter"; ancestors = [ "struct_decl_field_iter" ]; name = "struct_decl_iter" }]
+      {
+        variety = "iter";
+        ancestors = [ "struct_decl_field_iter" ];
+        name = "struct_decl_iter";
+      }]
 
 type enum_decl_case = {
   enum_decl_case_name : constructor Pos.marked;
   enum_decl_case_typ : typ Pos.marked option;
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "typ_map" ]; name = "enum_decl_case_map"; nude = true },
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "typ_map" ];
+      name = "enum_decl_case_map";
+      nude = true;
+    },
     visitors
-      { variety = "iter"; ancestors = [ "typ_iter" ]; name = "enum_decl_case_iter"; nude = true }]
+      {
+        variety = "iter";
+        ancestors = [ "typ_iter" ];
+        name = "enum_decl_case_iter";
+        nude = true;
+      }]
 
 type enum_decl = {
   enum_decl_name : constructor Pos.marked;
@@ -133,7 +213,12 @@ type enum_decl = {
 }
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "enum_decl_case_map" ]; name = "enum_decl_map"; nude = true },
+    {
+      variety = "map";
+      ancestors = [ "enum_decl_case_map" ];
+      name = "enum_decl_map";
+      nude = true;
+    },
     visitors
       {
         variety = "iter";
@@ -143,7 +228,8 @@ type enum_decl = {
       }]
 
 type match_case_pattern =
-  (constructor Pos.marked option * constructor Pos.marked) list * ident Pos.marked option
+  (constructor Pos.marked option * constructor Pos.marked) list
+  * ident Pos.marked option
 [@@deriving
   visitors
     {
@@ -179,13 +265,37 @@ type binop =
   | Neq
   | Concat
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "op_kind_map" ]; name = "binop_map"; nude = true },
-    visitors { variety = "iter"; ancestors = [ "op_kind_iter" ]; name = "binop_iter"; nude = true }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "op_kind_map" ];
+      name = "binop_map";
+      nude = true;
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "op_kind_iter" ];
+        name = "binop_iter";
+        nude = true;
+      }]
 
 type unop = Not | Minus of op_kind
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "op_kind_map" ]; name = "unop_map"; nude = true },
-    visitors { variety = "iter"; ancestors = [ "op_kind_iter" ]; name = "unop_iter"; nude = true }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "op_kind_map" ];
+      name = "unop_map";
+      nude = true;
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "op_kind_iter" ];
+        name = "unop_iter";
+        nude = true;
+      }]
 
 type builtin_expression = Cardinal | IntToDec | GetDay | GetMonth | GetYear
 [@@deriving
@@ -198,8 +308,18 @@ type literal_date = {
   literal_date_year : (int[@opaque]) Pos.marked;
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "literal_date_map" },
-    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "literal_date_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "Pos.marked_map" ];
+      name = "literal_date_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "Pos.marked_iter" ];
+        name = "literal_date_iter";
+      }]
 
 type literal_number =
   | Int of (Runtime.integer[@opaque])
@@ -231,14 +351,24 @@ type literal =
     {
       variety = "map";
       ancestors =
-        [ "literal_number_map"; "money_amount_map"; "literal_date_map"; "literal_unit_map" ];
+        [
+          "literal_number_map";
+          "money_amount_map";
+          "literal_date_map";
+          "literal_unit_map";
+        ];
       name = "literal_map";
     },
     visitors
       {
         variety = "iter";
         ancestors =
-          [ "literal_number_iter"; "money_amount_iter"; "literal_date_iter"; "literal_unit_iter" ];
+          [
+            "literal_number_iter";
+            "money_amount_iter";
+            "literal_date_iter";
+            "literal_unit_iter";
+          ];
         name = "literal_iter";
       }]
 
@@ -248,35 +378,50 @@ type aggregate_func =
   | AggregateExtremum of bool * primitive_typ * expression Pos.marked
   | AggregateArgExtremum of bool * primitive_typ * expression Pos.marked
 
-and collection_op = Exists | Forall | Aggregate of aggregate_func | Map | Filter
+and collection_op =
+  | Exists
+  | Forall
+  | Aggregate of aggregate_func
+  | Map
+  | Filter
 
 and explicit_match_case = {
   match_case_pattern : match_case_pattern Pos.marked;
   match_case_expr : expression Pos.marked;
 }
 
-and match_case = WildCard of expression Pos.marked | MatchCase of explicit_match_case
+and match_case =
+  | WildCard of expression Pos.marked
+  | MatchCase of explicit_match_case
 
 and match_cases = match_case Pos.marked list
 
 and expression =
   | MatchWith of expression Pos.marked * match_cases Pos.marked
-  | IfThenElse of expression Pos.marked * expression Pos.marked * expression Pos.marked
+  | IfThenElse of
+      expression Pos.marked * expression Pos.marked * expression Pos.marked
   | Binop of binop Pos.marked * expression Pos.marked * expression Pos.marked
   | Unop of unop Pos.marked * expression Pos.marked
   | CollectionOp of
-      collection_op Pos.marked * ident Pos.marked * expression Pos.marked * expression Pos.marked
+      collection_op Pos.marked
+      * ident Pos.marked
+      * expression Pos.marked
+      * expression Pos.marked
   | MemCollection of expression Pos.marked * expression Pos.marked
   | TestMatchCase of expression Pos.marked * match_case_pattern Pos.marked
   | FunCall of expression Pos.marked * expression Pos.marked
   | Builtin of builtin_expression
   | Literal of literal
   | EnumInject of
-      constructor Pos.marked option * constructor Pos.marked * expression Pos.marked option
-  | StructLit of constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
+      constructor Pos.marked option
+      * constructor Pos.marked
+      * expression Pos.marked option
+  | StructLit of
+      constructor Pos.marked * (ident Pos.marked * expression Pos.marked) list
   | ArrayLit of expression Pos.marked list
   | Ident of ident
-  | Dotted of expression Pos.marked * constructor Pos.marked option * ident Pos.marked
+  | Dotted of
+      expression Pos.marked * constructor Pos.marked option * ident Pos.marked
       (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors
@@ -308,10 +453,17 @@ and expression =
         name = "expression_iter";
       }]
 
-type exception_to = NotAnException | UnlabeledException | ExceptionToLabel of ident Pos.marked
+type exception_to =
+  | NotAnException
+  | UnlabeledException
+  | ExceptionToLabel of ident Pos.marked
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "ident_map"; "Pos.marked_map" ]; name = "exception_to_map" },
+    {
+      variety = "map";
+      ancestors = [ "ident_map"; "Pos.marked_map" ];
+      name = "exception_to_map";
+    },
     visitors
       {
         variety = "iter";
@@ -327,6 +479,7 @@ type rule = {
   rule_name : qident Pos.marked;
   rule_id : Desugared.Ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Pos.marked;
+  rule_state : ident Pos.marked option;
 }
 [@@deriving
   visitors
@@ -350,6 +503,7 @@ type definition = {
   definition_condition : expression Pos.marked option;
   definition_id : Desugared.Ast.RuleName.t; [@opaque]
   definition_expr : expression Pos.marked;
+  definition_state : ident Pos.marked option;
 }
 [@@deriving
   visitors
@@ -372,7 +526,10 @@ type variation_typ = Increasing | Decreasing
 
 type meta_assertion =
   | FixedBy of qident Pos.marked * ident Pos.marked
-  | VariesWith of qident Pos.marked * expression Pos.marked * variation_typ Pos.marked option
+  | VariesWith of
+      qident Pos.marked
+      * expression Pos.marked
+      * variation_typ Pos.marked option
 [@@deriving
   visitors
     {
@@ -392,8 +549,18 @@ type assertion = {
   assertion_content : expression Pos.marked;
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "expression_map" ]; name = "assertion_map" },
-    visitors { variety = "iter"; ancestors = [ "expression_iter" ]; name = "assertion_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "expression_map" ];
+      name = "assertion_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "expression_iter" ];
+        name = "assertion_iter";
+      }]
 
 type scope_use_item =
   | Rule of rule
@@ -404,13 +571,20 @@ type scope_use_item =
   visitors
     {
       variety = "map";
-      ancestors = [ "meta_assertion_map"; "definition_map"; "assertion_map"; "rule_map" ];
+      ancestors =
+        [ "meta_assertion_map"; "definition_map"; "assertion_map"; "rule_map" ];
       name = "scope_use_item_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = [ "meta_assertion_iter"; "definition_iter"; "assertion_iter"; "rule_iter" ];
+        ancestors =
+          [
+            "meta_assertion_iter";
+            "definition_iter";
+            "assertion_iter";
+            "rule_iter";
+          ];
         name = "scope_use_item_iter";
       }]
 
@@ -465,14 +639,25 @@ type scope_decl_context_scope = {
   visitors
     {
       variety = "map";
-      ancestors = [ "ident_map"; "constructor_map"; "scope_decl_context_io_map"; "Pos.marked_map" ];
+      ancestors =
+        [
+          "ident_map";
+          "constructor_map";
+          "scope_decl_context_io_map";
+          "Pos.marked_map";
+        ];
       name = "scope_decl_context_scope_map";
     },
     visitors
       {
         variety = "iter";
         ancestors =
-          [ "ident_iter"; "constructor_iter"; "scope_decl_context_io_iter"; "Pos.marked_iter" ];
+          [
+            "ident_iter";
+            "constructor_iter";
+            "scope_decl_context_io_iter";
+            "Pos.marked_iter";
+          ];
         name = "scope_decl_context_scope_iter";
       }]
 
@@ -480,6 +665,7 @@ type scope_decl_context_data = {
   scope_decl_context_item_name : ident Pos.marked;
   scope_decl_context_item_typ : typ Pos.marked;
   scope_decl_context_item_attribute : scope_decl_context_io;
+  scope_decl_context_item_states : ident Pos.marked list;
 }
 [@@deriving
   visitors
@@ -502,13 +688,15 @@ type scope_decl_context_item =
   visitors
     {
       variety = "map";
-      ancestors = [ "scope_decl_context_data_map"; "scope_decl_context_scope_map" ];
+      ancestors =
+        [ "scope_decl_context_data_map"; "scope_decl_context_scope_map" ];
       name = "scope_decl_context_item_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = [ "scope_decl_context_data_iter"; "scope_decl_context_scope_iter" ];
+        ancestors =
+          [ "scope_decl_context_data_iter"; "scope_decl_context_scope_iter" ];
         name = "scope_decl_context_item_iter";
       }]
 
@@ -518,9 +706,17 @@ type scope_decl = {
 }
 [@@deriving
   visitors
-    { variety = "map"; ancestors = [ "scope_decl_context_item_map" ]; name = "scope_decl_map" },
+    {
+      variety = "map";
+      ancestors = [ "scope_decl_context_item_map" ];
+      name = "scope_decl_map";
+    },
     visitors
-      { variety = "iter"; ancestors = [ "scope_decl_context_item_iter" ]; name = "scope_decl_iter" }]
+      {
+        variety = "iter";
+        ancestors = [ "scope_decl_context_item_iter" ];
+        name = "scope_decl_iter";
+      }]
 
 type code_item =
   | ScopeUse of scope_use
@@ -531,25 +727,54 @@ type code_item =
   visitors
     {
       variety = "map";
-      ancestors = [ "scope_decl_map"; "enum_decl_map"; "struct_decl_map"; "scope_use_map" ];
+      ancestors =
+        [
+          "scope_decl_map"; "enum_decl_map"; "struct_decl_map"; "scope_use_map";
+        ];
       name = "code_item_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = [ "scope_decl_iter"; "enum_decl_iter"; "struct_decl_iter"; "scope_use_iter" ];
+        ancestors =
+          [
+            "scope_decl_iter";
+            "enum_decl_iter";
+            "struct_decl_iter";
+            "scope_use_iter";
+          ];
         name = "code_item_iter";
       }]
 
 type code_block = code_item Pos.marked list
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "code_item_map" ]; name = "code_block_map" },
-    visitors { variety = "iter"; ancestors = [ "code_item_iter" ]; name = "code_block_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "code_item_map" ];
+      name = "code_block_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "code_item_iter" ];
+        name = "code_block_iter";
+      }]
 
 type source_repr = (string[@opaque]) Pos.marked
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "source_repr_map" },
-    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "source_repr_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "Pos.marked_map" ];
+      name = "source_repr_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "Pos.marked_iter" ];
+        name = "source_repr_iter";
+      }]
 
 type law_heading = {
   law_heading_name : (string[@opaque]) Pos.marked;
@@ -558,16 +783,36 @@ type law_heading = {
   law_heading_precedence : (int[@opaque]);
 }
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_heading_map" },
-    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "law_heading_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "Pos.marked_map" ];
+      name = "law_heading_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "Pos.marked_iter" ];
+        name = "law_heading_iter";
+      }]
 
 type law_include =
   | PdfFile of (string[@opaque]) Pos.marked * (int[@opaque]) option
   | CatalaFile of (string[@opaque]) Pos.marked
   | LegislativeText of (string[@opaque]) Pos.marked
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "Pos.marked_map" ]; name = "law_include_map" },
-    visitors { variety = "iter"; ancestors = [ "Pos.marked_iter" ]; name = "law_include_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "Pos.marked_map" ];
+      name = "law_include_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "Pos.marked_iter" ];
+        name = "law_include_iter";
+      }]
 
 type law_structure =
   | LawInclude of law_include
@@ -578,21 +823,45 @@ type law_structure =
   visitors
     {
       variety = "map";
-      ancestors = [ "law_include_map"; "code_block_map"; "source_repr_map"; "law_heading_map" ];
+      ancestors =
+        [
+          "law_include_map";
+          "code_block_map";
+          "source_repr_map";
+          "law_heading_map";
+        ];
       name = "law_structure_map";
     },
     visitors
       {
         variety = "iter";
         ancestors =
-          [ "law_include_iter"; "code_block_iter"; "source_repr_iter"; "law_heading_iter" ];
+          [
+            "law_include_iter";
+            "code_block_iter";
+            "source_repr_iter";
+            "law_heading_iter";
+          ];
         name = "law_structure_iter";
       }]
 
-type program = { program_items : law_structure list; program_source_files : (string[@opaque]) list }
+type program = {
+  program_items : law_structure list;
+  program_source_files : (string[@opaque]) list;
+}
 [@@deriving
-  visitors { variety = "map"; ancestors = [ "law_structure_map" ]; name = "program_map" },
-    visitors { variety = "iter"; ancestors = [ "law_structure_iter" ]; name = "program_iter" }]
+  visitors
+    {
+      variety = "map";
+      ancestors = [ "law_structure_map" ];
+      name = "program_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = [ "law_structure_iter" ];
+        name = "program_iter";
+      }]
 
 type source_file = law_structure list
 
@@ -609,4 +878,5 @@ let rule_to_def (rule : rule) : definition =
     definition_condition = rule.rule_condition;
     definition_id = rule.rule_id;
     definition_expr = (consequence_expr, Pos.get_position rule.rule_consequence);
+    definition_state = rule.rule_state;
   }

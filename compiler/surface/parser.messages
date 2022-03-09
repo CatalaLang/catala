@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 349.
+## Ends in an error in state: 358.
 ##
 ## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
@@ -13,7 +13,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTENT YEAR
 ##
-## Ends in an error in state: 344.
+## Ends in an error in state: 353.
 ##
 ## enum_decl_line_payload -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -25,7 +25,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 352.
 ##
 ## enum_decl_line -> ALT constructor . option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -37,7 +37,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT YEAR
 ##
-## Ends in an error in state: 342.
+## Ends in an error in state: 351.
 ##
 ## enum_decl_line -> ALT . constructor option(enum_decl_line_payload) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -49,7 +49,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 341.
+## Ends in an error in state: 350.
 ##
 ## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -61,7 +61,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 349.
 ##
 ## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -73,7 +73,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 339.
+## Ends in an error in state: 348.
 ##
 ## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -92,7 +92,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 318.
+## Ends in an error in state: 323.
 ##
 ## code_item -> DECLARATION SCOPE constructor COLON . nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -104,7 +104,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 317.
+## Ends in an error in state: 322.
 ##
 ## code_item -> DECLARATION SCOPE constructor . COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -116,7 +116,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 316.
+## Ends in an error in state: 321.
 ##
 ## code_item -> DECLARATION SCOPE . constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -128,9 +128,9 @@ expected the name of the scope you are declaring
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS COLLECTION YEAR
 ##
-## Ends in an error in state: 303.
+## Ends in an error in state: 308.
 ##
-## typ -> collection_marked . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
+## typ -> collection_marked . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DEPENDS DECLARATION DATA CONTEXT CONDITION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## collection_marked
@@ -140,7 +140,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS TEXT YEAR
 ##
-## Ends in an error in state: 311.
+## Ends in an error in state: 316.
 ##
 ## list(struct_scope) -> struct_scope . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -152,9 +152,9 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 307.
+## Ends in an error in state: 312.
 ##
-## struct_scope_func -> DEPENDS . typ [ SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope_func -> DEPENDS . typ [ STATE SCOPE OUTPUT INTERNAL INPUT IDENT END_CODE DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DEPENDS
@@ -164,7 +164,7 @@ expected the type of the parameter of this struct data function
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION IDENT YEAR
 ##
-## Ends in an error in state: 306.
+## Ends in an error in state: 311.
 ##
 ## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
@@ -176,7 +176,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON CONDITION YEAR
 ##
-## Ends in an error in state: 313.
+## Ends in an error in state: 318.
 ##
 ## struct_scope_base -> condition_pos . ident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -188,7 +188,7 @@ expected the name of this struct condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT CONTENT YEAR
 ##
-## Ends in an error in state: 299.
+## Ends in an error in state: 304.
 ##
 ## struct_scope_base -> DATA ident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -200,7 +200,7 @@ expected the type of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA IDENT YEAR
 ##
-## Ends in an error in state: 298.
+## Ends in an error in state: 303.
 ##
 ## struct_scope_base -> DATA ident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -212,7 +212,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON DATA YEAR
 ##
-## Ends in an error in state: 297.
+## Ends in an error in state: 302.
 ##
 ## struct_scope_base -> DATA . ident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -224,7 +224,7 @@ expected the name of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR COLON YEAR
 ##
-## Ends in an error in state: 296.
+## Ends in an error in state: 301.
 ##
 ## code_item -> DECLARATION STRUCT constructor COLON . list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -236,7 +236,7 @@ expected struct data or condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT CONSTRUCTOR YEAR
 ##
-## Ends in an error in state: 295.
+## Ends in an error in state: 300.
 ##
 ## code_item -> DECLARATION STRUCT constructor . COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -248,7 +248,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 294.
+## Ends in an error in state: 299.
 ##
 ## code_item -> DECLARATION STRUCT . constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -260,7 +260,7 @@ expected the struct name
 
 source_file: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 293.
+## Ends in an error in state: 298.
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
@@ -350,7 +350,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON ASSERTION UNDER_CONDITION TRUE T
 ##
 ## Ends in an error in state: 260.
 ##
-## condition_consequence -> condition . CONSEQUENCE [ VERTICAL TRUE SUM NOT MONEY_AMOUNT MINUSMONEY MINUSDURATION MINUSDEC MINUS MINIMUM MAXIMUM MATCH MAP LSQUARE LPAREN INT_LITERAL IF IDENT FOR FILTER FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL CONTENT CONSTRUCTOR CARDINAL ]
+## condition_consequence -> condition . CONSEQUENCE [ VERTICAL TRUE SUM STATE NOT MONEY_AMOUNT MINUSMONEY MINUSDURATION MINUSDEC MINUS MINIMUM MAXIMUM MATCH MAP LSQUARE LPAREN INT_LITERAL IF IDENT FOR FILTER FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL CONTENT CONSTRUCTOR CARDINAL ]
 ##
 ## The known suffix of the stack is as follows:
 ## condition
@@ -461,21 +461,21 @@ expected an expression that shoud be asserted during execution
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 286.
+## Ends in an error in state: 291.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS
+## option(label) option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS
 ##
 
 expected an expression for the definition
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT OF IDENT DECREASING
 ##
-## Ends in an error in state: 284.
+## Ends in an error in state: 288.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION qident option(definition_parameters) . option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) DEFINITION qident option(definition_parameters)
@@ -486,9 +486,9 @@ expected a expression for defining this function, introduced by the defined as k
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION IDENT WITH_V
 ##
-## Ends in an error in state: 283.
+## Ends in an error in state: 287.
 ##
-## definition -> option(label) option(exception_to) DEFINITION qident . option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION qident . option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) DEFINITION qident
@@ -505,9 +505,9 @@ expected the defined as keyword to introduce the definition of this variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 282.
+## Ends in an error in state: 286.
 ##
-## definition -> option(label) option(exception_to) DEFINITION . qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) DEFINITION . qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) DEFINITION
@@ -519,8 +519,8 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON EXCEPTION IDENT YEAR
 ##
 ## Ends in an error in state: 269.
 ##
-## definition -> option(label) option(exception_to) . DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) option(exception_to) . DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to)
@@ -544,8 +544,8 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON LABEL IDENT DEFINED_AS
 ##
 ## Ends in an error in state: 265.
 ##
-## definition -> option(label) . option(exception_to) DEFINITION qident option(definition_parameters) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## definition -> option(label) . option(exception_to) DEFINITION qident option(definition_parameters) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label)
@@ -569,7 +569,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT DOT YEAR
 ##
 ## Ends in an error in state: 248.
 ##
-## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
+## separated_nonempty_list(DOT,ident) -> ident DOT . separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident DOT
@@ -579,7 +579,7 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT NOT FALSE
 ##
-## Ends in an error in state: 275.
+## Ends in an error in state: 279.
 ##
 ## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -593,7 +593,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF IDENT YEAR
 ##
 ## Ends in an error in state: 271.
 ##
-## rule -> option(label) option(exception_to) RULE rule_expr . option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) RULE rule_expr . option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) RULE rule_expr
@@ -603,9 +603,9 @@ expected the expression of the rule
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT OF YEAR
 ##
-## Ends in an error in state: 278.
+## Ends in an error in state: 282.
 ##
-## definition_parameters -> OF . ident [ UNDER_CONDITION NOT FILLED DEFINED_AS ]
+## definition_parameters -> OF . ident [ UNDER_CONDITION STATE NOT FILLED DEFINED_AS ]
 ##
 ## The known suffix of the stack is as follows:
 ## OF
@@ -616,9 +616,9 @@ expected the name of the parameter for this dependent variable
 
 source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT WITH_V
 ##
-## Ends in an error in state: 277.
+## Ends in an error in state: 281.
 ##
-## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION NOT FILLED ]
+## rule_expr -> qident . option(definition_parameters) [ UNDER_CONDITION STATE NOT FILLED ]
 ##
 ## The known suffix of the stack is as follows:
 ## qident
@@ -637,8 +637,8 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE IDENT YEAR
 ##
 ## Ends in an error in state: 247.
 ##
-## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
-## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION OF NOT FILLED DEFINED_AS BY ]
+## separated_nonempty_list(DOT,ident) -> ident . [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
+## separated_nonempty_list(DOT,ident) -> ident . DOT separated_nonempty_list(DOT,ident) [ WITH_V UNDER_CONDITION STATE OF NOT FILLED DEFINED_AS BY ]
 ##
 ## The known suffix of the stack is as follows:
 ## ident
@@ -650,7 +650,7 @@ source_file: BEGIN_CODE SCOPE CONSTRUCTOR COLON RULE YEAR
 ##
 ## Ends in an error in state: 270.
 ##
-## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) RULE
@@ -1867,7 +1867,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 367.
+## Ends in an error in state: 376.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##

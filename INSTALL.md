@@ -67,7 +67,7 @@ please install them if they're not here, otherwise you will get some errors.
 On a Debian distribution, this can be
 done with
 
-    sudo apt install python3-dev virtualenv python3-setuptools python3-pip python3-pygments man2html rsync colordiff npm nodejs libmpc-dev
+    sudo apt install python3-dev virtualenv python3-setuptools python3-pip python3-pygments man2html rsync colordiff npm nodejs libmpc-dev ninja-build
     sudo python3 -m pip install --upgrade pip
 
 On ArchLinux :

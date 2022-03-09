@@ -45,9 +45,6 @@ ouvre droit aux prestations familiales :
 
 ```catala
 champ d'application PrestationsFamiliales :
-  # TODO: ajouter le cas d'une ou plusieurs exceptions à un ensemble
-  # de définitions par morceaux regroupées par une même étiquette
-  # (non encore implémenté)
   étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.obligation_scolaire sous forme Avant ou
     enfant.obligation_scolaire sous forme Pendant

@@ -2,7 +2,7 @@
 
 (name catala)
 
-(version 0.5.0)
+(version 0.6.0)
 
 (generate_opam_files true)
 
@@ -15,7 +15,13 @@
 
 (bug_reports https://github.com/CatalaLang/catala/issues)
 
-(authors "Denis Merigoux, Nicolas Chataing")
+(authors
+ "Denis Merigoux"
+ "Nicolas Chataing"
+ "Emile Rolley"
+ "Louis Gesbert"
+ "Aymeric Fromherz"
+ "Alain Dela\195\171t-Tixeuil")
 
 (maintainers "contact@catala-lang.org")
 
@@ -26,7 +32,7 @@
  (synopsis
   "Compiler and library for the literate programming language for tax code specification")
  (description
-  "Catala is a domain-specific language for deriving faithful-by-construction\nalgorithms from legislative texts. See https://catala-lang.org for more information\n")
+  "Catala is a domain-specific language for deriving faithful-by-construction algorithms from legislative texts. See https://catala-lang.org for more information")
  (depends
   (ocaml
    (>= 4.11.0))
@@ -67,13 +73,18 @@
   (cppo
    (>= 1))
   (obelisk :dev)
+  (alcotest
+   (and
+    :with-test
+    (>= 1.5.0)))
   (ocamlformat
    (and
     :dev
-    (= 0.19.0)))))
+    (= 0.20.1)))))
 
 (package
  (name french_law)
+ (authors "Denis Merigoux")
  (synopsis
   "A collection of algorithms and computations defined by French law")
  (description
@@ -84,5 +95,43 @@
   (catala
    (= :version))
   (conf-npm :dev)))
+
+(package
+ (name clerk)
+ (authors "Emile Rolley" "Denis Merigoux")
+ (synopsis
+  "Build system for Catala, a specification language for tax and social benefits computation rules")
+ (description
+  "Clerk is a build system for Catala, a specification language for tax and social benefits computation rules, see https://catala-lang.org")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (cmdliner
+   (= 1.0.4))
+  (re
+   (>= 1.9.0))
+  (ANSITerminal
+   (>= 0.8.2))
+  (alcotest
+   (and
+    :with-test
+    (>= 1.5.0)))
+  (catala
+   (= :version))
+  (ninja_utils
+   (= :version))))
+
+(package
+ (name ninja_utils)
+ (authors "Emile Rolley")
+ (synopsis
+  "A collection of utility functions used to generate Ninja build files")
+ (description
+  "This library contains the implementations of utility functions used to generate Ninja build files -- see https://ninja-build.org. It's currently used by the Catala build system (see https://github.com/CatalaLang/catala/tree/master/build_system)")
+ (depends
+  (ocaml
+   (>= 4.11.0))
+  (re
+   (>= 1.10.3))))
 
 (using menhir 2.1)

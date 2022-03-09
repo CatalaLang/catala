@@ -329,33 +329,25 @@ pourcentage de la base mensuelle de calcul des allocations familiales
 prévue à l'article L. 551-1 du code de la sécurité sociale, ainsi qu'il suit :
 
 ```catala
-champ d'application AllocationsFamiliales :
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
   # La formule change à Mayotte par rapport au cas général.
-  exception définition montant_initial_base sous condition
-    résidence = Mayotte
-  conséquence égal à
-    montant_initial_base_premier_enfant_mayotte +€
-    montant_initial_base_deuxième_enfant_mayotte +€
+  exception définition montant_initial_base égal à
+    montant_initial_base_premier_enfant +€
+    montant_initial_base_deuxième_enfant +€
     montant_initial_base_troisième_enfant_mayotte +€
     montant_initial_base_quatrième_enfant_et_plus_mayotte
 
   exception
   règle droit_ouvert_base sous condition
-    résidence = Mayotte et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale >= 1)
   conséquence rempli
-
-  # TODO: ici l'on voudrait pouvoir définir montant_initial_base_deuxième_enfant
-  # comme une exception (sous condition de résidence Mayotte) au groupe
-  # de trois définitions sous conditions de l'article D521-1.
-  # Le langage de surface Catala ne permet pas de faire ça pour l'instant,
-  # mais il faudrait rajouter cette feature.
 ```
 
 1° 5,88 % pour un seul enfant à charge ;
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_premier_enfant_mayotte égal à
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte :
+  étiquette mayotte exception base
+  définition montant_initial_base_premier_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
     alors prestations_familiales.base_mensuelle *€ 5,88 %
     sinon 0 €
@@ -363,8 +355,9 @@ champ d'application AllocationsFamiliales :
 
 2° 32 % pour deux enfants à charge ;
 ```catala
-champ d'application AllocationsFamiliales :
-  définition montant_initial_base_deuxième_enfant_mayotte égal à
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
+  étiquette mayotte exception base
+  définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 32 %
     sinon 0 €
@@ -418,10 +411,10 @@ mensuelle de calcul des allocations familiales (BMAF) prévue à l'article L.
 | A compter de 2021 | 57,28 €                                                                         | 5,88 %                                                                             | 32 %                                                    | 48 %                                                     | 16 %                                 | 4,63 %                                                             |
 
 ```catala
-champ d'application AllocationsFamiliales :
+champ d'application AllocationsFamiliales sous condition résidence = Mayotte:
 
   # Premier enfant
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -429,7 +422,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 14,50 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -437,7 +430,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 13,93 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -445,7 +438,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 13,35 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -453,7 +446,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 12,78 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -461,7 +454,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 12,20 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -469,7 +462,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 11,63 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -477,7 +470,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 11,05 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -485,7 +478,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 9,76 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -493,7 +486,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 8,47 %
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31| et
     non avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
@@ -501,7 +494,7 @@ champ d'application AllocationsFamiliales :
     alors prestations_familiales.base_mensuelle *€ 7,17%
     sinon 0 €
 
-  exception définition montant_initial_base_premier_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_premier_enfant sous condition
     avait_enfant_à_charge_avant_1er_janvier_2012
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 0
@@ -509,70 +502,70 @@ champ d'application AllocationsFamiliales :
     sinon 0 €
 
   # Deuxième enfant
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2011-01-01| et date_courante <=@ |2011-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 23,2 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2012-01-01| et date_courante <=@ |2012-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 23,79 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2013-01-01| et date_courante <=@ |2013-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 24,37 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2014-01-01| et date_courante <=@ |2014-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 24,96 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2015-01-01| et date_courante <=@ |2015-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 25,55 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2016-01-01| et date_courante <=@ |2016-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 26,13 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2017-01-01| et date_courante <=@ |2017-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 26,72 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2018-01-01| et date_courante <=@ |2018-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 28,04 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2019-01-01| et date_courante <=@ |2019-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 29,36 %
     sinon 0 €
 
-  exception définition montant_initial_base_deuxième_enfant_mayotte sous condition
+  exception mayotte définition montant_initial_base_deuxième_enfant sous condition
     date_courante >=@ |2020-01-01| et date_courante <=@ |2020-12-31|
   conséquence égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1

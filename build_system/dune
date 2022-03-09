@@ -1,5 +1,18 @@
+(library
+ (name ninja_utils)
+ (public_name ninja_utils)
+ (modules ninja_utils)
+ (libraries re))
+
+(library
+ (name clerk_driver)
+ (public_name clerk.driver)
+ (libraries catala.runtime catala.utils ninja_utils cmdliner re ANSITerminal)
+ (modules clerk_driver))
+
 (executable
  (name clerk)
  (public_name clerk)
- (libraries catala.runtime catala.utils cmdliner re ANSITerminal)
- (package catala))
+ (libraries clerk.driver)
+ (modules clerk)
+ (package clerk))
