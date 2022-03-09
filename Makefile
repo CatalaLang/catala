@@ -27,11 +27,11 @@ dependencies-js:
 init-submodules:
 	git submodule update --init
 
-dependencies-noz3: dependencies-ocaml-noz3 dependencies-js init-submodules
 
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
 dependencies: dependencies-ocaml dependencies-js init-submodules
 
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js init-submodules
 
 ##########################################
 # Catala compiler rules
