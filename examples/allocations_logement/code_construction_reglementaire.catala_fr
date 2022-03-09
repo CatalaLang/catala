@@ -1373,6 +1373,8 @@ et D. 842-6 à D. 842-13.
 # Renvoi aux différents modes d'occupation définis dans le prologue. 
 ```
 
+####### Sous-section 1 : Ouverture et extinction des droits
+
 ####### Article R823-10 | LEGIARTI000038878919
 
 Les aides personnelles au logement sont dues à compter du premier 
@@ -1485,6 +1487,8 @@ d'un mois à compter de la date de remboursement du solde du prêt.
 # renseignées par l'allocataire mais par son bailleur ou prêteur. 
 ```
 
+####### Sous-section 1 : Calcul de l'aide en secteur locatif 
+
 ####### Article D823-16 | LEGIARTI000038878905
 
 Pour les ménages mentionnés au 1° de l'article D. 823-9, le montant mensuel de l'aide 
@@ -1534,3 +1538,208 @@ n'est pas procédé à son versement.
 ```catala
 # Cet article est très important car il exprime la formule pour le calcul de l'aide!!
 ```
+
+####### Article D823-17 | LEGIARTI000041419255
+
+La participation personnelle du ménage, mentionnée au 4° de l'article D. 823-16, est 
+la somme d'une participation minimale et d'une participation au titre des ressources 
+du ménage, calculée selon la formule suivante :
+
+" Pp = P0 + Tp* (R-R0) "
+
+où :
+
+1° " Pp " est la participation personnelle du ménage ;
+
+2° " P0 " est la participation minimale calculée selon des modalités précisées par 
+arrêté et qui ne peut être inférieure à un montant minimum défini par arrêté ;
+
+3° " Tp " est le taux de prise en compte des ressources du ménage. Il est égal à la 
+somme d'un premier taux en fonction de la composition familiale et d'un second taux 
+en fonction du loyer éligible défini au 2° de l'article D. 823-16. Le second taux est 
+obtenu par l'application de taux progressifs à des tranches successives du loyer éligible, 
+exprimé en proportion d'un loyer de référence en fonction de la composition familiale. 
+Les valeurs du premier taux, les modalités de calcul du second taux et les valeurs des 
+loyers de référence sont fixées par arrêté ;
+
+4° " R " représente les ressources du ménage, appréciées selon les modalités prévues 
+à la section 2 du chapitre II du présent titre et arrondies à la centaine d'euros supérieure ;
+
+5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé 
+par arrêté en fonction de la composition familiale et est revalorisé au 1er janvier de 
+chaque année, en fonction de l'évolution de l'indice des prix à la consommation des 
+ménages hors tabac. Cette évolution est appréciée entre le 1er octobre de l'avant-dernière 
+année précédant la revalorisation et le 1er octobre de l'année précédant la revalorisation. 
+Il est arrondi à l'euro inférieur.
+
+NOTA :
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574 
+du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du 20 avril 2020 
+l'article susvisé a été modifié : Ces dispositions sont applicables au calcul des droits, 
+d'une part, à l'aide personnalisée au logement prévue pour les accédants à la propriété 
+par l'article L. 831-1 du code de la construction et de l'habitation, d'autre part, aux 
+autres aides personnelles au logement prévues par le même code, à compter des mois 
+respectifs fixés par arrêté des ministres en charge du logement, de la santé et du 
+budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25 du 
+décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions sont applicables 
+au calcul des droits à l’aide personnelle au logement à compter du mois de janvier 2021 
+ou, pour le calcul des droits à l’aide personnalisée au logement prévue pour les accédants 
+à la propriété par l’article L. 831-1 du code de la construction et de l’habitation, 
+à compter du mois de mai 2021.
+
+```catala 
+# Cet article définit la formule de l'une des variables nécessaire au calcul de l'aide. 
+``` 
+
+####### Article D823-18 | LEGIARTI000041477261
+
+Les arrêtés fixant les plafonds de loyer mentionnés au 2° de l'article D. 823-16 et 
+les montants forfaitaires de charges mentionnés au 3° du même article peuvent fixer 
+des montants spécifiques pour les ménages colocataires ou dans les cas de sous-location 
+partielle du logement autorisés à l'article L. 822-4. Les paramètres de calcul de l'aide 
+sont déterminés pour chaque foyer en fonction de sa propre composition familiale.
+
+Pour le calcul de l'aide du locataire sous-louant une partie du logement, le loyer 
+principal pris en compte correspond au loyer résiduel après déduction des loyers 
+provenant de la sous-location, hormis pour les contrats d'accueils familiaux mentionnés 
+à l'article L. 442-1 du code de l'action sociale et des familles pour lesquels le loyer 
+principal correspond à l'intégralité du loyer acquitté.
+
+Pour le calcul de l'aide du sous-locataire en sous-location partielle, le loyer 
+principal pris en compte correspond au loyer acquitté.
+
+Lorsque le logement est loué ou sous-loué en meublé, les dispositions de l'article 
+D. 842-2 s'appliquent le cas échéant pour la détermination des loyers pris en compte.
+
+```catala
+# Cet article détermine les loyers à prendre en compte en fonction du mode d'occupation.
+```
+
+####### Article D823-19 | LEGIARTI000038878899
+
+Les arrêtés pris pour l'application de la présente sous-section sont pris par les 
+ministres chargés du logement, du budget, de la sécurité sociale et de l'agriculture.
+
+Le zonage géographique est fixé par arrêté des ministres chargés du logement et du budget.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+###### Section 2 : Prime de déménagement 
+
+####### Article D823-20 | LEGIARTI000038878895
+
+La prime de déménagement est attribuée aux personnes ou aux ménages ayant à charge 
+au moins trois enfants nés ou à naître et qui s'installent dans un nouveau logement 
+ouvrant droit à l'une des aides personnelles au logement au cours d'une période comprise 
+entre le premier jour du mois civil suivant le troisième mois de grossesse au titre 
+d'un enfant de rang trois ou plus et le dernier jour du mois précédant celui au cours 
+duquel cet enfant atteint son deuxième anniversaire.
+
+Cette prime est due si le droit à l'aide est ouvert dans un délai de six mois à compter 
+de la date d'emménagement.
+
+```catala 
+# Il est ici question de la prime de déménagement définie à l'article L823-8.
+```
+
+####### Article D823-21 | LEGIARTI000038878893
+
+La demande de prime, accompagnée des pièces justificatives, est déposée auprès de 
+l'organisme payeur de l'aide personnelle au logement, six mois au plus tard après 
+la date de l'emménagement dans la nouvelle résidence. Elle est conforme à un modèle-type.
+
+Le modèle-type de la demande et la liste des pièces justificatives à fournir sont 
+fixés par arrêté des ministres chargés du logement, du budget, de la sécurité sociale 
+et de l'agriculture.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article D823-22 | LEGIARTI000038878891
+
+Le montant de la prime de déménagement est égal aux dépenses justifiées réellement 
+engagées par le bénéficiaire dans la limite d'un plafond fixé, en fonction de la 
+composition de la famille, par arrêté des ministres chargés du logement, du budget, 
+de la sécurité sociale et de l'agriculture.
+
+```catala 
+# Cet article détermine le montant de la prime de déménagement. 
+```
+
+###### Section 3 : Recouvrement des sommes indûment versées
+
+####### Article R823-23 | LEGIARTI000038878887
+
+Dans le cas où le bailleur ou l'établissement habilité justifie qu'il a, 
+conformément aux articles L. 832-2 et L. 842-1, déduit les sommes d'aide 
+personnelle au logement du montant du loyer et des dépenses accessoires de 
+logement ou de celui des charges de remboursement et que le locataire ou 
+l'emprunteur ne conteste pas le caractère indu de ces sommes, celles-ci 
+sont recouvrées, suivant le cas, auprès du locataire ou de l'emprunteur, 
+dans les conditions fixées à l'article L. 553-2 du code de la sécurité sociale.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article R823-24 | LEGIARTI000038878885
+
+Les dispositions des articles R. 133-9-2, D. 553-1, D. 553-2, D. 553-4 et 
+D. 553-5 du code de la sécurité sociale sont applicables au recouvrement des indus.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article D823-25 | LEGIARTI000038878883
+
+Les organismes payeurs sont autorisés à abandonner la mise en recouvrement des 
+sommes indûment payées, dans les conditions définies à l'article D. 133-2 du code 
+de la sécurité sociale.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article D823-26 | LEGIARTI000042385635
+
+Pour la mise en œuvre de la saisie des aides personnelles au logement prévue au 
+3° de l'article L. 821-6, les prélèvements mensuels d'exécution de la saisie sont 
+déterminés selon les dispositions des articles D. 553-1 et D. 553-2 du code 
+de la sécurité sociale
+
+NOTA : 
+
+Conformément au II de l'article 3 du décret n° 2020-1202 du 30 septembre 2020, 
+ces dispositions s'appliquent à compter du 1er juin 2021.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+##### Chapitre IV : Impayés de dépenses de logement 
+
+###### Section 1 : Seuils de constitution d'un impayé 
+
+####### Article R824-1 | LEGIARTI000038878877
+
+Dans le secteur locatif, lorsque l'aide personnelle au logement est versée au 
+bénéficiaire, l'impayé de dépense de logement, comprenant le loyer et, le cas 
+échéant, les charges locatives, est constitué quand le locataire est débiteur 
+à l'égard du bailleur d'une somme au moins égale à deux fois le montant mensuel 
+brut du loyer et des charges.
+
+Lorsque l'aide personnelle au logement est versée entre les mains du bailleur, 
+l'impayé est constitué quand le locataire est débiteur à l'égard du bailleur 
+d'une somme au moins égale à deux fois le montant mensuel net du loyer et des charges.
+
+Le montant mensuel brut du loyer correspond au loyer figurant dans le bail.
+
+Le montant mensuel net du loyer correspond à ce même loyer, déduction faite du 
+montant de l'aide personnelle au logement.

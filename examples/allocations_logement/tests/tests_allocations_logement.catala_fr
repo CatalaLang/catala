@@ -1,0 +1,15 @@
+> Inclusion: ../allocations_logement.catala_fr
+
+# Tests
+
+```catala 
+déclaration champ d'application Test1:
+  éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+
+champ d'application Test1:
+  définition éligibilité.date_ouverture_droits égal à |2022-01-01|
+  définition éligibilité.ménage égal à Ménage {
+      -- prestations_reçues: [ AllocationJeuneEnfant; ComplémentFamilial ]
+  }
+  assertion non éligibilité.éligibilité
+```
