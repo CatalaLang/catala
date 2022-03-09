@@ -15,14 +15,19 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-dependencies-ocaml:
+dependencies-ocaml-noz3:
 	opam install . --deps-only --with-doc --with-test --yes
+
+dependencies-ocaml:
+	opam install . z3 --deps-only --with-doc --with-test --yes
 
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
 init-submodules:
 	git submodule update --init
+
+dependencies-noz3: dependencies-ocaml-noz3 dependencies-js init-submodules
 
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
 dependencies: dependencies-ocaml dependencies-js init-submodules
