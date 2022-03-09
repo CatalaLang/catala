@@ -18,15 +18,20 @@ K := $(foreach exec,$(EXECUTABLES),\
 dependencies-ocaml:
 	opam install . --deps-only --with-doc --with-test --yes
 
+dependencies-ocaml-with-z3:
+	opam install . z3 --deps-only --with-doc --with-test --yes
+
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
 init-submodules:
 	git submodule update --init
 
+
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
 dependencies: dependencies-ocaml dependencies-js init-submodules
 
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js init-submodules
 
 ##########################################
 # Catala compiler rules
@@ -285,7 +290,7 @@ catala.html: $(COMPILER_DIR)/utils/cli.ml
 	| tac | sed "1,20d" | tac > $@
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: doc literate_examples grammar.html catala.html js_build build_french_law_library_js
+website-assets: doc literate_examples grammar.html catala.html build_french_law_library_js
 
 ##########################################
 # Misceallenous
@@ -293,7 +298,7 @@ website-assets: doc literate_examples grammar.html catala.html js_build build_fr
 
 #> all					: Run all make commands
 all: \
-	dependencies build doc website-assets\
+	build doc website-assets\
 	tests \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
 	tests_ocaml bench_ocaml \

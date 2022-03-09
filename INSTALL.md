@@ -58,6 +58,11 @@ git submodules, with
 
 This should ensure everything is set up for developing on the Catala compiler!
 
+**Warning**: this command does not include the `z3` dependency required to enable
+the proof platform feature of Catala. If you wish to enable support for the
+proof platform and the `Proof` command of the Catala compiler, you should
+instead execute `make dependencies-with-ocaml` prior to building the compiler.
+
 Other features of the Catala repository also require the following executables
 to be present
 

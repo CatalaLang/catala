@@ -68,8 +68,6 @@
    (>= 3.8.0))
   (camomile
    (>= 1.0.2))
-  (z3
-   (>= 4.8.11))
   (cppo
    (>= 1))
   (obelisk :dev)
@@ -80,7 +78,11 @@
   (ocamlformat
    (and
     :dev
-    (= 0.20.1)))))
+    (= 0.20.1))))
+ (depopts
+  z3)
+ (conflicts
+  (z3 (< 4.8.11))))
 
 (package
  (name french_law)

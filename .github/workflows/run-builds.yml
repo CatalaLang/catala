@@ -27,7 +27,7 @@ jobs:
           ./french_law/python/setup_env.sh
       - name: Install OCaml dependencies
         run: |
-          opam install . --deps-only --with-doc --with-test
+          make dependencies-ocaml-with-z3
       - name: Make build
         run: |
           OCAMLRUNPARAM=b opam exec -- make build
