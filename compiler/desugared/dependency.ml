@@ -33,25 +33,32 @@ open Utils
     Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
   type t =
-    | Var of Scopelang.Ast.ScopeVar.t
+    | Var of Ast.ScopeVar.t * Ast.StateName.t option
     | SubScope of Scopelang.Ast.SubScopeName.t
 
   let hash x =
     match x with
-    | Var x -> Scopelang.Ast.ScopeVar.hash x
+    | Var (x, None) -> Ast.ScopeVar.hash x
+    | Var (x, Some sx) ->
+        Int.logxor (Ast.ScopeVar.hash x) (Ast.StateName.hash sx)
     | SubScope x -> Scopelang.Ast.SubScopeName.hash x
 
   let compare = compare
 
   let equal x y =
     match (x, y) with
-    | Var x, Var y -> Scopelang.Ast.ScopeVar.compare x y = 0
+    | Var (x, None), Var (y, None) -> Ast.ScopeVar.compare x y = 0
+    | Var (x, Some sx), Var (y, Some sy) ->
+        Ast.ScopeVar.compare x y = 0 && Ast.StateName.compare sx sy = 0
     | SubScope x, SubScope y -> Scopelang.Ast.SubScopeName.compare x y = 0
     | _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Var v -> Scopelang.Ast.ScopeVar.format_t fmt v
+    | Var (v, None) -> Ast.ScopeVar.format_t fmt v
+    | Var (v, Some sv) ->
+        Format.fprintf fmt "%a.%a" Ast.ScopeVar.format_t v
+          Ast.StateName.format_t sv
     | SubScope v -> Scopelang.Ast.SubScopeName.format_t fmt v
 end
 
@@ -89,51 +96,65 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   let sccs = SCC.scc_list g in
   if List.length sccs < ScopeDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
-    Errors.raise_multispanned_error
-      (Format.asprintf
-         "Cyclic dependency detected between variables of scope %a!"
-         Scopelang.Ast.ScopeName.format_t scope.scope_uid)
-      (List.flatten
-         (List.map
-            (fun v ->
-              let var_str, var_info =
-                match v with
-                | Vertex.Var v ->
-                    ( Format.asprintf "%a" Scopelang.Ast.ScopeVar.format_t v,
-                      Scopelang.Ast.ScopeVar.get_info v )
-                | Vertex.SubScope v ->
-                    ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
-                      Scopelang.Ast.SubScopeName.get_info v )
-              in
-              let succs = ScopeDependencies.succ_e g v in
-              let _, edge_pos, succ =
-                List.find (fun (_, _, succ) -> List.mem succ scc) succs
-              in
-              let succ_str =
-                match succ with
-                | Vertex.Var v ->
-                    Format.asprintf "%a" Scopelang.Ast.ScopeVar.format_t v
-                | Vertex.SubScope v ->
-                    Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
-              in
-              [
-                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                  Pos.get_position var_info );
-                ( Some
-                    ("Used here in the definition of another cycle variable "
-                   ^ succ_str ^ ":"),
-                  edge_pos );
-              ])
-            scc))
+    let spans =
+      List.flatten
+        (List.map
+           (fun v ->
+             let var_str, var_info =
+               match v with
+               | Vertex.Var (v, None) ->
+                   ( Format.asprintf "%a" Ast.ScopeVar.format_t v,
+                     Ast.ScopeVar.get_info v )
+               | Vertex.Var (v, Some sv) ->
+                   ( Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
+                       Ast.StateName.format_t sv,
+                     Ast.StateName.get_info sv )
+               | Vertex.SubScope v ->
+                   ( Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v,
+                     Scopelang.Ast.SubScopeName.get_info v )
+             in
+             let succs = ScopeDependencies.succ_e g v in
+             let _, edge_pos, succ =
+               List.find (fun (_, _, succ) -> List.mem succ scc) succs
+             in
+             let succ_str =
+               match succ with
+               | Vertex.Var (v, None) ->
+                   Format.asprintf "%a" Ast.ScopeVar.format_t v
+               | Vertex.Var (v, Some sv) ->
+                   Format.asprintf "%a.%a" Ast.ScopeVar.format_t v
+                     Ast.StateName.format_t sv
+               | Vertex.SubScope v ->
+                   Format.asprintf "%a" Scopelang.Ast.SubScopeName.format_t v
+             in
+             [
+               ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
+                 Pos.get_position var_info );
+               ( Some
+                   ("Used here in the definition of another cycle variable "
+                  ^ succ_str ^ ":"),
+                 edge_pos );
+             ])
+           scc)
+    in
+    Errors.raise_multispanned_error spans
+      "Cyclic dependency detected between variables of scope %a!"
+      Scopelang.Ast.ScopeName.format_t scope.scope_uid
 
 (** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
   let g = ScopeDependencies.empty in
   (* Add all the vertices to the graph *)
   let g =
-    Scopelang.Ast.ScopeVarSet.fold
-      (fun (v : Scopelang.Ast.ScopeVar.t) g ->
-        ScopeDependencies.add_vertex g (Vertex.Var v))
+    Ast.ScopeVarMap.fold
+      (fun (v : Ast.ScopeVar.t) var_or_state g ->
+        match var_or_state with
+        | Ast.WholeVar -> ScopeDependencies.add_vertex g (Vertex.Var (v, None))
+        | Ast.States states ->
+            List.fold_left
+              (fun g state ->
+                ScopeDependencies.add_vertex g (Vertex.Var (v, Some state)))
+              g states)
       scope.scope_vars g
   in
   let g =
@@ -150,28 +171,31 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         Ast.ScopeDefMap.fold
           (fun fv_def fv_def_pos g ->
             match (def_key, fv_def) with
-            | Ast.ScopeDef.Var defined, Ast.ScopeDef.Var used ->
+            | ( Ast.ScopeDef.Var (v_defined, s_defined),
+                Ast.ScopeDef.Var (v_used, s_used) ) ->
                 (* simple case *)
-                if used = defined then
+                if v_used = v_defined && s_used = s_defined then
                   (* variable definitions cannot be recursive *)
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The variable %a is used in one of its definitions, but \
-                        recursion is forbidden in Catala"
-                       Scopelang.Ast.ScopeVar.format_t defined)
-                    fv_def_pos
+                  Errors.raise_spanned_error fv_def_pos
+                    "The variable %a is used in one of its definitions, but \
+                     recursion is forbidden in Catala"
+                    Ast.ScopeDef.format_t def_key
                 else
                   let edge =
-                    ScopeDependencies.E.create (Vertex.Var used) fv_def_pos
-                      (Vertex.Var defined)
+                    ScopeDependencies.E.create
+                      (Vertex.Var (v_used, s_used))
+                      fv_def_pos
+                      (Vertex.Var (v_defined, s_defined))
                   in
                   ScopeDependencies.add_edge_e g edge
-            | Ast.ScopeDef.SubScopeVar (defined, _), Ast.ScopeDef.Var used ->
+            | ( Ast.ScopeDef.SubScopeVar (defined, _),
+                Ast.ScopeDef.Var (v_used, s_used) ) ->
                 (* here we are defining the input of a subscope using a var of
                    the scope *)
                 let edge =
-                  ScopeDependencies.E.create (Vertex.Var used) fv_def_pos
-                    (Vertex.SubScope defined)
+                  ScopeDependencies.E.create
+                    (Vertex.Var (v_used, s_used))
+                    fv_def_pos (Vertex.SubScope defined)
                 in
                 ScopeDependencies.add_edge_e g edge
             | ( Ast.ScopeDef.SubScopeVar (defined, _),
@@ -180,24 +204,23 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                    another subscope *)
                 if used = defined then
                   (* subscopes are not recursive functions *)
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The subscope %a is used when defining one of its \
-                        inputs, but recursion is forbidden in Catala"
-                       Scopelang.Ast.SubScopeName.format_t defined)
-                    fv_def_pos
+                  Errors.raise_spanned_error fv_def_pos
+                    "The subscope %a is used when defining one of its inputs, \
+                     but recursion is forbidden in Catala"
+                    Scopelang.Ast.SubScopeName.format_t defined
                 else
                   let edge =
                     ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
                       (Vertex.SubScope defined)
                   in
                   ScopeDependencies.add_edge_e g edge
-            | Ast.ScopeDef.Var defined, Ast.ScopeDef.SubScopeVar (used, _) ->
+            | ( Ast.ScopeDef.Var (v_defined, s_defined),
+                Ast.ScopeDef.SubScopeVar (used, _) ) ->
                 (* finally we define a scope var with the output of a
                    subscope *)
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
-                    (Vertex.Var defined)
+                    (Vertex.Var (v_defined, s_defined))
                 in
                 ScopeDependencies.add_edge_e g edge)
           fv g)
@@ -251,21 +274,23 @@ let build_exceptions_graph
           if Ast.RuleSet.equal rule_set1 rule_set2 then ()
           else if Ast.RuleSet.disjoint rule_set1 rule_set2 then ()
           else
-            Errors.raise_multispanned_error
-              "Definitions or rules grouped by different labels overlap, \
-               whereas these groups shoule be disjoint"
-              (List.of_seq
-                 (Seq.map
-                    (fun rule ->
-                      ( Some "Rule or definition from the first group:",
-                        Pos.get_position (Ast.RuleName.get_info rule) ))
-                    (Ast.RuleSet.to_seq rule_set1))
+            let spans =
+              List.of_seq
+                (Seq.map
+                   (fun rule ->
+                     ( Some "Rule or definition from the first group:",
+                       Pos.get_position (Ast.RuleName.get_info rule) ))
+                   (Ast.RuleSet.to_seq rule_set1))
               @ List.of_seq
                   (Seq.map
                      (fun rule ->
                        ( Some "Rule or definition from the second group:",
                          Pos.get_position (Ast.RuleName.get_info rule) ))
-                     (Ast.RuleSet.to_seq rule_set2))))
+                     (Ast.RuleSet.to_seq rule_set2))
+            in
+            Errors.raise_multispanned_error spans
+              "Definitions or rules grouped by different labels overlap, \
+               whereas these groups shoule be disjoint")
         all_rule_sets_pointed_to_by_exceptions)
     all_rule_sets_pointed_to_by_exceptions;
   (* Then we add the exception graph vertices by taking all those sets of rules
@@ -300,8 +325,8 @@ let build_exceptions_graph
           (* we don't add an edge*)
         else if ExceptionsDependencies.mem_vertex g exception_to_ruleset then
           if exception_to_ruleset = Ast.RuleSet.singleton rule_name then
-            Errors.raise_spanned_error
-              "Cannot define rule as an exception to itself" pos
+            Errors.raise_spanned_error pos
+              "Cannot define rule as an exception to itself"
           else
             let edge =
               ExceptionsDependencies.E.create
@@ -310,12 +335,10 @@ let build_exceptions_graph
             in
             ExceptionsDependencies.add_edge_e g edge
         else
-          Errors.raise_spanned_error
-            (Format.asprintf
-               "This rule has been declared as an exception to an incorrect \
-                label: this label is not attached to a definition of \"%a\""
-               Ast.ScopeDef.format_t def_info)
-            pos)
+          Errors.raise_spanned_error pos
+            "This rule has been declared as an exception to an incorrect \
+             label: this label is not attached to a definition of \"%a\""
+            Ast.ScopeDef.format_t def_info)
       def g
   in
   g
@@ -327,28 +350,30 @@ let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
   let sccs = ExceptionsSCC.scc_list g in
   if List.length sccs < ExceptionsDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
-    Errors.raise_multispanned_error
-      (Format.asprintf "Cyclic dependency detected between exceptions!")
-      (List.flatten
-         (List.map
-            (fun (vs : Ast.RuleSet.t) ->
-              let v = Ast.RuleSet.choose vs in
-              let var_str, var_info =
-                ( Format.asprintf "%a" Ast.RuleName.format_t v,
-                  Ast.RuleName.get_info v )
-              in
-              let succs = ExceptionsDependencies.succ_e g vs in
-              let _, edge_pos, _ =
-                List.find (fun (_, _, succ) -> List.mem succ scc) succs
-              in
-              [
-                ( Some
-                    ("Cyclic exception for definition of variable \"" ^ var_str
-                   ^ "\", declared here:"),
-                  Pos.get_position var_info );
-                ( Some
-                    ("Used here in the definition of another cyclic exception \
-                      for defining \"" ^ var_str ^ "\":"),
-                  edge_pos );
-              ])
-            scc))
+    let spans =
+      List.flatten
+        (List.map
+           (fun (vs : Ast.RuleSet.t) ->
+             let v = Ast.RuleSet.choose vs in
+             let var_str, var_info =
+               ( Format.asprintf "%a" Ast.RuleName.format_t v,
+                 Ast.RuleName.get_info v )
+             in
+             let succs = ExceptionsDependencies.succ_e g vs in
+             let _, edge_pos, _ =
+               List.find (fun (_, _, succ) -> List.mem succ scc) succs
+             in
+             [
+               ( Some
+                   ("Cyclic exception for definition of variable \"" ^ var_str
+                  ^ "\", declared here:"),
+                 Pos.get_position var_info );
+               ( Some
+                   ("Used here in the definition of another cyclic exception \
+                     for defining \"" ^ var_str ^ "\":"),
+                 edge_pos );
+             ])
+           scc)
+    in
+    Errors.raise_multispanned_error spans
+      "Cyclic dependency detected between exceptions!"

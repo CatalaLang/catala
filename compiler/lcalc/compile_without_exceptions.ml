@@ -85,12 +85,10 @@ let find ?(info : string = "none") (n : D.Var.t) (ctx : ctx) : info =
      Dcalc.Print.format_var n pp_ctx ctx |> Cli.debug_print in *)
   try D.VarMap.find n ctx.vars
   with Not_found ->
-    Errors.raise_spanned_error
-      (Format.asprintf
-         "Internal Error: Variable %a was not found in the current \
-          environment. Additional informations : %s."
-         Dcalc.Print.format_var n info)
-      Pos.no_pos
+    Errors.raise_spanned_error Pos.no_pos
+      "Internal Error: Variable %a was not found in the current environment. \
+       Additional informations : %s."
+      Dcalc.Print.format_var n info
 
 (** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable
     var, creating a unique corresponding variable in Lcalc, with the
@@ -142,10 +140,9 @@ let translate_lit (l : D.lit) (pos : Pos.t) : A.lit =
   | D.LDate d -> A.LDate d
   | D.LDuration d -> A.LDuration d
   | D.LEmptyError ->
-      Errors.raise_spanned_error
+      Errors.raise_spanned_error pos
         "Internal Error: An empty error was found in a place that shouldn't be \
          possible."
-        pos
 
 (** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
     Raises an internal error if there is two identicals keys in differnts parts. *)
@@ -153,10 +150,9 @@ let disjoint_union_maps (pos : Pos.t) (cs : 'a A.VarMap.t list) : 'a A.VarMap.t
     =
   let disjoint_union =
     A.VarMap.union (fun _ _ _ ->
-        Errors.raise_spanned_error
+        Errors.raise_spanned_error pos
           "Internal Error: Two supposed to be disjoints maps have one shared \
-           key."
-          pos)
+           key.")
   in
 
   List.fold_left disjoint_union A.VarMap.empty cs
@@ -194,9 +190,8 @@ let rec translate_and_hoist (ctx : ctx) (e : D.expr Pos.marked) :
            Print.format_var v'; *)
         (A.make_var (v', pos), A.VarMap.singleton v' (D.EVar (v, pos_v), p))
       else
-        Errors.raise_spanned_error
+        Errors.raise_spanned_error pos
           "Internal error: an pure variable was found in an unpure environment."
-          pos
   | D.EDefault (_exceptions, _just, _cons) ->
       let v' = A.Var.make ("default_term", pos) in
       (A.make_var (v', pos), A.VarMap.singleton v' e)
@@ -385,10 +380,9 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
                  [ (D.TAny, pos_hoist) ]
                  pos_hoist)
         | _ ->
-            Errors.raise_spanned_error
+            Errors.raise_spanned_error pos_hoist
               "Internal Error: An term was found in a position where it should \
                not be"
-              pos_hoist
       in
 
       (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end
@@ -451,14 +445,12 @@ let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
         scope_let_expr = expr;
         _;
       } ->
-      Errors.raise_spanned_error
-        (Format.asprintf
-           "Internal Error: found an SubScopeVarDefinition that does not \
-            satisfy the invariants when translating Dcalc to Lcalc without \
-            exceptions: @[<hov 2>%a@]"
-           (Dcalc.Print.format_expr ctx.decl_ctx)
-           expr)
-        pos
+      Errors.raise_spanned_error pos
+        "Internal Error: found an SubScopeVarDefinition that does not satisfy \
+         the invariants when translating Dcalc to Lcalc without exceptions: \
+         @[<hov 2>%a@]"
+        (Dcalc.Print.format_expr ctx.decl_ctx)
+        expr
   | ScopeLet
       {
         scope_let_kind = kind;

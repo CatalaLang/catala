@@ -40,6 +40,7 @@
 #define MS_SUM "sum"
 #define MS_FILLED "fulfilled"
 #define MS_DEFINITION "definition"
+#define MS_STATE "state"
 #define MS_LABEL "label"
 #define MS_EXCEPTION "exception"
 #define MS_DEFINED_AS "equals"

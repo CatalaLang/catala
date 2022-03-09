@@ -10,7 +10,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm
+EXECUTABLES = man2html virtualenv python3 colordiff node pygmentize nodejs npm ninja
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -255,8 +255,11 @@ test_suite: .FORCE
 test_examples: .FORCE
 	@$(CLERK) test examples
 
+test_clerk: .FORCE
+	cd $(BUILD_SYSTEM_DIR) && dune test
+
 #> tests					: Run interpreter tests
-tests: test_suite test_examples
+tests: test_suite test_examples test_clerk
 
 #> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
 tests_ocaml: run_french_law_library_ocaml_tests
@@ -269,8 +272,6 @@ bench_js: run_french_law_library_benchmark_js
 
 #> bench_python				: Run Python benchmarks for the Catala-generated code
 bench_python: run_french_law_library_benchmark_python
-
-
 
 ##########################################
 # Website assets

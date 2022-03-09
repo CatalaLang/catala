@@ -37,24 +37,25 @@ let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
 
 (** {1 Error exception and printing} *)
 
-let raise_spanned_error
-    (msg : string) ?(span_msg : string option) (span : Pos.t) : 'a =
-  raise (StructuredError (msg, [ (span_msg, span) ]))
+let raise_spanned_error ?(span_msg : string option) (span : Pos.t) format =
+  Format.kasprintf
+    (fun msg -> raise (StructuredError (msg, [ (span_msg, span) ])))
+    format
 
-let raise_multispanned_error
-    (msg : string) (spans : (string option * Pos.t) list) =
-  raise (StructuredError (msg, spans))
+let raise_multispanned_error (spans : (string option * Pos.t) list) format =
+  Format.kasprintf (fun msg -> raise (StructuredError (msg, spans))) format
 
-let raise_error (msg : string) : 'a = raise (StructuredError (msg, []))
+let raise_error format =
+  Format.kasprintf (fun msg -> raise (StructuredError (msg, []))) format
 
 (** {1 Warning printing}*)
 
-let print_multispanned_warning
-    (msg : string) (pos : (string option * Pos.t) list) : unit =
-  Cli.warning_print (print_structured_error msg pos)
+let format_multispanned_warning (pos : (string option * Pos.t) list) format =
+  Format.kasprintf
+    (fun msg -> Cli.warning_print "%s" (print_structured_error msg pos))
+    format
 
-let print_spanned_warning
-    (msg : string) ?(span_msg : string option) (span : Pos.t) : unit =
-  print_multispanned_warning msg [ (span_msg, span) ]
+let format_spanned_warning ?(span_msg : string option) (span : Pos.t) format =
+  format_multispanned_warning [ (span_msg, span) ] format
 
-let print_warning (msg : string) : unit = print_multispanned_warning msg []
+let format_warning format = format_multispanned_warning [] format

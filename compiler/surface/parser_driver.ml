@@ -112,14 +112,15 @@ let raise_parser_error
     (token : string)
     (msg : string) : 'a =
   Errors.raise_multispanned_error
-    (Printf.sprintf "Syntax error at token %s\n%s"
-       (Cli.print_with_style syntax_hints_style "\"%s\"" token)
-       msg)
     ((Some "Error token:", error_loc)
     ::
     (match last_good_loc with
     | None -> []
     | Some last_good_loc -> [ (Some "Last good token:", last_good_loc) ]))
+    "Syntax error at token %a\n%s"
+    (Cli.format_with_style syntax_hints_style)
+    (Printf.sprintf "\"%s\"" token)
+    msg
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -185,7 +186,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
              (String.concat ", or maybe "
                 (List.map
                    (fun (ts, _) ->
-                     Cli.print_with_style syntax_hints_style "\"%s\"" ts)
+                     Cli.with_style syntax_hints_style "\"%s\"" ts)
                    similar_acceptable_tokens)))
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
@@ -193,10 +194,10 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       match Parser_errors.message (state env) with
       | exception Not_found ->
           "Message: "
-          ^ Cli.print_with_style syntax_hints_style "%s" "unexpected token"
+          ^ Cli.with_style syntax_hints_style "%s" "unexpected token"
       | msg ->
           "Message: "
-          ^ Cli.print_with_style syntax_hints_style "%s"
+          ^ Cli.with_style syntax_hints_style "%s"
               (String.trim (String.uncapitalize_ascii msg))
     in
     let msg =
@@ -269,16 +270,15 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
 (** Parses a single source file *)
 let rec parse_source_file
     (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
-  Cli.debug_print
-    (Printf.sprintf "Parsing %s"
-       (match source_file with FileName s | Contents s -> s));
+  Cli.debug_print "Parsing %s"
+    (match source_file with FileName s | Contents s -> s);
   let lexbuf, input =
     match source_file with
     | FileName source_file -> (
         try
           let input = open_in source_file in
           (Sedlexing.Utf8.from_channel input, Some input)
-        with Sys_error msg -> Errors.raise_error msg)
+        with Sys_error msg -> Errors.raise_error "%s" msg)
     | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
   in
   let source_file_name =

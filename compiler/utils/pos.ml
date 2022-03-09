@@ -121,22 +121,22 @@ let retrieve_loc_text (pos : t) : string =
           "\n"
           ^
           if line_no = sline && line_no = eline then
-            Cli.print_with_style error_indicator_style "%*s"
+            Cli.with_style error_indicator_style "%*s"
               (get_end_column pos - 1)
               (String.make
                  (max (get_end_column pos - get_start_column pos) 0)
                  '^')
           else if line_no = sline && line_no <> eline then
-            Cli.print_with_style error_indicator_style "%*s"
+            Cli.with_style error_indicator_style "%*s"
               (String.length line - 1)
               (String.make
                  (max (String.length line - get_start_column pos) 0)
                  '^')
           else if line_no <> sline && line_no <> eline then
-            Cli.print_with_style error_indicator_style "%*s%s" line_indent ""
+            Cli.with_style error_indicator_style "%*s%s" line_indent ""
               (String.make (max (String.length line - line_indent) 0) '^')
           else if line_no <> sline && line_no = eline then
-            Cli.print_with_style error_indicator_style "%*s%*s" line_indent ""
+            Cli.with_style error_indicator_style "%*s%*s" line_indent ""
               (get_end_column pos - 1 - line_indent)
               (String.make (max (get_end_column pos - line_indent) 0) '^')
           else assert false (* should not happen *)
@@ -166,7 +166,7 @@ let retrieve_loc_text (pos : t) : string =
              pos.law_pos)
       in
       (match oc with None -> () | Some oc -> close_in oc);
-      Cli.print_with_style blue_style "%*s--> %s\n%s\n%s" spaces "" filename
+      Cli.with_style blue_style "%*s--> %s\n%s\n%s" spaces "" filename
         (Cli.add_prefix_to_each_line
            (Printf.sprintf "\n%s" (String.concat "\n" pos_lines))
            (fun i ->
@@ -176,31 +176,28 @@ let retrieve_loc_text (pos : t) : string =
                && cur_line <= sline + (2 * (eline - sline))
                && cur_line mod 2 = sline mod 2
              then
-               Cli.print_with_style blue_style "%*d | " spaces
+               Cli.with_style blue_style "%*d | " spaces
                  (sline + ((cur_line - sline) / 2))
              else if cur_line >= sline - include_extra_count && cur_line < sline
-             then Cli.print_with_style blue_style "%*d | " spaces cur_line
+             then Cli.with_style blue_style "%*d | " spaces cur_line
              else if
                cur_line
                <= sline + (2 * (eline - sline)) + 1 + include_extra_count
                && cur_line > sline + (2 * (eline - sline)) + 1
              then
-               Cli.print_with_style blue_style "%*d | " spaces
+               Cli.with_style blue_style "%*d | " spaces
                  (cur_line - (eline - sline + 1))
-             else Cli.print_with_style blue_style "%*s | " spaces ""))
+             else Cli.with_style blue_style "%*s | " spaces ""))
         (Cli.add_prefix_to_each_line
            (Printf.sprintf "%s"
               (String.concat "\n"
                  (List.map
-                    (fun l -> Cli.print_with_style blue_style "%s" l)
+                    (fun l -> Cli.with_style blue_style "%s" l)
                     legal_pos_lines)))
            (fun i ->
              if i = 0 then
-               Cli.print_with_style blue_style "%*s + " (spaces + (2 * i)) ""
-             else
-               Cli.print_with_style blue_style "%*s+-+ "
-                 (spaces + (2 * i) - 1)
-                 ""))
+               Cli.with_style blue_style "%*s + " (spaces + (2 * i)) ""
+             else Cli.with_style blue_style "%*s+-+ " (spaces + (2 * i) - 1) ""))
   with Sys_error _ -> "Location:" ^ to_string pos
 
 type 'a marked = 'a * t

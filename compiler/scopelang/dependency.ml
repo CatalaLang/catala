@@ -61,13 +61,11 @@ let build_program_dep_graph (prgm : Ast.program) : SDependencies.t =
             | Ast.Call (subscope, subindex) ->
                 if subscope = scope_name then
                   Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The scope %a is calling into itself as a subscope, \
-                        which is forbidden since Catala does not provide \
-                        recursion"
-                       Ast.ScopeName.format_t scope.Ast.scope_decl_name)
                     (Pos.get_position
                        (Ast.ScopeName.get_info scope.Ast.scope_decl_name))
+                    "The scope %a is calling into itself as a subscope, which \
+                     is forbidden since Catala does not provide recursion"
+                    Ast.ScopeName.format_t scope.Ast.scope_decl_name
                 else
                   Ast.ScopeMap.add subscope
                     (Pos.get_position (Ast.SubScopeName.get_info subindex))
@@ -87,28 +85,31 @@ let check_for_cycle_in_scope (g : SDependencies.t) : unit =
   let sccs = SSCC.scc_list g in
   if List.length sccs < SDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
-    Errors.raise_multispanned_error "Cyclic dependency detected between scopes!"
-      (List.flatten
-         (List.map
-            (fun v ->
-              let var_str, var_info =
-                ( Format.asprintf "%a" Ast.ScopeName.format_t v,
-                  Ast.ScopeName.get_info v )
-              in
-              let succs = SDependencies.succ_e g v in
-              let _, edge_pos, succ =
-                List.find (fun (_, _, succ) -> List.mem succ scc) succs
-              in
-              let succ_str = Format.asprintf "%a" Ast.ScopeName.format_t succ in
-              [
-                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                  Pos.get_position var_info );
-                ( Some
-                    ("Used here in the definition of another cycle variable "
-                   ^ succ_str ^ ":"),
-                  edge_pos );
-              ])
-            scc))
+    let spans =
+      List.flatten
+        (List.map
+           (fun v ->
+             let var_str, var_info =
+               ( Format.asprintf "%a" Ast.ScopeName.format_t v,
+                 Ast.ScopeName.get_info v )
+             in
+             let succs = SDependencies.succ_e g v in
+             let _, edge_pos, succ =
+               List.find (fun (_, _, succ) -> List.mem succ scc) succs
+             in
+             let succ_str = Format.asprintf "%a" Ast.ScopeName.format_t succ in
+             [
+               ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
+                 Pos.get_position var_info );
+               ( Some
+                   ("Used here in the definition of another cycle variable "
+                  ^ succ_str ^ ":"),
+                 edge_pos );
+             ])
+           scc)
+    in
+    Errors.raise_multispanned_error spans
+      "Cyclic dependency detected between scopes!"
 
 let get_scope_ordering (g : SDependencies.t) : Ast.ScopeName.t list =
   List.rev (STopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])
@@ -189,13 +190,10 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The type %a is defined using itself, which is \
-                        forbidden since Catala does not provide recursive \
-                        types"
-                       TVertex.format_t used)
-                    (Pos.get_position typ)
+                  Errors.raise_spanned_error (Pos.get_position typ)
+                    "The type %a is defined using itself, which is forbidden \
+                     since Catala does not provide recursive types"
+                    TVertex.format_t used
                 else
                   let edge =
                     TDependencies.E.create used (Pos.get_position typ) def
@@ -216,13 +214,10 @@ let build_type_graph (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error
-                    (Format.asprintf
-                       "The type %a is defined using itself, which is \
-                        forbidden since Catala does not provide recursive \
-                        types"
-                       TVertex.format_t used)
-                    (Pos.get_position typ)
+                  Errors.raise_spanned_error (Pos.get_position typ)
+                    "The type %a is defined using itself, which is forbidden \
+                     since Catala does not provide recursive types"
+                    TVertex.format_t used
                 else
                   let edge =
                     TDependencies.E.create used (Pos.get_position typ) def
@@ -242,25 +237,28 @@ let check_type_cycles (structs : Ast.struct_ctx) (enums : Ast.enum_ctx) :
   let sccs = TSCC.scc_list g in
   (if List.length sccs < TDependencies.nb_vertex g then
    let scc = List.find (fun scc -> List.length scc > 1) sccs in
-   Errors.raise_multispanned_error "Cyclic dependency detected between types!"
-     (List.flatten
-        (List.map
-           (fun v ->
-             let var_str, var_info =
-               (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
-             in
-             let succs = TDependencies.succ_e g v in
-             let _, edge_pos, succ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             let succ_str = Format.asprintf "%a" TVertex.format_t succ in
-             [
-               ( Some ("Cycle type " ^ var_str ^ ", declared:"),
-                 Pos.get_position var_info );
-               ( Some
-                   ("Used here in the definition of another cycle type "
-                  ^ succ_str ^ ":"),
-                 edge_pos );
-             ])
-           scc)));
+   let spans =
+     List.flatten
+       (List.map
+          (fun v ->
+            let var_str, var_info =
+              (Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v)
+            in
+            let succs = TDependencies.succ_e g v in
+            let _, edge_pos, succ =
+              List.find (fun (_, _, succ) -> List.mem succ scc) succs
+            in
+            let succ_str = Format.asprintf "%a" TVertex.format_t succ in
+            [
+              ( Some ("Cycle type " ^ var_str ^ ", declared:"),
+                Pos.get_position var_info );
+              ( Some
+                  ("Used here in the definition of another cycle type "
+                 ^ succ_str ^ ":"),
+                edge_pos );
+            ])
+          scc)
+   in
+   Errors.raise_multispanned_error spans
+     "Cyclic dependency detected between types!");
   List.rev (TTopologicalTraversal.fold (fun v acc -> v :: acc) g [])

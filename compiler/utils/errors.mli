@@ -27,12 +27,20 @@ val print_structured_error : string -> (string option * Pos.t) list -> string
 
 (** {1 Error exception and printing} *)
 
-val raise_spanned_error : string -> ?span_msg:string -> Pos.t -> 'a
-val raise_multispanned_error : string -> (string option * Pos.t) list -> 'a
-val raise_error : string -> 'a
+val raise_spanned_error :
+  ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+
+val raise_multispanned_error :
+  (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+
+val raise_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 (** {1 Warning printing}*)
 
-val print_multispanned_warning : string -> (string option * Pos.t) list -> unit
-val print_spanned_warning : string -> ?span_msg:string -> Pos.t -> unit
-val print_warning : string -> unit
+val format_multispanned_warning :
+  (string option * Pos.t) list -> ('a, Format.formatter, unit) format -> 'a
+
+val format_spanned_warning :
+  ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit) format -> 'a
+
+val format_warning : ('a, Format.formatter, unit) format -> 'a

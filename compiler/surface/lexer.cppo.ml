@@ -92,6 +92,9 @@ module R = Re.Pcre
 #ifndef MR_DEFINITION
   #define MR_DEFINITION MS_DEFINITION
 #endif
+#ifndef MR_STATE
+  #define MR_STATE MS_STATE
+#endif
 #ifndef MR_LABEL
   #define MR_LABEL MS_LABEL
 #endif
@@ -260,6 +263,7 @@ let token_list : (string * token) list =
     (MS_SUM, SUM);
     (MS_FILLED, FILLED);
     (MS_DEFINITION, DEFINITION);
+    (MS_STATE, STATE);
     (MS_LABEL, LABEL);
     (MS_EXCEPTION, EXCEPTION);
     (MS_DEFINED_AS, DEFINED_AS);
@@ -415,6 +419,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_DEFINITION ->
       L.update_acc lexbuf;
       DEFINITION
+  | MR_STATE ->
+      L.update_acc lexbuf;
+      STATE
   | MR_LABEL ->
       L.update_acc lexbuf;
       LABEL

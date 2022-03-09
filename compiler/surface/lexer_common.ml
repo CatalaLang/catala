@@ -65,10 +65,8 @@ let update_acc (lexbuf : lexbuf) : unit =
 
 (** Error-generating helper *)
 let raise_lexer_error (loc : Pos.t) (token : string) =
-  Errors.raise_spanned_error
-    (Printf.sprintf
-       "Parsing error after token \"%s\": what comes after is unknown" token)
-    loc
+  Errors.raise_spanned_error loc
+    "Parsing error after token \"%s\": what comes after is unknown" token
 
 (** Associative list matching each punctuation string part of the Catala syntax
     with its {!module: Surface.Parser} token. Same for all the input languages

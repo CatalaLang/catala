@@ -32,19 +32,23 @@ You can join the Catala community on [Zulip][chat-link]!
 
 <!-- vim-markdown-toc GitLab -->
 
-- [Concepts](#concepts)
-- [Building and installation](#building-and-installation)
-- [Usage](#usage)
-- [Examples](#examples)
-- [API](#api)
-- [Contributing](#contributing)
-- [Test suite](#test-suite)
-- [Documentation](#documentation)
-  - [Formal semantics](#formal-semantics)
-  - [Compiler documentation](#compiler-documentation)
-- [License](#license)
-- [Limitations and disclaimer](#limitations-and-disclaimer)
-- [Pierre Catala](#pierre-catala)
+* [Concepts](#concepts)
+* [Getting started](#getting-started)
+* [Building and installation](#building-and-installation)
+* [Usage](#usage)
+  * [Catala](#catala)
+  * [Clerk](#clerk)
+* [Documentation](#documentation)
+  * [Syntax cheat sheet](#syntax-cheat-sheet)
+  * [Formal semantics](#formal-semantics)
+  * [Compiler documentation](#compiler-documentation)
+* [Examples](#examples)
+* [API](#api)
+* [Contributing](#contributing)
+* [Test suite](#test-suite)
+* [License](#license)
+* [Limitations and disclaimer](#limitations-and-disclaimer)
+* [Pierre Catala](#pierre-catala)
 
 <!-- vim-markdown-toc -->
 
@@ -130,6 +134,8 @@ options available. To get the development version of the help, run `make help_cl
 after `make build`. The `clerk` binary corresponds to the Catala build system,
 responsible for testing among other things.
 
+To get more information about Clerk, see [the dedicated readme](https://github.com/CatalaLang/catala/tree/master/build_system/README.md)
+
 ## Documentation
 
 ### Syntax cheat sheet
@@ -198,7 +204,7 @@ acting as the public service of legislative documentation.
 
 [chat-image]: https://img.shields.io/badge/zulip-join_chat-blue.svg?style=social&logo=zulip&color=5c75a2
 [chat-link]: https://zulip.catala-lang.org/
-[ci-link]: https://github.com/catalalang/catala/actions/workflows/build.yml/badge.svg
+[ci-link]: https://github.com/catalalang/catala/actions/workflows/run-builds.yml/badge.svg
 [licence-link]: https://img.shields.io/github/license/catalalang/catala
 [tag-link]: https://img.shields.io/github/v/tag/catalalang/catala
 [loc-link]: https://img.shields.io/tokei/lines/github/catalalang/catala

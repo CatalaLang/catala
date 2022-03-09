@@ -37,10 +37,9 @@ let pre_html (s : string) =
 (** Raise an error if pygments cannot be found *)
 let raise_failed_pygments (command : string) (error_code : int) : 'a =
   Errors.raise_error
-    (Printf.sprintf
-       "Weaving to HTML failed: pygmentize command \"%s\" returned with error \
-        code %d"
-       command error_code)
+    "Weaving to HTML failed: pygmentize command \"%s\" returned with error \
+     code %d"
+    command error_code
 
 (** Partial application allowing to remove first code lines of
     [<td class="code">] and [<td class="linenos">] generated HTML. Basically,
@@ -119,9 +118,8 @@ let wrap_html
     special Catala lexer. *)
 let pygmentize_code (c : string Pos.marked) (language : C.backend_lang) : string
     =
-  C.debug_print
-    (Printf.sprintf "Pygmenting the code chunk %s"
-       (Pos.to_string (Pos.get_position c)));
+  C.debug_print "Pygmenting the code chunk %s"
+    (Pos.to_string (Pos.get_position c));
   let temp_file_in = Filename.temp_file "catala_html_pygments" "in" in
   let temp_file_out = Filename.temp_file "catala_html_pygments" "out" in
   let oc = open_out temp_file_in in

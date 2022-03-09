@@ -216,8 +216,8 @@ let print_model (ctx : context) (model : Model.model) : string =
                let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
                let v = StringMap.find symbol_name ctx.ctx_z3vars in
                Format.fprintf fmt "%s %s : %s"
-                 (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
-                 (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+                 (Cli.with_style [ ANSITerminal.blue ] "%s" "-->")
+                 (Cli.with_style [ ANSITerminal.yellow ] "%s"
                     (Bindlib.name_of v))
                  (print_z3model_expr ctx (VarMap.find v ctx.ctx_var) e)
          else
@@ -233,8 +233,8 @@ let print_model (ctx : context) (model : Model.model) : string =
                let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
                let v = StringMap.find symbol_name ctx.ctx_z3vars in
                Format.fprintf fmt "%s %s : %s"
-                 (Cli.print_with_style [ ANSITerminal.blue ] "%s" "-->")
-                 (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+                 (Cli.with_style [ ANSITerminal.blue ] "%s" "-->")
+                 (Cli.with_style [ ANSITerminal.yellow ] "%s"
                     (Bindlib.name_of v))
                  (* TODO: Model of a Z3 function should be pretty-printed *)
                  (Model.FuncInterp.to_string f)))
@@ -750,7 +750,7 @@ module Backend = struct
     translate_expr ctx e
 
   let init_backend () =
-    Cli.debug_print (Format.asprintf "Running Z3 version %s" Version.to_string)
+    Cli.debug_print "Running Z3 version %s" Version.to_string
 
   let make_context
       (decl_ctx : decl_ctx) (free_vars_typ : typ Pos.marked VarMap.t) :

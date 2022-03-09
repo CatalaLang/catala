@@ -33,10 +33,21 @@ module StructName = Dcalc.Ast.StructName
 module StructMap = Dcalc.Ast.StructMap
 module StructFieldName = Dcalc.Ast.StructFieldName
 module StructFieldMap : Map.S with type key = StructFieldName.t
+
+module StructFieldMapLift : sig
+  val lift_box :
+    'a Bindlib.box StructFieldMap.t -> 'a StructFieldMap.t Bindlib.box
+end
+
 module EnumName = Dcalc.Ast.EnumName
 module EnumMap = Dcalc.Ast.EnumMap
 module EnumConstructor = Dcalc.Ast.EnumConstructor
 module EnumConstructorMap : Map.S with type key = EnumConstructor.t
+
+module EnumConstructorMapLift : sig
+  val lift_box :
+    'a Bindlib.box EnumConstructorMap.t -> 'a EnumConstructorMap.t Bindlib.box
+end
 
 type location =
   | ScopeVar of ScopeVar.t Pos.marked

@@ -52,43 +52,46 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
 
 type backend_option =
-  | Latex
-  | Makefile
+  | Dcalc
   | Html
   | Interpret
-  | Typecheck
+  | Latex
+  | Lcalc
+  | Makefile
   | OCaml
+  | Proof
   | Python
   | Scalc
-  | Lcalc
-  | Dcalc
   | Scopelang
-  | Proof
+  | Typecheck
 
 val language : string option Cmdliner.Term.t
 val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
-val catala_t :
-  (string ->
-  bool ->
-  bool ->
-  bool ->
-  bool ->
-  string ->
-  string option ->
-  int option ->
-  bool ->
-  bool ->
-  bool ->
-  string option ->
-  string option ->
-  'a) ->
-  'a Cmdliner.Term.t
-(** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output avoid_exceptions backend language max_prec_digits_opt trace_opt disable_counterexamples optimize ex_scope output] *)
+type options = {
+  debug : bool;
+  unstyled : bool;
+  wrap_weaved_output : bool;
+  avoid_exceptions : bool;
+  backend : string;
+  language : string option;
+  max_prec_digits : int option;
+  trace : bool;
+  disable_counterexamples : bool;
+  optimize : bool;
+  ex_scope : string option;
+  output_file : string option;
+}
+(** {2 Command-line application} *)
 
+val options : options Cmdliner.Term.t
+
+val catala_t : (string -> options -> 'a) -> 'a Cmdliner.Term.t
+(** Main entry point: [catala_t file options] *)
+
+val set_option_globals : options -> unit
 val version : string
 val info : Cmdliner.Term.info
 
@@ -96,8 +99,7 @@ val info : Cmdliner.Term.info
 
 (**{2 Markers}*)
 
-val print_with_style :
-  ANSITerminal.style list -> ('a, unit, string) format -> 'a
+val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 
 val format_with_style :
   ANSITerminal.style list -> Format.formatter -> string -> unit
@@ -118,8 +120,11 @@ val concat_with_line_depending_prefix_and_suffix :
 val add_prefix_to_each_line : string -> (int -> string) -> string
 (** The int argument of the prefix corresponds to the line number, starting at 0 *)
 
-val debug_print : string -> unit
-val error_print : string -> unit
-val warning_print : string -> unit
-val result_print : string -> unit
-val log_print : string -> unit
+val debug_print : ('a, out_channel, unit) format -> 'a
+val debug_format : ('a, Format.formatter, unit) format -> 'a
+val error_print : ('a, out_channel, unit) format -> 'a
+val warning_print : ('a, out_channel, unit) format -> 'a
+val result_print : ('a, out_channel, unit) format -> 'a
+val result_format : ('a, Format.formatter, unit) format -> 'a
+val log_print : ('a, out_channel, unit) format -> 'a
+val log_format : ('a, Format.formatter, unit) format -> 'a

@@ -91,26 +91,22 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
       match Pos.unmark body with
       | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> arg
       | _ ->
-          Errors.raise_spanned_error
-            (Format.asprintf
-               "Internal error: this expression does not have the structure \
-                expected by the VC generator:\n\
-                %a"
-               (Print.format_expr ~debug:true ctx.decl)
-               e)
-            (Pos.get_position e))
+          Errors.raise_spanned_error (Pos.get_position e)
+            "Internal error: this expression does not have the structure \
+             expected by the VC generator:\n\
+             %a"
+            (Print.format_expr ~debug:true ctx.decl)
+            e)
   | ErrorOnEmpty (EApp ((EOp (Unop (Log _)), _), [ d ]), _)
   | EApp ((EOp (Unop (Log _)), _), [ (ErrorOnEmpty d, _) ]) ->
       d (* input subscope variables and non-input scope variable *)
   | _ ->
-      Errors.raise_spanned_error
-        (Format.asprintf
-           "Internal error: this expression does not have the structure \
-            expected by the VC generator:\n\
-            %a"
-           (Print.format_expr ~debug:true ctx.decl)
-           e)
-        (Pos.get_position e)
+      Errors.raise_spanned_error (Pos.get_position e)
+        "Internal error: this expression does not have the structure expected \
+         by the VC generator:\n\
+         %a"
+        (Print.format_expr ~debug:true ctx.decl)
+        e
 
 (** {1 Verification conditions generator}*)
 

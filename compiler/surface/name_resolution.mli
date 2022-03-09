@@ -36,7 +36,7 @@ type scope_def_context = {
 }
 
 type scope_context = {
-  var_idmap : Scopelang.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;
+  var_idmap : Desugared.Ast.ScopeVar.t Desugared.Ast.IdentMap.t;
       (** Scope variables *)
   scope_defs_contexts : scope_def_context Desugared.Ast.ScopeDefMap.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
@@ -57,10 +57,12 @@ type var_sig = {
   var_sig_typ : typ Pos.marked;
   var_sig_is_condition : bool;
   var_sig_io : Ast.scope_decl_context_io;
+  var_sig_states_idmap : Desugared.Ast.StateName.t Desugared.Ast.IdentMap.t;
+  var_sig_states_list : Desugared.Ast.StateName.t list;
 }
 
 type context = {
-  local_var_idmap : Scopelang.Ast.Var.t Desugared.Ast.IdentMap.t;
+  local_var_idmap : Desugared.Ast.Var.t Desugared.Ast.IdentMap.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
   scope_idmap : Scopelang.Ast.ScopeName.t Desugared.Ast.IdentMap.t;
@@ -85,7 +87,7 @@ type context = {
       (** For each struct, its context *)
   enums : enum_context Scopelang.Ast.EnumMap.t;
       (** For each enum, its context *)
-  var_typs : var_sig Scopelang.Ast.ScopeVarMap.t;
+  var_typs : var_sig Desugared.Ast.ScopeVarMap.t;
       (** The signatures of each scope variable declared *)
 }
 (** Main context used throughout {!module: Surface.Desugaring} *)
@@ -100,19 +102,19 @@ val raise_unknown_identifier : string -> ident Pos.marked -> 'a
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
 
-val get_var_typ : context -> Scopelang.Ast.ScopeVar.t -> typ Pos.marked
+val get_var_typ : context -> Desugared.Ast.ScopeVar.t -> typ Pos.marked
 (** Gets the type associated to an uid *)
 
-val is_var_cond : context -> Scopelang.Ast.ScopeVar.t -> bool
+val is_var_cond : context -> Desugared.Ast.ScopeVar.t -> bool
 
 val get_var_io :
-  context -> Scopelang.Ast.ScopeVar.t -> Ast.scope_decl_context_io
+  context -> Desugared.Ast.ScopeVar.t -> Ast.scope_decl_context_io
 
 val get_var_uid :
   Scopelang.Ast.ScopeName.t ->
   context ->
   ident Pos.marked ->
-  Scopelang.Ast.ScopeVar.t
+  Desugared.Ast.ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
@@ -127,7 +129,7 @@ val is_subscope_uid : Scopelang.Ast.ScopeName.t -> context -> ident -> bool
     subscopes of [scope_uid]. *)
 
 val belongs_to :
-  context -> Scopelang.Ast.ScopeVar.t -> Scopelang.Ast.ScopeName.t -> bool
+  context -> Desugared.Ast.ScopeVar.t -> Scopelang.Ast.ScopeName.t -> bool
 (** Checks if the var_uid belongs to the scope scope_uid *)
 
 val get_def_typ : context -> Desugared.Ast.ScopeDef.t -> typ Pos.marked
@@ -144,15 +146,17 @@ val label_groups :
 val is_type_cond : Ast.typ Pos.marked -> bool
 
 val add_def_local_var :
-  context -> ident Pos.marked -> context * Scopelang.Ast.Var.t
+  context -> ident Pos.marked -> context * Desugared.Ast.Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :
   Ast.qident ->
+  Ast.ident Pos.marked option ->
   Scopelang.Ast.ScopeName.t ->
   context ->
   Pos.t ->
   Desugared.Ast.ScopeDef.t
+(** Usage: [get_def_key var_name var_state scope_uid ctxt pos]*)
 
 (** {1 API} *)
 

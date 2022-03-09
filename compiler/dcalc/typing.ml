@@ -87,28 +87,27 @@ let rec unify
     (* TODO: if we get weird error messages, then it means that we should use
        the persistent version of the union-find data structure. *)
     let t1_s =
-      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+      Cli.with_style [ ANSITerminal.yellow ] "%s"
         (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
            ~subst:(fun _ -> " ")
            (Format.asprintf "%a" (format_typ ctx) t1))
     in
     let t2_s =
-      Cli.print_with_style [ ANSITerminal.yellow ] "%s"
+      Cli.with_style [ ANSITerminal.yellow ] "%s"
         (Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
            ~subst:(fun _ -> " ")
            (Format.asprintf "%a" (format_typ ctx) t2))
     in
     Errors.raise_multispanned_error
-      (Format.asprintf
-         "Error during typechecking, incompatible types:\n%a %s\n%a %s"
-         (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
-         "-->" t1_s
-         (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
-         "-->" t2_s)
       [
         (Some (Format.asprintf "Type %s coming from expression:" t1_s), t1_pos);
         (Some (Format.asprintf "Type %s coming from expression:" t2_s), t2_pos);
       ]
+      "Error during typechecking, incompatible types:\n%a %s\n%a %s"
+      (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
+      "-->" t1_s
+      (Cli.format_with_style [ ANSITerminal.blue; ANSITerminal.Bold ])
+      "-->" t2_s
   in
   let repr =
     match (t1_repr, t2_repr) with
@@ -199,7 +198,7 @@ let op_type (op : A.operator Pos.marked) : typ Pos.marked UnionFind.elem =
   | A.Unop A.GetYear -> arr dat it
   | A.Unop A.IntToRat -> arr it rt
   | Binop (Mult (KDate | KDuration)) | Binop (Div KDate) | Unop (Minus KDate) ->
-      Errors.raise_spanned_error "This operator is not available!" pos
+      Errors.raise_spanned_error pos "This operator is not available!"
 
 let rec ast_to_typ (ty : A.typ) : typ =
   match ty with
@@ -248,9 +247,8 @@ let rec typecheck_expr_bottom_up
           match A.VarMap.find_opt (Pos.unmark v) env with
           | Some t -> t
           | None ->
-              Errors.raise_spanned_error
-                "Variable not found in the current context" (Pos.get_position e)
-          )
+              Errors.raise_spanned_error (Pos.get_position e)
+                "Variable not found in the current context")
       | ELit (LBool _) -> UnionFind.make (Pos.same_pos_as (TLit TBool) e)
       | ELit (LInt _) -> UnionFind.make (Pos.same_pos_as (TLit TInt) e)
       | ELit (LRat _) -> UnionFind.make (Pos.same_pos_as (TLit TRat) e)
@@ -275,12 +273,10 @@ let rec typecheck_expr_bottom_up
           match List.nth_opt typs n with
           | Some t' -> t'
           | None ->
-              Errors.raise_spanned_error
-                (Format.asprintf
-                   "Expression should have a tuple type with at least %d \
-                    elements but only has %d"
-                   n (List.length typs))
-                (Pos.get_position e1))
+              Errors.raise_spanned_error (Pos.get_position e1)
+                "Expression should have a tuple type with at least %d elements \
+                 but only has %d"
+                n (List.length typs))
       | EInj (e1, n, e_name, ts) ->
           let ts =
             List.map
@@ -291,12 +287,10 @@ let rec typecheck_expr_bottom_up
             match List.nth_opt ts n with
             | Some ts_n -> ts_n
             | None ->
-                Errors.raise_spanned_error
-                  (Format.asprintf
-                     "Expression should have a sum type with at least %d cases \
-                      but only has %d"
-                     n (List.length ts))
-                  (Pos.get_position e)
+                Errors.raise_spanned_error (Pos.get_position e)
+                  "Expression should have a sum type with at least %d cases \
+                   but only has %d"
+                  n (List.length ts)
           in
           typecheck_expr_top_down ctx env e1 ts_n;
           UnionFind.make (Pos.same_pos_as (TEnum (ts, e_name)) e)
@@ -345,11 +339,9 @@ let rec typecheck_expr_bottom_up
               xstaus
               (typecheck_expr_bottom_up ctx env body)
           else
-            Errors.raise_spanned_error
-              (Format.asprintf
-                 "function has %d variables but was supplied %d types"
-                 (Array.length xs) (List.length taus))
-              pos_binder
+            Errors.raise_spanned_error pos_binder
+              "function has %d variables but was supplied %d types"
+              (Array.length xs) (List.length taus)
       | EApp (e1, args) ->
           let t_args = List.map (typecheck_expr_bottom_up ctx env) args in
           let t_ret =
@@ -419,8 +411,8 @@ and typecheck_expr_top_down
         match A.VarMap.find_opt (Pos.unmark v) env with
         | Some tau' -> ignore (unify ctx tau tau')
         | None ->
-            Errors.raise_spanned_error
-              "Variable not found in the current context" (Pos.get_position e))
+            Errors.raise_spanned_error (Pos.get_position e)
+              "Variable not found in the current context")
     | ELit (LBool _) ->
         unify ctx tau (UnionFind.make (Pos.same_pos_as (TLit TBool) e))
     | ELit (LInt _) ->
@@ -456,12 +448,10 @@ and typecheck_expr_top_down
         match List.nth_opt typs n with
         | Some t1n -> unify ctx t1n tau
         | None ->
-            Errors.raise_spanned_error
-              (Format.asprintf
-                 "Expression should have a tuple type with at least %d \
-                  elements but only has %d"
-                 n (List.length typs))
-              (Pos.get_position e1))
+            Errors.raise_spanned_error (Pos.get_position e1)
+              "Expression should have a tuple type with at least %d elements \
+               but only has %d"
+              n (List.length typs))
     | EInj (e1, n, e_name, ts) ->
         let ts =
           List.map
@@ -472,12 +462,10 @@ and typecheck_expr_top_down
           match List.nth_opt ts n with
           | Some ts_n -> ts_n
           | None ->
-              Errors.raise_spanned_error
-                (Format.asprintf
-                   "Expression should have a sum type with at least %d cases \
-                    but only has %d"
-                   n (List.length ts))
-                (Pos.get_position e)
+              Errors.raise_spanned_error (Pos.get_position e)
+                "Expression should have a sum type with at least %d cases but \
+                 only has %d"
+                n (List.length ts)
         in
         typecheck_expr_top_down ctx env e1 ts_n;
         unify ctx (UnionFind.make (Pos.same_pos_as (TEnum (ts, e_name)) e)) tau
@@ -525,11 +513,9 @@ and typecheck_expr_top_down
           in
           unify ctx t_func tau
         else
-          Errors.raise_spanned_error
-            (Format.asprintf
-               "function has %d variables but was supplied %d types"
-               (Array.length xs) (List.length t_args))
-            pos_binder
+          Errors.raise_spanned_error pos_binder
+            "function has %d variables but was supplied %d types"
+            (Array.length xs) (List.length t_args)
     | EApp (e1, args) ->
         let t_args = List.map (typecheck_expr_bottom_up ctx env) args in
         let te1 = typecheck_expr_bottom_up ctx env e1 in

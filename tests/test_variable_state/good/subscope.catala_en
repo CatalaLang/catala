@@ -1,0 +1,31 @@
+## Test
+
+```catala
+declaration scope A:
+  context output foo content integer
+    state bar
+    state baz
+    state fizz
+
+declaration scope B:
+  output foofoo content integer
+    state bar
+    state baz
+  b scope A
+  output foofoofoo content integer
+
+
+scope A:
+  definition foo state bar equals 1
+
+  definition foo state baz equals foo + 1
+
+  definition foo state fizz equals foo + 1
+
+
+scope B:
+  definition foofoo state bar equals 3
+  definition foofoo state baz equals foofoo + 1
+  definition b.foo equals foofoo
+  definition foofoofoo equals b.foo
+```
