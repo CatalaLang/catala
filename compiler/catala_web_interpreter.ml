@@ -11,9 +11,18 @@ let _ =
            (trace : bool) =
          driver
            (Contents (Js.to_string contents))
-           false false false false "Interpret"
-           (Some (Js.to_string language))
-           None trace false false
-           (Some (Js.to_string scope))
-           None
+           {
+             Utils.Cli.debug = false;
+             unstyled = false;
+             wrap_weaved_output = false;
+             avoid_exceptions = false;
+             backend = "Interpret";
+             language = Some (Js.to_string language);
+             max_prec_digits = None;
+             trace = false;
+             disable_counterexamples = false;
+             optimize = false;
+             ex_scope = Some (Js.to_string scope);
+             output_file = None;
+           }
     end)

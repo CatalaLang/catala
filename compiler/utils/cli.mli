@@ -70,25 +70,28 @@ val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
-val catala_t :
-  (string ->
-  bool ->
-  bool ->
-  bool ->
-  bool ->
-  string ->
-  string option ->
-  int option ->
-  bool ->
-  bool ->
-  bool ->
-  string option ->
-  string option ->
-  'a) ->
-  'a Cmdliner.Term.t
-(** Main entry point:
-    [catala_t file debug unstyled wrap_weaved_output avoid_exceptions backend language max_prec_digits_opt trace_opt disable_counterexamples optimize ex_scope output] *)
+type options = {
+  debug : bool;
+  unstyled : bool;
+  wrap_weaved_output : bool;
+  avoid_exceptions : bool;
+  backend : string;
+  language : string option;
+  max_prec_digits : int option;
+  trace : bool;
+  disable_counterexamples : bool;
+  optimize : bool;
+  ex_scope : string option;
+  output_file : string option;
+}
+(** {2 Command-line application} *)
 
+val options : options Cmdliner.Term.t
+
+val catala_t : (string -> options -> 'a) -> 'a Cmdliner.Term.t
+(** Main entry point: [catala_t file options] *)
+
+val set_option_globals : options -> unit
 val version : string
 val info : Cmdliner.Term.info
 

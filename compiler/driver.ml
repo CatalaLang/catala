@@ -29,38 +29,20 @@ let extensions =
 
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage:
-    [driver source_file debug dcalc unstyled wrap_weaved_output backend language max_prec_digits trace optimize scope_to_execute output_file]*)
-let driver
-    (source_file : Pos.input_file)
-    (debug : bool)
-    (unstyled : bool)
-    (wrap_weaved_output : bool)
-    (avoid_exceptions : bool)
-    (backend : string)
-    (language : string option)
-    (max_prec_digits : int option)
-    (trace : bool)
-    (disable_counterexamples : bool)
-    (optimize : bool)
-    (ex_scope : string option)
-    (output_file : string option) : int =
+    [driver source_file options]*)
+let driver source_file (options : Cli.options) : int =
   try
-    Cli.debug_flag := debug;
-    Cli.style_flag := not unstyled;
-    Cli.trace_flag := trace;
-    Cli.optimize_flag := optimize;
-    Cli.disable_counterexamples := disable_counterexamples;
-    Cli.avoid_exceptions_flag := avoid_exceptions;
+    Cli.set_option_globals options;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with
-    | FileName f -> filename := f
+    | Pos.FileName f -> filename := f
     | Contents c -> Cli.contents := c);
-    (match max_prec_digits with
+    (match options.max_prec_digits with
     | None -> ()
     | Some i -> Cli.max_prec_digits := i);
     let l =
-      match language with
+      match options.language with
       | Some l -> l
       | None -> (
           (* Try to infer the language from the intput file extension. *)
@@ -79,6 +61,7 @@ let driver
           "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
+    let backend = options.backend in
     let backend =
       let backend = String.lowercase_ascii backend in
       if backend = "makefile" then Cli.Makefile
@@ -112,7 +95,7 @@ let driver
                 "The Makefile backend does not work if the input is not a file"
         in
         let output_file =
-          match output_file with
+          match options.output_file with
           | Some f -> f
           | None -> Filename.remove_extension source_file ^ ".d"
         in
@@ -142,7 +125,7 @@ let driver
           | Cli.Html -> "HTML"
           | _ -> assert false (* should not happen *));
         let output_file =
-          match output_file with
+          match options.output_file with
           | Some f -> f
           | None -> (
               Filename.remove_extension source_file
@@ -163,7 +146,7 @@ let driver
         in
         Cli.debug_print "Writing to %s" output_file;
         let fmt = Format.formatter_of_out_channel oc in
-        if wrap_weaved_output then
+        if options.wrap_weaved_output then
           match backend with
           | Cli.Latex ->
               Literate.Latex.wrap_latex prgm.Surface.Ast.program_source_files
@@ -179,7 +162,7 @@ let driver
         Cli.debug_print "Name resolution...";
         let ctxt = Surface.Name_resolution.form_context prgm in
         let scope_uid =
-          match (ex_scope, backend) with
+          match (options.ex_scope, backend) with
           | None, Cli.Interpret ->
               Errors.raise_error "No scope was provided for execution."
           | None, _ ->
@@ -201,13 +184,13 @@ let driver
         let prgm = Desugared.Desugared_to_scope.translate_program prgm in
         if backend = Cli.Scopelang then begin
           let fmt, at_end =
-            match output_file with
+            match options.output_file with
             | Some f ->
                 let oc = open_out f in
                 (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
             | None -> (Format.std_formatter, fun _ -> ())
           in
-          if Option.is_some ex_scope then
+          if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n" Scopelang.Print.format_scope
               ( scope_uid,
                 Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
@@ -220,7 +203,7 @@ let driver
           Scopelang.Scope_to_dcalc.translate_program prgm
         in
         let prgm =
-          if optimize then begin
+          if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";
             Dcalc.Optimizations.optimize_program prgm
           end
@@ -231,15 +214,15 @@ let driver
         in
         if backend = Cli.Dcalc then begin
           let fmt, at_end =
-            match output_file with
+            match options.output_file with
             | Some f ->
                 let oc = open_out f in
                 (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
             | None -> (Format.std_formatter, fun _ -> ())
           in
-          if Option.is_some ex_scope then
+          if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
-              (Dcalc.Print.format_scope ~debug prgm.decl_ctx)
+              (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
               (let _, _, s =
                  List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes
                in
@@ -299,12 +282,12 @@ let driver
         | Cli.OCaml | Cli.Python | Cli.Lcalc | Cli.Scalc ->
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
-              if avoid_exceptions then
+              if options.avoid_exceptions then
                 Lcalc.Compile_without_exceptions.translate_program prgm
               else Lcalc.Compile_with_exceptions.translate_program prgm
             in
             let prgm =
-              if optimize then begin
+              if options.optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
@@ -312,15 +295,15 @@ let driver
             in
             if backend = Cli.Lcalc then begin
               let fmt, at_end =
-                match output_file with
+                match options.output_file with
                 | Some f ->
                     let oc = open_out f in
                     (Format.formatter_of_out_channel oc, fun _ -> close_out oc)
                 | None -> (Format.std_formatter, fun _ -> ())
               in
-              if Option.is_some ex_scope then
+              if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
-                  (Lcalc.Print.format_scope ~debug prgm.decl_ctx)
+                  (Lcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
                   (let body =
                      List.find
                        (fun body -> body.Lcalc.Ast.scope_body_name = scope_uid)
@@ -345,7 +328,7 @@ let driver
                     "This backend does not work if the input is not a file"
             in
             let new_output_file (extension : string) : string =
-              match output_file with
+              match options.output_file with
               | Some f -> f
               | None -> Filename.remove_extension source_file ^ extension
             in
@@ -362,16 +345,17 @@ let driver
                 let prgm = Scalc.Compile_from_lambda.translate_program prgm in
                 if backend = Cli.Scalc then begin
                   let fmt, at_end =
-                    match output_file with
+                    match options.output_file with
                     | Some f ->
                         let oc = open_out f in
                         ( Format.formatter_of_out_channel oc,
                           fun _ -> close_out oc )
                     | None -> (Format.std_formatter, fun _ -> ())
                   in
-                  if Option.is_some ex_scope then
+                  if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
-                      (Scalc.Print.format_scope ~debug prgm.decl_ctx)
+                      (Scalc.Print.format_scope ~debug:options.debug
+                         prgm.decl_ctx)
                       (let body =
                          List.find
                            (fun body ->

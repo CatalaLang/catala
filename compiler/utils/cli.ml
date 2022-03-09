@@ -143,11 +143,64 @@ let output =
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
            the chosen backend.")
 
-let catala_t f =
+type options = {
+  debug : bool;
+  unstyled : bool;
+  wrap_weaved_output : bool;
+  avoid_exceptions : bool;
+  backend : string;
+  language : string option;
+  max_prec_digits : int option;
+  trace : bool;
+  disable_counterexamples : bool;
+  optimize : bool;
+  ex_scope : string option;
+  output_file : string option;
+}
+
+let options =
+  let make
+      debug
+      unstyled
+      wrap_weaved_output
+      avoid_exceptions
+      backend
+      language
+      max_prec_digits
+      trace
+      disable_counterexamples
+      optimize
+      ex_scope
+      output_file : options =
+    {
+      debug;
+      unstyled;
+      wrap_weaved_output;
+      avoid_exceptions;
+      backend;
+      language;
+      max_prec_digits;
+      trace;
+      disable_counterexamples;
+      optimize;
+      ex_scope;
+      output_file;
+    }
+  in
   Term.(
-    const f $ file $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
+    const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
     $ backend $ language $ max_prec_digits_opt $ trace_opt
     $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
+
+let catala_t f = Term.(const f $ file $ options)
+
+let set_option_globals options : unit =
+  debug_flag := options.debug;
+  style_flag := not options.unstyled;
+  trace_flag := options.trace;
+  optimize_flag := options.optimize;
+  disable_counterexamples := options.disable_counterexamples;
+  avoid_exceptions_flag := options.avoid_exceptions
 
 let version = "0.5.0"
 
