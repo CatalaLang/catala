@@ -215,6 +215,9 @@ val make_let_in :
 val empty_thunked_term : expr Pos.marked
 val is_value : expr Pos.marked -> bool
 
+val equal_exprs : expr Pos.marked -> expr Pos.marked -> bool
+(** Determines if two expressions are equal, omitting their position information *)
+
 (** {1 AST manipulation helpers}*)
 
 val build_whole_scope_expr :

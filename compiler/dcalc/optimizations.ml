@@ -181,6 +181,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
               | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) ) )
             ->
               e1
+          | _ when equal_exprs e2 e3 -> e2
           | _ -> (EIfThenElse (e1, e2, e3), pos))
         (rec_helper e1) (rec_helper e2) (rec_helper e3)
   | ErrorOnEmpty e1 ->

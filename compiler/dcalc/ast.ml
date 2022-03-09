@@ -236,6 +236,81 @@ let empty_thunked_term : expr Pos.marked =
 let is_value (e : expr Pos.marked) : bool =
   match Pos.unmark e with ELit _ | EAbs _ | EOp _ -> true | _ -> false
 
+let rec equal_typs (ty1 : typ Pos.marked) (ty2 : typ Pos.marked) : bool =
+  match (Pos.unmark ty1, Pos.unmark ty2) with
+  | TLit l1, TLit l2 -> l1 = l2
+  | TTuple (tys1, n1), TTuple (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
+  | TEnum (tys1, n1), TEnum (tys2, n2) -> n1 = n2 && equal_typs_list tys1 tys2
+  | TArrow (t1, t1'), TArrow (t2, t2') -> equal_typs t1 t2 && equal_typs t1' t2'
+  | TArray t1, TArray t2 -> equal_typs t1 t2
+  | TAny, TAny -> true
+  | _, _ -> false
+
+and equal_typs_list (tys1 : typ Pos.marked list) (tys2 : typ Pos.marked list) :
+    bool =
+  List.length tys1 = List.length tys2
+  && (* OCaml && operator short-circuits when a clause is false, we can safely
+        assume here that both lists have equal length *)
+  List.for_all (fun (x, y) -> equal_typs x y) (List.combine tys1 tys2)
+
+let equal_log_entries (l1 : log_entry) (l2 : log_entry) : bool =
+  match (l1, l2) with
+  | VarDef t1, VarDef t2 -> equal_typs (t1, Pos.no_pos) (t2, Pos.no_pos)
+  | x, y -> x = y
+
+let equal_unops (op1 : unop) (op2 : unop) : bool =
+  match (op1, op2) with
+  (* Log entries contain a typ which contain position information, we thus need
+     to descend into them *)
+  | Log (l1, info1), Log (l2, info2) -> equal_log_entries l1 l2 && info1 = info2
+  (* All the other cases can be discharged through equality *)
+  | _ -> op1 = op2
+
+let equal_ops (op1 : operator) (op2 : operator) : bool =
+  match (op1, op2) with
+  | Ternop op1, Ternop op2 -> op1 = op2
+  | Binop op1, Binop op2 -> op1 = op2
+  | Unop op1, Unop op2 -> equal_unops op1 op2
+  | _, _ -> false
+
+let rec equal_exprs (e1 : expr Pos.marked) (e2 : expr Pos.marked) : bool =
+  match (Pos.unmark e1, Pos.unmark e2) with
+  | EVar v1, EVar v2 -> Pos.unmark v1 = Pos.unmark v2
+  | ETuple (es1, n1), ETuple (es2, n2) -> n1 = n2 && equal_exprs_list es1 es2
+  | ETupleAccess (e1, id1, n1, tys1), ETupleAccess (e2, id2, n2, tys2) ->
+      equal_exprs e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+  | EInj (e1, id1, n1, tys1), EInj (e2, id2, n2, tys2) ->
+      equal_exprs e1 e2 && id1 = id2 && n1 = n2 && equal_typs_list tys1 tys2
+  | EMatch (e1, cases1, n1), EMatch (e2, cases2, n2) ->
+      n1 = n2 && equal_exprs e1 e2 && equal_exprs_list cases1 cases2
+  | EArray es1, EArray es2 -> equal_exprs_list es1 es2
+  | ELit l1, ELit l2 -> l1 = l2
+  | EAbs (b1, tys1), EAbs (b2, tys2) ->
+      equal_typs_list tys1 tys2
+      &&
+      let vars1, body1 = Bindlib.unmbind (Pos.unmark b1) in
+      let body2 =
+        Bindlib.msubst (Pos.unmark b2)
+          (Array.map (fun x -> EVar (x, Pos.no_pos)) vars1)
+      in
+      equal_exprs body1 body2
+  | EAssert e1, EAssert e2 -> equal_exprs e1 e2
+  | EOp op1, EOp op2 -> equal_ops op1 op2
+  | EDefault (exc1, def1, cons1), EDefault (exc2, def2, cons2) ->
+      equal_exprs def1 def2 && equal_exprs cons1 cons2
+      && equal_exprs_list exc1 exc2
+  | EIfThenElse (if1, then1, else1), EIfThenElse (if2, then2, else2) ->
+      equal_exprs if1 if2 && equal_exprs then1 then2 && equal_exprs else1 else2
+  | ErrorOnEmpty e1, ErrorOnEmpty e2 -> equal_exprs e1 e2
+  | _, _ -> false
+
+and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
+    bool =
+  List.length es1 = List.length es2
+  && (* OCaml && operator short-circuits when a clause is false, we can safely
+        assume here that both lists have equal length *)
+  List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
+
 let build_whole_scope_expr
     (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
   let body_expr =
