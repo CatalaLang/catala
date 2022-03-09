@@ -17,6 +17,50 @@
 
 type backend_lang = En | Fr | Pl
 
+type backend_option =
+  | Dcalc
+  | Html
+  | Interpret
+  | Latex
+  | Lcalc
+  | Makefile
+  | OCaml
+  | Proof
+  | Python
+  | Scalc
+  | Scopelang
+  | Typecheck
+
+let catala_backend_option_to_string = function
+  | Dcalc -> "Dcalc"
+  | Html -> "Html"
+  | Interpret -> "Interpret"
+  | Latex -> "Latex"
+  | Lcalc -> "Lcalc"
+  | Makefile -> "Makefile"
+  | OCaml -> "OCaml"
+  | Proof -> "Proof"
+  | Python -> "Python"
+  | Scalc -> "Scalc"
+  | Scopelang -> "Scopelang"
+  | Typecheck -> "Typecheck"
+
+let catala_backend_option_of_string backend =
+  match String.lowercase_ascii backend with
+  | "dcalc" -> Some Dcalc
+  | "html" -> Some Html
+  | "interpret" -> Some Interpret
+  | "latex" -> Some Latex
+  | "lcalc" -> Some Lcalc
+  | "makefile" -> Some Makefile
+  | "ocaml" -> Some OCaml
+  | "proof" -> Some Proof
+  | "python" -> Some Python
+  | "scalc" -> Some Scalc
+  | "scopelang" -> Some Scopelang
+  | "typecheck" -> Some Typecheck
+  | _ -> None
+
 (** Source files to be compiled *)
 let source_files : string list ref = ref []
 
@@ -84,20 +128,6 @@ let backend =
     & info [] ~docv:"COMMAND"
         ~doc:
           "Backend selection (see the list of commands for available options).")
-
-type backend_option =
-  | Dcalc
-  | Html
-  | Interpret
-  | Latex
-  | Lcalc
-  | Makefile
-  | OCaml
-  | Proof
-  | Python
-  | Scalc
-  | Scopelang
-  | Typecheck
 
 let language =
   Arg.(

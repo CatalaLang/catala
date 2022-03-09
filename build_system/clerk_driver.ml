@@ -130,21 +130,6 @@ let info =
 
 (**{1 Testing}*)
 
-let catala_backend_to_string (backend : Cli.backend_option) : string =
-  match backend with
-  | Cli.Dcalc -> "Dcalc"
-  | Cli.Html -> "Html"
-  | Cli.Interpret -> "Interpret"
-  | Cli.Latex -> "Latex"
-  | Cli.Lcalc -> "Lcalc"
-  | Cli.Makefile -> "Makefile"
-  | Cli.OCaml -> "OCaml"
-  | Cli.Proof -> "Proof"
-  | Cli.Python -> "Python"
-  | Cli.Scalc -> "Scalc"
-  | Cli.Scopelang -> "Scopelang"
-  | Cli.Typecheck -> "Typecheck"
-
 type expected_output_descr = {
   base_filename : string;
   output_dir : string;
@@ -421,7 +406,8 @@ let collect_all_ninja_build
           let vars =
             [
               ( "catala_cmd",
-                Nj.Expr.Lit (catala_backend_to_string expected_output.backend)
+                Nj.Expr.Lit
+                  (Cli.catala_backend_option_to_string expected_output.backend)
               );
               ("tested_file", Nj.Expr.Lit tested_file);
               ( "expected_output",
@@ -429,12 +415,9 @@ let collect_all_ninja_build
                   (expected_output.output_dir
                  ^ expected_output.complete_filename) );
             ]
-          in
-          let output_build_kind =
-            if reset_test_outputs then "reset" else "test"
-          in
-          let catala_backend =
-            catala_backend_to_string expected_output.backend
+          and output_build_kind = if reset_test_outputs then "reset" else "test"
+          and catala_backend =
+            Cli.catala_backend_option_to_string expected_output.backend
           in
 
           let get_rule_infos ?(rule_postfix = "") :
