@@ -15,10 +15,10 @@ K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
 
-dependencies-ocaml-noz3:
+dependencies-ocaml:
 	opam install . --deps-only --with-doc --with-test --yes
 
-dependencies-ocaml:
+dependencies-ocaml-with-z3:
 	opam install . z3 --deps-only --with-doc --with-test --yes
 
 dependencies-js:
