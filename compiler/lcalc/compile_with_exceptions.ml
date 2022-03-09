@@ -1,15 +1,17 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2020 Inria, contributor: Denis Merigoux
-   <denis.merigoux@inria.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   Denis Merigoux <denis.merigoux@inria.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 open Utils
@@ -17,8 +19,8 @@ module D = Dcalc.Ast
 module A = Ast
 
 type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
-(** This environment contains a mapping between the variables in Dcalc and their correspondance in
-    Lcalc. *)
+(** This environment contains a mapping between the variables in Dcalc and their
+    correspondance in Lcalc. *)
 
 let translate_lit (l : D.lit) : A.expr =
   match l with
@@ -31,15 +33,21 @@ let translate_lit (l : D.lit) : A.expr =
   | D.LDuration d -> A.ELit (A.LDuration d)
   | D.LEmptyError -> A.ERaise A.EmptyError
 
-let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) : A.expr Pos.marked Bindlib.box =
+let thunk_expr (e : A.expr Pos.marked Bindlib.box) (pos : Pos.t) :
+    A.expr Pos.marked Bindlib.box =
   let dummy_var = A.Var.make ("_", pos) in
   A.make_abs [| dummy_var |] e pos [ (D.TAny, pos) ] pos
 
-let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
-    (just : D.expr Pos.marked) (cons : D.expr Pos.marked) (pos_default : Pos.t) :
-    A.expr Pos.marked Bindlib.box =
+let rec translate_default
+    (ctx : ctx)
+    (exceptions : D.expr Pos.marked list)
+    (just : D.expr Pos.marked)
+    (cons : D.expr Pos.marked)
+    (pos_default : Pos.t) : A.expr Pos.marked Bindlib.box =
   let exceptions =
-    List.map (fun except -> thunk_expr (translate_expr ctx except) pos_default) exceptions
+    List.map
+      (fun except -> thunk_expr (translate_expr ctx except) pos_default)
+      exceptions
   in
   let exceptions =
     A.make_app
@@ -55,7 +63,8 @@ let rec translate_default (ctx : ctx) (exceptions : D.expr Pos.marked list)
   in
   exceptions
 
-and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindlib.box =
+and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
+    A.expr Pos.marked Bindlib.box =
   match Pos.unmark e with
   | D.EVar v -> D.VarMap.find (Pos.unmark v) ctx
   | D.ETuple (args, s) ->
@@ -86,12 +95,17 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
         (fun e1 e2 e3 -> Pos.same_pos_as (A.EIfThenElse (e1, e2, e3)) e)
         (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
   | D.EAssert e1 ->
-      Bindlib.box_apply (fun e1 -> Pos.same_pos_as (A.EAssert e1) e) (translate_expr ctx e1)
+      Bindlib.box_apply
+        (fun e1 -> Pos.same_pos_as (A.EAssert e1) e)
+        (translate_expr ctx e1)
   | D.ErrorOnEmpty arg ->
       Bindlib.box_apply
         (fun arg ->
           Pos.same_pos_as
-            (A.ECatch (arg, A.EmptyError, Pos.same_pos_as (A.ERaise A.NoValueProvided) e))
+            (A.ECatch
+               ( arg,
+                 A.EmptyError,
+                 Pos.same_pos_as (A.ERaise A.NoValueProvided) e ))
             e)
         (translate_expr ctx arg)
   | D.EApp (e1, args) ->
@@ -113,7 +127,8 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
       let new_body = translate_expr ctx body in
       let new_binder = Bindlib.bind_mvar lc_vars new_body in
       Bindlib.box_apply
-        (fun new_binder -> Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
+        (fun new_binder ->
+          Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
         new_binder
   | D.EDefault ([ exn ], just, cons) when !Cli.optimize_flag ->
       Bindlib.box_apply3
@@ -123,10 +138,12 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) : A.expr Pos.marked Bindl
                ( exn,
                  A.EmptyError,
                  Pos.same_pos_as
-                   (A.EIfThenElse (just, cons, Pos.same_pos_as (A.ERaise A.EmptyError) e))
+                   (A.EIfThenElse
+                      (just, cons, Pos.same_pos_as (A.ERaise A.EmptyError) e))
                    e ))
             e)
-        (translate_expr ctx exn) (translate_expr ctx just) (translate_expr ctx cons)
+        (translate_expr ctx exn) (translate_expr ctx just)
+        (translate_expr ctx cons)
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
@@ -147,7 +164,8 @@ let translate_program (prgm : D.program) : A.program =
                         (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
                         (Bindlib.unbox
                            (D.build_whole_scope_expr prgm.decl_ctx e
-                              (Pos.get_position (Dcalc.Ast.ScopeName.get_info scope_name)))));
+                              (Pos.get_position
+                                 (Dcalc.Ast.ScopeName.get_info scope_name)))));
                }
                :: acc
              in

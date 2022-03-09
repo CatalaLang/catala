@@ -1,15 +1,18 @@
-(* This file is part of the Catala compiler, a specification language for tax and social benefits
-   computation rules. Copyright (C) 2022 Inria, contributor: Aymeric Fromherz
-   <aymeric.fromherz@inria.fr>, Denis Merigoux <denis.merigoux@inria.fr>
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
+   Aymeric Fromherz <aymeric.fromherz@inria.fr>, Denis Merigoux
+   <denis.merigoux@inria.fr>
 
-   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License. You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
 
    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software distributed under the License
-   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-   or implied. See the License for the specific language governing permissions and limitations under
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
    the License. *)
 
 open Utils
@@ -27,17 +30,16 @@ module type Backend = sig
   val print_encoding : vc_encoding -> string
 
   type model
-
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
 
   val solve_vc_encoding : backend_context -> vc_encoding -> solver_result
-
   val print_model : backend_context -> model -> string
-
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context -> Dcalc.Ast.expr Utils.Pos.marked -> backend_context * vc_encoding
+    backend_context ->
+    Dcalc.Ast.expr Utils.Pos.marked ->
+    backend_context * vc_encoding
 end
 
 module type BackendIO = sig
@@ -50,19 +52,28 @@ module type BackendIO = sig
   type vc_encoding
 
   val translate_expr :
-    backend_context -> Dcalc.Ast.expr Utils.Pos.marked -> backend_context * vc_encoding
+    backend_context ->
+    Dcalc.Ast.expr Utils.Pos.marked ->
+    backend_context * vc_encoding
 
   type model
 
-  type vc_encoding_result = Success of vc_encoding * backend_context | Fail of string
+  type vc_encoding_result =
+    | Success of vc_encoding * backend_context
+    | Fail of string
 
   val print_positive_result : Conditions.verification_condition -> string
 
   val print_negative_result :
-    Conditions.verification_condition -> backend_context -> model option -> string
+    Conditions.verification_condition ->
+    backend_context ->
+    model option ->
+    string
 
   val encode_and_check_vc :
-    Dcalc.Ast.decl_ctx -> Conditions.verification_condition * vc_encoding_result -> unit
+    Dcalc.Ast.decl_ctx ->
+    Conditions.verification_condition * vc_encoding_result ->
+    unit
 end
 
 module MakeBackendIO (B : Backend) = struct
@@ -78,7 +89,9 @@ module MakeBackendIO (B : Backend) = struct
 
   type model = B.model
 
-  type vc_encoding_result = Success of B.vc_encoding * B.backend_context | Fail of string
+  type vc_encoding_result =
+    | Success of B.vc_encoding * B.backend_context
+    | Fail of string
 
   let print_positive_result (vc : Conditions.verification_condition) : string =
     match vc.Conditions.vc_kind with
@@ -93,7 +106,9 @@ module MakeBackendIO (B : Backend) = struct
              (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
              (Bindlib.name_of (Pos.unmark vc.vc_variable)))
 
-  let print_negative_result (vc : Conditions.verification_condition) (ctx : B.backend_context)
+  let print_negative_result
+      (vc : Conditions.verification_condition)
+      (ctx : B.backend_context)
       (model : B.model option) : string =
     let var_and_pos =
       match vc.Conditions.vc_kind with
@@ -104,7 +119,8 @@ module MakeBackendIO (B : Backend) = struct
                (Bindlib.name_of (Pos.unmark vc.vc_variable)))
             (Pos.retrieve_loc_text (Pos.get_position vc.vc_variable))
       | Conditions.NoOverlappingExceptions ->
-          Format.asprintf "%s At least two exceptions overlap for this variable:\n%s"
+          Format.asprintf
+            "%s At least two exceptions overlap for this variable:\n%s"
             (Cli.print_with_style [ ANSITerminal.yellow ] "[%s.%s]"
                (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
                (Bindlib.name_of (Pos.unmark vc.vc_variable)))
@@ -117,23 +133,28 @@ module MakeBackendIO (B : Backend) = struct
         match model with
         | None ->
             Some
-              "The solver did not manage to generate a counterexample to explain the faulty \
-               behavior."
+              "The solver did not manage to generate a counterexample to \
+               explain the faulty behavior."
         | Some model ->
             if B.is_model_empty model then None
             else
               Some
                 (Format.asprintf
-                   "The solver generated the following counterexample to explain the faulty \
-                    behavior:\n\
+                   "The solver generated the following counterexample to \
+                    explain the faulty behavior:\n\
                     %s"
                    (B.print_model ctx model))
     in
     var_and_pos
-    ^ match counterexample with None -> "" | Some counterexample -> "\n" ^ counterexample
+    ^
+    match counterexample with
+    | None -> ""
+    | Some counterexample -> "\n" ^ counterexample
 
-  (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the expression [vc] **)
-  let encode_and_check_vc (decl_ctx : decl_ctx)
+  (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the
+      expression [vc] **)
+  let encode_and_check_vc
+      (decl_ctx : decl_ctx)
       (vc : Conditions.verification_condition * vc_encoding_result) : unit =
     let vc, z3_vc = vc in
 
@@ -144,7 +165,8 @@ module MakeBackendIO (B : Backend) = struct
       (Format.asprintf "This verification condition was generated for %s:@\n%a"
          (Cli.print_with_style [ ANSITerminal.yellow ] "%s"
             (match vc.vc_kind with
-            | Conditions.NoEmptyError -> "the variable definition never to return an empty error"
+            | Conditions.NoEmptyError ->
+                "the variable definition never to return an empty error"
             | NoOverlappingExceptions -> "no two exceptions to ever overlap"))
          (Dcalc.Print.format_expr decl_ctx)
          vc.vc_guard);
@@ -156,7 +178,11 @@ module MakeBackendIO (B : Backend) = struct
              (B.print_encoding encoding));
         match B.solve_vc_encoding backend_ctx encoding with
         | ProvenTrue -> Cli.result_print (print_positive_result vc)
-        | ProvenFalse model -> Cli.error_print (print_negative_result vc backend_ctx model)
-        | Unknown -> failwith "The solver failed at proving or disproving the VC")
-    | Fail msg -> Cli.error_print (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
+        | ProvenFalse model ->
+            Cli.error_print (print_negative_result vc backend_ctx model)
+        | Unknown ->
+            failwith "The solver failed at proving or disproving the VC")
+    | Fail msg ->
+        Cli.error_print
+          (Format.asprintf "The translation to Z3 failed:@\n%s" msg)
 end
