@@ -119,8 +119,6 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Variables liées à Mayotte
   entrée avait_enfant_à_charge_avant_1er_janvier_2012 condition
-  interne montant_initial_base_premier_enfant_mayotte contenu argent
-  interne montant_initial_base_deuxième_enfant_mayotte contenu argent
   interne montant_initial_base_troisième_enfant_mayotte contenu argent
   interne montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 

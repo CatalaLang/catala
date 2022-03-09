@@ -34,6 +34,7 @@ b) 41 % pour le troisième enfant à charge et chacun des suivants.
 champ d'application AllocationsFamiliales sous condition
   ressources_ménage <=€ plafond_I_d521_3:
 
+  étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 32 %
@@ -74,6 +75,7 @@ champ d'application AllocationsFamiliales sous condition
   (ressources_ménage >€ plafond_I_d521_3) et
   (ressources_ménage <=€ plafond_II_d521_3):
 
+  étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 16 %
@@ -111,6 +113,7 @@ b) 10,25 % pour le troisième enfant à charge et chacun des suivants.
 ```catala
 champ d'application AllocationsFamiliales sous condition
   ressources_ménage >€ plafond_II_d521_3:
+  étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
     alors prestations_familiales.base_mensuelle *€ 8 %
@@ -353,9 +356,9 @@ champ d'application AllocationsFamiliales :
     montant_initial_base_premier_enfant
 
   # Valeur par défaut
-  définition montant_initial_base_premier_enfant égal à 0€
+  étiquette base définition montant_initial_base_premier_enfant égal à 0€
 
-  exception définition montant_initial_base_premier_enfant sous condition
+  exception base définition montant_initial_base_premier_enfant sous condition
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence égal à
