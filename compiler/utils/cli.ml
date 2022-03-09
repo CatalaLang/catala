@@ -75,6 +75,9 @@ let style_flag = ref true
 
 (* Max number of digits to show for decimal results *)
 let max_prec_digits = ref 20
+
+(* Max number of elements in a collection considered during verification *)
+let max_collection_size = ref 20
 let trace_flag = ref false
 let optimize_flag = ref false
 let disable_counterexamples = ref false
@@ -147,6 +150,16 @@ let max_prec_digits_opt =
           "Maximum number of significant digits printed for decimal results \
            (default 20).")
 
+let max_collection_size_opt =
+  Arg.(
+    value
+    & opt (some int) None
+    & info
+        [ "c"; "max_collection°siwe" ]
+        ~doc:
+          "Maximum number of elements in a collection, used for proofs only \
+           (default 20).")
+
 let disable_counterexamples_opt =
   Arg.(
     value & flag
@@ -181,6 +194,7 @@ type options = {
   backend : string;
   language : string option;
   max_prec_digits : int option;
+  max_collection_size : int option;
   trace : bool;
   disable_counterexamples : bool;
   optimize : bool;
@@ -197,6 +211,7 @@ let options =
       backend
       language
       max_prec_digits
+      max_collection_size
       trace
       disable_counterexamples
       optimize
@@ -210,6 +225,7 @@ let options =
       backend;
       language;
       max_prec_digits;
+      max_collection_size;
       trace;
       disable_counterexamples;
       optimize;
@@ -219,8 +235,8 @@ let options =
   in
   Term.(
     const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
-    $ backend $ language $ max_prec_digits_opt $ trace_opt
-    $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
+    $ backend $ language $ max_prec_digits_opt $ max_collection_size_opt
+    $ trace_opt $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
 
 let catala_t f = Term.(const f $ file $ options)
 

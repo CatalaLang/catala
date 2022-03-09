@@ -28,8 +28,7 @@ let extensions =
   [ (".catala_fr", "fr"); (".catala_en", "en"); (".catala_pl", "pl") ]
 
 (** Entry function for the executable. Returns a negative number in case of
-    error. Usage:
-    [driver source_file options]*)
+    error. Usage: [driver source_file options]*)
 let driver source_file (options : Cli.options) : int =
   try
     Cli.set_option_globals options;
@@ -41,6 +40,9 @@ let driver source_file (options : Cli.options) : int =
     (match options.max_prec_digits with
     | None -> ()
     | Some i -> Cli.max_prec_digits := i);
+    (match options.max_collection_size with
+    | None -> ()
+    | Some i -> Cli.max_collection_size := i);
     let l =
       match options.language with
       | Some l -> l

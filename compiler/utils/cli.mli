@@ -56,6 +56,9 @@ val optimize_flag : bool ref
 val max_prec_digits : int ref
 (** Max number of digits to show for decimal results *)
 
+val max_collection_size : int ref
+(** Max number of elements in a collection considered during verification *)
+
 val trace_flag : bool ref
 
 val disable_counterexamples : bool ref
@@ -74,6 +77,7 @@ val wrap_weaved_output : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
 val language : string option Cmdliner.Term.t
 val max_prec_digits_opt : int option Cmdliner.Term.t
+val max_collection_size_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
@@ -85,6 +89,7 @@ type options = {
   backend : string;
   language : string option;
   max_prec_digits : int option;
+  max_collection_size : int option;
   trace : bool;
   disable_counterexamples : bool;
   optimize : bool;
