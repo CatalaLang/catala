@@ -2,28 +2,56 @@
 
 # Tests
 
-```catala 
-déclaration champ d'application Test1:
-  éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
-
-champ d'application Test1:
-  définition éligibilité.date_ouverture_droits égal à |2022-01-01|
-  définition éligibilité.ménage égal à Ménage {
-      -- prestations_reçues: [ AllocationJeuneEnfant; ComplémentFamilial ]
-  }
-  assertion non éligibilité.éligibilité
-```
-
 ```catala
-déclaration champ d'application Exemple1
-éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+déclaration champ d'application Exemple1 :
+  éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+  sortie éligible contenu booléen
 
 champ d'application Exemple1 :
+définition éligible égal à éligibilité.éligibilité 
+assertion éligible 
  définition éligibilité.date_ouverture_droits égal à |2022-03-10|
  définition éligibilité.ménage égal à Ménage {
-   -- prestations_reçues: [ AllocationSoutienEnfantHandicapé; ComplémentFamilial; AllocationsFamiliales]
-   -- situation_familiale égal à Mariés
-   -- personnes_à_charge contenu EnfantÀCharge égal à 3 
-   -- nombre_autres_occupants_logement égal à 1 
-}
+  -- prestations_reçues: [AllocationSoutienEnfantHandicapé; ComplémentFamilial; AllocationsFamiliales]
+  -- situation_familiale: Mariés
+  -- personnes_à_charge: [EnfantÀCharge contenu (EnfantÀCharge {
+    -- bénéficie_titre_personnel_aide_personnelle_logement : faux 
+    -- prise_en_charge : EffectiveEtPermanente
+    -- âge : 19 
+  }); EnfantÀCharge contenu (EnfantÀCharge {
+    -- bénéficie_titre_personnel_aide_personnelle_logement : faux 
+    -- prise_en_charge : EffectiveEtPermanente
+    -- âge : 11
+  }); EnfantÀCharge contenu (EnfantÀCharge {
+    -- bénéficie_titre_personnel_aide_personnelle_logement : faux 
+    -- prise_en_charge : EffectiveEtPermanente
+    -- âge : 8
+  })]
+  -- logement: Logement {
+    -- résidence_principale : vrai 
+    -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
+    -- mode_occupation : Locataire
+    -- propriétaire : ParentOuAutre.Autre 
+    -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non 
+    -- usufruit : ParentOuAutre.Autre 
+    -- logement_decent_l89_462 : vrai 
+    -- loyers_l823_3 : 700€
+    -- surface_m_carrés : 80
+  }
+  -- nombre_autres_occupants_logement: 1 
+  -- condition_rattaché_foyer_fiscal_parent_ifi: faux
+  -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0 
+  -- date_naissance_troisième_enfant_ou_dernier_si_plus : 
+    Date contenu (DateDeNaissance contenu |2014-09-23|) 
+ }
+ définition éligibilité.demandeur égal à Demandeur {
+   -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai 
+   -- age_demandeur : 52 
+   -- contrat_de_travail : CDI 
+   -- nationalité : Française 
+   -- patrimoine : Patrimoine {
+     -- produisant_revenu_période_r822_3_3_r822_4: 0€
+     -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
+     }
+   }
 ```
