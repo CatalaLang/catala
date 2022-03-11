@@ -13,3 +13,17 @@ champ d'application Test1:
   }
   assertion non éligibilité.éligibilité
 ```
+
+```catala
+déclaration champ d'application Exemple1
+éligibilité champ d'application ÉligibilitéAidePersonnelleLogement
+
+champ d'application Exemple1 :
+ définition éligibilité.date_ouverture_droits égal à |2022-03-10|
+ définition éligibilité.ménage égal à Ménage {
+   -- prestations_reçues: [ AllocationSoutienEnfantHandicapé; ComplémentFamilial; AllocationsFamiliales]
+   -- situation_familiale égal à Mariés
+   -- personnes_à_charge contenu EnfantÀCharge égal à 3 
+   -- nombre_autres_occupants_logement égal à 1 
+}
+```
