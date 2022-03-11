@@ -21,6 +21,7 @@
 , cppo
 , ppx_deriving
 , z3
+, alcotest
 , menhirLib ? null #for nixos-unstable compatibility.
 }:
 
@@ -56,6 +57,8 @@ buildDunePackage rec {
     pkgs.z3
 
     ppx_deriving
+
+    alcotest
 
     unionfind
     bindlib
