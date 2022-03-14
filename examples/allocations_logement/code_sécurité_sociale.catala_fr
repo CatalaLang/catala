@@ -1,0 +1,273 @@
+# Code de la sécurité sociale
+
+## Partie législative
+
+### Livre I : Généralités - Dispositions communes à tout ou partie des régimes de base
+
+#### Titre VI : Dispositions relatives aux prestations et aux soins - Contrôle médical - Tutelle aux prestations sociales
+
+##### Chapitre 1er : Dispositions relatives aux prestations
+
+###### Section 1 : Bénéficiaires
+
+####### Sous-section 4 : Assurance vieillesse
+
+######## Paragraphe 1 : Information et simplification des démarches des assurés.
+
+######### Article L161-17-2 | LEGIARTI000025014605
+
+L'âge d'ouverture du droit à une pension de retraite mentionné au premier alinéa
+de l'article L. 351-1 du présent code, à l'article L. 732-18 du code rural
+et de la pêche maritime, au 1° du I de l'article L. 24 et au 1° de l'article
+L. 25 du code des pensions civiles et militaires de retraite est fixé à
+soixante-deux ans pour les assurés nés à compter du 1er janvier 1955.
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    date_naissance_assuré >=@ |1955-01-01|
+  conséquence égal à 62 an
+
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition ouverture_droits_retraite.date_naissance_assuré égal à
+    demandeur.date_naissance
+  définition âge_l161_17_2_sécu égal à
+    ouverture_droits_retraite.âge_ouverture_droit
+```
+
+Cet âge est fixé par décret dans la limite de l'âge mentionné au premier
+alinéa pour les assurés nés avant le 1er janvier 1955 et, pour ceux nés
+entre le 1er juillet 1951 et le 31 décembre 1954, de manière croissante :
+
+1° A raison de quatre mois par génération pour les assurés nés entre le 1er
+juillet 1951 et le 31 décembre 1951 ;
+
+2° A raison de cinq mois par génération pour les assurés nés entre le 1er
+janvier 1952 et le 31 décembre 1954.
+
+NOTA:
+
+Loi n° 2010-1330 du 9 novembre 2010, article 118 II : Les dispositions de
+l'article 18 sont applicables aux pensions prenant effet à compter du 1er juillet 2011.
+
+### Livre III : Dispositions relatives aux assurances sociales et à diverses catégories de personnes rattachées au régime générale
+
+#### Titre V : Assurance vieillesse - Assurance veuvage
+
+##### Chapitre 1er : Ouverture du droit, liquidation et calcul des pensions de retraite
+
+###### Section 5 : Taux et montant de la pension
+
+####### Article L351-8 | LEGIARTI000028498855
+
+Bénéficient du taux plein même s'ils ne justifient pas de la durée requise
+d'assurance ou de périodes équivalentes dans le régime général et un ou
+plusieurs autres régimes obligatoires :
+
+1° Les assurés qui atteignent l'âge prévu à l'article L. 161-17-2 augmenté
+de cinq années ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition âge_l351_8_1_sécu égal à âge_l161_17_2_sécu +^ 5 an
+```
+
+1° bis Les assurés ayant interrompu leur activité professionnelle en raison de
+leur qualité d'aidant familial telle que définie à l'article L. 245-12 du code
+de l'action sociale et des familles qui atteignent l'âge de soixante-cinq ans
+dans des conditions déterminées par décret en Conseil d'Etat ;
+
+1° ter Les assurés justifiant d'une incapacité permanente au moins égale à un
+taux fixé par décret, qui atteignent l'âge mentionné à l'article L. 161-17-2 ;
+
+2°) les assurés reconnus inaptes au travail dans les conditions prévues à
+l'article L. 351-7 ;
+
+3°) les anciens déportés ou internés titulaires de la carte de déporté ou
+interné de la Résistance ou de la carte de déporté ou interné politique ;
+
+4°) les mères de famille salariées justifiant d'une durée minimum d'assurance
+dans le régime général, ou dans ce régime et celui des salariés agricoles qui
+ont élevé au moins un nombre minimum d'enfants, dans les conditions prévues au
+deuxième alinéa de l'article L. 342-4, et qui ont exercé un travail manuel
+ouvrier pendant une durée déterminée ;
+
+4° bis) les travailleurs handicapés admis à demander la liquidation de leur
+pension de retraite avant l'âge prévu au premier alinéa de l'article L. 351-1 ;
+
+5°) les anciens prisonniers de guerre lorsque, sur leur demande, leur pension
+est liquidée à un âge variant suivant la durée de captivité dans des conditions
+fixées par décret.
+
+Les anciens prisonniers de guerre évadés de guerre, au-delà d'un certain temps
+de captivité, et les anciens prisonniers rapatriés pour maladie peuvent choisir
+le régime le plus favorable.
+
+Toute partie de mois n'est pas prise en considération.
+
+Les dispositions du 5°) ci-dessus s'appliquent à tous les anciens combattants
+pour leur durée de service actif passé sous les drapeaux.
+
+NOTA:
+
+Conformément à l'article 37 IV de la loi n° 2014-40 du 20 janvier 2014,
+l'article L351-8, dans sa rédaction issue de la présente loi, est applicable
+aux pensions prenant effet à compter du 1er février 2014.
+
+### Livre VIII : Allocations aux personnes âgées - Allocation aux adultes handicapés - Aides à l'emploi pour la garde des jeunes enfants - Aides aux collectivités et organismes logeant à titre temporaire des personnes défavorisées ou gérant des aires d'accueil des gens du voyage - Protection complémentaire en matière de simultanément
+
+#### Titre I : Allocations aux personnes âgées
+
+##### Chapitre 5 : Allocation de solidarité aux personnes âgées
+
+###### Section 1 : Ouverture du droit et liquidation de l'allocation de solidarité aux personnes âgées
+
+####### Sous-section 3 : Appréciation des ressources
+
+######## Article L815-9 | LEGIARTI000006744880
+
+L'allocation de solidarité aux personnes âgées n'est due que si le total
+de cette allocation et des ressources personnelles de l'intéressé et du conjoint,
+du concubin ou du partenaire lié par un pacte civil de solidarité n'excède pas des
+plafonds fixés par décret. Lorsque le total de la ou des allocations de
+solidarité et des ressources personnelles de l'intéressé ou des époux,
+concubins ou partenaires liés par un pacte civil de solidarité dépasse ces
+plafonds, la ou les allocations sont réduites à due concurrence.
+
+```catala
+# Définit ÉligibilitéAidePersonnelleLogement.plafond_individuel_l815_9_sécu,
+# mais valeur dans un décret.
+```
+
+## Partie réglementaire - Décrets simples
+
+### Livre I : Généralités - Dispositions communes à tout ou partie des régimes de base
+
+#### Titre VI : Dispositions relatives aux prestations et aux soins - Contrôle médical - Tutelle aux prestations sociales
+
+##### Chapitre 1er : Dispositions relatives aux prestations
+
+###### Section 1 : Bénéficiaires
+
+####### Sous-section 4 : Assurance vieillesse
+
+######## Paragraphe 2 : Ouverture du droit et liquidation.
+
+######### Article D161-2-1-9 | LEGIARTI000025089933
+
+L'âge prévu au second alinéa de l'article L. 161-17-2 est fixé à :
+
+1° Soixante ans pour les assurés nés avant le 1er juillet 1951 ;
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    date_naissance_assuré <@ |1951-07-01|
+  conséquence égal à 60 an
+```
+
+2° Soixante ans et quatre mois pour les assurés nés entre le 1er juillet
+1951 et le 31 décembre 1951 inclus ;
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    date_naissance_assuré >=@ |1951-07-01| et
+    date_naissance_assuré <=@ |1951-12-31|
+  conséquence égal à 60 an +^ 4 mois
+```
+
+3° Soixante ans et neuf mois pour les assurés nés en 1952 ;
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    accès_année de date_naissance_assuré = 1952
+  conséquence égal à 60 an +^ 9 mois
+```
+
+4° Soixante et un ans et deux mois pour les assurés nés en 1953 ;
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    accès_année de date_naissance_assuré = 1953
+  conséquence égal à 61 an +^ 2 mois
+```
+
+5° Soixante et un ans et sept mois pour les assurés nés en 1954 ;
+
+```catala
+champ d'application OuvertureDroitsRetraite:
+  définition âge_ouverture_droit sous condition
+    accès_année de date_naissance_assuré = 1954
+  conséquence égal à 61 an +^ 7 mois
+```
+
+6° Soixante deux ans pour les assurés nés à compter du 1er janvier 1955.
+
+```catala
+# Déjà codé dans L161-17-2
+```
+
+### Livre VIII : Allocations aux personnes âgées - Allocation aux adultes handicapés - Aides à l'emploi pour la garde des jeunes enfants - Protection complémentaire en matière de santé
+
+#### Titre I : Allocations aux personnes âgées
+
+##### Chapitre 5 : Allocation de solidarité aux personnes âgées
+
+###### Section 1 : Ouverture du droit et liquidation de l'allocation de solidarité aux personnes âgées
+
+####### Article D815-1 | LEGIARTI000036760292
+
+Le montant maximum servi au titre de l'allocation de solidarité aux personnes
+âgées est fixé :
+
+a) Pour les personnes seules, ou lorsque seul un des conjoints, concubins ou
+partenaires liés par un pacte civil de solidarité en bénéficie, à 9 998,40 euros
+par an à compter du 1er avril 2018, à 10 418,40 euros par an à compter du 1er
+janvier 2019 et à 10 838,40 euros par an à compter du 1er janvier 2020 ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_ouverture_droits >=@ |2018-01-04| et
+     date_ouverture_droits <@ |2019-01-01|
+  conséquence égal à 9 998,40€
+
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_ouverture_droits >=@ |2019-01-01| et
+     date_ouverture_droits <@ |2020-01-01|
+  conséquence égal à 10 418,40€
+
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_ouverture_droits >=@ |2020-01-04| et
+     date_ouverture_droits <@ |2021-01-01|
+  conséquence égal à 10 838,40€
+
+# TODO juridique: trouver les décrets définissant les montants pour 2021 et 2022
+```
+
+b) Lorsque les deux conjoints, concubins ou partenaires liés par un pacte civil
+de solidarité en bénéficient, à 15 522,54 euros par an à compter du 1er avril
+2018, à 16 174,59 euros par an à compter du 1er janvier 2019 et à 16 826,64 euros
+par an à compter du 1er janvier 2020. Dans ce cas, le montant est servi par moitié
+à chacun des deux allocataires concernés.
+
+Les dispositions du b1 sont également applicables pour le calcul de l'allocation
+de solidarité aux personnes âgées servie au demandeur lorsque son conjoint,
+concubin ou partenaire lié par un pacte civil de solidarité bénéficie de
+l'allocation supplémentaire d'invalidité visée à l'article L. 815-24.
+
+NOTA:
+
+Décret n° 2018-227 du 30 mars 2018, article 2, ces dispositions s'appliquent aux
+prestations dues à compter du mois d'avril 2018.
+
+####### Article D815-2 | LEGIARTI000029619577
+
+Le plafond annuel prévu à l'article L. 815-9 pour une personne seule, est égal
+au montant maximum prévu au a de l'article D. 815-1 pour la période correspondante.
+Le plafond applicable lorsque le ou les allocataires sont mariés, concubins
+ou partenaires liés par un pacte civil de solidarité est égal au montant
+maximum prévu au b de l'article D. 815-1.

@@ -55,7 +55,7 @@ déclaration énumération Parenté:
   -- CollatéralDeuxièmeTroisièmeDegré
 
 déclaration structure ParentÀCharge:
-  donnée âge contenu entier
+  donnée âge contenu durée
   donnée ressources contenu argent
   donnée ascendant_descendant_collatéral_deuxième_troisième_degré contenu booléen
   donnée parenté contenu Parenté
@@ -94,6 +94,7 @@ déclaration structure Demandeur:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
     contenu booléen
   donnée age_demandeur contenu entier
+  donnée date_naissance contenu date
   donnée contrat_de_travail contenu TypeContratTravail
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine
@@ -129,10 +130,11 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne éligibilité_logement condition
   interne montant_minimal_aide_personnelle_logement
     contenu argent dépend de ModeOccupation
-  interne âge_l351_8_sécu contenu entier
-  interne âge_l161_17_2_sécu contenu entier
+  interne âge_l351_8_1_sécu contenu durée
+  interne âge_l161_17_2_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent
   sortie éligibilité condition
+  ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
 
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   entrée date_emménagement contenu date
@@ -218,4 +220,8 @@ déclaration champ d'application CalculAidePersonnelleLogement:
 déclaration champ d'application PrestationsFamiliales:
   sortie base_mensuelle contenu argent
   # TODO: connecter au vrai champ d'application
+
+déclaration champ d'application OuvertureDroitsRetraite:
+  sortie âge_ouverture_droit contenu durée
+  entrée date_naissance_assuré contenu date
 ```
