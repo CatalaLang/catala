@@ -1,33 +1,45 @@
 diff --git a/compiler/catala_web_interpreter.ml b/compiler/catala_web_interpreter.ml
 deleted file mode 100644
-index 31d5289..0000000
+index cc842a5d..00000000
 --- a/compiler/catala_web_interpreter.ml
 +++ /dev/null
-@@ -1,16 +0,0 @@
+@@ -1,28 +0,0 @@
 -open Driver
 -open Js_of_ocaml
 -
 -let _ =
 -  Js.export_all
 -    (object%js
--       method interpret (contents : Js.js_string Js.t) (scope : Js.js_string Js.t)
--           (language : Js.js_string Js.t) (trace : bool) =
+-       method interpret
+-           (contents : Js.js_string Js.t)
+-           (scope : Js.js_string Js.t)
+-           (language : Js.js_string Js.t)
+-           (trace : bool) =
 -         driver
 -           (Contents (Js.to_string contents))
--           false false false false "Interpret"
--           (Some (Js.to_string language))
--           None trace false false
--           (Some (Js.to_string scope))
--           None
+-           {
+-             Utils.Cli.debug = false;
+-             unstyled = false;
+-             wrap_weaved_output = false;
+-             avoid_exceptions = false;
+-             backend = "Interpret";
+-             language = Some (Js.to_string language);
+-             max_prec_digits = None;
+-             trace = false;
+-             disable_counterexamples = false;
+-             optimize = false;
+-             ex_scope = Some (Js.to_string scope);
+-             output_file = None;
+-           }
 -    end)
 diff --git a/compiler/dune b/compiler/dune
-index d192291..994c528 100644
+index 2c5a1996..f6c38809 100644
 --- a/compiler/dune
 +++ b/compiler/dune
-@@ -10,16 +10,6 @@
+@@ -19,16 +19,6 @@
   (libraries calendar zarith zarith_stubs_js)
   (modules runtime))
-
+ 
 -(executable
 - (name catala_web_interpreter)
 - (modes byte js)
@@ -40,4 +52,4 @@ index d192291..994c528 100644
 -
  (executable
   (name catala)
-  (modes native)
+  (modes native js)

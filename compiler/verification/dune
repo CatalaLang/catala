@@ -1,7 +1,17 @@
 (library
  (name verification)
  (public_name catala.verification)
- (libraries bindlib utils dcalc runtime z3 calendar))
+ (libraries
+  bindlib
+  utils
+  dcalc
+  runtime
+  calendar
+  (select
+   z3backend.ml
+   from
+   (z3 -> z3backend.real.ml)
+   (-> z3backend.dummy.ml))))
 
 (documentation
  (package catala)

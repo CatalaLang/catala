@@ -62,22 +62,11 @@ let driver source_file (options : Cli.options) : int =
     Cli.locale_lang := language;
     let backend = options.backend in
     let backend =
-      let backend = String.lowercase_ascii backend in
-      if backend = "makefile" then Cli.Makefile
-      else if backend = "latex" then Cli.Latex
-      else if backend = "html" then Cli.Html
-      else if backend = "interpret" then Cli.Interpret
-      else if backend = "ocaml" then Cli.OCaml
-      else if backend = "dcalc" then Cli.Dcalc
-      else if backend = "scopelang" then Cli.Scopelang
-      else if backend = "python" then Cli.Python
-      else if backend = "proof" then Cli.Proof
-      else if backend = "typecheck" then Cli.Typecheck
-      else if backend = "lcalc" then Cli.Lcalc
-      else if backend = "scalc" then Cli.Scalc
-      else
-        Errors.raise_error
-          "The selected backend (%s) is not supported by Catala" backend
+      match Cli.catala_backend_option_of_string backend with
+      | Some b -> b
+      | None ->
+          Errors.raise_error
+            "The selected backend (%s) is not supported by Catala" backend
     in
     let prgm =
       Surface.Parser_driver.parse_top_level_file source_file language

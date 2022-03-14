@@ -19,4 +19,4 @@ jobs:
           clean: false
       - name: Make all
         run: |
-          OCAMLRUNPARAM=b opam exec -- make all -B
+          OCAMLRUNPARAM=b opam exec -- make dependencies all -B
