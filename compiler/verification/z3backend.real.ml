@@ -46,8 +46,12 @@ type context = {
   (* A map from Catala struct names to the corresponding Z3 sort, from which we
      can retrieve the constructor and the accessors *)
   ctx_z3unit : Sort.sort * Expr.expr;
-      (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
-         of 0 elements, and the unit value *)
+  (* A pair containing the Z3 encodings of the unit type, encoded as a tuple of
+     0 elements, and the unit value *)
+  ctx_z3constraints : Expr.expr list;
+      (* A list of constraints about the created Z3 expressions accumulated
+         during their initialization, for instance, that the length of an array
+         is an integer which always is greater than 0 *)
 }
 (** The context contains all the required information to encode a VC represented
     as a Catala term to Z3. The fields [ctx_decl] and [ctx_var] are computed
@@ -85,6 +89,9 @@ let add_z3matchsubst (v : Var.t) (e : Expr.expr) (ctx : context) : context =
 let add_z3struct (s : StructName.t) (sort : Sort.sort) (ctx : context) : context
     =
   { ctx with ctx_z3structs = StructMap.add s sort ctx.ctx_z3structs }
+
+let add_z3constraint (e : Expr.expr) (ctx : context) : context =
+  { ctx with ctx_z3constraints = e :: ctx.ctx_z3constraints }
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900
     **)
@@ -653,7 +660,20 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
           let name = unique_name v in
           let ctx = add_z3var name v ctx in
           let ctx, ty = translate_typ ctx (Pos.unmark t) in
-          (ctx, Expr.mk_const_s ctx.ctx_z3 name ty)
+          let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
+          let ctx =
+            match Pos.unmark t with
+            (* If we are creating a new array, we need to log that its length is
+               greater than 0 *)
+            | TArray _ ->
+                add_z3constraint
+                  (Arithmetic.mk_ge ctx.ctx_z3 z3_var
+                     (Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 0))
+                  ctx
+            | _ -> ctx
+          in
+
+          (ctx, z3_var)
       | Some e ->
           (* This variable is a temporary variable generated during VC
              translation of a match. It actually corresponds to applying an
@@ -757,6 +777,10 @@ module Backend = struct
   let solve_vc_encoding (ctx : backend_context) (encoding : vc_encoding) :
       solver_result =
     let solver = Z3.Solver.mk_solver ctx.ctx_z3 None in
+    (* Add all the constraints stored in the context *)
+    let encoding =
+      Boolean.mk_and ctx.ctx_z3 (encoding :: ctx.ctx_z3constraints)
+    in
     Z3.Solver.add solver [ Boolean.mk_not ctx.ctx_z3 encoding ];
     match Z3.Solver.check solver [] with
     | UNSATISFIABLE -> ProvenTrue
@@ -793,6 +817,7 @@ module Backend = struct
       ctx_z3matchsubsts = VarMap.empty;
       ctx_z3structs = StructMap.empty;
       ctx_z3unit = z3unit;
+      ctx_z3constraints = [];
     }
 end
 
