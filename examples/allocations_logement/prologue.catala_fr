@@ -136,6 +136,13 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   sortie éligibilité condition
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
 
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle éligibilité sous condition
+    condition_nationalité et
+    condition_logement_mode_occupation et
+    éligibilité_logement
+  conséquence rempli
+
 déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   entrée date_emménagement contenu date
   entrée ménage contenu Ménage
@@ -181,10 +188,12 @@ déclaration champ d'application RessourcesAidePersonnelleLogement:
   entrée conjoint_exerce_activité_rémunérée contenu booléen
   entrée personnes_à_charge contenu collection PersonneÀCharge
   entrée situation_familiale contenu SituationFamiliale
-  prestations_familiales champ d'application PrestationsFamiliales
+  base_mensuelle_allocations_familiales champ d'application
+    BaseMensuelleAllocationsFamiliales
   entrée mode_occupation contenu ModeOccupation
   entrée condition_âge_bourse_enseignement_supérieur condition
   entrée demandeur_poursuit_des_études condition
+  entrée date_demande_ou_reexamen_droit contenu date
   interne ressources_forfaitaires_r822_20 contenu argent
 
 déclaration champ d'application CalculAidePersonnelleLogement:
@@ -216,10 +225,6 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne taux_prise_compte_ressources contenu décimal
   interne taux_loyer_éligible contenu décimal
   interne taux_composition_familiale contenu décimal
-
-déclaration champ d'application PrestationsFamiliales:
-  sortie base_mensuelle contenu argent
-  # TODO: connecter au vrai champ d'application
 
 déclaration champ d'application OuvertureDroitsRetraite:
   sortie âge_ouverture_droit contenu durée

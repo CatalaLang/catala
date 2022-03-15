@@ -278,7 +278,7 @@ let rec parse_source_file
         try
           let input = open_in source_file in
           (Sedlexing.Utf8.from_channel input, Some input)
-        with Sys_error msg -> Errors.raise_error "%s" msg)
+        with Sys_error msg -> Errors.raise_error "System error: %s" msg)
     | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
   in
   let source_file_name =

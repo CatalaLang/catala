@@ -400,10 +400,13 @@ champ d'application RessourcesAidePersonnelleLogement:
     si demandeur_exerce_activité_rémunérée et
       conjoint_exerce_activité_rémunérée et
       (ressources_conjoint +€ ressources_conjoint) >=€
-       prestations_familiales.base_mensuelle *€ 12,0
+       base_mensuelle_allocations_familiales.montant *€ 12,0
     alors
       montant_forfaitaire_r_822_7
     sinon 0€
+
+  définition base_mensuelle_allocations_familiales.date_courante égal à
+    date_demande_ou_reexamen_droit
 ```
 
 Le montant de cet abattement est fixé par arrêté des ministres chargés du

@@ -192,7 +192,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
 exception cas_base_l822_4 règle condition_logement_location_tiers
   sous condition
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
-    -- LouéOuSousLouéÀDesTiers.Non: faux
+    -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- Oui de personne: personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
   conséquence rempli
 ```
@@ -347,7 +347,7 @@ locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 # todo informatique: structure inverse de la structure avec des conditions chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_9_decence_logement
-  sous condition ménage.logement.logement_decent_l89_462
+  sous condition non ménage.logement.logement_decent_l89_462
   conséquence rempli
 ```
 
