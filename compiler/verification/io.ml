@@ -179,5 +179,10 @@ module MakeBackendIO (B : Backend) = struct
             Cli.error_print "%s" (print_negative_result vc backend_ctx model)
         | Unknown ->
             failwith "The solver failed at proving or disproving the VC")
-    | Fail msg -> Cli.error_print "The translation to Z3 failed:\n%s" msg
+    | Fail msg ->
+        Cli.error_print "%s The translation to Z3 failed:\n%s"
+          (Cli.with_style [ ANSITerminal.yellow ] "[%s.%s]"
+             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+             (Bindlib.name_of (Pos.unmark vc.vc_variable)))
+          msg
 end
