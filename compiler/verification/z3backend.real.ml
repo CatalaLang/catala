@@ -475,6 +475,24 @@ let rec translate_op
              thus be directly translated as >= in the Z3 encoding using the
              number of days *)
           (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
+      | Eq, [ (EApp ((EOp (Unop GetYear), _), [ e1 ]), _); (ELit (LInt n), _) ]
+        ->
+          let n = Runtime.integer_to_int n in
+          let ctx, e1 = translate_expr ctx e1 in
+          let min_date =
+            Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+              (date_to_int (date_of_year n))
+          in
+          let max_date =
+            Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+              (date_to_int (date_of_year (n + 1)))
+          in
+          ( ctx,
+            Boolean.mk_and ctx.ctx_z3
+              [
+                Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
+                Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
+              ] )
       | _ -> (
           let ctx, e1, e2 =
             match args with

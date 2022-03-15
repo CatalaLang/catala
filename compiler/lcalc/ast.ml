@@ -134,7 +134,9 @@ let make_matchopt_with_abs_arms
     (e_some : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position @@ Bindlib.unbox arg in
   let mark : 'a -> 'a Pos.marked = Pos.mark pos in
-  let+ arg = arg and+ e_none = e_none and+ e_some = e_some [@ocamlformat "disable"] in
+  let+ arg = arg
+  and+ e_none = e_none
+  and+ e_some = e_some [@ocamlformat "disable"] in
 
   mark @@ EMatch (arg, [ e_none; e_some ], option_enum)
 
