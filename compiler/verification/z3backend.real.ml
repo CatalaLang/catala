@@ -263,7 +263,10 @@ let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
       failwith "[Z3 encoding] TTuple type of unnamed struct not supported"
   | TEnum (_, e) -> find_or_create_enum ctx e
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
-  | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
+  | TArray _ ->
+      (* For now, we are only encoding the (symbolic) length of an array.
+         Ultimately, the type of an array should also contain its elements *)
+      (ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3)
   | TAny -> failwith "[Z3 encoding] TAny type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
@@ -594,8 +597,9 @@ let rec translate_op
       (* Omitting the log from the VC *)
       | Log _ -> (ctx, e1)
       | Length ->
-          failwith
-            "[Z3 encoding] application of unary operator Length not supported"
+          (* For now, an array is only its symbolic length. We simply return
+             it *)
+          (ctx, e1)
       | IntToRat ->
           failwith
             "[Z3 encoding] application of unary operator IntToRat not supported"
