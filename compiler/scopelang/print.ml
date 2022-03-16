@@ -52,7 +52,10 @@ let rec format_typ (fmt : Format.formatter) (typ : typ Pos.marked) : unit =
         Dcalc.Print.format_base_type "array"
   | TAny -> Format.fprintf fmt "any"
 
-let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
+let rec format_expr
+    ?(debug : bool = false) (fmt : Format.formatter) (e : expr Pos.marked) :
+    unit =
+  let format_expr = format_expr ~debug in
   let format_with_parens (fmt : Format.formatter) (e : expr Pos.marked) =
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
@@ -126,6 +129,8 @@ let rec format_expr (fmt : Format.formatter) (e : expr Pos.marked) : unit =
   | EApp ((EOp (Binop op), _), [ arg1; arg2 ]) ->
       Format.fprintf fmt "@[%a@ %a@ %a@]" format_with_parens arg1
         Dcalc.Print.format_binop (op, Pos.no_pos) format_with_parens arg2
+  | EApp ((EOp (Unop (Log _)), _), [ arg1 ]) when not debug ->
+      format_expr fmt arg1
   | EApp ((EOp (Unop op), _), [ arg1 ]) ->
       Format.fprintf fmt "@[%a@ %a@]" Dcalc.Print.format_unop (op, Pos.no_pos)
         format_with_parens arg1
@@ -198,7 +203,9 @@ let format_enum
     cases
 
 let format_scope
-    (fmt : Format.formatter) ((name, decl) : ScopeName.t * scope_decl) : unit =
+    ?(debug : bool = false)
+    (fmt : Format.formatter)
+    ((name, decl) : ScopeName.t * scope_decl) : unit =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
     Dcalc.Print.format_keyword "let" Dcalc.Print.format_keyword "scope"
     ScopeName.format_t name
@@ -241,12 +248,12 @@ let format_scope
                      with
                      | Reentrant ->
                          Format.fprintf fmt "%a@ %a" Dcalc.Print.format_operator
-                           "reentrant or by default" format_expr e
-                     | _ -> Format.fprintf fmt "%a" format_expr e))
+                           "reentrant or by default" (format_expr ~debug) e
+                     | _ -> Format.fprintf fmt "%a" (format_expr ~debug) e))
                e
          | Assertion e ->
              Format.fprintf fmt "%a %a" Dcalc.Print.format_keyword "assert"
-               format_expr e
+               (format_expr ~debug) e
          | Call (scope_name, subscope_name) ->
              Format.fprintf fmt "%a %a%a%a%a" Dcalc.Print.format_keyword "call"
                ScopeName.format_t scope_name Dcalc.Print.format_punctuation "["
@@ -254,7 +261,8 @@ let format_scope
                Dcalc.Print.format_punctuation "]"))
     decl.scope_decl_rules
 
-let format_program (fmt : Format.formatter) (p : program) : unit =
+let format_program
+    ?(debug : bool = false) (fmt : Format.formatter) (p : program) : unit =
   Format.fprintf fmt "%a%a%a%a%a"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
@@ -274,5 +282,5 @@ let format_program (fmt : Format.formatter) (p : program) : unit =
     ()
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-       format_scope)
+       (format_scope ~debug))
     (ScopeMap.bindings p.program_scopes)
