@@ -1866,10 +1866,13 @@ bénéficiaire, l'impayé de dépense de logement, comprenant le loyer et, le ca
 brut du loyer et des charges.
 
 ```catala
-# Cas spécifique au Mode d'occupation "location", Aide versée au locataire
-# Cet alinéa définit ce qui est entendu par un "impayé de dépenses de logement"
-# C'est-à-dire lorsqu'une dette, constituée entre le locataire et le bailleur, atteint
-# au moins 2 fois le montant mensuel brut du loyer + les charges.
+champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+  définition montant_impayé égal à
+    si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
+
+  définition seuil_impayé_dépense_de_logement
+    sous condition aide_versée sous forme Bénéficiaire
+    conséquence égal à 2 *€ (montant_brut_loyer +€ montant_charges)
 ```
 
 Lorsque l'aide personnelle au logement est versée entre les mains du bailleur,
@@ -1877,18 +1880,26 @@ l'impayé est constitué quand le locataire est débiteur à l'égard du bailleu
 d'une somme au moins égale à deux fois le montant mensuel net du loyer et des charges.
 
 ```catala
-# Même chose, mais cette fois si lorsque l'aide est versée au bailleur.
-# Pour qu'il y ait un impayé, la dette du locataire doit atteindre au mois 2 fois
-# le montant mensuel net du loyer + les charges.
+champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+  définition seuil_impayé_dépense_de_logement
+    sous condition aide_versée sous forme Bailleur
+    conséquence égal à 2 *€ (montant_net_loyer +€ montant_charges)
 ```
 
 Le montant mensuel brut du loyer correspond au loyer figurant dans le bail.
+
+```catala
+# Il n'y a pas de montant de charge brut/net
+champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+  définition montant_brut_loyer égal à montant_loyer
+```
 
 Le montant mensuel net du loyer correspond à ce même loyer, déduction faite du
 montant de l'aide personnelle au logement.
 
 ```catala
-# Ces deux alinéas définissent les montants brut et net du loyer.
+champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+  définition montant_net_loyer égal à montant_loyer -€ montant_apl
 ```
 
 ####### Article R824-2 | LEGIARTI000038878875
@@ -1896,6 +1907,14 @@ montant de l'aide personnelle au logement.
 ```catala
 # Cet article précise les cas où un impayé est constitué dans le cadre de l'accession
 # à la propriété.
+```
+```catala
+champ d'application Impayé
+  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  
+  définition montant_impayé
+    conséquence égal à
+    si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
 ```
 
 Dans le secteur de l'accession à la propriété :
@@ -1912,12 +1931,17 @@ débiteur à l'égard de l'établissement habilité d'une somme au moins égale 
 sixième du total annuel des échéances de prêt brutes ;
 
 ```catala
-# Si l'aide est versée au bénéficiaire :
-# En cas de périodicité mensuelle : Il y a impayé si sa dette atteint un montant
-# au moins égal à deux échéances de prêt brutes
-# Ou
-# En cas de périodicité autre que mensuelle : Il y a impayé si sa dette atteint
-# une somme au moins égale à 1/6 du total annuel des échéances de prêt brutes
+champ d'application Impayé
+  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+
+  définition seuil_impayé_dépense_de_logement
+    sous condition
+      aide_versée sous forme Bénéficiaire
+
+    conséquence égal à
+      selon échéance_brute sous forme
+      -- TotalMensuel de mensualité_brute: 2 *€ mensualité_brute
+      -- TotalAnnuel de échéance_prêt_brute: 1/6 *€  échéance_prêt_brute
 ```
 
 2° Lorsque l'aide personnelle au logement est versée directement auprès de
@@ -1931,23 +1955,42 @@ b) En cas de périodicité autre que mensuelle, lorsque l'emprunteur est débite
 à l'égard de l'établissement habilité d'une somme au moins égale à un sixième du
 total annuel des échéances de prêt nettes.
 
+
 ```catala
-# Si l'aide est versée directrement à l'établissement de prêt :
-# En cas de périodicité mensuelle : il y a impayé si la dette du bénéficiaire atteint
-# un montant au moins égal à deux échéances de prêts nettes
-# Ou
-# En cas de périodicité autre que mensuelle : il y a impayé si la dette du bénéficiaire
-# atteint une somme au moins égale à 1/6 du total annuel des échéances de prêts nettes
+champ d'application Impayé
+  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+
+  définition seuil_impayé_dépense_de_logement
+    sous condition
+      aide_versée sous forme ÉtablissementHabilité
+
+    conséquence égal à
+      selon échéance_net sous forme
+      -- TotalMensuel de mensualité_net: 2 *€ mensualité_net
+      -- TotalAnnuel de échéance_prêt_net: 1/6 *€  échéance_prêt_net 
 ```
 
+
 L'échéance de prêt brute correspond à celle figurant dans le contrat de prêt.
+
+```catala
+champ d'application Impayé sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  définition échéance_brute égal à échéance
+```
 
 L'échéance de prêt nette correspond à cette même échéance, déduction faite de l'aide
 personnelle au logement.
 
 ```catala
-# Ces deux alinéas définissent les montants brut et net d'une échéance de prêt.
+champ d'application Impayé sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  définition échéance_nette égal à 
+    selon échéance_brute sous forme
+    -- TotalMensuel de mensualité_brute:
+      TotalMensuel contenu mensualité_brute -€ montant_apl
+    -- TotalAnnuel de échéance_prêt_brute:
+      TotalAnnuel contenu échéance_prêt_brute -€ (12 *€ montant_apl)
 ```
+
 
 ####### Article R824-3 | LEGIARTI000038878873
 
@@ -1957,9 +2000,16 @@ de location-accession ou par le contrat d'occupation en logement-foyer mentionn�
 charges ou à une échéance.
 
 ```catala
-# Assimile le cas de la location-accession à la location : article R824-1
-# Assimile le cas de l'occupation en logement-foyer à l'accession à la propriété :
-# article R824-2
+# TODO juridique: chercher une controverse autour de cet article.
+
+champ d'application Impayé:
+  définition mode_occupation état après_articleR824_3 égal à
+    selon mode_occupation état avant_articleR824_3 sous forme
+    -- Locataire: Locataire
+    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriétéLocalUsageExclusifHabitation
+    -- RésidentLogementFoyer: AccessionPropriétéLocalUsageExclusifHabitation
+    -- LocationAccession: Locataire
+
 ```
 
 ###### Section 2 : Secteur locatif
