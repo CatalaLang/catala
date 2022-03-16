@@ -1,0 +1,11 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content collection integer
+  context y content boolean
+
+scope A:
+  definition x equals [0; 5]
+  definition y under condition (number of x) > 0 consequence equals true
+```
