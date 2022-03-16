@@ -1,0 +1,16 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- C1
+  -- C2
+
+declaration scope A:
+  context x content E
+  context y content integer
+
+scope A:
+  definition x equals C1
+  definition y under condition x = C1 consequence equals 1
+  definition y under condition x = C2 consequence equals 2
+```
