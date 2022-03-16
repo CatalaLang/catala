@@ -46,8 +46,12 @@ type context = {
   (* A map from Catala struct names to the corresponding Z3 sort, from which we
      can retrieve the constructor and the accessors *)
   ctx_z3unit : Sort.sort * Expr.expr;
-      (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
-         of 0 elements, and the unit value *)
+  (* A pair containing the Z3 encodings of the unit type, encoded as a tuple of
+     0 elements, and the unit value *)
+  ctx_z3constraints : Expr.expr list;
+      (* A list of constraints about the created Z3 expressions accumulated
+         during their initialization, for instance, that the length of an array
+         is an integer which always is greater than 0 *)
 }
 (** The context contains all the required information to encode a VC represented
     as a Catala term to Z3. The fields [ctx_decl] and [ctx_var] are computed
@@ -85,6 +89,9 @@ let add_z3matchsubst (v : Var.t) (e : Expr.expr) (ctx : context) : context =
 let add_z3struct (s : StructName.t) (sort : Sort.sort) (ctx : context) : context
     =
   { ctx with ctx_z3structs = StructMap.add s sort ctx.ctx_z3structs }
+
+let add_z3constraint (e : Expr.expr) (ctx : context) : context =
+  { ctx with ctx_z3constraints = e :: ctx.ctx_z3constraints }
 
 (** For the Z3 encoding of Catala programs, we define the "day 0" as Jan 1, 1900
     **)
@@ -189,7 +196,9 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
 
       Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
-  | TArray _ -> failwith "[Z3 model]: Pretty-printing of arrays not supported"
+  | TArray _ ->
+      (* For now, only the length of arrays is modeled *)
+      Format.asprintf "(length = %s)" (Expr.to_string e)
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
@@ -263,7 +272,10 @@ let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
       failwith "[Z3 encoding] TTuple type of unnamed struct not supported"
   | TEnum (_, e) -> find_or_create_enum ctx e
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
-  | TArray _ -> failwith "[Z3 encoding] TArray type not supported"
+  | TArray _ ->
+      (* For now, we are only encoding the (symbolic) length of an array.
+         Ultimately, the type of an array should also contain its elements *)
+      (ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3)
   | TAny -> failwith "[Z3 encoding] TAny type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
@@ -594,8 +606,9 @@ let rec translate_op
       (* Omitting the log from the VC *)
       | Log _ -> (ctx, e1)
       | Length ->
-          failwith
-            "[Z3 encoding] application of unary operator Length not supported"
+          (* For now, an array is only its symbolic length. We simply return
+             it *)
+          (ctx, e1)
       | IntToRat ->
           failwith
             "[Z3 encoding] application of unary operator IntToRat not supported"
@@ -649,7 +662,20 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
           let name = unique_name v in
           let ctx = add_z3var name v ctx in
           let ctx, ty = translate_typ ctx (Pos.unmark t) in
-          (ctx, Expr.mk_const_s ctx.ctx_z3 name ty)
+          let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
+          let ctx =
+            match Pos.unmark t with
+            (* If we are creating a new array, we need to log that its length is
+               greater than 0 *)
+            | TArray _ ->
+                add_z3constraint
+                  (Arithmetic.mk_ge ctx.ctx_z3 z3_var
+                     (Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 0))
+                  ctx
+            | _ -> ctx
+          in
+
+          (ctx, z3_var)
       | Some e ->
           (* This variable is a temporary variable generated during VC
              translation of a match. It actually corresponds to applying an
@@ -753,7 +779,12 @@ module Backend = struct
   let solve_vc_encoding (ctx : backend_context) (encoding : vc_encoding) :
       solver_result =
     let solver = Z3.Solver.mk_solver ctx.ctx_z3 None in
-    Z3.Solver.add solver [ Boolean.mk_not ctx.ctx_z3 encoding ];
+    (* We take the negation of the query to check for possible
+       counterexamples *)
+    let query = Boolean.mk_not ctx.ctx_z3 encoding in
+    (* Add all the hypotheses stored in the context *)
+    let query_and_hyps = query :: ctx.ctx_z3constraints in
+    Z3.Solver.add solver query_and_hyps;
     match Z3.Solver.check solver [] with
     | UNSATISFIABLE -> ProvenTrue
     | SATISFIABLE -> ProvenFalse (Z3.Solver.get_model solver)
@@ -789,6 +820,7 @@ module Backend = struct
       ctx_z3matchsubsts = VarMap.empty;
       ctx_z3structs = StructMap.empty;
       ctx_z3unit = z3unit;
+      ctx_z3constraints = [];
     }
 end
 
