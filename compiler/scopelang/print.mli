@@ -19,6 +19,21 @@ open Utils
 val format_var : Format.formatter -> Ast.Var.t -> unit
 val format_location : Format.formatter -> Ast.location -> unit
 val format_typ : Format.formatter -> Ast.typ Pos.marked -> unit
-val format_expr : Format.formatter -> Ast.expr Pos.marked -> unit
-val format_scope : Format.formatter -> Ast.ScopeName.t * Ast.scope_decl -> unit
-val format_program : Format.formatter -> Ast.program -> unit
+
+val format_expr :
+  ?debug:bool (** [true] for debug printing *) ->
+  Format.formatter ->
+  Ast.expr Pos.marked ->
+  unit
+
+val format_scope :
+  ?debug:bool (** [true] for debug printing *) ->
+  Format.formatter ->
+  Ast.ScopeName.t * Ast.scope_decl ->
+  unit
+
+val format_program :
+  ?debug:bool (** [true] for debug printing *) ->
+  Format.formatter ->
+  Ast.program ->
+  unit
