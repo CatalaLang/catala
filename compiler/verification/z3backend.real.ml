@@ -698,7 +698,15 @@ and translate_expr (ctx : context) (vc : expr Pos.marked) : context * Expr.expr
       let accessor = List.nth accessors idx in
       let ctx, s = translate_expr ctx s in
       (ctx, Expr.mk_app ctx.ctx_z3 accessor [ s ])
-  | EInj _ -> failwith "[Z3 encoding] EInj unsupported"
+  | EInj (e, idx, en, _tys) ->
+      (* This node corresponds to creating a value for the enumeration [en], by
+         calling the [idx]-th constructor of enum [en], with argument [e] *)
+      let ctx, z3_enum = find_or_create_enum ctx en in
+      let ctx, z3_arg = translate_expr ctx e in
+      let ctrs = Datatype.get_constructors z3_enum in
+      (* This should always succeed if the expression is well-typed in dcalc *)
+      let ctr = List.nth ctrs idx in
+      (ctx, Expr.mk_app ctx.ctx_z3 ctr [ z3_arg ])
   | EMatch (arg, arms, enum) ->
       let ctx, z3_enum = find_or_create_enum ctx enum in
       let ctx, z3_arg = translate_expr ctx arg in
