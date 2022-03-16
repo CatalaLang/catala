@@ -85,7 +85,7 @@ déclaration énumération SituationFamiliale:
   -- ConcubinageDontSéparéDeFait # Voir R821-3
 ```
 
-##### Article L822-2 | LEGIARTI000038814944
+###### Article L822-2 | LEGIARTI000038814944
 
 I.-Peuvent bénéficier d'une aide personnelle au logement :
 
@@ -410,7 +410,7 @@ prévues à l'article L. 512-2 du code de la sécurité sociale.
 # L823-1 mais nous laissons cela pour le futur.
 ```
 
-##### Article L823-2 | EGIARTI000038814918
+###### Article L823-2 | LEGIARTI000038814918
 
 Pour effectuer le calcul découlant du 1° de l'article L. 823-1, l'enfant à
 charge est rattaché à la personne qui en assume la charge effective et
@@ -432,7 +432,7 @@ déclaration énumération PriseEnCharge:
   -- RésidenceAlternéeAllocationsPartagée
 ```
 
-##### Article Article L823-3 | LEGIARTI000038814916
+###### Article Article L823-3 | LEGIARTI000038814916
 
 Sont assimilées aux loyers :
 
@@ -461,7 +461,7 @@ réservées à la personne accueillie.
 # Catala fera apparaître une unique case "loyers_l823_3"
 ```
 
-##### Article L823-4 | LEGIARTI000038814914
+###### Article L823-4 | LEGIARTI000038814914
 
 Le barème est révisé chaque année au 1er octobre.
 
@@ -488,7 +488,7 @@ la signature est postérieure à la date de révision du barème ;
 # vérifier que leur évolution est bien conforme à L823-4.
 ```
 
-##### Article L823-5 | LEGIARTI000038814912
+###### Article L823-5 | LEGIARTI000038814912
 
 Les modalités d'ouverture et d'extinction des droits sont fixées par voie
 réglementaire.
@@ -497,7 +497,7 @@ réglementaire.
 # Rien à faire ici.
 ```
 
-##### Article L823-6 | LEGIARTI000038814910
+###### Article L823-6 | LEGIARTI000038814910
 
 Le bailleur auprès duquel l'aide est versée signale le déménagement de
 l'allocataire et la résiliation de son bail.
@@ -526,7 +526,7 @@ Ce montant minimal est fixé par voie réglementaire.
 # Voir ÉligibilitéAidePersonnelleLogement.montant_minimal_aide_personnelle_logement
 ```
 
-##### Article L823-8 | LEGIARTI000038814906
+###### Article L823-8 | LEGIARTI000038814906
 
 Une prime de déménagement est attribuée par les organismes mentionnés à
 l'article L. 812-1 aux personnes ou aux ménages qui emménagent dans un
@@ -551,7 +551,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
   conséquence rempli
 ```
 
-#### Article L823-9 | LEGIARTI000038814904
+###### Article L823-9 | LEGIARTI000038814904
 
 Les articles L. 161-1-5 et L. 553-2 du code de la sécurité sociale sont
 applicables au recouvrement des montants d'aide personnelle au logement
