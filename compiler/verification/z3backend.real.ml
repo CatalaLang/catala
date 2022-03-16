@@ -197,7 +197,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
       Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
   | TArrow _ -> failwith "[Z3 model]: Pretty-printing of arrows not supported"
   | TArray _ ->
-      (* For now, only the length of arrays are modeled *)
+      (* For now, only the length of arrays is modeled *)
       Format.asprintf "(length = %s)" (Expr.to_string e)
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
 
