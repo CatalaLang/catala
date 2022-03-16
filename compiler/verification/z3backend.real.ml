@@ -374,7 +374,7 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   | LMoney m ->
       let z3_m = Runtime.integer_to_int (Runtime.money_to_cents m) in
       Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 z3_m
-  | LUnit -> failwith "[Z3 encoding] LUnit literals not supported"
+  | LUnit -> snd ctx.ctx_z3unit
   (* Encoding a date as an integer corresponding to the number of days since Jan
      1, 1900 *)
   | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
