@@ -777,11 +777,12 @@ module Backend = struct
   let solve_vc_encoding (ctx : backend_context) (encoding : vc_encoding) :
       solver_result =
     let solver = Z3.Solver.mk_solver ctx.ctx_z3 None in
-    (* Add all the constraints stored in the context *)
-    let encoding =
-      Boolean.mk_and ctx.ctx_z3 (encoding :: ctx.ctx_z3constraints)
-    in
-    Z3.Solver.add solver [ Boolean.mk_not ctx.ctx_z3 encoding ];
+    (* We take the negation of the query to check for possible
+       counterexamples *)
+    let query = Boolean.mk_not ctx.ctx_z3 encoding in
+    (* Add all the hypotheses stored in the context *)
+    let query_and_hyps = query :: ctx.ctx_z3constraints in
+    Z3.Solver.add solver query_and_hyps;
     match Z3.Solver.check solver [] with
     | UNSATISFIABLE -> ProvenTrue
     | SATISFIABLE -> ProvenFalse (Z3.Solver.get_model solver)
