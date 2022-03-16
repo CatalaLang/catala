@@ -29,6 +29,17 @@ type ctx = {
   var_mapping : Scopelang.Ast.Var.t Ast.VarMap.t;
 }
 
+let tag_with_log_entry
+    (e : Scopelang.Ast.expr Pos.marked)
+    (l : Dcalc.Ast.log_entry)
+    (markings : Utils.Uid.MarkedString.info list) :
+    Scopelang.Ast.expr Pos.marked =
+  ( Scopelang.Ast.EApp
+      ( ( Scopelang.Ast.EOp (Dcalc.Ast.Unop (Dcalc.Ast.Log (l, markings))),
+          Pos.get_position e ),
+        [ e ] ),
+    Pos.get_position e )
+
 let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
     Scopelang.Ast.expr Pos.marked Bindlib.box =
   match Pos.unmark e with
@@ -262,7 +273,13 @@ let rec rule_tree_to_expr
         ( Scopelang.Ast.EDefault
             ( List.map2
                 (fun base_just base_cons ->
-                  ( Scopelang.Ast.EDefault ([], base_just, base_cons),
+                  ( Scopelang.Ast.EDefault
+                      ( [],
+                        (* Here we insert the logging command that records when
+                           a decision is taken for the value of a variable. *)
+                        tag_with_log_entry base_just
+                          Dcalc.Ast.PosRecordIfTrueBool [],
+                        base_cons ),
                     Pos.get_position base_just ))
                 base_just_list base_cons_list,
               (Scopelang.Ast.ELit (Dcalc.Ast.LBool false), def_pos),
