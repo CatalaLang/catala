@@ -1872,7 +1872,7 @@ champ d'application Impayé sous condition mode_occupation sous forme Locataire:
 
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bénéficiaire
-    conséquence égal à 2 *€ (montant_brut_loyer +€ montant_charges)
+    conséquence égal à (montant_brut_loyer +€ montant_charges) *€ 2,0
 ```
 
 Lorsque l'aide personnelle au logement est versée entre les mains du bailleur,
@@ -1883,7 +1883,7 @@ d'une somme au moins égale à deux fois le montant mensuel net du loyer et des 
 champ d'application Impayé sous condition mode_occupation sous forme Locataire:
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bailleur
-    conséquence égal à 2 *€ (montant_net_loyer +€ montant_charges)
+    conséquence égal à (montant_net_loyer +€ montant_charges) *€ 2,0
 ```
 
 Le montant mensuel brut du loyer correspond au loyer figurant dans le bail.
@@ -1912,8 +1912,7 @@ champ d'application Impayé sous condition mode_occupation sous forme Locataire:
 champ d'application Impayé
   sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
   
-  définition montant_impayé
-    conséquence égal à
+  définition montant_impayé égal à
     si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
 ```
 
@@ -1940,8 +1939,8 @@ champ d'application Impayé
 
     conséquence égal à
       selon échéance_brute sous forme
-      -- TotalMensuel de mensualité_brute: 2 *€ mensualité_brute
-      -- TotalAnnuel de échéance_prêt_brute: 1/6 *€  échéance_prêt_brute
+      -- TotalMensuel de mensualité_brute: mensualité_brute *€ 2,0
+      -- TotalAnnuel de échéance_prêt_brute: échéance_prêt_brute *€ (1,0 /. 6,0)
 ```
 
 2° Lorsque l'aide personnelle au logement est versée directement auprès de
@@ -1965,9 +1964,9 @@ champ d'application Impayé
       aide_versée sous forme ÉtablissementHabilité
 
     conséquence égal à
-      selon échéance_net sous forme
-      -- TotalMensuel de mensualité_net: 2 *€ mensualité_net
-      -- TotalAnnuel de échéance_prêt_net: 1/6 *€  échéance_prêt_net 
+      selon échéance_nette sous forme
+      -- TotalMensuel de mensualité_nette: mensualité_nette *€ 2,0
+      -- TotalAnnuel de échéance_prêt_nette: échéance_prêt_nette *€ (1,0 /. 6,0)
 ```
 
 
@@ -1986,9 +1985,9 @@ champ d'application Impayé sous condition mode_occupation sous forme AccessionP
   définition échéance_nette égal à 
     selon échéance_brute sous forme
     -- TotalMensuel de mensualité_brute:
-      TotalMensuel contenu mensualité_brute -€ montant_apl
+      TotalMensuel contenu (mensualité_brute -€ montant_apl)
     -- TotalAnnuel de échéance_prêt_brute:
-      TotalAnnuel contenu échéance_prêt_brute -€ (12 *€ montant_apl)
+      TotalAnnuel contenu (échéance_prêt_brute -€ (montant_apl *€ 12,0))
 ```
 
 
@@ -2002,13 +2001,16 @@ charges ou à une échéance.
 ```catala
 # TODO juridique: chercher une controverse autour de cet article.
 
+# TODO juridique: est ce qu'un sous-locataire est considéré comme un locataire pour les impayés ?
 champ d'application Impayé:
   définition mode_occupation état après_articleR824_3 égal à
-    selon mode_occupation état avant_articleR824_3 sous forme
+    selon mode_occupation sous forme
     -- Locataire: Locataire
     -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriétéLocalUsageExclusifHabitation
     -- RésidentLogementFoyer: AccessionPropriétéLocalUsageExclusifHabitation
     -- LocationAccession: Locataire
+    -- ModeOccupation.Autre: ModeOccupation.Autre
+    -- SousLocataire: SousLocataire
 
 ```
 

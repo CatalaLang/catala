@@ -244,7 +244,9 @@ déclaration champ d'application Impayé:
   interne seuil_impayé_dépense_de_logement contenu argent
   
   entrée mode_occupation contenu ModeOccupation
-    état 
+    état avant_articleR824_3
+    état après_articleR824_3
+
   entrée aide_versée contenu VersementÀ
 
   entrée montant_charges contenu argent

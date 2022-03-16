@@ -113,6 +113,8 @@ d'habitation et constituant leur résidence principale.
 Les sous-locataires, sous les mêmes conditions, peuvent également en bénéficier.
 
 ```catala
+# TODO juridique: vérifier le cas de location-accession
+
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l822_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
@@ -121,6 +123,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- AccessionPropriétéLocalUsageExclusifHabitation:
         ménage.logement.résidence_principale
       -- SousLocataire: vrai
+      -- LocationAccession: vrai
       -- ModeOccupation.Autre: faux
   conséquence rempli
 ```
@@ -233,6 +236,7 @@ réglementaire.
 # Cet article est une déclaration d'intention qui donne des propriétée sur la formule
 # de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
 # de cette forme là.
+
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   définition patrimoine_total_demandeur égal à
