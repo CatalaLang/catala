@@ -522,7 +522,7 @@ scope Test3:
 ### Defining exceptions to groups of rules
 
 Note that the label system also lets you define more complicated exceptions
-patterns. Sometimes, you want to declare an exception to a groupe of
+patterns. Sometimes, you want to declare an exception to a group of
 piecewise definitions. To do that, simply use the same label for all
 the piecewise definitions.
 
@@ -727,7 +727,7 @@ in terms of days, months and years. A difference between dates is a duration
 measured in days, and the addition of a date and a duration yields a new date.
 Durations measured in days, months or years are not mixable with each other,
 as months and years do not always have the same number of days. This non-mixability
-is not captured by the type system of Catala but will yield erros at runtime.
+is not captured by the type system of Catala but will yield errors at runtime.
 Date literals are specified using the ISO 8601 standard to avoid confusion between
 american and european notations. Date operators are prefixed by "@" while
 duration operators are prefixed by "^".
