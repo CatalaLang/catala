@@ -221,6 +221,9 @@ module R = Re.Pcre
 #ifndef MR_IntToDec
   #define MR_IntToDec MS_IntToDec
 #endif
+#ifndef MR_RoundMoney
+  #define MR_RoundMoney MS_RoundMoney
+#endif
 #ifndef MR_GetDay
   #define MR_GetDay MS_GetDay
 #endif
@@ -319,6 +322,7 @@ let lex_builtin (s : string) : Ast.builtin_expression option =
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
+  | MR_RoundMoney, eof -> Some RoundMoney
   | _ -> None
 
 (** Regexp matching any digit character.

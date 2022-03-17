@@ -209,7 +209,8 @@ let format_unop (fmt : Format.formatter) (op : unop Pos.marked) : unit =
     | IntToRat -> "int_to_rat"
     | GetDay -> "get_day"
     | GetMonth -> "get_month"
-    | GetYear -> "get_year")
+    | GetYear -> "get_year"
+    | RoundMoney -> "round_money")
 
 let needs_parens (e : expr Pos.marked) : bool =
   match Pos.unmark e with EAbs _ | ETuple (_, Some _) -> true | _ -> false
