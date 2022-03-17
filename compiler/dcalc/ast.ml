@@ -97,6 +97,7 @@ type unop =
   | GetDay
   | GetMonth
   | GetYear
+  | RoundMoney
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 

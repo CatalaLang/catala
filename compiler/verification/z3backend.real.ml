@@ -621,7 +621,9 @@ let rec translate_op
       | GetYear ->
           failwith
             "[Z3 encoding] GetYear operator only supported in comparisons with \
-             literal")
+             literal"
+      | RoundMoney ->
+          failwith "[Z3 encoding] RoundMoney operator  not implemented yet")
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)

@@ -9,7 +9,7 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, sign  # type: ignore
 import datetime
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
@@ -364,6 +364,14 @@ def money_to_string(m: Money) -> str:
 
 def money_to_cents(m: Money) -> Integer:
     return m.value
+
+
+def money_round(m: Money) -> Money:
+    res, remainder = t_divmod(m, 100)
+    if remainder < 50:
+        return res * 100
+    else:
+        return (res + sign(res)) * 100
 
 # --------
 # Decimals

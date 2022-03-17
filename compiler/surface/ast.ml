@@ -297,7 +297,13 @@ type unop = Not | Minus of op_kind
         nude = true;
       }]
 
-type builtin_expression = Cardinal | IntToDec | GetDay | GetMonth | GetYear
+type builtin_expression =
+  | Cardinal
+  | IntToDec
+  | GetDay
+  | GetMonth
+  | GetYear
+  | RoundMoney
 [@@deriving
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]

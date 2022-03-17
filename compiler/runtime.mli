@@ -94,6 +94,7 @@ val money_of_cents_integer : integer -> money
 val money_to_float : money -> float
 val money_to_string : money -> string
 val money_to_cents : money -> integer
+val money_round : money -> money
 
 (** {2 Decimals} *)
 

@@ -122,6 +122,7 @@ let format_unop (fmt : Format.formatter) (op : Dcalc.Ast.unop Pos.marked) : unit
   | GetDay -> Format.fprintf fmt "%s" "day_of_month_of_date"
   | GetMonth -> Format.fprintf fmt "%s" "month_number_of_date"
   | GetYear -> Format.fprintf fmt "%s" "year_of_date"
+  | RoundMoney -> Format.fprintf fmt "%s" "money_round"
 
 let avoid_keywords (s : string) : string =
   if
