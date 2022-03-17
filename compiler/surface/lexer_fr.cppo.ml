@@ -120,6 +120,7 @@
 
 (* Builtins *)
 
+#define MS_RoundMoney "arrrondi_argent"
 #define MS_IntToDec "entier_vers_décimal"
 #define MR_IntToDec "entier_vers_d", 0xE9, "cimal"
 #define MS_GetDay "accès_jour"

@@ -266,6 +266,8 @@ let rec evaluate_operator
         A.ELit (LInt Runtime.(year_of_date d))
     | A.Unop A.IntToRat, [ ELit (LInt i) ] ->
         A.ELit (LRat Runtime.(decimal_of_integer i))
+    | A.Unop A.RoundMoney, [ ELit (LMoney m) ] ->
+        A.ELit (LMoney Runtime.(money_round m))
     | A.Unop (A.Log (entry, infos)), [ e' ] ->
         if !Cli.trace_flag then (
           match entry with

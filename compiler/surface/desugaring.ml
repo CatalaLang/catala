@@ -911,6 +911,8 @@ let rec translate_expr
       Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetMonth), pos)
   | Builtin GetYear ->
       Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
+  | Builtin RoundMoney ->
+      Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RoundMoney), pos)
 
 and disambiguate_match_and_build_expression
     (scope : Scopelang.Ast.ScopeName.t)
