@@ -1,0 +1,10 @@
+[ERROR] [A.y] This variable might return an empty error:
+  --> tests/test_proof/bad/enums_inj-empty.catala_en
+   | 
+10 |   context y content integer
+   |           ^
+   + Article
+Counterexample generation is disabled so none was generated.
+[RESULT] [A.y] No two exceptions to ever overlap for this variable
+[RESULT] [A.x] This variable never returns an empty error
+[RESULT] [A.x] No two exceptions to ever overlap for this variable

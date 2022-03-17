@@ -179,10 +179,14 @@ let driver source_file (options : Cli.options) : int =
             | None -> (Format.std_formatter, fun _ -> ())
           in
           if Option.is_some options.ex_scope then
-            Format.fprintf fmt "%a\n" Scopelang.Print.format_scope
+            Format.fprintf fmt "%a\n"
+              (Scopelang.Print.format_scope ~debug:options.debug)
               ( scope_uid,
                 Scopelang.Ast.ScopeMap.find scope_uid prgm.program_scopes )
-          else Format.fprintf fmt "%a\n" Scopelang.Print.format_program prgm;
+          else
+            Format.fprintf fmt "%a\n"
+              (Scopelang.Print.format_program ~debug:options.debug)
+              prgm;
           at_end ();
           exit 0
         end;

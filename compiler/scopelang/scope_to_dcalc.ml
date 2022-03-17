@@ -290,14 +290,10 @@ let rec translate_expr (ctx : ctx) (e : Ast.expr Pos.marked) :
             Dcalc.Ast.EAbs ((b, pos_binder), List.map (translate_typ ctx) typ))
           binder
     | EDefault (excepts, just, cons) ->
-        let just =
-          tag_with_log_entry (translate_expr ctx just)
-            Dcalc.Ast.PosRecordIfTrueBool []
-        in
         Bindlib.box_apply3
           (fun e j c -> Dcalc.Ast.EDefault (e, j, c))
           (Bindlib.box_list (List.map (translate_expr ctx) excepts))
-          just (translate_expr ctx cons)
+          (translate_expr ctx just) (translate_expr ctx cons)
     | ELocation (ScopeVar a) ->
         let v, _, _ = Ast.ScopeVarMap.find (Pos.unmark a) ctx.scope_vars in
         Bindlib.box_var v

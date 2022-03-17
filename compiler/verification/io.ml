@@ -171,7 +171,7 @@ module MakeBackendIO (B : Backend) = struct
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
-        Cli.debug_print "The translation to Z3 is the following:@\n%s"
+        Cli.debug_print "The translation to Z3 is the following:\n%s"
           (B.print_encoding encoding);
         match B.solve_vc_encoding backend_ctx encoding with
         | ProvenTrue -> Cli.result_print "%s" (print_positive_result vc)

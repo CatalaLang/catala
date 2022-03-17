@@ -1,0 +1,10 @@
+[RESULT] [A.y] This variable never returns an empty error
+[ERROR] [A.y] At least two exceptions overlap for this variable:
+ --> tests/test_proof/bad/array_length-overlap.catala_en
+  | 
+6 |   context y content boolean
+  |           ^
+  + Test
+Counterexample generation is disabled so none was generated.
+[RESULT] [A.x] This variable never returns an empty error
+[RESULT] [A.x] No two exceptions to ever overlap for this variable
