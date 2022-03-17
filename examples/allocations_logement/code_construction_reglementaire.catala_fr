@@ -1583,10 +1583,10 @@ représentatif.
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale état contributions_sociales_arrondi égal à
     si
-      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 1€)
+      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 0,5€)
         +€ montant_contributions_sociales de aide_finale >=€ 0€
     alors
-      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 1€)
+      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 0,5€)
       +€ montant_contributions_sociales de aide_finale
     sinon 0€
 ```
@@ -1662,7 +1662,7 @@ champ d'application CalculAidePersonnelleLogement:
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition ressources_ménage état avec_arrondi égal à
-    arrondi_argent de ((ressources_ménage +€ 100€) *€ 1%) *€ 100,0
+    arrondi_argent de ((ressources_ménage +€ 50€) *€ 1%) *€ 100,0
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
