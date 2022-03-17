@@ -101,7 +101,8 @@ let money_to_cents m = m
 let money_round (m : money) : money =
   let units, cents = Z.div_rem m (Z.of_int 100) in
   (* If [m] is negative, [cents] will also be negative. *)
-  if Z.(abs cents < of_int 50) then units else Z.(units + of_int (sign units))
+  if Z.(abs cents < of_int 50) then Z.(units * of_int 100)
+  else Z.((units + of_int (sign units)) * of_int 100)
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d

@@ -369,9 +369,9 @@ def money_to_cents(m: Money) -> Integer:
 def money_round(m: Money) -> Money:
     res, remainder = t_divmod(m, 100)
     if remainder < 50:
-        res
+        return res * 100
     else:
-        res + sign(res)
+        return (res + sign(res)) * 100
 
 # --------
 # Decimals
