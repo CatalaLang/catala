@@ -27,22 +27,6 @@ déclaration structure Enfant :
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
   donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
-déclaration énumération Collectivité :
-  -- Guadeloupe
-  -- Guyane
-  -- Martinique
-  -- LaRéunion
-  -- SaintBarthélemy
-  -- SaintMartin
-  -- Métropole
-  -- SaintPierreEtMiquelon
-  -- Mayotte
-
-déclaration champ d'application Smic :
-  entrée date_courante contenu date
-  entrée résidence contenu Collectivité
-  sortie brut_horaire contenu argent
-
 déclaration énumération PriseEnCompte:
   -- Complète
   -- Partagée
@@ -72,7 +56,6 @@ déclaration champ d'application PrestationsFamiliales:
   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité
   smic champ d'application Smic
-  sortie base_mensuelle contenu argent
 
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
@@ -145,6 +128,7 @@ déclaration champ d'application AllocationsFamiliales:
   prestations_familiales champ d'application PrestationsFamiliales
   version_avril_2008 champ d'application AllocationFamilialesAvril2008
   enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
+  bmaf champ d'application BaseMensuelleAllocationsFamiliales
 
   # Plafonds, âges limites et autres constantes
   interne nombre_enfants_l521_1 contenu entier
@@ -161,5 +145,5 @@ champ d'application AllocationsFamiliales:
     date_courante
   définition prestations_familiales.résidence égal à
     résidence
-
+  définition bmaf.date_courante égal à date_courante
 ```

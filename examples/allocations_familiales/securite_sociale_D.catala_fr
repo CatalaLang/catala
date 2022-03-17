@@ -37,12 +37,12 @@ champ d'application AllocationsFamiliales sous condition
   étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 32 %
+    alors bmaf.montant *€ 32 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors (prestations_familiales.base_mensuelle *€ 41 %) *€ (
+    alors (bmaf.montant *€ 41 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
@@ -59,7 +59,7 @@ champ d'application AllocationsFamiliales sous condition
   sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 16 %
+    bmaf.montant *€ 16 %
 ```
 
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -78,12 +78,12 @@ champ d'application AllocationsFamiliales sous condition
   étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 16 %
+    alors bmaf.montant *€ 16 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors (prestations_familiales.base_mensuelle *€ 20,5 %) *€ (
+    alors (bmaf.montant *€ 20,5 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
@@ -100,7 +100,7 @@ champ d'application AllocationsFamiliales sous condition
   définition montant_initial_métropole_majoration de enfant sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 8 %
+    bmaf.montant *€ 8 %
 ```
 
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -116,12 +116,12 @@ champ d'application AllocationsFamiliales sous condition
   étiquette base
   définition montant_initial_base_deuxième_enfant égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 1
-    alors prestations_familiales.base_mensuelle *€ 8 %
+    alors bmaf.montant *€ 8 %
     sinon 0 €
 
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
-    alors (prestations_familiales.base_mensuelle *€ 10,25 %) *€ (
+    alors (bmaf.montant *€ 10,25 %) *€ (
       entier_vers_décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
@@ -137,7 +137,7 @@ champ d'application AllocationsFamiliales sous condition
   définition montant_initial_métropole_majoration de enfant sous condition
     droit_ouvert_majoration de enfant
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 4 %
+    bmaf.montant *€ 4 %
 ```
 
 II.-En application du sixième alinéa de l'article L. 521-1, le montant
@@ -217,7 +217,7 @@ champ d'application AllocationsFamiliales :
   définition montant_versé_forfaitaire_par_enfant sous condition
     ressources_ménage <=€ plafond_I_d521_3
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 20,234 %)
+    (bmaf.montant *€ 20,234 %)
 ```
 
 2° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -232,7 +232,7 @@ champ d'application AllocationsFamiliales :
     (ressources_ménage >€ plafond_I_d521_3) et
     (ressources_ménage <=€ plafond_II_d521_3)
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 10,117 %)
+    (bmaf.montant *€ 10,117 %)
 ```
 
 3° Lorsque le ménage ou la personne a disposé d'un montant de ressources
@@ -245,7 +245,7 @@ champ d'application AllocationsFamiliales :
   définition montant_versé_forfaitaire_par_enfant sous condition
     ressources_ménage >€ plafond_II_d521_3
   conséquence égal à
-    (prestations_familiales.base_mensuelle *€ 5,059 %)
+    (bmaf.montant *€ 5,059 %)
 ```
 
 II.-En application du sixième alinéa de l'article L. 521-1, le montant mensuel
@@ -362,7 +362,7 @@ champ d'application AllocationsFamiliales :
     prestations_familiales.régime_outre_mer_l751_1 et
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1)
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 5,88 %
+    bmaf.montant *€ 5,88 %
 ```
 informatique
 La majoration des allocations familiales pour un seul enfant à charge est
@@ -378,7 +378,7 @@ champ d'application AllocationsFamiliales :
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
     (enfant.âge >= 11 et enfant.âge < 16)
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 3,69 %
+    bmaf.montant *€ 3,69 %
 
  exception définition montant_initial_majoration de enfant
   sous condition
@@ -387,5 +387,5 @@ champ d'application AllocationsFamiliales :
     (nombre de enfants_à_charge_droit_ouvert_prestation_familiale = 1) et
     (enfant.âge >= 16)
   conséquence égal à
-    prestations_familiales.base_mensuelle *€ 5,67 %
+    bmaf.montant *€ 5,67 %
 ```
