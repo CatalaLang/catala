@@ -38,4 +38,10 @@ type verification_condition = {
 }
 
 val generate_verification_conditions :
-  Dcalc.Ast.program -> verification_condition list
+  Dcalc.Ast.program ->
+  Dcalc.Ast.ScopeName.t option ->
+  verification_condition list
+(** [generate_verification_conditions p None] will generate the verification
+    conditions for all the variables of all the scopes of the program [p], while
+    [generate_verification_conditions p (Some s)] will focus only on the
+    variables of scope [s]. *)

@@ -298,77 +298,82 @@ type verification_condition = {
   vc_free_vars_typ : typ Pos.marked VarMap.t;
 }
 
-let generate_verification_conditions (p : program) : verification_condition list
-    =
+let generate_verification_conditions
+    (p : program) (s : Dcalc.Ast.ScopeName.t option) :
+    verification_condition list =
   List.fold_left
     (fun acc (s_name, _s_var, s_body) ->
-      let ctx = { decl = p.decl_ctx; input_vars = [] } in
-      let acc, _ =
-        List.fold_left
-          (fun (acc, ctx) s_let ->
-            match s_let.scope_let_kind with
-            | DestructuringInputStruct ->
-                ( acc,
-                  {
-                    ctx with
-                    input_vars =
-                      Pos.unmark s_let.scope_let_var :: ctx.input_vars;
-                  } )
-            | ScopeVarDefinition | SubScopeVarDefinition ->
-                (* For scope variables, we should check both that they never
-                   evaluate to emptyError nor conflictError. But for subscope
-                   variable definitions, what we're really doing is adding
-                   exceptions to something defined in the subscope so we just
-                   ought to verify only that the exceptions overlap. *)
-                let e =
-                  match_and_ignore_outer_reentrant_default ctx
-                    (Bindlib.unbox s_let.scope_let_expr)
-                in
-                let vc_confl, vc_confl_typs =
-                  generate_vs_must_not_return_confict ctx e
-                in
-                let vc_confl =
-                  if !Cli.optimize_flag then
-                    Bindlib.unbox
-                      (Optimizations.optimize_expr p.decl_ctx vc_confl)
-                  else vc_confl
-                in
-                let vc_list =
-                  [
-                    {
-                      vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
-                      vc_kind = NoOverlappingExceptions;
-                      vc_free_vars_typ = vc_confl_typs;
-                      vc_scope = s_name;
-                      vc_variable = s_let.scope_let_var;
-                    };
-                  ]
-                in
-                let vc_list =
-                  match s_let.scope_let_kind with
-                  | ScopeVarDefinition ->
-                      let vc_empty, vc_empty_typs =
-                        generate_vc_must_not_return_empty ctx e
-                      in
-                      let vc_empty =
-                        if !Cli.optimize_flag then
-                          Bindlib.unbox
-                            (Optimizations.optimize_expr p.decl_ctx vc_empty)
-                        else vc_empty
-                      in
+      match s with
+      | Some s when Dcalc.Ast.ScopeName.compare s s_name = 0 ->
+          let ctx = { decl = p.decl_ctx; input_vars = [] } in
+          let acc, _ =
+            List.fold_left
+              (fun (acc, ctx) s_let ->
+                match s_let.scope_let_kind with
+                | DestructuringInputStruct ->
+                    ( acc,
                       {
-                        vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
-                        vc_kind = NoEmptyError;
-                        vc_free_vars_typ = vc_empty_typs;
-                        vc_scope = s_name;
-                        vc_variable = s_let.scope_let_var;
-                      }
-                      :: vc_list
-                  | _ -> vc_list
-                in
-                (vc_list @ acc, ctx)
-            | _ -> (acc, ctx))
-          (acc, ctx) s_body.scope_body_lets
-      in
-      acc)
+                        ctx with
+                        input_vars =
+                          Pos.unmark s_let.scope_let_var :: ctx.input_vars;
+                      } )
+                | ScopeVarDefinition | SubScopeVarDefinition ->
+                    (* For scope variables, we should check both that they never
+                       evaluate to emptyError nor conflictError. But for
+                       subscope variable definitions, what we're really doing is
+                       adding exceptions to something defined in the subscope so
+                       we just ought to verify only that the exceptions
+                       overlap. *)
+                    let e =
+                      match_and_ignore_outer_reentrant_default ctx
+                        (Bindlib.unbox s_let.scope_let_expr)
+                    in
+                    let vc_confl, vc_confl_typs =
+                      generate_vs_must_not_return_confict ctx e
+                    in
+                    let vc_confl =
+                      if !Cli.optimize_flag then
+                        Bindlib.unbox
+                          (Optimizations.optimize_expr p.decl_ctx vc_confl)
+                      else vc_confl
+                    in
+                    let vc_list =
+                      [
+                        {
+                          vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
+                          vc_kind = NoOverlappingExceptions;
+                          vc_free_vars_typ = vc_confl_typs;
+                          vc_scope = s_name;
+                          vc_variable = s_let.scope_let_var;
+                        };
+                      ]
+                    in
+                    let vc_list =
+                      match s_let.scope_let_kind with
+                      | ScopeVarDefinition ->
+                          let vc_empty, vc_empty_typs =
+                            generate_vc_must_not_return_empty ctx e
+                          in
+                          let vc_empty =
+                            if !Cli.optimize_flag then
+                              Bindlib.unbox
+                                (Optimizations.optimize_expr p.decl_ctx vc_empty)
+                            else vc_empty
+                          in
+                          {
+                            vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
+                            vc_kind = NoEmptyError;
+                            vc_free_vars_typ = vc_empty_typs;
+                            vc_scope = s_name;
+                            vc_variable = s_let.scope_let_var;
+                          }
+                          :: vc_list
+                      | _ -> vc_list
+                    in
+                    (vc_list @ acc, ctx)
+                | _ -> (acc, ctx))
+              (acc, ctx) s_body.scope_body_lets
+          in
+          acc
+      | Some _ | None -> acc)
     [] p.scopes
