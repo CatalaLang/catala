@@ -36,66 +36,35 @@ champ d'application CalculAidePersonnelleLogement sous condition date_courante >
 
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone1 et
     (situation_familiale_calcul_apl sous forme PersonneSeule) et
     nombre_de_personne_à_charge = 0
   conséquence égal à
-    298,07€
-
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone2 et
-    (situation_familiale_calcul_apl sous forme PersonneSeule) et
-    nombre_de_personne_à_charge = 0
-  conséquence égal à
-    259,78€
-
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone3 et
-    (situation_familiale_calcul_apl sous forme PersonneSeule) et
-    nombre_de_personne_à_charge = 0
-  conséquence égal à
-    243,48€
+    selon zone sous forme
+    -- Zone1: 298,07€
+    -- Zone2: 259,78€
+    -- Zone3: 243,48€
 
   # Colonne 2
   étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone1 et
     (situation_familiale_calcul_apl sous forme Couple) et
     nombre_de_personne_à_charge = 0
   conséquence égal à
-    359,49€
+    selon zone sous forme
+    --Zone1: 359,49€
+    --Zone2: 317,97€
+    --Zone3: 295,15€
 
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone2 et
-    (situation_familiale_calcul_apl sous forme Couple) et
-    nombre_de_personne_à_charge = 0
-  conséquence égal à
-    317,97€
-
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone3 et
-    (situation_familiale_calcul_apl sous forme Couple) et
-    nombre_de_personne_à_charge = 0
-  conséquence égal à
-    295,15€
-  
   # Colonnes 3 et 4
   étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone1 et
     nombre_de_personne_à_charge >= 1
   conséquence égal à
-    406,30€ +€ (58,95€ *€ (nombre_de_personne_à_charge - 1))
-
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone2 et
-    nombre_de_personne_à_charge >= 1
-  conséquence égal à
-    357,80€ +€ (52,08€ *€ (nombre_de_personne_à_charge - 1))
-
-  étiquette base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone3 et
-    nombre_de_personne_à_charge >= 1
-  conséquence égal à
-    330,94€ +€ (47,43€ *€ (nombre_de_personne_à_charge - 1))
+    selon zone sous forme
+    --Zone1:
+      406,30€ +€ (58,95€ *€ (nombre_de_personne_à_charge - 1))
+    --Zone2:
+      357,80€ +€ (52,08€ *€ (nombre_de_personne_à_charge - 1))
+    --Zone3:
+      330,94€ +€ (47,43€ *€ (nombre_de_personne_à_charge - 1))
 
 ```
 
@@ -139,30 +108,16 @@ champ d'application CalculAidePersonnelleLogement
     logement_est_chambre:
 
   étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone1
-  égal à 268,26€
-
-  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone2
-  égal à 233,80€
-
-  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
-    zone sous forme Zone3
-  égal à 219,13€
+  égal à selon zone sous forme
+    -- Zone1: 268,26€
+    -- Zone2: 233,80€
+    -- Zone3: 219,13€
 
   exception chambre définition plafond_loyer_d823_16_2 sous condition
     personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
-    zone sous forme Zone1
-  égal à 223,55€
-
-  exception chambre définition plafond_loyer_d823_16_2 sous condition
-    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
-    zone sous forme Zone2
-  égal à 194,84€
-
-  exception chambre définition plafond_loyer_d823_16_2 sous condition
-    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
-    zone sous forme Zone3
-  égal à 182,61€
+  égal à selon zone sous forme
+  -- Zone1: 223,55€
+  -- Zone2: 194,84€
+  -- Zone3: 182,61€
 
 ```
