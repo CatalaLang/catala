@@ -1513,8 +1513,10 @@ la limite d'un plafond fixé par arrêté en fonction de la zone géographique e
 dans le cas où le logement occupé est une chambre, de la composition familiale ;
 
 ```catala
-# Ne donne pas précisément la formule mais uniquement le principe général,
-# on ne formalise pas ici.
+champ d'application CalculAidePersonnelleLogement:
+  définition loyer_éligible égal à
+    si loyer_principal >€ plafond_loyer_d823_16_2 alors plafond_loyer_d823_16_2
+    sinon loyer_principal
 ```
 
 3° " C " est le montant forfaitaire au titre des charges, fixé par arrêté en fonction

@@ -1,0 +1,168 @@
+# Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
+
+
+## Chapitre III : Calcul des aides personnelles au logement en secteur locatif
+
+### Article 7 | LEGIARTI000044137432
+
+Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont fixés comme suit (en euros) :
+
+Zone | Personne seule	| Couple sans personne à charge	| Personne seule ou couple    | Par personne à
+                                                      | ayant une personne à charge | charge supplémentaire
+-----------------------------------------------------------------------------------------------------------
+I	   | 298,07	        | 359,49                        | 406,30	                    | 58,95
+II   | 259,78         | 317,97                        | 357,80                      | 52,08
+III	 | 243,48         | 295,15                        | 330,94                      | 47,43
+
+Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour les prestations dues à compter du 1er octobre 2021.
+
+```catala-metadata
+déclaration énumération SituationFamilialeCalculAPL:
+  -- PersonneSeule
+  -- Couple
+```
+
+```catala
+champ d'application CalculAidePersonnelleLogement sous condition date_courante >=@ |2021-10-01|:
+
+  définition situation_familiale_calcul_apl égal à
+    selon situation_familiale sous forme
+    -- Célibataire: PersonneSeule
+    -- Mariés: Couple
+    -- Pacsés: Couple
+    -- Concubins: Couple
+    -- CélibataireSéparéDeFait: PersonneSeule
+    -- ConcubinageDontSéparéDeFait: Couple
+
+  # Colonne 1
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone1 et
+    (situation_familiale_calcul_apl sous forme PersonneSeule) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    298,07€
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone2 et
+    (situation_familiale_calcul_apl sous forme PersonneSeule) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    259,78€
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone3 et
+    (situation_familiale_calcul_apl sous forme PersonneSeule) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    243,48€
+
+  # Colonne 2
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone1 et
+    (situation_familiale_calcul_apl sous forme Couple) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    359,49€
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone2 et
+    (situation_familiale_calcul_apl sous forme Couple) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    317,97€
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone3 et
+    (situation_familiale_calcul_apl sous forme Couple) et
+    nombre_de_personne_à_charge = 0
+  conséquence égal à
+    295,15€
+  
+  # Colonnes 3 et 4
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone1 et
+    nombre_de_personne_à_charge >= 1
+  conséquence égal à
+    406,30€ +€ (58,95€ *€ (nombre_de_personne_à_charge - 1))
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone2 et
+    nombre_de_personne_à_charge >= 1
+  conséquence égal à
+    357,80€ +€ (52,08€ *€ (nombre_de_personne_à_charge - 1))
+
+  étiquette base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone3 et
+    nombre_de_personne_à_charge >= 1
+  conséquence égal à
+    330,94€ +€ (47,43€ *€ (nombre_de_personne_à_charge - 1))
+
+```
+
+### Article 8 | LEGIARTI000044137429
+
+Dans le cas où le logement occupé est une chambre, les plafonds 
+de loyers visés au 2° de l'article D. 823-16 du même code sont 
+fixés comme suit, quelle que soit la taille de la famille (en euros) :
+
+- 90 % des loyers plafonds de location pour une personne isolée ;
+- 75 % des loyers plafonds de location pour une personne isolée, 
+dans le cas des personnes âgées ou handicapées adultes hébergées 
+à titre onéreux chez des particuliers.
+
+On obtient les loyers plafonds suivants (en euros) :
+
+MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL 
+(arrondis au centime d'euro le plus proche)
+
+Bénéficiaires	               |   Zones	 |   Montants
+
+Cas général	                 |   I	     |   268,26
+                             |   II	     |   233,80
+                             |   III     |   219,13
+
+Cas des personnes âgées      |   I       |   223,55
+ou handicapées adultes       |   II      |   194,84
+hébergées à titre onéreux    |   III     |   182,61
+chez des particuliers        
+
+NOTA : 
+
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, 
+ces dispositions sont applicables pour les prestations dues à 
+compter du 1er octobre 2021.
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition
+    date_courante >=@ |2021-10-01| et
+    logement_est_chambre:
+
+  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone1
+  égal à 268,26€
+
+  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone2
+  égal à 233,80€
+
+  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
+    zone sous forme Zone3
+  égal à 219,13€
+
+  exception chambre définition plafond_loyer_d823_16_2 sous condition
+    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
+    zone sous forme Zone1
+  égal à 223,55€
+
+  exception chambre définition plafond_loyer_d823_16_2 sous condition
+    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
+    zone sous forme Zone2
+  égal à 194,84€
+
+  exception chambre définition plafond_loyer_d823_16_2 sous condition
+    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
+    zone sous forme Zone3
+  égal à 182,61€
+
+```

@@ -197,6 +197,11 @@ déclaration champ d'application RessourcesAidePersonnelleLogement:
   entrée date_demande_ou_reexamen_droit contenu date
   interne ressources_forfaitaires_r822_20 contenu argent
 
+déclaration énumération ZoneDHabitation:
+  -- Zone1
+  -- Zone2
+  -- Zone3
+
 déclaration champ d'application CalculAidePersonnelleLogement:
   sortie aide_finale contenu argent
     état formule
@@ -205,13 +210,23 @@ déclaration champ d'application CalculAidePersonnelleLogement:
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
     état montant_minimal
+  
   interne loyer_éligible contenu argent
   entrée loyer_principal contenu argent
+  entrée date_courante contenu date
+  entrée logement_est_chambre contenu booléen
+  entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen       
+  entrée zone contenu ZoneDHabitation
+  entrée situation_familiale contenu SituationFamiliale
+
+  entrée nombre_de_personne_à_charge contenu entier
+
   interne diminution_aide_finale contenu argent
   interne coefficient_multiplicateur_d823_16 contenu décimal
   interne plafond_dégressivité_d823_16 contenu argent
   interne montant_forfaitaire_charges contenu argent
   interne plafond_loyer_d823_16_2 contenu argent
+
   interne participation_personnelle contenu argent
   interne montant_forfaitaire_d823_16 contenu argent
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés condition
