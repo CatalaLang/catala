@@ -191,10 +191,45 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   let lowercase_name = avoid_keywords (to_ascii lowercase_name) in
   Format.fprintf fmt "%s" lowercase_name
 
+module StringMap = Map.Make (String)
+module IntMap = Map.Make (Int)
+
+(** For each `LocalName.t` defined by its string and then by its hash, we keep
+    track of which local integer id we've given it. This is used to keep
+    variable naming with low indices rather than one global counter for all
+    variables. *)
+let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
+
 let format_var (fmt : Format.formatter) (v : LocalName.t) : unit =
   let v_str = Pos.unmark (LocalName.get_info v) in
+  let hash = LocalName.hash v in
+  let local_id =
+    match StringMap.find_opt v_str !string_counter_map with
+    | Some ids -> (
+        match IntMap.find_opt hash ids with
+        | None ->
+            let max_id =
+              snd
+                (List.hd
+                   (List.fast_sort
+                      (fun (_, x) (_, y) -> Int.compare y x)
+                      (IntMap.bindings ids)))
+            in
+            string_counter_map :=
+              StringMap.add v_str
+                (IntMap.add hash (max_id + 1) ids)
+                !string_counter_map;
+            max_id + 1
+        | Some local_id -> local_id)
+    | None ->
+        string_counter_map :=
+          StringMap.add v_str (IntMap.singleton hash 0) !string_counter_map;
+        0
+  in
   if v_str = "_" then Format.fprintf fmt "_"
-  else Format.fprintf fmt "%a_%d" format_name_cleaned v_str (LocalName.hash v)
+    (* special case for the unit pattern *)
+  else if local_id = 0 then format_name_cleaned fmt v_str
+  else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
 let format_toplevel_name (fmt : Format.formatter) (v : TopLevelName.t) : unit =
   let v_str = Pos.unmark (TopLevelName.get_info v) in
