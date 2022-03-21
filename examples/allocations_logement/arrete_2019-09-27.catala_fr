@@ -67,7 +67,7 @@ champ d'application CalculAidePersonnelleLogement sous condition date_courante >
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
     (situation_familiale_calcul_apl sous forme PersonneSeule) et
-    nombre_de_personne_à_charge = 0
+    nombre_personnes_à_charge = 0
   conséquence égal à
     selon zone sous forme
     -- Zone1: 298,07€
@@ -77,7 +77,7 @@ champ d'application CalculAidePersonnelleLogement sous condition date_courante >
   # Colonne 2
   étiquette base définition plafond_loyer_d823_16_2 sous condition
     (situation_familiale_calcul_apl sous forme Couple) et
-    nombre_de_personne_à_charge = 0
+    nombre_personnes_à_charge = 0
   conséquence égal à
     selon zone sous forme
     --Zone1: 359,49€
@@ -86,32 +86,32 @@ champ d'application CalculAidePersonnelleLogement sous condition date_courante >
 
   # Colonnes 3 et 4
   étiquette base définition plafond_loyer_d823_16_2 sous condition
-    nombre_de_personne_à_charge >= 1
+    nombre_personnes_à_charge >= 1
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      406,30€ +€ (58,95€ *€ (nombre_de_personne_à_charge - 1))
+      406,30€ +€ 58,95€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
     --Zone2:
-      357,80€ +€ (52,08€ *€ (nombre_de_personne_à_charge - 1))
+      357,80€ +€ 52,08€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
     --Zone3:
-      330,94€ +€ (47,43€ *€ (nombre_de_personne_à_charge - 1))
+      330,94€ +€ 47,43€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
 
 ```
 
 ### Article 8 | LEGIARTI000044137429
 
-Dans le cas où le logement occupé est une chambre, les plafonds 
-de loyers visés au 2° de l'article D. 823-16 du même code sont 
+Dans le cas où le logement occupé est une chambre, les plafonds
+de loyers visés au 2° de l'article D. 823-16 du même code sont
 fixés comme suit, quelle que soit la taille de la famille (en euros) :
 
 - 90 % des loyers plafonds de location pour une personne isolée ;
-- 75 % des loyers plafonds de location pour une personne isolée, 
-dans le cas des personnes âgées ou handicapées adultes hébergées 
+- 75 % des loyers plafonds de location pour une personne isolée,
+dans le cas des personnes âgées ou handicapées adultes hébergées
 à titre onéreux chez des particuliers.
 
 On obtient les loyers plafonds suivants (en euros) :
 
-MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL 
+MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL
 (arrondis au centime d'euro le plus proche)
 
 Bénéficiaires	               |   Zones	 |   Montants
@@ -123,12 +123,12 @@ Cas général	                 |   I	     |   268,26
 Cas des personnes âgées      |   I       |   223,55
 ou handicapées adultes       |   II      |   194,84
 hébergées à titre onéreux    |   III     |   182,61
-chez des particuliers        
+chez des particuliers
 
-NOTA : 
+NOTA :
 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, 
-ces dispositions sont applicables pour les prestations dues à 
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021,
+ces dispositions sont applicables pour les prestations dues à
 compter du 1er octobre 2021.
 
 ```catala
@@ -137,56 +137,58 @@ champ d'application CalculAidePersonnelleLogement
     date_courante >=@ |2021-10-01| et
     logement_est_chambre:
 
-  étiquette chambre exception base définition plafond_loyer_d823_16_2 sous condition
-  égal à selon zone sous forme
+  étiquette chambre exception base
+  définition plafond_loyer_d823_16_2 égal à
+    selon zone sous forme
     -- Zone1: 268,26€
     -- Zone2: 233,80€
     -- Zone3: 219,13€
 
   exception chambre définition plafond_loyer_d823_16_2 sous condition
-    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers et
-  égal à selon zone sous forme
-  -- Zone1: 223,55€
-  -- Zone2: 194,84€
-  -- Zone3: 182,61€
+    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
+  conséquence égal à
+    selon zone sous forme
+    -- Zone1: 223,55€
+    -- Zone2: 194,84€
+    -- Zone3: 182,61€
 
 ```
 
 ### Article 9 | LEGIARTI000044137426
 
-Les montants forfaitaires au titre des charges visés au 3° de 
+Les montants forfaitaires au titre des charges visés au 3° de
 l'article D. 823-16 du même code sont fixés comme suit (en euros) :
 
 
 Désignation	             |   Toutes zones
 
 Bénéficiaire isolé ou    |      54,22
-couple sans personne 
-à charge	
+couple sans personne
+à charge
 
 Par personne             |      12,29
-supplémentaire 
-à charge	
+supplémentaire
+à charge
 
-NOTA : 
+NOTA :
 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, 
-ces dispositions sont applicables pour les prestations dues à compter 
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021,
+ces dispositions sont applicables pour les prestations dues à compter
 du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement
   sous condition date_courante >=@ |2021-10-01|:
   définition montant_forfaitaire_charges égal à
-    54,22€ +€ (12,29€ *€ nombre_de_personne_à_charge)
+    54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 
 ```
 
 ### Article 10 | LEGIARTI000039160745
 
-Les coefficients appliqués au plafond de loyer prévu par l'article 
-D. 823-16 du même code, permettant de déterminer les premier et second 
-plafonds de loyer mentionnés au même article, sont établis selon le tableau 
+Les coefficients appliqués au plafond de loyer prévu par l'article
+D. 823-16 du même code, permettant de déterminer les premier et second
+plafonds de loyer mentionnés au même article, sont établis selon le tableau
 comme suit :
 
 
@@ -203,12 +205,26 @@ III	          |           2,5	           |               3,1
 
 ### Article 11 | LEGIARTI000039160747
 
-Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 823-16 
+Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 823-16
 du même code est fixé à 5 euros.
 
 ### Article 12 | LEGIARTI000039160749
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 823-16 du même code, 
-avant application de la contribution pour le remboursement de la dette sociale, 
-est fixé à 10 euros pour les allocations de logement et à 0 euro pour l'aide 
+Le seuil de versement prévu au dernier alinéa de l'article D. 823-16 du même code,
+avant application de la contribution pour le remboursement de la dette sociale,
+est fixé à 10 euros pour les allocations de logement et à 0 euro pour l'aide
 personnalisée au logement.
+
+## Chapitre VIII : Prime de déménagement
+
+### Article 45 | LEGIARTI000039160713
+
+Le plafond de dépenses ouvrant droit à la prime de déménagement défini
+à l'article D. 823-22 du même code s'exprime en pourcentage de la base
+mensuelle de calcul des allocations familiales. Il est égal à 240 % pour
+les bénéficiaires isolés ou couples ayant trois enfants à charge et est
+majoré de 20 % par enfant supplémentaire à charge.
+
+```catala
+# TODO informatique: coder cet article
+```

@@ -210,16 +210,17 @@ déclaration champ d'application CalculAidePersonnelleLogement:
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
     état montant_minimal
-  
+
   interne loyer_éligible contenu argent
   entrée loyer_principal contenu argent
   entrée date_courante contenu date
   entrée logement_est_chambre contenu booléen
-  entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen       
+  entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen
   entrée zone contenu ZoneDHabitation
   entrée situation_familiale contenu SituationFamiliale
+  interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  entrée nombre_de_personne_à_charge contenu entier
+  entrée nombre_personnes_à_charge contenu entier
 
   interne diminution_aide_finale contenu argent
   interne coefficient_multiplicateur_d823_16 contenu décimal
@@ -257,7 +258,7 @@ déclaration énumération Échéance:
 
 déclaration champ d'application Impayé:
   interne seuil_impayé_dépense_de_logement contenu argent
-  
+
   entrée mode_occupation contenu ModeOccupation
     état avant_articleR824_3
     état après_articleR824_3
@@ -266,7 +267,7 @@ déclaration champ d'application Impayé:
 
   entrée montant_charges contenu argent
   entrée montant_apl contenu argent
-  
+
   entrée montant_loyer contenu argent
   interne montant_brut_loyer contenu argent
   interne montant_net_loyer contenu argent
@@ -278,10 +279,10 @@ déclaration champ d'application Impayé:
   interne échéance_nette contenu Échéance
   interne échéance_brute contenu Échéance
 
-  
+
 
   entrée montant_dette contenu argent
 
   sortie montant_impayé contenu argent
-  
+
 ```
