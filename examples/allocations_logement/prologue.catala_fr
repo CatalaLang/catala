@@ -252,11 +252,12 @@ déclaration énumération VersementÀ:
   -- Bénéficiaire
   -- ÉtablissementHabilité
 
-déclaration énumération Échéance:
-  -- TotalMensuel contenu argent
-  -- TotalAnnuel contenu argent
+déclaration énumération DépenseLogement:
+  -- TotalAnnuelÉchéances contenu argent
+  -- Mensualité contenu argent
+  -- Loyer contenu argent
 
-déclaration champ d'application Impayé:
+déclaration champ d'application ImpayéDépenseLogement:
   interne seuil_impayé_dépense_de_logement contenu argent
 
   entrée mode_occupation contenu ModeOccupation
@@ -268,21 +269,10 @@ déclaration champ d'application Impayé:
   entrée montant_charges contenu argent
   entrée montant_apl contenu argent
 
-  entrée montant_loyer contenu argent
-  interne montant_brut_loyer contenu argent
-  interne montant_net_loyer contenu argent
-
-
-  entrée montant_prêt contenu argent
-
-  entrée échéance contenu Échéance
-  interne échéance_nette contenu Échéance
-  interne échéance_brute contenu Échéance
-
-
+  entrée dépense_logement contenu DépenseLogement
+  interne dépense_logement_brute contenu DépenseLogement
+  interne dépense_logement_nette contenu DépenseLogement
 
   entrée montant_dette contenu argent
-
   sortie montant_impayé contenu argent
-
 ```

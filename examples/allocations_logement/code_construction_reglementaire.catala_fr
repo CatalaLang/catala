@@ -1866,13 +1866,18 @@ bénéficiaire, l'impayé de dépense de logement, comprenant le loyer et, le ca
 brut du loyer et des charges.
 
 ```catala
-champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+champ d'application ImpayéDépenseLogement
+  sous condition mode_occupation sous forme Locataire:
   définition montant_impayé égal à
     si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
 
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bénéficiaire
-    conséquence égal à (montant_brut_loyer +€ montant_charges) *€ 2,0
+    conséquence égal à
+      selon dépense_logement_brute sous forme
+      -- Loyer de loyer_brut: (loyer_brut +€ montant_charges) *€ 2,0
+      -- Mensualité: 0€ # ne devrait pas arriver
+      -- TotalAnnuelÉchéances: 0€ # ne devrait pas arriver
 ```
 
 Lorsque l'aide personnelle au logement est versée entre les mains du bailleur,
@@ -1880,26 +1885,37 @@ l'impayé est constitué quand le locataire est débiteur à l'égard du bailleu
 d'une somme au moins égale à deux fois le montant mensuel net du loyer et des charges.
 
 ```catala
-champ d'application Impayé sous condition mode_occupation sous forme Locataire:
+champ d'application ImpayéDépenseLogement
+  sous condition mode_occupation sous forme Locataire:
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bailleur
-    conséquence égal à (montant_net_loyer +€ montant_charges) *€ 2,0
+    conséquence égal à
+      selon dépense_logement_nette sous forme
+      -- Loyer de loyer_net: (loyer_net +€ montant_charges) *€ 2,0
+      -- Mensualité: 0€ # ne devrait pas arriver
+      -- TotalAnnuelÉchéances: 0€ # ne devrait pas arriver
 ```
 
 Le montant mensuel brut du loyer correspond au loyer figurant dans le bail.
 
 ```catala
 # Il n'y a pas de montant de charge brut/net
-champ d'application Impayé sous condition mode_occupation sous forme Locataire:
-  définition montant_brut_loyer égal à montant_loyer
+champ d'application ImpayéDépenseLogement
+  sous condition mode_occupation sous forme Locataire:
+  définition dépense_logement_brute égal à dépense_logement
 ```
 
 Le montant mensuel net du loyer correspond à ce même loyer, déduction faite du
 montant de l'aide personnelle au logement.
 
 ```catala
-champ d'application Impayé sous condition mode_occupation sous forme Locataire:
-  définition montant_net_loyer égal à montant_loyer -€ montant_apl
+champ d'application ImpayéDépenseLogement
+  sous condition mode_occupation sous forme Locataire:
+  définition dépense_logement_nette égal à
+    selon dépense_logement_brute sous forme
+    -- Loyer de montant_loyer: Loyer contenu (montant_loyer -€ montant_apl)
+    -- Mensualité de mensualité: Mensualité contenu mensualité # ne devrait pas arriver
+    -- TotalAnnuelÉchéances de total: TotalAnnuelÉchéances contenu total # ne devrait pas arriver
 ```
 
 ####### Article R824-2 | LEGIARTI000038878875
@@ -1909,8 +1925,8 @@ champ d'application Impayé sous condition mode_occupation sous forme Locataire:
 # à la propriété.
 ```
 ```catala
-champ d'application Impayé
-  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+champ d'application ImpayéDépenseLogement sous condition
+  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
 
   définition montant_impayé égal à
     si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
@@ -1930,17 +1946,18 @@ débiteur à l'égard de l'établissement habilité d'une somme au moins égale 
 sixième du total annuel des échéances de prêt brutes ;
 
 ```catala
-champ d'application Impayé
-  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+champ d'application ImpayéDépenseLogement sous condition
+  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
 
   définition seuil_impayé_dépense_de_logement
     sous condition
       aide_versée sous forme Bénéficiaire
 
     conséquence égal à
-      selon échéance_brute sous forme
-      -- TotalMensuel de mensualité_brute: mensualité_brute *€ 2,0
-      -- TotalAnnuel de échéance_prêt_brute: échéance_prêt_brute *€ (1,0 /. 6,0)
+      selon dépense_logement_brute sous forme
+      -- Loyer: 0€ # ne devrait pas arriver
+      -- Mensualité de mensualité_brute: mensualité_brute *€ 2,0
+      -- TotalAnnuelÉchéances de échéance_prêt_brute: échéance_prêt_brute *€ (1,0 /. 6,0)
 ```
 
 2° Lorsque l'aide personnelle au logement est versée directement auprès de
@@ -1956,38 +1973,43 @@ total annuel des échéances de prêt nettes.
 
 
 ```catala
-champ d'application Impayé
-  sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+champ d'application ImpayéDépenseLogement sous condition
+  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
 
   définition seuil_impayé_dépense_de_logement
     sous condition
       aide_versée sous forme ÉtablissementHabilité
 
     conséquence égal à
-      selon échéance_nette sous forme
-      -- TotalMensuel de mensualité_nette: mensualité_nette *€ 2,0
-      -- TotalAnnuel de échéance_prêt_nette: échéance_prêt_nette *€ (1,0 /. 6,0)
+      selon dépense_logement_nette sous forme
+      -- Loyer: 0€ # ne devrait pas arriver
+      -- Mensualité de mensualité_nette: mensualité_nette *€ 2,0
+      -- TotalAnnuelÉchéances de échéance_prêt_nette:
+        échéance_prêt_nette *€ (1,0 /. 6,0)
 ```
 
 
 L'échéance de prêt brute correspond à celle figurant dans le contrat de prêt.
 
 ```catala
-champ d'application Impayé sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
-  définition échéance_brute égal à échéance
+champ d'application ImpayéDépenseLogement sous condition
+  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  définition dépense_logement_brute égal à dépense_logement
 ```
 
 L'échéance de prêt nette correspond à cette même échéance, déduction faite de l'aide
 personnelle au logement.
 
 ```catala
-champ d'application Impayé sous condition mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
-  définition échéance_nette égal à
-    selon échéance_brute sous forme
-    -- TotalMensuel de mensualité_brute:
-      TotalMensuel contenu (mensualité_brute -€ montant_apl)
-    -- TotalAnnuel de échéance_prêt_brute:
-      TotalAnnuel contenu (échéance_prêt_brute -€ (montant_apl *€ 12,0))
+champ d'application ImpayéDépenseLogement sous condition
+  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  définition dépense_logement_nette égal à
+    selon dépense_logement sous forme
+    -- Loyer de loyer: Loyer contenu loyer # ne devrait pas arriver
+    -- Mensualité de mensualité:
+      Mensualité contenu (mensualité -€ montant_apl)
+    -- TotalAnnuelÉchéances de total_échéances:
+      TotalAnnuelÉchéances contenu (total_échéances -€ (montant_apl *€ 12,0))
 ```
 
 
@@ -2002,7 +2024,7 @@ charges ou à une échéance.
 # TODO juridique: chercher une controverse autour de cet article.
 
 # TODO juridique: est ce qu'un sous-locataire est considéré comme un locataire pour les impayés ?
-champ d'application Impayé:
+champ d'application ImpayéDépenseLogement:
   définition mode_occupation état après_articleR824_3 égal à
     selon mode_occupation sous forme
     -- Locataire: Locataire
