@@ -74,6 +74,7 @@ module Var : sig
 end
 
 module VarMap : Map.S with type key = Var.t
+module VarSet : Set.S with type elt = Var.t
 
 type vars = expr Bindlib.mvar
 

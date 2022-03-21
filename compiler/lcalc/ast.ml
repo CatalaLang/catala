@@ -62,6 +62,7 @@ module Var = struct
 end
 
 module VarMap = Map.Make (Var)
+module VarSet = Set.Make (Var)
 
 type vars = expr Bindlib.mvar
 

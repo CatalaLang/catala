@@ -228,8 +228,8 @@ let driver source_file (options : Cli.options) : int =
         end;
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
-        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-           (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
+        (* Cli.debug_format "Typechecking results :@\n%a"
+           (Dcalc.Print.format_typ prgm.decl_ctx) typ; *)
         match backend with
         | Cli.Typecheck ->
             (* That's it! *)
@@ -288,6 +288,17 @@ let driver source_file (options : Cli.options) : int =
               end
               else prgm
             in
+            let prgm, closures =
+              Cli.debug_print "Performing closure conversion...";
+              Lcalc.Closure_conversion.closure_conversion prgm
+            in
+            let prgm = Bindlib.unbox prgm in
+            List.iter
+              (fun closure ->
+                Cli.debug_format "Closure found:\n%a"
+                  (Lcalc.Print.format_expr ~debug:options.debug prgm.decl_ctx)
+                  (Bindlib.unbox closure.Lcalc.Closure_conversion.expr))
+              closures;
             if backend = Cli.Lcalc then begin
               let fmt, at_end =
                 match options.output_file with
