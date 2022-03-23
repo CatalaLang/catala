@@ -215,6 +215,90 @@ avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros pour les allocations de logement et à 0 euro pour l'aide
 personnalisée au logement.
 
+### Article 13 | LEGIARTI000044137423
+
+La participation minimale P0 définie au 2° de l'article D. 823-17 du même code est 
+égale à la plus élevée des deux valeurs suivantes : 8,5 % de la somme du loyer éligible 
+défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,39 euros.
+
+NOTA :
+
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions 
+sont applicables pour les prestations dues à compter du 1er octobre 2021.
+
+### Article 14 | LEGIARTI000044137420
+
+Pour l'application de l'article D. 823-17 du même code, le taux de participation 
+personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
+
+Tp = TF + TL
+
+dans laquelle :
+
+1° TF représente un taux fonction de la taille de la famille donné par le tableau suivant :
+
+VALEURS DE TF
+Bénéficiaires                                         |     TF
+Isolé	                                                |   2,83%
+Couple sans personne à charge	                        |   3,15%
+Personne seule ou couple ayant une personne à charge	|   2,70%
+2 enfants ou 2 personnes                              | 	2,38%
+3 enfants ou 3 personnes                              | 	2,01%
+4 enfants ou 4 personnes                              | 	1,85%
+5 enfants ou 5 personnes                              | 	1,79%
+6 enfants ou 6 personnes                              | 	1,73%
+Majoration par personne à charge	                    |   -0,06%
+
+2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport 
+RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : RL = L / LR .
+
+RL est exprimé en pourcentage et arrondi à la deuxième décimale.
+
+Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés 
+au 3° de l'article D. 823-17 du même code sont fixés comme suit :
+- 0 % pour la tranche de RL inférieure à 45 % ;
+- 0,45 % pour la tranche de RL entre 45 % et 75 % ;
+- 0,68 % pour la tranche de RL supérieure à 75 %.
+
+TL est exprimé en pourcentage et arrondi à la troisième décimale.
+Le tableau suivant traduit cette formule :
+
+Si RL<45 %    | 	Si 45% < RL < 75%	  |   Si RL >75 %
+TL=0 %        |	TL=0,45 %*(RL-45%)    |	TL=0,45 %*30 %+0,68 %*(RL-75%)
+
+Le loyer de référence LR est défini selon le tableau suivant (en euros) :
+
+Composition du ménage	                                  |     Montant
+Bénéficiaire isolé	                                    |     259,78
+Couple sans personne à charge	                          |     317,97
+Personne seule ou couple ayant une personne à charge	  |     357,80
+Majoration par personne à charge	                      |     52,08
+
+NOTA : 
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions 
+sont applicables pour les prestations dues à compter du 1er octobre 2021.
+
+### Article 15 | LEGIARTI000045011468
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon 
+le tableau suivant (en euros) :
+
+Composition du foyer	                      |     MONTANT  (en euros)
+Personne seule sans personne à charge	      |     4 683
+Couple sans personne à charge	              |     6 709
+Personne seule ou couple ayant :	
+    -une personne à charge	                |     8 002
+    -deux personnes à charge	              |     8 182
+    -trois personnes à charge	              |     8 495
+    -quatre personnes à charge	            |     8 811
+    -cinq personnes à charge	              |     9 124
+    -six personnes à charge                 |     9 439
+    -par personne à charge supplémentaire	  |      311
+
+NOTA :
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), 
+ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2022.
+
 ## Chapitre VIII : Prime de déménagement
 
 ### Article 45 | LEGIARTI000039160713
