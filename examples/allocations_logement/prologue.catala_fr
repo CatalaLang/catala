@@ -232,6 +232,8 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne plafond_suppression_d823_16 contenu argent
   interne montant_forfaitaire_charges contenu argent
   interne plafond_loyer_d823_16_2 contenu argent
+  interne loyer_référence contenu argent
+  interne rapport_loyers contenu décimal
 
   interne participation_personnelle contenu argent
   interne montant_forfaitaire_d823_16 contenu argent

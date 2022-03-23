@@ -246,6 +246,16 @@ La participation minimale P0 définie au 2° de l'article D. 823-17 du même cod
 égale à la plus élevée des deux valeurs suivantes : 8,5 % de la somme du loyer éligible
 défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,39 euros.
 
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition participation_minimale égal à
+    si loyer_éligible *€ 8,5% >=€ 35,39 € alors
+      loyer_éligible *€ 8,5%
+    sinon
+      35,39 €
+```
+
 NOTA :
 
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
@@ -274,10 +284,51 @@ Personne seule ou couple ayant une personne à charge	|   2,70%
 6 enfants ou 6 personnes                              | 	1,73%
 Majoration par personne à charge	                    |   -0,06%
 
+```catala
+# TODO juridique: rechercher si la distinction enfants/personnes est juste
+# un artefact de rédaction ou s'il y a vraiment une différence de calcul dans
+# le cas où e.g. il y a 3 enfants + 2 adultes à charges : doit on prendre 1,79%
+# ou 2,01%.
+# TODO juridique: que se passe-t-il quand il y a 29 personnes à charge et que
+# le taux devient négatif?
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition taux_composition_familiale égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 2,83%
+      -- Couple: 3,15%
+    sinon (si nombre_personnes_à_charge = 1 alors
+      2,70%
+    sinon (si nombre_personnes_à_charge = 2 alors
+      2,38%
+    sinon (si nombre_personnes_à_charge = 3 alors
+      2,01%
+    sinon (si nombre_personnes_à_charge = 4 alors
+      1,85%
+    sinon (si nombre_personnes_à_charge = 5 alors
+      1,79%
+    sinon (si nombre_personnes_à_charge = 6 alors
+      1,73%
+    sinon
+      (1,73% -. (0,06% *. (entier_vers_décimal de (nombre_personnes_à_charge - 6))))
+    ))))))
+# TODO informatique: corriger le parseur pour éviter d'avoir à mettre
+# toutes ces parenthèses.
+```
+
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
 RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : RL = L / LR .
 
 RL est exprimé en pourcentage et arrondi à la deuxième décimale.
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition rapport_loyers égal à
+  # TODO informatique: faire l'arrondi
+    loyer_éligible /€ loyer_référence
+```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
 au 3° de l'article D. 823-17 du même code sont fixés comme suit :
@@ -291,6 +342,21 @@ Le tableau suivant traduit cette formule :
 Si RL<45 %    | 	Si 45% < RL < 75%	  |   Si RL >75 %
 TL=0 %        |	TL=0,45 %*(RL-45%)    |	TL=0,45 %*30 %+0,68 %*(RL-75%)
 
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  # Ici on choisit de mettre des >= pour inclure le résultat sur la crête
+  # dans la case de droite ; nous avons bien vérifié que sur la crête le
+  # résultat est le même à gauche et à droite.
+  définition taux_loyer_éligible égal à
+    si rapport_loyers <. 45% alors 0% sinon (
+    si rapport_loyers >=. 45% et rapport_loyers <. 75% alors
+      0,45% *. (rapport_loyers -. 0,45%)
+    sinon (si rapport_loyers >=. 75% alors
+      0,45% *. 30% +. 0,68% *. (rapport_loyers -. 75%)
+    sinon 0,0))
+```
+
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
 
 Composition du ménage	                                  |     Montant
@@ -298,6 +364,18 @@ Bénéficiaire isolé	                                    |     259,78
 Couple sans personne à charge	                          |     317,97
 Personne seule ou couple ayant une personne à charge	  |     357,80
 Majoration par personne à charge	                      |     52,08
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition loyer_référence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 259,79€
+      -- Couple: 317,97€
+    sinon (357,80€ +€
+      (52,08€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+```
 
 NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
@@ -319,6 +397,31 @@ Personne seule ou couple ayant :
     -cinq personnes à charge	              |     9 124
     -six personnes à charge                 |     9 439
     -par personne à charge supplémentaire	  |      311
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 683 €
+      -- Couple: 6709 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 002 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 192 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 495 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      8 811 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 124 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 439 €
+    sinon
+      ( 9 439€ +€ (311 € *€ (entier_vers_décimal de (nombre_personnes_à_charge - 6))))
+    ))))))
+```
 
 NOTA :
 Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
