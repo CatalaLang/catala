@@ -1548,17 +1548,17 @@ l'enfant handicapé prévue à l'article L. 541-1 du même code.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition diminution_aide_finale égal à
-    (loyer_principal -€ plafond_dégressivité_d823_16)
-        *€ coefficient_multiplicateur_d823_16
-
   définition aide_finale état diminué égal à
-    si loyer_principal >€ plafond_dégressivité_d823_16 alors
-      # TODO: définit la fonction seuil (retrouver issue GitHub)
-      si aide_finale -€ diminution_aide_finale >=€ 0€ alors
-        aide_finale -€ diminution_aide_finale
-      sinon 0€
-    sinon aide_finale
+    si loyer_principal >€ plafond_suppression_d823_16 alors
+      0€
+    sinon (si loyer_principal >€ plafond_dégressivité_d823_16 alors
+        aide_finale -€ (aide_finale *€
+          (loyer_principal -€ plafond_dégressivité_d823_16) /€
+          (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16)
+        )
+        # Faire un graphique pour se convaincre que la pente proportionnelle
+        # a bien cette expression.
+    sinon aide_finale)
 
   exception définition aide_finale état diminué sous condition
     bénéficiaire_aide_adulte_ou_enfant_handicapés
