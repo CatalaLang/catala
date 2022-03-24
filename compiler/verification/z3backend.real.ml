@@ -153,9 +153,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ Pos.marked) (e : Expr.expr)
        1900. We pretty-print it as the actual date *)
     (* TODO: Use differnt dates conventions depending on the language ? *)
     | TDate -> nb_days_to_date (int_of_string (Expr.to_string e))
-    | TDuration ->
-        failwith
-          "[Z3 model]: Pretty-printing of duration literals not supported"
+    | TDuration -> Format.asprintf "%s days" (Expr.to_string e)
   in
 
   match Pos.unmark ty with
@@ -261,7 +259,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Sort.sort =
   (* Dates are encoded as integers, corresponding to the number of days since
      Jan 1, 1900 *)
   | TDate -> Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TDuration -> failwith "[Z3 encoding] TDuration type not supported"
+  | TDuration -> Arithmetic.Integer.mk_sort ctx.ctx_z3
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
 let rec translate_typ (ctx : context) (t : typ) : context * Sort.sort =
@@ -524,54 +522,26 @@ let rec translate_op
           | And -> (ctx, Boolean.mk_and ctx.ctx_z3 [ e1; e2 ])
           | Or -> (ctx, Boolean.mk_or ctx.ctx_z3 [ e1; e2 ])
           | Xor -> (ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2)
-          | Add KInt | Add KRat | Add KMoney ->
+          | Add KInt | Add KRat | Add KMoney | Add KDate | Add KDuration ->
               (ctx, Arithmetic.mk_add ctx.ctx_z3 [ e1; e2 ])
-          | Add _ ->
-              failwith
-                "[Z3 encoding] application of non-integer binary operator Add \
-                 not supported"
-          | Sub KInt | Sub KRat | Sub KMoney ->
+          | Sub KInt | Sub KRat | Sub KMoney | Sub KDate | Sub KDuration ->
               (ctx, Arithmetic.mk_sub ctx.ctx_z3 [ e1; e2 ])
-          | Sub _ ->
-              failwith
-                "[Z3 encoding] application of non-integer binary operator Sub \
-                 not supported"
-          | Mult KInt | Mult KRat | Mult KMoney ->
+          | Mult KInt | Mult KRat | Mult KMoney | Mult KDate | Mult KDuration ->
               (ctx, Arithmetic.mk_mul ctx.ctx_z3 [ e1; e2 ])
-          | Mult _ ->
-              failwith
-                "[Z3 encoding] application of non-integer binary operator Mult \
-                 not supported"
           | Div KInt | Div KRat | Div KMoney ->
               (ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2)
           | Div _ ->
               failwith
                 "[Z3 encoding] application of non-integer binary operator Div \
                  not supported"
-          | Lt KInt | Lt KRat | Lt KMoney | Lt KDate ->
+          | Lt KInt | Lt KRat | Lt KMoney | Lt KDate | Lt KDuration ->
               (ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2)
-          | Lt _ ->
-              failwith
-                "[Z3 encoding] application of non-integer or money binary \
-                 operator Lt not supported"
-          | Lte KInt | Lte KRat | Lte KMoney | Lte KDate ->
+          | Lte KInt | Lte KRat | Lte KMoney | Lte KDate | Lte KDuration ->
               (ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2)
-          | Lte _ ->
-              failwith
-                "[Z3 encoding] application of non-integer or money binary \
-                 operator Lte not supported"
-          | Gt KInt | Gt KRat | Gt KMoney | Gt KDate ->
+          | Gt KInt | Gt KRat | Gt KMoney | Gt KDate | Gt KDuration ->
               (ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2)
-          | Gt _ ->
-              failwith
-                "[Z3 encoding] application of non-integer or money binary \
-                 operator Gt not supported"
-          | Gte KInt | Gte KRat | Gte KMoney | Gte KDate ->
+          | Gte KInt | Gte KRat | Gte KMoney | Gte KDate | Gte KDuration ->
               (ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2)
-          | Gte _ ->
-              failwith
-                "[Z3 encoding] application of non-integer or money binary \
-                 operator Gte not supported"
           | Eq -> (ctx, Boolean.mk_eq ctx.ctx_z3 e1 e2)
           | Neq ->
               (ctx, Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 e1 e2))
