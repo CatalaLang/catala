@@ -376,7 +376,8 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   (* Encoding a date as an integer corresponding to the number of days since Jan
      1, 1900 *)
   | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
-  | LDuration _ -> failwith "[Z3 encoding] LDuration literals not supported"
+  | LDuration d ->
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.duration_to_nb_days d)
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration
     corresponding to the variable [v]. If no such function declaration exists
