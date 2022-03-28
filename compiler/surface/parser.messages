@@ -2,8 +2,7 @@ source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON ALT CONSTRUCTOR CONTE
 ##
 ## Ends in an error in state: 358.
 ##
-## nonempty_list(enum_decl_line) -> enum_decl_line . [ SCOPE END_CODE DECLARATION ]
-## nonempty_list(enum_decl_line) -> enum_decl_line . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
+## list(enum_decl_line) -> enum_decl_line . list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## enum_decl_line
@@ -51,7 +50,7 @@ source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR COLON YEAR
 ##
 ## Ends in an error in state: 350.
 ##
-## code_item -> DECLARATION ENUM constructor COLON . nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION ENUM constructor COLON . list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION ENUM constructor COLON
@@ -63,7 +62,7 @@ source_file: BEGIN_CODE DECLARATION ENUM CONSTRUCTOR YEAR
 ##
 ## Ends in an error in state: 349.
 ##
-## code_item -> DECLARATION ENUM constructor . COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION ENUM constructor . COLON list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION ENUM constructor
@@ -75,7 +74,7 @@ source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
 ## Ends in an error in state: 348.
 ##
-## code_item -> DECLARATION ENUM . constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION ENUM . constructor COLON list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION ENUM
@@ -264,7 +263,7 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ##
 ## code_item -> DECLARATION . STRUCT constructor COLON list(struct_scope) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE constructor COLON nonempty_list(scope_decl_item) [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . ENUM constructor COLON nonempty_list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . ENUM constructor COLON list(enum_decl_line) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
