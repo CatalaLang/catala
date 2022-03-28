@@ -25,7 +25,7 @@ index cc842a5d..00000000
 -             backend = "Interpret";
 -             language = Some (Js.to_string language);
 -             max_prec_digits = None;
--             trace = false;
+-             trace;
 -             disable_counterexamples = false;
 -             optimize = false;
 -             ex_scope = Some (Js.to_string scope);
@@ -39,7 +39,7 @@ index 2c5a1996..f6c38809 100644
 @@ -19,16 +19,6 @@
   (libraries calendar zarith zarith_stubs_js)
   (modules runtime))
- 
+
 -(executable
 - (name catala_web_interpreter)
 - (modes byte js)
