@@ -377,12 +377,12 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
      1, 1900 *)
   | LDate d -> Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int d)
   | LDuration d ->
-      let y, m, _ = Runtime.duration_to_years_months_days d in
+      let y, m, d = Runtime.duration_to_years_months_days d in
       if y <> 0 || m <> 0 then
         failwith
           "[Z3 encoding]: Duration literals containing years or months not \
            supported";
-      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.duration_to_nb_days d)
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 d
 
 (** [find_or_create_funcdecl] attempts to retrieve the Z3 function declaration
     corresponding to the variable [v]. If no such function declaration exists

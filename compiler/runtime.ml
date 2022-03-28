@@ -187,8 +187,6 @@ let duration_to_string (d : duration) : string =
 let duration_to_years_months_days (d : duration) : int * int * int =
   CalendarLib.Date.Period.ymd d
 
-let duration_to_nb_days (d : duration) : int = CalendarLib.Date.Period.nb_days d
-
 let handle_default :
       'a. (unit -> 'a) array -> (unit -> bool) -> (unit -> 'a) -> 'a =
  fun exceptions just cons ->

@@ -129,7 +129,6 @@ val date_of_numbers : int -> int -> int -> date
 
 val duration_of_numbers : int -> int -> int -> duration
 val duration_to_years_months_days : duration -> int * int * int
-val duration_to_nb_days : duration -> int
 val duration_to_string : duration -> string
 
 (**{1 Defaults} *)
