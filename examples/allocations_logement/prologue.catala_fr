@@ -157,11 +157,15 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   entrée dépenses_justifiées_réellement_engagées contenu argent
   sortie montant_prime_déménagement contenu argent
   interne plafond_d823_22 contenu argent
+  base_mensuelle_allocations_familiales champ d'application
+    BaseMensuelleAllocationsFamiliales
 
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition éligibilité_apl.ménage égal à ménage
   définition éligibilité_apl.demandeur égal à demandeur
   définition éligibilité_apl.date_ouverture_droits égal à date_ouverture_droits
+  définition base_mensuelle_allocations_familiales.date_courante égal à
+    date_ouverture_droits
 
 déclaration structure PersonneVivantHabituellementAuFoyer:
   donnée durée_résidence_durant_période_r_822_3_1 contenu durée
@@ -221,12 +225,16 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
   entrée nombre_personnes_à_charge contenu entier
+  entrée type_aide contenu TypeAidePersonnelleLogement
 
-  interne diminution_aide_finale contenu argent
   interne coefficient_multiplicateur_d823_16 contenu décimal
   interne plafond_dégressivité_d823_16 contenu argent
+  interne plafond_suppression_d823_16 contenu argent
   interne montant_forfaitaire_charges contenu argent
   interne plafond_loyer_d823_16_2 contenu argent
+  interne loyer_référence contenu argent
+  interne rapport_loyers contenu décimal
+  entrée colocation contenu booléen
 
   interne participation_personnelle contenu argent
   interne montant_forfaitaire_d823_16 contenu argent
