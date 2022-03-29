@@ -13,12 +13,37 @@ déclaration énumération TypeContratTravail:
   -- CDI
   -- Autres
 
+déclaration structure BailleurSocial:
+  donnée respecte_convention_titre_V contenu booléen
+  donnée respecte_convention_titre_II contenu booléen
+  donnée construit_amélioré_conditions_l831_1_4 contenu booléen
+
+déclaration structure BailleurPrivé:
+  donnée respecte_convention_titre_II contenu booléen
+  donnée respecte_convention_titre_V contenu booléen
+  donnée acquisition_aides_état_prêt_titre_II_ou_livre_III contenu booléen
+  donnée construit_amélioré_conditions_l831_1_4 contenu booléen
+
+déclaration énumération Bailleur:
+  -- BailleurSocial contenu BailleurSocial
+  -- BailleurPrivé contenu BailleurPrivé
+
+déclaration structure Location:
+  donnée bailleur contenu Bailleur
+
+déclaration structure Prêt:
+  donnée conditions_octroi_l831_1_1 contenu booléen
+
+déclaration structure Propriétaire:
+  donnée prêt contenu Prêt
+
 déclaration énumération ModeOccupation:
-  -- Locataire
-  -- RésidentLogementFoyer
+  -- Locataire contenu Location
+  -- RésidentLogementFoyer contenu Location
   -- AccessionPropriétéLocalUsageExclusifHabitation
-  -- SousLocataire
-  -- LocationAccession
+    contenu Propriétaire
+  -- SousLocataire contenu Location
+  -- LocationAccession contenu Propriétaire
   -- Autre
 
 déclaration énumération ParentOuAutre:
@@ -106,6 +131,7 @@ déclaration énumération Nationalité:
 
 déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   entrée ménage contenu Ménage
+  interne condition_prêt condition dépend de Prêt
   entrée demandeur contenu Demandeur
   entrée sortie date_ouverture_droits contenu date
   interne patrimoine_total_demandeur contenu argent

@@ -161,7 +161,7 @@ Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logeme
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception l822_3_1 règle condition_logement_mode_occupation sous condition
+  étiquette l822_3_2 exception l822_3_1 règle condition_logement_mode_occupation sous condition
     usufruit_ou_propriété_famille et
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
@@ -564,3 +564,144 @@ indûment versés.
 ```catala
 # Hors du champ de ce calcul.
 ```
+
+#### Titre III : Aide personnalisée au logement
+
+##### Chapitre Ier : Champ d'application
+
+###### Article L831-1 | LEGIARTI000038814882
+
+L'aide personnalisée au logement s'applique aux :
+
+1° Logements occupés par leurs propriétaires, construits, (acquis ou améliorés
+au moyen d'aides de l'Etat) ou de prêts dont les caractéristiques et les
+conditions d'octroi sont fixées par voie réglementaire, sous les réserves
+énoncées à l'article L. 831-2 ;
+
+```catala
+# TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi
+# pour le prêt.
+
+# Ici, le 1°) vient affiner le principe général définit à L822-2 selon lequel
+# tous les propriétaires ayant un prêt peuvent toucher les APL. En effet, ça
+# dépend du prêt (voir articles référés). Donc ici on vient apporter une
+# exception à la règle dec L822-2 quand les conditions relatives au prêt ne
+# sont pas remplies.
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_2 règle condition_logement_mode_occupation sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
+        non propriété.prêt.conditions_octroi_l831_1_1
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+2° Logements à usage locatif appartenant à des organismes d'habitations à
+loyer modéré ou gérés par eux ou appartenant aux bailleurs du secteur locatif
+définis au quatrième alinéa de l'article 41 ter de la loi n° 86-1290 du 23
+décembre 1986 tendant à favoriser l'investissement locatif, l'accession à la
+propriété des logements sociaux et le développement de l'offre foncière, à
+condition que ces bailleurs s'engagent à respecter les obligations précisées
+par des conventions régies par le chapitre III du titre V du livre III, ainsi
+que les logements à usage locatif appartenant à d'autres bailleurs, à condition
+que ceux-ci s'engagent à respecter les obligations précisées par des conventions
+régies par la section 3 du chapitre Ier du titre II du livre III ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_2 règle condition_logement_mode_occupation sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Location de location:
+        (selon location.bailleur sous forme
+        -- BailleurSocial de bailleur_social:
+          non bailleur_social.respecte_convention_titre_V
+        -- BailleurPrivé de bailleur_privé:
+          non bailleur_privé.respecte_convention_titre_II
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+3° Logements à usage locatif construits, acquis ou améliorés au moyen d'aides de
+l'Etat ou de prêts régis par le chapitre III du titre II ou par le titre III du
+livre III ; l'octroi de ces aides est subordonné à l'engagement pris par les
+bailleurs de respecter les obligations précisées par des conventions régies
+par le chapitre III du titre V du livre III ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_2 règle condition_logement_mode_occupation sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Location de location:
+        (selon location.bailleur sous forme
+        -- BailleurSocial de bailleur_social: faux
+        -- BailleurPrivé de bailleur_privé:
+          acquisition_aides_état_prêt_titre_II_ou_livre_III et
+            (non bailleur_privé.respecte_convention_titre_V)
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+4° Logements à usage locatif construits ou améliorés dans des conditions fixées
+par voie réglementaire et dont les bailleurs s'engagent à respecter les
+obligations précisées par des conventions régies par le chapitre III du titre V
+ou par la section 3 du chapitre Ier du titre II du livre III ;
+
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_2 règle condition_logement_mode_occupation sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- Location de location:
+        (selon location.bailleur sous forme
+        -- BailleurSocial de bailleur_social:
+          bailleur_social.construit_amélioré_conditions_l831_1_4 et
+          non (bailleur_social.respecte_convention_titre_V ou
+            bailleur_social.respecte_convention_titre_II)
+        -- BailleurPrivé de bailleur_privé:
+          bailleur_privé.construit_amélioré_conditions_l831_1_4 et
+          non (bailleur_privé.respecte_convention_titre_V ou
+            bailleur_privé.respecte_convention_titre_II)
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+5° Logements-foyers assimilés dans des conditions fixées par voie réglementaire
+aux logements mentionnés aux 2° et 3° ci-dessus, dès lors qu'ils font l'objet
+des conventions régies par le chapitre III du titre V du livre III ;
+
+```catala
+# TODO : coder ça, il faut transformer la règle en fonction...
+```
+
+6° Logements occupés par des titulaires de contrats de location-accession
+conclus dans les conditions prévues par la loi n° 84-595 du 12 juillet 1984
+définissant la location-accession à la propriété immobilière, lorsque ces
+logements ont été construits, améliorés ou acquis et améliorés au moyen d'aides
+de l'Etat ou de prêts dont les caractéristiques et les conditions d'octroi sont
+fixées par voie réglementaire, sous les réserves énoncées à l ‘ article L. 831-2.
+
+```catala
+# TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi.
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  exception l822_3_2 règle condition_logement_mode_occupation sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- LocationAccession de propriété:
+        propriété.prêt.conditions_octroi_l831_1_1
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+###### Article L831-2 | LEGIARTI000038814880
+
+Les logements qui ont fait l'objet d'un prêt ou d'un contrat de location-accession
+mentionné au 1° ou au 6° de l'article L. 831-1 signé après le 31 décembre 2017
+n'ouvrent pas droit à l'aide personnalisée au logement.
+
+Toutefois, continuent à ouvrir droit à l'aide les logements ayant fait l'objet
+des mêmes prêt ou contrat de location-accession signés avant le 1er janvier
+2020, dès lors qu'ils répondent à la double condition d'être anciens et
+situés dans une commune ne se caractérisant pas par un déséquilibre
+important entre l'offre et la demande de logements entraînant des difficultés
+d'accès au logement dans le parc résidentiel existant.
+
+Un arrêté des ministres chargés du logement et du budget dresse la liste des
+communes répondant aux conditions énoncées au deuxième alinéa.
