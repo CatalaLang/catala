@@ -13,20 +13,16 @@ déclaration énumération TypeContratTravail:
   -- CDI
   -- Autres
 
-déclaration structure BailleurSocial:
+déclaration énumération TypeBailleur:
+  -- BailleurSocial
+  -- BailleurPrivé
+
+déclaration structure Bailleur:
+  donnée type_bailleur contenu TypeBailleur
   donnée respecte_convention_titre_V contenu booléen
   donnée respecte_convention_titre_II contenu booléen
   donnée construit_amélioré_conditions_l831_1_4 contenu booléen
-
-déclaration structure BailleurPrivé:
-  donnée respecte_convention_titre_II contenu booléen
-  donnée respecte_convention_titre_V contenu booléen
   donnée acquisition_aides_état_prêt_titre_II_ou_livre_III contenu booléen
-  donnée construit_amélioré_conditions_l831_1_4 contenu booléen
-
-déclaration énumération Bailleur:
-  -- BailleurSocial contenu BailleurSocial
-  -- BailleurPrivé contenu BailleurPrivé
 
 déclaration structure Location:
   donnée bailleur contenu Bailleur
@@ -291,12 +287,15 @@ déclaration énumération DépenseLogement:
   -- Mensualité contenu argent
   -- Loyer contenu argent
 
+déclaration énumération ModeOccupationImpayé:
+  -- ImpayéLoyer
+  -- ImpayéPrêt
+
 déclaration champ d'application ImpayéDépenseLogement:
   interne seuil_impayé_dépense_de_logement contenu argent
 
   entrée mode_occupation contenu ModeOccupation
-    état avant_articleR824_3
-    état après_articleR824_3
+  interne mode_occupation_impayé contenu ModeOccupationImpayé
 
   entrée aide_versée contenu VersementÀ
 

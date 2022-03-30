@@ -30,7 +30,15 @@ assertion éligible
   -- logement: Logement {
     -- résidence_principale : vrai
     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
-    -- mode_occupation : Locataire
+    -- mode_occupation : Locataire contenu (Location {
+      -- bailleur: Bailleur {
+        -- type_bailleur: BailleurPrivé
+        -- respecte_convention_titre_V: vrai
+        -- respecte_convention_titre_II: vrai
+        -- construit_amélioré_conditions_l831_1_4: faux
+        -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+      }
+    })
     -- propriétaire : ParentOuAutre.Autre
     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
     -- usufruit : ParentOuAutre.Autre
@@ -74,7 +82,15 @@ assertion non éligible
   -- logement: Logement {
     -- résidence_principale : vrai
     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
-    -- mode_occupation : Locataire
+    -- mode_occupation : Locataire contenu (Location {
+      -- bailleur: Bailleur {
+        -- type_bailleur: BailleurPrivé
+        -- respecte_convention_titre_V: vrai
+        -- respecte_convention_titre_II: vrai
+        -- construit_amélioré_conditions_l831_1_4: faux
+        -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+      }
+    })
     -- propriétaire : ParentOuAutre.Autre
     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
     -- usufruit : ParentOuAutre.Autre
@@ -118,7 +134,15 @@ assertion éligible
   -- logement: Logement {
     -- résidence_principale : vrai
     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
-    -- mode_occupation : Locataire
+    -- mode_occupation : Locataire contenu (Location {
+      -- bailleur: Bailleur {
+        -- type_bailleur: BailleurPrivé
+        -- respecte_convention_titre_V: vrai
+        -- respecte_convention_titre_II: vrai
+        -- construit_amélioré_conditions_l831_1_4: faux
+        -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+      }
+    })
     -- propriétaire : ParentOuAutre.Autre
     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
     -- usufruit : ParentOuAutre.Autre

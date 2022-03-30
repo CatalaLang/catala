@@ -611,12 +611,12 @@ régies par la section 3 du chapitre Ier du titre II du livre III ;
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l822_3_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
-      -- Location de location:
-        (selon location.bailleur sous forme
-        -- BailleurSocial de bailleur_social:
-          non bailleur_social.respecte_convention_titre_V
-        -- BailleurPrivé de bailleur_privé:
-          non bailleur_privé.respecte_convention_titre_II
+      -- Locataire de location:
+        (selon location.bailleur.type_bailleur sous forme
+        -- BailleurSocial:
+          non location.bailleur.respecte_convention_titre_V
+        -- BailleurPrivé:
+          non location.bailleur.respecte_convention_titre_II)
       -- n'importe quel: faux
   conséquence non rempli
 ```
@@ -631,12 +631,12 @@ par le chapitre III du titre V du livre III ;
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l822_3_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
-      -- Location de location:
-        (selon location.bailleur sous forme
-        -- BailleurSocial de bailleur_social: faux
-        -- BailleurPrivé de bailleur_privé:
-          acquisition_aides_état_prêt_titre_II_ou_livre_III et
-            (non bailleur_privé.respecte_convention_titre_V)
+      -- Locataire de location:
+        (selon location.bailleur.type_bailleur sous forme
+        -- BailleurSocial: faux
+        -- BailleurPrivé:
+          location.bailleur.acquisition_aides_état_prêt_titre_II_ou_livre_III et
+            (non location.bailleur.respecte_convention_titre_V))
       -- n'importe quel: faux
   conséquence non rempli
 ```
@@ -650,16 +650,16 @@ ou par la section 3 du chapitre Ier du titre II du livre III ;
 champ d'application ÉligibilitéAidePersonnelleLogement:
   exception l822_3_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
-      -- Location de location:
-        (selon location.bailleur sous forme
-        -- BailleurSocial de bailleur_social:
-          bailleur_social.construit_amélioré_conditions_l831_1_4 et
-          non (bailleur_social.respecte_convention_titre_V ou
-            bailleur_social.respecte_convention_titre_II)
-        -- BailleurPrivé de bailleur_privé:
-          bailleur_privé.construit_amélioré_conditions_l831_1_4 et
-          non (bailleur_privé.respecte_convention_titre_V ou
-            bailleur_privé.respecte_convention_titre_II)
+      -- Locataire de location:
+        (selon location.bailleur.type_bailleur sous forme
+        -- BailleurSocial:
+          location.bailleur.construit_amélioré_conditions_l831_1_4 et
+          non (location.bailleur.respecte_convention_titre_V ou
+            location.bailleur.respecte_convention_titre_II)
+        -- BailleurPrivé:
+          location.bailleur.construit_amélioré_conditions_l831_1_4 et
+          non (location.bailleur.respecte_convention_titre_V ou
+            location.bailleur.respecte_convention_titre_II))
       -- n'importe quel: faux
   conséquence non rempli
 ```

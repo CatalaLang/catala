@@ -845,7 +845,7 @@ sur le revenu.
 ```catala
 champ d'application RessourcesAidePersonnelleLogement:
   exception définition ressources_prises_en_compte sous condition
-     mode_occupation = Locataire et
+     mode_occupation sous forme Locataire et
      condition_âge_bourse_enseignement_supérieur et
      demandeur_poursuit_des_études
   conséquence égal à ressources_forfaitaires_r822_20
@@ -1867,7 +1867,7 @@ brut du loyer et des charges.
 
 ```catala
 champ d'application ImpayéDépenseLogement
-  sous condition mode_occupation sous forme Locataire:
+  sous condition mode_occupation_impayé sous forme ImpayéLoyer:
   définition montant_impayé égal à
     si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
 
@@ -1886,7 +1886,7 @@ d'une somme au moins égale à deux fois le montant mensuel net du loyer et des 
 
 ```catala
 champ d'application ImpayéDépenseLogement
-  sous condition mode_occupation sous forme Locataire:
+  sous condition mode_occupation_impayé sous forme ImpayéLoyer:
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bailleur
     conséquence égal à
@@ -1901,7 +1901,7 @@ Le montant mensuel brut du loyer correspond au loyer figurant dans le bail.
 ```catala
 # Il n'y a pas de montant de charge brut/net
 champ d'application ImpayéDépenseLogement
-  sous condition mode_occupation sous forme Locataire:
+  sous condition mode_occupation_impayé sous forme ImpayéLoyer:
   définition dépense_logement_brute égal à dépense_logement
 ```
 
@@ -1910,7 +1910,7 @@ montant de l'aide personnelle au logement.
 
 ```catala
 champ d'application ImpayéDépenseLogement
-  sous condition mode_occupation sous forme Locataire:
+  sous condition mode_occupation_impayé sous forme ImpayéLoyer:
   définition dépense_logement_nette égal à
     selon dépense_logement_brute sous forme
     -- Loyer de montant_loyer: Loyer contenu (montant_loyer -€ montant_apl)
@@ -1926,7 +1926,7 @@ champ d'application ImpayéDépenseLogement
 ```
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
-  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  mode_occupation_impayé sous forme ImpayéPrêt:
 
   définition montant_impayé égal à
     si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
@@ -1947,7 +1947,7 @@ sixième du total annuel des échéances de prêt brutes ;
 
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
-  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  mode_occupation_impayé sous forme ImpayéPrêt:
 
   définition seuil_impayé_dépense_de_logement
     sous condition
@@ -1974,7 +1974,7 @@ total annuel des échéances de prêt nettes.
 
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
-  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  mode_occupation_impayé sous forme ImpayéPrêt:
 
   définition seuil_impayé_dépense_de_logement
     sous condition
@@ -1993,7 +1993,7 @@ L'échéance de prêt brute correspond à celle figurant dans le contrat de prê
 
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
-  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  mode_occupation_impayé sous forme ImpayéPrêt:
   définition dépense_logement_brute égal à dépense_logement
 ```
 
@@ -2002,7 +2002,7 @@ personnelle au logement.
 
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
-  mode_occupation sous forme AccessionPropriétéLocalUsageExclusifHabitation:
+  mode_occupation_impayé sous forme ImpayéPrêt:
   définition dépense_logement_nette égal à
     selon dépense_logement sous forme
     -- Loyer de loyer: Loyer contenu loyer # ne devrait pas arriver
@@ -2025,14 +2025,14 @@ charges ou à une échéance.
 
 # TODO juridique: est ce qu'un sous-locataire est considéré comme un locataire pour les impayés ?
 champ d'application ImpayéDépenseLogement:
-  définition mode_occupation état après_articleR824_3 égal à
+  définition mode_occupation_impayé égal à
     selon mode_occupation sous forme
-    -- Locataire: Locataire
-    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriétéLocalUsageExclusifHabitation
-    -- RésidentLogementFoyer: AccessionPropriétéLocalUsageExclusifHabitation
-    -- LocationAccession: Locataire
-    -- ModeOccupation.Autre: ModeOccupation.Autre
-    -- SousLocataire: SousLocataire
+    -- Locataire: ImpayéLoyer
+    -- AccessionPropriétéLocalUsageExclusifHabitation: ImpayéPrêt
+    -- RésidentLogementFoyer: ImpayéPrêt
+    -- LocationAccession: ImpayéLoyer
+    -- ModeOccupation.Autre: ImpayéLoyer # TODO juridique: que faire ici?
+    -- SousLocataire:  ImpayéLoyer
 
 ```
 
