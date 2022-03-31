@@ -18,7 +18,7 @@ open Ast
 open Utils
 
 type closure = { name : Var.t; expr : expr Pos.marked Bindlib.box }
-type ctx = { name_context : string }
+type ctx = { name_context : string; globally_bound_vars : VarSet.t }
 
 let rec hoist_closures_expr (ctx : ctx) (e : expr Pos.marked) :
     expr Pos.marked Bindlib.box * closure list =
@@ -43,20 +43,21 @@ let rec hoist_closures_expr (ctx : ctx) (e : expr Pos.marked) :
   | _ -> (Bindlib.box e, [])
 
 (** Returns the expression with closed closures and the set of free variables
-    inside this new expression. *)
-let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
+    inside this new expression. Implementation guided by
+    http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
+let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
     expr Pos.marked Bindlib.box * VarSet.t =
   match Pos.unmark e with
   | EVar v ->
       ( Bindlib.box_apply
           (fun new_v -> (new_v, Pos.get_position v))
           (Bindlib.box_var (Pos.unmark v)),
-        VarSet.singleton (Pos.unmark v) )
+        VarSet.diff (VarSet.singleton (Pos.unmark v)) ctx.globally_bound_vars )
   | ETuple (args, s) ->
       let new_args, free_vars =
         List.fold_left
           (fun (new_args, free_vars) arg ->
-            let new_arg, new_free_vars = close_closures_expr ctx arg in
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
             (new_arg :: new_args, VarSet.union new_free_vars free_vars))
           ([], VarSet.empty) args
       in
@@ -65,20 +66,20 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
           (Bindlib.box_list new_args),
         free_vars )
   | ETupleAccess (e1, n, s, typs) ->
-      let new_e1, free_vars = close_closures_expr ctx e1 in
+      let new_e1, free_vars = closure_conversion_expr ctx e1 in
       ( Bindlib.box_apply
           (fun new_e1 ->
             (ETupleAccess (new_e1, n, s, typs), Pos.get_position e))
           new_e1,
         free_vars )
   | EInj (e1, n, e_name, typs) ->
-      let new_e1, free_vars = close_closures_expr ctx e1 in
+      let new_e1, free_vars = closure_conversion_expr ctx e1 in
       ( Bindlib.box_apply
           (fun new_e1 -> (EInj (new_e1, n, e_name, typs), Pos.get_position e))
           new_e1,
         free_vars )
   | EMatch (e1, arms, e_name) ->
-      let new_e1, free_vars = close_closures_expr ctx e1 in
+      let new_e1, free_vars = closure_conversion_expr ctx e1 in
       (* We do not close the clotures inside the arms of the match expression,
          since they get a special treatment at compilation to Scalc. *)
       let new_arms, free_vars =
@@ -87,7 +88,9 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
             match Pos.unmark arm with
             | EAbs ((binder, binder_pos), typs) ->
                 let vars, body = Bindlib.unmbind binder in
-                let new_body, new_free_vars = close_closures_expr ctx body in
+                let new_body, new_free_vars =
+                  closure_conversion_expr ctx body
+                in
                 let new_binder = Bindlib.bind_mvar vars new_body in
                 ( Bindlib.box_apply
                     (fun new_binder ->
@@ -109,7 +112,7 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
       let new_args, free_vars =
         List.fold_right
           (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = close_closures_expr ctx arg in
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
             (new_arg :: new_args, VarSet.union free_vars new_free_vars))
           args ([], VarSet.empty)
       in
@@ -121,12 +124,12 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
   | EApp ((EAbs ((binder, binder_pos), typs_abs), e1_pos), args) ->
       (* let-binding, we should not close these *)
       let vars, body = Bindlib.unmbind binder in
-      let new_body, free_vars = close_closures_expr ctx body in
+      let new_body, free_vars = closure_conversion_expr ctx body in
       let new_binder = Bindlib.bind_mvar vars new_body in
       let new_args, free_vars =
         List.fold_right
           (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = close_closures_expr ctx arg in
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
             (new_arg :: new_args, VarSet.union free_vars new_free_vars))
           args ([], free_vars)
       in
@@ -139,34 +142,88 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
           (Bindlib.box_list new_args),
         free_vars )
   | EAbs ((binder, binder_pos), typs) ->
-      (* This is a closure we'll have to close *)
+      (* λ x.t *)
+      (* Converting the closure. *)
       let vars, body = Bindlib.unmbind binder in
-      let new_body, body_vars = close_closures_expr ctx body in
+      (* t *)
+      let new_body, body_vars = closure_conversion_expr ctx body in
+      (* [[t]] *)
       let extra_vars =
         VarSet.diff body_vars (VarSet.of_list (Array.to_list vars))
       in
-      let extra_typs =
-        List.map
-          (fun _ -> (Dcalc.Ast.TAny, binder_pos))
-          (VarSet.elements extra_vars)
+      let extra_vars_list = VarSet.elements extra_vars in
+      (* x1, ..., xn *)
+      let code_var = Var.make (ctx.name_context, binder_pos) in
+      (* code *)
+      let inner_c_var = Var.make ("env", binder_pos) in
+      let new_closure_body =
+        make_multiple_let_in
+          (Array.of_list extra_vars_list)
+          (List.init (List.length extra_vars_list) (fun _ ->
+               (Dcalc.Ast.TAny, binder_pos)))
+          (List.mapi
+             (fun i _ ->
+               Bindlib.box_apply
+                 (fun inner_c_var ->
+                   ( ETupleAccess
+                       ( (inner_c_var, binder_pos),
+                         i + 1,
+                         None,
+                         List.init
+                           (List.length extra_vars_list + 1)
+                           (fun _ -> (Dcalc.Ast.TAny, binder_pos)) ),
+                     binder_pos ))
+                 (Bindlib.box_var inner_c_var))
+             extra_vars_list)
+          new_body binder_pos
       in
-      let new_binder =
-        Bindlib.bind_mvar
-          (Array.concat [ vars; Array.of_list (VarSet.elements extra_vars) ])
-          new_body
+      let new_closure =
+        make_abs
+          (Array.concat [ Array.make 1 inner_c_var; vars ])
+          new_closure_body binder_pos
+          ((Dcalc.Ast.TAny, binder_pos) :: typs)
+          (Pos.get_position e)
       in
-      ( Bindlib.box_apply
-          (fun new_binder ->
-            ( EAbs ((new_binder, binder_pos), typs @ extra_typs),
-              Pos.get_position e ))
-          new_binder,
+      ( make_let_in code_var
+          (Dcalc.Ast.TAny, Pos.get_position e)
+          new_closure
+          (Bindlib.box_apply2
+             (fun code_var extra_vars ->
+               ( ETuple
+                   ( (code_var, binder_pos)
+                     :: List.map
+                          (fun extra_var -> (extra_var, binder_pos))
+                          extra_vars,
+                     None ),
+                 Pos.get_position e ))
+             (Bindlib.box_var code_var)
+             (Bindlib.box_list
+                (List.map
+                   (fun extra_var -> Bindlib.box_var extra_var)
+                   extra_vars_list))),
         extra_vars )
-  | EApp (e1, args) ->
-      let new_e1, free_vars = close_closures_expr ctx e1 in
+  | EApp ((EVar (v, _), v_pos), args) when VarSet.mem v ctx.globally_bound_vars
+    ->
+      (* This corresponds to a scope call, which we don't want to transform*)
       let new_args, free_vars =
         List.fold_right
           (fun arg (new_args, free_vars) ->
-            let new_arg, new_free_vars = close_closures_expr ctx arg in
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
+            (new_arg :: new_args, VarSet.union free_vars new_free_vars))
+          args ([], VarSet.empty)
+      in
+      ( Bindlib.box_apply2
+          (fun new_v new_e2 ->
+            (EApp ((new_v, v_pos), new_e2), Pos.get_position e))
+          (Bindlib.box_var v)
+          (Bindlib.box_list new_args),
+        free_vars )
+  | EApp (e1, args) ->
+      let new_e1, free_vars = closure_conversion_expr ctx e1 in
+      let new_args, free_vars =
+        List.fold_right
+          (fun arg (new_args, free_vars) ->
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
             (new_arg :: new_args, VarSet.union free_vars new_free_vars))
           args ([], free_vars)
       in
@@ -176,16 +233,16 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
           (Bindlib.box_list new_args),
         free_vars )
   | EAssert e1 ->
-      let new_e1, free_vars = close_closures_expr ctx e1 in
+      let new_e1, free_vars = closure_conversion_expr ctx e1 in
       ( Bindlib.box_apply
           (fun new_e1 -> (EAssert new_e1, Pos.get_position e))
           new_e1,
         free_vars )
   | EOp op -> (Bindlib.box (EOp op, Pos.get_position e), VarSet.empty)
   | EIfThenElse (e1, e2, e3) ->
-      let new_e1, free_vars1 = close_closures_expr ctx e1 in
-      let new_e2, free_vars2 = close_closures_expr ctx e2 in
-      let new_e3, free_vars3 = close_closures_expr ctx e3 in
+      let new_e1, free_vars1 = closure_conversion_expr ctx e1 in
+      let new_e2, free_vars2 = closure_conversion_expr ctx e2 in
+      let new_e3, free_vars3 = closure_conversion_expr ctx e3 in
       ( Bindlib.box_apply3
           (fun new_e1 new_e2 new_e3 ->
             (EIfThenElse (new_e1, new_e2, new_e3), Pos.get_position e))
@@ -194,8 +251,8 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
   | ERaise except ->
       (Bindlib.box (ERaise except, Pos.get_position e), VarSet.empty)
   | ECatch (e1, except, e2) ->
-      let new_e1, free_vars1 = close_closures_expr ctx e1 in
-      let new_e2, free_vars2 = close_closures_expr ctx e2 in
+      let new_e1, free_vars1 = closure_conversion_expr ctx e1 in
+      let new_e2, free_vars2 = closure_conversion_expr ctx e2 in
       ( Bindlib.box_apply2
           (fun new_e1 new_e2 ->
             (ECatch (new_e1, except, new_e2), Pos.get_position e))
@@ -203,6 +260,11 @@ let rec close_closures_expr (ctx : ctx) (e : expr Pos.marked) :
         VarSet.union free_vars1 free_vars2 )
 
 let closure_conversion (p : program) : program Bindlib.box * closure list =
+  let all_scope_variables =
+    List.fold_left
+      (fun acc scope -> VarSet.add scope.scope_body_var acc)
+      VarSet.empty p.scopes
+  in
   let new_scopes, closures =
     List.fold_left
       (fun ((acc_new_scopes, acc_closures) :
@@ -217,9 +279,12 @@ let closure_conversion (p : program) : program Bindlib.box * closure list =
                 name_context =
                   Pos.unmark
                     (Dcalc.Ast.ScopeName.get_info scope.scope_body_name);
+                globally_bound_vars =
+                  VarSet.union all_scope_variables
+                    (VarSet.of_list [ handle_default; handle_default_opt ]);
               }
             in
-            let new_body_expr, _ = close_closures_expr ctx body in
+            let new_body_expr, _ = closure_conversion_expr ctx body in
             let new_binder = Bindlib.bind_mvar vars new_body_expr in
             ( Bindlib.box_apply
                 (fun new_binder ->

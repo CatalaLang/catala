@@ -101,6 +101,14 @@ val make_let_in :
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box
 
+val make_multiple_let_in :
+  Var.t array ->
+  Dcalc.Ast.typ Pos.marked list ->
+  expr Pos.marked Bindlib.box list ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
 val option_enum : Dcalc.Ast.EnumName.t
 val none_constr : Dcalc.Ast.EnumConstructor.t
 val some_constr : Dcalc.Ast.EnumConstructor.t
