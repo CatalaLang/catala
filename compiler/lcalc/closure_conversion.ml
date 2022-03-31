@@ -202,6 +202,20 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
                    (fun extra_var -> Bindlib.box_var extra_var)
                    extra_vars_list))),
         extra_vars )
+  | EApp ((EOp op, pos_op), args) ->
+      (* This corresponds to an operator call, which we don't want to
+         transform*)
+      let new_args, free_vars =
+        List.fold_right
+          (fun arg (new_args, free_vars) ->
+            let new_arg, new_free_vars = closure_conversion_expr ctx arg in
+            (new_arg :: new_args, VarSet.union free_vars new_free_vars))
+          args ([], VarSet.empty)
+      in
+      ( Bindlib.box_apply
+          (fun new_e2 -> (EApp ((EOp op, pos_op), new_e2), Pos.get_position e))
+          (Bindlib.box_list new_args),
+        free_vars )
   | EApp ((EVar (v, _), v_pos), args) when VarSet.mem v ctx.globally_bound_vars
     ->
       (* This corresponds to a scope call, which we don't want to transform*)
@@ -220,6 +234,8 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
         free_vars )
   | EApp (e1, args) ->
       let new_e1, free_vars = closure_conversion_expr ctx e1 in
+      let env_var = Var.make ("env", Pos.get_position e1) in
+      let code_var = Var.make ("code", Pos.get_position e1) in
       let new_args, free_vars =
         List.fold_right
           (fun arg (new_args, free_vars) ->
@@ -227,10 +243,25 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
             (new_arg :: new_args, VarSet.union free_vars new_free_vars))
           args ([], free_vars)
       in
-      ( Bindlib.box_apply2
-          (fun new_e1 new_e2 -> (EApp (new_e1, new_e2), Pos.get_position e))
-          new_e1
-          (Bindlib.box_list new_args),
+      let call_expr =
+        make_let_in code_var
+          (Dcalc.Ast.TAny, Pos.get_position e)
+          (Bindlib.box_apply
+             (fun env_var ->
+               ( ETupleAccess
+                   ((env_var, Pos.get_position e1), 0, None, [ (*TODO: fill?*) ]),
+                 Pos.get_position e ))
+             (Bindlib.box_var env_var))
+          (Bindlib.box_apply3
+             (fun code_var env_var new_args ->
+               ( EApp
+                   ( (code_var, Pos.get_position e1),
+                     (env_var, Pos.get_position e1) :: new_args ),
+                 Pos.get_position e ))
+             (Bindlib.box_var code_var) (Bindlib.box_var env_var)
+             (Bindlib.box_list new_args))
+      in
+      ( make_let_in env_var (Dcalc.Ast.TAny, Pos.get_position e) new_e1 call_expr,
         free_vars )
   | EAssert e1 ->
       let new_e1, free_vars = closure_conversion_expr ctx e1 in
