@@ -144,32 +144,51 @@ type scope_let_kind =
   | Assertion  (** [let _ = assert e]*)
 
 type scope_let = {
-  scope_let_var : expr Bindlib.var Pos.marked;
   scope_let_kind : scope_let_kind;
-  scope_let_typ : typ Pos.marked;
-  scope_let_expr : expr Pos.marked Bindlib.box;
+  scope_let_typ : typ Utils.Pos.marked;
+  scope_let_expr : expr Utils.Pos.marked;
+  scope_let_next : (expr, scope_body_expr) Bindlib.binder;
+  scope_let_pos : Utils.Pos.t;
 }
+
 (** A scope let-binding has all the information necessary to make a proper
     let-binding expression, plus an annotation for the kind of the let-binding
     that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
+and scope_body_expr = Result of expr Utils.Pos.marked | ScopeLet of scope_let
 
 type scope_body = {
-  scope_body_lets : scope_let list;
-  scope_body_result : expr Pos.marked Bindlib.box;
-  scope_body_arg : expr Bindlib.var;
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
+  scope_body_expr : (expr, scope_body_expr) Bindlib.binder;
 }
 (** Instead of being a single expression, we give a little more ad-hoc structure
     to the scope body by decomposing it in an ordered list of let-bindings, and
-    a result expression that uses the let-binded variables. *)
+    a result expression that uses the let-binded variables. The first binder is
+    the argument of type [scope_body_input_struct]. *)
 
-type program = {
-  decl_ctx : decl_ctx;
-  scopes : (ScopeName.t * expr Bindlib.var * scope_body) list;
+type scope_def = {
+  scope_name : ScopeName.t;
+  scope_body : scope_body;
+  scope_next : (expr, scopes) Bindlib.binder;
 }
 
+(** Finally, we do the same transformation for the whole program for the kinded
+    lets. This permit us to use bindlib variables for scopes names. *)
+and scopes = Nil | ScopeDef of scope_def
+
+type program = { decl_ctx : decl_ctx; scopes : scopes }
+
 (** {1 Helpers} *)
+
+(**{2 Program traversal}*)
+
+(** Be careful when using these traversal functions, as the bound variables they
+    open will be different at each traversal. *)
+
+val fold_scope_lets :
+  f:('a -> scope_let -> 'a) -> init:'a -> scope_body_expr -> 'a
+
+val fold_scope_defs : f:('a -> scope_def -> 'a) -> init:'a -> scopes -> 'a
 
 (** {2 Variables}*)
 
@@ -181,9 +200,12 @@ module Var : sig
 end
 
 module VarMap : Map.S with type key = Var.t
+module VarSet : Set.S with type elt = Var.t
 
-val free_vars_set : expr Pos.marked -> unit VarMap.t
-val free_vars_list : expr Pos.marked -> Var.t list
+val free_vars_expr : expr Pos.marked -> VarSet.t
+val free_vars_scope_body_expr : scope_body_expr -> VarSet.t
+val free_vars_scope_body : scope_body -> VarSet.t
+val free_vars_scopes : scopes -> VarSet.t
 
 type vars = expr Bindlib.mvar
 
@@ -235,8 +257,3 @@ val build_whole_program_expr :
 
 val expr_size : expr Pos.marked -> int
 (** Used by the optimizer to know when to stop *)
-
-val variable_types : program -> typ Pos.marked VarMap.t
-(** Traverses all the scopes and retrieves all the types for the variables that
-    may appear in scope or subscope variable definitions, giving them as a big
-    map. *)
