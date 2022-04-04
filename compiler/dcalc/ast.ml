@@ -190,7 +190,8 @@ end
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
 let rec box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   match Pos.unmark e with
-  | EVar (v, pos) -> Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var v)
+  | EVar (v, _pos) ->
+      Bindlib.box_apply (fun v -> (v, Pos.get_position e)) (Bindlib.box_var v)
   | EApp (f, args) ->
       Bindlib.box_apply2
         (fun f args -> (EApp (f, args), Pos.get_position e))

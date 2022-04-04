@@ -458,7 +458,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) :
   | ErrorOnEmpty e' ->
       let e' = evaluate_expr ctx e' in
       if Pos.unmark e' = A.ELit LEmptyError then
-        Errors.raise_spanned_error (Pos.get_position e)
+        Errors.raise_spanned_error (Pos.get_position e')
           "This variable evaluated to an empty term (no rule that defined it \
            applied in this situation)"
       else e'
