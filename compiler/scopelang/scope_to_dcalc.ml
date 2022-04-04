@@ -888,18 +888,9 @@ let translate_program (prgm : Ast.program) :
   in
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. *)
-  let (scopes, decl_ctx)
-        : (Ast.ScopeName.t * Dcalc.Ast.expr Bindlib.var * Dcalc.Ast.scope_body)
-          list
-          * _ =
+  let (scopes, decl_ctx) : Dcalc.Ast.scopes Bindlib.box * _ =
     List.fold_right
-      (fun scope_name
-           ((scopes, decl_ctx) :
-             (Ast.ScopeName.t
-             * Dcalc.Ast.expr Bindlib.var
-             * Dcalc.Ast.scope_body)
-             list
-             * _) ->
+      (fun scope_name (scopes, decl_ctx) ->
         let scope = Ast.ScopeMap.find scope_name prgm.program_scopes in
         let scope_body, scope_out_struct =
           translate_scope_decl struct_ctx enum_ctx sctx scope_name scope
@@ -914,7 +905,15 @@ let translate_program (prgm : Ast.program) :
                 decl_ctx.Dcalc.Ast.ctx_structs scope_out_struct;
           }
         in
-        ((scope_name, dvar, scope_body) :: scopes, decl_ctx))
-      scope_ordering ([], decl_ctx)
+        let scope_next = Bindlib.bind_var dvar scopes in
+        let new_scopes =
+          Bindlib.box_apply2
+            (fun scope_body scope_next ->
+              Dcalc.Ast.ScopeDef { scope_name; scope_body; scope_next })
+            scope_body scope_next
+        in
+        (new_scopes, decl_ctx))
+      scope_ordering
+      (Bindlib.box Dcalc.Ast.Nil, decl_ctx)
   in
-  ({ scopes; decl_ctx }, types_ordering)
+  ({ scopes = Bindlib.unbox scopes; decl_ctx }, types_ordering)
