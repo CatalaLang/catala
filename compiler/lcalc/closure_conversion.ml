@@ -23,28 +23,6 @@ open Utils
 type closure = { name : Var.t; expr : expr Pos.marked Bindlib.box }
 type ctx = { name_context : string; globally_bound_vars : VarSet.t }
 
-let rec hoist_closures_expr (ctx : ctx) (e : expr Pos.marked) :
-    expr Pos.marked Bindlib.box * closure list =
-  match Pos.unmark e with
-  | EVar v ->
-      ( Bindlib.box_apply
-          (fun new_v -> (new_v, Pos.get_position v))
-          (Bindlib.box_var (Pos.unmark v)),
-        [] )
-  | ETuple (args, s) ->
-      let new_args, closures =
-        List.fold_left
-          (fun (new_args, closures) arg ->
-            let new_arg, new_closures = hoist_closures_expr ctx arg in
-            (new_arg :: new_args, new_closures @ closures))
-          ([], []) args
-      in
-      ( Bindlib.box_apply
-          (fun new_args -> (ETuple (List.rev new_args, s), Pos.get_position e))
-          (Bindlib.box_list new_args),
-        closures )
-  | _ -> (Bindlib.box e, [])
-
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
     http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=9. *)
