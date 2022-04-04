@@ -1,8 +1,8 @@
 let B =
-  λ (B_in_14: B_in{}) →
-    let a.x_15 : bool = error_empty
+  λ (B_in_31: B_in{}) →
+    let a.x_32 : bool = error_empty
       ⟨true ⊢ ⟨⟨true ⊢ false⟩ | false ⊢ ∅ ⟩⟩ in
-    let result_16 : A_out{"y_out": integer} = A_3 (A_in {"x_in"= a.x_15}) in
-    let a.y_17 : integer = result_16."y_out" in
-    let __18 : unit = assert (error_empty a.y_17 = 1) in
+    let result_33 : A_out{"y_out": integer} = A_24 (A_in {"x_in"= a.x_32}) in
+    let a.y_34 : integer = result_33."y_out" in
+    let __35 : unit = assert (error_empty a.y_34 = 1) in
     B_out {}

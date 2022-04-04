@@ -1,18 +1,18 @@
-let TestBool_7 :
+let TestBool_13 :
   TestBool_in{"foo_in": unit → bool; "bar_in": unit → integer} →
     TestBool_out{"foo_out": bool; "bar_out": integer} =
-  λ (TestBool_in_8: TestBool_in{"foo_in": unit → bool; "bar_in":
-                       unit → integer}) →
-    let foo_9 : unit → bool = TestBool_in_8."foo_in" in
-    let bar_10 : unit → integer = TestBool_in_8."bar_in" in
-    let bar_11 : integer = error_empty
-      ⟨bar_10 () | true ⊢
+  λ (TestBool_in_14: TestBool_in{"foo_in": unit → bool; "bar_in":
+                        unit → integer}) →
+    let foo_15 : unit → bool = TestBool_in_14."foo_in" in
+    let bar_16 : unit → integer = TestBool_in_14."bar_in" in
+    let bar_17 : integer = error_empty
+      ⟨bar_16 () | true ⊢
         ⟨⟨true ⊢ ⟨⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩ | true ⊢
           ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩ in
-    let foo_12 : bool = error_empty
-      ⟨foo_9 () | true ⊢
-        ⟨⟨true ⊢ ⟨⟨bar_11 < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
-          ⟨true ⊢ ⟨⟨bar_11 >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
+    let foo_18 : bool = error_empty
+      ⟨foo_15 () | true ⊢
+        ⟨⟨true ⊢ ⟨⟨bar_17 < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩,
+          ⟨true ⊢ ⟨⟨bar_17 >= 0 ⊢ true⟩ | false ⊢ ∅ ⟩⟩ |
           true ⊢ ⟨⟨false ⊢ ∅ ⟩ | false ⊢ ∅ ⟩⟩⟩ in
-    TestBool_out {"foo_out"= foo_12; "bar_out"= bar_11} in
-TestBool_7
+    TestBool_out {"foo_out"= foo_18; "bar_out"= bar_17} in
+TestBool_13

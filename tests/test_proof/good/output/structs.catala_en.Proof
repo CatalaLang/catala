@@ -1,4 +1,4 @@
-[RESULT] [A.x] This variable never returns an empty error
-[RESULT] [A.x] No two exceptions to ever overlap for this variable
 [RESULT] [A.y] This variable never returns an empty error
 [RESULT] [A.y] No two exceptions to ever overlap for this variable
+[RESULT] [A.x] This variable never returns an empty error
+[RESULT] [A.x] No two exceptions to ever overlap for this variable

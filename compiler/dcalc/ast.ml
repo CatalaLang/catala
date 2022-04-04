@@ -187,6 +187,61 @@ module Var = struct
   let compare x y = Bindlib.compare_vars x y
 end
 
+(** See [Bindlib.box_term] documentation for why we are doing that. *)
+let rec box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
+  match Pos.unmark e with
+  | EVar (v, pos) -> Bindlib.box_apply (fun v -> (v, pos)) (Bindlib.box_var v)
+  | EApp (f, args) ->
+      Bindlib.box_apply2
+        (fun f args -> (EApp (f, args), Pos.get_position e))
+        (box_expr f)
+        (Bindlib.box_list (List.map box_expr args))
+  | EAbs ((binder, binder_pos), typs) ->
+      Bindlib.box_apply
+        (fun binder -> (EAbs ((binder, binder_pos), typs), Pos.get_position e))
+        (Bindlib.box_mbinder box_expr binder)
+  | ETuple (args, s) ->
+      Bindlib.box_apply
+        (fun args -> (ETuple (args, s), Pos.get_position e))
+        (Bindlib.box_list (List.map box_expr args))
+  | ETupleAccess (e1, n, s_name, typs) ->
+      Bindlib.box_apply
+        (fun e1 -> (ETupleAccess (e1, n, s_name, typs), Pos.get_position e))
+        (box_expr e1)
+  | EInj (e1, i, e_name, typ) ->
+      Bindlib.box_apply
+        (fun e1 -> (EInj (e1, i, e_name, typ), Pos.get_position e))
+        (box_expr e1)
+  | EMatch (arg, arms, e_name) ->
+      Bindlib.box_apply2
+        (fun arg arms -> (EMatch (arg, arms, e_name), Pos.get_position e))
+        (box_expr arg)
+        (Bindlib.box_list (List.map box_expr arms))
+  | EArray args ->
+      Bindlib.box_apply
+        (fun args -> (EArray args, Pos.get_position e))
+        (Bindlib.box_list (List.map box_expr args))
+  | ELit l -> Bindlib.box (ELit l, Pos.get_position e)
+  | EAssert e1 ->
+      Bindlib.box_apply
+        (fun e1 -> (EAssert e1, Pos.get_position e))
+        (box_expr e1)
+  | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
+  | EDefault (excepts, just, cons) ->
+      Bindlib.box_apply3
+        (fun excepts just cons ->
+          (EDefault (excepts, just, cons), Pos.get_position e))
+        (Bindlib.box_list (List.map box_expr excepts))
+        (box_expr just) (box_expr cons)
+  | EIfThenElse (e1, e2, e3) ->
+      Bindlib.box_apply3
+        (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), Pos.get_position e))
+        (box_expr e1) (box_expr e2) (box_expr e3)
+  | ErrorOnEmpty e1 ->
+      Bindlib.box_apply
+        (fun e1 -> (ErrorOnEmpty e1, Pos.get_position e1))
+        (box_expr e1)
+
 module VarMap = Map.Make (Var)
 module VarSet = Set.Make (Var)
 
@@ -356,7 +411,7 @@ and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
 let rec unfold_scope_body_expr (ctx : decl_ctx) (scope_let : scope_body_expr) :
     expr Pos.marked Bindlib.box =
   match scope_let with
-  | Result e -> Bindlib.box e
+  | Result e -> box_expr e
   | ScopeLet
       {
         scope_let_kind = _;
@@ -366,14 +421,15 @@ let rec unfold_scope_body_expr (ctx : decl_ctx) (scope_let : scope_body_expr) :
         scope_let_pos;
       } ->
       let var, next = Bindlib.unbind scope_let_next in
-      make_let_in var scope_let_typ
-        (Bindlib.box scope_let_expr)
+      make_let_in var scope_let_typ (box_expr scope_let_expr)
         (unfold_scope_body_expr ctx next)
         scope_let_pos
 
 let build_whole_scope_expr
     (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
+  Cli.debug_format "Getting variable %s_%d" (Bindlib.name_of var)
+    (Bindlib.uid_of var);
   let body_expr = unfold_scope_body_expr ctx body_expr in
   make_abs
     (Array.of_list [ var ])
