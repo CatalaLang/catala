@@ -1,0 +1,8 @@
+## Test
+
+```catala
+declaration structure Foo:
+
+declaration scope Bar:
+  internal foo content Foo
+```

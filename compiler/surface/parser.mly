@@ -617,7 +617,7 @@ code_item:
     scope_decl_context = context;
   }, Pos.from_lpos $sloc)
 }
-| DECLARATION ENUM c = constructor COLON cases = nonempty_list(enum_decl_line) {
+| DECLARATION ENUM c = constructor COLON cases = list(enum_decl_line) {
   (EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;

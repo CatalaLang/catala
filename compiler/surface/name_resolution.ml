@@ -377,6 +377,12 @@ let process_struct_decl (ctxt : context) (sdecl : Ast.struct_decl) : context =
   let s_uid =
     Desugared.Ast.IdentMap.find (fst sdecl.struct_decl_name) ctxt.struct_idmap
   in
+  if List.length sdecl.struct_decl_fields = 0 then
+    Errors.raise_spanned_error
+      (Pos.get_position sdecl.struct_decl_name)
+      "The struct %s does not have any fields; give it some for Catala to be \
+       able to accept it."
+      (Pos.unmark sdecl.struct_decl_name);
   List.fold_left
     (fun ctxt (fdecl, _) ->
       let f_uid =
@@ -420,6 +426,12 @@ let process_enum_decl (ctxt : context) (edecl : Ast.enum_decl) : context =
   let e_uid =
     Desugared.Ast.IdentMap.find (fst edecl.enum_decl_name) ctxt.enum_idmap
   in
+  if List.length edecl.enum_decl_cases = 0 then
+    Errors.raise_spanned_error
+      (Pos.get_position edecl.enum_decl_name)
+      "The enum %s does not have any cases; give it some for Catala to be able \
+       to accept it."
+      (Pos.unmark edecl.enum_decl_name);
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
       let c_uid =

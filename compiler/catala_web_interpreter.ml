@@ -19,7 +19,7 @@ let _ =
              backend = "Interpret";
              language = Some (Js.to_string language);
              max_prec_digits = None;
-             trace = false;
+             trace;
              disable_counterexamples = false;
              optimize = false;
              ex_scope = Some (Js.to_string scope);

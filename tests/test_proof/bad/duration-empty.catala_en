@@ -1,0 +1,11 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content duration
+  context y content boolean
+
+scope A:
+  definition x equals 94 day
+  definition y under condition (x +^ x) >^ 100 day consequence equals true
+```
