@@ -17,7 +17,6 @@
 open Utils
 module D = Dcalc.Ast
 module A = Ast
-open Dcalc.Binded_representation
 
 (** The main idea around this pass is to compile Dcalc to Lcalc without using
     [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the
@@ -392,7 +391,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
       A.make_matchopt pos_hoist v (D.TAny, pos_hoist) c' (A.make_none pos_hoist)
         acc)
 
-let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
+let rec translate_scope_let (ctx : ctx) (lets : D.scope_body_expr) =
   match lets with
   | Result e -> translate_expr ~append_esome:false ctx e
   | ScopeLet
@@ -484,11 +483,11 @@ let rec translate_scope_let (ctx : ctx) (lets : scope_lets) =
         (translate_expr ctx ~append_esome:false expr)
         (translate_scope_let ctx' next)
 
-let translate_scope_body (scope_pos : Pos.t) (ctx : ctx) (body : scope_body) :
+let translate_scope_body (scope_pos : Pos.t) (ctx : ctx) (body : D.scope_body) :
     A.expr Pos.marked Bindlib.box =
   match body with
   | {
-   scope_body_result = result;
+   scope_body_expr = result;
    scope_body_input_struct = input_struct;
    scope_body_output_struct = _output_struct;
   } ->
@@ -502,7 +501,7 @@ let translate_scope_body (scope_pos : Pos.t) (ctx : ctx) (body : scope_body) :
         [ (D.TTuple ([], Some input_struct), Pos.no_pos) ]
         Pos.no_pos
 
-let rec translate_scopes (ctx : ctx) (scopes : scopes) :
+let rec translate_scopes (ctx : ctx) (scopes : D.scopes) :
     Ast.scope_body list Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box []
@@ -528,13 +527,13 @@ let rec translate_scopes (ctx : ctx) (scopes : scopes) :
           :: tail)
         new_body tail
 
-let translate_scopes (ctx : ctx) (scopes : scopes) : Ast.scope_body list =
+let translate_scopes (ctx : ctx) (scopes : D.scopes) : Ast.scope_body list =
   Bindlib.unbox (translate_scopes ctx scopes)
 
 let translate_program (prgm : D.program) : A.program =
   let inputs_structs =
-    ListLabels.fold_left prgm.scopes ~init:[] ~f:(fun acc (_, _, body) ->
-        body.D.scope_body_input_struct :: acc)
+    D.fold_scope_defs prgm.scopes ~init:[] ~f:(fun acc scope_def ->
+        scope_def.D.scope_body.scope_body_input_struct :: acc)
   in
 
   (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
@@ -566,8 +565,7 @@ let translate_program (prgm : D.program) : A.program =
   in
 
   let scopes =
-    prgm.scopes |> bind_scopes |> Bindlib.unbox
-    |> translate_scopes { decl_ctx; vars = D.VarMap.empty }
+    prgm.scopes |> translate_scopes { decl_ctx; vars = D.VarMap.empty }
   in
 
   { scopes; decl_ctx }

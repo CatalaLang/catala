@@ -62,6 +62,7 @@ module Var = struct
 end
 
 module VarMap = Map.Make (Var)
+module VarSet = Set.Make (Var)
 
 type vars = expr Bindlib.mvar
 
@@ -90,8 +91,15 @@ let make_let_in
     (e1 : expr Pos.marked Bindlib.box)
     (e2 : expr Pos.marked Bindlib.box) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position (Bindlib.unbox e2) in
-
   make_app (make_abs (Array.of_list [ x ]) e2 pos [ tau ] pos) [ e1 ] pos
+
+let make_multiple_let_in
+    (xs : Var.t array)
+    (taus : D.typ Pos.marked list)
+    (e1 : expr Pos.marked Bindlib.box list)
+    (e2 : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  make_app (make_abs xs e2 pos taus pos) e1 pos
 
 let ( let+ ) x f = Bindlib.box_apply f x
 let ( and+ ) x y = Bindlib.box_pair x y

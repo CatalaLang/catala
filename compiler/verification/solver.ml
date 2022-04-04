@@ -20,9 +20,8 @@ open Dcalc.Ast
     expressions [vcs] corresponding to verification conditions that must be
     discharged by Z3, and attempts to solve them **)
 let solve_vc
-    (prgm : program)
-    (decl_ctx : decl_ctx)
-    (vcs : Conditions.verification_condition list) : unit =
+    (decl_ctx : decl_ctx) (vcs : Conditions.verification_condition list) : unit
+    =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
   Z3backend.Io.init_backend ();
@@ -34,12 +33,7 @@ let solve_vc
             let ctx, z3_vc =
               Z3backend.Io.translate_expr
                 (Z3backend.Io.make_context decl_ctx
-                   (VarMap.union
-                      (fun _ _ _ ->
-                        failwith
-                          "[Proof encoding]: A Variable cannot be both free \
-                           and bound")
-                      (variable_types prgm) vc.Conditions.vc_free_vars_typ))
+                   vc.Conditions.vc_free_vars_typ)
                 (Bindlib.unbox
                    (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
             in

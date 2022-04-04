@@ -215,10 +215,17 @@ let driver source_file (options : Cli.options) : int =
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_scope ~debug:options.debug prgm.decl_ctx)
-              (let _, _, s =
-                 List.find (fun (name, _, _) -> name = scope_uid) prgm.scopes
-               in
-               (scope_uid, s))
+              ( scope_uid,
+                Option.get
+                  (Dcalc.Ast.fold_scope_defs ~init:None
+                     ~f:(fun acc scope_def ->
+                       if
+                         Dcalc.Ast.ScopeName.compare scope_def.scope_name
+                           scope_uid
+                         = 0
+                       then Some scope_def.scope_body
+                       else acc)
+                     prgm.scopes) )
           else
             Format.fprintf fmt "%a\n"
               (Dcalc.Print.format_expr prgm.decl_ctx)
@@ -228,8 +235,8 @@ let driver source_file (options : Cli.options) : int =
         end;
         Cli.debug_print "Typechecking...";
         let _typ = Dcalc.Typing.infer_type prgm.decl_ctx prgrm_dcalc_expr in
-        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-           (Dcalc.Print.format_typ prgm.decl_ctx) typ); *)
+        (* Cli.debug_format "Typechecking results :@\n%a"
+           (Dcalc.Print.format_typ prgm.decl_ctx) typ; *)
         match backend with
         | Cli.Typecheck ->
             (* That's it! *)
@@ -242,7 +249,7 @@ let driver source_file (options : Cli.options) : int =
                 | None -> None
                 | Some _ -> Some scope_uid)
             in
-            Verification.Solver.solve_vc prgm prgm.decl_ctx vcs;
+            Verification.Solver.solve_vc prgm.decl_ctx vcs;
             0
         | Cli.Interpret ->
             Cli.debug_print "Starting interpretation...";
@@ -286,6 +293,23 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Optimizing lambda calculus...";
                 Lcalc.Optimizations.optimize_program prgm
               end
+              else prgm
+            in
+            let prgm =
+              if options.closure_conversion then (
+                Cli.debug_print "Performing closure conversion...";
+                let prgm, closures =
+                  Lcalc.Closure_conversion.closure_conversion prgm
+                in
+                let prgm = Bindlib.unbox prgm in
+                List.iter
+                  (fun closure ->
+                    Cli.debug_format "Closure found:\n%a"
+                      (Lcalc.Print.format_expr ~debug:options.debug
+                         prgm.decl_ctx)
+                      (Bindlib.unbox closure.Lcalc.Closure_conversion.expr))
+                  closures;
+                prgm)
               else prgm
             in
             if backend = Cli.Lcalc then begin

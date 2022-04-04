@@ -190,38 +190,71 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : expr Pos.marked)
 let optimize_expr (decl_ctx : decl_ctx) (e : expr Pos.marked) =
   partial_evaluation { var_values = VarMap.empty; decl_ctx } e
 
+let rec scope_lets_map
+    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (ctx : 'a)
+    (scope_body_expr : scope_body_expr) : scope_body_expr Bindlib.box =
+  match scope_body_expr with
+  | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
+  | ScopeLet scope_let ->
+      let var, next = Bindlib.unbind scope_let.scope_let_next in
+      let new_scope_let_expr = t ctx scope_let.scope_let_expr in
+      let new_next = scope_lets_map t ctx next in
+      let new_next = Bindlib.bind_var var new_next in
+      Bindlib.box_apply2
+        (fun new_scope_let_expr new_next ->
+          ScopeLet
+            {
+              scope_let with
+              scope_let_expr = new_scope_let_expr;
+              scope_let_next = new_next;
+            })
+        new_scope_let_expr new_next
+
+let rec scopes_map
+    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    (ctx : 'a)
+    (scopes : scopes) : scopes Bindlib.box =
+  match scopes with
+  | Nil -> Bindlib.box Nil
+  | ScopeDef scope_def ->
+      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      let scope_arg_var, scope_body_expr =
+        Bindlib.unbind scope_def.scope_body.scope_body_expr
+      in
+      let new_scope_body_expr = scope_lets_map t ctx scope_body_expr in
+      let new_scope_body_expr =
+        Bindlib.bind_var scope_arg_var new_scope_body_expr
+      in
+      let new_scope_next = scopes_map t ctx scope_next in
+      let new_scope_next = Bindlib.bind_var scope_var new_scope_next in
+      Bindlib.box_apply2
+        (fun new_scope_body_expr new_scope_next ->
+          ScopeDef
+            {
+              scope_def with
+              scope_next = new_scope_next;
+              scope_body =
+                {
+                  scope_def.scope_body with
+                  scope_body_expr = new_scope_body_expr;
+                };
+            })
+        new_scope_body_expr new_scope_next
+
 let program_map
     (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
     (ctx : 'a)
-    (p : program) : program =
-  {
-    p with
-    scopes =
-      List.map
-        (fun (s_name, s_var, s_body) ->
-          let new_s_body =
-            {
-              s_body with
-              scope_body_lets =
-                List.map
-                  (fun scope_let ->
-                    {
-                      scope_let with
-                      scope_let_expr =
-                        Bindlib.unbox
-                          (Bindlib.box_apply (t ctx) scope_let.scope_let_expr);
-                    })
-                  s_body.scope_body_lets;
-            }
-          in
-          (s_name, s_var, new_s_body))
-        p.scopes;
-  }
+    (p : program) : program Bindlib.box =
+  Bindlib.box_apply
+    (fun new_scopes -> { p with scopes = new_scopes })
+    (scopes_map t ctx p.scopes)
 
 let optimize_program (p : program) : program =
-  program_map partial_evaluation
-    { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
-    p
+  Bindlib.unbox
+    (program_map partial_evaluation
+       { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
+       p)
 
 let rec remove_all_logs (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   let pos = Pos.get_position e in

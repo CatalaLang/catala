@@ -217,6 +217,7 @@ let add_reset_rules_aux
         Lit redirect;
         Var "expected_output";
         Lit "2>&1";
+        Lit "| true";
       ]
   in
   let reset_with_scope_rule =
