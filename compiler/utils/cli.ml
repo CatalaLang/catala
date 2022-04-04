@@ -115,6 +115,12 @@ let avoid_exceptions =
     & info [ "avoid_exceptions" ]
         ~doc:"Compiles the default calculus without exceptions")
 
+let closure_conversion =
+  Arg.(
+    value & flag
+    & info [ "closure_conversion" ]
+        ~doc:"Performs closure conversion on the lambda calculus")
+
 let wrap_weaved_output =
   Arg.(
     value & flag
@@ -186,6 +192,7 @@ type options = {
   optimize : bool;
   ex_scope : string option;
   output_file : string option;
+  closure_conversion : bool;
 }
 
 let options =
@@ -194,6 +201,7 @@ let options =
       unstyled
       wrap_weaved_output
       avoid_exceptions
+      closure_conversion
       backend
       language
       max_prec_digits
@@ -215,11 +223,12 @@ let options =
       optimize;
       ex_scope;
       output_file;
+      closure_conversion;
     }
   in
   Term.(
     const make $ debug $ unstyled $ wrap_weaved_output $ avoid_exceptions
-    $ backend $ language $ max_prec_digits_opt $ trace_opt
+    $ closure_conversion $ backend $ language $ max_prec_digits_opt $ trace_opt
     $ disable_counterexamples_opt $ optimize $ ex_scope $ output)
 
 let catala_t f = Term.(const f $ file $ options)

@@ -17,6 +17,9 @@
 open Ast
 open Utils
 
+(** TODO: This version is not yet debugged and ought to be specialized when
+    Lcalc has more structure. *)
+
 type closure = { name : Var.t; expr : expr Pos.marked Bindlib.box }
 type ctx = { name_context : string; globally_bound_vars : VarSet.t }
 
