@@ -1,13 +1,3 @@
-[RESULT] [Amount.is_student] This variable never returns an empty error
-[RESULT] [Amount.is_student] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.is_professor] This variable never returns an empty error
-[RESULT] [Amount.is_professor] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.number_of_advisors] This variable never returns an empty error
-[RESULT] [Amount.number_of_advisors] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.eligibility.is_student] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.eligibility.is_professor] No two exceptions to ever overlap for this variable
-[RESULT] [Amount.correct_amount] This variable never returns an empty error
-[RESULT] [Amount.correct_amount] No two exceptions to ever overlap for this variable
 [ERROR] [Amount.amount] This variable might return an empty error:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
@@ -17,12 +7,16 @@
    +-+ Amount
 Counterexample generation is disabled so none was generated.
 [RESULT] [Amount.amount] No two exceptions to ever overlap for this variable
-[RESULT] [Eligibility.is_student] This variable never returns an empty error
-[RESULT] [Eligibility.is_student] No two exceptions to ever overlap for this variable
-[RESULT] [Eligibility.is_professor] This variable never returns an empty error
-[RESULT] [Eligibility.is_professor] No two exceptions to ever overlap for this variable
-[RESULT] [Eligibility.is_eligible_correct] This variable never returns an empty error
-[RESULT] [Eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.correct_amount] This variable never returns an empty error
+[RESULT] [Amount.correct_amount] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_professor] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.eligibility.is_student] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.is_professor] This variable never returns an empty error
+[RESULT] [Amount.is_professor] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.is_student] This variable never returns an empty error
+[RESULT] [Amount.is_student] No two exceptions to ever overlap for this variable
+[RESULT] [Amount.number_of_advisors] This variable never returns an empty error
+[RESULT] [Amount.number_of_advisors] No two exceptions to ever overlap for this variable
 [ERROR] [Eligibility.is_eligible] This variable might return an empty error:
   --> tests/test_proof/bad/prolala_motivating_example.catala_en
    | 
@@ -39,3 +33,9 @@ Counterexample generation is disabled so none was generated.
    + ProLaLa 2022 Super Cash Bonus
    +-+ Eligibility
 Counterexample generation is disabled so none was generated.
+[RESULT] [Eligibility.is_eligible_correct] This variable never returns an empty error
+[RESULT] [Eligibility.is_eligible_correct] No two exceptions to ever overlap for this variable
+[RESULT] [Eligibility.is_professor] This variable never returns an empty error
+[RESULT] [Eligibility.is_professor] No two exceptions to ever overlap for this variable
+[RESULT] [Eligibility.is_student] This variable never returns an empty error
+[RESULT] [Eligibility.is_student] No two exceptions to ever overlap for this variable

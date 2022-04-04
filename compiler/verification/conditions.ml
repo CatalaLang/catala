@@ -431,4 +431,15 @@ let rec generate_verification_conditions_scopes
 let generate_verification_conditions
     (p : program) (s : Dcalc.Ast.ScopeName.t option) :
     verification_condition list =
-  generate_verification_conditions_scopes p.decl_ctx p.scopes s
+  let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
+  (* We sort this list by scope name and then variable name to ensure consistent
+     output for testing*)
+  List.sort
+    (fun vc1 vc2 ->
+      let to_str vc =
+        Format.asprintf "%s.%s"
+          (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+          (Bindlib.name_of (Pos.unmark vc.vc_variable))
+      in
+      String.compare (to_str vc1) (to_str vc2))
+    vcs
