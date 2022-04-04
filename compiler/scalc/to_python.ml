@@ -197,7 +197,8 @@ module IntMap = Map.Make (Int)
 (** For each `LocalName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep
     variable naming with low indices rather than one global counter for all
-    variables. *)
+    variables. TODO: should be removed when
+    https://github.com/CatalaLang/catala/issues/240 is fixed. *)
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : LocalName.t) : unit =

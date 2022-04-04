@@ -97,7 +97,9 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
   | _ ->
       let tmp_var =
         A.LocalName.fresh
-          ( (*This piece of logic is used to make the code more readable *)
+          ( (*This piece of logic is used to make the code more readable. TODO:
+              should be removed when
+              https://github.com/CatalaLang/catala/issues/240 is fixed. *)
             (match ctxt.inside_definition_of with
             | None -> ctxt.context_name
             | Some v ->
