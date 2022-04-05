@@ -27,8 +27,21 @@ déclaration structure Bailleur:
 déclaration structure Location:
   donnée bailleur contenu Bailleur
 
+déclaration énumération TypePrêt:
+  -- D331_32
+  -- D331_63_64
+  -- D331_59_8
+  -- D331_76_1
+  -- Autre
+
+déclaration énumération TitulairePrêt:
+  -- Demandeur
+  -- VendeurQuandDemandeurAContratLocationAccession
+
 déclaration structure Prêt:
-  donnée conditions_octroi_l831_1_1 contenu booléen
+  donnée type_prêt contenu TypePrêt
+  donnée date_signature contenu date
+  donnée titulaire_prêt contenu TitulairePrêt
 
 déclaration structure Propriétaire:
   donnée prêt contenu Prêt
@@ -64,6 +77,8 @@ déclaration structure Logement:
   donnée logement_decent_l89_462 contenu booléen
   donnée loyers_l823_3 contenu argent
   donnée surface_m_carrés contenu entier
+  donnée est_ancien_l831_2 contenu booléen
+  donnée situé_commune_déséquilibre_l831_2 contenu booléen
 
 déclaration structure EnfantÀCharge:
   donnée bénéficie_titre_personnel_aide_personnelle_logement
@@ -133,11 +148,15 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne patrimoine_total_demandeur contenu argent
   interne condition_spécifique_prise_en_compte_revenus_demandeur condition
   interne condition_nationalité condition
+  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
+  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
   interne prise_en_compte_personne_à_charge condition
     dépend de PersonneÀCharge
   interne personnes_à_charge_prises_en_compte contenu collection PersonneÀCharge
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
+  interne condition_logement_bailleur condition
+  interne condition_logement_prêt condition
   interne condition_logement_surface_minimale_sans_seuil_m_carrés contenu entier
   interne nombre_personnes_logement contenu entier
   interne condition_logement_surface condition
@@ -245,6 +264,7 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   entrée zone contenu ZoneDHabitation
   entrée situation_familiale contenu SituationFamiliale
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  interne fraction_l832_3 contenu décimal
 
   entrée nombre_personnes_à_charge contenu entier
   entrée type_aide contenu TypeAidePersonnelleLogement
