@@ -181,6 +181,79 @@ type program = { decl_ctx : decl_ctx; scopes : scopes }
 
 (** {1 Helpers} *)
 
+(** {2 Boxed constructors}*)
+
+val evar : expr Bindlib.var -> Pos.t -> expr Pos.marked Bindlib.box
+
+val etuple :
+  expr Pos.marked Bindlib.box list ->
+  StructName.t option ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val etupleaccess :
+  expr Pos.marked Bindlib.box ->
+  int ->
+  StructName.t option ->
+  typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val einj :
+  expr Pos.marked Bindlib.box ->
+  int ->
+  EnumName.t ->
+  typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val ematch :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  EnumName.t ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val earray :
+  expr Pos.marked Bindlib.box list -> Pos.t -> expr Pos.marked Bindlib.box
+
+val elit : lit -> Pos.t -> expr Pos.marked Bindlib.box
+
+val eabs :
+  (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box ->
+  Pos.t ->
+  typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eapp :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eassert :
+  expr Pos.marked Bindlib.box -> Pos.t -> expr Pos.marked Bindlib.box
+
+val eop : operator -> Pos.t -> expr Pos.marked Bindlib.box
+
+val edefault :
+  expr Pos.marked Bindlib.box list ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eifthenelse :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eerroronempty :
+  expr Pos.marked Bindlib.box -> Pos.t -> expr Pos.marked Bindlib.box
+
 (**{2 Program traversal}*)
 
 (** Be careful when using these traversal functions, as the bound variables they

@@ -159,6 +159,93 @@ and scopes = Nil | ScopeDef of scope_def
 
 type program = { decl_ctx : decl_ctx; scopes : scopes }
 
+let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun v' -> (v', pos)) (Bindlib.box_var v)
+
+let etuple
+    (args : expr Pos.marked Bindlib.box list)
+    (s : StructName.t option)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun args -> (ETuple (args, s), pos))
+    (Bindlib.box_list args)
+
+let etupleaccess
+    (e1 : expr Pos.marked Bindlib.box)
+    (i : int)
+    (s : StructName.t option)
+    (typs : typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (ETupleAccess (e1, i, s, typs), pos)) e1
+
+let einj
+    (e1 : expr Pos.marked Bindlib.box)
+    (i : int)
+    (e_name : EnumName.t)
+    (typs : typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (EInj (e1, i, e_name, typs), pos)) e1
+
+let ematch
+    (arg : expr Pos.marked Bindlib.box)
+    (arms : expr Pos.marked Bindlib.box list)
+    (e_name : EnumName.t)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun arg arms -> (EMatch (arg, arms, e_name), pos))
+    arg (Bindlib.box_list arms)
+
+let earray (args : expr Pos.marked Bindlib.box list) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun args -> (EArray args, pos)) (Bindlib.box_list args)
+
+let elit (l : lit) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box (ELit l, pos)
+
+let eabs
+    (binder : (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box)
+    (pos_binder : Pos.t)
+    (typs : typ Pos.marked list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply
+    (fun binder -> (EAbs ((binder, pos_binder), typs), pos))
+    binder
+
+let eapp
+    (e1 : expr Pos.marked Bindlib.box)
+    (args : expr Pos.marked Bindlib.box list)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply2
+    (fun e1 args -> (EApp (e1, args), pos))
+    e1 (Bindlib.box_list args)
+
+let eassert (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (EAssert e1, pos)) e1
+
+let eop (op : operator) (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box (EOp op, pos)
+
+let edefault
+    (excepts : expr Pos.marked Bindlib.box list)
+    (just : expr Pos.marked Bindlib.box)
+    (cons : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply3
+    (fun excepts just cons -> (EDefault (excepts, just, cons), pos))
+    (Bindlib.box_list excepts) just cons
+
+let eifthenelse
+    (e1 : expr Pos.marked Bindlib.box)
+    (e2 : expr Pos.marked Bindlib.box)
+    (e3 : expr Pos.marked Bindlib.box)
+    (pos : Pos.t) : expr Pos.marked Bindlib.box =
+  Bindlib.box_apply3 (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), pos)) e1 e2 e3
+
+let eerroronempty (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
+    expr Pos.marked Bindlib.box =
+  Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, pos)) e1
+
 let rec fold_scope_lets
     ~(f : 'a -> scope_let -> 'a)
     ~(init : 'a)
