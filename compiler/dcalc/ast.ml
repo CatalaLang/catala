@@ -278,58 +278,31 @@ end
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
 let rec box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   match Pos.unmark e with
-  | EVar (v, _pos) ->
-      Bindlib.box_apply (fun v -> (v, Pos.get_position e)) (Bindlib.box_var v)
+  | EVar (v, _pos) -> evar v (Pos.get_position e)
   | EApp (f, args) ->
-      Bindlib.box_apply2
-        (fun f args -> (EApp (f, args), Pos.get_position e))
-        (box_expr f)
-        (Bindlib.box_list (List.map box_expr args))
+      eapp (box_expr f) (List.map box_expr args) (Pos.get_position e)
   | EAbs ((binder, binder_pos), typs) ->
-      Bindlib.box_apply
-        (fun binder -> (EAbs ((binder, binder_pos), typs), Pos.get_position e))
+      eabs
         (Bindlib.box_mbinder box_expr binder)
-  | ETuple (args, s) ->
-      Bindlib.box_apply
-        (fun args -> (ETuple (args, s), Pos.get_position e))
-        (Bindlib.box_list (List.map box_expr args))
+        binder_pos typs (Pos.get_position e)
+  | ETuple (args, s) -> etuple (List.map box_expr args) s (Pos.get_position e)
   | ETupleAccess (e1, n, s_name, typs) ->
-      Bindlib.box_apply
-        (fun e1 -> (ETupleAccess (e1, n, s_name, typs), Pos.get_position e))
-        (box_expr e1)
-  | EInj (e1, i, e_name, typ) ->
-      Bindlib.box_apply
-        (fun e1 -> (EInj (e1, i, e_name, typ), Pos.get_position e))
-        (box_expr e1)
+      etupleaccess (box_expr e1) n s_name typs (Pos.get_position e)
+  | EInj (e1, i, e_name, typs) ->
+      einj (box_expr e1) i e_name typs (Pos.get_position e)
   | EMatch (arg, arms, e_name) ->
-      Bindlib.box_apply2
-        (fun arg arms -> (EMatch (arg, arms, e_name), Pos.get_position e))
-        (box_expr arg)
-        (Bindlib.box_list (List.map box_expr arms))
-  | EArray args ->
-      Bindlib.box_apply
-        (fun args -> (EArray args, Pos.get_position e))
-        (Bindlib.box_list (List.map box_expr args))
-  | ELit l -> Bindlib.box (ELit l, Pos.get_position e)
-  | EAssert e1 ->
-      Bindlib.box_apply
-        (fun e1 -> (EAssert e1, Pos.get_position e))
-        (box_expr e1)
+      ematch (box_expr arg) (List.map box_expr arms) e_name (Pos.get_position e)
+  | EArray args -> earray (List.map box_expr args) (Pos.get_position e)
+  | ELit l -> elit l (Pos.get_position e)
+  | EAssert e1 -> eassert (box_expr e1) (Pos.get_position e)
   | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
   | EDefault (excepts, just, cons) ->
-      Bindlib.box_apply3
-        (fun excepts just cons ->
-          (EDefault (excepts, just, cons), Pos.get_position e))
-        (Bindlib.box_list (List.map box_expr excepts))
-        (box_expr just) (box_expr cons)
+      edefault
+        (List.map box_expr excepts)
+        (box_expr just) (box_expr cons) (Pos.get_position e)
   | EIfThenElse (e1, e2, e3) ->
-      Bindlib.box_apply3
-        (fun e1 e2 e3 -> (EIfThenElse (e1, e2, e3), Pos.get_position e))
-        (box_expr e1) (box_expr e2) (box_expr e3)
-  | ErrorOnEmpty e1 ->
-      Bindlib.box_apply
-        (fun e1 -> (ErrorOnEmpty e1, Pos.get_position e1))
-        (box_expr e1)
+      eifthenelse (box_expr e1) (box_expr e2) (box_expr e3) (Pos.get_position e)
+  | ErrorOnEmpty e1 -> eerroronempty (box_expr e1) (Pos.get_position e)
 
 module VarMap = Map.Make (Var)
 module VarSet = Set.Make (Var)
