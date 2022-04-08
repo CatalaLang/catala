@@ -1372,7 +1372,17 @@ location-accession, par les règles figurant aux articles R. 842-5
 et D. 842-6 à D. 842-13.
 
 ```catala
-# Renvoi aux différents modes d'occupation définis dans le prologue.
+# TODO juridique et informatique: identifier les 5 modes de calculs différents,
+# leur donner un nom et les différencier dans l'énumération CatégorieCalculAPL.
+champ d'application CalculAidePersonnelleLogement:
+  définition catégorie_calcul_apl égal à
+    selon mode_occupation sous forme
+    -- Locataire: Location
+    -- SousLocataire: Location
+    -- RésidentLogementFoyer: LogementFoyer
+    -- AccessionPropriétéLocalUsageExclusifHabitation: AccessionPropriété
+    -- LocationAccession: AccessionPropriété
+    -- ModeOccupation.Autre: Location # Non éligible aux APL
 ```
 
 ####### Sous-section 1 : Ouverture et extinction des droits
@@ -1500,7 +1510,12 @@ est calculé selon la formule suivante :
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale état formule égal à
+  définition aide_finale sous condition
+    catégorie_calcul_apl sous forme Location
+  conséquence égal à
+    aide_finale_locatif
+
+  définition aide_finale_locatif état formule égal à
     loyer_éligible +€ montant_forfaitaire_charges -€ participation_personnelle
 ```
 
@@ -1548,21 +1563,21 @@ l'enfant handicapé prévue à l'article L. 541-1 du même code.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale état diminué égal à
+  définition aide_finale_locatif état diminué égal à
     si loyer_principal >€ plafond_suppression_d823_16 alors
       0€
     sinon (si loyer_principal >€ plafond_dégressivité_d823_16 alors
-        aide_finale -€ (aide_finale *€
+        aide_finale_locatif -€ (aide_finale_locatif *€
           (loyer_principal -€ plafond_dégressivité_d823_16) /€
           (plafond_suppression_d823_16 -€ plafond_dégressivité_d823_16)
         )
         # Faire un graphique pour se convaincre que la pente proportionnelle
         # a bien cette expression.
-    sinon aide_finale)
+    sinon aide_finale_locatif)
 
-  exception définition aide_finale état diminué sous condition
+  exception définition aide_finale_locatif état diminué sous condition
     bénéficiaire_aide_adulte_ou_enfant_handicapés
-  conséquence égal à aide_finale
+  conséquence égal à aide_finale_locatif
 
   assertion plafond_dégressivité_d823_16 >=€ plafond_loyer_d823_16_2 *€ 2,5
 ```
@@ -1571,9 +1586,9 @@ Le résultat ainsi obtenu est minoré d'un montant fixé forfaitairement par arr
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale état minoration_forfaitaire égal à
-    si aide_finale -€ montant_forfaitaire_d823_16 >=€ 0€ alors
-      aide_finale -€ montant_forfaitaire_d823_16
+  définition aide_finale_locatif état minoration_forfaitaire égal à
+    si aide_finale_locatif -€ montant_forfaitaire_d823_16 >=€ 0€ alors
+      aide_finale_locatif -€ montant_forfaitaire_d823_16
     sinon 0€
 ```
 
@@ -1583,13 +1598,13 @@ représentatif.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale état contributions_sociales_arrondi égal à
+  définition aide_finale_locatif état contributions_sociales_arrondi égal à
     si
-      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 0,5€)
-        +€ montant_contributions_sociales de aide_finale >=€ 0€
+      arrondi_argent de (aide_finale_locatif -€ montant_contributions_sociales de aide_finale_locatif -€ 0,5€)
+        +€ montant_contributions_sociales de aide_finale_locatif >=€ 0€
     alors
-      arrondi_argent de (aide_finale -€ montant_contributions_sociales de aide_finale -€ 0,5€)
-      +€ montant_contributions_sociales de aide_finale
+      arrondi_argent de (aide_finale_locatif -€ montant_contributions_sociales de aide_finale_locatif -€ 0,5€)
+      +€ montant_contributions_sociales de aide_finale_locatif
     sinon 0€
 ```
 
@@ -1608,8 +1623,8 @@ n'est pas procédé à son versement.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale état montant_minimal égal à
-    si aide_finale <€ montant_minimal_aide alors 0 € sinon aide_finale
+  définition aide_finale_locatif état montant_minimal égal à
+    si aide_finale_locatif <€ montant_minimal_aide alors 0 € sinon aide_finale_locatif
 ```
 
 ####### Article D823-17 | LEGIARTI000041419255
@@ -2760,10 +2775,21 @@ conventionné à taux révisable défini à l'article D. 331-75.
 
 Pour les propriétaires bénéficiant d'un prêt ouvrant droit à l'aide personnalisée au logement
 ou les titulaires d'un contrat de location-accession conclu dans les conditions prévues
-au 6° de l'article L. 831-1, le montant mensuel de l'aide est calculé selon la formule et l
-es modalités suivantes :
+au 6° de l'article L. 831-1, le montant mensuel de l'aide est calculé selon la formule et
+les modalités suivantes :
 
 " Af = K × (L + C-L0) "
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale sous condition
+    catégorie_calcul_apl sous forme AccessionPropriété
+  conséquence égal à aide_finale_accession_propriété
+
+  définition aide_finale_accession_propriété état formule égal à
+    (mensualité_éligible +€ montant_forfaitaire_charges -€
+      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10
+```
 
 où :
 
@@ -2775,32 +2801,95 @@ où :
 prise en compte dans la limite d'un plafond fixé par arrêté en fonction de la zone géographique,
 de la composition familiale et de la finalité de l'opération ;
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition mensualité_éligible égal à
+    si mensualité_principale >€ plafond_menusalité_d832_10_3 alors plafond_menusalité_d832_10_3
+    sinon mensualité_principale
+```
+
 4° " C " est le montant forfaitaire au titre des charges, fixé par arrêté en fonction de
 la composition familiale ;
 
+```catala
+# Ne donne pas précisément la formule mais uniquement le principe général,
+# on ne formalise pas ici.
+```
+
 5° " L0 " est la mensualité minimale, calculée selon les dispositions de l'article D. 832-15.
+
+```catala
+# Ne donne pas précisément la formule mais uniquement le principe général,
+# on ne formalise pas ici.
+```
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_accession_propriété état minoration_forfaitaire égal à
+    si aide_finale_accession_propriété -€ montant_forfaitaire_d832_10 >=€ 0€ alors
+      aide_finale_accession_propriété -€ montant_forfaitaire_d832_10
+    sinon 0€
+```
+
 Ce résultat est minoré d'un abattement au titre de la dépense nette minimale, dont les modalités
 de calcul sont fixées par l'article D. 832-17.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_accession_propriété état abattement égal à
+    si aide_finale_accession_propriété -€ abattement_d832_10 >=€ 0€ alors
+      aide_finale_accession_propriété -€ abattement_d832_10
+    sinon 0€
+```
 
 Ce dernier résultat, obtenu par application des dispositions précédentes, est diminué d'un montant
 représentatif des contributions sociales qui s'y appliquent, arrondi à l'euro inférieur,
 puis majoré de ce montant représentatif.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_accession_propriété état contributions_sociales_arrondi égal à
+    si
+      arrondi_argent de (aide_finale_accession_propriété -€
+        montant_contributions_sociales de aide_finale_accession_propriété -€ 0,5€)
+          +€ montant_contributions_sociales de aide_finale_accession_propriété >=€ 0€
+    alors
+      arrondi_argent de (aide_finale_accession_propriété -€
+        montant_contributions_sociales de aide_finale_accession_propriété -€ 0,5€)
+         +€ montant_contributions_sociales de aide_finale_accession_propriété
+    sinon 0€
+```
+
 Lorsque le montant mensuel de l'aide, ainsi calculé, est inférieur à un montant fixé par arrêté,
 il n'est pas procédé à son versement.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_accession_propriété état montant_minimal égal à
+    si aide_finale_accession_propriété <€ montant_minimal_aide alors 0 € sinon
+      aide_finale_accession_propriété
+```
 
 ####### Article D832-11 | LEGIARTI000038878744
 
 Le coefficient " K ", mentionné au 2° de l'article D. 832-10, est ainsi calculé selon la formule
 et les modalités suivantes :
 
-Vous pouvez consulter l'intégralité du texte avec ses images à partir de l'extrait du Journal
-officiel électronique authentifié accessible à l'adresse suivante :
+K =  0,95 - R / (cm * N)
 
-https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000038812273
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  # TODO informatique: faire l'arrondi à deux décimales préconisé par le 1°
+  définition coefficient_prise_en_charge_d832_10 égal à
+    0,95 -.
+      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
+        (coefficient_multiplicateur_d832_11 *€ n_nombre_parts_d832_11)
+      )
+  # Attention: ici coefficient_multiplicateur_d832_11 doit être un montant
+  # d'argent sinon problème d'homogénéité dans la formule.
+```
 
 où :
 
@@ -2823,6 +2912,26 @@ bénéficiaire isolé ou ménage ayant trois personnes à charge    |     3,7   
 bénéficiaire isolé ou ménage ayant quatre personnes à charge   |     4,3    |
 majoration par personne à charge supplémentaire                |     0,5    |
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition n_nombre_parts_d832_11 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 1,4
+      -- Couple: 1,8
+    sinon (si nombre_personnes_à_charge = 1 alors
+      2,5
+    sinon (si nombre_personnes_à_charge = 2 alors
+      3,0
+    sinon (si nombre_personnes_à_charge = 3 alors
+      3,7
+    sinon (si nombre_personnes_à_charge = 4 alors
+      4,3
+    sinon
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+    ))))
+```
+
 ####### Article D832-12 | LEGIARTI000039048893
 
 I.-La mensualité " L ", définie au 3° de l'article D. 832-10, est déterminée selon
@@ -2831,7 +2940,7 @@ les modalités suivantes, sur une base mensuelle :
 La mensualité est la somme :
 
 1° Des charges d'intérêts, ou des charges d'intérêts et d'amortissement et des charges
-accessoires au principal de la dette afférente aux prêts définis par les articles
+```accessoires au principal de la dette afférente aux prêts définis par les articles
 D. 331-32 et suivants et aux prêts complémentaires définis par arrêté. Ces prêts
 doivent avoir fait l'objet, pour chacun d'entre eux, d'un certificat daté et notifié
 au demandeur par les organismes prêteurs, précisant les modalités ainsi que la périodicité

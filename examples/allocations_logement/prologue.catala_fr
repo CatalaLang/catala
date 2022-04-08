@@ -247,8 +247,15 @@ déclaration énumération ZoneDHabitation:
   -- Zone2
   -- Zone3
 
+déclaration énumération CatégorieCalculAPL:
+  -- Location
+  -- AccessionPropriété
+  -- LogementFoyer
+
 déclaration champ d'application CalculAidePersonnelleLogement:
   sortie aide_finale contenu argent
+
+  interne aide_finale_locatif contenu argent
     état formule
     état diminué
     état minoration_forfaitaire
@@ -256,8 +263,19 @@ déclaration champ d'application CalculAidePersonnelleLogement:
     état réduction_loyer_solidarité
     état montant_minimal
 
+  interne aide_finale_accession_propriété contenu argent
+    état formule
+    état minoration_forfaitaire
+    état abattement
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+  entrée mode_occupation contenu ModeOccupation
+  interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne loyer_éligible contenu argent
+  interne mensualité_éligible contenu argent
   entrée loyer_principal contenu argent
+  entrée mensualité_principale contenu argent
   entrée date_courante contenu date
   entrée logement_est_chambre contenu booléen
   entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen
@@ -278,6 +296,14 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne rapport_loyers contenu décimal
   entrée colocation contenu booléen
 
+  interne mensualité_minimale contenu argent
+  interne plafond_menusalité_d832_10_3 contenu argent
+  interne montant_forfaitaire_d832_10 contenu argent
+  interne abattement_d832_10 contenu argent
+  interne coefficient_multiplicateur_d832_11 contenu argent
+  interne limite_supérieure_intervalle_ressource_ménage contenu argent
+  interne n_nombre_parts_d832_11 contenu décimal
+  interne coefficient_prise_en_charge_d832_10 contenu décimal
   interne participation_personnelle contenu argent
   interne montant_forfaitaire_d823_16 contenu argent
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés condition
