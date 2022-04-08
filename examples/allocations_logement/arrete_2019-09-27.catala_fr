@@ -289,7 +289,7 @@ Majoration par personne à charge	                    |   -0,06%
 # TODO juridique: rechercher si la distinction enfants/personnes est juste
 # un artefact de rédaction ou s'il y a vraiment une différence de calcul dans
 # le cas où e.g. il y a 3 enfants + 2 adultes à charges : doit on prendre 1,79%
-# ou 2,01%.
+# ou 2,01% ?
 # TODO juridique: que se passe-t-il quand il y a 29 personnes à charge et que
 # le taux devient négatif?
 champ d'application CalculAidePersonnelleLogement
@@ -555,9 +555,9 @@ Par personne supplémentaire à charge	                      |    306	    |    2
 
 ### Article 18 | LEGIARTI000042378436
 
-Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour les logements occupés 
+Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour les logements occupés
 par leur propriétaire, et financés par les prêts mentionnés au 2° de l'article R. 832-5, sont fixées *
-comme suit compte tenu de la date de signature du contrat de prêt figurant sur le certificat daté 
+comme suit compte tenu de la date de signature du contrat de prêt figurant sur le certificat daté
 prévu au 1° du I de l'article D. 832-12 :
 
 1° Lorsque la date de signature du contrat de prêt est intervenue après le 30 juin 1992 :
@@ -570,7 +570,7 @@ Couple sans personne à charge	                              |   2 515     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |   2 618     |   2 428
 Par personne supplémentaire à charge	                      |    430	    |    379      |    346
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -597,7 +597,7 @@ Couple sans personne à charge	                              |   2 390     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 799	    |   2 488     |   2 308
 Par personne supplémentaire à charge	                      |    409	    |    360      |    329
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -616,7 +616,7 @@ Couple sans personne à charge	                              |   1 414     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 827	    |   2 514     |   2 331
 Par personne supplémentaire à charge	                      |    413	    |    364      |    332
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -673,7 +673,7 @@ Couple sans personne à charge	                              |   376,89    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   441,37    |   392,33    |   363,93
 Par personne supplémentaire à charge	                      |    64,48	  |    56,77    |    51,83
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -692,7 +692,7 @@ Couple sans personne à charge	                              |   381,41    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   446,66    |   397,04    |   368,29
 Par personne supplémentaire à charge	                      |    65,25 	  |    57,45    |    52,45
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -711,7 +711,7 @@ Couple sans personne à charge	                              |   388,27    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   454,69    |   404,18    |   374,91
 Par personne supplémentaire à charge	                      |    66,42 	  |    58,48    |    53,39
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -730,7 +730,7 @@ Couple sans personne à charge	                              |   399,14    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   467,42    |   415,5     |   385,41
 Par personne supplémentaire à charge	                      |    68,28 	  |    60,12    |    54,88
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -749,7 +749,7 @@ Couple sans personne à charge	                              |   410,16    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   480,32    |   426,97    |   396,05
 Par personne supplémentaire à charge	                      |    70,16 	  |    61,78    |    56,39
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -768,7 +768,7 @@ Couple sans personne à charge	                              |   422,26    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   494,49    |   439,57    |   407,73
 Par personne supplémentaire à charge	                      |    72,23 	  |    63,6     |    58,05
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -787,7 +787,7 @@ Couple sans personne à charge	                              |   423,61    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   496,07    |   440,98    |   409,03
 Par personne supplémentaire à charge	                      |    72,46 	  |    63,8     |    58,24
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -806,7 +806,7 @@ Couple sans personne à charge	                              |   428,27    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   501,53    |   445,83    |   413,53
 Par personne supplémentaire à charge	                      |    73,26 	  |    64,5     |    58,88
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -825,7 +825,7 @@ Couple sans personne à charge	                              |   432,55    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   506,55    |   450,29    |   417,67
 Par personne supplémentaire à charge	                      |    73,99 	  |    65,15    |   459,47
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -844,7 +844,7 @@ Couple sans personne à charge	                              |   441,85    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   517,44    |   459,97    |   426,65
 Par personne supplémentaire à charge	                      |    75,58 	  |    66,55    |    60,75
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -863,7 +863,7 @@ Couple sans personne à charge	                              |   444,37    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,39    |   462,59    |   429,08
 Par personne supplémentaire à charge	                      |    76,01 	  |    66,93    |    61,1
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -882,7 +882,7 @@ Couple sans personne à charge	                              |   444,73    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,81    |   462,96    |   429,42
 Par personne supplémentaire à charge	                      |    76,07 	  |    66,98    |    61,15
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -901,7 +901,7 @@ Couple sans personne à charge	                              |   448,07    |   3
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   524,72    |   466,43    |   432,64
 Par personne supplémentaire à charge	                      |    76,64 	  |    67,48    |    61,61
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -920,7 +920,7 @@ Couple sans personne à charge	                              |   449,41    |   4
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   526,29    |   467,83    |   433,94
 Par personne supplémentaire à charge	                      |    76,87 	  |    67,68    |    61,79
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -931,16 +931,16 @@ Par personne supplémentaire à charge	                      |    62,01 	  |    
 
 ### Article 19 | LEGIARTI000044137412
 
-Pour l'application du 4° de l'article D. 832-10 du code de la construction et de l'habitation, le montant 
+Pour l'application du 4° de l'article D. 832-10 du code de la construction et de l'habitation, le montant
 forfaitaire des charges est fixé comme suit (en euros) :
 
 Désignation                                             |       Toutes zones
 Bénéficiaire isolé ou couple sans personne à charge	    |       54,22
 Par personne supplémentaire à charge	                  |       12,29
 
-NOTA : 
+NOTA :
 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour 
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
 ### Article 20 | LEGIARTI000039160765
@@ -949,7 +949,7 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10
 
 ### Article 21 | LEGIARTI000039160767
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même code, avant application de 
+Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même code, avant application de
 la contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
 ### Article 22 | LEGIARTI000039160769
@@ -958,15 +958,15 @@ Le coefficient « cm » défini au 3° de l'article D. 832-11 du même code est 
 
 ### Article 23 | LEGIARTI000039160771
 
-Pour le calcul de la mensualité minimale « L0 » prévu au 1° de l'article D. 832-15 du même code, 
-les pourcentages et les tranches de ressources sont fixés comme suit, lorsque la date de signature 
+Pour le calcul de la mensualité minimale « L0 » prévu au 1° de l'article D. 832-15 du même code,
+les pourcentages et les tranches de ressources sont fixés comme suit, lorsque la date de signature
 du contrat de prêt ou de location-accession est postérieure au 30 juin 1992 :
 
 1° 20,80 % pour la tranche de ressources inférieures ou égales à 5 600,85 euros ;
 
 2° 41,60 % pour la tranche de ressources supérieures à 5 600,85 euros.
 
-### Article 24 | LEGIARTI000044137409 
+### Article 24 | LEGIARTI000044137409
 
 Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
@@ -979,11 +979,11 @@ Bénéficiaire isolé	                    |       27,10
 Couple sans personne à charge	          |       54,22
 Majoration par personne à charge	      |       12,29
 
-NOTA : 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour 
+NOTA :
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
-### Article 25 | LEGIARTI000039160775 
+### Article 25 | LEGIARTI000039160775
 
 Le coefficient relatif au calcul de la dépense nette minimale prévu par l'article D. 832-17 du même code est fixé à :
 
@@ -993,13 +993,13 @@ Le coefficient relatif au calcul de la dépense nette minimale prévu par l'arti
 a) 0,0226 pour les prêts souscrits avant le 1er octobre 1998 ;
 b) 0,0234 pour les prêts souscrits à compter de cette dernière date.
 
-### Article 26 | LEGIARTI000039160777 
+### Article 26 | LEGIARTI000039160777
 
 Pour déterminer le plancher de ressources, le coefficient prévu à l'article D. 832-18 du même code est fixé à 16,25.
 
 ### Article 27 | LEGIARTI000044137406
 
-Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds 
+Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
 sont fixées comme suit (en euros) :
 
 Désignation                                                  | Zone I  | Zone II | Zone III
@@ -1011,31 +1011,31 @@ Bénéficiaire isolé ou couple ayant trois personnes à charge  | 636,35	 | 579
 Bénéficiaire isolé ou couple ayant quatre personnes à charge | 686,37	 | 617,27  | 576,57
 Par personne supplémentaire à charge	                       | 71,19   | 64,34	 | 59,71
 
-NOTA : 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables 
+NOTA :
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
-### Article 28 | LEGIARTI000039160781 
+### Article 28 | LEGIARTI000039160781
 
 Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24 du même code est fixé à 5 euros.
 
-### Article 29 | LEGIARTI000039160783 
+### Article 29 | LEGIARTI000039160783
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même code, avant application de la 
+Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même code, avant application de la
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
-### Article 30 | LEGIARTI000039160785 
+### Article 30 | LEGIARTI000039160785
 
-Les valeurs des coefficients définis à l'article D. 832-25 du même code intervenant dans la formule de calcul 
+Les valeurs des coefficients définis à l'article D. 832-25 du même code intervenant dans la formule de calcul
 du coefficient de prise en charge « K » sont fixées ainsi :
 
 1° 1 217,26 pour le coefficient « r » défini au c du 1° ;
 
 2° 13 393,40 et 21 420,91 pour le coefficient multiplicateur « cm » défini respectivement au d du 1° et au c du 2°.
 
-### Article 31 | LEGIARTI000039160787 
+### Article 31 | LEGIARTI000039160787
 
-I. - Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et 
+I. - Les pourcentages et les tranches de ressources intervenant dans le calcul de l'équivalence de loyer et
 de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du même code, sont fixés comme suit :
 
 1° 4,00 % pour la tranche de ressources inférieure ou égale à 1 948,10 euros ;
@@ -1052,13 +1052,13 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 
 II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont fixés respectivement à 45,57 et 76,32.
 
-### Article 32 | LEGIARTI000039160687 
+### Article 32 | LEGIARTI000039160687
 
-Le montant minimum de dépense nette de logement défini à l'article D. 832-27 du même code est fixé à 26,68 euros sauf 
-pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa de l'article 
+Le montant minimum de dépense nette de logement défini à l'article D. 832-27 du même code est fixé à 26,68 euros sauf
+pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa de l'article
 D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
 
-### Article 33 | LEGIARTI000041489184 
+### Article 33 | LEGIARTI000041489184
 
 
 ## Chapitre VIII : Prime de déménagement

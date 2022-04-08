@@ -115,8 +115,6 @@ d'habitation et constituant leur résidence principale.
 Les sous-locataires, sous les mêmes conditions, peuvent également en bénéficier.
 
 ```catala
-# TODO juridique: vérifier le cas de location-accession
-
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l822_2 règle condition_logement_mode_occupation sous condition
     selon ménage.logement.mode_occupation sous forme
@@ -125,7 +123,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- AccessionPropriétéLocalUsageExclusifHabitation:
         ménage.logement.résidence_principale
       -- SousLocataire: vrai
-      -- LocationAccession: vrai
+      -- LocationAccession: vrai # Justifié par L831-2, avec une exception à venir
       -- ModeOccupation.Autre: faux
   conséquence rempli
 ```
@@ -310,7 +308,7 @@ lorsque le demandeur est âgé de moins de vingt-cinq ans et qu'il dispose d'un
 contrat de travail autre qu'un contrat à durée indéterminée.
 
 ```catala
-# Todo juridique: que se passe-t-il si le demandeur est dans un ménage
+# TODO juridique: que se passe-t-il si le demandeur est dans un ménage?
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
@@ -580,12 +578,12 @@ conditions d'octroi sont fixées par voie réglementaire, sous les réserves
 
 ```catala
 # TODO juridique: trouver quelles sont ces mystérieuses conditions d'octroi
-# pour le prêt.
+# pour le prêt ? => Articles D331-1 et suivants du même code.
 
-# Ici, le 1°) vient affiner le principe général définit à L822-2 selon lequel
+# Ici, le 1° vient affiner le principe général définit à L822-2 selon lequel
 # tous les propriétaires ayant un prêt peuvent toucher les APL. En effet, ça
 # dépend du prêt (voir articles référés). Donc ici on vient apporter une
-# exception à la règle dec L822-2 quand les conditions relatives au prêt ne
+# exception à la règle de L822-2 quand les conditions relatives au prêt ne
 # sont pas remplies.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_logement_bailleur sous condition
