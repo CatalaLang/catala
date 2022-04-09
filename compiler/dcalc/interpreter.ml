@@ -439,7 +439,7 @@ and evaluate_expr (ctx : Ast.decl_ctx) (e : A.expr Pos.marked) :
                  ( Some "This consequence has a valid justification:",
                    Pos.get_position except ))
                (List.filter (fun sub -> not (is_empty_error sub)) exceptions))
-            "There is a conflict between multiple validd consequences for \
+            "There is a conflict between multiple valid consequences for \
              assigning the same variable.")
   | EIfThenElse (cond, et, ef) -> (
       match Pos.unmark (evaluate_expr ctx cond) with
