@@ -298,7 +298,7 @@ website-assets: doc literate_examples grammar.html catala.html build_french_law_
 
 #> all					: Run all make commands
 all: \
-	build doc website-assets\
+	build build_js doc website-assets\
 	tests \
 	generate_french_law_library_ocaml build_french_law_library_ocaml \
 	tests_ocaml bench_ocaml \

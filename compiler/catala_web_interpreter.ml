@@ -19,6 +19,7 @@ let _ =
              backend = "Interpret";
              language = Some (Js.to_string language);
              max_prec_digits = None;
+             closure_conversion = false;
              trace;
              disable_counterexamples = false;
              optimize = false;
