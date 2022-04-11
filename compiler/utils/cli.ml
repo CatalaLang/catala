@@ -339,11 +339,10 @@ let time_marker () =
   let old_time = !time in
   time := new_time;
   let delta = (new_time -. old_time) *. 1000. in
-  if delta > 50. then
-    Printf.printf "%s"
-      (with_style
-         [ ANSITerminal.Bold; ANSITerminal.black ]
-         "[TIME] %.0f ms\n" delta)
+  Printf.printf "%s"
+    (with_style
+       [ ANSITerminal.Bold; ANSITerminal.black ]
+       "[TIME] %.0f ms\n" delta)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
 let debug_marker () =
