@@ -27,9 +27,9 @@ let visitor_map
      syntax tree modified. Used in other transformations. *)
   let default_mark e' = Pos.same_pos_as e' e in
   match Pos.unmark e with
-  | EVar (v, pos) ->
+  | EVar (v, _pos) ->
       let+ v = Bindlib.box_var v in
-      (v, pos)
+      default_mark @@ v
   | ETuple (args, n) ->
       let+ args = args |> List.map (t ctx) |> Bindlib.box_list in
       default_mark @@ ETuple (args, n)

@@ -263,6 +263,28 @@ val eerroronempty :
 (** Be careful when using these traversal functions, as the bound variables they
     open will be different at each traversal. *)
 
+val map_expr :
+  'a ->
+  f:('a -> expr Pos.marked -> expr Pos.marked Bindlib.box) ->
+  expr Pos.marked ->
+  expr Pos.marked Bindlib.box
+(** If you want to apply a map transform to an expression, you can save up
+    writing a painful match over all the cases of the AST. For instance, if you
+    want to remove all errors on empty, you can write
+
+    {[
+      let remove_error_empty =
+        let rec f () e =
+          match Pos.unmark e with
+          | ErrorOnEmpty e1 -> map_expr () f e1
+          | _ -> map_expr () f e
+        in
+        f () e
+    ]}
+
+    The first argument of map_expr is an optional context that you can carry
+    around during your map traversal. *)
+
 val fold_scope_lets :
   f:('a -> 'expr scope_let -> 'a) -> init:'a -> 'expr scope_body_expr -> 'a
 
