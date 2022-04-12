@@ -1,4 +1,4 @@
-[ERROR] There is a conflict between multiple validd consequences for assigning the same variable.
+[ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
  --> tests/test_default/bad/conflict.catala_en

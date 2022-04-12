@@ -495,8 +495,6 @@ let rec unfold_scope_body_expr
 let build_whole_scope_expr
     (ctx : decl_ctx) (body : expr scope_body) (pos_scope : Pos.t) =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
-  Cli.debug_format "Getting variable %s_%d" (Bindlib.name_of var)
-    (Bindlib.uid_of var);
   let body_expr = unfold_scope_body_expr ctx body_expr in
   make_abs
     (Array.of_list [ var ])
