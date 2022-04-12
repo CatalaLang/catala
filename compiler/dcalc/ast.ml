@@ -280,40 +280,40 @@ end
 
 let map_expr
     (ctx : 'a)
-    (t : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
+    ~(f : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
     (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   match Pos.unmark e with
   | EVar (v, _pos) -> evar v (Pos.get_position e)
-  | EApp (f, args) ->
-      eapp (t ctx f) (List.map (t ctx) args) (Pos.get_position e)
+  | EApp (e1, args) ->
+      eapp (f ctx e1) (List.map (f ctx) args) (Pos.get_position e)
   | EAbs ((binder, binder_pos), typs) ->
       eabs
-        (Bindlib.box_mbinder (t ctx) binder)
+        (Bindlib.box_mbinder (f ctx) binder)
         binder_pos typs (Pos.get_position e)
-  | ETuple (args, s) -> etuple (List.map (t ctx) args) s (Pos.get_position e)
+  | ETuple (args, s) -> etuple (List.map (f ctx) args) s (Pos.get_position e)
   | ETupleAccess (e1, n, s_name, typs) ->
-      etupleaccess ((t ctx) e1) n s_name typs (Pos.get_position e)
+      etupleaccess ((f ctx) e1) n s_name typs (Pos.get_position e)
   | EInj (e1, i, e_name, typs) ->
-      einj ((t ctx) e1) i e_name typs (Pos.get_position e)
+      einj ((f ctx) e1) i e_name typs (Pos.get_position e)
   | EMatch (arg, arms, e_name) ->
-      ematch ((t ctx) arg) (List.map (t ctx) arms) e_name (Pos.get_position e)
-  | EArray args -> earray (List.map (t ctx) args) (Pos.get_position e)
+      ematch ((f ctx) arg) (List.map (f ctx) arms) e_name (Pos.get_position e)
+  | EArray args -> earray (List.map (f ctx) args) (Pos.get_position e)
   | ELit l -> elit l (Pos.get_position e)
-  | EAssert e1 -> eassert ((t ctx) e1) (Pos.get_position e)
+  | EAssert e1 -> eassert ((f ctx) e1) (Pos.get_position e)
   | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
   | EDefault (excepts, just, cons) ->
       edefault
-        (List.map (t ctx) excepts)
-        ((t ctx) just)
-        ((t ctx) cons)
+        (List.map (f ctx) excepts)
+        ((f ctx) just)
+        ((f ctx) cons)
         (Pos.get_position e)
   | EIfThenElse (e1, e2, e3) ->
-      eifthenelse ((t ctx) e1) ((t ctx) e2) ((t ctx) e3) (Pos.get_position e)
-  | ErrorOnEmpty e1 -> eerroronempty ((t ctx) e1) (Pos.get_position e)
+      eifthenelse ((f ctx) e1) ((f ctx) e2) ((f ctx) e3) (Pos.get_position e)
+  | ErrorOnEmpty e1 -> eerroronempty ((f ctx) e1) (Pos.get_position e)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
 let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
-  let rec id_t () e = map_expr () id_t e in
+  let rec id_t () e = map_expr () ~f:id_t e in
   id_t () e
 
 module VarMap = Map.Make (Var)
@@ -593,7 +593,7 @@ let rec expr_size (e : expr Pos.marked) : int =
 let remove_logging_calls (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   let rec f () e =
     match Pos.unmark e with
-    | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> map_expr () f arg
-    | _ -> map_expr () f e
+    | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> map_expr () ~f arg
+    | _ -> map_expr () ~f e
   in
   f () e

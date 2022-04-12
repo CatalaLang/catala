@@ -34,8 +34,7 @@ let solve_vc
               Z3backend.Io.translate_expr
                 (Z3backend.Io.make_context decl_ctx
                    vc.Conditions.vc_free_vars_typ)
-                (Bindlib.unbox
-                   (Dcalc.Optimizations.remove_all_logs vc.Conditions.vc_guard))
+                vc.Conditions.vc_guard
             in
             Z3backend.Io.Success (z3_vc, ctx)
           with Failure msg -> Fail msg ))

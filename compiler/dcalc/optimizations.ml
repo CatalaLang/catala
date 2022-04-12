@@ -256,32 +256,3 @@ let optimize_program (p : program) : program =
     (program_map partial_evaluation
        { var_values = VarMap.empty; decl_ctx = p.decl_ctx }
        p)
-
-let rec remove_all_logs (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
-  let pos = Pos.get_position e in
-  let rec_helper = remove_all_logs in
-  match Pos.unmark e with
-  | EVar (x, _) -> evar x pos
-  | ETuple (args, s_name) -> etuple (List.map rec_helper args) s_name pos
-  | ETupleAccess (arg, i, s_name, typs) ->
-      etupleaccess (rec_helper arg) i s_name typs pos
-  | EInj (arg, i, e_name, typs) -> einj (rec_helper arg) i e_name typs pos
-  | EMatch (arg, arms, e_name) ->
-      ematch (rec_helper arg) (List.map rec_helper arms) e_name pos
-  | EArray args -> earray (List.map rec_helper args) pos
-  | ELit l -> elit l pos
-  | EAbs ((binder, binder_pos), typs) ->
-      let vars, body = Bindlib.unmbind binder in
-      let new_body = rec_helper body in
-      let new_binder = Bindlib.bind_mvar vars new_body in
-      eabs new_binder binder_pos typs pos
-  | EApp (f, args) -> eapp (rec_helper f) (List.map rec_helper args) pos
-  | EAssert e1 -> eassert (rec_helper e1) pos
-  | EOp op -> eop op pos
-  | EDefault (exceptions, just, cons) ->
-      edefault
-        (List.map rec_helper exceptions)
-        (rec_helper just) (rec_helper cons) pos
-  | EIfThenElse (e1, e2, e3) ->
-      eifthenelse (rec_helper e1) (rec_helper e2) (rec_helper e3) pos
-  | ErrorOnEmpty e1 -> eerroronempty (rec_helper e1) pos
