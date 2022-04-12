@@ -144,40 +144,44 @@ type scope_let_kind =
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
   | Assertion  (** [let _ = assert e]*)
 
-type scope_let = {
+type 'expr scope_let = {
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ Utils.Pos.marked;
-  scope_let_expr : expr Utils.Pos.marked;
-  scope_let_next : (expr, scope_body_expr) Bindlib.binder;
+  scope_let_expr : 'expr Utils.Pos.marked;
+  scope_let_next : ('expr, 'expr scope_body_expr) Bindlib.binder;
   scope_let_pos : Utils.Pos.t;
 }
+(** This type is parametrized by the expression type so it can be reused in
+    later intermediate representations. *)
 
 (** A scope let-binding has all the information necessary to make a proper
     let-binding expression, plus an annotation for the kind of the let-binding
     that comes from the compilation of a {!module: Scopelang.Ast} statement. *)
-and scope_body_expr = Result of expr Utils.Pos.marked | ScopeLet of scope_let
+and 'expr scope_body_expr =
+  | Result of 'expr Utils.Pos.marked
+  | ScopeLet of 'expr scope_let
 
-type scope_body = {
+type 'expr scope_body = {
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
-  scope_body_expr : (expr, scope_body_expr) Bindlib.binder;
+  scope_body_expr : ('expr, 'expr scope_body_expr) Bindlib.binder;
 }
 (** Instead of being a single expression, we give a little more ad-hoc structure
     to the scope body by decomposing it in an ordered list of let-bindings, and
     a result expression that uses the let-binded variables. The first binder is
     the argument of type [scope_body_input_struct]. *)
 
-type scope_def = {
+type 'expr scope_def = {
   scope_name : ScopeName.t;
-  scope_body : scope_body;
-  scope_next : (expr, scopes) Bindlib.binder;
+  scope_body : 'expr scope_body;
+  scope_next : (expr, 'expr scopes) Bindlib.binder;
 }
 
 (** Finally, we do the same transformation for the whole program for the kinded
     lets. This permit us to use bindlib variables for scopes names. *)
-and scopes = Nil | ScopeDef of scope_def
+and 'a scopes = Nil | ScopeDef of 'a scope_def
 
-type program = { decl_ctx : decl_ctx; scopes : scopes }
+type program = { decl_ctx : decl_ctx; scopes : expr scopes }
 
 (** {1 Helpers} *)
 
@@ -260,9 +264,10 @@ val eerroronempty :
     open will be different at each traversal. *)
 
 val fold_scope_lets :
-  f:('a -> scope_let -> 'a) -> init:'a -> scope_body_expr -> 'a
+  f:('a -> 'expr scope_let -> 'a) -> init:'a -> 'expr scope_body_expr -> 'a
 
-val fold_scope_defs : f:('a -> scope_def -> 'a) -> init:'a -> scopes -> 'a
+val fold_scope_defs :
+  f:('a -> 'expr scope_def -> 'a) -> init:'a -> 'expr scopes -> 'a
 
 (** {2 Variables}*)
 
@@ -277,9 +282,9 @@ module VarMap : Map.S with type key = Var.t
 module VarSet : Set.S with type elt = Var.t
 
 val free_vars_expr : expr Pos.marked -> VarSet.t
-val free_vars_scope_body_expr : scope_body_expr -> VarSet.t
-val free_vars_scope_body : scope_body -> VarSet.t
-val free_vars_scopes : scopes -> VarSet.t
+val free_vars_scope_body_expr : expr scope_body_expr -> VarSet.t
+val free_vars_scope_body : expr scope_body -> VarSet.t
+val free_vars_scopes : expr scopes -> VarSet.t
 
 type vars = expr Bindlib.mvar
 
@@ -318,7 +323,7 @@ val equal_exprs : expr Pos.marked -> expr Pos.marked -> bool
 (** {1 AST manipulation helpers}*)
 
 val build_whole_scope_expr :
-  decl_ctx -> scope_body -> Pos.t -> expr Pos.marked Bindlib.box
+  decl_ctx -> expr scope_body -> Pos.t -> expr Pos.marked Bindlib.box
 (** Usage: [build_whole_scope_expr ctx body scope_position] where
     [scope_position] corresponds to the line of the scope declaration for
     instance. *)

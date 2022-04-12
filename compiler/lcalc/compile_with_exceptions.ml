@@ -148,8 +148,9 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
       translate_default ctx exceptions just cons (Pos.get_position e)
 
 let rec translate_scopes
-    (decl_ctx : D.decl_ctx) (ctx : A.Var.t D.VarMap.t) (scopes : D.scopes) :
-    A.scope_body list =
+    (decl_ctx : D.decl_ctx)
+    (ctx : A.Var.t D.VarMap.t)
+    (scopes : D.expr D.scopes) : A.scope_body list =
   match scopes with
   | Nil -> []
   | ScopeDef scope_def ->

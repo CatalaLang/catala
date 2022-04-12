@@ -133,31 +133,33 @@ type scope_let_kind =
   | DestructuringSubScopeResults
   | Assertion
 
-type scope_let = {
+type 'expr scope_let = {
   scope_let_kind : scope_let_kind;
   scope_let_typ : typ Utils.Pos.marked;
-  scope_let_expr : expr Utils.Pos.marked;
-  scope_let_next : (expr, scope_body_expr) Bindlib.binder;
+  scope_let_expr : 'expr Utils.Pos.marked;
+  scope_let_next : ('expr, 'expr scope_body_expr) Bindlib.binder;
   scope_let_pos : Utils.Pos.t;
 }
 
-and scope_body_expr = Result of expr Utils.Pos.marked | ScopeLet of scope_let
+and 'expr scope_body_expr =
+  | Result of 'expr Utils.Pos.marked
+  | ScopeLet of 'expr scope_let
 
-type scope_body = {
+type 'expr scope_body = {
   scope_body_input_struct : StructName.t;
   scope_body_output_struct : StructName.t;
-  scope_body_expr : (expr, scope_body_expr) Bindlib.binder;
+  scope_body_expr : ('expr, 'expr scope_body_expr) Bindlib.binder;
 }
 
-type scope_def = {
+type 'expr scope_def = {
   scope_name : ScopeName.t;
-  scope_body : scope_body;
-  scope_next : (expr, scopes) Bindlib.binder;
+  scope_body : 'expr scope_body;
+  scope_next : (expr, 'expr scopes) Bindlib.binder;
 }
 
-and scopes = Nil | ScopeDef of scope_def
+and 'expr scopes = Nil | ScopeDef of 'expr scope_def
 
-type program = { decl_ctx : decl_ctx; scopes : scopes }
+type program = { decl_ctx : decl_ctx; scopes : expr scopes }
 
 let evar (v : expr Bindlib.var) (pos : Pos.t) : expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun v' -> (v', pos)) (Bindlib.box_var v)
@@ -247,9 +249,9 @@ let eerroronempty (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
   Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, pos)) e1
 
 let rec fold_scope_lets
-    ~(f : 'a -> scope_let -> 'a)
+    ~(f : 'a -> 'expr scope_let -> 'a)
     ~(init : 'a)
-    (scope_body_expr : scope_body_expr) : 'a =
+    (scope_body_expr : 'expr scope_body_expr) : 'a =
   match scope_body_expr with
   | Result _ -> init
   | ScopeLet scope_let ->
@@ -257,7 +259,8 @@ let rec fold_scope_lets
       fold_scope_lets ~f ~init:(f init scope_let) next
 
 let rec fold_scope_defs
-    ~(f : 'a -> scope_def -> 'a) ~(init : 'a) (scopes : scopes) : 'a =
+    ~(f : 'a -> 'expr scope_def -> 'a) ~(init : 'a) (scopes : 'expr scopes) : 'a
+    =
   match scopes with
   | Nil -> init
   | ScopeDef scope_def ->
@@ -331,7 +334,8 @@ let rec free_vars_expr (e : expr Pos.marked) : VarSet.t =
       let vs, body = Bindlib.unmbind binder in
       Array.fold_right VarSet.remove vs (free_vars_expr body)
 
-let rec free_vars_scope_body_expr (scope_lets : scope_body_expr) : VarSet.t =
+let rec free_vars_scope_body_expr (scope_lets : expr scope_body_expr) : VarSet.t
+    =
   match scope_lets with
   | Result e -> free_vars_expr e
   | ScopeLet { scope_let_expr = e; scope_let_next = next; _ } ->
@@ -339,12 +343,12 @@ let rec free_vars_scope_body_expr (scope_lets : scope_body_expr) : VarSet.t =
       VarSet.union (free_vars_expr e)
         (VarSet.remove v (free_vars_scope_body_expr body))
 
-let free_vars_scope_body (scope_body : scope_body) : VarSet.t =
+let free_vars_scope_body (scope_body : expr scope_body) : VarSet.t =
   let { scope_body_expr = binder; _ } = scope_body in
   let v, body = Bindlib.unbind binder in
   VarSet.remove v (free_vars_scope_body_expr body)
 
-let rec free_vars_scopes (scopes : scopes) : VarSet.t =
+let rec free_vars_scopes (scopes : expr scopes) : VarSet.t =
   match scopes with
   | Nil -> VarSet.empty
   | ScopeDef { scope_body = body; scope_next = next; _ } ->
@@ -470,7 +474,8 @@ and equal_exprs_list (es1 : expr Pos.marked list) (es2 : expr Pos.marked list) :
         assume here that both lists have equal length *)
   List.for_all (fun (x, y) -> equal_exprs x y) (List.combine es1 es2)
 
-let rec unfold_scope_body_expr (ctx : decl_ctx) (scope_let : scope_body_expr) :
+let rec unfold_scope_body_expr
+    (ctx : decl_ctx) (scope_let : expr scope_body_expr) :
     expr Pos.marked Bindlib.box =
   match scope_let with
   | Result e -> box_expr e
@@ -488,7 +493,7 @@ let rec unfold_scope_body_expr (ctx : decl_ctx) (scope_let : scope_body_expr) :
         scope_let_pos
 
 let build_whole_scope_expr
-    (ctx : decl_ctx) (body : scope_body) (pos_scope : Pos.t) =
+    (ctx : decl_ctx) (body : expr scope_body) (pos_scope : Pos.t) =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   Cli.debug_format "Getting variable %s_%d" (Bindlib.name_of var)
     (Bindlib.uid_of var);
@@ -525,7 +530,7 @@ let build_scope_typ_from_sig
 type scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of Var.t
 
 let rec unfold_scopes
-    (ctx : decl_ctx) (s : scopes) (main_scope : scope_name_or_var) :
+    (ctx : decl_ctx) (s : expr scopes) (main_scope : scope_name_or_var) :
     expr Pos.marked Bindlib.box =
   match s with
   | Nil -> (

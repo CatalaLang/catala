@@ -391,7 +391,7 @@ and translate_expr ?(append_esome = true) (ctx : ctx) (e : D.expr Pos.marked) :
       A.make_matchopt pos_hoist v (D.TAny, pos_hoist) c' (A.make_none pos_hoist)
         acc)
 
-let rec translate_scope_let (ctx : ctx) (lets : D.scope_body_expr) =
+let rec translate_scope_let (ctx : ctx) (lets : D.expr D.scope_body_expr) =
   match lets with
   | Result e -> translate_expr ~append_esome:false ctx e
   | ScopeLet
@@ -483,7 +483,8 @@ let rec translate_scope_let (ctx : ctx) (lets : D.scope_body_expr) =
         (translate_expr ctx ~append_esome:false expr)
         (translate_scope_let ctx' next)
 
-let translate_scope_body (scope_pos : Pos.t) (ctx : ctx) (body : D.scope_body) :
+let translate_scope_body
+    (scope_pos : Pos.t) (ctx : ctx) (body : D.expr D.scope_body) :
     A.expr Pos.marked Bindlib.box =
   match body with
   | {
@@ -501,7 +502,7 @@ let translate_scope_body (scope_pos : Pos.t) (ctx : ctx) (body : D.scope_body) :
         [ (D.TTuple ([], Some input_struct), Pos.no_pos) ]
         Pos.no_pos
 
-let rec translate_scopes (ctx : ctx) (scopes : D.scopes) :
+let rec translate_scopes (ctx : ctx) (scopes : D.expr D.scopes) :
     Ast.scope_body list Bindlib.box =
   match scopes with
   | Nil -> Bindlib.box []
@@ -527,7 +528,8 @@ let rec translate_scopes (ctx : ctx) (scopes : D.scopes) :
           :: tail)
         new_body tail
 
-let translate_scopes (ctx : ctx) (scopes : D.scopes) : Ast.scope_body list =
+let translate_scopes (ctx : ctx) (scopes : D.expr D.scopes) :
+    Ast.scope_body list =
   Bindlib.unbox (translate_scopes ctx scopes)
 
 let translate_program (prgm : D.program) : A.program =
