@@ -174,7 +174,7 @@ type 'expr scope_body = {
 type 'expr scope_def = {
   scope_name : ScopeName.t;
   scope_body : 'expr scope_body;
-  scope_next : (expr, 'expr scopes) Bindlib.binder;
+  scope_next : ('expr, 'expr scopes) Bindlib.binder;
 }
 
 (** Finally, we do the same transformation for the whole program for the kinded
@@ -310,6 +310,8 @@ val free_vars_scopes : expr scopes -> VarSet.t
 
 type vars = expr Bindlib.mvar
 
+(** {2 Boxed term constructors}*)
+
 val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
 
 val make_abs :
@@ -334,6 +336,8 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
+val box_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
+
 (**{2 Other}*)
 
 val empty_thunked_term : expr Pos.marked
@@ -344,11 +348,48 @@ val equal_exprs : expr Pos.marked -> expr Pos.marked -> bool
 
 (** {1 AST manipulation helpers}*)
 
+type 'expr make_let_in_sig =
+  'expr Bindlib.var ->
+  typ Pos.marked ->
+  'expr Pos.marked Bindlib.box ->
+  'expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  'expr Pos.marked Bindlib.box
+
+type 'expr make_abs_sig =
+  'expr Bindlib.mvar ->
+  'expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  typ Pos.marked list ->
+  Pos.t ->
+  'expr Pos.marked Bindlib.box
+
+type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
+
 val build_whole_scope_expr :
-  decl_ctx -> expr scope_body -> Pos.t -> expr Pos.marked Bindlib.box
+  box_expr:'expr box_expr_sig ->
+  make_abs:'expr make_abs_sig ->
+  make_let_in:'expr make_let_in_sig ->
+  decl_ctx ->
+  'expr scope_body ->
+  Pos.t ->
+  'expr Pos.marked Bindlib.box
 (** Usage: [build_whole_scope_expr ctx body scope_position] where
     [scope_position] corresponds to the line of the scope declaration for
     instance. *)
+
+type 'expr scope_name_or_var =
+  | ScopeName of ScopeName.t
+  | ScopeVar of 'expr Bindlib.var
+
+val unfold_scopes :
+  box_expr:'expr box_expr_sig ->
+  make_abs:'expr make_abs_sig ->
+  make_let_in:'expr make_let_in_sig ->
+  decl_ctx ->
+  'expr scopes ->
+  'expr scope_name_or_var ->
+  'expr Pos.marked Bindlib.box
 
 val build_whole_program_expr :
   program -> ScopeName.t -> expr Pos.marked Bindlib.box

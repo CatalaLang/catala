@@ -50,6 +50,14 @@ type expr =
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
+type scope_body = {
+  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_var : expr Bindlib.var;
+  scope_body_expr : expr Pos.marked;
+}
+
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : scope_body list }
+
 module Var = struct
   type t = expr Bindlib.var
 
@@ -169,11 +177,3 @@ let handle_default = Var.make ("handle_default", Pos.no_pos)
 let handle_default_opt = Var.make ("handle_default_opt", Pos.no_pos)
 
 type binder = (expr, expr Pos.marked) Bindlib.binder
-
-type scope_body = {
-  scope_body_name : Dcalc.Ast.ScopeName.t;
-  scope_body_var : Var.t;
-  scope_body_expr : expr Pos.marked;
-}
-
-type program = { decl_ctx : D.decl_ctx; scopes : scope_body list }

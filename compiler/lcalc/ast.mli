@@ -64,6 +64,14 @@ type expr =
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
+type scope_body = {
+  scope_body_name : Dcalc.Ast.ScopeName.t;
+  scope_body_var : expr Bindlib.var;
+  scope_body_expr : expr Pos.marked;
+}
+
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : scope_body list }
+
 (** {1 Variable helpers} *)
 
 module Var : sig
@@ -77,6 +85,9 @@ module VarMap : Map.S with type key = Var.t
 module VarSet : Set.S with type elt = Var.t
 
 type vars = expr Bindlib.mvar
+type binder = (expr, expr Pos.marked) Bindlib.binder
+
+(** {1 Language terms construction}*)
 
 val make_var : Var.t Pos.marked -> expr Pos.marked Bindlib.box
 
@@ -136,15 +147,7 @@ val make_matchopt :
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
 
+(** {1 Special symbols}*)
+
 val handle_default : Var.t
 val handle_default_opt : Var.t
-
-type binder = (expr, expr Pos.marked) Bindlib.binder
-
-type scope_body = {
-  scope_body_name : Dcalc.Ast.ScopeName.t;
-  scope_body_var : Var.t;
-  scope_body_expr : expr Pos.marked;
-}
-
-type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : scope_body list }

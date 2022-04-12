@@ -165,7 +165,9 @@ let rec translate_scopes
               (translate_expr
                  (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
                  (Bindlib.unbox
-                    (D.build_whole_scope_expr decl_ctx scope_def.scope_body
+                    (D.build_whole_scope_expr ~make_abs:D.make_abs
+                       ~make_let_in:D.make_let_in ~box_expr:D.box_expr decl_ctx
+                       scope_def.scope_body
                        (Pos.get_position
                           (Dcalc.Ast.ScopeName.get_info scope_def.scope_name)))));
         }
