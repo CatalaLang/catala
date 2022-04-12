@@ -31,7 +31,7 @@
 
 (executable
  (name catala)
- (modes native js)
+ (modes native byte js)
  (package catala)
  (modules catala)
  (public_name catala)

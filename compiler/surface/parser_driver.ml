@@ -98,22 +98,26 @@ let rec parse_source_file
     (source_file : Pos.input_file) (language : Cli.backend_lang) : Ast.program =
   Cli.debug_print "Parsing %s"
     (match source_file with FileName s | Contents s -> s);
-  let lexbuf, input =
-    match source_file with
-    | FileName source_file -> (
-        try
-          let input = open_in source_file in
-          (Sedlexing.Utf8.from_channel input, Some input)
-        with Sys_error msg -> Errors.raise_error "%s" msg)
-    | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
-  in
   let source_file_name =
     match source_file with FileName s -> s | Contents _ -> "stdin"
   in
-  Sedlexing.set_filename lexbuf source_file_name;
-  Parse_utils.current_file := source_file_name;
-  let commands = localised_parser language lexbuf in
-  (match input with Some input -> close_in input | None -> ());
+  let commands = ref None in
+  for _i = 1 to 100 do
+    let lexbuf, input =
+      match source_file with
+      | FileName source_file -> (
+          try
+            let input = open_in source_file in
+            (Sedlexing.Utf8.from_channel input, Some input)
+          with Sys_error msg -> Errors.raise_error "%s" msg)
+      | Contents contents -> (Sedlexing.Utf8.from_string contents, None)
+    in
+    Sedlexing.set_filename lexbuf source_file_name;
+    Parse_utils.current_file := source_file_name;
+    commands := Some (localised_parser language lexbuf);
+    match input with Some input -> close_in input | None -> ()
+  done;
+  let commands = Option.get !commands in
   let program = expand_includes source_file_name commands language in
   {
     program_items = program.Ast.program_items;
