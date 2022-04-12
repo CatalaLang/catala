@@ -336,3 +336,7 @@ val build_whole_program_expr :
 
 val expr_size : expr Pos.marked -> int
 (** Used by the optimizer to know when to stop *)
+
+val remove_logging_calls : expr Pos.marked -> expr Pos.marked Bindlib.box
+(** Removes all calls to [Log] unary operators in the AST, replacing them by
+    their argument. *)

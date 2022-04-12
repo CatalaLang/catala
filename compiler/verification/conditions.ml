@@ -76,34 +76,20 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
 let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : expr Pos.marked) :
     expr Pos.marked =
   match Pos.unmark e with
-  | EApp
-      ( (EOp (Unop (Log _)), _),
-        [
-          ( ErrorOnEmpty
-              ( EDefault
-                  ( [ (EApp ((EVar (x, _), _), [ (ELit LUnit, _) ]), _) ],
-                    (ELit (LBool true), _),
-                    cons ),
-                _ ),
-            _ );
-        ] )
+  | ErrorOnEmpty
+      ( EDefault
+          ( [ (EApp ((EVar (x, _), _), [ (ELit LUnit, _) ]), _) ],
+            (ELit (LBool true), _),
+            cons ),
+        _ )
     when List.exists (fun x' -> Bindlib.eq_vars x x') ctx.input_vars ->
       (* scope variables*)
       cons
-  | EAbs ((binder, _), [ (TLit TUnit, _) ]) -> (
+  | EAbs ((binder, _), [ (TLit TUnit, _) ]) ->
       (* context sub-scope variables *)
       let _, body = Bindlib.unmbind binder in
-      match Pos.unmark body with
-      | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> arg
-      | _ ->
-          Errors.raise_spanned_error (Pos.get_position e)
-            "Internal error: this expression does not have the structure \
-             expected by the VC generator:\n\
-             %a"
-            (Print.format_expr ~debug:true ctx.decl)
-            e)
-  | ErrorOnEmpty (EApp ((EOp (Unop (Log _)), _), [ d ]), _)
-  | EApp ((EOp (Unop (Log _)), _), [ (ErrorOnEmpty d, _) ]) ->
+      body
+  | ErrorOnEmpty d ->
       d (* input subscope variables and non-input scope variable *)
   | _ ->
       Errors.raise_spanned_error (Pos.get_position e)
@@ -323,9 +309,9 @@ let rec generate_verification_conditions_scope_body_expr
                exceptions to something defined in the subscope so we just ought
                to verify only that the exceptions overlap. *)
             let e =
-              match_and_ignore_outer_reentrant_default ctx
-                scope_let.scope_let_expr
+              Bindlib.unbox (remove_logging_calls scope_let.scope_let_expr)
             in
+            let e = match_and_ignore_outer_reentrant_default ctx e in
             let vc_confl, vc_confl_typs =
               generate_vs_must_not_return_confict ctx e
             in

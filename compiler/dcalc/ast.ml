@@ -580,3 +580,43 @@ let rec expr_size (e : expr Pos.marked) : int =
         (fun acc except -> acc + expr_size except)
         (1 + expr_size just + expr_size cons)
         exceptions
+
+let rec remove_logging_calls (e : expr Pos.marked) : expr Pos.marked Bindlib.box
+    =
+  match Pos.unmark e with
+  | EVar (v, _pos) -> evar v (Pos.get_position e)
+  | EApp ((EOp (Unop (Log _)), _), [ arg ]) -> remove_logging_calls arg
+  | EApp (f, args) ->
+      eapp (remove_logging_calls f)
+        (List.map remove_logging_calls args)
+        (Pos.get_position e)
+  | EAbs ((binder, binder_pos), typs) ->
+      eabs
+        (Bindlib.box_mbinder remove_logging_calls binder)
+        binder_pos typs (Pos.get_position e)
+  | ETuple (args, s) ->
+      etuple (List.map remove_logging_calls args) s (Pos.get_position e)
+  | ETupleAccess (e1, n, s_name, typs) ->
+      etupleaccess (remove_logging_calls e1) n s_name typs (Pos.get_position e)
+  | EInj (e1, i, e_name, typs) ->
+      einj (remove_logging_calls e1) i e_name typs (Pos.get_position e)
+  | EMatch (arg, arms, e_name) ->
+      ematch (remove_logging_calls arg)
+        (List.map remove_logging_calls arms)
+        e_name (Pos.get_position e)
+  | EArray args ->
+      earray (List.map remove_logging_calls args) (Pos.get_position e)
+  | ELit l -> elit l (Pos.get_position e)
+  | EAssert e1 -> eassert (remove_logging_calls e1) (Pos.get_position e)
+  | EOp op -> Bindlib.box (EOp op, Pos.get_position e)
+  | EDefault (excepts, just, cons) ->
+      edefault
+        (List.map remove_logging_calls excepts)
+        (remove_logging_calls just)
+        (remove_logging_calls cons)
+        (Pos.get_position e)
+  | EIfThenElse (e1, e2, e3) ->
+      eifthenelse (remove_logging_calls e1) (remove_logging_calls e2)
+        (remove_logging_calls e3) (Pos.get_position e)
+  | ErrorOnEmpty e1 ->
+      eerroronempty (remove_logging_calls e1) (Pos.get_position e)
