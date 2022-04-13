@@ -147,32 +147,33 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
 
+let rec translate_scopes
+    (decl_ctx : D.decl_ctx) (ctx : A.Var.t D.VarMap.t) (scopes : D.scopes) :
+    A.scope_body list =
+  match scopes with
+  | Nil -> []
+  | ScopeDef scope_def ->
+      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      let new_n = A.Var.make (Bindlib.name_of scope_var, Pos.no_pos) in
+      let new_scope =
+        {
+          Ast.scope_body_name = scope_def.scope_name;
+          scope_body_var = new_n;
+          scope_body_expr =
+            Bindlib.unbox
+              (translate_expr
+                 (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
+                 (Bindlib.unbox
+                    (D.build_whole_scope_expr decl_ctx scope_def.scope_body
+                       (Pos.get_position
+                          (Dcalc.Ast.ScopeName.get_info scope_def.scope_name)))));
+        }
+      in
+      let new_ctx = D.VarMap.add scope_var new_n ctx in
+      new_scope :: translate_scopes decl_ctx new_ctx scope_next
+
 let translate_program (prgm : D.program) : A.program =
   {
-    scopes =
-      (let acc, _ =
-         List.fold_left
-           (fun ((acc, ctx) : _ * A.Var.t D.VarMap.t) (scope_name, n, e) ->
-             let new_n = A.Var.make (Bindlib.name_of n, Pos.no_pos) in
-             let new_acc =
-               {
-                 Ast.scope_body_name = scope_name;
-                 scope_body_var = new_n;
-                 scope_body_expr =
-                   Bindlib.unbox
-                     (translate_expr
-                        (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
-                        (Bindlib.unbox
-                           (D.build_whole_scope_expr prgm.decl_ctx e
-                              (Pos.get_position
-                                 (Dcalc.Ast.ScopeName.get_info scope_name)))));
-               }
-               :: acc
-             in
-             let new_ctx = D.VarMap.add n new_n ctx in
-             (new_acc, new_ctx))
-           ([], D.VarMap.empty) prgm.scopes
-       in
-       List.rev acc);
+    scopes = translate_scopes prgm.decl_ctx D.VarMap.empty prgm.scopes;
     decl_ctx = prgm.decl_ctx;
   }

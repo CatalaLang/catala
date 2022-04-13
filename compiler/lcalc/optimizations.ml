@@ -149,6 +149,15 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
       | EApp ((EOp (Unop (Log _)), _), [ (ELit (LBool false), _) ]) ->
           e3
       | _ -> default_mark @@ EIfThenElse (e1, e2, e3))
+  | ECatch (e1, except, e2) -> (
+      let+ e1 = peephole_expr () e1 and+ e2 = peephole_expr () e2 in
+      match (Pos.unmark e1, Pos.unmark e2) with
+      | ERaise except', ERaise except''
+        when except' = except && except = except'' ->
+          default_mark @@ ERaise except
+      | ERaise except', _ when except' = except -> e2
+      | _, ERaise except' when except' = except -> e1
+      | _ -> default_mark @@ ECatch (e1, except, e2))
   | _ -> visitor_map peephole_expr () e
 
 let peephole_optimizations (p : program) : program =

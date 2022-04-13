@@ -17,7 +17,4 @@
 (** Solves verification conditions using various proof backends *)
 
 val solve_vc :
-  Dcalc.Ast.program ->
-  Dcalc.Ast.decl_ctx ->
-  Conditions.verification_condition list ->
-  unit
+  Dcalc.Ast.decl_ctx -> Conditions.verification_condition list -> unit

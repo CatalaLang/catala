@@ -25,7 +25,12 @@ type vc_return = expr Pos.marked * typ Pos.marked VarMap.t
 (** The return type of VC generators is the VC expression plus the types of any
     locally free variable inside that expression. *)
 
-type ctx = { decl : decl_ctx; input_vars : Var.t list }
+type ctx = {
+  current_scope_name : ScopeName.t;
+  decl : decl_ctx;
+  input_vars : Var.t list;
+  scope_variables_typs : typ Pos.marked VarMap.t;
+}
 
 let conjunction (args : vc_return list) (pos : Pos.t) : vc_return =
   let acc, list =
@@ -298,86 +303,143 @@ type verification_condition = {
   vc_free_vars_typ : typ Pos.marked VarMap.t;
 }
 
-let generate_verification_conditions
-    (p : program) (s : Dcalc.Ast.ScopeName.t option) :
+let rec generate_verification_conditions_scope_body_expr
+    (ctx : ctx) (scope_body_expr : scope_body_expr) :
+    ctx * verification_condition list =
+  match scope_body_expr with
+  | Result _ -> (ctx, [])
+  | ScopeLet scope_let ->
+      let scope_let_var, scope_let_next =
+        Bindlib.unbind scope_let.scope_let_next
+      in
+      let new_ctx, vc_list =
+        match scope_let.scope_let_kind with
+        | DestructuringInputStruct ->
+            ({ ctx with input_vars = scope_let_var :: ctx.input_vars }, [])
+        | ScopeVarDefinition | SubScopeVarDefinition ->
+            (* For scope variables, we should check both that they never
+               evaluate to emptyError nor conflictError. But for subscope
+               variable definitions, what we're really doing is adding
+               exceptions to something defined in the subscope so we just ought
+               to verify only that the exceptions overlap. *)
+            let e =
+              match_and_ignore_outer_reentrant_default ctx
+                scope_let.scope_let_expr
+            in
+            let vc_confl, vc_confl_typs =
+              generate_vs_must_not_return_confict ctx e
+            in
+            let vc_confl =
+              if !Cli.optimize_flag then
+                Bindlib.unbox (Optimizations.optimize_expr ctx.decl vc_confl)
+              else vc_confl
+            in
+            let vc_list =
+              [
+                {
+                  vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
+                  vc_kind = NoOverlappingExceptions;
+                  vc_free_vars_typ =
+                    VarMap.union
+                      (fun _ _ -> failwith "should not happen")
+                      ctx.scope_variables_typs vc_confl_typs;
+                  vc_scope = ctx.current_scope_name;
+                  vc_variable = (scope_let_var, scope_let.scope_let_pos);
+                };
+              ]
+            in
+            let vc_list =
+              match scope_let.scope_let_kind with
+              | ScopeVarDefinition ->
+                  let vc_empty, vc_empty_typs =
+                    generate_vc_must_not_return_empty ctx e
+                  in
+                  let vc_empty =
+                    if !Cli.optimize_flag then
+                      Bindlib.unbox
+                        (Optimizations.optimize_expr ctx.decl vc_empty)
+                    else vc_empty
+                  in
+                  {
+                    vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
+                    vc_kind = NoEmptyError;
+                    vc_free_vars_typ =
+                      VarMap.union
+                        (fun _ _ -> failwith "should not happen")
+                        ctx.scope_variables_typs vc_empty_typs;
+                    vc_scope = ctx.current_scope_name;
+                    vc_variable = (scope_let_var, scope_let.scope_let_pos);
+                  }
+                  :: vc_list
+              | _ -> vc_list
+            in
+            (ctx, vc_list)
+        | _ -> (ctx, [])
+      in
+      let new_ctx, new_vcs =
+        generate_verification_conditions_scope_body_expr
+          {
+            new_ctx with
+            scope_variables_typs =
+              VarMap.add scope_let_var scope_let.scope_let_typ
+                new_ctx.scope_variables_typs;
+          }
+          scope_let_next
+      in
+      (new_ctx, vc_list @ new_vcs)
+
+let rec generate_verification_conditions_scopes
+    (decl_ctx : decl_ctx) (scopes : scopes) (s : ScopeName.t option) :
     verification_condition list =
-  List.fold_left
-    (fun acc (s_name, _s_var, s_body) ->
+  match scopes with
+  | Nil -> []
+  | ScopeDef scope_def ->
       let is_selected_scope =
         match s with
-        | Some s when Dcalc.Ast.ScopeName.compare s s_name = 0 -> true
+        | Some s when Dcalc.Ast.ScopeName.compare s scope_def.scope_name = 0 ->
+            true
         | None -> true
         | _ -> false
       in
-      if is_selected_scope then
-        let ctx = { decl = p.decl_ctx; input_vars = [] } in
-        let acc, _ =
-          List.fold_left
-            (fun (acc, ctx) s_let ->
-              match s_let.scope_let_kind with
-              | DestructuringInputStruct ->
-                  ( acc,
-                    {
-                      ctx with
-                      input_vars =
-                        Pos.unmark s_let.scope_let_var :: ctx.input_vars;
-                    } )
-              | ScopeVarDefinition | SubScopeVarDefinition ->
-                  (* For scope variables, we should check both that they never
-                     evaluate to emptyError nor conflictError. But for subscope
-                     variable definitions, what we're really doing is adding
-                     exceptions to something defined in the subscope so we just
-                     ought to verify only that the exceptions overlap. *)
-                  let e =
-                    match_and_ignore_outer_reentrant_default ctx
-                      (Bindlib.unbox s_let.scope_let_expr)
-                  in
-                  let vc_confl, vc_confl_typs =
-                    generate_vs_must_not_return_confict ctx e
-                  in
-                  let vc_confl =
-                    if !Cli.optimize_flag then
-                      Bindlib.unbox
-                        (Optimizations.optimize_expr p.decl_ctx vc_confl)
-                    else vc_confl
-                  in
-                  let vc_list =
-                    [
-                      {
-                        vc_guard = Pos.same_pos_as (Pos.unmark vc_confl) e;
-                        vc_kind = NoOverlappingExceptions;
-                        vc_free_vars_typ = vc_confl_typs;
-                        vc_scope = s_name;
-                        vc_variable = s_let.scope_let_var;
-                      };
-                    ]
-                  in
-                  let vc_list =
-                    match s_let.scope_let_kind with
-                    | ScopeVarDefinition ->
-                        let vc_empty, vc_empty_typs =
-                          generate_vc_must_not_return_empty ctx e
-                        in
-                        let vc_empty =
-                          if !Cli.optimize_flag then
-                            Bindlib.unbox
-                              (Optimizations.optimize_expr p.decl_ctx vc_empty)
-                          else vc_empty
-                        in
-                        {
-                          vc_guard = Pos.same_pos_as (Pos.unmark vc_empty) e;
-                          vc_kind = NoEmptyError;
-                          vc_free_vars_typ = vc_empty_typs;
-                          vc_scope = s_name;
-                          vc_variable = s_let.scope_let_var;
-                        }
-                        :: vc_list
-                    | _ -> vc_list
-                  in
-                  (vc_list @ acc, ctx)
-              | _ -> (acc, ctx))
-            (acc, ctx) s_body.scope_body_lets
-        in
-        acc
-      else acc)
-    [] p.scopes
+      let vcs =
+        if is_selected_scope then
+          let _scope_input_var, scope_body_expr =
+            Bindlib.unbind scope_def.scope_body.scope_body_expr
+          in
+          let ctx =
+            {
+              current_scope_name = scope_def.scope_name;
+              decl = decl_ctx;
+              input_vars = [];
+              scope_variables_typs =
+                VarMap.empty
+                (* We don't need to add the typ of the scope input var here
+                   because it will never appear in an expression for which we
+                   generate a verification conditions (the big struct is
+                   destructured with a series of let bindings just after. )*);
+            }
+          in
+          let _, vcs =
+            generate_verification_conditions_scope_body_expr ctx scope_body_expr
+          in
+          vcs
+        else []
+      in
+      let _scope_var, next = Bindlib.unbind scope_def.scope_next in
+      generate_verification_conditions_scopes decl_ctx next s @ vcs
+
+let generate_verification_conditions
+    (p : program) (s : Dcalc.Ast.ScopeName.t option) :
+    verification_condition list =
+  let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
+  (* We sort this list by scope name and then variable name to ensure consistent
+     output for testing*)
+  List.sort
+    (fun vc1 vc2 ->
+      let to_str vc =
+        Format.asprintf "%s.%s"
+          (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+          (Bindlib.name_of (Pos.unmark vc.vc_variable))
+      in
+      String.compare (to_str vc1) (to_str vc2))
+    vcs

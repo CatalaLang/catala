@@ -90,6 +90,7 @@ type options = {
   optimize : bool;
   ex_scope : string option;
   output_file : string option;
+  closure_conversion : bool;
 }
 (** {2 Command-line application} *)
 

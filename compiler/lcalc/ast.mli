@@ -74,6 +74,7 @@ module Var : sig
 end
 
 module VarMap : Map.S with type key = Var.t
+module VarSet : Set.S with type elt = Var.t
 
 type vars = expr Bindlib.mvar
 
@@ -98,6 +99,14 @@ val make_let_in :
   Dcalc.Ast.typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box
+
+val make_multiple_let_in :
+  Var.t array ->
+  Dcalc.Ast.typ Pos.marked list ->
+  expr Pos.marked Bindlib.box list ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val option_enum : Dcalc.Ast.EnumName.t

@@ -24,6 +24,7 @@ type ctxt = {
   decl_ctx : D.decl_ctx;
   var_dict : A.LocalName.t L.VarMap.t;
   inside_definition_of : A.LocalName.t option;
+  context_name : string;
 }
 
 (* Expressions can spill out side effect, hence this function also returns a
@@ -94,8 +95,26 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
   | L.EOp op -> ([], (A.EOp op, Pos.get_position expr))
   | L.ELit l -> ([], (A.ELit l, Pos.get_position expr))
   | _ ->
-      let tmp_var = A.LocalName.fresh ("local_var", Pos.get_position expr) in
-      let ctxt = { ctxt with inside_definition_of = Some tmp_var } in
+      let tmp_var =
+        A.LocalName.fresh
+          ( (*This piece of logic is used to make the code more readable. TODO:
+              should be removed when
+              https://github.com/CatalaLang/catala/issues/240 is fixed. *)
+            (match ctxt.inside_definition_of with
+            | None -> ctxt.context_name
+            | Some v ->
+                let v = Pos.unmark (A.LocalName.get_info v) in
+                let tmp_rex = Re.Pcre.regexp "^temp_" in
+                if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
+            Pos.get_position expr )
+      in
+      let ctxt =
+        {
+          ctxt with
+          inside_definition_of = Some tmp_var;
+          context_name = Pos.unmark (A.LocalName.get_info tmp_var);
+        }
+      in
       let tmp_stmts = translate_statements ctxt expr in
       ( ( A.SLocalDecl
             ((tmp_var, Pos.get_position expr), (D.TAny, Pos.get_position expr)),
@@ -150,7 +169,11 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
         List.map
           (fun (x, _tau, arg) ->
             let ctxt =
-              { ctxt with inside_definition_of = Some (Pos.unmark x) }
+              {
+                ctxt with
+                inside_definition_of = Some (Pos.unmark x);
+                context_name = Pos.unmark (A.LocalName.get_info (Pos.unmark x));
+              }
             in
             let arg_stmts, new_arg = translate_expr ctxt arg in
             arg_stmts @ [ (A.SLocalDef (x, new_arg), binder_pos) ])
@@ -165,7 +188,8 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
       in
       let closure_name =
         match ctxt.inside_definition_of with
-        | None -> A.LocalName.fresh ("closure", Pos.get_position block_expr)
+        | None ->
+            A.LocalName.fresh (ctxt.context_name, Pos.get_position block_expr)
         | Some x -> x
       in
       let ctxt =
@@ -258,6 +282,7 @@ and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
           ])
 
 let translate_scope
+    (scope_name : D.ScopeName.t)
     (decl_ctx : D.decl_ctx)
     (func_dict : A.TopLevelName.t L.VarMap.t)
     (scope_expr : L.expr Pos.marked) :
@@ -280,7 +305,13 @@ let translate_scope
       in
       let new_body =
         translate_statements
-          { decl_ctx; func_dict; var_dict; inside_definition_of = None }
+          {
+            decl_ctx;
+            func_dict;
+            var_dict;
+            inside_definition_of = None;
+            context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+          }
           body
       in
       (param_list, new_body)
@@ -295,8 +326,8 @@ let translate_program (p : L.program) : A.program =
          List.fold_left
            (fun (func_dict, new_scopes) body ->
              let new_scope_params, new_scope_body =
-               translate_scope p.decl_ctx func_dict
-                 body.Lcalc.Ast.scope_body_expr
+               translate_scope body.L.scope_body_name p.decl_ctx func_dict
+                 body.L.scope_body_expr
              in
              let func_id =
                A.TopLevelName.fresh
