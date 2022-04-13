@@ -180,7 +180,7 @@ du 1er octobre 2021.
 ```catala
 champ d'application CalculAidePersonnelleLogement
   sous condition date_courante >=@ |2021-10-01|:
-  définition montant_forfaitaire_charges égal à
+  définition montant_forfaitaire_charges_d823_16 égal à
     54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
 
 ```
@@ -234,7 +234,7 @@ personnalisée au logement.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition montant_minimal_aide égal à
+  définition montant_minimal_aide_d823_16 égal à
     selon type_aide sous forme
     -- AidePersonnaliséeLogement: 0 €
     -- AllocationLogementFamiliale: 10 €
@@ -498,7 +498,7 @@ Majoration par personne à charge |       12,29
 ```catala
 champ d'application CalculAidePersonnelleLogement
   sous condition date_courante >=@ |2021-10-01| et colocation:
-  définition montant_forfaitaire_charges égal à
+  définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
     -- Couple: 54,22€) +€
@@ -516,6 +516,12 @@ les logements occupés par leur propriétaire, et financés par les prêts menti
 l'article R. 832-5 du même code sont fixées, comme suit compte tenu de la date de signature
 du contrat de prêt figurant sur le certificat daté prévu au 1° du I de l'article D. 832-12 du même code :
 
+```catala
+# L'article R. 832-5 distingue les prêts régis par D331-32 et ceux régis par
+# D331-63 et D331-64. Dans cet article 17, nous parlons bien des prêts régis
+# par D331-32.
+```
+
 1° Lorsque la date de signature du contrat de prêt est intervenue après le 30 juin 1992
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
@@ -526,6 +532,45 @@ Couple sans personne à charge	                              |   2 515     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |   2 618     |   2 428
 Par personne supplémentaire à charge	                      |    430	    |    379      |    346
 
+```catala
+# Ici les montants des mensualités sont en francs car signées avant l'avènement
+# de l'euro mais pour le calcul des APL en euros il faut que la mensualité
+# plafond soit exprimée en euros. Donc nous convertissons.
+champ d'application CalculAidePersonnelleLogement:
+  # TODO juridique: trouver le décret ou la loi qui définit ce taux de conversion.
+  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1992-06-30| et
+    date_signature_prêt <@ |1994-11-27| et
+    ancienneté_logement sous forme Neuf et
+    type_prêt sous forme D331_32
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 2085 €
+         -- Couple: 2515€)
+      sinon (2945 € +€
+        430€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1860 €
+         -- Couple: 2239€)
+      sinon (2618 € +€
+        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1736 €
+         -- Couple: 2082€)
+      sinon (2428 € +€
+        356€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
+
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou acquis et améliorés (en francs) :
 
 DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
@@ -533,6 +578,40 @@ Bénéficiaire isolé	                                        |   1 678	    |   
 Couple sans personne à charge	                              |   2 025     |   1 801     |   1 676
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 372	    |   2 106     |   1 955
 Par personne supplémentaire à charge	                      |    374	    |    305      |    279
+
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1992-06-30| et
+    date_signature_prêt <@ |1994-11-27| et
+    ancienneté_logement sous forme Ancien et
+    type_prêt sous forme D331_32
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1678 €
+         -- Couple: 2025€)
+      sinon (2372 € +€
+        374€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1469 €
+         -- Couple: 1801€)
+      sinon (2106 € +€
+        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1397 €
+         -- Couple: 1676€)
+      sinon (1955 € +€
+        279€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
 
 2° Lorsque la date de signature du contrat de prêt est intervenue après le 27 novembre 1994 :
 
@@ -544,6 +623,38 @@ Couple sans personne à charge	                              |   2 220     |   1
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 600	    |   2 312     |   2 142
 Par personne supplémentaire à charge	                      |    380	    |    335      |    305
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1994-11-27| et
+    ancienneté_logement sous forme Neuf et
+    type_prêt sous forme D331_32
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1840 €
+         -- Couple: 2200€)
+      sinon (2600 € +€
+        380€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1642 €
+         -- Couple: 1977€)
+      sinon (2312 € +€
+        335€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1532 €
+         -- Couple: 1837€)
+      sinon (2142 € +€
+        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
+
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et améliorés (en francs) :
 
@@ -552,6 +663,38 @@ Bénéficiaire isolé	                                        |   1 481	    |   
 Couple sans personne à charge	                              |   1 787     |   1 589     |   1 479
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 093	    |   1 858     |   1 725
 Par personne supplémentaire à charge	                      |    306	    |    269      |    246
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1994-11-27| et
+    ancienneté_logement sous forme Ancien et
+    type_prêt sous forme D331_32
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1481 €
+         -- Couple: 1787€)
+      sinon (2093 € +€
+        306€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1320 €
+         -- Couple: 1589€)
+      sinon (1858 € +€
+        269€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1233 €
+         -- Couple: 1479€)
+      sinon (1725 € +€
+        246€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
 
 ### Article 18 | LEGIARTI000042378436
 
@@ -570,6 +713,39 @@ Couple sans personne à charge	                              |   2 515     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |   2 618     |   2 428
 Par personne supplémentaire à charge	                      |    430	    |    379      |    346
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1992-06-30| et
+    date_signature_prêt <@ |1994-11-27| et
+    ancienneté_logement sous forme Neuf et
+    type_prêt sous forme D331_63_64
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 2085 €
+         -- Couple: 2515€)
+      sinon (2945 € +€
+        430€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1860 €
+         -- Couple: 2239€)
+      sinon (2618 € +€
+        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1736 €
+         -- Couple: 2082€)
+      sinon (2428 € +€
+        346€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
+
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
@@ -579,6 +755,42 @@ Couple sans personne à charge	                              |   2 025     |   2
 Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 372	    |   2 618     |   2 428
 Par personne supplémentaire à charge	                      |    347	    |    379      |    346
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1992-06-30| et
+    date_signature_prêt <@ |1994-11-27| et
+    (selon ancienneté_logement sous forme
+     -- Ancien de amélioré_par_occupant:
+        amélioré_par_occupant sous forme AmélioréParOccupant.Non
+     -- Neuf: faux) et
+    type_prêt sous forme D331_63_64
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1678 €
+         -- Couple: 2025€)
+      sinon (2372 € +€
+        347€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1496 €
+         -- Couple: 2239€)
+      sinon (2618 € +€
+        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1397 €
+         -- Couple: 2082€)
+      sinon (2428 € +€
+        346€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    ) *€ taux_francs_vers_euros
+```
+
 c) Logements améliorés par leur propriétaire occupant (en francs) :
 
 DÉSIGNATION	                                                |     TOUTES ZONES
@@ -586,6 +798,27 @@ Bénéficiaire isolé                                          |       	869
 Couple sans personne à charge	                              |         971
 Bénéficiaire isolé ou couple ayant une personne à charge	  |        1 073
 Par personne supplémentaire à charge	                      |         102
+
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    date_signature_prêt >=@ |1992-06-30| et
+    date_signature_prêt <@ |1994-11-27| et
+    (selon ancienneté_logement sous forme
+     -- Ancien de amélioré_par_occupant:
+        amélioré_par_occupant sous forme AmélioréParOccupant.Oui
+     -- Neuf: faux) et
+    type_prêt sous forme D331_63_64
+  conséquence égal à
+    (si nombre_personnes_à_charge = 0 alors
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 869 €
+       -- Couple: 971€)
+    sinon (1073 € +€
+      102€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    *€ taux_francs_vers_euros
+```
 
 2° Lorsque la date de signature du contrat de prêt est intervenue après le 27 novembre 1994 :
 
@@ -943,18 +1176,41 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
 les prestations dues à compter du 1er octobre 2021.
 
+```catala
+champ d'application CalculAidePersonnelleLogement sous condition
+  date_courante >=@ |2021-10-01|:
+
+  définition montant_forfaitaire_charges_d832_10 égal à
+    54,22 € +€ 12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+```
+
 ### Article 20 | LEGIARTI000039160765
 
 Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10 du même code est fixé à 5 euros.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_forfaitaire_d832_10 égal à 5€
+```
 
 ### Article 21 | LEGIARTI000039160767
 
 Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même code, avant application de
 la contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_minimal_aide_d832_10 égal à 10€
+```
+
 ### Article 22 | LEGIARTI000039160769
 
 Le coefficient « cm » défini au 3° de l'article D. 832-11 du même code est fixé à 22 111,33 euros.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+   définition coefficient_multiplicateur_d832_11 égal à 22 111,33€
+```
 
 ### Article 23 | LEGIARTI000039160771
 
@@ -966,11 +1222,28 @@ du contrat de prêt ou de location-accession est postérieure au 30 juin 1992 :
 
 2° 41,60 % pour la tranche de ressources supérieures à 5 600,85 euros.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_limite_tranches_d832_15_1 égal à 5 600,85 €
+  définition taux_tranche_inférieure_d832_15_1 égal à 20,80%
+  définition taux_tranche_supérieure_d832_15_1 égal à 41,60%
+```
+
 ### Article 24 | LEGIARTI000044137409
 
 Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
 1° Les plafonds de mensualités sont fixés à 75 % des plafonds de mensualités mentionnés aux articles 17 et 18 ;
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+  définition plafond_menusalité_d832_10_3 état copropriétaires égal à
+    si copropriété alors
+      plafond_menusalité_d832_10_3 *€ 75%
+    sinon
+      plafond_menusalité_d832_10_3
+```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
 
@@ -978,6 +1251,18 @@ Composition du foyer	                  |      Montant
 Bénéficiaire isolé	                    |       27,10
 Couple sans personne à charge	          |       54,22
 Majoration par personne à charge	      |       12,29
+
+```catala
+champ d'application CalculAidePersonnelleLogement
+  sous condition date_courante >=@ |2021-10-01|:
+   exception définition montant_forfaitaire_charges_d832_10 sous condition
+     copropriété
+   conséquence égal à
+    (selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 27,10€
+      -- Couple: 54,22€) +€
+    12,29 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+```
 
 NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
@@ -993,9 +1278,27 @@ Le coefficient relatif au calcul de la dépense nette minimale prévu par l'arti
 a) 0,0226 pour les prêts souscrits avant le 1er octobre 1998 ;
 b) 0,0234 pour les prêts souscrits à compter de cette dernière date.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition coefficient_multiplicateur_d832_17_3 égal à
+    selon ancienneté_logement sous forme
+    -- Neuf:
+      (si date_signature_prêt <=@ |1998-10-01| alors 0,0226 sinon 0,0234)
+    -- Ancien de amélioré_par_occupant:
+      (selon amélioré_par_occupant sous forme
+      -- AmélioréParOccupant.Oui: 0,0172
+      -- AmélioréParOccupant.Non:
+        (si date_signature_prêt <=@ |1998-10-01| alors 0,0226 sinon 0,0234))
+```
+
 ### Article 26 | LEGIARTI000039160777
 
 Pour déterminer le plancher de ressources, le coefficient prévu à l'article D. 832-18 du même code est fixé à 16,25.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition coefficient_multiplicateur_d832_18 égal à 16,25
+```
 
 ### Article 27 | LEGIARTI000044137406
 

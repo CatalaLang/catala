@@ -1516,7 +1516,7 @@ champ d'application CalculAidePersonnelleLogement:
     aide_finale_locatif
 
   définition aide_finale_locatif état formule égal à
-    loyer_éligible +€ montant_forfaitaire_charges -€ participation_personnelle
+    loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€ participation_personnelle
 ```
 
 où :
@@ -1624,7 +1624,7 @@ n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_locatif état montant_minimal égal à
-    si aide_finale_locatif <€ montant_minimal_aide alors 0 € sinon aide_finale_locatif
+    si aide_finale_locatif <€ montant_minimal_aide_d832_10 alors 0 € sinon aide_finale_locatif
 ```
 
 ####### Article D823-17 | LEGIARTI000041419255
@@ -2787,7 +2787,7 @@ champ d'application CalculAidePersonnelleLogement:
   conséquence égal à aide_finale_accession_propriété
 
   définition aide_finale_accession_propriété état formule égal à
-    (mensualité_éligible +€ montant_forfaitaire_charges -€
+    (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
       mensualité_minimale) *€ coefficient_prise_en_charge_d832_10
 ```
 
@@ -2870,7 +2870,7 @@ il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_accession_propriété état montant_minimal égal à
-    si aide_finale_accession_propriété <€ montant_minimal_aide alors 0 € sinon
+    si aide_finale_accession_propriété <€ montant_minimal_aide_d823_16 alors 0 € sinon
       aide_finale_accession_propriété
 ```
 
@@ -2993,7 +2993,7 @@ l'article D. 832-12 a été établi.
 # Voir l'article 18 de l'arrêté du 27 septembre 2019 qui précise le sens de
 # cet alinéa en termes de calcul.
 champ d'application CalculAidePersonnelleLogement:
-  définition plafond_menusalité_d832_10_3 égal à
+  définition plafond_menusalité_d832_10_3 état base égal à
     calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
 ```
 
@@ -3012,7 +3012,7 @@ pour la première fois par le bénéficiaire.
 # entre la date de signature du prêt et celle d'entrée dans le logement si
 # le local est habité pour la première fois par le bénéficiaire.
 champ d'application CalculAidePersonnelleLogement:
-  exception définition plafond_menusalité_d832_10_3 sous condition
+  exception définition plafond_menusalité_d832_10_3 état base sous condition
     local_habité_première_fois_bénéficiaire
   conséquence égal à
     # TODO informatique: refactorer avec des let-bindings locaux.
@@ -3047,14 +3047,14 @@ champ d'application CalculAidePersonnelleLogement:
     type_travaux_logement sous forme SurLocauxNonHabitation
   conséquence égal à
     # Pour la tranche supérieure
-    (si ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11 >=€ 0€ alors
-      (ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11) *€
-        taux_tranche_supérieure_d823_15_1
+    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11 >=€ 0€ alors
+      (ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11) *€
+        taux_tranche_supérieure_d832_15_1
     sinon 0 €) +€
     # Pour la tranche inférieure
-    (si ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11 <=€ 0€ alors
-      ressources_ménage *€ taux_tranche_inférieure_d823_15_1
-    sinon (montant_limite_tranches_d823_15_1 *€ taux_tranche_inférieure_d823_15_1))
+    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11 <=€ 0€ alors
+      ressources_ménage *€ taux_tranche_inférieure_d832_15_1
+    sinon (montant_limite_tranches_d832_15_1 *€ taux_tranche_inférieure_d832_15_1))
       *€ (1,0/.12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
@@ -3072,7 +3072,7 @@ champ d'application CalculAidePersonnelleLogement:
     équivalence_minimale_loyer
 ```
 
-####### Article D823-16 | LEGIARTI000041477280
+####### Article D832-16 | LEGIARTI000041477280
 
 Dans le cas du calcul de l'aide personnalisée des copropriétaires prévu à l'article R. 821-4 :
 
@@ -3111,7 +3111,7 @@ champ d'application CalculAidePersonnelleLogement:
   état avant_abattement  sous condition
     date_signature_prêt >=@ |1999-06-30|
   conséquence égal à
-    mensualité_principale +€ montant_forfaitaire_charges -€ aide_calculée_2_9_d832_10
+    mensualité_principale +€ montant_forfaitaire_charges_d832_10 -€ aide_calculée_2_9_d832_10
 ```
 
 Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule mensualité

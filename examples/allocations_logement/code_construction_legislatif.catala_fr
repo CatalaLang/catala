@@ -196,7 +196,8 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
   sous condition
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
-    -- Oui de personne: personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
+    -- LouéOuSousLouéÀDesTiers.Oui de personne:
+      personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
   conséquence rempli
 ```
 
