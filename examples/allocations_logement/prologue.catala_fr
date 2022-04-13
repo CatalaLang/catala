@@ -252,6 +252,10 @@ déclaration énumération CatégorieCalculAPL:
   -- AccessionPropriété
   -- LogementFoyer
 
+déclaration énumération TypeTravauxLogement:
+  -- SurLocauxNonHabitation
+  -- SurLogementExistant
+
 déclaration champ d'application CalculAidePersonnelleLogement:
   sortie aide_finale contenu argent
 
@@ -297,9 +301,26 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   entrée colocation contenu booléen
 
   interne mensualité_minimale contenu argent
+
+  interne montant_limite_tranches_d823_15_1 contenu argent
+  interne taux_tranche_inférieure_d823_15_1 contenu décimal
+  interne taux_tranche_supérieure_d823_15_1 contenu décimal
+
+  entrée type_travaux_logement contenu TypeTravauxLogement
+  interne date_signature_prêt contenu date
+  entrée local_habité_première_fois_bénéficiaire contenu booléen
+  entrée date_entrée_logement contenu date
   interne plafond_menusalité_d832_10_3 contenu argent
+  interne calcul_plafond_menusalité_d832_10_3 contenu argent dépend de date
+  interne date_plafond_menusalité_d832_10_3 contenu date
+
+  interne équivalence_minimale_loyer contenu argent
+
   interne montant_forfaitaire_d832_10 contenu argent
-  interne abattement_d832_10 contenu argent
+  interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
+    état avant_abattement
+    état après_abattement
+  interne coefficient_multiplicateur_d832_17_3 contenu décimal
   interne coefficient_multiplicateur_d832_11 contenu argent
   interne limite_supérieure_intervalle_ressource_ménage contenu argent
   interne n_nombre_parts_d832_11 contenu décimal
@@ -314,10 +335,13 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   entrée ressources_ménage contenu argent
     état sans_arrondi
     état avec_arrondi
+  interne ressources_ménage_avec_d832_18 contenu argent
+  interne coefficient_multiplicateur_d832_18 contenu décimal
   interne abattement_forfaitaire_d823_17 contenu argent
   interne taux_prise_compte_ressources contenu décimal
   interne taux_loyer_éligible contenu décimal
   interne taux_composition_familiale contenu décimal
+  entrée situation_r822_11_13_17 contenu booléen
 
 déclaration champ d'application OuvertureDroitsRetraite:
   sortie âge_ouverture_droit contenu durée

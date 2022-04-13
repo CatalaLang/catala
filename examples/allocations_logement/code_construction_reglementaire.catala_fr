@@ -2839,8 +2839,10 @@ de calcul sont fixées par l'article D. 832-17.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_accession_propriété état abattement égal à
-    si aide_finale_accession_propriété -€ abattement_d832_10 >=€ 0€ alors
-      aide_finale_accession_propriété -€ abattement_d832_10
+    si aide_finale_accession_propriété -€
+      dépense_nette_minimale_d832_10 de aide_finale_accession_propriété >=€ 0€ alors
+      aide_finale_accession_propriété -€
+        dépense_nette_minimale_d832_10 de aide_finale_accession_propriété
     sinon 0€
 ```
 
@@ -2940,7 +2942,7 @@ les modalités suivantes, sur une base mensuelle :
 La mensualité est la somme :
 
 1° Des charges d'intérêts, ou des charges d'intérêts et d'amortissement et des charges
-```accessoires au principal de la dette afférente aux prêts définis par les articles
+accessoires au principal de la dette afférente aux prêts définis par les articles
 D. 331-32 et suivants et aux prêts complémentaires définis par arrêté. Ces prêts
 doivent avoir fait l'objet, pour chacun d'entre eux, d'un certificat daté et notifié
 au demandeur par les organismes prêteurs, précisant les modalités ainsi que la périodicité
@@ -2961,6 +2963,13 @@ prévues au 6° de l'article L. 831-1, la redevance de location-accession, défi
 premier alinéa de l'article D. 331-59-16 et au II de l'article D. 331-76-5-1, est
 assimilée à la mensualité.
 
+```catala
+# Cet article précise ce qu'il faut prendre en compte pour la mensualité du
+# prêt mais il ne nous paraît pas nécessaire de le transcrire en Catala à ce stade,
+# puisque l'on peut laisser à l'utilisateur de rentrer correctement la
+# mensualité + prime d'assurance sur le formulaire d'entrée.
+```
+
 ####### Article D832-13 | LEGIARTI000038878740
 
 Lorsque le prêt ouvrant droit à l'aide personnalisée est un prêt conventionné
@@ -2969,15 +2978,52 @@ l'acquisition de ce logement est assimilé à un prêt complémentaire dans les 
 prévues au 1° du I de l'article D. 832-12, la mensualité de référence est celle prévue
 pour les logements acquis et améliorés à l'aide d'un prêt conventionné.
 
+```catala
+# Cet article précise comment remplir la case "mensualité" du formulaire
+# pour un cas particulier, pas pertinent à traduire en Catala.
+```
+
 ####### Article D832-14 | LEGIARTI000038878738
 
 Pour le calcul de la mensualité " L ", le plafond mensuel mentionné au 3° de l'article
 D. 832-10 est applicable pour la période au titre de laquelle le certificat prévu à
 l'article D. 832-12 a été établi.
 
+```catala
+# Voir l'article 18 de l'arrêté du 27 septembre 2019 qui précise le sens de
+# cet alinéa en termes de calcul.
+champ d'application CalculAidePersonnelleLogement:
+  définition plafond_menusalité_d832_10_3 égal à
+    calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+```
+
 Le plafond ainsi retenu ne peut, en aucun cas, être inférieur à celui applicable au
 moment de l'entrée dans les lieux, sous la réserve qu'il s'agisse d'un local habité
 pour la première fois par le bénéficiaire.
+
+```catala
+# Ce plafond est défini par l'article 18 de l'arrêté du 27 septembre 2019.
+# Sauf que cet arrêté définit le plafond en fonction de la date de signature du
+# prêt. La manière dont nous interprétons le deuxième alinéa ci-dessus est la
+# suivante : puisque le plafond dépend d'une date (normalement de signature
+# du prêt), et qu'en fonction de la date ce plafond varie à la hausse ou à la
+# baisse, l'alinéa donne une petite faveur aux propriétaires puisqu'il leur
+# permet de choisir la date la plus avantageuse pour calculer le plafond
+# entre la date de signature du prêt et celle d'entrée dans le logement si
+# le local est habité pour la première fois par le bénéficiaire.
+champ d'application CalculAidePersonnelleLogement:
+  exception définition plafond_menusalité_d832_10_3 sous condition
+    local_habité_première_fois_bénéficiaire
+  conséquence égal à
+    # TODO informatique: refactorer avec des let-bindings locaux.
+    si
+      calcul_plafond_menusalité_d832_10_3 de date_signature_prêt <€
+      calcul_plafond_menusalité_d832_10_3 de date_entrée_logement
+    alors
+      calcul_plafond_menusalité_d832_10_3 de date_entrée_logement
+    sinon
+      calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+```
 
 ####### Article D832-15 | LEGIARTI000039621211
 
@@ -2995,10 +3041,36 @@ présent livre et arrondies à la centaine d'euros supérieure. Les pourcentages
 coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
 se situent les ressources ;
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition mensualité_minimale sous condition
+    type_travaux_logement sous forme SurLocauxNonHabitation
+  conséquence égal à
+    # Pour la tranche supérieure
+    (si ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11 >=€ 0€ alors
+      (ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11) *€
+        taux_tranche_supérieure_d823_15_1
+    sinon 0 €) +€
+    # Pour la tranche inférieure
+    (si ressources_ménage -€ montant_limite_tranches_d823_15_1 *€ n_nombre_parts_d832_11 <=€ 0€ alors
+      ressources_ménage *€ taux_tranche_inférieure_d823_15_1
+    sinon (montant_limite_tranches_d823_15_1 *€ taux_tranche_inférieure_d823_15_1))
+      *€ (1,0/.12,0)
+# PS: les ressources ont déjà été arrondies, voir D823-17.
+```
+
 2° Pour les logements existants améliorés et occupés par leur propriétaire, selon
 les dispositions du premier alinéa de l'article D. 832-26 dans lesquelles la
 mensualité minimale " L0 " se substitue à l'équivalence minimale de loyer et de
 charges " E0 ".
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition mensualité_minimale sous condition
+    type_travaux_logement sous forme SurLogementExistant
+  conséquence égal à
+    équivalence_minimale_loyer
+```
 
 ####### Article D823-16 | LEGIARTI000041477280
 
@@ -3017,6 +3089,14 @@ Les arrêtés fixant les plafonds de mensualité mentionnés au 3° de l'article
 et les montants forfaitaires au titre des charges mentionnées au 4° du même article
 peuvent fixer des montants spécifiques pour les ménages copropriétaires.
 
+```catala
+# Dans R821-4, nous avons déjà dit qu'il s'agissait simplement pour tous les
+# co-propriétaires de remplir séparément des formulaires de demande APL.
+# Cet article précise simplement qu'il faut diviser la mensualité selon
+# le nombre de copropriétaires mais cela semble logique et nous laissons
+# donc ce pré-calcul aux utilisateurs.
+```
+
 ####### Article D832-17 | LEGIARTI000038878732
 
 Pour les contrats de prêts et contrats de location-accession signés après le 30 juin 1999,
@@ -3025,13 +3105,39 @@ en déduisant de la mensualité déclarée, majorée du montant forfaitaire des 
 le montant mensuel de l'aide calculé selon les dispositions des deuxième à neuvième
 alinéas du même article.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  exception définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  état avant_abattement  sous condition
+    date_signature_prêt >=@ |1999-06-30|
+  conséquence égal à
+    mensualité_principale +€ montant_forfaitaire_charges -€ aide_calculée_2_9_d832_10
+```
+
 Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule mensualité
 déclarée le montant mensuel de l'aide calculé de la même façon.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  état avant_abattement égal à
+    mensualité_principale -€ aide_calculée_2_9_d832_10
+```
 
 Lorsque la dépense nette ainsi calculée est inférieure au produit des ressources et d'un
 coefficient fixé par arrêté, selon la date de signature du contrat et la finalité de
 l'opération, il est appliqué un abattement sur le montant mensuel de l'aide égal à la
 différence constatée.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  état après_abattement égal à
+    si dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 <=€
+      ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
+    alors ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
+    sinon dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre
 II du titre II du présent livre et, le cas échéant, à l'article D. 832-18, et arrondies
@@ -3046,12 +3152,32 @@ mensualités déclarées, les ressources sont réputées égales à ce montant, 
 les intéressés se trouvent dans l'une des situations mentionnées aux articles R. 822-11
 et R. 822-13 à R. 822-17.
 
+```catala
+# TODO juridique: vérifier si les ressources mentionnées ici prennent en compte
+# les ressources des personnes à charge autre que le bénéficiaire et son
+# conjoint.
+champ d'application CalculAidePersonnelleLogement:
+  définition ressources_ménage_avec_d832_18 égal à
+    si ressources_ménage <=€ mensualité_principale *€ coefficient_multiplicateur_d832_18 alors
+      mensualité_principale *€ coefficient_multiplicateur_d832_18
+      # TODO informatique: arrondir à la centaine d'euros supérieur dans ce cas?
+    sinon ressources_ménage
+
+  exception définition ressources_ménage_avec_d832_18 sous condition
+    situation_r822_11_13_17
+  conséquence égal à ressources_ménage
+```
+
 ####### Article D832-19 | LEGIARTI000038878728
 
 Les arrêtés mentionnés dans la présente section sont pris par les ministres chargés du
 logement, du budget, de la sécurité sociale et de l'agriculture.
 
 Le zonage géographique est fixé par arrêté des ministres chargés du logement et du budget.
+
+```catala
+# Pas pertinent pour le calcul.
+```
 
 ###### Section 3 : Logements-foyers
 
