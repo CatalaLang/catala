@@ -715,7 +715,7 @@ let makeflags_to_ninja_flags (makeflags : string option) =
   | Some makeflags ->
       let ignore_rex = Re.Pcre.regexp "\\bi\\b" in
       let has_ignore = Re.Pcre.pmatch ~rex:ignore_rex makeflags in
-      let jobs_rex = Re.Pcre.regexp "\\b-j(\\d)\\b" in
+      let jobs_rex = Re.Pcre.regexp "-j(\\d)" in
       let number_of_jobs =
         try
           int_of_string
