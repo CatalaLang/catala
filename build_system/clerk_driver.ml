@@ -70,6 +70,15 @@ let scope =
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
 
+let makeflags =
+  Arg.(
+    value
+    & opt (some string) None
+    & info [ "makeflags" ] ~docv:"LANG"
+        ~doc:
+          "Provides the contents of a $(i, MAKEFLAGS) variable to pass on to \
+           Ninja. Currently recognizes the -i and -j options.")
+
 let catala_opts =
   Arg.(
     value
@@ -79,8 +88,8 @@ let catala_opts =
 
 let clerk_t f =
   Term.(
-    const f $ files_or_folders $ command $ catalac $ catala_opts $ debug $ scope
-    $ reset_test_outputs $ ninja_output)
+    const f $ files_or_folders $ command $ catalac $ catala_opts $ makeflags
+    $ debug $ scope $ reset_test_outputs $ ninja_output)
 
 let version = "0.5.0"
 
@@ -700,16 +709,37 @@ let add_test_builds
          else collect_in_file ctx file_or_folder curr_ninja reset_test_outputs)
        ctx
 
+let makeflags_to_ninja_flags (makeflags : string option) =
+  match makeflags with
+  | None -> ""
+  | Some makeflags ->
+      let ignore_rex = Re.Pcre.regexp "\\bi\\b" in
+      let has_ignore = Re.Pcre.pmatch ~rex:ignore_rex makeflags in
+      let jobs_rex = Re.Pcre.regexp "\\b-j(\\d)\\b" in
+      let number_of_jobs =
+        try
+          int_of_string
+            (Re.Pcre.get_substring (Re.Pcre.exec ~rex:jobs_rex makeflags) 1)
+        with _ -> 0
+      in
+      String.concat " "
+        [
+          (if has_ignore then "-k0" else "");
+          "-j" ^ string_of_int number_of_jobs;
+        ]
+
 let driver
     (files_or_folders : string list)
     (command : string)
     (catala_exe : string option)
     (catala_opts : string option)
+    (makeflags : string option)
     (debug : bool)
     (scope : string option)
     (reset_test_outputs : bool)
     (ninja_output : string option) : int =
   if debug then Cli.debug_flag := true;
+  let ninja_flags = makeflags_to_ninja_flags makeflags in
   let files_or_folders = List.sort_uniq String.compare files_or_folders
   and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe
   and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
@@ -749,7 +779,7 @@ let driver
             (Format.formatter_of_out_channel out)
             (add_root_test_build ninja ctx.all_file_names ctx.all_test_builds);
           close_out out;
-          let ninja_cmd = "ninja test -f " ^ ninja_output in
+          let ninja_cmd = "ninja " ^ ninja_flags ^ " test -f " ^ ninja_output in
           Cli.debug_print "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
         with Sys_error e ->
