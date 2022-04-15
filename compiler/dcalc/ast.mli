@@ -258,6 +258,10 @@ val eifthenelse :
 val eerroronempty :
   expr Pos.marked Bindlib.box -> Pos.t -> expr Pos.marked Bindlib.box
 
+val box_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
+
+type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
+
 (**{2 Program traversal}*)
 
 (** Be careful when using these traversal functions, as the bound variables they
@@ -285,11 +289,34 @@ val map_expr :
     The first argument of map_expr is an optional context that you can carry
     around during your map traversal. *)
 
-val fold_scope_lets :
+val fold_left_scope_lets :
   f:('a -> 'expr scope_let -> 'a) -> init:'a -> 'expr scope_body_expr -> 'a
 
-val fold_scope_defs :
+val fold_right_scope_lets :
+  f:('expr scope_let -> 'expr Bindlib.var -> 'a -> 'a) ->
+  init:('expr Pos.marked -> 'a) ->
+  'expr scope_body_expr ->
+  'a
+
+val map_scope_lets :
+  box_expr:'expr box_expr_sig ->
+  f:('expr scope_let -> 'expr scope_let Bindlib.box) ->
+  'expr scope_body_expr ->
+  'expr scope_body_expr
+
+val fold_left_scope_defs :
   f:('a -> 'expr scope_def -> 'a) -> init:'a -> 'expr scopes -> 'a
+
+val fold_right_scope_defs :
+  f:('expr scope_def -> 'expr Bindlib.var -> 'a -> 'a) ->
+  init:'a ->
+  'expr scopes ->
+  'a
+
+val map_scope_defs :
+  f:('expr scope_def -> 'expr scope_def Bindlib.box) ->
+  'expr scopes ->
+  'expr scopes
 
 (** {2 Variables}*)
 
@@ -336,8 +363,6 @@ val make_let_in :
   Pos.t ->
   expr Pos.marked Bindlib.box
 
-val box_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
-
 (**{2 Other}*)
 
 val empty_thunked_term : expr Pos.marked
@@ -363,8 +388,6 @@ type 'expr make_abs_sig =
   typ Pos.marked list ->
   Pos.t ->
   'expr Pos.marked Bindlib.box
-
-type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
 
 val build_whole_scope_expr :
   box_expr:'expr box_expr_sig ->

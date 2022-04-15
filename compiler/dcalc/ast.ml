@@ -248,36 +248,6 @@ let eerroronempty (e1 : expr Pos.marked Bindlib.box) (pos : Pos.t) :
     expr Pos.marked Bindlib.box =
   Bindlib.box_apply (fun e1 -> (ErrorOnEmpty e1, pos)) e1
 
-let rec fold_scope_lets
-    ~(f : 'a -> 'expr scope_let -> 'a)
-    ~(init : 'a)
-    (scope_body_expr : 'expr scope_body_expr) : 'a =
-  match scope_body_expr with
-  | Result _ -> init
-  | ScopeLet scope_let ->
-      let _, next = Bindlib.unbind scope_let.scope_let_next in
-      fold_scope_lets ~f ~init:(f init scope_let) next
-
-let rec fold_scope_defs
-    ~(f : 'a -> 'expr scope_def -> 'a) ~(init : 'a) (scopes : 'expr scopes) : 'a
-    =
-  match scopes with
-  | Nil -> init
-  | ScopeDef scope_def ->
-      let _, next = Bindlib.unbind scope_def.scope_next in
-      fold_scope_defs ~f ~init:(f init scope_def) next
-
-module Var = struct
-  type t = expr Bindlib.var
-
-  let make (s : string Pos.marked) : t =
-    Bindlib.new_var
-      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
-      (Pos.unmark s)
-
-  let compare x y = Bindlib.compare_vars x y
-end
-
 let map_expr
     (ctx : 'a)
     ~(f : 'a -> expr Pos.marked -> expr Pos.marked Bindlib.box)
@@ -315,6 +285,91 @@ let map_expr
 let box_expr (e : expr Pos.marked) : expr Pos.marked Bindlib.box =
   let rec id_t () e = map_expr () ~f:id_t e in
   id_t () e
+
+type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
+
+let rec fold_left_scope_lets
+    ~(f : 'a -> 'expr scope_let -> 'a)
+    ~(init : 'a)
+    (scope_body_expr : 'expr scope_body_expr) : 'a =
+  match scope_body_expr with
+  | Result _ -> init
+  | ScopeLet scope_let ->
+      let _, next = Bindlib.unbind scope_let.scope_let_next in
+      fold_left_scope_lets ~f ~init:(f init scope_let) next
+
+let rec fold_right_scope_lets
+    ~(f : 'expr scope_let -> 'expr Bindlib.var -> 'a -> 'a)
+    ~(init : 'expr Pos.marked -> 'a)
+    (scope_body_expr : 'expr scope_body_expr) : 'a =
+  match scope_body_expr with
+  | Result result -> init result
+  | ScopeLet scope_let ->
+      let var, next = Bindlib.unbind scope_let.scope_let_next in
+      let next_result = fold_right_scope_lets ~f ~init next in
+      f scope_let var next_result
+
+let map_scope_lets
+    ~(box_expr : 'expr box_expr_sig)
+    ~(f : 'expr scope_let -> 'expr scope_let Bindlib.box)
+    (scope_body_expr : 'expr scope_body_expr) : 'expr scope_body_expr =
+  Bindlib.unbox
+    (fold_right_scope_lets
+       ~f:(fun scope_let var_next (acc : 'expr scope_body_expr Bindlib.box) ->
+         let new_scope_let = f scope_let in
+         let new_next = Bindlib.bind_var var_next acc in
+         Bindlib.box_apply2
+           (fun new_next new_scope_let ->
+             ScopeLet { new_scope_let with scope_let_next = new_next })
+           new_next new_scope_let)
+       ~init:(fun res ->
+         Bindlib.box_apply (fun res -> Result res) (box_expr res))
+       scope_body_expr)
+
+let rec fold_left_scope_defs
+    ~(f : 'a -> 'expr scope_def -> 'a) ~(init : 'a) (scopes : 'expr scopes) : 'a
+    =
+  match scopes with
+  | Nil -> init
+  | ScopeDef scope_def ->
+      let _, next = Bindlib.unbind scope_def.scope_next in
+      fold_left_scope_defs ~f ~init:(f init scope_def) next
+
+let rec fold_right_scope_defs
+    ~(f : 'expr scope_def -> 'expr Bindlib.var -> 'a -> 'a)
+    ~(init : 'a)
+    (scopes : 'expr scopes) : 'a =
+  match scopes with
+  | Nil -> init
+  | ScopeDef scope_def ->
+      let var_next, next = Bindlib.unbind scope_def.scope_next in
+      let result_next = fold_right_scope_defs ~f ~init next in
+      f scope_def var_next result_next
+
+let map_scope_defs
+    ~(f : 'expr scope_def -> 'expr scope_def Bindlib.box)
+    (scopes : 'expr scopes) : 'expr scopes =
+  Bindlib.unbox
+    (fold_right_scope_defs
+       ~f:(fun scope_def var_next acc ->
+         let new_scope_def = f scope_def in
+         let new_next = Bindlib.bind_var var_next acc in
+         Bindlib.box_apply2
+           (fun new_scope_def new_next ->
+             ScopeDef { new_scope_def with scope_next = new_next })
+           new_scope_def new_next)
+       ~init:(Bindlib.box Nil) scopes)
+
+module Var = struct
+  type t = expr Bindlib.var
+
+  let make (s : string Pos.marked) : t =
+    Bindlib.new_var
+      (fun (x : expr Bindlib.var) : expr -> EVar (x, Pos.get_position s))
+      (Pos.unmark s)
+
+  let compare x y = Bindlib.compare_vars x y
+end
 
 module VarMap = Map.Make (Var)
 module VarSet = Set.Make (Var)
@@ -498,8 +553,6 @@ type 'expr make_abs_sig =
   typ Pos.marked list ->
   Pos.t ->
   'expr Pos.marked Bindlib.box
-
-type 'expr box_expr_sig = 'expr Pos.marked -> 'expr Pos.marked Bindlib.box
 
 let rec unfold_scope_body_expr
     ~(box_expr : 'expr box_expr_sig)
