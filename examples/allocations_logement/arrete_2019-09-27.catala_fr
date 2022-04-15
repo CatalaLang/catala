@@ -509,6 +509,8 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
+## Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession
+
 ### Article 17 | LEGIARTI000039160759
 
 Pour l'application du 3° de l'article D. 832-10 du même code, les mensualités plafonds pour
@@ -2491,6 +2493,8 @@ champ d'application CalculAidePersonnelleLogement:
   définition coefficient_multiplicateur_d832_18 égal à 16,25
 ```
 
+## Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer
+
 ### Article 27 | LEGIARTI000044137406
 
 Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
@@ -2552,12 +2556,10 @@ Le montant minimum de dépense nette de logement défini à l'article D. 832-27 
 pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa de l'article
 D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
 
+
+## Chapitre VI : Calcul des allocations de logement en secteur accession
+
 ### Article 33 | LEGIARTI000041489184
-
-Le montant minimum de dépense nette de logement défini à l'article D. 832-27 du même code est fixé à 26,68 euros 
-sauf pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa 
-de l'article D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
-
 
 
 
