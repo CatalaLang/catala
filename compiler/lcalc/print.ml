@@ -74,8 +74,8 @@ let format_var (fmt : Format.formatter) (v : Var.t) : unit =
   Format.fprintf fmt "%s_%d" (Bindlib.name_of v) (Bindlib.uid_of v)
 
 let rec format_expr
-    (ctx : Dcalc.Ast.decl_ctx)
     ?(debug : bool = false)
+    (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
     (e : expr Pos.marked) : unit =
   let format_expr = format_expr ctx ~debug in
@@ -204,11 +204,13 @@ let rec format_expr
         format_punctuation "(" format_expr e' format_punctuation ")"
 
 let format_scope
-    (decl_ctx : Dcalc.Ast.decl_ctx)
     ?(debug : bool = false)
+    (ctx : Dcalc.Ast.decl_ctx)
     (fmt : Format.formatter)
-    (body : scope_body) : unit =
-  Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" format_keyword "let" format_var
-    body.scope_body_var format_punctuation "="
-    (format_expr decl_ctx ~debug)
-    body.scope_body_expr
+    ((n, s) : Dcalc.Ast.ScopeName.t * Ast.expr Dcalc.Ast.scope_body) : unit =
+  Format.fprintf fmt "@[<hov 2>%a %a =@ %a@]" format_keyword "let"
+    Dcalc.Ast.ScopeName.format_t n (format_expr ctx ~debug)
+    (Bindlib.unbox
+       (Dcalc.Ast.build_whole_scope_expr ~make_abs:Ast.make_abs
+          ~make_let_in:Ast.make_let_in ~box_expr:Ast.box_expr ctx s
+          (Pos.get_position (Dcalc.Ast.ScopeName.get_info n))))

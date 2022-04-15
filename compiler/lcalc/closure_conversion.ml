@@ -181,7 +181,8 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
              (Bindlib.box_list
                 (List.map
                    (fun extra_var -> Bindlib.box_var extra_var)
-                   extra_vars_list))),
+                   extra_vars_list)))
+          (Pos.get_position e),
         extra_vars )
   | EApp ((EOp op, pos_op), args) ->
       (* This corresponds to an operator call, which we don't want to
@@ -241,8 +242,11 @@ let rec closure_conversion_expr (ctx : ctx) (e : expr Pos.marked) :
                  Pos.get_position e ))
              (Bindlib.box_var code_var) (Bindlib.box_var env_var)
              (Bindlib.box_list new_args))
+          (Pos.get_position e)
       in
-      ( make_let_in env_var (Dcalc.Ast.TAny, Pos.get_position e) new_e1 call_expr,
+      ( make_let_in env_var
+          (Dcalc.Ast.TAny, Pos.get_position e)
+          new_e1 call_expr (Pos.get_position e),
         free_vars )
   | EAssert e1 ->
       let new_e1, free_vars = closure_conversion_expr ctx e1 in

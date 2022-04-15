@@ -28,15 +28,15 @@ val format_var : Format.formatter -> Ast.Var.t -> unit
 val format_exception : Format.formatter -> Ast.except -> unit
 
 val format_expr :
-  Dcalc.Ast.decl_ctx ->
   ?debug:bool ->
+  Dcalc.Ast.decl_ctx ->
   Format.formatter ->
   Ast.expr Pos.marked ->
   unit
 
 val format_scope :
-  Dcalc.Ast.decl_ctx ->
   ?debug:bool ->
+  Dcalc.Ast.decl_ctx ->
   Format.formatter ->
-  Ast.scope_body ->
+  Dcalc.Ast.ScopeName.t * Ast.expr Dcalc.Ast.scope_body ->
   unit

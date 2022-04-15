@@ -64,13 +64,7 @@ type expr =
   | ERaise of except
   | ECatch of expr Pos.marked * except * expr Pos.marked
 
-type scope_body = {
-  scope_body_name : Dcalc.Ast.ScopeName.t;
-  scope_body_var : expr Bindlib.var;
-  scope_body_expr : expr Pos.marked;
-}
-
-type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : scope_body list }
+type program = { decl_ctx : Dcalc.Ast.decl_ctx; scopes : expr Dcalc.Ast.scopes }
 
 (** {1 Variable helpers} *)
 
@@ -86,6 +80,78 @@ module VarSet : Set.S with type elt = Var.t
 
 type vars = expr Bindlib.mvar
 type binder = (expr, expr Pos.marked) Bindlib.binder
+
+(** {1 Boxed constructors}*)
+
+val evar : expr Bindlib.var -> Pos.t -> expr Pos.marked Bindlib.box
+
+val etuple :
+  expr Pos.marked Bindlib.box list ->
+  Dcalc.Ast.StructName.t option ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val etupleaccess :
+  expr Pos.marked Bindlib.box ->
+  int ->
+  Dcalc.Ast.StructName.t option ->
+  Dcalc.Ast.typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val einj :
+  expr Pos.marked Bindlib.box ->
+  int ->
+  Dcalc.Ast.EnumName.t ->
+  Dcalc.Ast.typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val ematch :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Dcalc.Ast.EnumName.t ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val earray :
+  expr Pos.marked Bindlib.box list -> Pos.t -> expr Pos.marked Bindlib.box
+
+val elit : lit -> Pos.t -> expr Pos.marked Bindlib.box
+
+val eabs :
+  (expr, expr Pos.marked) Bindlib.mbinder Bindlib.box ->
+  Pos.t ->
+  Dcalc.Ast.typ Pos.marked list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eapp :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box list ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eassert :
+  expr Pos.marked Bindlib.box -> Pos.t -> expr Pos.marked Bindlib.box
+
+val eop : Dcalc.Ast.operator -> Pos.t -> expr Pos.marked Bindlib.box
+
+val eifthenelse :
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val ecatch :
+  expr Pos.marked Bindlib.box ->
+  except ->
+  expr Pos.marked Bindlib.box ->
+  Pos.t ->
+  expr Pos.marked Bindlib.box
+
+val eraise : except -> Pos.t -> expr Pos.marked Bindlib.box
 
 (** {1 Language terms construction}*)
 
@@ -110,6 +176,7 @@ val make_let_in :
   Dcalc.Ast.typ Pos.marked ->
   expr Pos.marked Bindlib.box ->
   expr Pos.marked Bindlib.box ->
+  Pos.t ->
   expr Pos.marked Bindlib.box
 
 val make_multiple_let_in :
@@ -146,6 +213,8 @@ val make_matchopt :
   expr Pos.marked Bindlib.box
 (** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
     to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
+
+val box_expr : expr Pos.marked -> expr Pos.marked Bindlib.box
 
 (** {1 Special symbols}*)
 
