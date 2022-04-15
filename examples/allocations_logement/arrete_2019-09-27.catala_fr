@@ -509,6 +509,8 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions
 sont applicables pour les prestations dues à compter du 1er octobre 2021.
 
+## Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession
+
 ### Article 17 | LEGIARTI000039160759
 
 Pour l'application du 3° de l'article D. 832-10 du même code, les mensualités plafonds pour
@@ -2489,6 +2491,8 @@ Pour déterminer le plancher de ressources, le coefficient prévu à l'article D
 champ d'application CalculAidePersonnelleLogement:
   définition coefficient_multiplicateur_d832_18 égal à 16,25
 ```
+
+## Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer
 
 ### Article 27 | LEGIARTI000044137406
 
