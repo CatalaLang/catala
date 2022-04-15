@@ -1073,10 +1073,10 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 308,4€)
       sinon (359,62€ +€
         51,22€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants 
+b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés :
 
 Valeurs en francs du 1er juillet 2001 au 31 décembre 2001
@@ -1158,7 +1158,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 248,18€)
       sinon (289,49€ +€
         41,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 5° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2002 :
@@ -1201,7 +1201,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 312,1€)
       sinon (363,93€ +€
         51,83€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1243,7 +1243,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 251,16€)
       sinon (292,97€ +€
         41,81€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 6° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2003 :
@@ -1286,7 +1286,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 315,84€)
       sinon (368,29€ +€
         52,45€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1328,7 +1328,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 254,17€)
       sinon (269,48€ +€
         42,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 7° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 août 2005 :
@@ -1371,7 +1371,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 321,52€)
       sinon (374,91€ +€
         53,39€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1413,7 +1413,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 258,74€)
       sinon (308,81€ +€
         43,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 8° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2006 :
@@ -1456,7 +1456,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 330,52€)
       sinon (385,41€ +€
         54,88€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1498,7 +1498,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 365,98€)
       sinon (310,26€ +€
         44,28€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 9° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2007 :
@@ -1541,7 +1541,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 339,64€)
       sinon (396,05€ +€
         56,39€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1583,7 +1583,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 273,32€)
       sinon (318,82€ +€
         45,5€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 10° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2008 :
@@ -1626,7 +1626,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 349,66€)
       sinon (407,73€ +€
         58,05€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1668,7 +1668,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 281,38€)
       sinon (328,23€ +€
         46,84€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 11° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2009 :
@@ -1711,7 +1711,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 350,78€)
       sinon (409,03€ +€
         58,24€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1753,7 +1753,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 282,28€)
       sinon (329,28€ +€
         46,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 12° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2010 :
@@ -1796,7 +1796,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 354,64€)
       sinon (413,53€ +€
         58,88€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -1838,7 +1838,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 285,39€)
       sinon (332,9€ +€
         47,51€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 13° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2011 :
@@ -1852,6 +1852,7 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   506,55    |  
 Par personne supplémentaire à charge	                      |    73,99 	  |    65,15    |   459,47
 
 ```catala
+# TODO juridique: signaler la dernière case du tableau à la CAF (valeur aberrante)
 champ d'application CalculAidePersonnelleLogement:
   définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
     date_signature_prêt >=@ |2011-12-31| et
@@ -1881,12 +1882,9 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 358,19€)
       sinon (417,67€ +€
         459,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
-```catala
-#La valeur indiquée pour la zone III par personne à charge supplémentaire est-elle une erreur?
-```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
@@ -1898,6 +1896,7 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   407,96    |  
 Par personne supplémentaire à charge	                      |    59,68 	  |    52,58    |   347,99
 
 ```catala
+# TODO juridique: signaler la dernière case du tableau à la CAF (valeur aberrante)
 champ d'application CalculAidePersonnelleLogement:
   définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
     date_signature_prêt >=@ |2011-12-31| et
@@ -1927,7 +1926,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 288,24€)
       sinon (336,23€ +€
         347,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 14° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2012 :
@@ -1970,7 +1969,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 365,89€)
       sinon (426,65€ +€
         60,75€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -2012,7 +2011,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 294,44€)
       sinon (343,46€ +€
         49,02€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 15° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2014 :
@@ -2055,7 +2054,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 367,98€)
       sinon (429,08€ +€
         61,1€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -2097,7 +2096,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 296,12€)
       sinon (345,42€ +€
         49,3€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 16° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2015 :
@@ -2140,7 +2139,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 368,27€)
       sinon (429,42€ +€
         61,15€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -2182,7 +2181,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 296,36€)
       sinon (345,7€ +€
         49,34€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 17° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2017 :
@@ -2225,7 +2224,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 371,03€)
       sinon (432,64€ +€
         61,61€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -2267,7 +2266,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 298,58€)
       sinon (348,29€ +€
         49,71€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 18° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2019 :
@@ -2309,7 +2308,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 372,15€)
       sinon (433,94€ +€
         61,79€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -2333,7 +2332,7 @@ champ d'application CalculAidePersonnelleLogement:
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 299,86€
-         -- Couple: 361,871€)
+         -- Couple: 361,87€)
       sinon (423,86€ +€
         62,01€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
@@ -2350,7 +2349,7 @@ champ d'application CalculAidePersonnelleLogement:
          -- Couple: 299,48€)
       sinon (349,34€ +€
         49,86€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) 
+    )
 ```
 
 ### Article 19 | LEGIARTI000044137412
@@ -2509,14 +2508,74 @@ NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
+```catala
+champ d'application CalculAidePersonnelleLogement sous condition
+  date_courante >=@ |2021-10-01|:
+  définition équivalence_loyer_éligible égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 446,30 €
+         -- Couple: 523,21€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        557,88 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        597,04 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        636,35 €
+      sinon
+        (686,37 € +€
+        71,19€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 408,14 €
+         -- Couple: 476,32€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        507,87 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        543,65 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        579,29 €
+      sinon
+        (617,27 € +€
+        64,34€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 387,40 €
+         -- Couple: 450,57€)
+      sinon (si nombre_personnes_à_charge = 1 alors
+        478,02 €
+      sinon (si nombre_personnes_à_charge = 2 alors
+        509,57 €
+      sinon (si nombre_personnes_à_charge = 3 alors
+        541,10 €
+      sinon
+        (576,57 € +€
+        59,71€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+    )
+```
+
 ### Article 28 | LEGIARTI000039160781
 
 Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24 du même code est fixé à 5 euros.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_forfaitaire_d832_24 égal à 5 €
+```
 
 ### Article 29 | LEGIARTI000039160783
 
 Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même code, avant application de la
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_minimal_aide_d823_24 égal à 10 €
+```
 
 ### Article 30 | LEGIARTI000039160785
 
@@ -2525,7 +2584,22 @@ du coefficient de prise en charge « K » sont fixées ainsi :
 
 1° 1 217,26 pour le coefficient « r » défini au c du 1° ;
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  # Attention par homogénéité de la formule du D832-25 il faut que cm soit
+  # un montant d'argent.
+  définition coefficient_r_d832_25 égal à 1217,26 €
+```
+
 2° 13 393,40 et 21 420,91 pour le coefficient multiplicateur « cm » défini respectivement au d du 1° et au c du 2°.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  # Attention par homogénéité de la formule du D832-25 il faut que cm soit
+  # un montant d'argent.
+  définition coefficient_multiplicateur_d832_25 égal à
+    si condition_2_du_832_25 alors 21 420,91 € sinon 13 393,40 €
+```
 
 ### Article 31 | LEGIARTI000039160787
 
@@ -2544,6 +2618,18 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition tranches_revenus_d832_26 égal à [
+    TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
+    TrancheRevenu { -- haut: Revenu contenu 2678,71€  -- bas: 1948,10€ -- taux: 10,40%};
+    TrancheRevenu { -- haut: Revenu contenu 3896,18€  -- bas: 2678,71€ -- taux: 21,60%};
+    TrancheRevenu { -- haut: Revenu contenu 5 357,44€ -- bas: 3896,18€ -- taux: 26,40%};
+    TrancheRevenu { -- haut: Revenu contenu 6 331,29€  -- bas: 5 357,44€ -- taux: 32%};
+    TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
+  ]
+```
+
 II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont fixés respectivement à 45,57 et 76,32.
 
 ### Article 32 | LEGIARTI000039160687
@@ -2552,16 +2638,11 @@ Le montant minimum de dépense nette de logement défini à l'article D. 832-27 
 pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa de l'article
 D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
 
-### Article 33 | LEGIARTI000041489184
-
-Le montant minimum de dépense nette de logement défini à l'article D. 832-27 du même code est fixé à 26,68 euros 
-sauf pour les logements-foyers de jeunes travailleurs et les résidences sociales visés au deuxième alinéa 
-de l'article D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
-
-
-
-
-
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_forfaitaire_d832_27 égal à
+    si condition_2_du_832_25 alors 15 € sinon 26,68€
+```
 
 ## Chapitre VIII : Prime de déménagement
 

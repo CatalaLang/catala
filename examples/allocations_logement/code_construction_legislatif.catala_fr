@@ -677,7 +677,7 @@ aux logements mentionnés aux 2° et 3° ci-dessus, dès lors qu'ils font l'obje
 des conventions régies par le chapitre III du titre V du livre III ;
 
 ```catala
-# TODO : coder ça, il faut transformer la règle en fonction...
+# Voir R832-21.
 ```
 
 6° Logements occupés par des titulaires de contrats de location-accession
@@ -695,7 +695,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- LocationAccession de propriété:
         caractéristiques_prêt_l831_1_6 de propriété.prêt
       -- n'importe quel: faux
-  conséquence non rempli
+  conséquence rempli
 ```
 
 ###### Article L831-2 | LEGIARTI000038814880

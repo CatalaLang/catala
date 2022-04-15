@@ -46,9 +46,15 @@ déclaration structure Prêt:
 déclaration structure Propriétaire:
   donnée prêt contenu Prêt
 
+déclaration structure LogementFoyer:
+  donnée type contenu TypeLogementFoyer
+  donnée date_conventionnement contenu date
+  donnée location contenu Location
+  donnée remplit_conditions_r832_21 contenu booléen
+
 déclaration énumération ModeOccupation:
   -- Locataire contenu Location
-  -- RésidentLogementFoyer contenu Location
+  -- RésidentLogementFoyer contenu LogementFoyer
   -- AccessionPropriétéLocalUsageExclusifHabitation
     contenu Propriétaire
   -- SousLocataire contenu Location
@@ -264,6 +270,15 @@ déclaration énumération NeufOuAncien:
   -- Neuf
   -- Ancien contenu AmélioréParOccupant
 
+déclaration énumération LimiteTranche:
+  -- Revenu contenu argent
+  -- Infini
+
+déclaration structure TrancheRevenu:
+  donnée haut contenu LimiteTranche
+  donnée bas contenu argent
+  donnée taux contenu décimal
+
 déclaration champ d'application CalculAidePersonnelleLogement:
   sortie aide_finale contenu argent
 
@@ -281,6 +296,15 @@ déclaration champ d'application CalculAidePersonnelleLogement:
     état abattement
     état contributions_sociales_arrondi
     état montant_minimal
+
+  interne aide_finale_logement_foyer contenu argent
+    état formule
+    état minoration_forfaitaire
+    état abattement
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
 
   interne type_prêt contenu TypePrêt
   interne taux_francs_vers_euros contenu décimal
@@ -330,23 +354,36 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne date_plafond_menusalité_d832_10_3 contenu date
 
   interne équivalence_minimale_loyer contenu argent
+  interne équivalence_loyer_éligible contenu argent
 
-  interne montant_forfaitaire_d832_10 contenu argent
   interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
+    état avant_abattement
+    état après_abattement
+  interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
   interne coefficient_multiplicateur_d832_17_3 contenu décimal
   interne coefficient_multiplicateur_d832_11 contenu argent
+  interne coefficient_multiplicateur_d832_25 contenu argent
+  interne coefficient_r_d832_25 contenu argent
   interne limite_supérieure_intervalle_ressource_ménage contenu argent
   interne n_nombre_parts_d832_11 contenu décimal
+  interne n_nombre_parts_d832_25 contenu décimal
   interne coefficient_prise_en_charge_d832_10 contenu décimal
+  interne coefficient_prise_en_charge_d832_25 contenu décimal
   interne participation_personnelle contenu argent
+  interne montant_forfaitaire_d832_10 contenu argent
   interne montant_forfaitaire_d823_16 contenu argent
+  interne montant_forfaitaire_d832_24 contenu argent
+  interne montant_forfaitaire_d832_26 contenu argent
+  interne montant_forfaitaire_d832_27 contenu argent
+  interne condition_2_du_832_25 contenu booléen
   entrée bénéficiaire_aide_adulte_ou_enfant_handicapés condition
   interne montant_contributions_sociales contenu argent dépend de argent
   entrée réduction_loyer_solidarité contenu argent
   interne montant_minimal_aide_d832_10 contenu argent
   interne montant_minimal_aide_d823_16 contenu argent
+  interne montant_minimal_aide_d823_24 contenu argent
   interne participation_minimale contenu argent
   entrée ressources_ménage contenu argent
     état sans_arrondi

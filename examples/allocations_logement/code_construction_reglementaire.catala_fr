@@ -3042,6 +3042,14 @@ coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans 
 se situent les ressources ;
 
 ```catala
+# TODO juridique et informatique : que veut dire la phrase "Les pourcentages et le
+# coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
+# se situent les ressources" ? Parce que pour la tranche la plus haute il n'y
+# a pas de limite supérieure, donc qu'est-ce qu'on fait ? Est-ce qu'on prend
+# comme revenu la limite supérieure de la tranche sauf pour la dernière ?
+# Ambiguité.
+
+
 champ d'application CalculAidePersonnelleLogement:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLocauxNonHabitation
@@ -3200,6 +3208,13 @@ personnes âgées ;
 travailleurs migrants et ayant fait l'objet d'une convention, prévue à l'article L. 353-2,
 signée avant le 1er janvier 1995.
 
+```catala-metadata
+déclaration énumération TypeLogementFoyer:
+  -- LogementPersonnesÂgéesOuHandicapées
+  -- RésidenceSociale
+  -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995
+```
+
 ####### Article R832-21 | LEGIARTI000039048891
 
 Pour l'application du 5° de l'article L. 831-1, peuvent être assimilés à des logements
@@ -3248,12 +3263,28 @@ leurs caractéristiques techniques respectent celles des logements-foyers prévu
 mentionné à l'article D. 331-8 et que la convention prévue au II de l'article R. 321-20 est
 remplacée par la convention prévue au III de l'article R. 353-159.
 
+```catala
+champ d'application ÉligibilitéAidePersonnelleLogement:
+  règle condition_logement_bailleur sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- RésidentLogementFoyer de logement_foyer:
+        logement_foyer.remplit_conditions_r832_21
+        # On a regroupé toutes les conditions au dessus dans une seule
+        # variable, le calcul n'étant pas ici pertinent.
+      -- n'importe quel: faux
+  conséquence rempli
+```
+
 ####### Article R832-22 | LEGIARTI000038878718
 
 Sont assimilés à des logements locatifs en application du 5° de l'article L. 831-1,
 les logements-foyers qui répondent à l'une des conditions fixées aux articles R. 832-20
 et R. 832-21 et font l'objet d'une convention passée dans les conditions prévues à
 la section 7 du chapitre III du titre V du livre III.
+
+```catala
+# Article redondant, rien à coder ici.
+```
 
 ###### Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer
 
@@ -3264,12 +3295,24 @@ aux 2° et 3° de l'article R. 832-20 à partir du premier jour du premier mois 
 cet occupant acquitte l'intégralité de la redevance mensuelle prévue par le titre d'occupation,
 sous réserve que les autres conditions d'ouverture du droit soient réunies à cette date.
 
+```catala
+# On ne cherche pas à coder pour l'instant le calcul du calendrier d'ouverture
+# des droits dans les différentes situations.
+```
+
 ####### Article D832-24 | LEGIARTI000038878712
 
 Pour les ménages résidant dans un logement-foyer mentionné à l'article R. 832-22, le montant
 mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
 " Af = K × (E-E0) "
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_logement_foyer état formule égal à
+    (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+      coefficient_prise_en_charge_d832_25
+```
 
 où :
 
@@ -3287,14 +3330,54 @@ les dispositions de l'article D. 832-26.
 
 Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arrêté.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_logement_foyer état minoration_forfaitaire égal à
+    si aide_finale_logement_foyer -€ montant_forfaitaire_d832_24 >=€ 0€ alors
+      aide_finale_logement_foyer -€ montant_forfaitaire_d832_24
+    sinon 0€
+```
+
 Ce résultat est minoré d'un abattement au titre de la dépense nette minimale, dont les modalités
 de calcul sont fixées à l'article D. 832-27.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_logement_foyer état abattement égal à
+    si aide_finale_logement_foyer -€
+      dépense_nette_minimale_d832_27 de aide_finale_logement_foyer >=€ 0€ alors
+      aide_finale_logement_foyer -€
+        dépense_nette_minimale_d832_27 de aide_finale_logement_foyer
+    sinon 0€
+```
 
 Ce dernier résultat est diminué d'un montant représentatif des contributions sociales qui
 s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représentatif.
 
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_logement_foyer état contributions_sociales_arrondi égal à
+    si
+      arrondi_argent de (aide_finale_logement_foyer -€
+        montant_contributions_sociales de aide_finale_logement_foyer -€ 0,5€)
+          +€ montant_contributions_sociales de aide_finale_logement_foyer >=€ 0€
+    alors
+      arrondi_argent de (aide_finale_logement_foyer -€
+        montant_contributions_sociales de aide_finale_logement_foyer -€ 0,5€)
+         +€ montant_contributions_sociales de aide_finale_logement_foyer
+    sinon 0€
+```
+
 Lorsque le montant mensuel de l'aide, calculé selon les modalités précédentes, est inférieur
 à un montant fixé par arrêté, il n'est pas procédé à son versement.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition aide_finale_logement_foyer état montant_minimal égal à
+    si aide_finale_logement_foyer <€ montant_minimal_aide_d823_24 alors 0 € sinon
+      aide_finale_logement_foyer
+```
 
 ####### Article D832-25 | LEGIARTI000038878710
 
@@ -3306,10 +3389,35 @@ et pour les résidences sociales conventionnées après le 31 décembre 1994, en
 de l'article L. 831-1, et mentionnés au 1° de l'article R. 832-21, le coefficient " K " est calculé
 selon la formule et les modalités précisées au 2° du présent article.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition condition_2_du_832_25 égal à
+    selon mode_occupation sous forme
+    -- RésidentLogementFoyer de logement_foyer: (
+      selon logement_foyer.type sous forme
+      -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
+        logement_foyer.date_conventionnement >=@ |1990-09-30|
+      -- RésidenceSociale:
+        logement_foyer.date_conventionnement >=@ |1994-12-31|
+      -- n'importe quel: faux)
+    -- n'importe quel: faux
+```
+
 1°
 
-Vous pouvez consulter l'intégralité du texte avec ses images à partir de l'extrait du Journal
-officiel électronique authentifié accessible en bas de page
+K = 0,95 - (R - r * N) / (cm * N)
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition coefficient_prise_en_charge_d832_25 égal à
+    # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
+    0,95 -.
+      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0 -€
+        coefficient_r_d832_25 *€ n_nombre_parts_d832_25
+      ) /€
+        (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
+      )
+```
 
 où :
 
@@ -3334,11 +3442,41 @@ bénéficiaire isolé ou ménage ayant trois personnes à charge	        |     3
 bénéficiaire isolé ou ménage ayant quatre personnes à charge	      |     4,3    |
 majoration par personne à charge supplémentaire	                    |     0,5    |
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition n_nombre_parts_d832_25 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 1,4
+      -- Couple: 1,8
+    sinon (si nombre_personnes_à_charge = 1 alors
+      2,5
+    sinon (si nombre_personnes_à_charge = 2 alors
+      3,0
+    sinon (si nombre_personnes_à_charge = 3 alors
+      3,7
+    sinon (si nombre_personnes_à_charge = 4 alors
+      4,3
+    sinon
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+    ))))
+```
+
 2°
 
-Vous pouvez consulter l'intégralité du texte avec ses images à partir de l'extrait du
-Journal officiel électronique authentifié accessible en bas de page
+K = 0,90 - R / (cm * N)
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  exception définition coefficient_prise_en_charge_d832_25 sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
+    0,90 -.
+      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
+        (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
+      )
+```
 où :
 
 a) " K " est le coefficient de prise en charge, arrondi à deux décimales par défaut ;
@@ -3360,6 +3498,28 @@ bénéficiaire isolé ou ménage ayant trois personnes à charge	      |    3,7 
 bénéficiaire isolé ou ménage ayant quatre personnes à charge	    |    4,3    |
 majoration par personne à charge supplémentaire	                  |    0,5    |
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  exception définition n_nombre_parts_d832_25 sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 1,2
+      -- Couple: 1,5
+    sinon (si nombre_personnes_à_charge = 1 alors
+      2,5
+    sinon (si nombre_personnes_à_charge = 2 alors
+      3,0
+    sinon (si nombre_personnes_à_charge = 3 alors
+      3,7
+    sinon (si nombre_personnes_à_charge = 4 alors
+      4,3
+    sinon
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+    ))))
+```
+
 ####### Article D832-26 | LEGIARTI000038878708
 
 L'équivalence de loyer et de charges minimale " E0 ", définie au 4° de l'article D. 832-24,
@@ -3368,14 +3528,45 @@ inférieures et supérieures sont multipliées par le nombre de parts " N " déf
 de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfaitaire par le
 nombre de parts " N ", le total étant divisé par douze.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition équivalence_minimale_loyer égal à
+    (((somme argent pour tranche dans tranches_revenus_d832_26 de
+      (si ressources_ménage <=€ tranche.bas *€ n_nombre_parts_d832_25  alors 0€ sinon
+        (selon tranche.haut sous forme
+        -- Revenu de tranche_haut:
+          (si ressources_ménage >=€ tranche_haut *€ n_nombre_parts_d832_25 alors
+            (tranche_haut -€ tranche.bas) *€ (tranche.taux *. n_nombre_parts_d832_25)
+          sinon
+            ((ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€ tranche.taux))
+        -- Infini:
+          (ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€ tranche.taux)
+      ))) +€
+    montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
+```
+
 Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
 mentionnés au deuxième alinéa de l'article D. 832-25, " E0 " est obtenue par application de
 pourcentages à des tranches de ressources dont les limites inférieures et supérieures sont
 multipliées par le nombre de parts " N " défini au d du 2° de l'article D. 832-25. Le résultat
 est majoré d'un montant forfaitaire, le total étant alors divisé par douze.
 
+```catala
+# Contrairement au texte de loi, nous avons factorisé le code (définition de
+# n_nombre_parts_d832_25 avec case de base et exception pour le 1° et 2°).
+```
+
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
 dans lequel se situent les ressources.
+
+```catala
+# TODO juridique et informatique : que veut dire la phrase "Les pourcentages et le
+# coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
+# se situent les ressources" ? Parce que pour la tranche la plus haute il n'y
+# a pas de limite supérieure, donc qu'est-ce qu'on fait ? Est-ce qu'on prend
+# comme revenu la limite supérieure de la tranche sauf pour la dernière ?
+# Ambiguité.
+```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre II du
 titre II du présent livre et arrondies à la centaine d'euros supérieure.
@@ -3391,6 +3582,20 @@ même article. Lorsque cette dépense nette de logement est inférieure à un mo
 arrêté selon le type de logements-foyer, l'abattement à effectuer sur le montant mensuel de
 l'aide est égal à la différence constatée.
 
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+  état avant_abattement égal à
+    équivalence_loyer_éligible -€ aide_calculée_1_8_d832_24
+
+  définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+  état après_abattement égal à
+    si dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24 <=€
+      montant_forfaitaire_d832_27
+    alors montant_forfaitaire_d832_27 sinon
+      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+
+```
 ####### Article D832-28 | LEGIARTI000038878704
 
 Les arrêtés mentionnés dans la présente section sont pris par les ministres chargés du logement,
