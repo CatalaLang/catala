@@ -74,11 +74,40 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   (** Stub that wraps the parsing main loop and handles the Menhir/Sedlex type
       difference for [lexbuf]. *)
 
+  let tabulate (type a) (is_eof : a -> bool) (lexer : unit -> a) : unit -> a =
+    (* Read tokens from the lexer until we hit an EOF token. *)
+    let rec read tokens =
+      let token = lexer () in
+      let tokens = token :: tokens in
+      if is_eof token then
+        (* Once done, reverse the list and convert it to an array. *)
+        tokens |> List.rev |> Array.of_list
+      else read tokens
+    in
+    (* We now have an array of tokens. *)
+    let tokens = read [] in
+    (* Define a pseudo-lexer that reads from this array. *)
+    let i = ref 0 in
+    let lexer () =
+      (* If this assertion is violated, then the parser is trying to read past
+         an EOF token. This should not happen. *)
+      assert (!i < Array.length tokens);
+      let token = Array.unsafe_get tokens !i in
+      i := !i + 1;
+      token
+    in
+    lexer
+
   let commands_or_includes (lexbuf : lexbuf) : Ast.source_file =
+    Cli.debug_format "Tabulating lexer...";
     let revised_lexer = with_tokenizer LocalisedLexer.lexer lexbuf in
+    let revised_lexer =
+      tabulate (fun (tok, _, _) -> tok = Tokens.EOF) revised_lexer
+    in
     let revised_parser =
       MenhirLib.Convert.Simplified.traditional2revised source_file
     in
+    Cli.debug_format "Starting parsing...";
     revised_parser revised_lexer
 end
 
@@ -102,7 +131,7 @@ let rec parse_source_file
     match source_file with FileName s -> s | Contents _ -> "stdin"
   in
   let commands = ref None in
-  for _i = 1 to 100 do
+  for _i = 1 to 1 do
     let lexbuf, input =
       match source_file with
       | FileName source_file -> (
