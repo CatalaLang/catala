@@ -1516,7 +1516,11 @@ champ d'application CalculAidePersonnelleLogement:
     aide_finale_locatif
 
   définition aide_finale_locatif état formule égal à
-    loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€ participation_personnelle
+    si loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
+      participation_personnelle <€ 0 €
+    alors 0 € sinon
+      (loyer_éligible +€ montant_forfaitaire_charges_d823_16 -€
+        participation_personnelle)
 ```
 
 où :
@@ -2787,8 +2791,11 @@ champ d'application CalculAidePersonnelleLogement:
   conséquence égal à aide_finale_accession_propriété
 
   définition aide_finale_accession_propriété état formule égal à
-    (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
-      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10
+    si (mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
+      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10 <€ 0 €
+    alors 0 € sinon
+    ((mensualité_éligible +€ montant_forfaitaire_charges_d832_10 -€
+      mensualité_minimale) *€ coefficient_prise_en_charge_d832_10)
 ```
 
 où :
@@ -2886,7 +2893,7 @@ champ d'application CalculAidePersonnelleLogement:
   # TODO informatique: faire l'arrondi à deux décimales préconisé par le 1°
   définition coefficient_prise_en_charge_d832_10 égal à
     0,95 -.
-      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
+      ((arrondi_argent de ((ressources_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
         (coefficient_multiplicateur_d832_11 *€ n_nombre_parts_d832_11)
       )
   # Attention: ici coefficient_multiplicateur_d832_11 doit être un montant
@@ -2901,6 +2908,13 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 2° " R " représente la limite supérieure de l'intervalle dans lequel se situent les ressources
 du ménage, appréciées conformément aux dispositions de la section 2 du chapitre II du titre
 II du présent livre et arrondies à la centaine d'euros supérieure ;
+
+```catala
+# TODO juridique: pourquoi nous parle-t-on de limite supérieure d'intervalle ici ?
+# Il n'y a aucun intervalle de ressources définis à la section 2 du chapitre
+# II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la centaines
+# d'euros supérieure (intervalles de 100 €) ?
+```
 
 3° " cm " est un coefficient multiplicateur fixé par arrêté ;
 
@@ -3310,8 +3324,11 @@ mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_logement_foyer état formule égal à
-    (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
-      coefficient_prise_en_charge_d832_25
+    si (équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+      coefficient_prise_en_charge_d832_25 <€ 0 €
+    alors 0 € sinon
+      ((équivalence_loyer_éligible -€ équivalence_minimale_loyer) *€
+      coefficient_prise_en_charge_d832_25)
 ```
 
 où :
@@ -3412,7 +3429,7 @@ champ d'application CalculAidePersonnelleLogement:
   définition coefficient_prise_en_charge_d832_25 égal à
     # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
     0,95 -.
-      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0 -€
+      ((arrondi_argent de ((ressources_ménage +€ 50 €) *€ 1%) *€ 100,0 -€
         coefficient_r_d832_25 *€ n_nombre_parts_d832_25
       ) /€
         (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
@@ -3472,8 +3489,10 @@ champ d'application CalculAidePersonnelleLogement:
     condition_2_du_832_25
   conséquence égal à
     # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
+    # TODO informatique: changer ici et partout ailleurs la formule pour
+    # l'arrondi supérieur parce que la formule actuelle arrondit 100 -> 200
     0,90 -.
-      ((arrondi_argent de ((limite_supérieure_intervalle_ressource_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
+      ((arrondi_argent de ((ressources_ménage +€ 50 €) *€ 1%) *€ 100,0) /€
         (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
       )
 ```

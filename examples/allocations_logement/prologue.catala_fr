@@ -33,6 +33,7 @@ déclaration énumération TypePrêt:
   -- D331_59_8
   -- D331_76_1
   -- Autre
+  # TODO informatique: mettre option pas de prêt
 
 déclaration énumération TitulairePrêt:
   -- Demandeur
@@ -259,6 +260,7 @@ déclaration énumération CatégorieCalculAPL:
 déclaration énumération TypeTravauxLogement:
   -- SurLocauxNonHabitation
   -- SurLogementExistant
+  # TODO informatique: rajouter cas où pas de travaux.
 
 déclaration énumération AmélioréParOccupant:
   -- Oui
@@ -304,7 +306,7 @@ déclaration champ d'application CalculAidePersonnelleLogement:
 
   interne tranches_revenus_d832_26 contenu collection TrancheRevenu
 
-  interne type_prêt contenu TypePrêt
+  entrée type_prêt contenu TypePrêt
   interne taux_francs_vers_euros contenu décimal
   entrée ancienneté_logement contenu NeufOuAncien
   entrée mode_occupation contenu ModeOccupation
@@ -324,12 +326,11 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   entrée nombre_personnes_à_charge contenu entier
   entrée type_aide contenu TypeAidePersonnelleLogement
 
-  interne coefficient_multiplicateur_d823_16 contenu décimal
   interne plafond_dégressivité_d823_16 contenu argent
   interne plafond_suppression_d823_16 contenu argent
-  interne montant_forfaitaire_charges_d823_16 contenu argent
-  interne montant_forfaitaire_charges_d832_10 contenu argent
-  interne plafond_loyer_d823_16_2 contenu argent
+  sortie montant_forfaitaire_charges_d823_16 contenu argent
+  sortie montant_forfaitaire_charges_d832_10 contenu argent
+  sortie plafond_loyer_d823_16_2 contenu argent
   interne loyer_référence contenu argent
   interne rapport_loyers contenu décimal
   entrée colocation contenu booléen
@@ -341,15 +342,17 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne taux_tranche_supérieure_d832_15_1 contenu décimal
 
   entrée type_travaux_logement contenu TypeTravauxLogement
-  interne date_signature_prêt contenu date
+  entrée date_signature_prêt contenu date
+  # TODO informatique: mettre un type option là
   entrée local_habité_première_fois_bénéficiaire contenu booléen
+  # TODO informatique: mettre un type option là
   entrée date_entrée_logement contenu date
+  # TODO informatique: mettre un type option là
   interne plafond_menusalité_d832_10_3 contenu argent
     état base
     état copropriétaires
   entrée copropriété contenu booléen
   interne calcul_plafond_menusalité_d832_10_3 contenu argent dépend de date
-  interne date_plafond_menusalité_d832_10_3 contenu date
 
   interne équivalence_minimale_loyer contenu argent
   interne équivalence_loyer_éligible contenu argent
@@ -364,12 +367,11 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne coefficient_multiplicateur_d832_11 contenu argent
   interne coefficient_multiplicateur_d832_25 contenu argent
   interne coefficient_r_d832_25 contenu argent
-  interne limite_supérieure_intervalle_ressource_ménage contenu argent
   interne n_nombre_parts_d832_11 contenu décimal
   interne n_nombre_parts_d832_25 contenu décimal
   interne coefficient_prise_en_charge_d832_10 contenu décimal
   interne coefficient_prise_en_charge_d832_25 contenu décimal
-  interne participation_personnelle contenu argent
+  sortie participation_personnelle contenu argent
   interne montant_forfaitaire_d832_10 contenu argent
   interne montant_forfaitaire_d823_16 contenu argent
   interne montant_forfaitaire_d832_24 contenu argent
@@ -382,7 +384,7 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne montant_minimal_aide_d832_10 contenu argent
   interne montant_minimal_aide_d823_16 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
-  interne participation_minimale contenu argent
+  sortie participation_minimale contenu argent
   entrée ressources_ménage contenu argent
     état sans_arrondi
     état avec_arrondi
@@ -391,8 +393,19 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   interne abattement_forfaitaire_d823_17 contenu argent
   interne taux_prise_compte_ressources contenu décimal
   interne taux_loyer_éligible contenu décimal
-  interne taux_composition_familiale contenu décimal
+  sortie taux_composition_familiale contenu décimal
   entrée situation_r822_11_13_17 contenu booléen
+
+champ d'application CalculAidePersonnelleLogement:
+  # Valeur par défaut pour ce plafond quand il n'est pas applicable.
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+    type_prêt sous forme TypePrêt.Autre
+  conséquence égal à 0 €
+
+  # TODO juridique: mettre ce bout de code à côté des articles de loi qui le
+  # justifient. (Pas de CSG mais la CRDS pour les APL)
+  définition montant_contributions_sociales de aide_finale égal à
+    aide_finale *€ 0,5%
 
 déclaration champ d'application OuvertureDroitsRetraite:
   sortie âge_ouverture_droit contenu durée

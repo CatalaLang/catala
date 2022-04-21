@@ -203,6 +203,7 @@ let rec translate_expr
                       /& decimal_of_integer
                            (integer_exponentiation (integer_of_int 10) digits_f)))
         | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
+            (* TODO URGENT: find out why if i=2 and f=01 it returns 3%. *)
             let digits_f =
               try
                 int_of_float

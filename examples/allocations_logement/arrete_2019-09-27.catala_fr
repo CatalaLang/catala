@@ -2634,7 +2634,14 @@ champ d'application CalculAidePersonnelleLogement:
   ]
 ```
 
-II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont fixés respectivement à 45,57 et 76,32.
+II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
+fixés respectivement à 45,57 et 76,32.
+
+```catala
+champ d'application CalculAidePersonnelleLogement:
+  définition montant_forfaitaire_d832_26 égal à
+    si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
+```
 
 ### Article 32 | LEGIARTI000039160687
 
