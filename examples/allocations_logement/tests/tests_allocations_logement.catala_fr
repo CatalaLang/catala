@@ -27,6 +27,7 @@ assertion éligible
     -- prise_en_charge : EffectiveEtPermanente
     -- âge : 8
   })]
+  }
   -- logement: Logement {
     -- résidence_principale : vrai
     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
@@ -37,6 +38,7 @@ assertion éligible
         -- respecte_convention_titre_II: vrai
         -- construit_amélioré_conditions_l831_1_4: faux
         -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
+        
       }
     })
     -- propriétaire : ParentOuAutre.Autre
@@ -45,6 +47,8 @@ assertion éligible
     -- logement_decent_l89_462 : vrai
     -- loyers_l823_3 : 700€
     -- surface_m_carrés : 80
+    -- est_ancien_l831_2 : faux 
+    -- situé_commune_déséquilibre_l831_2 : faux 
   }
   -- nombre_autres_occupants_logement: 1
   -- condition_rattaché_foyer_fiscal_parent_ifi: faux
