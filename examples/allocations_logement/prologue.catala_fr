@@ -176,8 +176,6 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne condition_non_ouverture_l822_10_peuplement_logement condition
   interne condition_peuplement_logement_l822_10 condition
   interne éligibilité_logement condition
-  interne montant_minimal_aide_personnelle_logement
-    contenu argent dépend de ModeOccupation
   interne âge_l351_8_1_sécu contenu durée
   interne âge_l161_17_2_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent

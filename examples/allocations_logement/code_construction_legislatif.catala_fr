@@ -526,7 +526,8 @@ l'article L. 823-1.
 Ce montant minimal est fixé par voie réglementaire.
 
 ```catala
-# Voir ÉligibilitéAidePersonnelleLogement.montant_minimal_aide_personnelle_logement
+# Voir les états "montant_minimal" dans le calcul des aides finales dans
+# le champ d'application CalculAidePersonnelleLogement.
 ```
 
 ###### Article L823-8 | LEGIARTI000038814906
