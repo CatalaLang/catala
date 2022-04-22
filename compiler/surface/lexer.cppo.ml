@@ -564,7 +564,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
         | _ -> ()
       done;
       L.update_acc lexbuf;
-      MONEY_AMOUNT (Runtime.integer_of_string (Buffer.contents units), Runtime.integer_of_string (Buffer.contents cents))
+      MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
   | Plus digit, MC_DECIMAL_SEPARATOR, Star digit ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
@@ -575,7 +575,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
     let dec_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
     L.update_acc lexbuf;
     DECIMAL_LITERAL
-      (Runtime.integer_of_string (dec_parts 1), Runtime.integer_of_string (dec_parts 2))
+      (dec_parts 1, dec_parts 2)
   | "<=@" ->
       L.update_acc lexbuf;
       LESSER_EQUAL_DATE
@@ -743,7 +743,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;
-      INT_LITERAL (Runtime.integer_of_string (Utf8.lexeme lexbuf))
+      INT_LITERAL (Utf8.lexeme lexbuf)
   | _ -> L.raise_lexer_error (Pos.from_lpos prev_pos) prev_lexeme
 
 let rec lex_directive_args (lexbuf : lexbuf) : token =
