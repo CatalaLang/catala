@@ -46,5 +46,5 @@ champ d'application Exemple1:
   assertion calcul.plafond_loyer_d823_16_2 = 524,20 €
   assertion calcul.participation_minimale = 44,56 €
   assertion calcul.taux_composition_familiale = 2,01%
-#   assertion calcul.participation_personnelle = 705,51 €
+  assertion calcul.participation_personnelle = 705,51 €
 ```

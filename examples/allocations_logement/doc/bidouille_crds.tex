@@ -64,18 +64,18 @@ des termes de CRDS n'est pas exacte! En effet, il se cache en fait un terme
          & = \textrm{CRDS}( \textrm{APL}_0 - \textrm{CRDS}(\textrm{APL}_0) - \lfloor \textrm{APL}_0 - \textrm{CRDS}(\textrm{APL}_0) \rfloor)
 \end{align*}
 
-En notant $\textrm{APL}_{\textrm{versée}} \triangleq  \textrm{APL}_0 - \textrm{CRDS}(\textrm{APL}_0)$, alors on a
+En notant $\textrm{APL}_{\textrm{non arrondie}} \triangleq  \textrm{APL}_0 - \textrm{CRDS}(\textrm{APL}_0)$, alors on a
 
 \[
-  \Delta = \textrm{CRDS}(\textrm{APL}_{\textrm{versée}} - \lfloor \textrm{APL}_{\textrm{versée}} \rfloor)
+  \Delta = \textrm{CRDS}(\textrm{APL}_{\textrm{non arrondie}} - \lfloor \textrm{APL}_{\textrm{non arrondie}} \rfloor)
 \]
 
-Dès lors, il est facile de constater que $0 \; \text{\euro} \leqslant \textrm{APL}_{\textrm{versée}} - \lfloor \textrm{APL}_{\textrm{versée}}\rfloor < 1 \; \text{\euro}$.
+Dès lors, il est facile de constater que $0 \; \text{\euro} \leqslant \textrm{APL}_{\textrm{non arrondie}} - \lfloor \textrm{APL}_{\textrm{non arrondie}}\rfloor < 1 \; \text{\euro}$.
 Or, le taux de la CRDS étant de 0,5\%, on a forcément $\Delta < 0,01\;\text{\euro}$ et
 donc pour la pratique du versement $\Delta = 0$, ce qui explique pourquoi on a
 
 \[
-  \textrm{APL}_{\textrm{net}} = \textrm{APL}_{\textrm{versée}}
+  \textrm{APL}_{\textrm{net}} = \lfloor \textrm{APL}_{\textrm{non arrondie}}\rfloor
 \]
 
 À noter cependant que cette astuce ne marche que parce que le taux de CRDS est
