@@ -181,66 +181,41 @@ let rec translate_expr
   | Literal l ->
       let untyped_term =
         match l with
-        | LNumber ((Int i, _), None) -> Desugared.Ast.ELit (Dcalc.Ast.LInt i)
+        | LNumber ((Int i, _), None) ->
+            Desugared.Ast.ELit (Dcalc.Ast.LInt (Runtime.integer_of_string i))
         | LNumber ((Int i, _), Some (Percent, _)) ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LRat
-                 Runtime.(decimal_of_integer i /& decimal_of_string "100"))
+                 Runtime.(decimal_of_string i /& decimal_of_string "100"))
         | LNumber ((Dec (i, f), _), None) ->
-            let digits_f =
-              try
-                int_of_float
-                  (ceil
-                     (float_of_int (Runtime.integer_log2 f)
-                     *. log 2.0 /. log 10.0))
-              with Invalid_argument _ -> 0
-            in
             Desugared.Ast.ELit
-              (Dcalc.Ast.LRat
-                 Runtime.(
-                   decimal_of_integer i
-                   +& decimal_of_integer f
-                      /& decimal_of_integer
-                           (integer_exponentiation (integer_of_int 10) digits_f)))
+              (Dcalc.Ast.LRat Runtime.(decimal_of_string (i ^ "." ^ f)))
         | LNumber ((Dec (i, f), _), Some (Percent, _)) ->
-            (* TODO URGENT: find out why if i=2 and f=01 it returns 3%. *)
-            let digits_f =
-              try
-                int_of_float
-                  (ceil
-                     (float_of_int (Runtime.integer_log2 f)
-                     *. log 2.0 /. log 10.0))
-              with Invalid_argument _ -> 0
-            in
             Desugared.Ast.ELit
               (Dcalc.Ast.LRat
                  Runtime.(
-                   (decimal_of_integer i
-                   +& decimal_of_integer f
-                      /& decimal_of_integer
-                           (integer_exponentiation (integer_of_int 10) digits_f)
-                   )
-                   /& decimal_of_string "100"))
+                   decimal_of_string (i ^ "." ^ f) /& decimal_of_string "100"))
         | LBool b -> Desugared.Ast.ELit (Dcalc.Ast.LBool b)
         | LMoneyAmount i ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LMoney
                  Runtime.(
                    money_of_cents_integer
-                     ((i.money_amount_units *! integer_of_int 100)
-                     +! i.money_amount_cents)))
+                     (integer_of_string i.money_amount_units
+                      *! integer_of_int 100
+                     +! integer_of_string i.money_amount_cents)))
         | LNumber ((Int i, _), Some (Year, _)) ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LDuration
-                 (Runtime.duration_of_numbers (Runtime.integer_to_int i) 0 0))
+                 (Runtime.duration_of_numbers (int_of_string i) 0 0))
         | LNumber ((Int i, _), Some (Month, _)) ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LDuration
-                 (Runtime.duration_of_numbers 0 (Runtime.integer_to_int i) 0))
+                 (Runtime.duration_of_numbers 0 (int_of_string i) 0))
         | LNumber ((Int i, _), Some (Day, _)) ->
             Desugared.Ast.ELit
               (Dcalc.Ast.LDuration
-                 (Runtime.duration_of_numbers 0 0 (Runtime.integer_to_int i)))
+                 (Runtime.duration_of_numbers 0 0 (int_of_string i)))
         | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
             Errors.raise_spanned_error pos
               "Impossible to specify decimal amounts of days, months or years"
