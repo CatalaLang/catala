@@ -302,7 +302,7 @@ val map_scope_lets :
   box_expr:'expr box_expr_sig ->
   f:('expr scope_let -> 'expr scope_let Bindlib.box) ->
   'expr scope_body_expr ->
-  'expr scope_body_expr
+  'expr scope_body_expr Bindlib.box
 
 val fold_left_scope_defs :
   f:('a -> 'expr scope_def -> 'a) -> init:'a -> 'expr scopes -> 'a
@@ -316,7 +316,15 @@ val fold_right_scope_defs :
 val map_scope_defs :
   f:('expr scope_def -> 'expr scope_def Bindlib.box) ->
   'expr scopes ->
-  'expr scopes
+  'expr scopes Bindlib.box
+
+val map_exprs_in_scopes :
+  box_expr:'expr box_expr_sig ->
+  f:('expr Pos.marked -> 'expr Pos.marked Bindlib.box) ->
+  'expr scopes ->
+  'expr scopes Bindlib.box
+(** This is the main map visitor for all the expressions inside all the scopes
+    of the program. *)
 
 (** {2 Variables}*)
 

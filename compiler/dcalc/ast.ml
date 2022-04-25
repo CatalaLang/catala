@@ -312,19 +312,18 @@ let rec fold_right_scope_lets
 let map_scope_lets
     ~(box_expr : 'expr box_expr_sig)
     ~(f : 'expr scope_let -> 'expr scope_let Bindlib.box)
-    (scope_body_expr : 'expr scope_body_expr) : 'expr scope_body_expr =
-  Bindlib.unbox
-    (fold_right_scope_lets
-       ~f:(fun scope_let var_next (acc : 'expr scope_body_expr Bindlib.box) ->
-         let new_scope_let = f scope_let in
-         let new_next = Bindlib.bind_var var_next acc in
-         Bindlib.box_apply2
-           (fun new_next new_scope_let ->
-             ScopeLet { new_scope_let with scope_let_next = new_next })
-           new_next new_scope_let)
-       ~init:(fun res ->
-         Bindlib.box_apply (fun res -> Result res) (box_expr res))
-       scope_body_expr)
+    (scope_body_expr : 'expr scope_body_expr) :
+    'expr scope_body_expr Bindlib.box =
+  fold_right_scope_lets
+    ~f:(fun scope_let var_next (acc : 'expr scope_body_expr Bindlib.box) ->
+      let new_scope_let = f scope_let in
+      let new_next = Bindlib.bind_var var_next acc in
+      Bindlib.box_apply2
+        (fun new_next new_scope_let ->
+          ScopeLet { new_scope_let with scope_let_next = new_next })
+        new_next new_scope_let)
+    ~init:(fun res -> Bindlib.box_apply (fun res -> Result res) (box_expr res))
+    scope_body_expr
 
 let rec fold_left_scope_defs
     ~(f : 'a -> 'expr scope_def -> 'a) ~(init : 'a) (scopes : 'expr scopes) : 'a
@@ -348,17 +347,50 @@ let rec fold_right_scope_defs
 
 let map_scope_defs
     ~(f : 'expr scope_def -> 'expr scope_def Bindlib.box)
-    (scopes : 'expr scopes) : 'expr scopes =
-  Bindlib.unbox
-    (fold_right_scope_defs
-       ~f:(fun scope_def var_next acc ->
-         let new_scope_def = f scope_def in
-         let new_next = Bindlib.bind_var var_next acc in
-         Bindlib.box_apply2
-           (fun new_scope_def new_next ->
-             ScopeDef { new_scope_def with scope_next = new_next })
-           new_scope_def new_next)
-       ~init:(Bindlib.box Nil) scopes)
+    (scopes : 'expr scopes) : 'expr scopes Bindlib.box =
+  fold_right_scope_defs
+    ~f:(fun scope_def var_next acc ->
+      let new_scope_def = f scope_def in
+      let new_next = Bindlib.bind_var var_next acc in
+      Bindlib.box_apply2
+        (fun new_scope_def new_next ->
+          ScopeDef { new_scope_def with scope_next = new_next })
+        new_scope_def new_next)
+    ~init:(Bindlib.box Nil) scopes
+
+let map_exprs_in_scopes
+    ~(box_expr : 'expr box_expr_sig)
+    ~(f : 'expr Pos.marked -> 'expr Pos.marked Bindlib.box)
+    (scopes : 'expr scopes) : 'expr scopes Bindlib.box =
+  map_scope_defs
+    ~f:(fun scope_def ->
+      let scope_input_var, scope_lets =
+        Bindlib.unbind scope_def.scope_body.scope_body_expr
+      in
+      let new_scope_body_expr =
+        map_scope_lets ~box_expr
+          ~f:(fun scope_let ->
+            Bindlib.box_apply
+              (fun new_scope_let_expr ->
+                { scope_let with scope_let_expr = new_scope_let_expr })
+              (f scope_let.scope_let_expr))
+          scope_lets
+      in
+      let new_scope_body_expr =
+        Bindlib.bind_var scope_input_var new_scope_body_expr
+      in
+      Bindlib.box_apply
+        (fun new_scope_body_expr ->
+          {
+            scope_def with
+            scope_body =
+              {
+                scope_def.scope_body with
+                scope_body_expr = new_scope_body_expr;
+              };
+          })
+        new_scope_body_expr)
+    scopes
 
 module Var = struct
   type t = expr Bindlib.var
