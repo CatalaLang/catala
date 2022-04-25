@@ -18,7 +18,7 @@ open Utils
 module D = Dcalc.Ast
 module A = Ast
 
-type ctx = A.expr Pos.marked Bindlib.box D.VarMap.t
+type ctx = A.Var.t D.VarMap.t
 (** This environment contains a mapping between the variables in Dcalc and their
     correspondance in Lcalc. *)
 
@@ -53,9 +53,7 @@ let rec translate_default
     A.make_app
       (A.make_var (A.handle_default, pos_default))
       [
-        Bindlib.box_apply
-          (fun exceptions -> (A.EArray exceptions, pos_default))
-          (Bindlib.box_list exceptions);
+        A.earray exceptions pos_default;
         thunk_expr (translate_expr ctx just) pos_default;
         thunk_expr (translate_expr ctx cons) pos_default;
       ]
@@ -66,61 +64,40 @@ let rec translate_default
 and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
     A.expr Pos.marked Bindlib.box =
   match Pos.unmark e with
-  | D.EVar v -> D.VarMap.find (Pos.unmark v) ctx
+  | D.EVar v -> A.make_var (D.VarMap.find (Pos.unmark v) ctx, Pos.get_position e)
   | D.ETuple (args, s) ->
-      Bindlib.box_apply
-        (fun args -> Pos.same_pos_as (A.ETuple (args, s)) e)
-        (Bindlib.box_list (List.map (translate_expr ctx) args))
+      A.etuple (List.map (translate_expr ctx) args) s (Pos.get_position e)
   | D.ETupleAccess (e1, i, s, ts) ->
-      Bindlib.box_apply
-        (fun e1 -> Pos.same_pos_as (A.ETupleAccess (e1, i, s, ts)) e)
-        (translate_expr ctx e1)
+      A.etupleaccess (translate_expr ctx e1) i s ts (Pos.get_position e)
   | D.EInj (e1, i, en, ts) ->
-      Bindlib.box_apply
-        (fun e1 -> Pos.same_pos_as (A.EInj (e1, i, en, ts)) e)
-        (translate_expr ctx e1)
+      A.einj (translate_expr ctx e1) i en ts (Pos.get_position e)
   | D.EMatch (e1, cases, en) ->
-      Bindlib.box_apply2
-        (fun e1 cases -> Pos.same_pos_as (A.EMatch (e1, cases, en)) e)
-        (translate_expr ctx e1)
-        (Bindlib.box_list (List.map (translate_expr ctx) cases))
+      A.ematch (translate_expr ctx e1)
+        (List.map (translate_expr ctx) cases)
+        en (Pos.get_position e)
   | D.EArray es ->
-      Bindlib.box_apply
-        (fun es -> Pos.same_pos_as (A.EArray es) e)
-        (Bindlib.box_list (List.map (translate_expr ctx) es))
+      A.earray (List.map (translate_expr ctx) es) (Pos.get_position e)
   | D.ELit l -> Bindlib.box (Pos.same_pos_as (translate_lit l) e)
-  | D.EOp op -> Bindlib.box (Pos.same_pos_as (A.EOp op) e)
+  | D.EOp op -> A.eop op (Pos.get_position e)
   | D.EIfThenElse (e1, e2, e3) ->
-      Bindlib.box_apply3
-        (fun e1 e2 e3 -> Pos.same_pos_as (A.EIfThenElse (e1, e2, e3)) e)
-        (translate_expr ctx e1) (translate_expr ctx e2) (translate_expr ctx e3)
-  | D.EAssert e1 ->
-      Bindlib.box_apply
-        (fun e1 -> Pos.same_pos_as (A.EAssert e1) e)
-        (translate_expr ctx e1)
+      A.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)
+        (translate_expr ctx e3) (Pos.get_position e)
+  | D.EAssert e1 -> A.eassert (translate_expr ctx e1) (Pos.get_position e)
   | D.ErrorOnEmpty arg ->
-      Bindlib.box_apply
-        (fun arg ->
-          Pos.same_pos_as
-            (A.ECatch
-               ( arg,
-                 A.EmptyError,
-                 Pos.same_pos_as (A.ERaise A.NoValueProvided) e ))
-            e)
-        (translate_expr ctx arg)
+      A.ecatch (translate_expr ctx arg) A.EmptyError
+        (Bindlib.box (Pos.same_pos_as (A.ERaise A.NoValueProvided) e))
+        (Pos.get_position e)
   | D.EApp (e1, args) ->
-      Bindlib.box_apply2
-        (fun e1 args -> Pos.same_pos_as (A.EApp (e1, args)) e)
-        (translate_expr ctx e1)
-        (Bindlib.box_list (List.map (translate_expr ctx) args))
+      A.eapp (translate_expr ctx e1)
+        (List.map (translate_expr ctx) args)
+        (Pos.get_position e)
   | D.EAbs ((binder, pos_binder), ts) ->
       let vars, body = Bindlib.unmbind binder in
       let ctx, lc_vars =
         Array.fold_right
           (fun var (ctx, lc_vars) ->
             let lc_var = A.Var.make (Bindlib.name_of var, pos_binder) in
-            let lc_var_expr = A.make_var (lc_var, pos_binder) in
-            (D.VarMap.add var lc_var_expr ctx, lc_var :: lc_vars))
+            (D.VarMap.add var lc_var ctx, lc_var :: lc_vars))
           vars (ctx, [])
       in
       let lc_vars = Array.of_list lc_vars in
@@ -131,52 +108,102 @@ and translate_expr (ctx : ctx) (e : D.expr Pos.marked) :
           Pos.same_pos_as (A.EAbs ((new_binder, pos_binder), ts)) e)
         new_binder
   | D.EDefault ([ exn ], just, cons) when !Cli.optimize_flag ->
-      Bindlib.box_apply3
-        (fun exn just cons ->
-          Pos.same_pos_as
-            (A.ECatch
-               ( exn,
-                 A.EmptyError,
-                 Pos.same_pos_as
-                   (A.EIfThenElse
-                      (just, cons, Pos.same_pos_as (A.ERaise A.EmptyError) e))
-                   e ))
-            e)
-        (translate_expr ctx exn) (translate_expr ctx just)
-        (translate_expr ctx cons)
+      A.ecatch (translate_expr ctx exn) A.EmptyError
+        (A.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
+           (Bindlib.box (Pos.same_pos_as (A.ERaise A.EmptyError) e))
+           (Pos.get_position e))
+        (Pos.get_position e)
   | D.EDefault (exceptions, just, cons) ->
       translate_default ctx exceptions just cons (Pos.get_position e)
+
+let rec translate_scope_lets
+    (decl_ctx : D.decl_ctx)
+    (ctx : A.Var.t D.VarMap.t)
+    (scope_lets : D.expr D.scope_body_expr) :
+    A.expr D.scope_body_expr Bindlib.box =
+  match scope_lets with
+  | Result e -> Bindlib.box_apply (fun e -> D.Result e) (translate_expr ctx e)
+  | ScopeLet scope_let ->
+      let old_scope_let_var, scope_let_next =
+        Bindlib.unbind scope_let.scope_let_next
+      in
+      let new_scope_let_var =
+        A.Var.make (Bindlib.name_of old_scope_let_var, scope_let.scope_let_pos)
+      in
+      let new_scope_let_expr = translate_expr ctx scope_let.scope_let_expr in
+      let new_ctx = D.VarMap.add old_scope_let_var new_scope_let_var ctx in
+      let new_scope_next =
+        translate_scope_lets decl_ctx new_ctx scope_let_next
+      in
+      let new_scope_next = Bindlib.bind_var new_scope_let_var new_scope_next in
+      Bindlib.box_apply2
+        (fun new_scope_next new_scope_let_expr ->
+          D.ScopeLet
+            {
+              scope_let_typ = scope_let.D.scope_let_typ;
+              scope_let_kind = scope_let.D.scope_let_kind;
+              scope_let_pos = scope_let.D.scope_let_pos;
+              scope_let_next = new_scope_next;
+              scope_let_expr = new_scope_let_expr;
+            })
+        new_scope_next new_scope_let_expr
 
 let rec translate_scopes
     (decl_ctx : D.decl_ctx)
     (ctx : A.Var.t D.VarMap.t)
-    (scopes : D.expr D.scopes) : A.scope_body list =
+    (scopes : D.expr D.scopes) : A.expr D.scopes Bindlib.box =
   match scopes with
-  | Nil -> []
+  | Nil -> Bindlib.box D.Nil
   | ScopeDef scope_def ->
-      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let new_n = A.Var.make (Bindlib.name_of scope_var, Pos.no_pos) in
-      let new_scope =
-        {
-          Ast.scope_body_name = scope_def.scope_name;
-          scope_body_var = new_n;
-          scope_body_expr =
-            Bindlib.unbox
-              (translate_expr
-                 (D.VarMap.map (fun v -> A.make_var (v, Pos.no_pos)) ctx)
-                 (Bindlib.unbox
-                    (D.build_whole_scope_expr ~make_abs:D.make_abs
-                       ~make_let_in:D.make_let_in ~box_expr:D.box_expr decl_ctx
-                       scope_def.scope_body
-                       (Pos.get_position
-                          (Dcalc.Ast.ScopeName.get_info scope_def.scope_name)))));
-        }
+      let old_scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      let new_scope_var =
+        A.Var.make (D.ScopeName.get_info scope_def.scope_name)
       in
-      let new_ctx = D.VarMap.add scope_var new_n ctx in
-      new_scope :: translate_scopes decl_ctx new_ctx scope_next
+      let old_scope_input_var, scope_body_expr =
+        Bindlib.unbind scope_def.scope_body.scope_body_expr
+      in
+      let new_scope_input_var =
+        A.Var.make
+          ( Bindlib.name_of old_scope_input_var,
+            Pos.get_position (D.ScopeName.get_info scope_def.scope_name) )
+      in
+      let new_ctx = D.VarMap.add old_scope_input_var new_scope_input_var ctx in
+      let new_scope_body_expr =
+        translate_scope_lets decl_ctx new_ctx scope_body_expr
+      in
+      let new_scope_body_expr =
+        Bindlib.bind_var new_scope_input_var new_scope_body_expr
+      in
+      let new_scope : A.expr D.scope_body Bindlib.box =
+        Bindlib.box_apply
+          (fun new_scope_body_expr ->
+            {
+              D.scope_body_input_struct =
+                scope_def.scope_body.scope_body_input_struct;
+              scope_body_output_struct =
+                scope_def.scope_body.scope_body_output_struct;
+              scope_body_expr = new_scope_body_expr;
+            })
+          new_scope_body_expr
+      in
+      let new_ctx = D.VarMap.add old_scope_var new_scope_var new_ctx in
+      let scope_next =
+        Bindlib.bind_var new_scope_var
+          (translate_scopes decl_ctx new_ctx scope_next)
+      in
+      Bindlib.box_apply2
+        (fun new_scope scope_next ->
+          D.ScopeDef
+            {
+              scope_name = scope_def.scope_name;
+              scope_body = new_scope;
+              scope_next;
+            })
+        new_scope scope_next
 
 let translate_program (prgm : D.program) : A.program =
   {
-    scopes = translate_scopes prgm.decl_ctx D.VarMap.empty prgm.scopes;
+    scopes =
+      Bindlib.unbox (translate_scopes prgm.decl_ctx D.VarMap.empty prgm.scopes);
     decl_ctx = prgm.decl_ctx;
   }
