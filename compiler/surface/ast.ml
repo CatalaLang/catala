@@ -328,8 +328,8 @@ type literal_date = {
       }]
 
 type literal_number =
-  | Int of (Runtime.integer[@opaque])
-  | Dec of (Runtime.integer[@opaque]) * (Runtime.integer[@opaque])
+  | Int of (string[@opaque])
+  | Dec of (string[@opaque]) * (string[@opaque])
 [@@deriving
   visitors { variety = "map"; name = "literal_number_map"; nude = true },
     visitors { variety = "iter"; name = "literal_number_iter"; nude = true }]
@@ -340,8 +340,8 @@ type literal_unit = Percent | Year | Month | Day
     visitors { variety = "iter"; name = "literal_unit_iter"; nude = true }]
 
 type money_amount = {
-  money_amount_units : (Runtime.integer[@opaque]);
-  money_amount_cents : (Runtime.integer[@opaque]);
+  money_amount_units : (string[@opaque]);
+  money_amount_cents : (string[@opaque]);
 }
 [@@deriving
   visitors { variety = "map"; name = "money_amount_map"; nude = true },

@@ -127,7 +127,7 @@ unit_literal:
 | DAY { (Day, Pos.from_lpos $sloc) }
 
 date_int:
-| d = INT_LITERAL { (Runtime.integer_to_int d, Pos.from_lpos $sloc) }
+| d = INT_LITERAL { (int_of_string d, Pos.from_lpos $sloc) }
 
 literal:
 | l = num_literal u = option(unit_literal) {
