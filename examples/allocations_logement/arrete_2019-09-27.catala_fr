@@ -23,9 +23,13 @@ champ d'application RessourcesAidePersonnelleLogement:
 
 ### Article 6 | LEGIARTI000045011471
 
-Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros pour la location et à 6 000 euros pour la résidence en logement-foyer.
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées 
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros 
+pour la location et à 6 000 euros pour la résidence en logement-foyer.
 
-Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros pour la location et à 4 900 euros pour la résidence en logement-foyer.
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est 
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros 
+pour la location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
 # Pas pertinent pour le calcul des APL, renvoie à D822-21 qui n'a pas été traité.
@@ -44,7 +48,8 @@ I	   | 298,07	        | 359,49                        | 406,30	                 
 II   | 259,78         | 317,97                        | 357,80                      | 52,08
 III	 | 243,48         | 295,15                        | 330,94                      | 47,43
 
-Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour les prestations dues à compter du 1er octobre 2021.
+Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables 
+pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala-metadata
 déclaration énumération SituationFamilialeCalculAPL:
