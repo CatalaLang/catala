@@ -512,6 +512,40 @@ let format_ctx
           Format.fprintf fmt "%a@\n@\n" format_enum_decl (e, find_enum e ctx))
     (type_ordering @ scope_structs)
 
+let rec format_scope_body_expr
+    (ctx : Dcalc.Ast.decl_ctx)
+    (fmt : Format.formatter)
+    (scope_lets : Ast.expr Dcalc.Ast.scope_body_expr) : unit =
+  match scope_lets with
+  | Dcalc.Ast.Result e -> format_expr ctx fmt e
+  | Dcalc.Ast.ScopeLet scope_let ->
+      let scope_let_var, scope_let_next =
+        Bindlib.unbind scope_let.scope_let_next
+      in
+      Format.fprintf fmt "@[<hov 2>let %a: %a = %a in@]@\n%a" format_var
+        scope_let_var format_typ scope_let.scope_let_typ (format_expr ctx)
+        scope_let.scope_let_expr
+        (format_scope_body_expr ctx)
+        scope_let_next
+
+let rec format_scopes
+    (ctx : Dcalc.Ast.decl_ctx)
+    (fmt : Format.formatter)
+    (scopes : Ast.expr Dcalc.Ast.scopes) : unit =
+  match scopes with
+  | Dcalc.Ast.Nil -> ()
+  | Dcalc.Ast.ScopeDef scope_def ->
+      let scope_input_var, scope_body_expr =
+        Bindlib.unbind scope_def.scope_body.scope_body_expr
+      in
+      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
+      Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a) : %a =@\n%a@]%a"
+        format_var scope_var format_var scope_input_var format_struct_name
+        scope_def.scope_body.scope_body_input_struct format_struct_name
+        scope_def.scope_body.scope_body_output_struct
+        (format_scope_body_expr ctx)
+        scope_body_expr (format_scopes ctx) scope_next
+
 let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
@@ -524,13 +558,5 @@ let format_program
      @\n\
      [@@@@@@ocaml.warning \"-4-26-27-32-41-42\"]@\n\
      @\n\
-     %a@\n\
-     @\n\
-     %a@?"
-    (format_ctx type_ordering) p.decl_ctx
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-       (fun fmt body ->
-         Format.fprintf fmt "@[<hov 2>let@ %a@ =@ %a@]" format_var
-           body.scope_body_var (format_expr p.decl_ctx) body.scope_body_expr))
-    p.scopes
+     %a%a@?"
+    (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx) p.scopes
