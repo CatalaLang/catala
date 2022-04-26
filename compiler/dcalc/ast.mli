@@ -290,28 +290,49 @@ val map_expr :
     around during your map traversal. *)
 
 val fold_left_scope_lets :
-  f:('a -> 'expr scope_let -> 'a) -> init:'a -> 'expr scope_body_expr -> 'a
+  f:('a -> 'expr scope_let -> 'expr Bindlib.var -> 'a) ->
+  init:'a ->
+  'expr scope_body_expr ->
+  'a
+(** Usage:
+    [fold_left_scope_lets ~f:(fun acc scope_let scope_let_var -> ...) ~init scope_lets],
+    where [scope_let_var] is the variable bound to the scope let in the next
+    scope lets to be examined. *)
 
 val fold_right_scope_lets :
   f:('expr scope_let -> 'expr Bindlib.var -> 'a -> 'a) ->
   init:('expr Pos.marked -> 'a) ->
   'expr scope_body_expr ->
   'a
+(** Usage:
+    [fold_right_scope_lets ~f:(fun scope_let scope_let_var acc -> ...) ~init scope_lets],
+    where [scope_let_var] is the variable bound to the scope let in the next
+    scope lets to be examined (which are before in the program order). *)
 
-val map_scope_lets :
-  box_expr:'expr box_expr_sig ->
-  f:('expr scope_let -> 'expr scope_let Bindlib.box) ->
+val map_exprs_in_scope_lets :
+  f:('expr Pos.marked -> 'expr Pos.marked Bindlib.box) ->
   'expr scope_body_expr ->
   'expr scope_body_expr Bindlib.box
 
 val fold_left_scope_defs :
-  f:('a -> 'expr scope_def -> 'a) -> init:'a -> 'expr scopes -> 'a
+  f:('a -> 'expr scope_def -> 'expr Bindlib.var -> 'a) ->
+  init:'a ->
+  'expr scopes ->
+  'a
+(** Usage:
+    [fold_left_scope_defs ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
+    where [scope_var] is the variable bound to the scope in the next scopes to
+    be examined. *)
 
 val fold_right_scope_defs :
   f:('expr scope_def -> 'expr Bindlib.var -> 'a -> 'a) ->
   init:'a ->
   'expr scopes ->
   'a
+(** Usage:
+    [fold_right_scope_defs ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
+    where [scope_var] is the variable bound to the scope in the next scopes to
+    be examined (which are before in the program order). *)
 
 val map_scope_defs :
   f:('expr scope_def -> 'expr scope_def Bindlib.box) ->
@@ -319,7 +340,6 @@ val map_scope_defs :
   'expr scopes Bindlib.box
 
 val map_exprs_in_scopes :
-  box_expr:'expr box_expr_sig ->
   f:('expr Pos.marked -> 'expr Pos.marked Bindlib.box) ->
   'expr scopes ->
   'expr scopes Bindlib.box

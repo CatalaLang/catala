@@ -101,10 +101,7 @@ let rec beta_expr (_ : unit) (e : expr Pos.marked) : expr Pos.marked Bindlib.box
   | _ -> visitor_map beta_expr () e
 
 let iota_optimizations (p : program) : program =
-  let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~box_expr:Ast.box_expr ~f:(iota_expr ())
-      p.scopes
-  in
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(iota_expr ()) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
@@ -112,10 +109,7 @@ let iota_optimizations (p : program) : program =
    read, and can produce exponential blowup of the size of the generated
    program. *)
 let _beta_optimizations (p : program) : program =
-  let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~box_expr:Ast.box_expr ~f:(beta_expr ())
-      p.scopes
-  in
+  let new_scopes = Dcalc.Ast.map_exprs_in_scopes ~f:(beta_expr ()) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
 let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
@@ -148,8 +142,7 @@ let rec peephole_expr (_ : unit) (e : expr Pos.marked) :
 
 let peephole_optimizations (p : program) : program =
   let new_scopes =
-    Dcalc.Ast.map_exprs_in_scopes ~box_expr:Ast.box_expr ~f:(peephole_expr ())
-      p.scopes
+    Dcalc.Ast.map_exprs_in_scopes ~f:(peephole_expr ()) p.scopes
   in
   { p with scopes = Bindlib.unbox new_scopes }
 
