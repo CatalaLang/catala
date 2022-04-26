@@ -318,7 +318,7 @@ let embed_interface_allocations_familiales_in
           embed_bool x.i_avait_enfant_a_charge_avant_1er_janvier_2012_in );
       ] )
 
-let smic (smic_in : smic_in) =
+let smic (smic_in : smic_in) : smic_out =
   let date_courante_ : date = smic_in.date_courante_in in
   let residence_ : collectivite = smic_in.residence_in in
   let brut_horaire_ : money =
@@ -497,7 +497,8 @@ let smic (smic_in : smic_in) =
   { brut_horaire_out = brut_horaire_ }
 
 let allocation_familiales_avril2008
-    (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) =
+    (allocation_familiales_avril2008_in : allocation_familiales_avril2008_in) :
+    allocation_familiales_avril2008_out =
   let age_minimum_alinea_1_l521_3_ : integer =
     log_variable_definition
       [ "AllocationFamilialesAvril2008"; "âge_minimum_alinéa_1_l521_3" ]
@@ -507,25 +508,18 @@ let allocation_familiales_avril2008
          raise
            (NoValueProvided
               {
-                filename = "./securite_sociale_R.catala_fr";
-                start_line = 78;
-                start_column = 49;
-                end_line = 78;
-                end_column = 51;
-                law_headings =
-                  [
-                    "Article R521-1";
-                    "Chapitre 1er : Allocations familiales";
-                    "Titre 2 : Prestations générales d'entretien";
-                    "Livre 5 : Prestations familiales et prestations assimilées";
-                    "Partie réglementaire - Décrets en Conseil d'Etat";
-                    "Code de la sécurité sociale";
-                  ];
+                filename = "./prologue.catala_fr";
+                start_line = 81;
+                start_column = 10;
+                end_line = 81;
+                end_column = 37;
+                law_headings = [ "Prologue" ];
               }))
   in
   { age_minimum_alinea_1_l521_3_out = age_minimum_alinea_1_l521_3_ }
 
-let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
+let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) :
+    enfant_le_plus_age_out =
   let enfants_ : enfant array = enfant_le_plus_age_in.enfants_in in
   let le_plus_age_ : enfant =
     log_variable_definition
@@ -560,7 +554,8 @@ let enfant_le_plus_age (enfant_le_plus_age_in : enfant_le_plus_age_in) =
   { le_plus_age_out = le_plus_age_ }
 
 let prestations_familiales
-    (prestations_familiales_in : prestations_familiales_in) =
+    (prestations_familiales_in : prestations_familiales_in) :
+    prestations_familiales_out =
   let date_courante_ : date = prestations_familiales_in.date_courante_in in
   let prestation_courante_ : element_prestations_familiales =
     prestations_familiales_in.prestation_courante_in
@@ -575,20 +570,12 @@ let prestations_familiales
          raise
            (NoValueProvided
               {
-                filename = "./securite_sociale_R.catala_fr";
-                start_line = 21;
-                start_column = 34;
-                end_line = 21;
-                end_column = 36;
-                law_headings =
-                  [
-                    "Article R512-2";
-                    "Chapitre 2 : Champ d'application.";
-                    "Titre 1 : Champ d'application - Généralités";
-                    "Livre 5 : Prestations familiales et prestations assimilées";
-                    "Partie réglementaire - Décrets en Conseil d'Etat";
-                    "Code de la sécurité sociale";
-                  ];
+                filename = "./prologue.catala_fr";
+                start_line = 68;
+                start_column = 10;
+                end_line = 68;
+                end_column = 22;
+                law_headings = [ "Prologue" ];
               }))
   in
   let base_mensuelle_ : money =
@@ -698,10 +685,10 @@ let prestations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 73;
-             start_column = 3;
-             end_line = 73;
-             end_column = 7;
+             start_line = 41;
+             start_column = 10;
+             end_line = 41;
+             end_column = 23;
              law_headings = [ "Prologue" ];
            })
   in
@@ -715,10 +702,10 @@ let prestations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 73;
-             start_column = 3;
-             end_line = 73;
-             end_column = 7;
+             start_line = 42;
+             start_column = 10;
+             end_line = 42;
+             end_column = 19;
              law_headings = [ "Prologue" ];
            })
   in
@@ -994,7 +981,8 @@ let prestations_familiales
   }
 
 let allocations_familiales
-    (allocations_familiales_in : allocations_familiales_in) =
+    (allocations_familiales_in : allocations_familiales_in) :
+    allocations_familiales_out =
   let personne_charge_effective_permanente_est_parent_ : bool =
     allocations_familiales_in.personne_charge_effective_permanente_est_parent_in
   in
@@ -1382,20 +1370,12 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "./securite_sociale_D.catala_fr";
-                start_line = 288;
-                start_column = 43;
-                end_line = 288;
-                end_column = 44;
-                law_headings =
-                  [
-                    "Article D521-2";
-                    "Chapitre 1er : Allocations familiales";
-                    "Titre 2 : Prestations générales d'entretien";
-                    "Livre 5 : Prestations familiales et prestations assimilées";
-                    "Partie réglementaire - Décrets simples";
-                    "Code de la sécurité sociale";
-                  ];
+                filename = "./prologue.catala_fr";
+                start_line = 151;
+                start_column = 11;
+                end_line = 151;
+                end_column = 32;
+                law_headings = [ "Prologue" ];
               }))
   in
   let nombre_enfants_alinea_2_l521_3_ : integer =
@@ -1407,20 +1387,12 @@ let allocations_familiales
          raise
            (NoValueProvided
               {
-                filename = "./securite_sociale_R.catala_fr";
-                start_line = 64;
-                start_column = 52;
-                end_line = 64;
-                end_column = 53;
-                law_headings =
-                  [
-                    "Article R521-1";
-                    "Chapitre 1er : Allocations familiales";
-                    "Titre 2 : Prestations générales d'entretien";
-                    "Livre 5 : Prestations familiales et prestations assimilées";
-                    "Partie réglementaire - Décrets en Conseil d'Etat";
-                    "Code de la sécurité sociale";
-                  ];
+                filename = "./prologue.catala_fr";
+                start_line = 153;
+                start_column = 11;
+                end_line = 153;
+                end_column = 41;
+                law_headings = [ "Prologue" ];
               }))
   in
   let result_ : allocation_familiales_avril2008_out =
@@ -1451,10 +1423,10 @@ let allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 146;
-             start_column = 3;
-             end_line = 146;
-             end_column = 25;
+             start_line = 70;
+             start_column = 10;
+             end_line = 70;
+             end_column = 23;
              law_headings = [ "Prologue" ];
            })
   in
@@ -1471,10 +1443,10 @@ let allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 146;
-             start_column = 3;
-             end_line = 146;
-             end_column = 25;
+             start_line = 71;
+             start_column = 10;
+             end_line = 71;
+             end_column = 29;
              law_headings = [ "Prologue" ];
            })
   in
@@ -1488,10 +1460,10 @@ let allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 146;
-             start_column = 3;
-             end_line = 146;
-             end_column = 25;
+             start_line = 72;
+             start_column = 10;
+             end_line = 72;
+             end_column = 19;
              law_headings = [ "Prologue" ];
            })
   in
@@ -1541,10 +1513,10 @@ let allocations_familiales
         (NoValueProvided
            {
              filename = "./prologue.catala_fr";
-             start_line = 148;
-             start_column = 3;
-             end_line = 148;
-             end_column = 21;
+             start_line = 84;
+             start_column = 10;
+             end_line = 84;
+             end_column = 17;
              law_headings = [ "Prologue" ];
            })
   in
@@ -4869,7 +4841,7 @@ let allocations_familiales
 
 let interface_allocations_familiales
     (interface_allocations_familiales_in : interface_allocations_familiales_in)
-    =
+    : interface_allocations_familiales_out =
   let i_date_courante_ : date =
     interface_allocations_familiales_in.i_date_courante_in
   in
@@ -4966,13 +4938,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 90;
+             start_column = 10;
+             end_line = 90;
+             end_column = 57;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_
@@ -5004,13 +4975,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 91;
+             start_column = 10;
+             end_line = 91;
+             end_column = 62;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_ressources_menage_ : money =
@@ -5025,13 +4995,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 92;
+             start_column = 10;
+             end_line = 92;
+             end_column = 27;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_residence_ : collectivite =
@@ -5043,13 +5012,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 93;
+             start_column = 10;
+             end_line = 93;
+             end_column = 19;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_date_courante_ : date =
@@ -5064,13 +5032,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 96;
+             start_column = 10;
+             end_line = 96;
+             end_column = 23;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_enfants_a_charge_ : enfant array =
@@ -5085,13 +5052,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 99;
+             start_column = 10;
+             end_line = 99;
+             end_column = 26;
+             law_headings = [ "Prologue" ];
            })
   in
   let allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_ :
@@ -5123,13 +5089,12 @@ let interface_allocations_familiales
       raise
         (NoValueProvided
            {
-             filename = "./epilogue.catala_fr";
-             start_line = 75;
-             start_column = 3;
-             end_line = 75;
-             end_column = 25;
-             law_headings =
-               [ "Interface du programme"; "Épilogue"; "Décrets divers" ];
+             filename = "./prologue.catala_fr";
+             start_line = 120;
+             start_column = 10;
+             end_line = 120;
+             end_column = 54;
+             law_headings = [ "Prologue" ];
            })
   in
   let result_ : allocations_familiales_out =

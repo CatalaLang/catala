@@ -125,15 +125,10 @@ let rec translate_expr (ctxt : ctxt) (expr : L.expr Pos.marked) :
 and translate_statements (ctxt : ctxt) (block_expr : L.expr Pos.marked) :
     A.block =
   match Pos.unmark block_expr with
-  | L.EApp
-      ((L.EAbs ((binder, _), [ (D.TLit D.TUnit, _) ]), _), [ (L.EAssert e, _) ])
-    ->
+  | L.EAssert e ->
       (* Assertions are always encapsulated in a unit-typed let binding *)
-      let _, body = Bindlib.unmbind binder in
       let e_stmts, new_e = translate_expr ctxt e in
-      e_stmts
-      @ (A.SAssert (Pos.unmark new_e), Pos.get_position block_expr)
-        :: translate_statements ctxt body
+      e_stmts @ [ (A.SAssert (Pos.unmark new_e), Pos.get_position block_expr) ]
   | L.EApp ((L.EAbs ((binder, binder_pos), taus), eabs_pos), args) ->
       (* This defines multiple local variables at the time *)
       let vars, body = Bindlib.unmbind binder in
@@ -306,26 +301,39 @@ let rec translate_scope_body_expr
       let let_var_id =
         A.LocalName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
       in
-      let let_expr_stmts, new_let_expr =
-        translate_expr
-          {
-            decl_ctx;
-            func_dict;
-            var_dict;
-            inside_definition_of = Some let_var_id;
-            context_name = Pos.unmark (D.ScopeName.get_info scope_name);
-          }
-          scope_let.scope_let_expr
-      in
       let new_var_dict = L.VarMap.add let_var let_var_id var_dict in
-      let_expr_stmts
-      @ [
-          ( A.SLocalDecl
-              ((let_var_id, scope_let.scope_let_pos), scope_let.scope_let_typ),
-            scope_let.scope_let_pos );
-          ( A.SLocalDef ((let_var_id, scope_let.scope_let_pos), new_let_expr),
-            scope_let.scope_let_pos );
-        ]
+      (match scope_let.scope_let_kind with
+      | D.Assertion ->
+          translate_statements
+            {
+              decl_ctx;
+              func_dict;
+              var_dict;
+              inside_definition_of = Some let_var_id;
+              context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+            }
+            scope_let.scope_let_expr
+      | _ ->
+          let let_expr_stmts, new_let_expr =
+            translate_expr
+              {
+                decl_ctx;
+                func_dict;
+                var_dict;
+                inside_definition_of = Some let_var_id;
+                context_name = Pos.unmark (D.ScopeName.get_info scope_name);
+              }
+              scope_let.scope_let_expr
+          in
+          let_expr_stmts
+          @ [
+              ( A.SLocalDecl
+                  ( (let_var_id, scope_let.scope_let_pos),
+                    scope_let.scope_let_typ ),
+                scope_let.scope_let_pos );
+              ( A.SLocalDef ((let_var_id, scope_let.scope_let_pos), new_let_expr),
+                scope_let.scope_let_pos );
+            ])
       @ translate_scope_body_expr scope_name decl_ctx new_var_dict func_dict
           scope_let_next
 
