@@ -63,6 +63,8 @@ let wrap_latex
      \\usepackage[dvipsnames]{xcolor}\n\
      \\usepackage{fullpage}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\setcounter{secnumdepth}{0}\n\
+     \\setcounter{tocdepth}{5}\n\
      \\newunicodechar{÷}{$\\div$}\n\
      \\newunicodechar{×}{$\\times$}\n\
      \\newunicodechar{≤}{$\\leqslant$}\n\
@@ -89,7 +91,8 @@ let wrap_latex
      \\maketitle\n\n\
      %s : \n\
      \\begin{itemize}%s\\end{itemize}\n\n\
-     \\[\\star\\star\\star\\]\\\\\n"
+     \\tableofcontents\n\n\
+     \\[\\star\\star\\star\\]"
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (literal_title language)
     (literal_generated_by language)
@@ -121,7 +124,7 @@ let rec law_structure_to_latex
     unit =
   match i with
   | A.LawHeading (heading, children) ->
-      Format.fprintf fmt "\\%s*{%s}\n\n"
+      Format.fprintf fmt "\\%s{%s}\n\n"
         (match heading.law_heading_precedence with
         | 0 -> "section"
         | 1 -> "subsection"
