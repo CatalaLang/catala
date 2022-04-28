@@ -23,16 +23,17 @@ champ d'application RessourcesAidePersonnelleLogement:
 
 ### Article 6 | LEGIARTI000045011471
 
-Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées 
-égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros 
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
 pour la location et à 6 000 euros pour la résidence en logement-foyer.
 
-Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est 
-pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros 
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
 pour la location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
-# Pas pertinent pour le calcul des APL, renvoie à D822-21 qui n'a pas été traité.
+# Pas pertinent pour le calcul des APL, renvoie à D822-21 qui n'a pas été
+# traité.
 ```
 
 ## Chapitre III : Calcul des aides personnelles au logement en secteur locatif
@@ -48,7 +49,7 @@ I	   | 298,07	        | 359,49                        | 406,30	                 
 II   | 259,78         | 317,97                        | 357,80                      | 52,08
 III	 | 243,48         | 295,15                        | 330,94                      | 47,43
 
-Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables 
+Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala-metadata
@@ -96,11 +97,14 @@ champ d'application CalculAidePersonnelleLogement
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      406,30€ +€ 58,95€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      406,30€ +€ 58,95€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
     --Zone2:
-      357,80€ +€ 52,08€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      357,80€ +€ 52,08€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
     --Zone3:
-      330,94€ +€ 47,43€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      330,94€ +€ 47,43€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
 
 ```
 
@@ -151,7 +155,7 @@ champ d'application CalculAidePersonnelleLogement
     -- Zone3: 219,13€
 
   exception chambre définition plafond_loyer_d823_16_2 sous condition
-    personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
+    personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   conséquence égal à
     selon zone sous forme
     -- Zone1: 223,55€
@@ -317,7 +321,8 @@ champ d'application CalculAidePersonnelleLogement
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% -. (0,06% *. (entier_vers_décimal de (nombre_personnes_à_charge - 6))))
+      (1,73% -. (0,06% *. (entier_vers_décimal de
+        (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
 # toutes ces parenthèses.
@@ -425,7 +430,8 @@ champ d'application CalculAidePersonnelleLogement
     sinon (si nombre_personnes_à_charge = 6 alors
       9 439 €
     sinon
-      ( 9 439€ +€ (311 € *€ (entier_vers_décimal de (nombre_personnes_à_charge - 6))))
+      (9 439€ +€ (311 € *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 6))))
     ))))))
 ```
 
@@ -486,11 +492,14 @@ champ d'application CalculAidePersonnelleLogement
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      304,73€ +€ 44,21€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      304,73€ +€ 44,21€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
     --Zone2:
-      268,35€ +€ 39,06€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      268,35€ +€ 39,06€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
     --Zone3:
-      248,21€ +€ 35,57€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))
+      248,21€ +€ 35,57€ *€ (entier_vers_décimal de
+        (nombre_personnes_à_charge - 1))
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -540,14 +549,16 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |  
 Par personne supplémentaire à charge	                      |    430	    |    379      |    346
 
 ```catala
-# Ici les montants des mensualités sont en francs car signées avant l'avènement
-# de l'euro mais pour le calcul des APL en euros il faut que la mensualité
-# plafond soit exprimée en euros. Donc nous convertissons.
+# Ici les montants des mensualités sont en francs car signées avant
+# l'avènement de l'euro mais pour le calcul des APL en euros il faut
+# que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
 champ d'application CalculAidePersonnelleLogement:
-  # TODO juridique: trouver le décret ou la loi qui définit ce taux de conversion.
+  # TODO juridique: trouver le décret ou la loi qui définit ce taux de
+  #  conversion.
   définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
 
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
     ancienneté_logement sous forme Neuf et
@@ -589,7 +600,8 @@ Par personne supplémentaire à charge	                      |    374	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
     ancienneté_logement sous forme Ancien et
@@ -632,7 +644,8 @@ Par personne supplémentaire à charge	                      |    380	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1994-11-27| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_32
@@ -673,7 +686,8 @@ Par personne supplémentaire à charge	                      |    306	    |    2
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+   sous condition
     date_signature_prêt >=@ |1994-11-27| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_32
@@ -722,7 +736,8 @@ Par personne supplémentaire à charge	                      |    430	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
     ancienneté_logement sous forme Neuf et
@@ -764,7 +779,8 @@ Par personne supplémentaire à charge	                      |    347	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
     (selon ancienneté_logement sous forme
@@ -809,7 +825,8 @@ Par personne supplémentaire à charge	                      |         102
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
     (selon ancienneté_logement sous forme
@@ -839,7 +856,8 @@ Par personne supplémentaire à charge	                      |    409	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1994-11-27| et
     date_signature_prêt <@ |2000-06-30| et
     ancienneté_logement sous forme Neuf et
@@ -881,7 +899,8 @@ Par personne supplémentaire à charge	                      |    330	    |    2
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |1994-11-27| et
     date_signature_prêt <@ |2000-06-30| et
     ancienneté_logement sous forme Ancien et
@@ -924,7 +943,8 @@ Par personne supplémentaire à charge	                      |    413	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2000-06-30| et
     date_signature_prêt <=@ |2001-06-30| et
     ancienneté_logement sous forme Neuf et
@@ -966,7 +986,8 @@ Par personne supplémentaire à charge	                      |    333	    |    2
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2000-06-30| et
     date_signature_prêt <=@ |2001-06-30| et
     ancienneté_logement sous forme Ancien et
@@ -1011,7 +1032,8 @@ Par personne supplémentaire à charge	                      |    418	    |    3
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2001-07-01| et
     date_signature_prêt <@ |2001-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1052,7 +1074,8 @@ Par personne supplémentaire à charge	                      |    63,72	  |    5
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2002-01-01| et
     date_signature_prêt <@ |2002-06-30| et
     ancienneté_logement sous forme Neuf et
@@ -1096,7 +1119,8 @@ Par personne supplémentaire à charge	                      |    337	    |    2
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2001-07-01| et
     date_signature_prêt <@ |2001-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1137,7 +1161,8 @@ Par personne supplémentaire à charge	                      |    51,38	  |    4
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2002-01-01| et
     date_signature_prêt <@ |2002-06-30| et
     ancienneté_logement sous forme Ancien et
@@ -1180,7 +1205,8 @@ Par personne supplémentaire à charge	                      |    64,48	  |    5
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2002-06-30| et
     date_signature_prêt <@ |2003-06-30| et
     ancienneté_logement sous forme Neuf et
@@ -1222,7 +1248,8 @@ Par personne supplémentaire à charge	                      |    52   	  |    4
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2002-06-30| et
     date_signature_prêt <@ |2003-06-30| et
     ancienneté_logement sous forme Ancien et
@@ -1265,7 +1292,8 @@ Par personne supplémentaire à charge	                      |    65,25 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2003-06-30| et
     date_signature_prêt <@ |2005-08-31| et
     ancienneté_logement sous forme Neuf et
@@ -1307,7 +1335,8 @@ Par personne supplémentaire à charge	                      |    52,62 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2003-06-30| et
     date_signature_prêt <@ |2005-08-31| et
     ancienneté_logement sous forme Ancien et
@@ -1350,7 +1379,8 @@ Par personne supplémentaire à charge	                      |    66,42 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2005-08-31| et
     date_signature_prêt <@ |2006-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1392,7 +1422,8 @@ Par personne supplémentaire à charge	                      |    53,57 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2005-08-31| et
     date_signature_prêt <@ |2006-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1435,7 +1466,8 @@ Par personne supplémentaire à charge	                      |    68,28 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2006-12-31| et
     date_signature_prêt <@ |2007-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1477,7 +1509,8 @@ Par personne supplémentaire à charge	                      |    55,07 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2006-12-31| et
     date_signature_prêt <@ |2007-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1520,7 +1553,8 @@ Par personne supplémentaire à charge	                      |    70,16 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2007-12-31| et
     date_signature_prêt <@ |2008-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1562,7 +1596,8 @@ Par personne supplémentaire à charge	                      |    56,59 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2007-12-31| et
     date_signature_prêt <@ |2008-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1605,7 +1640,8 @@ Par personne supplémentaire à charge	                      |    72,23 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2008-12-31| et
     date_signature_prêt <@ |2009-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1647,7 +1683,8 @@ Par personne supplémentaire à charge	                      |    58,26 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2008-12-31| et
     date_signature_prêt <@ |2009-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1690,7 +1727,8 @@ Par personne supplémentaire à charge	                      |    72,46 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2009-12-31| et
     date_signature_prêt <@ |2010-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1732,7 +1770,8 @@ Par personne supplémentaire à charge	                      |    58,45 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2009-12-31| et
     date_signature_prêt <@ |2010-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1775,7 +1814,8 @@ Par personne supplémentaire à charge	                      |    73,26 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2010-12-31| et
     date_signature_prêt <@ |2011-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1817,7 +1857,8 @@ Par personne supplémentaire à charge	                      |    59,09 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2010-12-31| et
     date_signature_prêt <@ |2011-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1859,9 +1900,9 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   506,55    |  
 Par personne supplémentaire à charge	                      |    73,99 	  |    65,15    |   459,47
 
 ```catala
-# TODO juridique: signaler la dernière case du tableau à la CAF (valeur aberrante)
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2011-12-31| et
     date_signature_prêt <@ |2012-12-31| et
     ancienneté_logement sous forme Neuf et
@@ -1888,7 +1929,9 @@ champ d'application CalculAidePersonnelleLogement:
          -- PersonneSeule: 298,72€
          -- Couple: 358,19€)
       sinon (417,67€ +€
-        459,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        # Attention ici valeur différente du décret car décret
+        # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
+        59,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1903,9 +1946,9 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   407,96    |  
 Par personne supplémentaire à charge	                      |    59,68 	  |    52,58    |   347,99
 
 ```catala
-# TODO juridique: signaler la dernière case du tableau à la CAF (valeur aberrante)
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2011-12-31| et
     date_signature_prêt <@ |2012-12-31| et
     ancienneté_logement sous forme Ancien et
@@ -1932,7 +1975,9 @@ champ d'application CalculAidePersonnelleLogement:
          -- PersonneSeule: 240,27€
          -- Couple: 288,24€)
       sinon (336,23€ +€
-        347,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+        # Attention ici valeur différente du décret car décret
+        # incorrect selon information DGALN/DHUP/FE4 du 25/04/2022
+        47,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
@@ -1948,7 +1993,8 @@ Par personne supplémentaire à charge	                      |    75,58 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2012-12-31| et
     date_signature_prêt <@ |2014-09-30| et
     ancienneté_logement sous forme Neuf et
@@ -1990,7 +2036,8 @@ Par personne supplémentaire à charge	                      |    60,96 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2012-12-31| et
     date_signature_prêt <@ |2014-09-30| et
     ancienneté_logement sous forme Ancien et
@@ -2033,7 +2080,8 @@ Par personne supplémentaire à charge	                      |    76,01 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2014-09-30| et
     date_signature_prêt <@ |2015-09-30| et
     ancienneté_logement sous forme Neuf et
@@ -2075,7 +2123,8 @@ Par personne supplémentaire à charge	                      |    61,31 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2014-09-30| et
     date_signature_prêt <@ |2015-09-30| et
     ancienneté_logement sous forme Ancien et
@@ -2118,7 +2167,8 @@ Par personne supplémentaire à charge	                      |    76,07 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2015-09-30| et
     date_signature_prêt <@ |2017-09-30| et
     ancienneté_logement sous forme Neuf et
@@ -2160,7 +2210,8 @@ Par personne supplémentaire à charge	                      |    61,36 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2015-09-30| et
     date_signature_prêt <@ |2017-09-30| et
     ancienneté_logement sous forme Ancien et
@@ -2203,7 +2254,8 @@ Par personne supplémentaire à charge	                      |    76,64 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2017-09-30| et
     date_signature_prêt <@ |2019-09-30| et
     ancienneté_logement sous forme Neuf et
@@ -2245,7 +2297,8 @@ Par personne supplémentaire à charge	                      |    61,82 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2017-09-30| et
     date_signature_prêt <@ |2019-09-30| et
     ancienneté_logement sous forme Ancien et
@@ -2288,7 +2341,8 @@ Par personne supplémentaire à charge	                      |    76,87 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2019-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
@@ -2329,7 +2383,8 @@ Par personne supplémentaire à charge	                      |    62,01 	  |    
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     date_signature_prêt >=@ |2019-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
@@ -2631,10 +2686,26 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 champ d'application CalculAidePersonnelleLogement:
   définition tranches_revenus_d832_26 égal à [
     TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
-    TrancheRevenu { -- haut: Revenu contenu 2678,71€  -- bas: 1948,10€ -- taux: 10,40%};
-    TrancheRevenu { -- haut: Revenu contenu 3896,18€  -- bas: 2678,71€ -- taux: 21,60%};
-    TrancheRevenu { -- haut: Revenu contenu 5 357,44€ -- bas: 3896,18€ -- taux: 26,40%};
-    TrancheRevenu { -- haut: Revenu contenu 6 331,29€  -- bas: 5 357,44€ -- taux: 32%};
+    TrancheRevenu {
+      -- haut: Revenu contenu 2678,71€
+      -- bas: 1948,10€
+      -- taux: 10,40%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 3896,18€
+      -- bas: 2678,71€
+      -- taux: 21,60%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 5 357,44€
+      -- bas: 3896,18€
+      -- taux: 26,40%
+    };
+    TrancheRevenu {
+      -- haut: Revenu contenu 6 331,29€
+      -- bas: 5 357,44€
+      -- taux: 32%
+    };
     TrancheRevenu { -- haut: Infini  -- bas: 6 331,29€ -- taux: 48%}
   ]
 ```

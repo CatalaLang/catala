@@ -101,7 +101,8 @@ déclaration énumération Parenté:
 déclaration structure ParentÀCharge:
   donnée âge contenu durée
   donnée ressources contenu argent
-  donnée ascendant_descendant_collatéral_deuxième_troisième_degré contenu booléen
+  donnée ascendant_descendant_collatéral_deuxième_troisième_degré
+    contenu booléen
   donnée parenté contenu Parenté
   donnée incapacité_80_pourcent_ou_restriction_emploi contenu booléen
   donnée bénéficiaire_l161_19_l351_8_l643_3_sécu contenu booléen
@@ -126,7 +127,8 @@ déclaration structure Ménage:
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
-  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse contenu entier
+  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
+    contenu entier
   donnée date_naissance_troisième_enfant_ou_dernier_si_plus contenu
     DateNaissanceTroisièmeOuDernierPlusEnfant
 
@@ -159,12 +161,14 @@ déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
   interne prise_en_compte_personne_à_charge condition
     dépend de PersonneÀCharge
-  interne personnes_à_charge_prises_en_compte contenu collection PersonneÀCharge
+  interne personnes_à_charge_prises_en_compte
+    contenu collection PersonneÀCharge
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
   interne condition_logement_bailleur condition
   interne condition_logement_prêt condition
-  interne condition_logement_surface_minimale_sans_seuil_m_carrés contenu entier
+  interne condition_logement_surface_minimale_sans_seuil_m_carrés
+    contenu entier
   interne nombre_personnes_logement contenu entier
   interne condition_logement_surface condition
   interne usufruit_ou_propriété_famille contenu booléen
@@ -209,7 +213,8 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition éligibilité_apl.ménage égal à ménage
   définition éligibilité_apl.demandeur égal à demandeur
-  définition éligibilité_apl.date_ouverture_droits égal à date_ouverture_droits
+  définition éligibilité_apl.date_ouverture_droits égal à
+    date_ouverture_droits
   définition base_mensuelle_allocations_familiales.date_courante égal à
     date_ouverture_droits
 
@@ -317,7 +322,8 @@ déclaration champ d'application CalculAidePersonnelleLogement:
   entrée mensualité_principale contenu argent
   entrée date_courante contenu date
   entrée logement_est_chambre contenu booléen
-  entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen
+  entrée personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    contenu booléen
   entrée zone contenu ZoneDHabitation
   entrée situation_familiale contenu SituationFamiliale
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -398,7 +404,8 @@ déclaration champ d'application CalculAidePersonnelleLogement:
 
 champ d'application CalculAidePersonnelleLogement:
   # Valeur par défaut pour ce plafond quand il n'est pas applicable.
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
+  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  sous condition
     type_prêt sous forme TypePrêt.Autre
   conséquence égal à 0 €
 

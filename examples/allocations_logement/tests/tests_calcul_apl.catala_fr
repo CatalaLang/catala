@@ -23,7 +23,7 @@ champ d'application Exemple1:
   définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2021-10-3|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
+  définition calcul.personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
   définition calcul.zone égal à Zone1
   définition calcul.situation_familiale égal à Mariés

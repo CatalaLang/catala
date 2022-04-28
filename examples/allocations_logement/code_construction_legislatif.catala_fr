@@ -45,10 +45,10 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
 
 ```catala
 # Ce chapitre définit diverses conditions d'éligibilité concernant le logement.
-# La structure de ces conditions comporte des exceptions négatives à une condition
-# positive. Il n'y a pas vraiment de bonne manière de modéliser cela en Catala
-# pour le moment à part le code ci-dessous qui récapitule la méta-structure
-# logique des articles de loi de ce chapitre.
+# La structure de ces conditions comporte des exceptions négatives à une
+# condition positive. Il n'y a pas vraiment de bonne manière de modéliser
+# cela en Catala pour le moment à part le code ci-dessous qui récapitule
+# la méta-structure logique des articles de loi de ce chapitre.
 champ d'application ÉligibilitéAidePersonnelleLogement:
 
   règle éligibilité_logement sous condition
@@ -123,7 +123,8 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- AccessionPropriétéLocalUsageExclusifHabitation:
         ménage.logement.résidence_principale
       -- SousLocataire: vrai
-      -- LocationAccession: vrai # Justifié par L831-2, avec une exception à venir
+      -- LocationAccession: vrai # Justifié par L831-2, avec une
+                                 # exception à venir
       -- ModeOccupation.Autre: faux
   conséquence rempli
 ```
@@ -161,7 +162,8 @@ Ces seuils ne peuvent excéder 20 % de la propriété ou de l'usufruit du logeme
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette l822_3_2 exception l822_3_1 règle condition_logement_mode_occupation sous condition
+  étiquette l822_3_2 exception l822_3_1
+  règle condition_logement_mode_occupation sous condition
     usufruit_ou_propriété_famille et
     (selon ménage.logement.propriétaire sous forme
       -- DemandeurOuConjointOuParentOuViaPartsSociétés de parts: parts
@@ -197,7 +199,8 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      personne.age_personne_sous_location <= 30 ou personne.conforme_article_l442_1
+      personne.age_personne_sous_location <= 30 ou
+      personne.conforme_article_l442_1
   conséquence rempli
 ```
 
@@ -231,12 +234,9 @@ patrimoine, lorsque cette valeur est supérieure à un montant fixé par voie
 réglementaire.
 
 ```catala
-
-# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
-# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
-# de cette forme là.
-
-
+# Cet article est une déclaration d'intention qui donne des propriétée sur
+# la formule de calcul. Dans le futur il serait interessant de vérifier que
+# la formule est bien de cette forme là.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   définition patrimoine_total_demandeur égal à
     demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +€
@@ -247,7 +247,6 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       patrimoine_total_demandeur
     sinon
       0€
-
 ```
 
 Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur d'une
@@ -264,7 +263,6 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     (prestation = AllocationSoutienEnfantHandicapé) ou
     (prestation = AllocationAdulteHandicapé)
   conséquence égal à 0€
-
 ```
 
 La même dérogation s'applique au demandeur d'une aide personnelle au logement
@@ -295,11 +293,9 @@ Les conditions de prise en compte des ressources, notamment les périodes de ré
 retenues, peuvent varier en fonction de la nature des ressources.
 
 ```catala
-
-# Cet article est une déclaration d'intention qui donne des propriétée sur la formule
-# de calcul. Dans le futur il serait interessant de vérifier que la formule est bien
-# de cette forme là.
-
+# Cet article est une déclaration d'intention qui donne des propriétée sur
+# la formule de calcul. Dans le futur il serait interessant de vérifier que
+# la formule est bien de cette forme là.
 ```
 
 ###### Article L822-7 | LEGIARTI000038814932
@@ -313,7 +309,8 @@ contrat de travail autre qu'un contrat à durée indéterminée.
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_spécifique_prise_en_compte_revenus_demandeur sous condition
-    (demandeur.age_demandeur <= 25) et non (demandeur.contrat_de_travail sous forme CDI)
+    (demandeur.age_demandeur <= 25) et
+    non (demandeur.contrat_de_travail sous forme CDI)
   conséquence rempli
 
 ```
@@ -347,7 +344,8 @@ l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rap
 locatifs et portant modification de la loi n° 86-1290 du 23 décembre 1986.
 
 ```catala
-# todo informatique: structure inverse de la structure avec des conditions chainées
+# TODO informatique: structure inverse de la structure avec des conditions
+# chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_9_decence_logement
   sous condition non ménage.logement.logement_decent_l89_462
@@ -360,7 +358,7 @@ s'il répond à ces mêmes exigences, de l'ensemble des éléments, équipements
 pièces dont dispose chaque colocataire.
 
 ```catala
-# ne nécessite pas de code particulier
+# Ne nécessite pas de code particulier
 ```
 
 Les modalités d'application du présent article sont fixées par voie réglementaire.
@@ -371,7 +369,8 @@ L'attribution d'une aide personnelle au logement est subordonnée au
 respect de conditions de peuplement des logements.
 
 ```catala
-# todo informatique: structure inverse de la structure avec des conditions chainées
+# TODO informatique: structure inverse de la structure avec des conditions
+# chainées
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle condition_non_ouverture_l822_10_peuplement_logement
   sous condition condition_peuplement_logement_l822_10
@@ -407,10 +406,11 @@ prévues à l'article L. 512-2 du code de la sécurité sociale.
 
 ```catala
 # Cet article indique ce qu'on prend en compte mais pas comment on le prend
-# en compte, donc rien à formaliser, le code viendra dans la partie réglementaire
-# et décrétale qui se réferera elle à L823-1. Il sera peut-être utile par la suite
-# de vérifier que les parties réglementaire et décrétale se conforment bien à
-# L823-1 mais nous laissons cela pour le futur.
+# en compte, donc rien à formaliser, le code viendra dans la partie
+# réglementaire et décrétale qui se réferera elle à L823-1. Il sera
+# peut-être utile par la suite de vérifier que les parties réglementaire
+# et décrétale se conforment bien à L823-1 mais nous laissons cela pour
+# le futur.
 ```
 
 ###### Article L823-2 | LEGIARTI000038814918
@@ -657,7 +657,8 @@ ou par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette l831_1_4 exception l831_1_2 règle condition_logement_bailleur sous condition
+  étiquette l831_1_4 exception l831_1_2
+  règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- Locataire de location:
         (selon location.bailleur.type_bailleur sous forme
@@ -706,8 +707,8 @@ mentionné au 1° ou au 6° de l'article L. 831-1 signé après le 31 décembre 
 n'ouvrent pas droit à l'aide personnalisée au logement.
 
 ```catala
-# TODO informatique: vérifier que cette exception a un groupe lui même exception a un groupe
-# est bien encodé dans le calcul par défaut.
+# TODO informatique: vérifier que cette exception a un groupe lui même
+# exception a un groupe est bien encodé dans le calcul par défaut.
 champ d'application ÉligibilitéAidePersonnelleLogement:
   étiquette l831_2_base règle condition_logement_prêt rempli
   # Cas de base implicite
@@ -796,11 +797,14 @@ est fixée par voie réglementaire.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_locatif état réduction_loyer_solidarité égal à
-    si aide_finale_locatif -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€ 0€ alors
+    si
+      aide_finale_locatif -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€
+        0€
+    alors
       aide_finale_locatif -€ réduction_loyer_solidarité *€ fraction_l832_3
     sinon 0€
 
-    assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%
+  assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%
 ```
 
 ###### Article L832-4 | LEGIARTI000038814870

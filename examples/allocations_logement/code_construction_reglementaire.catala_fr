@@ -83,7 +83,8 @@ applicables à ces catégories de prêts et le droit à l'allocation de logement
 est éteint à compter de l'ouverture du droit à l'aide personnalisée.
 
 ```catala
-# TODO: quelle est la différence entre "allocation de logement" et "aide personnalisée"
+# TODO juridique: quelle est la différence entre "allocation de logement" et
+# "aide personnalisée".
 # Hypothèse : peut-être que cet article est une disposition de transition avec
 # la période où les allocations de logement n'étaient pas fusionnées en aide
 # personnalisée au logement.
@@ -932,7 +933,8 @@ R. 822-4 est pris en compte pour le calcul de l'aide.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette r822_22_3 exception l822_5_1 définition patrimoine_pris_en_compte sous condition
+  étiquette r822_22_3 exception l822_5_1
+  définition patrimoine_pris_en_compte sous condition
     patrimoine_total_demandeur >=€ seuil_l822_5_patrimoine
   conséquence égal à
     demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
@@ -958,8 +960,8 @@ bénéficiaire.
 ```catala
 # Nous choissisons par manque de ressources (sic) de développement de laisser
 # le calcul des ressources à l'utilisateur du programme qui devra suivre
-# les instructions de cet alinéa et des précédents et de ceux auxquels il se réfère pour
-# correctement évaluer leur montant.
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 NOTA:
@@ -1162,7 +1164,8 @@ code ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  étiquette r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+  étiquette r823_4_2
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- ParentÀCharge de parent:
@@ -1192,7 +1195,8 @@ au 31 décembre de l'année de référence multiplié par 1,25.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  exception r823_4_2 règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+  exception r823_4_2
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
    selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- ParentÀCharge de parent:
@@ -1493,10 +1497,11 @@ Le signalement par le prêteur du remboursement anticipé du prêt a lieu dans u
 d'un mois à compter de la date de remboursement du solde du prêt.
 
 ```catala
-# Cet article n'appelle pas nécessairement à codification mais il présente une petite
-# difficulté : les informations dont il est question et qui peuvent potentiellement
-# être appréhendées comme des variables à l'entrée dans le cadre du calcul ne sont pas
-# renseignées par l'allocataire mais par son bailleur ou prêteur.
+# Cet article n'appelle pas nécessairement à codification mais il présente
+# une petite difficulté : les informations dont il est question et qui
+# peuvent potentiellement être appréhendées comme des variables à l'entrée
+# dans le cadre du calcul ne sont pas renseignées par l'allocataire mais par
+# son bailleur ou prêteur.
 ```
 
 ####### Sous-section 1 : Calcul de l'aide en secteur locatif
@@ -1604,11 +1609,13 @@ représentatif.
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_locatif état contributions_sociales_arrondi égal à
     si
-      arrondi_argent de (aide_finale_locatif -€ montant_contributions_sociales de aide_finale_locatif -€ 0,5€)
-        +€ montant_contributions_sociales de aide_finale_locatif >=€ 0€
+      arrondi_argent de (aide_finale_locatif -€
+        montant_contributions_sociales de aide_finale_locatif -€ 0,5€) +€
+      montant_contributions_sociales de aide_finale_locatif >=€ 0€
     alors
-      arrondi_argent de (aide_finale_locatif -€ montant_contributions_sociales de aide_finale_locatif -€ 0,5€)
-      +€ montant_contributions_sociales de aide_finale_locatif
+      arrondi_argent de (aide_finale_locatif -€
+        montant_contributions_sociales de aide_finale_locatif -€ 0,5€) +€
+      montant_contributions_sociales de aide_finale_locatif
     sinon 0€
 ```
 
@@ -1628,7 +1635,10 @@ n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_locatif état montant_minimal égal à
-    si aide_finale_locatif <€ montant_minimal_aide_d832_10 alors 0 € sinon aide_finale_locatif
+    si aide_finale_locatif <€ montant_minimal_aide_d832_10 alors
+      0 €
+    sinon
+      aide_finale_locatif
 ```
 
 ####### Article D823-17 | LEGIARTI000041419255
@@ -1885,7 +1895,8 @@ brut du loyer et des charges.
 champ d'application ImpayéDépenseLogement
   sous condition mode_occupation_impayé sous forme ImpayéLoyer:
   définition montant_impayé égal à
-    si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
+    si montant_dette >=€ seuil_impayé_dépense_de_logement
+    alors montant_dette sinon 0€
 
   définition seuil_impayé_dépense_de_logement
     sous condition aide_versée sous forme Bénéficiaire
@@ -1930,22 +1941,25 @@ champ d'application ImpayéDépenseLogement
   définition dépense_logement_nette égal à
     selon dépense_logement_brute sous forme
     -- Loyer de montant_loyer: Loyer contenu (montant_loyer -€ montant_apl)
-    -- Mensualité de mensualité: Mensualité contenu mensualité # ne devrait pas arriver
-    -- TotalAnnuelÉchéances de total: TotalAnnuelÉchéances contenu total # ne devrait pas arriver
+    -- Mensualité de mensualité: Mensualité contenu mensualité
+    # Ne devrait pas arriver
+    -- TotalAnnuelÉchéances de total: TotalAnnuelÉchéances contenu total
+    # Ne devrait pas arriver
 ```
 
 ####### Article R824-2 | LEGIARTI000038878875
 
 ```catala
-# Cet article précise les cas où un impayé est constitué dans le cadre de l'accession
-# à la propriété.
+# Cet article précise les cas où un impayé est constitué dans le cadre de
+# l'accession à la propriété.
 ```
 ```catala
 champ d'application ImpayéDépenseLogement sous condition
   mode_occupation_impayé sous forme ImpayéPrêt:
 
   définition montant_impayé égal à
-    si montant_dette >=€ seuil_impayé_dépense_de_logement alors montant_dette sinon 0€
+    si montant_dette >=€ seuil_impayé_dépense_de_logement
+    alors montant_dette sinon 0€
 ```
 
 Dans le secteur de l'accession à la propriété :
@@ -1968,12 +1982,13 @@ champ d'application ImpayéDépenseLogement sous condition
   définition seuil_impayé_dépense_de_logement
     sous condition
       aide_versée sous forme Bénéficiaire
-
     conséquence égal à
       selon dépense_logement_brute sous forme
-      -- Loyer: 0€ # ne devrait pas arriver
-      -- Mensualité de mensualité_brute: mensualité_brute *€ 2,0
-      -- TotalAnnuelÉchéances de échéance_prêt_brute: échéance_prêt_brute *€ (1,0 /. 6,0)
+      -- Loyer: 0€ # Ne devrait pas arriver
+      -- Mensualité de mensualité_brute:
+        mensualité_brute *€ 2,0
+      -- TotalAnnuelÉchéances de échéance_prêt_brute:
+        échéance_prêt_brute *€ (1,0 /. 6,0)
 ```
 
 2° Lorsque l'aide personnelle au logement est versée directement auprès de
@@ -2039,9 +2054,10 @@ charges ou à une échéance.
 ```catala
 # TODO juridique: chercher une controverse autour de cet article.
 
-# TODO juridique: est ce qu'un sous-locataire est considéré comme un locataire pour les impayés ?
-# => peut-être un oubli car dans d'autres articles il est explicitement mentionné
-# que c'est le cas.
+# TODO juridique: est ce qu'un sous-locataire est considéré comme un
+# locataire pour les impayés ?
+# => peut-être un oubli car dans d'autres articles il est explicitement
+# mentionné que c'est le cas.
 champ d'application ImpayéDépenseLogement:
   définition mode_occupation_impayé égal à
     selon mode_occupation sous forme
@@ -2050,8 +2066,8 @@ champ d'application ImpayéDépenseLogement:
     -- RésidentLogementFoyer: ImpayéPrêt
     -- LocationAccession: ImpayéLoyer
     -- ModeOccupation.Autre: ImpayéLoyer
-    # Que faire ici (Autre) ? => Rien puisque pas éligible aux APL... Donc on l'assimile
-    # à un impayé de loyer mais cela n'a pas d'importance.
+    # Que faire ici (Autre) ? => Rien puisque pas éligible aux APL...
+    # Donc on l'assimile à un impayé de loyer mais cela n'a pas d'importance.
     -- SousLocataire:  ImpayéLoyer
 
 ```
@@ -2093,10 +2109,9 @@ prévues au même article, il est fait application des dispositions de l'article
 du code de la sécurité sociale.
 
 ```catala
-# L'article L. 114-17 du code de la sécurité sociale énonce les différents cas où une
-# pénalité peut être prononcée par le directeur de l'organisme chargé de la gestion des
-# prestations familiales.
-
+# L'article L. 114-17 du code de la sécurité sociale énonce les différents
+# cas où une pénalité peut être prononcée par le directeur de l'organisme
+# chargé de la gestion des prestations familiales.
 ```
 
 ####### Article R824-7 | LEGIARTI000038878861
@@ -2144,9 +2159,10 @@ de la dépense courante de logement, l'organisme payeur suspend le versement de 
 au logement, sous réserve des dispositions de l'article R. 824-28.
 
 ```catala
-# Cet article explicite les procédures à suivre pour l'organisme payeur en cas d'impayés
-# Nous choissisons par manque de ressources (sic) de développement de laisser à l'organisme
-# payeur le soin de suivre les instructions de cet article et de ceux auxquels il se réfère
+# Cet article explicite les procédures à suivre pour l'organisme payeur en
+# cas d'impayés. Nous choissisons par manque de ressources (sic) de
+# développement de laisser à l'organisme payeur le soin de suivre les
+# instructions de cet article et de ceux auxquels il se réfère
 # afin de connaître la bonne procédure à suivre.
 ```
 
@@ -2274,9 +2290,10 @@ de sa bonne exécution. Dans ce cas, le premier versement est réalisé trois mo
 du paiement par l'occupant des échéances prévues par le protocole.
 
 ```catala
-# Là encore, il s'agit d'une procédure qu'il n'est peut-être pas pertinent pour le moment de
-# traduire en catala. L'alinéa 3, en revanche, peut être intéressant à traiter. Mais là encore,
-# il faut poser le cadre de ce rappel d'aide avant de préciser comment est apprécié ce rappel d'aide.
+# Là encore, il s'agit d'une procédure qu'il n'est peut-être pas pertinent
+# pour le moment de traduire en catala. L'alinéa 3, en revanche, peut être
+# intéressant à traiter. Mais là encore, il faut poser le cadre de ce rappel
+# d'aide avant de préciser comment est apprécié ce rappel d'aide.
 ```
 
 ####### Article R824-16 | LEGIARTI000038878839
@@ -2316,9 +2333,9 @@ de l'aide personnelle au logement est suspendu, sous réserve des dispositions d
 l'article R. 824-28.
 
 ```catala
-# Suspension du versement de l'aide. Il est important de définir lorsque le bénéficiaire
-# ne peut plus bénéficier de l'aide, mais cela implique le traitement des procédures
-# préliminaires.
+# Suspension du versement de l'aide. Il est important de définir lorsque
+# le bénéficiaire ne peut plus bénéficier de l'aide, mais cela implique le
+# traitement des procédures préliminaires.
 ```
 
 ####### Article R824-19 | LEGIARTI000038878832
@@ -2347,9 +2364,9 @@ Les dispositions du présent article sont applicables aux allocations de logemen
 le cas prévu au troisième alinéa de l'article L. 842-1.
 
 ```catala
-# Demande de modification de la personne qui perçoit les aides pour lesquelles le
-# bénéficiaire est éligible. + Procédure que le bailleur doit mettre en place pour
-# procéder à ce changement.
+# Demande de modification de la personne qui perçoit les aides pour
+# lesquelles le bénéficiaire est éligible. + Procédure que le bailleur doit
+# mettre en place pour procéder à ce changement.
 ```
 
 ####### Article R824-21 | LEGIARTI000038878826
@@ -2391,7 +2408,8 @@ le versement de l'aide personnelle au logement est maintenu pendant le délai pr
 R. 721-4 du code de la consommation pour décider de l'orientation du dossier de surendettement.
 
 ```catala
-# Conséquence du cumul de procédures sur le versement de l'aide personnelle au logement.
+# Conséquence du cumul de procédures sur le versement de l'aide personnelle
+# au logement.
 ```
 
 ####### Article R824-24 | LEGIARTI000038878818
@@ -2405,7 +2423,8 @@ entre les mains du bailleur :
 L. 842-1 pour les allocations de logement.
 
 ```catala
-# Définition des cas où l'aide est versée directement entre les mains du bailleur.
+# Définition des cas où l'aide est versée directement entre les mains
+# du bailleur.
 ```
 
 ####### Article R824-25 | LEGIARTI000038878816
@@ -2442,7 +2461,8 @@ La suspension du versement de l'aide personnelle au logement, en cas d'impayé, 
 obstacle à la récupération d'un indu.
 
 ```catala
-# Conséquences de la suspension du versement de l'aide sur la récupération de l'indu.
+# Conséquences de la suspension du versement de l'aide sur la récupération
+# de l'indu.
 ```
 
 ####### Article R824-28 | LEGIARTI000038878808
@@ -2566,9 +2586,9 @@ d'actions de sociétés donnant vocation à l'attribution en propriété du
 logement qu'ils occupent.
 
 ```catala
-# Le dernier alinéa apport des informations utiles à la conception du formulaire
-# administratif: le cas du viager rentre dans la case de l'accession à la
-# propriété par exemple.
+# Le dernier alinéa apport des informations utiles à la conception du
+# formulaire administratif: le cas du viager rentre dans la case de
+# l'accession à la propriété par exemple.
 ```
 
 ##### Chapitre II : Modalités de liquidation et de versement de l'aide personnalisée au logement
@@ -2723,7 +2743,8 @@ défini par les articles D. 331-76-1 et suivants et que ce dernier supporte les 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle caractéristiques_prêt_l831_1_1 de prêt sous condition
-    prêt.titulaire_prêt sous forme VendeurQuandDemandeurAContratLocationAccession et (
+    prêt.titulaire_prêt sous forme
+      VendeurQuandDemandeurAContratLocationAccession et (
     prêt.type_prêt sous forme D331_59_8 ou
     prêt.type_prêt sous forme D331_76_1)
   conséquence rempli
@@ -2811,7 +2832,8 @@ de la composition familiale et de la finalité de l'opération ;
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition mensualité_éligible égal à
-    si mensualité_principale >€ plafond_menusalité_d832_10_3 alors plafond_menusalité_d832_10_3
+    si mensualité_principale >€ plafond_menusalité_d832_10_3
+    alors plafond_menusalité_d832_10_3
     sinon mensualité_principale
 ```
 
@@ -2835,7 +2857,8 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_accession_propriété état minoration_forfaitaire égal à
-    si aide_finale_accession_propriété -€ montant_forfaitaire_d832_10 >=€ 0€ alors
+    si aide_finale_accession_propriété -€ montant_forfaitaire_d832_10 >=€ 0€
+    alors
       aide_finale_accession_propriété -€ montant_forfaitaire_d832_10
     sinon 0€
 ```
@@ -2847,7 +2870,8 @@ de calcul sont fixées par l'article D. 832-17.
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_accession_propriété état abattement égal à
     si aide_finale_accession_propriété -€
-      dépense_nette_minimale_d832_10 de aide_finale_accession_propriété >=€ 0€ alors
+      dépense_nette_minimale_d832_10 de aide_finale_accession_propriété >=€ 0€
+    alors
       aide_finale_accession_propriété -€
         dépense_nette_minimale_d832_10 de aide_finale_accession_propriété
     sinon 0€
@@ -2859,15 +2883,19 @@ puis majoré de ce montant représentatif.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale_accession_propriété état contributions_sociales_arrondi égal à
+  définition aide_finale_accession_propriété
+  état contributions_sociales_arrondi
+  égal à
     si
       arrondi_argent de (aide_finale_accession_propriété -€
-        montant_contributions_sociales de aide_finale_accession_propriété -€ 0,5€)
-          +€ montant_contributions_sociales de aide_finale_accession_propriété >=€ 0€
+        montant_contributions_sociales de aide_finale_accession_propriété -€
+        0,5€) +€
+      montant_contributions_sociales de aide_finale_accession_propriété >=€ 0€
     alors
       arrondi_argent de (aide_finale_accession_propriété -€
-        montant_contributions_sociales de aide_finale_accession_propriété -€ 0,5€)
-         +€ montant_contributions_sociales de aide_finale_accession_propriété
+        montant_contributions_sociales de aide_finale_accession_propriété -€
+        0,5€) +€
+      montant_contributions_sociales de aide_finale_accession_propriété
     sinon 0€
 ```
 
@@ -2877,8 +2905,9 @@ il n'est pas procédé à son versement.
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_accession_propriété état montant_minimal égal à
-    si aide_finale_accession_propriété <€ montant_minimal_aide_d823_16 alors 0 € sinon
-      aide_finale_accession_propriété
+    si aide_finale_accession_propriété <€ montant_minimal_aide_d823_16
+    alors 0 €
+    sinon aide_finale_accession_propriété
 ```
 
 ####### Article D832-11 | LEGIARTI000038878744
@@ -2910,10 +2939,11 @@ du ménage, appréciées conformément aux dispositions de la section 2 du chapi
 II du présent livre et arrondies à la centaine d'euros supérieure ;
 
 ```catala
-# TODO juridique: pourquoi nous parle-t-on de limite supérieure d'intervalle ici ?
+# TODO juridique: pourquoi nous parle-t-on de limite supérieure d'intervalle
+# ici ?
 # Il n'y a aucun intervalle de ressources définis à la section 2 du chapitre
-# II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la centaines
-# d'euros supérieure (intervalles de 100 €) ?
+# II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la
+# centaine d'euros supérieure (intervalles de 100 €) ?
 ```
 
 3° " cm " est un coefficient multiplicateur fixé par arrêté ;
@@ -2944,7 +2974,8 @@ champ d'application CalculAidePersonnelleLogement:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de
+        (nombre_personnes_à_charge - 4))))
     ))))
 ```
 
@@ -2979,9 +3010,9 @@ assimilée à la mensualité.
 
 ```catala
 # Cet article précise ce qu'il faut prendre en compte pour la mensualité du
-# prêt mais il ne nous paraît pas nécessaire de le transcrire en Catala à ce stade,
-# puisque l'on peut laisser à l'utilisateur de rentrer correctement la
-# mensualité + prime d'assurance sur le formulaire d'entrée.
+# prêt mais il ne nous paraît pas nécessaire de le transcrire en Catala
+# à ce stade, puisque l'on peut laisser à l'utilisateur de rentrer
+# correctement la mensualité + prime d'assurance sur le formulaire d'entrée.
 ```
 
 ####### Article D832-13 | LEGIARTI000038878740
@@ -3056,28 +3087,34 @@ coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans 
 se situent les ressources ;
 
 ```catala
-# TODO juridique et informatique : que veut dire la phrase "Les pourcentages et le
-# coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
-# se situent les ressources" ? Parce que pour la tranche la plus haute il n'y
-# a pas de limite supérieure, donc qu'est-ce qu'on fait ? Est-ce qu'on prend
-# comme revenu la limite supérieure de la tranche sauf pour la dernière ?
-# Ambiguité.
-
+# TODO juridique et informatique : que veut dire la phrase "Les pourcentages
+# et le coefficient " N " sont appliqués à la limite supérieure de
+# l'intervalle dans lequel se situent les ressources" ? Parce que pour la
+# tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
+# qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de
+# la tranche sauf pour la dernière ? Ambiguité.
 
 champ d'application CalculAidePersonnelleLogement:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme SurLocauxNonHabitation
   conséquence égal à
     # Pour la tranche supérieure
-    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11 >=€ 0€ alors
-      (ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11) *€
-        taux_tranche_supérieure_d832_15_1
+    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€
+      n_nombre_parts_d832_11 >=€ 0€
+    alors
+      (ressources_ménage -€ montant_limite_tranches_d832_15_1 *€
+        n_nombre_parts_d832_11) *€
+      taux_tranche_supérieure_d832_15_1
     sinon 0 €) +€
     # Pour la tranche inférieure
-    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€ n_nombre_parts_d832_11 <=€ 0€ alors
+    (si ressources_ménage -€ montant_limite_tranches_d832_15_1 *€
+      n_nombre_parts_d832_11 <=€ 0€
+    alors
       ressources_ménage *€ taux_tranche_inférieure_d832_15_1
-    sinon (montant_limite_tranches_d832_15_1 *€ taux_tranche_inférieure_d832_15_1))
-      *€ (1,0/.12,0)
+    sinon
+      (montant_limite_tranches_d832_15_1 *€
+        taux_tranche_inférieure_d832_15_1))
+    *€ (1,0/.12,0)
 # PS: les ressources ont déjà été arrondies, voir D823-17.
 ```
 
@@ -3129,11 +3166,13 @@ alinéas du même article.
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  exception définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  exception
+  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
   état avant_abattement  sous condition
     date_signature_prêt >=@ |1999-06-30|
   conséquence égal à
-    mensualité_principale +€ montant_forfaitaire_charges_d832_10 -€ aide_calculée_2_9_d832_10
+    mensualité_principale +€ montant_forfaitaire_charges_d832_10 -€
+      aide_calculée_2_9_d832_10
 ```
 
 Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule mensualité
@@ -3157,8 +3196,10 @@ champ d'application CalculAidePersonnelleLogement:
   état après_abattement égal à
     si dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 <=€
       ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
-    alors ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
-    sinon dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+    alors
+      ressources_ménage_avec_d832_18 *€ coefficient_multiplicateur_d832_17_3
+    sinon
+      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
 ```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre
@@ -3180,9 +3221,11 @@ et R. 822-13 à R. 822-17.
 # conjoint.
 champ d'application CalculAidePersonnelleLogement:
   définition ressources_ménage_avec_d832_18 égal à
-    si ressources_ménage <=€ mensualité_principale *€ coefficient_multiplicateur_d832_18 alors
+    si ressources_ménage <=€ mensualité_principale *€
+      coefficient_multiplicateur_d832_18
+    alors
       mensualité_principale *€ coefficient_multiplicateur_d832_18
-      # TODO informatique: arrondir à la centaine d'euros supérieur dans ce cas?
+      # TODO informatique: arrondir à la centaine d'euros supérieure ?
     sinon ressources_ménage
 
   exception définition ressources_ménage_avec_d832_18 sous condition
@@ -3350,7 +3393,8 @@ Le montant ainsi calculé est minoré d'un montant fixé forfaitairement par arr
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_logement_foyer état minoration_forfaitaire égal à
-    si aide_finale_logement_foyer -€ montant_forfaitaire_d832_24 >=€ 0€ alors
+    si aide_finale_logement_foyer -€ montant_forfaitaire_d832_24 >=€ 0€
+    alors
       aide_finale_logement_foyer -€ montant_forfaitaire_d832_24
     sinon 0€
 ```
@@ -3362,7 +3406,8 @@ de calcul sont fixées à l'article D. 832-27.
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_logement_foyer état abattement égal à
     si aide_finale_logement_foyer -€
-      dépense_nette_minimale_d832_27 de aide_finale_logement_foyer >=€ 0€ alors
+      dépense_nette_minimale_d832_27 de aide_finale_logement_foyer >=€ 0€
+    alors
       aide_finale_logement_foyer -€
         dépense_nette_minimale_d832_27 de aide_finale_logement_foyer
     sinon 0€
@@ -3374,15 +3419,18 @@ s'y appliquent, arrondi à l'euro inférieur, puis majoré de ce montant représ
 
 ```catala
 champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale_logement_foyer état contributions_sociales_arrondi égal à
+  définition aide_finale_logement_foyer état contributions_sociales_arrondi
+  égal à
     si
       arrondi_argent de (aide_finale_logement_foyer -€
-        montant_contributions_sociales de aide_finale_logement_foyer -€ 0,5€)
-          +€ montant_contributions_sociales de aide_finale_logement_foyer >=€ 0€
+        montant_contributions_sociales de aide_finale_logement_foyer -€
+        0,5€) +€
+      montant_contributions_sociales de aide_finale_logement_foyer >=€ 0€
     alors
       arrondi_argent de (aide_finale_logement_foyer -€
-        montant_contributions_sociales de aide_finale_logement_foyer -€ 0,5€)
-         +€ montant_contributions_sociales de aide_finale_logement_foyer
+        montant_contributions_sociales de aide_finale_logement_foyer -€
+        0,5€) +€
+      montant_contributions_sociales de aide_finale_logement_foyer
     sinon 0€
 ```
 
@@ -3392,8 +3440,8 @@ Lorsque le montant mensuel de l'aide, calculé selon les modalités précédente
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition aide_finale_logement_foyer état montant_minimal égal à
-    si aide_finale_logement_foyer <€ montant_minimal_aide_d823_24 alors 0 € sinon
-      aide_finale_logement_foyer
+    si aide_finale_logement_foyer <€ montant_minimal_aide_d823_24
+    alors 0 € sinon aide_finale_logement_foyer
 ```
 
 ####### Article D832-25 | LEGIARTI000038878710
@@ -3475,7 +3523,8 @@ champ d'application CalculAidePersonnelleLogement:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de
+        (nombre_personnes_à_charge - 4))))
     ))))
 ```
 
@@ -3535,7 +3584,8 @@ champ d'application CalculAidePersonnelleLogement:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 +. (0,5 *. (entier_vers_décimal de (nombre_personnes_à_charge - 4))))
+      ( 4,3 +. (0,5 *. (entier_vers_décimal de
+        (nombre_personnes_à_charge - 4))))
     ))))
 ```
 
@@ -3551,15 +3601,21 @@ nombre de parts " N ", le total étant divisé par douze.
 champ d'application CalculAidePersonnelleLogement:
   définition équivalence_minimale_loyer égal à
     (((somme argent pour tranche dans tranches_revenus_d832_26 de
-      (si ressources_ménage <=€ tranche.bas *€ n_nombre_parts_d832_25  alors 0€ sinon
+      (si ressources_ménage <=€ tranche.bas *€ n_nombre_parts_d832_25
+      alors 0€
+      sinon
         (selon tranche.haut sous forme
         -- Revenu de tranche_haut:
-          (si ressources_ménage >=€ tranche_haut *€ n_nombre_parts_d832_25 alors
-            (tranche_haut -€ tranche.bas) *€ (tranche.taux *. n_nombre_parts_d832_25)
+          (si ressources_ménage >=€ tranche_haut *€ n_nombre_parts_d832_25
+          alors
+            (tranche_haut -€ tranche.bas) *€
+              (tranche.taux *. n_nombre_parts_d832_25)
           sinon
-            ((ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€ tranche.taux))
+            ((ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€
+              tranche.taux))
         -- Infini:
-          (ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€ tranche.taux)
+          (ressources_ménage -€ tranche.bas *€ n_nombre_parts_d832_25) *€
+            tranche.taux)
       ))) +€
     montant_forfaitaire_d832_26 *€ n_nombre_parts_d832_25) *€ (1,0 /. 12,0)
 ```
@@ -3579,12 +3635,12 @@ Les pourcentages et le coefficient " N " sont appliqués à la limite supérieur
 dans lequel se situent les ressources.
 
 ```catala
-# TODO juridique et informatique : que veut dire la phrase "Les pourcentages et le
-# coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
-# se situent les ressources" ? Parce que pour la tranche la plus haute il n'y
-# a pas de limite supérieure, donc qu'est-ce qu'on fait ? Est-ce qu'on prend
-# comme revenu la limite supérieure de la tranche sauf pour la dernière ?
-# Ambiguité.
+# TODO juridique et informatique : que veut dire la phrase "Les pourcentages
+# et le coefficient " N " sont appliqués à la limite supérieure de
+# l'intervalle dans lequel se situent les ressources" ? Parce que pour la
+# tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
+# qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de la
+# tranche sauf pour la dernière ? Ambiguité.
 ```
 
 Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre II du
