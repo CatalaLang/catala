@@ -1202,7 +1202,8 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- ParentÀCharge de parent:
         # Pas besoin de préciser parenté car inclusif ici
         parent.incapacité_80_pourcent_ou_restriction_emploi et
-        parent.ParentÀCharge.ressources >=€ plafond_individuel_l815_9_sécu *€ 1,25
+        parent.ParentÀCharge.ressources >=€
+          plafond_individuel_l815_9_sécu *€ 1,25
   conséquence rempli
 ```
 
@@ -1216,7 +1217,8 @@ modification, avant cette échéance, des modalités de résidence de l'enfant.
 ```catala
 # Cet article exprime un délai durant lequel le calcul de l'aide, dans le cadre
 # d'une résidence alternée, ne peut être remis en cause. Il pose également une
-# exception : la modification des modalités de résidence de l'enfant avant échéance.
+# exception : la modification des modalités de résidence de l'enfant
+# avant échéance.
 ```
 
 ####### Article R823-6 | LEGIARTI000041419232
