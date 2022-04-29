@@ -98,6 +98,7 @@ type unop =
   | GetMonth
   | GetYear
   | RoundMoney
+  | RoundDecimal
 
 type operator = Ternop of ternop | Binop of binop | Unop of unop
 

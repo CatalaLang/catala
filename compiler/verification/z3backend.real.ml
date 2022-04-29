@@ -598,6 +598,8 @@ let rec translate_op
           failwith
             "[Z3 encoding] GetYear operator only supported in comparisons with \
              literal"
+      | RoundDecimal ->
+          failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
       | RoundMoney ->
           failwith "[Z3 encoding] RoundMoney operator  not implemented yet")
 
