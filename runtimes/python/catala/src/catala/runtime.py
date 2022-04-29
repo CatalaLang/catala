@@ -70,7 +70,7 @@ class Integer:
 
     def __str__(self) -> str:
         return self.value.__str__()
-    
+
     def __repr__(self) -> str:
         return f"Integer({self.value.__repr__()})"
 
@@ -123,6 +123,7 @@ class Decimal:
 
     def __repr__(self) -> str:
         return f"Decimal({self.value.__repr__()})"
+
 
 class Money:
     def __init__(self, value: Integer) -> None:
