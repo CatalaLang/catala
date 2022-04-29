@@ -1671,7 +1671,7 @@ d'un mois à compter de la date de remboursement du solde du prêt.
 Pour les ménages mentionnés au 1° de l'article D. 823-9, le montant mensuel de l'aide
 est calculé selon la formule suivante :
 
-" Af = L + C-Pp "
+$$\text{Af} = \text{L} + \text{C}-\text{Pp}$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif:
@@ -2957,7 +2957,7 @@ ou les titulaires d'un contrat de location-accession conclu dans les conditions 
 au 6° de l'article L. 831-1, le montant mensuel de l'aide est calculé selon la formule et
 les modalités suivantes :
 
-" Af = K × (L + C-L0) "
+$$\text{Af} = \text{K} \times (\text{L} + \text{C}-\text{L0})$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -3065,7 +3065,7 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 Le coefficient " K ", mentionné au 2° de l'article D. 832-10, est ainsi calculé selon la formule
 et les modalités suivantes :
 
-K =  0,95 - R / (cm * N)
+$$\text{K} =  0,95 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -3088,7 +3088,8 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition coefficient_prise_en_charge_d832_10 état arrondi égal à
     # Cette formule implémente bien l'arrondi à deux décimales par défaut,
     # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005) *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005)
+      *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
     si coefficient_prise_en_charge_d832_10 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_10
@@ -3536,7 +3537,7 @@ sous réserve que les autres conditions d'ouverture du droit soient réunies à 
 Pour les ménages résidant dans un logement-foyer mentionné à l'article R. 832-22, le montant
 mensuel de l'aide est calculé selon la formule et les modalités suivantes :
 
-" Af = K × (E-E0) "
+$$\text{Af} = \text{K} \times (\text{E}-\text{E0})$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -3644,7 +3645,7 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 
 1°
 
-K = 0,95 - (R - r * N) / (cm * N)
+$$\text{K} = 0,95 - \frac{\text{R} - \text{r} \times \text{N}}{\text{cm} \times \text{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -3667,7 +3668,8 @@ champ d'application CalculAidePersonnelleLogementFoyer:
   définition coefficient_prise_en_charge_d832_25 état arrondi égal à
     # Cette formule implémente bien l'arrondi à deux décimales par défaut,
     # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005) *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
+      *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
     si coefficient_prise_en_charge_d832_25 >=. 0,95 alors 0,95 sinon
       coefficient_prise_en_charge_d832_25
@@ -3683,13 +3685,15 @@ d) " cm " est un coefficient multiplicateur fixé par arrêté ;
 
 e) " N " représente le nombre de parts déterminé selon le barème suivant :
 
-bénéficiaire isolé                                                  |     1,4    |
-ménage sans personne à charge	                                      |     1,8    |
-bénéficiaire isolé ou ménage ayant une personne à charge	          |     2,5    |
-bénéficiaire isolé ou ménage ayant deux personnes à charge	        |     3,0    |
-bénéficiaire isolé ou ménage ayant trois personnes à charge	        |     3,7    |
-bénéficiaire isolé ou ménage ayant quatre personnes à charge	      |     4,3    |
-majoration par personne à charge supplémentaire	                    |     0,5    |
+------------------------------------------------------------  ---
+bénéficiaire isolé                                            1,4
+ménage sans personne à charge	                                1,8
+bénéficiaire isolé ou ménage ayant une personne à charge	    2,5
+bénéficiaire isolé ou ménage ayant deux personnes à charge	  3,0
+bénéficiaire isolé ou ménage ayant trois personnes à charge	  3,7
+bénéficiaire isolé ou ménage ayant quatre personnes à charge  4,3
+majoration par personne à charge supplémentaire	              0,5
+------------------------------------------------------------- ---
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -3714,7 +3718,7 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 
 2°
 
-K = 0,90 - R / (cm * N)
+$$\text{K} = 0,90 - \frac{\text{R}}{\text{cm} \times \text{N}}$$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -3741,7 +3745,8 @@ champ d'application CalculAidePersonnelleLogementFoyer:
   conséquence égal à
     # Cette formule implémente bien l'arrondi à deux décimales par défaut,
     # à partir d'un arrondi au plus proche à l'unité.
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005) *. 100,0)) /. 100,0
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005)
+      *. 100,0)) /. 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
     condition_2_du_832_25
@@ -3758,13 +3763,15 @@ c) " cm " est un coefficient multiplicateur fixé par arrêté ;
 
 d) " N " représente le nombre de parts déterminé selon le barème suivant :
 
-bénéficiaire isolé	                                              |    1,2    |
-ménage sans personne à charge	                                    |    1,5    |
-bénéficiaire isolé ou ménage ayant une personne à charge	        |    2,5    |
-bénéficiaire isolé ou ménage ayant deux personnes à charge	      |    3,0    |
-bénéficiaire isolé ou ménage ayant trois personnes à charge	      |    3,7    |
-bénéficiaire isolé ou ménage ayant quatre personnes à charge	    |    4,3    |
-majoration par personne à charge supplémentaire	                  |    0,5    |
+------------------------------------------------------------ ---
+bénéficiaire isolé	                                         1,2
+ménage sans personne à charge	                               1,5
+bénéficiaire isolé ou ménage ayant une personne à charge	   2,5
+bénéficiaire isolé ou ménage ayant deux personnes à charge	 3,0
+bénéficiaire isolé ou ménage ayant trois personnes à charge	 3,7
+bénéficiaire isolé ou ménage ayant quatre personnes à charge 4,3
+majoration par personne à charge supplémentaire	             0,5
+------------------------------------------------------------ ---
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:

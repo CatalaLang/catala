@@ -28,18 +28,17 @@ module C = Cli
 
 (** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) : string =
+  (* first we substitute the annoying characters *)
   let substitute s (old_s, new_s) =
     R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s
   in
-  [
-    ("\\$", "\\$");
-    ("%", "\\%");
-    ("\\_", "\\_");
-    ("\\#", "\\#");
-    ("1er", "1\\textsuperscript{er}");
-    ("\\^", "\\textasciicircum");
-  ]
-  |> List.fold_left substitute s
+  let s =
+    [ ("1er", "1\\textsuperscript{er}"); ("\\^", "\\textasciicircum") ]
+    |> List.fold_left substitute s
+  in
+  (* Then we send to pandoc, to ensure the markdown features used in the
+     original document are correctly printed! *)
+  run_pandoc s Cli.Latex
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
@@ -55,8 +54,12 @@ let wrap_latex
      \\usepackage[utf8]{inputenc}\n\
      \\usepackage{amssymb}\n\
      \\usepackage{babel}\n\
-     \\usepackage{lmodern}\n\
+     \\usepackage{fontspec}\n\
+     \\usepackage[hidelinks]{hyperref}\n\
+     \\setmainfont{Marianne}\n\
      \\usepackage{minted}\n\
+     \\usepackage{longtable}\n\
+     \\usepackage{booktabs}\n\
      \\usepackage{newunicodechar}\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
@@ -128,7 +131,8 @@ let wrap_latex
      rulecolor=\\color{gray!70},\n\
      firstnumber=last,\n\
      codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
-     }\n\n\
+     }\n\
+     \\newcommand{\\tightlist}{\\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}\n\n\
      \\title{\n\
      %s\n\
      }\n\

@@ -315,6 +315,8 @@ déclaration champ d'application CalculAidePersonnelleLogementLocatif:
 
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
+    état formule
+    état arrondi
   interne rapport_loyers contenu décimal
   interne loyer_référence contenu argent
   interne fraction_l832_3 contenu décimal

@@ -32,8 +32,8 @@ pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources e
 pour la location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
-# Pas pertinent pour le calcul des APL, renvoie à D822-21 qui n'a pas été
-# traité.
+# TODO informatique et juridique: traduire cet article qui vient définir
+# ressources_forfaitaires_r822_20
 ```
 
 ## Chapitre III : Calcul des aides personnelles au logement en secteur locatif
@@ -42,12 +42,17 @@ pour la location et à 4 900 euros pour la résidence en logement-foyer.
 
 Les plafonds de loyers visés au 2° de l'article D. 823-16 du même code sont fixés comme suit (en euros) :
 
-Zone | Personne seule	| Couple sans personne à charge	| Personne seule ou couple    | Par personne à
-                                                      | ayant une personne à charge | charge supplémentaire
------------------------------------------------------------------------------------------------------------
-I	   | 298,07	        | 359,49                        | 406,30	                    | 58,95
-II   | 259,78         | 317,97                        | 357,80                      | 52,08
-III	 | 243,48         | 295,15                        | 330,94                      | 47,43
+---------------------------------------------------------------------------------------------------
+Zone Personne seule Couple sans personne à charge Personne seule ou couple    Par personne à
+                                                  ayant une personne à charge charge supplémentaire
+---- -------------- ----------------------------- --------------------------- ---------------------
+I	   298,07         359,49                        406,30	                    58,95
+
+II   259,78         317,97                        357,80                      52,08
+
+III  243,48         295,15                        330,94                      47,43
+---------------------------------------------------------------------------------------------------
+
 
 Nota: Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
@@ -125,16 +130,26 @@ On obtient les loyers plafonds suivants (en euros) :
 MONTANTS DES LOYERS PLAFONDS CHAMBRE EN APL ET EN AL
 (arrondis au centime d'euro le plus proche)
 
-Bénéficiaires	               |   Zones	 |   Montants
+----------------------------------------
+Bénéficiaires	          Zones	Montants
+------------------------- ----- --------
+Cas général	              I	    268,26
 
-Cas général	                 |   I	     |   268,26
-                             |   II	     |   233,80
-                             |   III     |   219,13
+                          II	233,80
 
-Cas des personnes âgées      |   I       |   223,55
-ou handicapées adultes       |   II      |   194,84
-hébergées à titre onéreux    |   III     |   182,61
+                          III   219,13
+
+
+Cas des personnes âgées   I     223,55
+ou handicapées adultes
+hébergées à titre onéreux
 chez des particuliers
+
+                          II    194,84
+
+                          III   182,61
+----------------------------------------
+
 
 NOTA :
 
@@ -170,16 +185,17 @@ champ d'application CalculAidePersonnelleLogementLocatif
 Les montants forfaitaires au titre des charges visés au 3° de
 l'article D. 823-16 du même code sont fixés comme suit (en euros) :
 
-
-Désignation	             |   Toutes zones
-
-Bénéficiaire isolé ou    |      54,22
+----------------------------------
+Désignation	          Toutes zones
+--------------------- ------------
+Bénéficiaire isolé ou 54,22
 couple sans personne
 à charge
 
-Par personne             |      12,29
+Par personne          12,29
 supplémentaire
 à charge
+----------------------------------
 
 NOTA :
 
@@ -192,7 +208,6 @@ champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition montant_forfaitaire_charges_d823_16 égal à
     54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
-
 ```
 
 ### Article 10 | LEGIARTI000039160745
@@ -202,12 +217,15 @@ D. 823-16 du même code, permettant de déterminer les premier et second
 plafonds de loyer mentionnés au même article, sont établis selon le tableau
 comme suit :
 
+-----------------------------------------------------
+ZONE PREMIER PLAFOND DE LOYER SECOND PLAFOND DE LOYER
+---- ------------------------ -----------------------
+I	   3,4                      4
 
-ZONE          | PREMIER PLAFOND DE LOYER |   SECOND PLAFOND DE LOYER
+II   2,5                      3,1
 
-I	            |           3,4	           |               4
-II            |           2,5	           |               3,1
-III	          |           2,5	           |               3,1
+III	 2,5                      3,1
+-----------------------------------------------------
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif:
@@ -277,23 +295,26 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 Pour l'application de l'article D. 823-17 du même code, le taux de participation
 personnelle Tp du ménage, exprimé en pourcentage, est calculé selon la formule suivante :
 
-Tp = TF + TL
+$$\text{Tp} = \text{TF} + \text{TL}$$
 
 dans laquelle :
 
 1° TF représente un taux fonction de la taille de la famille donné par le tableau suivant :
 
+
 VALEURS DE TF
-Bénéficiaires                                         |     TF
-Isolé	                                                |   2,83%
-Couple sans personne à charge	                        |   3,15%
-Personne seule ou couple ayant une personne à charge	|   2,70%
-2 enfants ou 2 personnes                              | 	2,38%
-3 enfants ou 3 personnes                              | 	2,01%
-4 enfants ou 4 personnes                              | 	1,85%
-5 enfants ou 5 personnes                              | 	1,79%
-6 enfants ou 6 personnes                              | 	1,73%
-Majoration par personne à charge	                    |   -0,06%
+
+Bénéficiaires                                        TF
+---------------------------------------------------- ------
+Isolé	                                               2,83%
+Couple sans personne à charge	                       3,15%
+Personne seule ou couple ayant une personne à charge 2,70%
+2 enfants ou 2 personnes                             2,38%
+3 enfants ou 3 personnes                             2,01%
+4 enfants ou 4 personnes                             1,85%
+5 enfants ou 5 personnes                             1,79%
+6 enfants ou 6 personnes                             1,73%
+Majoration par personne à charge	                   -0,06%
 
 ```catala
 # TODO juridique: rechercher si la distinction enfants/personnes est juste
@@ -330,7 +351,7 @@ champ d'application CalculAidePersonnelleLogementLocatif
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
-RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : RL = L / LR .
+RL entre le loyer retenu dans la limite du plafond L et un loyer de référence LR : $\text{RL} = \text{L} / \text{LR}$.
 
 RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
@@ -343,15 +364,19 @@ champ d'application CalculAidePersonnelleLogementLocatif
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
 au 3° de l'article D. 823-17 du même code sont fixés comme suit :
+
 - 0 % pour la tranche de RL inférieure à 45 % ;
+
 - 0,45 % pour la tranche de RL entre 45 % et 75 % ;
+
 - 0,68 % pour la tranche de RL supérieure à 75 %.
 
 TL est exprimé en pourcentage et arrondi à la troisième décimale.
 Le tableau suivant traduit cette formule :
 
-Si RL<45 %    | 	Si 45% < RL < 75%	  |   Si RL >75 %
-TL=0 %        |	TL=0,45 %*(RL-45%)    |	TL=0,45 %*30 %+0,68 %*(RL-75%)
+Si $\text{RL}<45\%$ Si $45\% < \text{RL} < 75\%$               Si $\text{RL} >75 \%$
+------------------- ------------------------------------------ -----------------------------------------------------------
+$\text{TL}=0 \%$    $\text{TL}=0,45 \%\times (\text{RL}-45\%)$ $\text{TL}=0,45\%\times30 \%+0,68 \%\times(\text{RL}-75\%)$
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
@@ -359,22 +384,26 @@ champ d'application CalculAidePersonnelleLogementLocatif
   # Ici on choisit de mettre des >= pour inclure le résultat sur la crête
   # dans la case de droite ; nous avons bien vérifié que sur la crête le
   # résultat est le même à gauche et à droite.
-  définition taux_loyer_éligible égal à
+  définition taux_loyer_éligible état formule égal à
     si rapport_loyers <. 45% alors 0% sinon (
     si rapport_loyers >=. 45% et rapport_loyers <. 75% alors
       0,45% *. (rapport_loyers -. 0,45%)
     sinon (si rapport_loyers >=. 75% alors
       0,45% *. 30% +. 0,68% *. (rapport_loyers -. 75%)
     sinon 0,0))
+  définition taux_loyer_éligible état arrondi égal à
+    # La troisième décimale en pourcentage est en fait la cinquième décimale
+    (arrondi_décimal de (taux_loyer_éligible *. 100000,0)) /. 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
 
-Composition du ménage	                                  |     Montant
-Bénéficiaire isolé	                                    |     259,78
-Couple sans personne à charge	                          |     317,97
-Personne seule ou couple ayant une personne à charge	  |     357,80
-Majoration par personne à charge	                      |     52,08
+Composition du ménage	                                Montant
+---------------------------------------------------- --------
+Bénéficiaire isolé	                                  259,78
+Couple sans personne à charge	                        317,97
+Personne seule ou couple ayant une personne à charge  357,80
+Majoration par personne à charge	                    52,08
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
@@ -397,17 +426,18 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
 
-Composition du foyer	                      |     MONTANT  (en euros)
-Personne seule sans personne à charge	      |     4 683
-Couple sans personne à charge	              |     6 709
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 683
+Couple sans personne à charge	             6 709
 Personne seule ou couple ayant :
-    -une personne à charge	                |     8 002
-    -deux personnes à charge	              |     8 182
-    -trois personnes à charge	              |     8 495
-    -quatre personnes à charge	            |     8 811
-    -cinq personnes à charge	              |     9 124
-    -six personnes à charge                 |     9 439
-    -par personne à charge supplémentaire	  |      311
+    - une personne à charge	               8 002
+    - deux personnes à charge	             8 182
+    - trois personnes à charge	           8 495
+    - quatre personnes à charge	           8 811
+    - cinq personnes à charge	             9 124
+    - six personnes à charge               9 439
+    - par personne à charge supplémentaire 311
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
@@ -449,17 +479,19 @@ D. 823-16 du même code et fixés à l'article 7.
 Les montants obtenus par l'application de ces pourcentages sont arrondis au centime d'euro le plus proche.
 On obtient les loyers plafonds suivants (en euros) :
 
-Zone	                                |     I     |     II    |    III
+--------------------------------------------------------
+Zone	                             I       II     III
+---------------------------------- ------- ------ ------
+Personne seule	                    223,55 194,84	182,61
 
-Personne seule	                      |   223,55  |   194,84	|   182,61
-
-Couple sans personne à charge	        |   269,62  |   238,48	|   221,36
+Couple sans personne à charge	      269,62 238,48	221,36
 
 Personne seule ou couple ayant une
-personne à charge	                    |   304,73	|   268,35	|   248,21
+personne à charge	                  304,73 268,35	248,21
 
 Par personne à
-charge supplémentaire                 |   44,21   |   39,06   |   35,57
+charge supplémentaire               44,21  39,06  35,57
+--------------------------------------------------------
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
@@ -504,10 +536,11 @@ champ d'application CalculAidePersonnelleLogementLocatif
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
 
-Composition du foyer	           |       Montant
-Bénéficiaire isolé               |       27,10
-Couple sans personne à charge	   |       54,22
-Majoration par personne à charge |       12,29
+Composition du foyer	           Montant
+-------------------------------- -------
+Bénéficiaire isolé               27,10
+Couple sans personne à charge	   54,22
+Majoration par personne à charge 12,29
 
 ```catala
 champ d'application CalculAidePersonnelleLogementLocatif
@@ -542,11 +575,12 @@ du contrat de prêt figurant sur le certificat daté prévu au 1° du I de l'art
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   2 085	    |   1 860     |   1 736
-Couple sans personne à charge	                              |   2 515     |   2 239     |   2 082
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |   2 618     |   2 428
-Par personne supplémentaire à charge	                      |    430	    |    379      |    346
+DÉSIGNATION	                                             ZONE I	ZONE II	ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     2 085	1 860   1 736
+Couple sans personne à charge	                           2 515  2 239   2 082
+Bénéficiaire isolé ou couple ayant une personne à charge 2 945	2 618   2 428
+Par personne supplémentaire à charge	                   430	  379     346
 
 ```catala
 # Ici les montants des mensualités sont en francs car signées avant
@@ -591,11 +625,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou acquis et améliorés (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 678	    |   1 469     |   1 397
-Couple sans personne à charge	                              |   2 025     |   1 801     |   1 676
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 372	    |   2 106     |   1 955
-Par personne supplémentaire à charge	                      |    374	    |    305      |    279
+DÉSIGNATION	                                             ZONE I	ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 678	1 469   1 397
+Couple sans personne à charge	                           2 025  1 801   1 676
+Bénéficiaire isolé ou couple ayant une personne à charge 2 372	2 106   1 955
+Par personne supplémentaire à charge	                   374	  305     279
 
 
 ```catala
@@ -636,11 +671,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 840	    |   1 642     |   1 532
-Couple sans personne à charge	                              |   2 220     |   1 977     |   1 837
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 600	    |   2 312     |   2 142
-Par personne supplémentaire à charge	                      |    380	    |    335      |    305
+DÉSIGNATION	                                             ZONE I	ZONE II	ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 840	1 642   1 532
+Couple sans personne à charge	                           2 220  1 977   1 837
+Bénéficiaire isolé ou couple ayant une personne à charge 2 600	2 312   2 142
+Par personne supplémentaire à charge	                   380	  335     305
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:

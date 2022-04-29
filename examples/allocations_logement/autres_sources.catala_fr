@@ -1,6 +1,6 @@
 # Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
 
-Lien: https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022.pdf
+[Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022.pdf)
 
 
 ## Allocation de solidarité aux personnes âgées
@@ -8,10 +8,10 @@ Lien: https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022
 
 Le montant de l’Aspa s’élève, à compter du 1er janvier 2022, à :
 
-Bénéficiaire   | Montant annuel | Montant mensuel
--------------------------------------------------
-Personne seule | 11 001,44 €    | 916,78 €
-Couple marié   | 17 079,77 €    | 1 423,31 €
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- ---------------
+Personne seule 11 001,44 €    916,78 €
+Couple marié   17 079,77 €    1 423,31 €
 
 ```catala
 # Pas important pour nous
@@ -20,10 +20,10 @@ Couple marié   | 17 079,77 €    | 1 423,31 €
 
 Pour prétendre à cette allocation non contributive, les plafonds de ressources sont fixés à:
 
-Bénéficiaire   | Montant annuel | Montant mensuel
--------------------------------------------------
-Personne seule | 11 001,44€     | 916,78 €
-Couple marié   | 17 079,77 €    | 1 423,31 €
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- -----------------
+Personne seule 11 001,44€     916,78 €
+Couple marié   17 079,77 €    1 423,31 €
 
 ```catala
 # Uniquement la valeur du plafond individuel est important pour l'éligibilité

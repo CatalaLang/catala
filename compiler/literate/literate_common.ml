@@ -41,3 +41,40 @@ let get_language_extension = function
   | Fr -> "catala_fr"
   | En -> "catala_en"
   | Pl -> "catala_pl"
+
+let raise_failed_pandoc (command : string) (error_code : int) : 'a =
+  Errors.raise_error
+    "Weaving failed: pandoc command \"%s\" returned with error code %d" command
+    error_code
+
+let run_pandoc (s : string) (backend : Utils.Cli.backend_option) : string =
+  let pandoc = "pandoc" in
+  let tmp_file_in = Filename.temp_file "catala_pandoc" "in" in
+  let tmp_file_out = Filename.temp_file "catala_pandoc" "out" in
+  let oc = open_out tmp_file_in in
+  Printf.fprintf oc "%s" s;
+  close_out oc;
+  let pandoc_args =
+    [|
+      "-f";
+      "markdown+multiline_tables";
+      "-t";
+      (match backend with
+      | Cli.Html -> "html"
+      | Cli.Latex -> "latex"
+      | _ -> failwith "should not happen");
+      "-o";
+      tmp_file_out;
+    |]
+  in
+  let cmd =
+    Format.sprintf "%s %s %s" pandoc
+      (String.concat " " (Array.to_list pandoc_args))
+      tmp_file_in
+  in
+  let return_code = Sys.command cmd in
+  if return_code <> 0 then raise_failed_pandoc cmd return_code;
+  let oc = open_in tmp_file_out in
+  let tmp_file_as_string = really_input_string oc (in_channel_length oc) in
+  close_in oc;
+  tmp_file_as_string

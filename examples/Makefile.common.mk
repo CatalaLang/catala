@@ -46,7 +46,7 @@ help : ../Makefile.common.mk
 
 #> <target_file>.pdf			: Weaves the file to PDF (via LaTeX)
 %.pdf: %.tex
-	cd $(@D) && $(LATEXMK) -g -pdf -halt-on-error -shell-escape $(%F)
+	cd $(@D) && $(LATEXMK) -g -xelatex -halt-on-error -shell-escape $(%F)
 
 #> <target_file>.html			: Weaves the file to HTML
 %.html: %.catala_$(CATALA_LANG)
