@@ -67,20 +67,43 @@ let wrap_latex
      \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
      \\newcounter{subsubsubsection}[subsubsection]\n\
      \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
-     \\renewcommand\\theparagraph{\\thesubsubsubsection.\\arabic{paragraph}}\n\
      \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
      \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
      .2ex}{1.5ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsection}{straight}[\\subsubsection]\n\
+     \\newcounter{subsubsubsubsection}[subsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsection{\\thesubsubsubsection.\\arabic{subsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsection}{0.75em}{}\n\
+     \\titlespacing*{\\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
+     .2ex}{1.25ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsection}{straight}[\\subsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsection}[subsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsection{\\thesubsubsubsubsection.\\arabic{subsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsection}{0.7em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
+     .2ex}{1.1ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsubsection}{straight}[\\subsubsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsubsection{\\thesubsubsubsubsubsection.\\arabic{subsubsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsubsection}{0.6em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
+     .2ex}{1ex plus .2ex}\n\
      \\makeatletter\n\
      \\def\\toclevel@subsubsubsection{4}\n\
-     \\def\\toclevel@paragraph{5}\n\
-     \\def\\toclevel@paragraph{6}\n\
+     \\def\\toclevel@subsubsubsubsection{5}\n\
+     \\def\\toclevel@subsubsubsubsubsection{6}\n\
+     \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
+     \\def\\toclevel@paragraph{8}\n\
+     \\def\\toclevel@subparagraph{9}\n\
      \\def\\l@subsubsubsection{\\@dottedtocline{4}{7em}{4em}}\n\
-     \\def\\l@paragraph{\\@dottedtocline{5}{10em}{5em}}\n\
-     \\def\\l@subparagraph{\\@dottedtocline{6}{14em}{6em}}\n\
+     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{8em}{4.5em}}\n\
+     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{9em}{4.75em}}\n\
+     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{10em}{5em}}\n\
+     \\def\\l@paragraph{\\@dottedtocline{8}{12em}{5.5em}}\n\
+     \\def\\l@subparagraph{\\@dottedtocline{9}{14em}{6em}}\n\
      \\makeatother\n\
      \\setcounter{secnumdepth}{0}\n\
-     \\setcounter{tocdepth}{6}\n\
+     \\setcounter{tocdepth}{9}\n\
      \\newunicodechar{÷}{$\\div$}\n\
      \\newunicodechar{×}{$\\times$}\n\
      \\newunicodechar{≤}{$\\leqslant$}\n\
@@ -146,7 +169,10 @@ let rec law_structure_to_latex
         | 1 -> "subsection"
         | 2 -> "subsubsection"
         | 3 -> "subsubsubsection"
-        | 4 -> "paragraph"
+        | 4 -> "subsubsubsubsection"
+        | 5 -> "subsubsubsubsubsection"
+        | 6 -> "subsubsubsubsubsubsection"
+        | 7 -> "paragraph"
         | _ -> "subparagraph")
         (pre_latexify (Pos.unmark heading.law_heading_name));
       Format.pp_print_list
