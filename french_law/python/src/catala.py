@@ -401,7 +401,7 @@ def decimal_to_string(precision: int, i: Decimal) -> str:
 def decimal_round(q: Decimal) -> Decimal:
     # Implements the workaround by
     # https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
-    return f_div(2*q.numerator + q.denominator, 2*q.denominator)
+    return f_div(2*q.numerator + q.denominator, 2*q.denominator)  # type:ignore
 
 # --------
 # Integers
