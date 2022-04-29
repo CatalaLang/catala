@@ -61,8 +61,15 @@ let wrap_latex
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
-     \\usepackage{fullpage}\n\
+     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm]{geometry}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\usepackage{fancyhdr}\n\
+     \\pagestyle{fancy}\n\
+     \\fancyhf{}\n\
+     \\fancyhead[C]{\\leftmark}\n\
+     \\fancyfoot[C]{\\thepage}\n\
+     \\renewcommand{\\headrulewidth}{0.5pt}\n\
+     \\renewcommand{\\footrulewidth}{0.5pt}\n\
      \\usepackage{titlesec}\n\
      \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
      \\newcounter{subsubsubsection}[subsubsection]\n\
@@ -95,12 +102,14 @@ let wrap_latex
      \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
      \\def\\toclevel@paragraph{8}\n\
      \\def\\toclevel@subparagraph{9}\n\
-     \\def\\l@subsubsubsection{\\@dottedtocline{4}{7em}{4em}}\n\
-     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{8em}{4.5em}}\n\
-     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{9em}{4.75em}}\n\
-     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{10em}{5em}}\n\
-     \\def\\l@paragraph{\\@dottedtocline{8}{12em}{5.5em}}\n\
-     \\def\\l@subparagraph{\\@dottedtocline{9}{14em}{6em}}\n\
+     \\def\\l@subsection{\\@dottedtocline{1}{1em}{0.5em}}\n\
+     \\def\\l@subsubsection{\\@dottedtocline{2}{2em}{1em}}\n\
+     \\def\\l@subsubsubsection{\\@dottedtocline{3}{3em}{1.5em}}\n\
+     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{4em}{2em}}\n\
+     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{5em}{2.5em}}\n\
+     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{6em}{3em}}\n\
+     \\def\\l@paragraph{\\@dottedtocline{8}{7em}{3.5em}}\n\
+     \\def\\l@subparagraph{\\@dottedtocline{9}{8em}{4em}}\n\
      \\makeatother\n\
      \\setcounter{secnumdepth}{0}\n\
      \\setcounter{tocdepth}{9}\n\
@@ -130,8 +139,10 @@ let wrap_latex
      \\maketitle\n\n\
      %s : \n\
      \\begin{itemize}%s\\end{itemize}\n\n\
+     \\clearpage\n\
      \\tableofcontents\n\n\
-     \\[\\star\\star\\star\\]"
+     \\[\\star\\star\\star\\]\n\
+     \\clearpage"
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (literal_title language)
     (literal_generated_by language)
