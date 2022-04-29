@@ -107,6 +107,8 @@
 
 (* Builtins *)
 
+#define MS_RoundDecimal "zaokrąglony_dziesiętny"
+#define MR_RoundDecimal "zaokr",0x0105,"glony_dziesi", 0x0119, "tny"
 #define MS_RoundMoney "zaokrąglony_pieniądze"
 #define MR_RoundMoney "zaokr",0x0105,"glony_pieni", 0x0105, "dze"
 #define MS_IntToDec "calkowita_wers_dziesiętny"
