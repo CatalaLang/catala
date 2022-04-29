@@ -63,8 +63,24 @@ let wrap_latex
      \\usepackage[dvipsnames]{xcolor}\n\
      \\usepackage{fullpage}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\usepackage{titlesec}\n\
+     \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
+     \\newcounter{subsubsubsection}[subsubsection]\n\
+     \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
+     \\renewcommand\\theparagraph{\\thesubsubsubsection.\\arabic{paragraph}}\n\
+     \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
+     \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
+     .2ex}{1.5ex plus .2ex}\n\
+     \\makeatletter\n\
+     \\def\\toclevel@subsubsubsection{4}\n\
+     \\def\\toclevel@paragraph{5}\n\
+     \\def\\toclevel@paragraph{6}\n\
+     \\def\\l@subsubsubsection{\\@dottedtocline{4}{7em}{4em}}\n\
+     \\def\\l@paragraph{\\@dottedtocline{5}{10em}{5em}}\n\
+     \\def\\l@subparagraph{\\@dottedtocline{6}{14em}{6em}}\n\
+     \\makeatother\n\
      \\setcounter{secnumdepth}{0}\n\
-     \\setcounter{tocdepth}{5}\n\
+     \\setcounter{tocdepth}{6}\n\
      \\newunicodechar{÷}{$\\div$}\n\
      \\newunicodechar{×}{$\\times$}\n\
      \\newunicodechar{≤}{$\\leqslant$}\n\
@@ -129,7 +145,8 @@ let rec law_structure_to_latex
         | 0 -> "section"
         | 1 -> "subsection"
         | 2 -> "subsubsection"
-        | 3 -> "paragraph"
+        | 3 -> "subsubsubsection"
+        | 4 -> "paragraph"
         | _ -> "subparagraph")
         (pre_latexify (Pos.unmark heading.law_heading_name));
       Format.pp_print_list
