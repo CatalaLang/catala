@@ -1845,7 +1845,9 @@ champ d'application CalculAidePersonnelleLogementLocatif:
 ```catala
 champ d'application CalculAidePersonnelleLogement:
   définition ressources_ménage état avec_arrondi égal à
-    arrondi_argent de ((ressources_ménage +€ 50€) *€ 1%) *€ 100,0
+    # Cette formule arrondit à la centaine d'euros supérieure. Essayer quelques
+    # exemples pour vous en convaincre, dont 100 et 150.
+    arrondi_argent de ((ressources_ménage +€ 49,99€) *€ 1%) *€ 100,0
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -3067,8 +3069,7 @@ K =  0,95 - R / (cm * N)
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
-  # TODO informatique: faire l'arrondi à deux décimales préconisé par le 1°
-  définition coefficient_prise_en_charge_d832_10 égal à
+  définition coefficient_prise_en_charge_d832_10 état formule égal à
     0,95 -.
       (ressources_ménage_arrondies /€
         (coefficient_multiplicateur_d832_11 *€ n_nombre_parts_d832_11)
@@ -3081,6 +3082,17 @@ où :
 
 1° " K " est le coefficient de prise en charge, arrondi à deux décimales par défaut.
 Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré comme égal à 0,95 ;
+
+```catala
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition coefficient_prise_en_charge_d832_10 état arrondi égal à
+    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
+    # à partir d'un arrondi au plus proche à l'unité.
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 -. 0,005) *. 100,0)) /. 100,0
+  définition coefficient_prise_en_charge_d832_10 état seuil égal à
+    si coefficient_prise_en_charge_d832_10 >=. 0,95 alors 0,95 sinon
+      coefficient_prise_en_charge_d832_10
+```
 
 2° " R " représente la limite supérieure de l'intervalle dans lequel se situent les ressources
 du ménage, appréciées conformément aux dispositions de la section 2 du chapitre II du titre
@@ -3388,7 +3400,6 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
       coefficient_multiplicateur_d832_18
     alors
       mensualité_principale *€ coefficient_multiplicateur_d832_18
-      # TODO informatique: arrondir à la centaine d'euros supérieure ?
     sinon ressources_ménage_arrondies
 
   exception définition ressources_ménage_avec_d832_18 sous condition
@@ -3637,8 +3648,7 @@ K = 0,95 - (R - r * N) / (cm * N)
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
-  définition coefficient_prise_en_charge_d832_25 égal à
-    # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
+  définition coefficient_prise_en_charge_d832_25 état formule égal à
     0,95 -.
       ((ressources_ménage_arrondies -€
         coefficient_r_d832_25 *€ n_nombre_parts_d832_25) /€
@@ -3650,6 +3660,18 @@ où :
 
 a) " K " est le coefficient de prise en charge, arrondi à deux décimales par défaut. Lorsque le
 calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0,95 ;
+
+
+```catala
+champ d'application CalculAidePersonnelleLogementFoyer:
+  définition coefficient_prise_en_charge_d832_25 état arrondi égal à
+    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
+    # à partir d'un arrondi au plus proche à l'unité.
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005) *. 100,0)) /. 100,0
+  définition coefficient_prise_en_charge_d832_25 état seuil égal à
+    si coefficient_prise_en_charge_d832_25 >=. 0,95 alors 0,95 sinon
+      coefficient_prise_en_charge_d832_25
+```
 
 b) " R " représente la limite supérieure de l'intervalle dans lequel se situent les ressources
 du ménage, appréciées selon les modalités prévues à la section 2 du chapitre II du titre II du
@@ -3696,12 +3718,10 @@ K = 0,90 - R / (cm * N)
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
-  exception définition coefficient_prise_en_charge_d832_25 sous condition
+  exception définition coefficient_prise_en_charge_d832_25 état formule
+  sous condition
     condition_2_du_832_25
   conséquence égal à
-    # TODO informatique: faire l'arrondi à deux décimales préconisé par le a)
-    # TODO informatique: changer ici et partout ailleurs la formule pour
-    # l'arrondi supérieur parce que la formule actuelle arrondit 100 -> 200
     0,90 -.
       (ressources_ménage_arrondies /€
         (coefficient_multiplicateur_d832_25 *€ n_nombre_parts_d832_25)
@@ -3711,6 +3731,24 @@ où :
 
 a) " K " est le coefficient de prise en charge, arrondi à deux décimales par défaut ;
 lorsque le calcul le porte à une valeur supérieure à 0,90, il est considéré égal à 0,90 ;
+
+
+```catala
+champ d'application CalculAidePersonnelleLogementFoyer:
+  exception définition coefficient_prise_en_charge_d832_25 état arrondi
+  sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    # Cette formule implémente bien l'arrondi à deux décimales par défaut,
+    # à partir d'un arrondi au plus proche à l'unité.
+    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 -. 0,005) *. 100,0)) /. 100,0
+  définition coefficient_prise_en_charge_d832_25 état seuil
+  sous condition
+    condition_2_du_832_25
+  conséquence  égal à
+    si coefficient_prise_en_charge_d832_25 >=. 0,90 alors 0,90 sinon
+      coefficient_prise_en_charge_d832_25
+```
 
 b) " R " représente la limite supérieure de l'intervalle dans lequel se situent les
 ressources du ménage, appréciées selon les modalités prévues à la section 2 du

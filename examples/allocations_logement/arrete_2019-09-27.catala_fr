@@ -338,8 +338,7 @@ RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition rapport_loyers égal à
-  # TODO informatique: faire l'arrondi
-    loyer_éligible /€ loyer_référence
+    arrondi_décimal de ((loyer_éligible /€ loyer_référence) *. 100,0) /. 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés

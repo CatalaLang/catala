@@ -30,5 +30,5 @@ champ d'application Exemple1:
   assertion calcul.participation_minimale = 44,56 €
   assertion calcul.taux_composition_familiale = 2,01%
   # TODO: vérifier la participation personnelle, peut-être 705,51€ ?
-  assertion calcul.participation_personnelle = 706,50 €
+  assertion calcul.participation_personnelle = 705,62 €
 ```

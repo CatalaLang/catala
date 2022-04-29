@@ -353,6 +353,9 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   contexte condition_2_du_832_25 contenu booléen
 
   interne coefficient_prise_en_charge_d832_25 contenu décimal
+    état formule
+    état arrondi
+    état seuil
   interne coefficient_multiplicateur_d832_25 contenu argent
   interne coefficient_r_d832_25 contenu argent
   interne n_nombre_parts_d832_25 contenu décimal
@@ -402,6 +405,9 @@ déclaration champ d'application CalculAidePersonnelleLogementAccessionPropriét
   interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
   interne n_nombre_parts_d832_11 contenu décimal
   interne coefficient_prise_en_charge_d832_10 contenu décimal
+    état formule
+    état arrondi
+    état seuil
   interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
