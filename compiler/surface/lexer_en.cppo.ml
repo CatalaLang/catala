@@ -100,6 +100,7 @@
 (* Builtins *)
 
 #define MS_RoundMoney "round_money"
+#define MS_RoundDecimal "round_decimal"
 #define MS_IntToDec "integer_to_decimal"
 #define MS_GetDay "get_day"
 #define MS_GetMonth "get_month"

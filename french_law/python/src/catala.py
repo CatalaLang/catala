@@ -9,7 +9,7 @@
 
 # This file should be in sync with compiler/runtime.{ml, mli} !
 
-from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, sign  # type: ignore
+from gmpy2 import log2, mpz, mpq, mpfr, t_divmod, f_div, sign  # type: ignore
 import datetime
 import dateutil.relativedelta
 from typing import NewType, List, Callable, Tuple, Optional, TypeVar, Iterable, Union, Any
@@ -396,6 +396,12 @@ def decimal_of_integer(d: Integer) -> Decimal:
 
 def decimal_to_string(precision: int, i: Decimal) -> str:
     return "{1:.{0}}".format(precision, mpfr(i.value, precision * 10 // 2))
+
+
+def decimal_round(q: Decimal) -> Decimal:
+    # Implements the workaround by
+    # https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
+    return f_div(2*q.numerator + q.denominator, 2*q.denominator)
 
 # --------
 # Integers

@@ -146,6 +146,13 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
     (if List.length !digits - leading_zeroes !digits = max_prec_digits then "…"
     else "")
 
+let decimal_round (q : decimal) : decimal =
+  (* Implements the workaround by
+     https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
+  let n = Q.num q in
+  let d = Q.den q in
+  Q.of_bigint Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d))
+
 let integer_of_string (s : string) : integer = Z.of_string s
 let integer_to_string (i : integer) : string = Z.to_string i
 let integer_to_int (i : integer) : int = Z.to_int i
