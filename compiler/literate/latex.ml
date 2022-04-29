@@ -61,7 +61,7 @@ let wrap_latex
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
-     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm]{geometry}\n\
+     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}\n\
      \\usepackage[many]{tcolorbox}\n\n\
      \\usepackage{fancyhdr}\n\
      \\pagestyle{fancy}\n\

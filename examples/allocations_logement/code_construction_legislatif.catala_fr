@@ -38,7 +38,9 @@ la résidence principale.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnelleLogement:
-  assertion ménage.logement.résidence_principale
+  règle condition_logement_résidence_principale sous condition
+    ménage.logement.résidence_principale
+  conséquence rempli
 ```
 
 ##### Chapitre II : Conditions générales d'attribution
@@ -56,6 +58,7 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
     # portant toutes sur le logement définies au long des diverses parties
     # du code de la construction et de l'habitation. Attention, ne pas oublier
     # de modifier cette liste en cas de rajout d'une sous-condition.
+    condition_logement_résidence_principale et # L821-2
     condition_logement_bailleur et # L831-1
     condition_logement_prêt et # L831-2
     condition_logement_mode_occupation et
@@ -125,7 +128,6 @@ champ d'application ÉligibilitéAidePersonnelleLogement:
       -- SousLocataire: vrai
       -- LocationAccession: vrai # Justifié par L831-2, avec une
                                  # exception à venir
-      -- ModeOccupation.Autre: faux
   conséquence rempli
 ```
 
@@ -795,13 +797,13 @@ concernés par la réduction de loyer de solidarité définie à l'article L. 44
 est fixée par voie réglementaire.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition aide_finale_locatif état réduction_loyer_solidarité égal à
+champ d'application CalculAidePersonnelleLogementLocatif:
+  définition aide_finale état réduction_loyer_solidarité égal à
     si
-      aide_finale_locatif -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€
+      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3 >=€
         0€
     alors
-      aide_finale_locatif -€ réduction_loyer_solidarité *€ fraction_l832_3
+      aide_finale -€ réduction_loyer_solidarité *€ fraction_l832_3
     sinon 0€
 
   assertion fraction_l832_3 >=. 90% et fraction_l832_3 <=. 98%

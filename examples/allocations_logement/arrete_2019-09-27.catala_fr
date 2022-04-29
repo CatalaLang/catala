@@ -56,12 +56,8 @@ pour les prestations dues à compter du 1er octobre 2021.
 déclaration énumération SituationFamilialeCalculAPL:
   -- PersonneSeule
   -- Couple
-```
 
-```catala
-champ d'application CalculAidePersonnelleLogement
-  sous condition date_courante >=@ |2021-10-01|:
-
+champ d'application CalculAidePersonnelleLogement:
   définition situation_familiale_calcul_apl égal à
     selon situation_familiale sous forme
     -- Célibataire: PersonneSeule
@@ -70,6 +66,11 @@ champ d'application CalculAidePersonnelleLogement
     -- Concubins: Couple
     -- CélibataireSéparéDeFait: PersonneSeule
     -- ConcubinageDontSéparéDeFait: Couple
+```
+
+```catala
+champ d'application CalculAidePersonnelleLogementLocatif
+  sous condition date_courante >=@ |2021-10-01|:
 
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
@@ -142,7 +143,7 @@ ces dispositions sont applicables pour les prestations dues à
 compter du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition
     date_courante >=@ |2021-10-01| et
     logement_est_chambre:
@@ -187,7 +188,7 @@ ces dispositions sont applicables pour les prestations dues à compter
 du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition montant_forfaitaire_charges_d823_16 égal à
     54,22€ +€ 12,29€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
@@ -209,7 +210,7 @@ II            |           2,5	           |               3,1
 III	          |           2,5	           |               3,1
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementLocatif:
   définition plafond_dégressivité_d823_16 égal à
     selon zone sous forme
     -- Zone1: plafond_loyer_d823_16_2 *€ 3,4
@@ -230,7 +231,7 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 823-16
 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementLocatif:
   définition montant_forfaitaire_d823_16 égal à 5 €
 ```
 
@@ -242,7 +243,7 @@ est fixé à 10 euros pour les allocations de logement et à 0 euro pour l'aide
 personnalisée au logement.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementLocatif:
   définition montant_minimal_aide_d823_16 égal à
     selon type_aide sous forme
     -- AidePersonnaliséeLogement: 0 €
@@ -257,7 +258,7 @@ La participation minimale P0 définie au 2° de l'article D. 823-17 du même cod
 défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 35,39 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition participation_minimale égal à
     si loyer_éligible *€ 8,5% >=€ 35,39 € alors
@@ -301,7 +302,7 @@ Majoration par personne à charge	                    |   -0,06%
 # ou 2,01% ?
 # TODO juridique: que se passe-t-il quand il y a 29 personnes à charge et que
 # le taux devient négatif?
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
@@ -334,7 +335,7 @@ RL entre le loyer retenu dans la limite du plafond L et un loyer de référence 
 RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition rapport_loyers égal à
   # TODO informatique: faire l'arrondi
@@ -354,7 +355,7 @@ Si RL<45 %    | 	Si 45% < RL < 75%	  |   Si RL >75 %
 TL=0 %        |	TL=0,45 %*(RL-45%)    |	TL=0,45 %*30 %+0,68 %*(RL-75%)
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   # Ici on choisit de mettre des >= pour inclure le résultat sur la crête
   # dans la case de droite ; nous avons bien vérifié que sur la crête le
@@ -377,7 +378,7 @@ Personne seule ou couple ayant une personne à charge	  |     357,80
 Majoration par personne à charge	                      |     52,08
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
@@ -410,7 +411,7 @@ Personne seule ou couple ayant :
     -par personne à charge supplémentaire	  |      311
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
@@ -462,7 +463,7 @@ Par personne à
 charge supplémentaire                 |   44,21   |   39,06   |   35,57
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01| et colocation:
 
   # Ici l'exception est rapportée au cas de base puisqu'on suppose
@@ -510,7 +511,7 @@ Couple sans personne à charge	   |       54,22
 Majoration par personne à charge |       12,29
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementLocatif
   sous condition date_courante >=@ |2021-10-01| et colocation:
   définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
@@ -552,12 +553,12 @@ Par personne supplémentaire à charge	                      |    430	    |    3
 # Ici les montants des mensualités sont en francs car signées avant
 # l'avènement de l'euro mais pour le calcul des APL en euros il faut
 # que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   # TODO juridique: trouver le décret ou la loi qui définit ce taux de
   #  conversion.
   définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
 
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
@@ -599,8 +600,8 @@ Par personne supplémentaire à charge	                      |    374	    |    3
 
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
@@ -643,8 +644,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 600	    |  
 Par personne supplémentaire à charge	                      |    380	    |    335      |    305
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1994-11-27| et
     ancienneté_logement sous forme Neuf et
@@ -685,8 +686,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 093	    |  
 Par personne supplémentaire à charge	                      |    306	    |    269      |    246
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
    sous condition
     date_signature_prêt >=@ |1994-11-27| et
     ancienneté_logement sous forme Ancien et
@@ -735,8 +736,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |  
 Par personne supplémentaire à charge	                      |    430	    |    379      |    346
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
@@ -778,8 +779,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 372	    |  
 Par personne supplémentaire à charge	                      |    347	    |    379      |    346
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
@@ -824,8 +825,8 @@ Par personne supplémentaire à charge	                      |         102
 
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1992-06-30| et
     date_signature_prêt <@ |1994-11-27| et
@@ -855,8 +856,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 799	    |  
 Par personne supplémentaire à charge	                      |    409	    |    360      |    329
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1994-11-27| et
     date_signature_prêt <@ |2000-06-30| et
@@ -898,8 +899,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 255	    |  
 Par personne supplémentaire à charge	                      |    330	    |    290      |    265
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |1994-11-27| et
     date_signature_prêt <@ |2000-06-30| et
@@ -942,8 +943,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 827	    |  
 Par personne supplémentaire à charge	                      |    413	    |    364      |    332
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2000-06-30| et
     date_signature_prêt <=@ |2001-06-30| et
@@ -985,8 +986,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 277	    |  
 Par personne supplémentaire à charge	                      |    333	    |    293      |    268
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2000-06-30| et
     date_signature_prêt <=@ |2001-06-30| et
@@ -1031,8 +1032,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 861	    |  
 Par personne supplémentaire à charge	                      |    418	    |    368      |    336
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2001-07-01| et
     date_signature_prêt <@ |2001-12-31| et
@@ -1073,8 +1074,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   436,15    |  
 Par personne supplémentaire à charge	                      |    63,72	  |    56,1     |    51,22
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2002-01-01| et
     date_signature_prêt <@ |2002-06-30| et
@@ -1118,8 +1119,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 304	    |  
 Par personne supplémentaire à charge	                      |    337	    |    297      |    271
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2001-07-01| et
     date_signature_prêt <@ |2001-12-31| et
@@ -1160,8 +1161,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   351,25    |  
 Par personne supplémentaire à charge	                      |    51,38	  |    45,28    |    41,31
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2002-01-01| et
     date_signature_prêt <@ |2002-06-30| et
@@ -1204,8 +1205,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   441,37    |  
 Par personne supplémentaire à charge	                      |    64,48	  |    56,77    |    51,83
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2002-06-30| et
     date_signature_prêt <@ |2003-06-30| et
@@ -1247,8 +1248,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   355,47    |  
 Par personne supplémentaire à charge	                      |    52   	  |    45,82    |    41,81
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2002-06-30| et
     date_signature_prêt <@ |2003-06-30| et
@@ -1291,8 +1292,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   446,66    |  
 Par personne supplémentaire à charge	                      |    65,25 	  |    57,45    |    52,45
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2003-06-30| et
     date_signature_prêt <@ |2005-08-31| et
@@ -1334,8 +1335,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   359,73    |  
 Par personne supplémentaire à charge	                      |    52,62 	  |    46,37    |    42,31
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2003-06-30| et
     date_signature_prêt <@ |2005-08-31| et
@@ -1378,8 +1379,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   454,69    |  
 Par personne supplémentaire à charge	                      |    66,42 	  |    58,48    |    53,39
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2005-08-31| et
     date_signature_prêt <@ |2006-12-31| et
@@ -1421,8 +1422,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   366,21    |  
 Par personne supplémentaire à charge	                      |    53,57 	  |    47,2     |    43,07
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2005-08-31| et
     date_signature_prêt <@ |2006-12-31| et
@@ -1465,8 +1466,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   467,42    |  
 Par personne supplémentaire à charge	                      |    68,28 	  |    60,12    |    54,88
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2006-12-31| et
     date_signature_prêt <@ |2007-12-31| et
@@ -1508,8 +1509,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   376,46    |  
 Par personne supplémentaire à charge	                      |    55,07 	  |    48,52    |    44,28
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2006-12-31| et
     date_signature_prêt <@ |2007-12-31| et
@@ -1552,8 +1553,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   480,32    |  
 Par personne supplémentaire à charge	                      |    70,16 	  |    61,78    |    56,39
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2007-12-31| et
     date_signature_prêt <@ |2008-12-31| et
@@ -1595,8 +1596,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   386,85    |  
 Par personne supplémentaire à charge	                      |    56,59 	  |    49,86    |    45,5
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2007-12-31| et
     date_signature_prêt <@ |2008-12-31| et
@@ -1639,8 +1640,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   494,49    |  
 Par personne supplémentaire à charge	                      |    72,23 	  |    63,6     |    58,05
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2008-12-31| et
     date_signature_prêt <@ |2009-12-31| et
@@ -1682,8 +1683,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   398,26    |  
 Par personne supplémentaire à charge	                      |    58,26 	  |    51,33    |    46,84
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2008-12-31| et
     date_signature_prêt <@ |2009-12-31| et
@@ -1726,8 +1727,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   496,07    |  
 Par personne supplémentaire à charge	                      |    72,46 	  |    63,8     |    58,24
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2009-12-31| et
     date_signature_prêt <@ |2010-12-31| et
@@ -1769,8 +1770,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   399,53    |  
 Par personne supplémentaire à charge	                      |    58,45 	  |    51,49    |    46,99
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2009-12-31| et
     date_signature_prêt <@ |2010-12-31| et
@@ -1813,8 +1814,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   501,53    |  
 Par personne supplémentaire à charge	                      |    73,26 	  |    64,5     |    58,88
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2010-12-31| et
     date_signature_prêt <@ |2011-12-31| et
@@ -1856,8 +1857,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   403,92    |  
 Par personne supplémentaire à charge	                      |    59,09 	  |    52,06    |    47,51
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2010-12-31| et
     date_signature_prêt <@ |2011-12-31| et
@@ -1900,8 +1901,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   506,55    |  
 Par personne supplémentaire à charge	                      |    73,99 	  |    65,15    |   459,47
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2011-12-31| et
     date_signature_prêt <@ |2012-12-31| et
@@ -1946,8 +1947,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   407,96    |  
 Par personne supplémentaire à charge	                      |    59,68 	  |    52,58    |   347,99
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2011-12-31| et
     date_signature_prêt <@ |2012-12-31| et
@@ -1992,8 +1993,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   517,44    |  
 Par personne supplémentaire à charge	                      |    75,58 	  |    66,55    |    60,75
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2012-12-31| et
     date_signature_prêt <@ |2014-09-30| et
@@ -2035,8 +2036,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   416,73    |  
 Par personne supplémentaire à charge	                      |    60,96 	  |    53,71    |    49,02
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2012-12-31| et
     date_signature_prêt <@ |2014-09-30| et
@@ -2079,8 +2080,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,39    |  
 Par personne supplémentaire à charge	                      |    76,01 	  |    66,93    |    61,1
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2014-09-30| et
     date_signature_prêt <@ |2015-09-30| et
@@ -2122,8 +2123,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   419,11    |  
 Par personne supplémentaire à charge	                      |    61,31 	  |    54,02    |    49,3
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2014-09-30| et
     date_signature_prêt <@ |2015-09-30| et
@@ -2166,8 +2167,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,81    |  
 Par personne supplémentaire à charge	                      |    76,07 	  |    66,98    |    61,15
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2015-09-30| et
     date_signature_prêt <@ |2017-09-30| et
@@ -2209,8 +2210,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   419,45    |  
 Par personne supplémentaire à charge	                      |    61,36 	  |    54,06    |    49,34
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2015-09-30| et
     date_signature_prêt <@ |2017-09-30| et
@@ -2253,8 +2254,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   524,72    |  
 Par personne supplémentaire à charge	                      |    76,64 	  |    67,48    |    61,61
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2017-09-30| et
     date_signature_prêt <@ |2019-09-30| et
@@ -2296,8 +2297,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   422,6     |  
 Par personne supplémentaire à charge	                      |    61,82 	  |    54,47    |    49,71
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2017-09-30| et
     date_signature_prêt <@ |2019-09-30| et
@@ -2340,8 +2341,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   526,29    |  
 Par personne supplémentaire à charge	                      |    76,87 	  |    67,68    |    61,79
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2019-09-30| et
     ancienneté_logement sous forme Neuf et
@@ -2382,8 +2383,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge	  |   423,86    |  
 Par personne supplémentaire à charge	                      |    62,01 	  |    54,63    |    49,86
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >=@ |2019-09-30| et
     ancienneté_logement sous forme Ancien et
@@ -2429,7 +2430,7 @@ Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces di
 les prestations dues à compter du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement sous condition
+champ d'application CalculAidePersonnelleLogementAccessionPropriété sous condition
   date_courante >=@ |2021-10-01|:
 
   définition montant_forfaitaire_charges_d832_10 égal à
@@ -2441,7 +2442,7 @@ champ d'application CalculAidePersonnelleLogement sous condition
 Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition montant_forfaitaire_d832_10 égal à 5€
 ```
 
@@ -2451,7 +2452,7 @@ Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même 
 la contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition montant_minimal_aide_d832_10 égal à 10€
 ```
 
@@ -2460,7 +2461,7 @@ champ d'application CalculAidePersonnelleLogement:
 Le coefficient « cm » défini au 3° de l'article D. 832-11 du même code est fixé à 22 111,33 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
    définition coefficient_multiplicateur_d832_11 égal à 22 111,33€
 ```
 
@@ -2475,7 +2476,7 @@ du contrat de prêt ou de location-accession est postérieure au 30 juin 1992 :
 2° 41,60 % pour la tranche de ressources supérieures à 5 600,85 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition montant_limite_tranches_d832_15_1 égal à 5 600,85 €
   définition taux_tranche_inférieure_d832_15_1 égal à 20,80%
   définition taux_tranche_supérieure_d832_15_1 égal à 41,60%
@@ -2488,13 +2489,13 @@ Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 1° Les plafonds de mensualités sont fixés à 75 % des plafonds de mensualités mentionnés aux articles 17 et 18 ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01|:
-  définition plafond_menusalité_d832_10_3 état copropriétaires égal à
+  définition plafond_mensualité_d832_10_3 état copropriétaires égal à
     si copropriété alors
-      plafond_menusalité_d832_10_3 *€ 75%
+      plafond_mensualité_d832_10_3 *€ 75%
     sinon
-      plafond_menusalité_d832_10_3
+      plafond_mensualité_d832_10_3
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -2505,7 +2506,7 @@ Couple sans personne à charge	          |       54,22
 Majoration par personne à charge	      |       12,29
 
 ```catala
-champ d'application CalculAidePersonnelleLogement
+champ d'application CalculAidePersonnelleLogementAccessionPropriété
   sous condition date_courante >=@ |2021-10-01|:
    exception définition montant_forfaitaire_charges_d832_10 sous condition
      copropriété
@@ -2531,7 +2532,7 @@ a) 0,0226 pour les prêts souscrits avant le 1er octobre 1998 ;
 b) 0,0234 pour les prêts souscrits à compter de cette dernière date.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition coefficient_multiplicateur_d832_17_3 égal à
     selon ancienneté_logement sous forme
     -- Neuf:
@@ -2548,7 +2549,7 @@ champ d'application CalculAidePersonnelleLogement:
 Pour déterminer le plancher de ressources, le coefficient prévu à l'article D. 832-18 du même code est fixé à 16,25.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementAccessionPropriété:
   définition coefficient_multiplicateur_d832_18 égal à 16,25
 ```
 
@@ -2573,7 +2574,7 @@ Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces di
 pour les prestations dues à compter du 1er octobre 2021.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement sous condition
+champ d'application CalculAidePersonnelleLogementFoyer sous condition
   date_courante >=@ |2021-10-01|:
   définition équivalence_loyer_éligible égal à
     (selon zone sous forme
@@ -2627,7 +2628,7 @@ champ d'application CalculAidePersonnelleLogement sous condition
 Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   définition montant_forfaitaire_d832_24 égal à 5 €
 ```
 
@@ -2637,7 +2638,7 @@ Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même 
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   définition montant_minimal_aide_d823_24 égal à 10 €
 ```
 
@@ -2649,7 +2650,7 @@ du coefficient de prise en charge « K » sont fixées ainsi :
 1° 1 217,26 pour le coefficient « r » défini au c du 1° ;
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   # Attention par homogénéité de la formule du D832-25 il faut que cm soit
   # un montant d'argent.
   définition coefficient_r_d832_25 égal à 1217,26 €
@@ -2658,7 +2659,7 @@ champ d'application CalculAidePersonnelleLogement:
 2° 13 393,40 et 21 420,91 pour le coefficient multiplicateur « cm » défini respectivement au d du 1° et au c du 2°.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   # Attention par homogénéité de la formule du D832-25 il faut que cm soit
   # un montant d'argent.
   définition coefficient_multiplicateur_d832_25 égal à
@@ -2683,7 +2684,7 @@ de charges locatives minimale « E0 », mentionnés à l'article D. 832-26 du m�
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   définition tranches_revenus_d832_26 égal à [
     TrancheRevenu { -- haut: Revenu contenu 1948,10€  -- bas: 0€ -- taux: 4%};
     TrancheRevenu {
@@ -2714,7 +2715,7 @@ II. - Les montants forfaitaires mentionnés aux premier et deuxième alinéas so
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
 ```
@@ -2726,7 +2727,7 @@ pour les logements-foyers de jeunes travailleurs et les résidences sociales vis
 D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
 
 ```catala
-champ d'application CalculAidePersonnelleLogement:
+champ d'application CalculAidePersonnelleLogementFoyer:
   définition montant_forfaitaire_d832_27 égal à
     si condition_2_du_832_25 alors 15 € sinon 26,68€
 ```
