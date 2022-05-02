@@ -307,7 +307,7 @@ déclaration champ d'application CalculAidePersonnelleLogementLocatif:
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
   entrée logement_est_chambre contenu booléen
-  entrée personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  entrée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
   entrée type_aide contenu TypeAidePersonnelleLogement
   entrée colocation contenu booléen
@@ -382,7 +382,8 @@ déclaration champ d'application CalculAidePersonnelleLogementFoyer:
     état contributions_sociales_arrondi
     état montant_minimal
 
-déclaration champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+déclaration champ d'application
+  CalculAidePersonnelleLogementAccessionPropriété:
   entrée mensualité_principale contenu argent
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
@@ -440,7 +441,7 @@ déclaration structure InformationsCalculAPLLocatif:
   donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
   donnée logement_est_chambre contenu booléen
   donnée colocation contenu booléen
-  donnée personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  donnée personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     contenu booléen
   # TODO informatique et juridique: calculer type_aide!
   donnée type_aide contenu TypeAidePersonnelleLogement

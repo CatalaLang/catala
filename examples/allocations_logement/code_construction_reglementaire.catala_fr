@@ -1480,11 +1480,11 @@ champ d'application CalculAidePersonnelleLogement:
     -- InfosLogementFoyer: faux # Valeur par défaut
     -- InfosAccessionPropriété: faux # Valeur par défaut
   définition
-    locatif.personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    locatif.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
   égal à
     selon informations_calcul sous forme
     -- InfosLocatif de infos:
-      infos.personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+      infos.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     -- InfosLogementFoyer: faux # Valeur par défaut
     -- InfosAccessionPropriété: faux # Valeur par défaut
   définition locatif.type_aide égal à

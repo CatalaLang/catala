@@ -179,7 +179,7 @@ let check_exceeding_lines
     ?(max_len = 80) (start_line : int) (filename : string) (content : string) =
   content |> String.split_on_char '\n'
   |> List.iteri (fun i s ->
-         if String.length s > max_len then (
+         if CamomileLibrary.UTF8.length s > max_len then (
            Cli.warning_print "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[ Bold; yellow ]
