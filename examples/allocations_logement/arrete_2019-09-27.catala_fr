@@ -714,11 +714,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et améliorés (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 481	    |   1 320     |   1 233
-Couple sans personne à charge	                              |   1 787     |   1 589     |   1 479
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 093	    |   1 858     |   1 725
-Par personne supplémentaire à charge	                      |    306	    |    269      |    246
+DÉSIGNATION	                                             ZONE I	ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 481	1 320   1 233
+Couple sans personne à charge	                           1 787  1 589   1 479
+Bénéficiaire isolé ou couple ayant une personne à charge 2 093	1 858   1 725
+Par personne supplémentaire à charge	                   306	  269     246
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -764,11 +765,12 @@ prévu au 1° du I de l'article D. 832-12 :
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   2 085	    |   1 860     |   1 736
-Couple sans personne à charge	                              |   2 515     |   2 239     |   2 082
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 945	    |   2 618     |   2 428
-Par personne supplémentaire à charge	                      |    430	    |    379      |    346
+DÉSIGNATION	                                             ZONE I ZONE II	ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     2 085  1 860   1 736
+Couple sans personne à charge	                           2 515  2 239   2 082
+Bénéficiaire isolé ou couple ayant une personne à charge 2 945  2 618   2 428
+Par personne supplémentaire à charge	                   430	  379     346
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -807,11 +809,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 678	    |   1 496     |   1 397
-Couple sans personne à charge	                              |   2 025     |   2 239     |   2 082
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 372	    |   2 618     |   2 428
-Par personne supplémentaire à charge	                      |    347	    |    379      |    346
+DÉSIGNATION	                                             ZONE I ZONE II	ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 678  1 496   1 397
+Couple sans personne à charge	                           2 025  2 239   2 082
+Bénéficiaire isolé ou couple ayant une personne à charge 2 372  2 618   2 428
+Par personne supplémentaire à charge	                   347	  379     346
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -852,11 +855,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 c) Logements améliorés par leur propriétaire occupant (en francs) :
 
-DÉSIGNATION	                                                |     TOUTES ZONES
-Bénéficiaire isolé                                          |       	869
-Couple sans personne à charge	                              |         971
-Bénéficiaire isolé ou couple ayant une personne à charge	  |        1 073
-Par personne supplémentaire à charge	                      |         102
+DÉSIGNATION	                                             TOUTES ZONES
+-------------------------------------------------------- ------------
+Bénéficiaire isolé                                       869
+Couple sans personne à charge	                           971
+Bénéficiaire isolé ou couple ayant une personne à charge 1 073
+Par personne supplémentaire à charge	                   102
 
 
 ```catala
@@ -884,11 +888,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 981     |   1 768     |   1 650
-Couple sans personne à charge	                              |   2 390     |   2 128     |   1 979
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 799	    |   2 488     |   2 308
-Par personne supplémentaire à charge	                      |    409	    |    360      |    329
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 981  1 768   1 650
+Couple sans personne à charge	                           2 390  2 128   1 979
+Bénéficiaire isolé ou couple ayant une personne à charge 2 799  2 488   2 308
+Par personne supplémentaire à charge	                   409	  360     329
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -927,11 +932,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 595     |   1 422     |   1 328
-Couple sans personne à charge	                              |   1 925     |   1 712     |   1 593
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 255	    |   2 002     |   1 858
-Par personne supplémentaire à charge	                      |    330	    |    290      |    265
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 595  1 422   1 328
+Couple sans personne à charge	                           1 925  1 712   1 593
+Bénéficiaire isolé ou couple ayant une personne à charge 2 255  2 002   1 858
+Par personne supplémentaire à charge	                   330	  290     265
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -971,11 +977,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   2 001     |   1 786     |   1 667
-Couple sans personne à charge	                              |   1 414     |   2 150     |   1 999
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 827	    |   2 514     |   2 331
-Par personne supplémentaire à charge	                      |    413	    |    364      |    332
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     2 001  1 786   1 667
+Couple sans personne à charge	                           1 414  2 150   1 999
+Bénéficiaire isolé ou couple ayant une personne à charge 2 827  2 514   2 331
+Par personne supplémentaire à charge	                   413	  364     332
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1014,11 +1021,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en francs) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 611     |   1 436     |   1 341
-Couple sans personne à charge	                              |   1 944     |   1 729     |   1 609
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 277	    |   2 022     |   1 877
-Par personne supplémentaire à charge	                      |    333	    |    293      |    268
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 611  1 436   1 341
+Couple sans personne à charge	                           1 944  1 729   1 609
+Bénéficiaire isolé ou couple ayant une personne à charge 2 277  2 022   1 877
+Par personne supplémentaire à charge	                   333	  293     268
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1060,11 +1068,12 @@ a) Logements neufs construits ou acquis par l'accédant à la propriété :
 
 Valeurs en francs du 1er juillet 2001 au 31 décembre 2001
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   2 025     |   1 807     |   1 687
-Couple sans personne à charge	                              |   2 443     |   2 175     |   2 023
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 861	    |   2 543     |   2 359
-Par personne supplémentaire à charge	                      |    418	    |    368      |    336
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     2 025  1 807   1 687
+Couple sans personne à charge	                           2 443  2 175   2 023
+Bénéficiaire isolé ou couple ayant une personne à charge 2 861  2 543   2 359
+Par personne supplémentaire à charge	                   418	  368     336
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1102,11 +1111,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 Valeurs en euros à compter du 1er janvier 2002
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   308,71    |   275,48    |   257,18
-Couple sans personne à charge	                              |   372,43    |   331,58    |   308,4
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   436,15    |   387,68    |   359,62
-Par personne supplémentaire à charge	                      |    63,72	  |    56,1     |    51,22
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     308,71 275,48  257,18
+Couple sans personne à charge	                           372,43 331,58  308,4
+Bénéficiaire isolé ou couple ayant une personne à charge 436,15 387,68  359,62
+Par personne supplémentaire à charge	                   63,72  56,1    51,22
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1147,11 +1157,12 @@ acquis et, le cas échéant, améliorés :
 
 Valeurs en francs du 1er juillet 2001 au 31 décembre 2001
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   1 630     |   1 453     |   1 357
-Couple sans personne à charge	                              |   1 967     |   1 750     |   1 628
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   2 304	    |   2 047     |   1 899
-Par personne supplémentaire à charge	                      |    337	    |    297      |    271
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     1 630  1 453   1 357
+Couple sans personne à charge	                           1 967  1 750   1 628
+Bénéficiaire isolé ou couple ayant une personne à charge 2 304  2 047   1 899
+Par personne supplémentaire à charge	                   337	  297     271
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1189,11 +1200,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 Valeurs en euros à compter du 1er janvier 2002
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   248,49    |   221,51    |   206,87
-Couple sans personne à charge	                              |   299,87    |   266,79    |   248,18
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   351,25    |   312,07    |   289,49
-Par personne supplémentaire à charge	                      |    51,38	  |    45,28    |    41,31
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     248,49 221,51  206,87
+Couple sans personne à charge	                           299,87 266,79  248,18
+Bénéficiaire isolé ou couple ayant une personne à charge 351,25 312,07  289,49
+Par personne supplémentaire à charge	                   51,38  45,28   41,31
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1233,11 +1245,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   312,41    |   278,79    |   260,27
-Couple sans personne à charge	                              |   376,89    |   335,56    |   312,1
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   441,37    |   392,33    |   363,93
-Par personne supplémentaire à charge	                      |    64,48	  |    56,77    |    51,83
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     312,41 278,79  260,27
+Couple sans personne à charge	                           376,89 335,56  312,1
+Bénéficiaire isolé ou couple ayant une personne à charge 441,37 392,33  363,93
+Par personne supplémentaire à charge	                   64,48  56,77   51,83
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1276,11 +1289,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   251,47    |   224,17    |   209,35
-Couple sans personne à charge	                              |   303,47    |   269,99    |   251,16
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   355,47    |   315,81    |   292,97
-Par personne supplémentaire à charge	                      |    52   	  |    45,82    |    41,81
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     251,47 224,17  209,35
+Couple sans personne à charge	                           303,47 269,99  251,16
+Bénéficiaire isolé ou couple ayant une personne à charge 355,47 315,81  292,97
+Par personne supplémentaire à charge	                   52     45,82   41,81
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1320,11 +1334,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   316,16    |   282,14    |   263,39
-Couple sans personne à charge	                              |   381,41    |   339,59    |   315,84
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   446,66    |   397,04    |   368,29
-Par personne supplémentaire à charge	                      |    65,25 	  |    57,45    |    52,45
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     316,16 282,14  263,39
+Couple sans personne à charge	                           381,41 339,59  315,84
+Bénéficiaire isolé ou couple ayant une personne à charge 446,66 397,04  368,29
+Par personne supplémentaire à charge	                   65,25  57,45   52,45
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1363,11 +1378,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   254,49    |   226,86    |   211,86
-Couple sans personne à charge	                              |   307,11    |   273,23    |   254,17
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   359,73    |   319,6     |   269,48
-Par personne supplémentaire à charge	                      |    52,62 	  |    46,37    |    42,31
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     254,49 226,86  211,86
+Couple sans personne à charge	                           307,11 273,23  254,17
+Bénéficiaire isolé ou couple ayant une personne à charge 359,73 319,6   269,48
+Par personne supplémentaire à charge	                   52,62  46,37   42,31
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1407,11 +1423,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   321,85    |   287,22    |   268,13
-Couple sans personne à charge	                              |   388,27    |   345,7     |   321,52
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   454,69    |   404,18    |   374,91
-Par personne supplémentaire à charge	                      |    66,42 	  |    58,48    |    53,39
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     321,85 287,22  268,13
+Couple sans personne à charge	                           388,27 345,7   321,52
+Bénéficiaire isolé ou couple ayant une personne à charge 454,69 404,18  374,91
+Par personne supplémentaire à charge	                    66,42 58,48   53,39
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1450,11 +1467,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   259,07    |   230,94    |   215,67
-Couple sans personne à charge	                              |   312,64    |   278,14    |   258,74
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   366,21    |   325,34    |   308,81
-Par personne supplémentaire à charge	                      |    53,57 	  |    47,2     |    43,07
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     259,07 230,94  215,67
+Couple sans personne à charge	                           312,64 278,14  258,74
+Bénéficiaire isolé ou couple ayant une personne à charge 366,21 325,34  308,81
+Par personne supplémentaire à charge	                   53,57  47,2    43,07
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1494,11 +1512,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   330,26    |   295,26    |   275,64
-Couple sans personne à charge	                              |   399,14    |   355,38    |   330,52
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   467,42    |   415,5     |   385,41
-Par personne supplémentaire à charge	                      |    68,28 	  |    60,12    |    54,88
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     330,26 295,26  275,64
+Couple sans personne à charge	                           399,14 355,38  330,52
+Bénéficiaire isolé ou couple ayant une personne à charge 467,42 415,5   385,41
+Par personne supplémentaire à charge	                   68,28  60,12   54,88
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1537,11 +1556,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   266,32    |   237,41    |   221,71
-Couple sans personne à charge	                              |   321,39    |   285,93    |   365,98
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   376,46    |   334,45    |   310,26
-Par personne supplémentaire à charge	                      |    55,07 	  |    48,52    |    44,28
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     266,32 237,41  221,71
+Couple sans personne à charge	                           321,39 285,93  365,98
+Bénéficiaire isolé ou couple ayant une personne à charge 376,46 334,45  310,26
+Par personne supplémentaire à charge	                   55,07  48,52   44,28
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1581,11 +1601,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   339,99    |   303,41    |   283,25
-Couple sans personne à charge	                              |   410,16    |   365,19    |   339,64
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   480,32    |   426,97    |   396,05
-Par personne supplémentaire à charge	                      |    70,16 	  |    61,78    |    56,39
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     339,99 303,41  283,25
+Couple sans personne à charge	                           410,16 365,19  339,64
+Bénéficiaire isolé ou couple ayant une personne à charge 480,32 426,97  396,05
+Par personne supplémentaire à charge	                   70,16  61,78   56,39
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1624,11 +1645,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   273,67    |   243,96    |   227,83
-Couple sans personne à charge	                              |   330,26    |   293,82    |   273,32
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   386,85    |   343,68    |   318,82
-Par personne supplémentaire à charge	                      |    56,59 	  |    49,86    |    45,5
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     273,67 243,96  227,83
+Couple sans personne à charge	                           330,26 293,82  273,32
+Bénéficiaire isolé ou couple ayant une personne à charge 386,85 343,68  318,82
+Par personne supplémentaire à charge	                   56,59  49,86   45,5
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1668,11 +1690,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   350,02    |   312,36    |   291,61
-Couple sans personne à charge	                              |   422,26    |   375,96    |   349,66
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   494,49    |   439,57    |   407,73
-Par personne supplémentaire à charge	                      |    72,23 	  |    63,6     |    58,05
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     350,02 312,36  291,61
+Couple sans personne à charge	                           422,26 375,96  349,66
+Bénéficiaire isolé ou couple ayant une personne à charge 494,49 439,57  407,73
+Par personne supplémentaire à charge	                   72,23  63,6    58,05
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1711,11 +1734,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   281,74    |   251,16    |   234,55
-Couple sans personne à charge	                              |     340     |   302,49    |   281,38
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   398,26    |   353,82    |   328,23
-Par personne supplémentaire à charge	                      |    58,26 	  |    51,33    |    46,84
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     281,74 251,16  234,55
+Couple sans personne à charge	                           340    302,49  281,38
+Bénéficiaire isolé ou couple ayant une personne à charge 398,26 353,82  328,23
+Par personne supplémentaire à charge	                   58,26  51,33   46,84
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1755,11 +1779,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   351,14    |   313,36    |   292,54
-Couple sans personne à charge	                              |   423,61    |   377,16    |   350,78
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   496,07    |   440,98    |   409,03
-Par personne supplémentaire à charge	                      |    72,46 	  |    63,8     |    58,24
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     351,14 313,36  292,54
+Couple sans personne à charge	                           423,61 377,16  350,78
+Bénéficiaire isolé ou couple ayant une personne à charge 496,07 440,98  409,03
+Par personne supplémentaire à charge	                   72,46  63,8    58,24
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1798,11 +1823,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   282,64    |   251,96    |   235,3
-Couple sans personne à charge	                              |   341,09    |   303,46    |   282,28
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   399,53    |   354,95    |   329,28
-Par personne supplémentaire à charge	                      |    58,45 	  |    51,49    |    46,99
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     282,64 251,96  235,3
+Couple sans personne à charge	                           341,09 303,46  282,28
+Bénéficiaire isolé ou couple ayant une personne à charge 399,53 354,95  329,28
+Par personne supplémentaire à charge	                   58,45  51,49   46,99
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1842,11 +1868,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |     355     |   316,81    |   295,76
-Couple sans personne à charge	                              |   428,27    |   381,31    |   354,64
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   501,53    |   445,83    |   413,53
-Par personne supplémentaire à charge	                      |    73,26 	  |    64,5     |    58,88
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     355    316,81  295,76
+Couple sans personne à charge	                           428,27 381,31  354,64
+Bénéficiaire isolé ou couple ayant une personne à charge 501,53 445,83  413,53
+Par personne supplémentaire à charge	                   73,26  64,5    58,88
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1885,11 +1912,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   285,75    |   254,73    |   237,89
-Couple sans personne à charge	                              |   344,84    |   306,8     |   285,39
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   403,92    |   358,85    |   332,9
-Par personne supplémentaire à charge	                      |    59,09 	  |    52,06    |    47,51
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     285,75 254,73  237,89
+Couple sans personne à charge	                           344,84 306,8   285,39
+Bénéficiaire isolé ou couple ayant une personne à charge 403,92 358,85  332,9
+Par personne supplémentaire à charge	                   59,09  52,06   47,51
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1929,11 +1957,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   358,55    |   319,98    |   298,72
-Couple sans personne à charge	                              |   432,55    |   385,12    |   358,19
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   506,55    |   450,29    |   417,67
-Par personne supplémentaire à charge	                      |    73,99 	  |    65,15    |   459,47
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     358,55 319,98  298,72
+Couple sans personne à charge	                           432,55 385,12  358,19
+Bénéficiaire isolé ou couple ayant une personne à charge 506,55 450,29  417,67
+Par personne supplémentaire à charge	                   73,99  65,15   459,47
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -1975,11 +2004,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   288,61    |   257,28    |   240,27
-Couple sans personne à charge	                              |   348,29    |   309,87    |   288,24
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   407,96    |   362,44    |   336,23
-Par personne supplémentaire à charge	                      |    59,68 	  |    52,58    |   347,99
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     288,61 257,28  240,27
+Couple sans personne à charge	                           348,29 309,87  288,24
+Bénéficiaire isolé ou couple ayant une personne à charge 407,96 362,44  336,23
+Par personne supplémentaire à charge	                   59,68  52,58   347,99
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2021,11 +2051,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   366,26    |   326,86    |   305,14
-Couple sans personne à charge	                              |   441,85    |   393,4     |   365,89
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   517,44    |   459,97    |   426,65
-Par personne supplémentaire à charge	                      |    75,58 	  |    66,55    |    60,75
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     366,26 326,86  305,14
+Couple sans personne à charge	                           441,85 393,4   365,89
+Bénéficiaire isolé ou couple ayant une personne à charge 517,44 459,97  426,65
+Par personne supplémentaire à charge	                   75,58  66,55   60,75
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2064,11 +2095,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   294,82    |   262,81    |   245,44
-Couple sans personne à charge	                              |   355,78    |   316,53    |   294,44
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   416,73    |   370,23    |   343,46
-Par personne supplémentaire à charge	                      |    60,96 	  |    53,71    |    49,02
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     294,82 262,81  245,44
+Couple sans personne à charge	                           355,78 316,53  294,44
+Bénéficiaire isolé ou couple ayant une personne à charge 416,73 370,23  343,46
+Par personne supplémentaire à charge	                   60,96  53,71   49,02
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2108,11 +2140,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   368,35    |   328,72    |   306,88
-Couple sans personne à charge	                              |   444,37    |   395,64    |   367,98
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,39    |   462,59    |   429,08
-Par personne supplémentaire à charge	                      |    76,01 	  |    66,93    |    61,1
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     368,35 328,72  306,88
+Couple sans personne à charge	                           444,37 395,64  367,98
+Bénéficiaire isolé ou couple ayant une personne à charge 520,39 462,59  429,08
+Par personne supplémentaire à charge	                   76,01  66,93   61,1
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2151,11 +2184,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   296,5     |   264,31    |   246,84
-Couple sans personne à charge	                              |   357,81    |   318,33    |   296,12
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   419,11    |   372,34    |   345,42
-Par personne supplémentaire à charge	                      |    61,31 	  |    54,02    |    49,3
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     296,5  264,31  246,84
+Couple sans personne à charge	                           357,81 318,33  296,12
+Bénéficiaire isolé ou couple ayant une personne à charge 419,11 372,34  345,42
+Par personne supplémentaire à charge	                   61,31  54,02   49,3
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2195,11 +2229,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   368,64    |   328,98    |   307,13
-Couple sans personne à charge	                              |   444,73    |   395,96    |   368,27
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   520,81    |   462,96    |   429,42
-Par personne supplémentaire à charge	                      |    76,07 	  |    66,98    |    61,15
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     368,64 328,98  307,13
+Couple sans personne à charge	                           444,73 395,96  368,27
+Bénéficiaire isolé ou couple ayant une personne à charge 520,81 462,96  429,42
+Par personne supplémentaire à charge	                   76,07  66,98   61,15
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2238,11 +2273,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   296,74    |   264,52    |   247,04
-Couple sans personne à charge	                              |   358,1     |   318,58    |   296,36
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   419,45    |   372,64    |   345,7
-Par personne supplémentaire à charge	                      |    61,36 	  |    54,06    |    49,34
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     296,74 264,52  247,04
+Couple sans personne à charge	                           358,1  318,58  296,36
+Bénéficiaire isolé ou couple ayant une personne à charge 419,45 372,64  345,7
+Par personne supplémentaire à charge	                   61,36  54,06   49,34
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2282,11 +2318,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   371,4     |   331,45    |   309,43
-Couple sans personne à charge	                              |   448,07    |   398,93    |   371,03
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   524,72    |   466,43    |   432,64
-Par personne supplémentaire à charge	                      |    76,64 	  |    67,48    |    61,61
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     371,4  331,45  309,43
+Couple sans personne à charge	                           448,07 398,93  371,03
+Bénéficiaire isolé ou couple ayant une personne à charge 524,72 466,43  432,64
+Par personne supplémentaire à charge	                   76,64  67,48   61,61
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2325,11 +2362,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   298,97    |   266,5     |   248,89
-Couple sans personne à charge	                              |   360,79    |   320,97    |   298,58
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   422,6     |   375,43    |   348,29
-Par personne supplémentaire à charge	                      |    61,82 	  |    54,47    |    49,71
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     298,97 266,5   248,89
+Couple sans personne à charge	                           360,79 320,97  298,58
+Bénéficiaire isolé ou couple ayant une personne à charge 422,6  375,43  348,29
+Par personne supplémentaire à charge	                   61,82  54,47   49,71
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2369,11 +2407,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   372,52    |   332,44    |   310,36
-Couple sans personne à charge	                              |   449,41    |   400,13    |   372,15
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   526,29    |   467,83    |   433,94
-Par personne supplémentaire à charge	                      |    76,87 	  |    67,68    |    61,79
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     372,52 332,44  310,36
+Couple sans personne à charge	                           449,41 400,13  372,15
+Bénéficiaire isolé ou couple ayant une personne à charge 526,29 467,83  433,94
+Par personne supplémentaire à charge	                   76,87  67,68   61,79
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2411,11 +2450,12 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
 acquis et, le cas échéant, améliorés (en euros) :
 
-DÉSIGNATION	                                                |   ZONE I	  |   ZONE II	  |   ZONE III
-Bénéficiaire isolé	                                        |   299,86    |   267,30    |   249,64
-Couple sans personne à charge	                              |   361,87    |   321,93    |   299,48
-Bénéficiaire isolé ou couple ayant une personne à charge	  |   423,86    |   376,56    |   349,34
-Par personne supplémentaire à charge	                      |    62,01 	  |    54,63    |    49,86
+DÉSIGNATION	                                             ZONE I ZONE II ZONE III
+-------------------------------------------------------- ------ ------- --------
+Bénéficiaire isolé	                                     299,86 267,30  249,64
+Couple sans personne à charge	                           361,87 321,93  299,48
+Bénéficiaire isolé ou couple ayant une personne à charge 423,86 376,56  349,34
+Par personne supplémentaire à charge	                   62,01  54,63   49,86
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2452,17 +2492,20 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 ### Article 19 | LEGIARTI000044137412
 
-Pour l'application du 4° de l'article D. 832-10 du code de la construction et de l'habitation, le montant
-forfaitaire des charges est fixé comme suit (en euros) :
+Pour l'application du 4° de l'article D. 832-10 du code de la construction et
+de l'habitation, le montant forfaitaire des charges est fixé comme suit
+(en euros) :
 
-Désignation                                             |       Toutes zones
-Bénéficiaire isolé ou couple sans personne à charge	    |       54,22
-Par personne supplémentaire à charge	                  |       12,29
+Désignation                                         Toutes zones
+--------------------------------------------------- ------------
+Bénéficiaire isolé ou couple sans personne à charge 54,22
+Par personne supplémentaire à charge	              12,29
 
 NOTA :
 
-Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables pour
-les prestations dues à compter du 1er octobre 2021.
+Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces
+dispositions sont applicables pour les prestations dues à compter
+du 1er octobre 2021.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété sous condition
@@ -2474,7 +2517,8 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété sous condi
 
 ### Article 20 | LEGIARTI000039160765
 
-Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10 du même code est fixé à 5 euros.
+Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10
+du même code est fixé à 5 euros.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2483,8 +2527,9 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 ### Article 21 | LEGIARTI000039160767
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même code, avant application de
-la contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
+Le seuil de versement prévu au dernier alinéa de l'article D. 832-10 du même code,
+avant application de la contribution pour le remboursement de la dette sociale,
+est fixé à 10 euros.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2535,10 +2580,11 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
 
-Composition du foyer	                  |      Montant
-Bénéficiaire isolé	                    |       27,10
-Couple sans personne à charge	          |       54,22
-Majoration par personne à charge	      |       12,29
+Composition du foyer	           Montant
+-------------------------------- -------
+Bénéficiaire isolé	             27,10
+Couple sans personne à charge	   54,22
+Majoration par personne à charge 12,29
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété
@@ -2581,7 +2627,8 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 
 ### Article 26 | LEGIARTI000039160777
 
-Pour déterminer le plancher de ressources, le coefficient prévu à l'article D. 832-18 du même code est fixé à 16,25.
+Pour déterminer le plancher de ressources, le coefficient prévu à l'article
+D. 832-18 du même code est fixé à 16,25.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementAccessionPropriété:
@@ -2595,14 +2642,15 @@ champ d'application CalculAidePersonnelleLogementAccessionPropriété:
 Pour l'application de l'article D. 832-24 du même code, les équivalences de loyer et de charges locatives plafonds
 sont fixées comme suit (en euros) :
 
-Désignation                                                  | Zone I  | Zone II | Zone III
-Bénéficiaire isolé	                                         | 446,3   | 408,14  | 387,4
-Couple sans personne à charge	                               | 523,21  | 476,32  | 450,57
-Bénéficiaire isolé ou couple ayant une personne à charge     | 557,88	 | 507,87  | 478,02
-Bénéficiaire isolé ou couple ayant deux personnes à charge   | 597,04  | 543,65  | 509,57
-Bénéficiaire isolé ou couple ayant trois personnes à charge  | 636,35	 | 579,29	 | 541,1
-Bénéficiaire isolé ou couple ayant quatre personnes à charge | 686,37	 | 617,27  | 576,57
-Par personne supplémentaire à charge	                       | 71,19   | 64,34	 | 59,71
+Désignation                                                  Zone I Zone II Zone III
+------------------------------------------------------------ ------ ------- --------
+Bénéficiaire isolé	                                         446,3  408,14  387,4
+Couple sans personne à charge	                               523,21 476,32  450,57
+Bénéficiaire isolé ou couple ayant une personne à charge     557,88 507,87  478,02
+Bénéficiaire isolé ou couple ayant deux personnes à charge   597,04 543,65  509,57
+Bénéficiaire isolé ou couple ayant trois personnes à charge  636,35 579,29  541,1
+Bénéficiaire isolé ou couple ayant quatre personnes à charge 686,37 617,27  576,57
+Par personne supplémentaire à charge	                       71,19  64,34	  59,71
 
 NOTA :
 Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
@@ -2660,7 +2708,8 @@ champ d'application CalculAidePersonnelleLogementFoyer sous condition
 
 ### Article 28 | LEGIARTI000039160781
 
-Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24 du même code est fixé à 5 euros.
+Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24
+du même code est fixé à 5 euros.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -2669,8 +2718,9 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 
 ### Article 29 | LEGIARTI000039160783
 
-Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même code, avant application de la
-contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
+Le seuil de versement prévu au dernier alinéa de l'article D. 832-24 du même code,
+avant application de la contribution pour le remboursement de la dette sociale,
+est fixé à 10 euros.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
@@ -2679,8 +2729,8 @@ champ d'application CalculAidePersonnelleLogementFoyer:
 
 ### Article 30 | LEGIARTI000039160785
 
-Les valeurs des coefficients définis à l'article D. 832-25 du même code intervenant dans la formule de calcul
-du coefficient de prise en charge « K » sont fixées ainsi :
+Les valeurs des coefficients définis à l'article D. 832-25 du même code intervenant
+dans la formule de calcul du coefficient de prise en charge « K » sont fixées ainsi :
 
 1° 1 217,26 pour le coefficient « r » défini au c du 1° ;
 
@@ -2691,7 +2741,8 @@ champ d'application CalculAidePersonnelleLogementFoyer:
   définition coefficient_r_d832_25 égal à 1217,26 €
 ```
 
-2° 13 393,40 et 21 420,91 pour le coefficient multiplicateur « cm » défini respectivement au d du 1° et au c du 2°.
+2° 13 393,40 et 21 420,91 pour le coefficient multiplicateur « cm » défini
+respectivement au d du 1° et au c du 2°.
 
 ```catala
 champ d'application CalculAidePersonnelleLogementFoyer:
