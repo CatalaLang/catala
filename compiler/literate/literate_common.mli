@@ -35,3 +35,7 @@ val literal_last_modification : Cli.backend_lang -> string
 val get_language_extension : Cli.backend_lang -> string
 (** Return the file extension corresponding to the given {!type:
     Utils.Cli.backend_lang}. *)
+
+val run_pandoc : string -> Cli.backend_option -> string
+(** Runs the [pandoc] on a string to pretty-print markdown features into the
+    desired format. *)

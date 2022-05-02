@@ -301,11 +301,11 @@ let process_data_decl
   | Some use ->
       Errors.raise_multispanned_error
         [
-          ( Some "first use",
+          ( Some "First use:",
             Pos.get_position (Desugared.Ast.ScopeVar.get_info use) );
-          (Some "second use", pos);
+          (Some "Second use:", pos);
         ]
-        "var name \"%a\" already used"
+        "Variable name \"%a\" already used"
         (Utils.Cli.format_with_style [ ANSITerminal.yellow ])
         name
   | None ->

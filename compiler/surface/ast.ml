@@ -304,6 +304,7 @@ type builtin_expression =
   | GetMonth
   | GetYear
   | RoundMoney
+  | RoundDecimal
 [@@deriving
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]

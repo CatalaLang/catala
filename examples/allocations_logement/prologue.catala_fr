@@ -32,8 +32,6 @@ déclaration énumération TypePrêt:
   -- D331_63_64
   -- D331_59_8
   -- D331_76_1
-  -- Autre
-  # TODO informatique: mettre option pas de prêt
 
 déclaration énumération TitulairePrêt:
   -- Demandeur
@@ -60,7 +58,6 @@ déclaration énumération ModeOccupation:
     contenu Propriétaire
   -- SousLocataire contenu Location
   -- LocationAccession contenu Propriétaire
-  -- Autre
 
 déclaration énumération ParentOuAutre:
   -- DemandeurOuConjointOuParentOuViaPartsSociétés contenu décimal
@@ -101,7 +98,8 @@ déclaration énumération Parenté:
 déclaration structure ParentÀCharge:
   donnée âge contenu durée
   donnée ressources contenu argent
-  donnée ascendant_descendant_collatéral_deuxième_troisième_degré contenu booléen
+  donnée ascendant_descendant_collatéral_deuxième_troisième_degré
+    contenu booléen
   donnée parenté contenu Parenté
   donnée incapacité_80_pourcent_ou_restriction_emploi contenu booléen
   donnée bénéficiaire_l161_19_l351_8_l643_3_sécu contenu booléen
@@ -126,7 +124,8 @@ déclaration structure Ménage:
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
-  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse contenu entier
+  donnée nombre_enfants_à_naître_après_troisième_mois_grossesse
+    contenu entier
   donnée date_naissance_troisième_enfant_ou_dernier_si_plus contenu
     DateNaissanceTroisièmeOuDernierPlusEnfant
 
@@ -149,39 +148,48 @@ déclaration énumération Nationalité:
 
 déclaration champ d'application ÉligibilitéAidePersonnelleLogement:
   entrée ménage contenu Ménage
-  interne condition_prêt condition dépend de Prêt
   entrée demandeur contenu Demandeur
   entrée sortie date_ouverture_droits contenu date
-  interne patrimoine_total_demandeur contenu argent
+
+  # Différentes conditions pour l'éligibilité
+  interne condition_prêt condition dépend de Prêt
   interne condition_spécifique_prise_en_compte_revenus_demandeur condition
   interne condition_nationalité condition
-  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
-  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
-  interne prise_en_compte_personne_à_charge condition
-    dépend de PersonneÀCharge
-  interne personnes_à_charge_prises_en_compte contenu collection PersonneÀCharge
+  interne condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
   interne condition_logement_bailleur condition
   interne condition_logement_prêt condition
-  interne condition_logement_surface_minimale_sans_seuil_m_carrés contenu entier
-  interne nombre_personnes_logement contenu entier
+  interne condition_logement_surface_minimale_sans_seuil_m_carrés
+    contenu entier
   interne condition_logement_surface condition
-  interne usufruit_ou_propriété_famille contenu booléen
-  interne seuil_l822_3_parts_propriété contenu décimal
-  interne seuil_l822_3_parts_usufruit contenu décimal
-  interne seuil_l822_5_patrimoine contenu argent
-  interne patrimoine_pris_en_compte contenu argent
   interne condition_non_ouverture_l822_8 condition
   interne condition_non_ouverture_l822_9_decence_logement condition
   interne condition_non_ouverture_l822_10_peuplement_logement condition
   interne condition_peuplement_logement_l822_10 condition
   interne éligibilité_logement condition
+  interne prise_en_compte_personne_à_charge condition
+    dépend de PersonneÀCharge
+  interne personnes_à_charge_prises_en_compte
+    contenu collection PersonneÀCharge
+
+  # Autres variables
+  interne patrimoine_total_demandeur contenu argent
+  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
+  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
+  interne nombre_personnes_logement contenu entier
+  interne usufruit_ou_propriété_famille contenu booléen
+  interne seuil_l822_3_parts_propriété contenu décimal
+  interne seuil_l822_3_parts_usufruit contenu décimal
+  interne seuil_l822_5_patrimoine contenu argent
+  interne patrimoine_pris_en_compte contenu argent
   interne âge_l351_8_1_sécu contenu durée
   interne âge_l161_17_2_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent
-  sortie éligibilité condition
+
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
+
+  sortie éligibilité condition
 
 champ d'application ÉligibilitéAidePersonnelleLogement:
   règle éligibilité sous condition
@@ -195,21 +203,25 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
   entrée date_ouverture_droits contenu date
+  entrée dépenses_justifiées_réellement_engagées contenu argent
+
   interne condition_rang_enfant condition
   interne condition_période_déménagement condition
-  éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
   interne éligibilité_logement condition
   interne délai_après_emménagement_l823_8_2 contenu durée
-  entrée dépenses_justifiées_réellement_engagées contenu argent
-  sortie montant_prime_déménagement contenu argent
   interne plafond_d823_22 contenu argent
+
+  éligibilité_apl champ d'application ÉligibilitéAidePersonnelleLogement
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
+
+  sortie montant_prime_déménagement contenu argent
 
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition éligibilité_apl.ménage égal à ménage
   définition éligibilité_apl.demandeur égal à demandeur
-  définition éligibilité_apl.date_ouverture_droits égal à date_ouverture_droits
+  définition éligibilité_apl.date_ouverture_droits égal à
+    date_ouverture_droits
   définition base_mensuelle_allocations_familiales.date_courante égal à
     date_ouverture_droits
 
@@ -224,28 +236,31 @@ déclaration énumération PaiementLogementDistinctProfessionnel:
 déclaration champ d'application RessourcesAidePersonnelleLogement:
   entrée ressources_demandeur contenu argent
   entrée ressources_conjoint contenu argent
-  interne ressources_personnes_vivant_habituellement_foyer contenu argent
-  interne ressources_prises_en_compte contenu argent
   entrée personnes_vivant_habituellement_foyer contenu
     collection PersonneVivantHabituellementAuFoyer
+  entrée demandeur_exerce_activité_rémunérée contenu booléen
+  entrée conjoint_exerce_activité_rémunérée contenu booléen
+  entrée personnes_à_charge contenu collection PersonneÀCharge
+  entrée situation_familiale contenu SituationFamiliale
+  entrée mode_occupation contenu ModeOccupation
+  entrée condition_âge_bourse_enseignement_supérieur condition
+  entrée demandeur_poursuit_des_études condition
+  entrée date_demande_ou_reexamen_droit contenu date
   entrée paiement_logement_distinct_professionnel contenu
     PaiementLogementDistinctProfessionnel
+
+  interne ressources_personnes_vivant_habituellement_foyer contenu argent
   interne abattement_r_822_8 contenu argent
   interne montant_forfaitaire_r_822_8 contenu argent
   interne abattement_r_822_7 contenu argent
   interne montant_forfaitaire_r_822_7 contenu argent
   interne abattement_r_822_10 contenu argent
-  entrée demandeur_exerce_activité_rémunérée contenu booléen
-  entrée conjoint_exerce_activité_rémunérée contenu booléen
-  entrée personnes_à_charge contenu collection PersonneÀCharge
-  entrée situation_familiale contenu SituationFamiliale
+  interne ressources_forfaitaires_r822_20 contenu argent
+
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
-  entrée mode_occupation contenu ModeOccupation
-  entrée condition_âge_bourse_enseignement_supérieur condition
-  entrée demandeur_poursuit_des_études condition
-  entrée date_demande_ou_reexamen_droit contenu date
-  interne ressources_forfaitaires_r822_20 contenu argent
+
+  sortie ressources_prises_en_compte contenu argent
 
 déclaration énumération ZoneDHabitation:
   -- Zone1
@@ -260,7 +275,7 @@ déclaration énumération CatégorieCalculAPL:
 déclaration énumération TypeTravauxLogement:
   -- SurLocauxNonHabitation
   -- SurLogementExistant
-  # TODO informatique: rajouter cas où pas de travaux.
+  -- PasDeTravaux
 
 déclaration énumération AmélioréParOccupant:
   -- Oui
@@ -279,10 +294,49 @@ déclaration structure TrancheRevenu:
   donnée bas contenu argent
   donnée taux contenu décimal
 
-déclaration champ d'application CalculAidePersonnelleLogement:
-  sortie aide_finale contenu argent
+déclaration champ d'application ContributionsSocialesAidePersonnelleLogement:
+  sortie montant contenu argent dépend de argent
 
-  interne aide_finale_locatif contenu argent
+déclaration champ d'application CalculAidePersonnelleLogementLocatif:
+  entrée loyer_principal contenu argent
+  entrée ressources_ménage_arrondies contenu argent
+  entrée bénéficiaire_aide_adulte_ou_enfant_handicapés
+    contenu booléen
+  entrée date_courante contenu date
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée zone contenu ZoneDHabitation
+  entrée logement_est_chambre contenu booléen
+  entrée personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    contenu booléen
+  entrée type_aide contenu TypeAidePersonnelleLogement
+  entrée colocation contenu booléen
+  entrée réduction_loyer_solidarité contenu argent
+
+  interne loyer_éligible contenu argent
+  interne taux_loyer_éligible contenu décimal
+    état formule
+    état arrondi
+  interne rapport_loyers contenu décimal
+  interne loyer_référence contenu argent
+  interne fraction_l832_3 contenu décimal
+  interne plafond_dégressivité_d823_16 contenu argent
+  interne plafond_suppression_d823_16 contenu argent
+  interne montant_forfaitaire_d823_16 contenu argent
+  interne montant_minimal_aide_d823_16 contenu argent
+  interne abattement_forfaitaire_d823_17 contenu argent
+  interne taux_prise_compte_ressources contenu décimal
+
+  sortie montant_forfaitaire_charges_d823_16 contenu argent
+  sortie plafond_loyer_d823_16_2 contenu argent
+  sortie participation_minimale contenu argent
+  sortie taux_composition_familiale contenu décimal
+  sortie participation_personnelle contenu argent
+
+  contributions_sociales champ d'application
+    ContributionsSocialesAidePersonnelleLogement
+
+  sortie aide_finale contenu argent
     état formule
     état diminué
     état minoration_forfaitaire
@@ -290,121 +344,152 @@ déclaration champ d'application CalculAidePersonnelleLogement:
     état réduction_loyer_solidarité
     état montant_minimal
 
-  interne aide_finale_accession_propriété contenu argent
-    état formule
-    état minoration_forfaitaire
-    état abattement
-    état contributions_sociales_arrondi
-    état montant_minimal
-
-  interne aide_finale_logement_foyer contenu argent
-    état formule
-    état minoration_forfaitaire
-    état abattement
-    état contributions_sociales_arrondi
-    état montant_minimal
-
-  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
-
-  entrée type_prêt contenu TypePrêt
-  interne taux_francs_vers_euros contenu décimal
-  entrée ancienneté_logement contenu NeufOuAncien
+déclaration champ d'application CalculAidePersonnelleLogementFoyer:
   entrée mode_occupation contenu ModeOccupation
-  interne catégorie_calcul_apl contenu CatégorieCalculAPL
-  interne loyer_éligible contenu argent
-  interne mensualité_éligible contenu argent
-  entrée loyer_principal contenu argent
-  entrée mensualité_principale contenu argent
-  entrée date_courante contenu date
-  entrée logement_est_chambre contenu booléen
-  entrée personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers contenu booléen
-  entrée zone contenu ZoneDHabitation
-  entrée situation_familiale contenu SituationFamiliale
-  interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
-  interne fraction_l832_3 contenu décimal
-
+  entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
-  entrée type_aide contenu TypeAidePersonnelleLogement
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée zone contenu ZoneDHabitation
+  entrée date_courante contenu date
 
-  interne plafond_dégressivité_d823_16 contenu argent
-  interne plafond_suppression_d823_16 contenu argent
-  sortie montant_forfaitaire_charges_d823_16 contenu argent
-  sortie montant_forfaitaire_charges_d832_10 contenu argent
-  sortie plafond_loyer_d823_16_2 contenu argent
-  interne loyer_référence contenu argent
-  interne rapport_loyers contenu décimal
-  entrée colocation contenu booléen
+  contexte condition_2_du_832_25 contenu booléen
 
-  interne mensualité_minimale contenu argent
-
-  interne montant_limite_tranches_d832_15_1 contenu argent
-  interne taux_tranche_inférieure_d832_15_1 contenu décimal
-  interne taux_tranche_supérieure_d832_15_1 contenu décimal
-
-  entrée type_travaux_logement contenu TypeTravauxLogement
-  entrée date_signature_prêt contenu date
-  # TODO informatique: mettre un type option là
-  entrée local_habité_première_fois_bénéficiaire contenu booléen
-  # TODO informatique: mettre un type option là
-  entrée date_entrée_logement contenu date
-  # TODO informatique: mettre un type option là
-  interne plafond_menusalité_d832_10_3 contenu argent
-    état base
-    état copropriétaires
-  entrée copropriété contenu booléen
-  interne calcul_plafond_menusalité_d832_10_3 contenu argent dépend de date
-
-  interne équivalence_minimale_loyer contenu argent
+  interne coefficient_prise_en_charge_d832_25 contenu décimal
+    état formule
+    état arrondi
+    état seuil
+  interne coefficient_multiplicateur_d832_25 contenu argent
+  interne coefficient_r_d832_25 contenu argent
+  interne n_nombre_parts_d832_25 contenu décimal
   interne équivalence_loyer_éligible contenu argent
-
-  interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
-    état avant_abattement
-    état après_abattement
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
     état avant_abattement
     état après_abattement
-  interne coefficient_multiplicateur_d832_17_3 contenu décimal
-  interne coefficient_multiplicateur_d832_11 contenu argent
-  interne coefficient_multiplicateur_d832_25 contenu argent
-  interne coefficient_r_d832_25 contenu argent
-  interne n_nombre_parts_d832_11 contenu décimal
-  interne n_nombre_parts_d832_25 contenu décimal
-  interne coefficient_prise_en_charge_d832_10 contenu décimal
-  interne coefficient_prise_en_charge_d832_25 contenu décimal
-  sortie participation_personnelle contenu argent
-  interne montant_forfaitaire_d832_10 contenu argent
-  interne montant_forfaitaire_d823_16 contenu argent
   interne montant_forfaitaire_d832_24 contenu argent
   interne montant_forfaitaire_d832_26 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
-  interne condition_2_du_832_25 contenu booléen
-  entrée bénéficiaire_aide_adulte_ou_enfant_handicapés condition
-  interne montant_contributions_sociales contenu argent dépend de argent
-  entrée réduction_loyer_solidarité contenu argent
-  interne montant_minimal_aide_d832_10 contenu argent
-  interne montant_minimal_aide_d823_16 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
-  sortie participation_minimale contenu argent
+  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
+
+  contributions_sociales champ d'application
+    ContributionsSocialesAidePersonnelleLogement
+
+  sortie équivalence_minimale_loyer contenu argent
+  sortie aide_finale contenu argent
+    état formule
+    état minoration_forfaitaire
+    état abattement
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+déclaration champ d'application CalculAidePersonnelleLogementAccessionPropriété:
+  entrée mensualité_principale contenu argent
+  entrée ressources_ménage_arrondies contenu argent
+  entrée nombre_personnes_à_charge contenu entier
+  entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée type_travaux_logement contenu TypeTravauxLogement
+  entrée date_signature_prêt contenu date
+  entrée local_habité_première_fois_bénéficiaire contenu booléen
+  entrée date_entrée_logement contenu date
+  entrée copropriété contenu booléen
+  entrée situation_r822_11_13_17 contenu booléen
+  entrée équivalence_minimale_loyer contenu argent
+  entrée zone contenu ZoneDHabitation
+  entrée type_prêt contenu TypePrêt
+  entrée ancienneté_logement contenu NeufOuAncien
+  entrée date_courante contenu date
+
+  interne mensualité_éligible contenu argent
+  interne mensualité_minimale contenu argent
+  interne plafond_mensualité_d832_10_3 contenu argent
+    état base
+    état copropriétaires
+  interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
+  interne n_nombre_parts_d832_11 contenu décimal
+  interne coefficient_prise_en_charge_d832_10 contenu décimal
+    état formule
+    état arrondi
+    état seuil
+  interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
+    état avant_abattement
+    état après_abattement
+  interne ressources_ménage_avec_d832_18 contenu argent
+  interne montant_forfaitaire_charges_d832_10 contenu argent
+  interne montant_forfaitaire_d832_10 contenu argent
+  interne montant_minimal_aide_d832_10 contenu argent
+  interne coefficient_multiplicateur_d832_17_3 contenu décimal
+  interne coefficient_multiplicateur_d832_11 contenu argent
+  interne coefficient_multiplicateur_d832_18 contenu décimal
+  interne montant_limite_tranches_d832_15_1 contenu argent
+  interne taux_tranche_inférieure_d832_15_1 contenu décimal
+  interne taux_tranche_supérieure_d832_15_1 contenu décimal
+  interne taux_francs_vers_euros contenu décimal
+
+  contributions_sociales champ d'application
+    ContributionsSocialesAidePersonnelleLogement
+
+  sortie aide_finale contenu argent
+    état formule
+    état minoration_forfaitaire
+    état abattement
+    état contributions_sociales_arrondi
+    état montant_minimal
+
+déclaration structure InformationsCalculAPLLocatif:
+  donnée loyer_principal contenu argent
+  donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
+  donnée logement_est_chambre contenu booléen
+  donnée colocation contenu booléen
+  donnée personnes_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+    contenu booléen
+  # TODO informatique et juridique: calculer type_aide!
+  donnée type_aide contenu TypeAidePersonnelleLogement
+  donnée réduction_loyer_solidarité contenu argent
+
+déclaration structure InformationsCalculAPLAccessionPropriété:
+  donnée mensualité_principale contenu argent
+  donnée date_signature_prêt contenu date
+  donnée date_entrée_logement contenu date
+  donnée type_travaux_logement contenu TypeTravauxLogement
+  donnée local_habité_première_fois_bénéficiaire contenu booléen
+  donnée copropriété contenu booléen
+  donnée situation_r822_11_13_17 contenu booléen
+  donnée type_prêt contenu TypePrêt
+  donnée ancienneté_logement contenu NeufOuAncien
+
+déclaration énumération InformationsCalculAPL:
+  -- InfosLocatif contenu InformationsCalculAPLLocatif
+  -- InfosLogementFoyer
+  -- InfosAccessionPropriété contenu
+    InformationsCalculAPLAccessionPropriété
+
+
+déclaration champ d'application CalculAidePersonnelleLogement:
+  entrée mode_occupation contenu ModeOccupation
+  entrée informations_calcul contenu InformationsCalculAPL
   entrée ressources_ménage contenu argent
     état sans_arrondi
     état avec_arrondi
-  interne ressources_ménage_avec_d832_18 contenu argent
-  interne coefficient_multiplicateur_d832_18 contenu décimal
-  interne abattement_forfaitaire_d823_17 contenu argent
-  interne taux_prise_compte_ressources contenu décimal
-  interne taux_loyer_éligible contenu décimal
-  sortie taux_composition_familiale contenu décimal
-  entrée situation_r822_11_13_17 contenu booléen
+  entrée situation_familiale contenu SituationFamiliale
+  entrée nombre_personnes_à_charge contenu entier
+  entrée zone contenu ZoneDHabitation
+  entrée date_courante contenu date
 
-champ d'application CalculAidePersonnelleLogement:
-  # Valeur par défaut pour ce plafond quand il n'est pas applicable.
-  définition calcul_plafond_menusalité_d832_10_3 de date_signature_prêt sous condition
-    type_prêt sous forme TypePrêt.Autre
-  conséquence égal à 0 €
+  interne catégorie_calcul_apl contenu CatégorieCalculAPL
+  interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
+  locatif champ d'application CalculAidePersonnelleLogementLocatif
+  logement_foyer champ d'application CalculAidePersonnelleLogementFoyer
+  accession_propriété champ d'application
+    CalculAidePersonnelleLogementAccessionPropriété
+
+  sortie aide_finale contenu argent
+
+
+champ d'application ContributionsSocialesAidePersonnelleLogement:
   # TODO juridique: mettre ce bout de code à côté des articles de loi qui le
   # justifient. (Pas de CSG mais la CRDS pour les APL)
-  définition montant_contributions_sociales de aide_finale égal à
+  définition montant de aide_finale égal à
     aide_finale *€ 0,5%
 
 déclaration champ d'application OuvertureDroitsRetraite:
@@ -426,20 +511,17 @@ déclaration énumération ModeOccupationImpayé:
   -- ImpayéPrêt
 
 déclaration champ d'application ImpayéDépenseLogement:
-  interne seuil_impayé_dépense_de_logement contenu argent
-
   entrée mode_occupation contenu ModeOccupation
-  interne mode_occupation_impayé contenu ModeOccupationImpayé
-
   entrée aide_versée contenu VersementÀ
-
-  entrée montant_charges contenu argent
   entrée montant_apl contenu argent
-
+  entrée montant_charges contenu argent
   entrée dépense_logement contenu DépenseLogement
+  entrée montant_dette contenu argent
+
+  interne seuil_impayé_dépense_de_logement contenu argent
+  interne mode_occupation_impayé contenu ModeOccupationImpayé
   interne dépense_logement_brute contenu DépenseLogement
   interne dépense_logement_nette contenu DépenseLogement
 
-  entrée montant_dette contenu argent
   sortie montant_impayé contenu argent
 ```

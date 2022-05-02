@@ -25,7 +25,7 @@ of the Catala programming language development.
 Building and running examples is done via Makefiles. Each example directory
 contains its own Makefile, which includes `Makefile.common.mk`. This common
 Makefiles defines a list of targets that call the Catala compiler with the
-right options. Each of these targers can be called from the root of the
+right options. Each of these targets can be called from the root of the
 repository with:
 
         make -C examples/<directory of example> <name of target>
@@ -44,7 +44,13 @@ file `examples/foo/foo.catala_en`) list.
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
 
-> **Remark**: don't forget to run `make pygments` before generating LaTex or PDF files.
+ Important
+
+ : Before trying to generates LaTex or PDF files:
+   1. don't forget to run `make pygments`,
+   2. and you need to have the font
+      [Marianne](https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography)
+      installed in your machine.
 
 ## Testing examples
 

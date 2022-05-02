@@ -889,6 +889,9 @@ let rec translate_expr
       Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.GetYear), pos)
   | Builtin RoundMoney ->
       Bindlib.box (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RoundMoney), pos)
+  | Builtin RoundDecimal ->
+      Bindlib.box
+        (Desugared.Ast.EOp (Dcalc.Ast.Unop Dcalc.Ast.RoundDecimal), pos)
 
 and disambiguate_match_and_build_expression
     (scope : Scopelang.Ast.ScopeName.t)
@@ -1058,14 +1061,18 @@ let merge_conditions
   | Some precond, Some cond ->
       let op_term =
         ( Desugared.Ast.EOp (Dcalc.Ast.Binop Dcalc.Ast.And),
-          Pos.get_position (Bindlib.unbox precond) )
+          Pos.get_position (Bindlib.unbox cond) )
       in
       Bindlib.box_apply2
         (fun precond cond ->
           ( Desugared.Ast.EApp (op_term, [ precond; cond ]),
-            Pos.get_position precond ))
+            Pos.get_position cond ))
         precond cond
-  | Some cond, None | None, Some cond -> cond
+  | Some precond, None ->
+      Bindlib.box_apply
+        (fun precond -> (Pos.unmark precond, default_pos))
+        precond
+  | None, Some cond -> cond
   | None, None ->
       Bindlib.box (Desugared.Ast.ELit (Dcalc.Ast.LBool true), default_pos)
 

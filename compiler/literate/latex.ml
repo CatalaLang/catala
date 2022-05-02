@@ -28,18 +28,17 @@ module C = Cli
 
 (** Espaces various LaTeX-sensitive characters *)
 let pre_latexify (s : string) : string =
+  (* first we substitute the annoying characters *)
   let substitute s (old_s, new_s) =
     R.substitute ~rex:(R.regexp old_s) ~subst:(fun _ -> new_s) s
   in
-  [
-    ("\\$", "\\$");
-    ("%", "\\%");
-    ("\\_", "\\_");
-    ("\\#", "\\#");
-    ("1er", "1\\textsuperscript{er}");
-    ("\\^", "\\textasciicircum");
-  ]
-  |> List.fold_left substitute s
+  let s =
+    [ ("1er", "1\\textsuperscript{er}"); ("\\^", "\\textasciicircum") ]
+    |> List.fold_left substitute s
+  in
+  (* Then we send to pandoc, to ensure the markdown features used in the
+     original document are correctly printed! *)
+  run_pandoc s Cli.Latex
 
 (** Usage: [wrap_latex source_files custom_pygments language fmt wrapped]
 
@@ -55,14 +54,68 @@ let wrap_latex
      \\usepackage[utf8]{inputenc}\n\
      \\usepackage{amssymb}\n\
      \\usepackage{babel}\n\
-     \\usepackage{lmodern}\n\
+     \\usepackage{fontspec}\n\
+     \\usepackage[hidelinks]{hyperref}\n\
+     \\setmainfont{Marianne}\n\
      \\usepackage{minted}\n\
+     \\usepackage{longtable}\n\
+     \\usepackage{booktabs}\n\
      \\usepackage{newunicodechar}\n\
      \\usepackage{textcomp}\n\
      \\usepackage[hidelinks]{hyperref}\n\
      \\usepackage[dvipsnames]{xcolor}\n\
-     \\usepackage{fullpage}\n\
+     \\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}\n\
      \\usepackage[many]{tcolorbox}\n\n\
+     \\usepackage{fancyhdr}\n\
+     \\pagestyle{fancy}\n\
+     \\fancyhf{}\n\
+     \\fancyhead[C]{\\leftmark}\n\
+     \\fancyfoot[C]{\\thepage}\n\
+     \\renewcommand{\\headrulewidth}{0.5pt}\n\
+     \\renewcommand{\\footrulewidth}{0.5pt}\n\
+     \\usepackage{titlesec}\n\
+     \\titleclass{\\subsubsubsection}{straight}[\\subsection]\n\
+     \\newcounter{subsubsubsection}[subsubsection]\n\
+     \\renewcommand\\thesubsubsubsection{\\thesubsubsection.\\arabic{subsubsubsection}}\n\
+     \\titleformat{\\subsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsection}{1em}{}\n\
+     \\titlespacing*{\\subsubsubsection}{0pt}{3.25ex plus 1ex minus \
+     .2ex}{1.5ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsection}{straight}[\\subsubsection]\n\
+     \\newcounter{subsubsubsubsection}[subsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsection{\\thesubsubsubsection.\\arabic{subsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsection}{0.75em}{}\n\
+     \\titlespacing*{\\subsubsubsubsection}{0pt}{2.75ex plus 1ex minus \
+     .2ex}{1.25ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsection}{straight}[\\subsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsection}[subsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsection{\\thesubsubsubsubsection.\\arabic{subsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsection}{0.7em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsection}{0pt}{2.5ex plus 1ex minus \
+     .2ex}{1.1ex plus .2ex}\n\
+     \\titleclass{\\subsubsubsubsubsubsection}{straight}[\\subsubsubsubsection]\n\
+     \\newcounter{subsubsubsubsubsubsection}[subsubsubsubsubsection]\n\
+     \\renewcommand\\thesubsubsubsubsubsubsection{\\thesubsubsubsubsubsection.\\arabic{subsubsubsubsubsubsection}}\n\
+     \\titleformat{\\subsubsubsubsubsubsection}{\\normalfont\\normalsize\\bfseries}{\\thesubsubsubsubsubsubsection}{0.6em}{}\n\
+     \\titlespacing*{\\subsubsubsubsubsubsection}{0pt}{2.25ex plus 1ex minus \
+     .2ex}{1ex plus .2ex}\n\
+     \\makeatletter\n\
+     \\def\\toclevel@subsubsubsection{4}\n\
+     \\def\\toclevel@subsubsubsubsection{5}\n\
+     \\def\\toclevel@subsubsubsubsubsection{6}\n\
+     \\def\\toclevel@subsubsubsubsubsubsection{7}\n\
+     \\def\\toclevel@paragraph{8}\n\
+     \\def\\toclevel@subparagraph{9}\n\
+     \\def\\l@subsection{\\@dottedtocline{1}{1em}{0.5em}}\n\
+     \\def\\l@subsubsection{\\@dottedtocline{2}{2em}{1em}}\n\
+     \\def\\l@subsubsubsection{\\@dottedtocline{3}{3em}{1.5em}}\n\
+     \\def\\l@subsubsubsubsection{\\@dottedtocline{5}{4em}{2em}}\n\
+     \\def\\l@subsubsubsubsubsection{\\@dottedtocline{6}{5em}{2.5em}}\n\
+     \\def\\l@subsubsubsubsubsubsection{\\@dottedtocline{7}{6em}{3em}}\n\
+     \\def\\l@paragraph{\\@dottedtocline{8}{7em}{3.5em}}\n\
+     \\def\\l@subparagraph{\\@dottedtocline{9}{8em}{4em}}\n\
+     \\makeatother\n\
+     \\setcounter{secnumdepth}{0}\n\
+     \\setcounter{tocdepth}{9}\n\
      \\newunicodechar{÷}{$\\div$}\n\
      \\newunicodechar{×}{$\\times$}\n\
      \\newunicodechar{≤}{$\\leqslant$}\n\
@@ -78,7 +131,8 @@ let wrap_latex
      rulecolor=\\color{gray!70},\n\
      firstnumber=last,\n\
      codes={\\catcode`\\$=3\\catcode`\\^=7}\n\
-     }\n\n\
+     }\n\
+     \\newcommand{\\tightlist}{\\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}\n\n\
      \\title{\n\
      %s\n\
      }\n\
@@ -89,7 +143,10 @@ let wrap_latex
      \\maketitle\n\n\
      %s : \n\
      \\begin{itemize}%s\\end{itemize}\n\n\
-     \\[\\star\\star\\star\\]\\\\\n"
+     \\clearpage\n\
+     \\tableofcontents\n\n\
+     \\[\\star\\star\\star\\]\n\
+     \\clearpage"
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (literal_title language)
     (literal_generated_by language)
@@ -116,17 +173,41 @@ let wrap_latex
 
 (** {1 Weaving} *)
 
+(** [check_exceeding_lines max_len start_line filename content] prints a warning
+    message for each lines of [content] exceeding [max_len] characters. *)
+let check_exceeding_lines
+    ?(max_len = 80) (start_line : int) (filename : string) (content : string) =
+  content |> String.split_on_char '\n'
+  |> List.iteri (fun i s ->
+         if String.length s > max_len then (
+           Cli.warning_print "The line %s in %s is exceeding %s characters:"
+             (Cli.with_style
+                ANSITerminal.[ Bold; yellow ]
+                "%d"
+                (start_line + i + 1))
+             (Cli.with_style ANSITerminal.[ Bold; magenta ] "%s" filename)
+             (Cli.with_style ANSITerminal.[ Bold; red ] "%d" max_len);
+           Cli.warning_print "%s%s" (String.sub s 0 max_len)
+             (Cli.with_style
+                ANSITerminal.[ red ]
+                "%s"
+                String.(sub s max_len (length s - max_len)))))
+
 let rec law_structure_to_latex
     (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
     unit =
   match i with
   | A.LawHeading (heading, children) ->
-      Format.fprintf fmt "\\%s*{%s}\n\n"
+      Format.fprintf fmt "\\%s{%s}\n\n"
         (match heading.law_heading_precedence with
         | 0 -> "section"
         | 1 -> "subsection"
         | 2 -> "subsubsection"
-        | 3 -> "paragraph"
+        | 3 -> "subsubsubsection"
+        | 4 -> "subsubsubsubsection"
+        | 5 -> "subsubsubsubsubsection"
+        | 6 -> "subsubsubsubsubsubsection"
+        | 7 -> "paragraph"
         | _ -> "subparagraph")
         (pre_latexify (Pos.unmark heading.law_heading_name));
       Format.pp_print_list
@@ -164,22 +245,24 @@ let rec law_structure_to_latex
         | En -> "Metadata"
         | Pl -> "Metadane"
       in
+      let start_line = Pos.get_start_line (Pos.get_position c) - 1 in
+      let filename = Filename.basename (Pos.get_file (Pos.get_position c)) in
+      let block_content = Pos.unmark c in
+      check_exceeding_lines start_line filename block_content;
       Format.fprintf fmt
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after \
          skip=1em]\n\
-         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+         \\begin{minted}[breaklines, numbersep=9mm, firstnumber=%d, \
          label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          ```catala\n\
          %s```\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
-        metadata_title metadata_title
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+        metadata_title metadata_title start_line (pre_latexify filename)
         (get_language_extension language)
-        (Pos.unmark c)
+        block_content
 
 (** {1 API} *)
 
