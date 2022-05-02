@@ -103,6 +103,7 @@ val decimal_to_string : max_prec_digits:int -> decimal -> string
 val decimal_of_integer : integer -> decimal
 val decimal_of_float : float -> decimal
 val decimal_to_float : decimal -> float
+val decimal_round : decimal -> decimal
 
 (**{2 Integers} *)
 

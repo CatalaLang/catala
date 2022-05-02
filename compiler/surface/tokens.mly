@@ -31,10 +31,10 @@
 %token<string> LAW_TEXT
 %token<string> CONSTRUCTOR IDENT
 %token<string> END_CODE
-%token<Runtime.integer> INT_LITERAL
+%token<string> INT_LITERAL
 %token TRUE FALSE
-%token<Runtime.integer * Runtime.integer> DECIMAL_LITERAL
-%token<Runtime.integer * Runtime.integer> MONEY_AMOUNT
+%token<string * string> DECIMAL_LITERAL
+%token<string * string> MONEY_AMOUNT
 %token BEGIN_CODE TEXT
 %token COLON ALT DATA VERTICAL
 %token OF INTEGER COLLECTION
