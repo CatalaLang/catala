@@ -34,41 +34,25 @@ champ d'application Exemple1:
 
 ```catala
 déclaration champ d'application Exemple2 :
-  calcul champ d'application CalculAidePersonnelleLogement
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple2:
   définition montant égal à calcul.aide_finale
-  définition calcul.ancienneté_logement égal à Neuf
-  définition calcul.mode_occupation égal à Locataire contenu (Location {
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurPrivé
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: faux
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-    }
-  })
   définition calcul.loyer_principal égal à 425 €
-  définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2021-10-3|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
-    égal à faux
   définition calcul.zone égal à Zone2
-  définition calcul.situation_familiale égal à Mariés
+  définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
-  définition calcul.type_travaux_logement égal à SurLogementExistant
-  définition calcul.local_habité_première_fois_bénéficiaire égal à faux
-  définition calcul.date_entrée_logement égal à |2015-03-15|
-  définition calcul.copropriété égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage égal à 11500 €
-  définition calcul.situation_r822_11_13_17 égal à faux
-  définition calcul.type_prêt égal à TypePrêt.Autre
-  définition calcul.date_signature_prêt égal à |2015-03-15|
+  définition calcul.ressources_ménage_arrondies égal à 11500 €
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 78,8 €
   assertion calcul.plafond_loyer_d823_16_2 = 409,88 €
@@ -77,43 +61,27 @@ champ d'application Exemple2:
   assertion calcul.participation_personnelle = 124,68 €
 ```
 
-```catala 
+```catala
 déclaration champ d'application Exemple3 :
-  calcul champ d'application CalculAidePersonnelleLogement
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple3:
   définition montant égal à calcul.aide_finale
-  définition calcul.ancienneté_logement égal à Neuf
-  définition calcul.mode_occupation égal à Locataire contenu (Location {
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurSocial
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: faux
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-    }
-  })
   définition calcul.loyer_principal égal à 408 €
-  définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2022-01-18|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
-    égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
   définition calcul.zone égal à Zone3
-  définition calcul.situation_familiale égal à Célibataire
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.nombre_personnes_à_charge égal à 3
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
-  définition calcul.type_travaux_logement égal à SurLogementExistant
-  définition calcul.local_habité_première_fois_bénéficiaire égal à faux
-  définition calcul.date_entrée_logement égal à |2017-09-26|
-  définition calcul.copropriété égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage égal à 14250 €
-  définition calcul.situation_r822_11_13_17 égal à faux
-  définition calcul.type_prêt égal à TypePrêt.Autre
-  définition calcul.date_signature_prêt égal à |2017-09-26|
+  définition calcul.ressources_ménage_arrondies égal à 14300 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 91,09 €
   assertion calcul.plafond_loyer_d823_16_2 = 378,37 €
@@ -122,43 +90,27 @@ champ d'application Exemple3:
   assertion calcul.participation_personnelle = 170,31 €
 ```
 
-```catala 
+```catala
 déclaration champ d'application Exemple4 :
-  calcul champ d'application CalculAidePersonnelleLogement
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple4:
   définition montant égal à calcul.aide_finale
-  définition calcul.ancienneté_logement égal à Neuf
-  définition calcul.mode_occupation égal à Locataire contenu (Location {
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurPrivé
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: faux
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-    }
-  })
   définition calcul.loyer_principal égal à 680 €
-  définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2021-12-19|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
-    égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
   définition calcul.zone égal à Zone1
-  définition calcul.situation_familiale égal à Pacsés
+  définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.nombre_personnes_à_charge égal à 1
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
-  définition calcul.type_travaux_logement égal à SurLogementExistant
-  définition calcul.local_habité_première_fois_bénéficiaire égal à faux
-  définition calcul.date_entrée_logement égal à |2012-02-07|
-  définition calcul.copropriété égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage égal à 39500 €
-  définition calcul.situation_r822_11_13_17 égal à faux
-  définition calcul.type_prêt égal à TypePrêt.Autre
-  définition calcul.date_signature_prêt égal à |2012-02-07|
+  définition calcul.ressources_ménage_arrondies égal à 39500 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 66,51 €
   assertion calcul.plafond_loyer_d823_16_2 = 406,30 €
@@ -167,88 +119,56 @@ champ d'application Exemple4:
   assertion calcul.participation_personnelle = 979,90 €
 ```
 
-```catala 
+```catala
 déclaration champ d'application Exemple5 :
-  calcul champ d'application CalculAidePersonnelleLogement
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple5:
   définition montant égal à calcul.aide_finale
-  définition calcul.ancienneté_logement égal à Neuf
-  définition calcul.mode_occupation égal à Locataire contenu (Location {
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurPrivé
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: faux
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-    }
-  })
   définition calcul.loyer_principal égal à 610 €
-  définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2022-04-05|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
-    égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
   définition calcul.zone égal à Zone1
-  définition calcul.situation_familiale égal à Célibataire
+  définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.nombre_personnes_à_charge égal à 0
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
-  définition calcul.type_travaux_logement égal à SurLogementExistant
-  définition calcul.local_habité_première_fois_bénéficiaire égal à faux
-  définition calcul.date_entrée_logement égal à |2021-08-30|
-  définition calcul.copropriété égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage égal à 2700 €
-  définition calcul.situation_r822_11_13_17 égal à faux
-  définition calcul.type_prêt égal à TypePrêt.Autre
-  définition calcul.date_signature_prêt égal à |2021-08-30|
+  définition calcul.ressources_ménage_arrondies égal à 2700 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 298,07 €
   assertion calcul.participation_minimale = 35,59 €
   assertion calcul.taux_composition_familiale = 2,83%
-  assertion calcul.participation_personnelle = -64,19 €
+  assertion calcul.participation_personnelle = 0€ -€ 64,19 €
 ```
 
-```catala 
+```catala
 déclaration champ d'application Exemple6 :
-  calcul champ d'application CalculAidePersonnelleLogement
+  calcul champ d'application CalculAidePersonnelleLogementLocatif
   sortie montant contenu argent
 
 champ d'application Exemple6:
   définition montant égal à calcul.aide_finale
-  définition calcul.ancienneté_logement égal à Neuf
-  définition calcul.mode_occupation égal à Locataire contenu (Location {
-    -- bailleur: Bailleur {
-      -- type_bailleur: BailleurPrivé
-      -- respecte_convention_titre_V: vrai
-      -- respecte_convention_titre_II: vrai
-      -- construit_amélioré_conditions_l831_1_4: faux
-      -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-    }
-  })
   définition calcul.loyer_principal égal à 436 €
-  définition calcul.mensualité_principale égal à 0 €
   définition calcul.date_courante égal à |2022-05-02|
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.personnes_âgées_ou_handicapées_adultes_hébergées_à_titre_onéreux_chez_des_particuliers
-    égal à faux
+  définition
+    calcul.personne_âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à faux
   définition calcul.zone égal à Zone2
-  définition calcul.situation_familiale égal à Concubins
+  définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.nombre_personnes_à_charge égal à 0
   définition calcul.type_aide égal à AidePersonnaliséeLogement
   définition calcul.colocation égal à faux
-  définition calcul.type_travaux_logement égal à SurLogementExistant
-  définition calcul.local_habité_première_fois_bénéficiaire égal à faux
-  définition calcul.date_entrée_logement égal à |2020-07-23|
-  définition calcul.copropriété égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
-  définition calcul.ressources_ménage égal à 19450 €
-  définition calcul.situation_r822_11_13_17 égal à faux
-  définition calcul.type_prêt égal à TypePrêt.Autre
-  définition calcul.date_signature_prêt égal à |2020-07-23|
+  définition calcul.ressources_ménage_arrondies égal à 19500 €
+  définition calcul.bénéficiaire_aide_adulte_ou_enfant_handicapés égal à faux
   assertion montant = 0 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 54,22 €
   assertion calcul.plafond_loyer_d823_16_2 = 317,97 €
