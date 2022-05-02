@@ -173,6 +173,26 @@ let wrap_latex
 
 (** {1 Weaving} *)
 
+(** [check_exceeding_lines max_len start_line filename content] prints a warning
+    message for each lines of [content] exceeding [max_len] characters. *)
+let check_exceeding_lines
+    ?(max_len = 80) (start_line : int) (filename : string) (content : string) =
+  content |> String.split_on_char '\n'
+  |> List.iteri (fun i s ->
+         if String.length s > max_len then (
+           Cli.warning_print "The line %s in %s is exceeding %s characters:"
+             (Cli.with_style
+                ANSITerminal.[ Bold; yellow ]
+                "%d"
+                (start_line + i + 1))
+             (Cli.with_style ANSITerminal.[ Bold; magenta ] "%s" filename)
+             (Cli.with_style ANSITerminal.[ Bold; red ] "%d" max_len);
+           Cli.warning_print "%s%s" (String.sub s 0 max_len)
+             (Cli.with_style
+                ANSITerminal.[ red ]
+                "%s"
+                String.(sub s max_len (length s - max_len)))))
+
 let rec law_structure_to_latex
     (language : C.backend_lang) (fmt : Format.formatter) (i : A.law_structure) :
     unit =
@@ -225,22 +245,24 @@ let rec law_structure_to_latex
         | En -> "Metadata"
         | Pl -> "Metadane"
       in
+      let start_line = Pos.get_start_line (Pos.get_position c) - 1 in
+      let filename = Filename.basename (Pos.get_file (Pos.get_position c)) in
+      let block_content = Pos.unmark c in
+      check_exceeding_lines start_line filename block_content;
       Format.fprintf fmt
         "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
          title=\\textcolor{black}{\\texttt{%s}},title after \
          break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after \
          skip=1em]\n\
-         \\begin{minted}[numbersep=9mm, firstnumber=%d, \
+         \\begin{minted}[breaklines, numbersep=9mm, firstnumber=%d, \
          label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
          ```catala\n\
          %s```\n\
          \\end{minted}\n\
          \\end{tcolorbox}"
-        metadata_title metadata_title
-        (Pos.get_start_line (Pos.get_position c) - 1)
-        (pre_latexify (Filename.basename (Pos.get_file (Pos.get_position c))))
+        metadata_title metadata_title start_line (pre_latexify filename)
         (get_language_extension language)
-        (Pos.unmark c)
+        block_content
 
 (** {1 API} *)
 
